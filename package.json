@@ -1,0 +1,22 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/case-app/case.git"
+  },
+  "author": "CASE",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/case-app/case/issues"
+  },
+  "homepage": "https://github.com/case-app/case#readme"
+}
