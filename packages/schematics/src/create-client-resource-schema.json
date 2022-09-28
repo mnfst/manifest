@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "createClientResource",
+  "title": "Create Client Resource Schema",
+  "type": "object",
+  "description": "Create a resource",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of the resource",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Resource name (singular, in english) ?"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of the resource that will be displayed",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Resource name that will be displayed (singular, in your language) ? "
+    },
+    "gender": {
+      "type": "string",
+      "description": "gender of the displayName",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "x-prompt": {
+        "message": "Gender ?",
+        "type": "list",
+        "multiselect": false,
+        "items": ["Feminine", "Masculine"]
+      }
+    }
+  },
+  "required": ["name", "displayName", "gender"]
+}

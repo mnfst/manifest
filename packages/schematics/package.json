@@ -1,0 +1,32 @@
+{
+  "name": "@case-app/schematics",
+  "private": false,
+  "version": "0.4.3",
+  "description": "Set of schematics for CASE Framework",
+  "scripts": {
+    "build": "npm run move && tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "move": "rm -rf dist && mkdir -p dist/server-schematics/files && cp -ar ./src/server-schematics/files/* dist/server-schematics/files && mkdir -p dist/server-schematics/seeder-files && cp -ar ./src/server-schematics/seeder-files/* dist/server-schematics/seeder-files && mkdir -p dist/client-schematics/files && cp -ar ./src/client-schematics/files/* dist/client-schematics/files",
+    "postbuild": "cp package.json dist/package.json",
+    "test": "npm run build && jasmine src/**/*_spec.js",
+    "publish": "npm run build && cd dist && npm publish"
+  },
+  "keywords": [
+    "schematics"
+  ],
+  "author": "Buddyweb",
+  "license": "MIT",
+  "schematics": "./src/collection.json",
+  "dependencies": {
+    "@angular-devkit/core": "^11.2.9",
+    "@angular-devkit/schematics": "^11.2.9",
+    "@schematics/angular": "^11.2.10",
+    "typescript": "~4.1.2"
+  },
+  "devDependencies": {
+    "@types/jasmine": "~3.5.0",
+    "@types/node": "^12.11.1",
+    "jasmine": "^3.5.0",
+    "ts-node": "^9.1.1"
+  }
+}
