@@ -1,0 +1,29 @@
+<div class="control">
+  <div
+    class="color-picker-wrapper"
+    [ngClass]="{ 'is-danger': showErrors && form.invalid }"
+  >
+    <label
+      >{{ label }}<span class="has-text-danger" *ngIf="required">*</span></label
+    >
+
+    <div
+      class="circle"
+      [ngStyle]="{ background: selectedColor }"
+      (click)="showList = !showList"
+    ></div>
+
+    <div class="card block color-list px-4 pt-6 pb-4" *ngIf="showList">
+      <label class="full-width ml-3">Sélectionnez une couleur</label>
+
+      <div
+        class="small-circle"
+        (click)="select(color)"
+        *ngFor="let color of colors"
+        [ngStyle]="{ background: color }"
+        [ngClass]="{ 'is-active': color === selectedColor }"
+      ></div>
+    </div>
+  </div>
+  <p class="help" *ngIf="helpText">{{ helpText }}</p>
+</div>

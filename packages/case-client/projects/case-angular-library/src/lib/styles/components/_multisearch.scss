@@ -1,0 +1,72 @@
+.multisearch-box {
+  .list {
+    @include mobile {
+      position: relative;
+    }
+    @include tablet {
+      position: absolute;
+    }
+    top: 100%;
+    left: 0;
+    z-index: 99;
+    border-radius: 0;
+    width: 100%;
+    max-height: 600px;
+    overflow-y: auto;
+
+    li {
+      padding: $control-padding-vertical $control-padding-horizontal;
+      display: inline-flex;
+      align-items: start;
+      justify-content: flex-start;
+      width: 100%;
+      i {
+        margin-right: 10px;
+        margin-top: 2px;
+        color: $grey;
+      }
+
+      &:hover,
+      &.is-focused {
+        background-color: $link-alpha07;
+        color: $link;
+      }
+    }
+  }
+  .control {
+    max-width: 100%;
+  }
+
+  $icon-colors: (
+    '1': '#ad8875',
+    '2': '#6f627a',
+    '3': '#ff8080',
+    '4': '#774e94',
+    '5': '#ffc155',
+    '6': '#87655c',
+    '7': '#fa8c43',
+    '8': '#53788d',
+    '9': '#466b84',
+    '10': '#1eb1e8',
+    '11': '#f8a94a',
+    '12': '#f46470',
+    '13': '#57b3a0'
+  );
+
+  @each $i, $color in $icon-colors {
+    .has-icon-color-#{$i} {
+      color: $color;
+    }
+  }
+
+  .tag {
+    &:first-child {
+      width: calc(100% - 2em);
+      min-width: calc(100% - 2em);
+      position: relative;
+      overflow-x: hidden;
+      white-space: nowrap;
+      justify-content: flex-start;
+    }
+  }
+}

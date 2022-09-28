@@ -1,0 +1,78 @@
+<ng-container [ngSwitch]="yield.type">
+  <case-image-yield
+    *ngSwitchCase="YieldType.Image"
+    [imageObjects]="yield.propertyValue"
+    [label]="yield.secondPropertyValue"
+  ></case-image-yield>
+
+  <case-date-yield
+    *ngSwitchCase="YieldType.Date"
+    [date]="yield.propertyValue"
+  ></case-date-yield>
+
+  <case-currency-yield
+    *ngSwitchCase="YieldType.Currency"
+    [amount]="yield.propertyValue"
+  ></case-currency-yield>
+
+  <case-address-yield
+    *ngSwitchCase="YieldType.Address"
+    [stringAddress]="yield.propertyValue"
+  ></case-address-yield>
+
+  <case-download-yield
+    *ngSwitchCase="YieldType.Download"
+    [filePath]="yield.propertyValue"
+  ></case-download-yield>
+
+  <case-color-yield
+    *ngSwitchCase="YieldType.Color"
+    [color]="yield.propertyValue"
+    [text]="yield.secondPropertyValue"
+  ></case-color-yield>
+
+  <case-file-icon-yield
+    *ngSwitchCase="YieldType.FileIcon"
+    [path]="yield.propertyValue"
+  ></case-file-icon-yield>
+
+  <case-icon-yield
+    *ngSwitchCase="YieldType.Icon"
+    [icon]="yield.icon"
+    [tooltip]="yield.propertyValue"
+  ></case-icon-yield>
+
+  <case-progress-bar-yield
+    *ngSwitchCase="YieldType.ProgressBar"
+    [progressValue]="yield.propertyValue"
+    [totalValue]="yield.secondPropertyValue"
+    [tooltipText]="yield.thirdPropertyValue"
+  ></case-progress-bar-yield>
+
+  <case-analog-progress-bar-yield
+    *ngSwitchCase="YieldType.AnalogProgressBar"
+    [progressPercentage]="yield.propertyValue"
+  ></case-analog-progress-bar-yield>
+
+  <case-switch-yield
+    *ngSwitchCase="YieldType.Switch"
+    [value]="yield.propertyValue"
+    [displayValue]="yield.secondPropertyValue"
+  ></case-switch-yield>
+
+  <ng-container *ngSwitchCase="YieldType.Check">
+    <i class="icon icon-check1" *ngIf="yield.propertyValue"></i>
+  </ng-container>
+
+  <case-text-yield
+    *ngSwitchCase="YieldType.Text"
+    [text]="yield.propertyValue"
+    [secondText]="yield.secondPropertyValue"
+  ></case-text-yield>
+
+  <case-text-yield
+    *ngSwitchDefault=""
+    [text]="yield.propertyValue"
+    [secondText]="yield.secondPropertyValue"
+  ></case-text-yield>
+</ng-container>

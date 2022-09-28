@@ -1,0 +1,67 @@
+// .color-yield-wrapper class allow to display a color circle within a <td>
+.color-yield-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.color-picker-wrapper {
+  position: relative;
+  width: 100%;
+  label {
+    width: 100%;
+  }
+}
+.circle {
+  height: $control-height;
+  width: $control-height;
+  border-radius: $control-height;
+  background-color: $white-bis;
+  cursor: pointer;
+
+  &:after {
+    content: 'Modifier';
+    display: inline-block;
+    line-height: $control-height;
+    padding-left: #{$control-height * 1.25};
+  }
+
+  @each $name, $pair in $colors {
+    $color: nth($pair, 1);
+    .color-picker-wrapper.is-#{$name} & {
+      box-shadow: 0 0 0 1px $color;
+    }
+  }
+}
+
+.color-list {
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+  margin-top: 10px;
+
+  @include mobile {
+    position: relative;
+  }
+
+  &:before,
+  &:after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 6px 6px 6px;
+  }
+
+  &:after {
+    top: -5px;
+    border-color: transparent transparent $light transparent;
+  }
+
+  &:before {
+    top: -6px;
+    border-color: transparent transparent $grey-lighter transparent;
+  }
+}

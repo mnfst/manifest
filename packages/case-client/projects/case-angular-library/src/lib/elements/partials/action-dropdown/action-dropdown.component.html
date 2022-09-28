@@ -1,0 +1,49 @@
+<div
+  class="dropdown is-west"
+  [ngClass]="{ 'is-active': isActive }"
+  *ngIf="this.links && this.links.length"
+>
+  <div class="dropdown-trigger">
+    <a
+      class="has-text-dark more"
+      aria-haspopup="true"
+      aria-controls="dropdown-menu"
+      (click)="isActive = !isActive"
+    >
+      <span>
+        <i class="icon icon-more-vertical is-size-4 has-text-black"></i>
+      </span>
+    </a>
+  </div>
+  <div class="dropdown-menu is-right" id="dropdown-menu" role="menu">
+    <div class="dropdown-content">
+      <ng-container *ngFor="let link of links">
+        <hr class="dropdown-divider" *ngIf="link.withDivision" />
+        <div
+          class="tooltip-wraper"
+          [ngClass]="{
+            'tooltip has-tooltip has-tooltip-left':
+              link.tooltip && link.tooltip(item)
+          }"
+          [attr.data-tooltip]="link.tooltip && link.tooltip(item)"
+        >
+          <a
+            class="dropdown-item"
+            [ngClass]="link.className"
+            [caseAction]="link.action(item)"
+            *ngIf="!link.disabled || !link.disabled(item)"
+          >
+            {{ link.label }}
+          </a>
+          <span
+            class="dropdown-item has-text-grey"
+            [ngClass]="link.className"
+            *ngIf="link.disabled && link.disabled(item)"
+          >
+            {{ link.label }}</span
+          >
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

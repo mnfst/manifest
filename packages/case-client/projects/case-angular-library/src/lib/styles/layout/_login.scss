@@ -1,0 +1,137 @@
+.col-login {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  @include touch {
+    width: $col-left-width-tablet;
+  }
+  @include mobile {
+    width: $col-left-width-mobile;
+  }
+  @include desktop {
+    width: $col-left-width-desktop;
+  }
+
+  @include widescreen {
+    width: $col-left-width-widescreen;
+  }
+
+  > div {
+    margin: auto;
+    margin: auto;
+    @include widescreen {
+      max-width: $col-left-max-width-widescreen;
+      min-width: $col-left-min-width-widescreen;
+    }
+    @include desktop {
+      max-width: $col-left-max-width-desktop;
+      min-width: $col-left-min-width-desktop;
+    }
+    @include tablet {
+      max-width: $col-left-max-width-tablet;
+      min-width: $col-left-min-width-tablet;
+    }
+    @include mobile {
+      max-width: $col-left-max-width-mobile;
+      min-width: $col-left-min-width-mobile;
+    }
+  }
+}
+
+@-webkit-keyframes bg {
+  0% {
+    filter: hue-rotate(0);
+  }
+  50% {
+    filter: hue-rotate(-33deg);
+  }
+  100% {
+    filter: hue-rotate(0);
+  }
+}
+
+@keyframes bg {
+  0% {
+    filter: hue-rotate(0);
+  }
+  50% {
+    filter: hue-rotate(-33deg);
+  }
+  100% {
+    filter: hue-rotate(0);
+  }
+}
+
+// Mouvements up to bottom
+@-webkit-keyframes upAndDown {
+  0% {
+    top: -15rem;
+  }
+  50% {
+    top: -11rem;
+  }
+
+  100% {
+    top: -15rem;
+  }
+}
+
+@keyframes upAndDown {
+  0% {
+    top: -15rem;
+  }
+  50% {
+    top: -11rem;
+  }
+
+  100% {
+    top: -15rem;
+  }
+}
+.col-decoration {
+  flex: none;
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+  background: $link;
+  -webkit-animation-name: bg;
+  animation-name: bg;
+  -webkit-animation-duration: 24s;
+  animation-duration: 24s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+  overflow: hidden;
+  animation-timing-function: linear;
+  -webkit-animation-timing-function: linear;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @include touch {
+    width: calc(100% - #{$col-left-width-tablet});
+  }
+  @include mobile {
+    display: none;
+  }
+  @include widescreen {
+    width: calc(100% - #{$col-left-width-widescreen});
+  }
+  .drawing {
+    width: 25%;
+    mix-blend-mode: luminosity;
+    @include touch {
+      width: 80%;
+    }
+  }
+}

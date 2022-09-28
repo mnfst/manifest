@@ -1,0 +1,230 @@
+.ng-mydp {
+  border: 0 !important;
+
+  * {
+    font-family: 'Rubik', sans-serif !important;
+  }
+
+  .myDpSelector {
+    border-color: $border;
+    height: auto !important;
+    @include shadow;
+
+    &:focus {
+      @include shadow;
+    }
+  }
+
+  .myDpPrevBtn,
+  .myDpNextBtn {
+    background: transparent !important;
+    color: $grey-light;
+    font-size: 1.3rem;
+  }
+
+  .myDpDayValue {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $day-cell-height;
+    height: $day-cell-height;
+    line-height: $day-cell-height;
+    border-radius: $day-cell-height;
+    text-align: center;
+    transition: all 0.18s ease-in-out;
+  }
+  .myDpSelectedDay .myDpDayValue,
+  .myDpSelectedDay:hover .myDpDayValue {
+    color: $white;
+    background-color: $link;
+    font-weight: $weight-bold;
+  }
+  .myDpDaycell {
+    height: $day-cell-height;
+    text-align: center;
+
+    &:first-child {
+      padding-left: 0 !important;
+    }
+    &:last-child {
+      padding-right: 0 !important;
+    }
+    &:hover {
+      .myDpDayValue {
+        color: $link;
+        background-color: $link-light;
+      }
+    }
+    &:focus {
+      box-shadow: none;
+    }
+  }
+  .myDpMarkCurrDay {
+    border: 0;
+    box-shadow: $day-cell-box-shadow-size $link-light;
+    color: $link;
+  }
+
+  .myDpSelectedYear,
+  .myDpSelectedMonth {
+    color: $link;
+    font-weight: $weight-bold;
+  }
+
+  .myDpDaycell:nth-child(6),
+  .myDpDaycell:nth-child(7) {
+    .myDpHighlight,
+    .myDpDayValue {
+      color: $grey-light;
+      font-size: $size-small;
+    }
+
+    &:hover {
+      .myDpDayValue {
+        color: $link;
+        background-color: $link-light;
+      }
+    }
+  }
+
+  .myDpCurrMonth,
+  .myDpMarkCurrMonth,
+  .myDpMarkCurrYear {
+    background: transparent;
+    color: $black;
+    border: 0;
+    font-size: 1.3rem;
+  }
+
+  .myDpCalTable {
+    height: $calendar-height;
+  }
+  .myDpMonthYearSelBar {
+    width: 100%;
+    height: $year-height;
+    background-color: $light;
+  }
+  table {
+    min-width: unset;
+  }
+  .myDpWeekDayTitle,
+  .myDpYearcell,
+  .myDpMonthcell {
+    font-size: $size-small;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  .myDpSelectorArrow:after {
+    border-bottom-color: $light;
+  }
+
+  .myDpIconLeftArrow:before {
+    @extend %icon;
+    content: $icon-chevron-left;
+  }
+  .myDpIconRightArrow:before {
+    @extend %icon;
+    content: $icon-chevron-right;
+  }
+  .myDpTableSingleDay,
+  .myDpTableSingleMonth,
+  .myDpTableSingleYear {
+    background: transparent;
+    &:hover {
+      background: transparent;
+      color: $link;
+    }
+  }
+  .myDpFooterBtn:focus,
+  .myDpHeaderBtn:focus,
+  .myDpMonthLabel:focus,
+  .myDpYearLabel:focus {
+    color: $link !important;
+  }
+}
+
+.input-wrapper input[angular-mydatepicker] {
+  width: 100%;
+}
+
+.input-text {
+  width: $control-height;
+  min-width: $control-height;
+  height: $control-height;
+  line-height: $control-height;
+  font-size: $size-normal;
+  background-color: $link-alpha03;
+  text-align: center;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top: $control-border-width solid $border;
+  border-bottom: $control-border-width solid $border;
+  color: $grey;
+  font-weight: 500;
+  &.is-small {
+    border-radius: $control-radius-small;
+    font-size: $size-small;
+  }
+  &.is-medium {
+    font-size: $size-medium;
+  }
+  &.is-large {
+    font-size: $size-large;
+  }
+
+  &:first-child {
+    border-left: $control-border-width solid $border;
+    border-top-left-radius: $input-radius;
+    border-bottom-left-radius: $input-radius;
+
+    + div > input[angular-mydatepicker] {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+  + div > input[angular-mydatepicker] {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+}
+input[angular-mydatepicker] {
+  padding-right: $control-height;
+}
+
+.datepicker-clear {
+  position: absolute;
+  top: $control-border-width;
+  right: $control-border-width;
+  width: $control-height;
+  min-width: $control-height;
+  height: calc(#{$control-height} - #{$control-border-width * 2});
+  line-height: $control-height;
+  font-size: $size-normal;
+  text-align: center;
+  color: $grey;
+  &.is-small {
+    font-size: $size-small;
+  }
+  &.is-medium {
+    font-size: $size-medium;
+  }
+  &.is-large {
+    font-size: $size-large;
+  }
+}
+
+.date-range-wrapper {
+  @include mobile {
+    flex-wrap: wrap;
+    .input-text + div {
+      width: calc(100% - #{$control-height});
+      margin-bottom: $gap;
+    }
+  }
+}
