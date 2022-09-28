@@ -1,0 +1,35 @@
+.bullet {
+  height: $bullet-width;
+  width: $bullet-width;
+  margin-right: $margin-right;
+  margin-top: $margin-top;
+  margin-bottom: $margin-bottom;
+  display: inline-block;
+  border-radius: $bullet-width;
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+@each $status, $bullet-color in $bullet-colors {
+  .#{$status} {
+    background: $bullet-color;
+
+    &.is-white {
+      background-color: $progress-0;
+    }
+  }
+  .text-#{$status} {
+    color: $bullet-color;
+  }
+  .badge.is-#{$status} {
+    background-color: rgba($bullet-color, 0.1);
+    color: darken($bullet-color, 26%);
+  }
+}
+
+.text-status {
+  position: relative;
+  top: -2px;
+  margin-right: 8px;
+}

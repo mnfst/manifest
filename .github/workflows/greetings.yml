@@ -1,0 +1,13 @@
+name: Greet first-time contributors
+
+on: [pull_request, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: "Welcome to CASE, thank you for adding your first issue !' first issue"
+          pr-message: "Welcome to CASE, thank you for adding your first PR !' first pr"

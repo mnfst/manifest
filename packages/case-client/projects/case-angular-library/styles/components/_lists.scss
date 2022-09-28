@@ -1,0 +1,104 @@
+.list-separated {
+  padding: $column-gap 0;
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  justify-content: space-between;
+
+  > *:last-child {
+    padding-left: $gap;
+  }
+}
+
+.small-circle {
+  height: math.div($control-height, 1.75);
+  width: math.div($control-height, 1.75);
+  min-width: math.div($control-height, 1.75);
+  max-width: math.div($control-height, 1.75);
+  border-radius: $control-height;
+  display: inline-block;
+  margin: 5px;
+  cursor: pointer;
+  &.is-active {
+    border: $control-border-width solid $white;
+    box-shadow: 0 10px 20px #dedede;
+  }
+
+  @include fullhd {
+    height: math.div($control-height, 1.25);
+    width: math.div($control-height, 1.25);
+    min-height: math.div($control-height, 1.25);
+    min-width: math.div($control-height, 1.25);
+    margin: 10px;
+  }
+}
+
+.mini-circle,
+.has-mini-circle .small-circle {
+  height: 8px;
+  width: 8px;
+  min-width: 8px;
+  max-width: 8px;
+  min-height: 8px;
+  max-height: 8px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 5px;
+}
+
+@keyframes loadingAnimation {
+  from {
+    background-position: -100vw 0px;
+  }
+
+  to {
+    background-position: 100vw 0px;
+  }
+}
+@-webkit-keyframes loadingAnimation {
+  from {
+    background-position: -100vw 0px;
+  }
+
+  to {
+    background-position: 100vw 0px;
+  }
+}
+
+.is-list-loading {
+  width: 100%;
+  height: auto;
+
+  > div {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 1px;
+    -webkit-animation-name: loadingAnimation;
+    animation-name: loadingAnimation;
+    -webkit-animation-duration: 4.6s;
+    animation-duration: 4.6s;
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    -webkit-animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    -webkit-animation-timing-function: linear;
+    background-image: -webkit-linear-gradient(
+      120deg,
+      $white 20%,
+      $grey-lighter 28%,
+      $white 43%
+    );
+    background-image: -moz-linear-gradient(
+      120deg,
+      $white 20%,
+      $grey-lighter 28%,
+      $white 43%
+    );
+    background-image: linear-gradient(
+      120deg,
+      $white 20%,
+      $grey-lighter 28%,
+      $white 43%
+    );
+  }
+}

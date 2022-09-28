@@ -1,0 +1,25 @@
+<form [formGroup]="form" novalidate>
+  <div class="control">
+    <label id="datepicker-input-{{ uniqueId }}"
+      >{{ label }}<span class="has-text-danger" *ngIf="required">*</span></label
+    >
+    <div class="is-relative">
+      <input
+        angular-mydatepicker
+        class="input"
+        id="datepicker-input-{{ uniqueId }}"
+        [placeholder]="placeholder || 'Choisir une date...'"
+        [options]="datePickerOptions"
+        [ngClass]="{ 'is-danger': showErrors && form.invalid }"
+        (dateChanged)="onDateChanged($event)"
+        (click)="dp.openCalendar()"
+        #dp="angular-mydatepicker"
+        formControlName="date"
+      />
+      <a *ngIf="form?.value.date" (click)="clear()" class="datepicker-clear"
+        ><i class="icon icon-x"></i>
+      </a>
+    </div>
+    <p class="help" *ngIf="helpText">{{ helpText }}</p>
+  </div>
+</form>

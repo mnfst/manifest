@@ -1,0 +1,7 @@
+<div
+  class="notification"
+  *ngIf="flashMessage"
+  [ngClass]="flashMessage.className"
+>
+  <p class="is-size-5">{{ flashMessage.message }}</p>
+</div>

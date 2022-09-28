@@ -1,0 +1,24 @@
+.has-separation-vertical {
+  position: relative;
+
+  @include widescreen {
+    &:before {
+      content: '';
+      position: absolute;
+      height: calc(100% - 56px);
+      width: 1px;
+      display: inline-block;
+      background-color: $border-color;
+      top: 56px;
+      left: calc(75% - 0.5px + 7.5px);
+    }
+  }
+
+  &--left {
+    &:before {
+      top: 0;
+      height: 100%;
+      left: calc(75% - 0.5px + 7.5px);
+    }
+  }
+}

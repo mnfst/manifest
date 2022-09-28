@@ -1,0 +1,79 @@
+.multiselect-box {
+  .box {
+    @include mobile {
+      position: relative;
+    }
+    @include tablet {
+      position: absolute;
+    }
+    height: auto;
+    max-height: 600px;
+    min-width: 100%;
+    z-index: 6;
+    overflow-y: auto;
+
+    &.is-disabled {
+      background-color: $input-disabled-background-color;
+      color: $input-disabled-color;
+    }
+  }
+}
+
+.select--simulate {
+  height: $control-height !important;
+  width: 100%;
+  min-width: 100%;
+  background-color: $field-background;
+  border: $control-border-width solid $border;
+  border-radius: $input-radius;
+  box-shadow: none;
+  padding: 0 $control-padding-horizontal;
+  font-size: $size-normal;
+  line-height: $control-height;
+  color: $dark;
+  cursor: pointer;
+
+  &.is-disabled {
+    background-color: $input-disabled-background-color;
+    border-color: $input-disabled-border-color;
+    color: $input-disabled-color;
+  }
+
+  &:focus,
+  .is-focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  &:focus,
+  &.is-focus,
+  &:focus:hover,
+  &:active:hover,
+  &:active {
+    border-color: $input-focus-border-color;
+  }
+
+
+  @each $name, $pair in $colors {
+    $color: nth($pair, 1);
+    &.is-#{$name} {
+      border-color: $color;
+      &:focus,
+      &.is-focused,
+      &:active,
+      &.is-active {
+        box-shadow: $input-focus-box-shadow-size bulmaRgba($color, 0.25);
+      }
+    }
+  }
+
+  &.is-small {
+    font-size: $size-small;
+  }
+  &.is-medium {
+    font-size: $size-medium;
+  }
+  &.is-large {
+    font-size: $size-large;
+  }
+}

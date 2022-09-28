@@ -1,0 +1,18 @@
+<div class="control">
+  <label for="text-input-{{ uniqueId }}"
+    >{{ label }}<span class="has-text-danger" *ngIf="required">*</span></label
+  >
+  <input
+    class="input"
+    [ngClass]="{
+      'is-danger': showErrors && required && !address
+    }"
+    ngx-google-places-autocomplete
+    [placeholder]="placeholder || 'Chercher une addresse...'"
+    [options]="{
+      componentRestrictions: { country: 'FR' }
+    }"
+    (onAddressChange)="onAddressChange($event)"
+    *ngIf="scriptLoaded"
+  />
+</div>

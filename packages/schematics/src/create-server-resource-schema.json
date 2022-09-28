@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "createServerResource",
+  "title": "Create Server Resource Schema",
+  "type": "object",
+  "description": "Create a resource",
+  "properties": {
+    "name": {
+      "minLength": 1,
+      "type": "string",
+      "description": "The name of the resource",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Resource name (singular, in english) ?"
+    }
+  },
+  "required": ["name"]
+}

@@ -1,0 +1,38 @@
+<ng-container *ngFor="let imageObject of imageObjects; let i = index">
+  <ng-container *ngIf="imageObjects.length <= maxLength || i < maxLength - 1">
+    <a
+      class="has-avatar tooltip has-tooltip has-tooltip-right"
+      [routerLink]="imageObject.link.path"
+      [queryParams]="imageObject.link.queryParams"
+      *ngIf="imageObject.link"
+    >
+      <case-image
+        [path]="imageObject.image"
+        [replacement]="defaultImage"
+        [title]="imageObject.label"
+        [alt]="imageObject.label"
+        className="avatar"
+      >
+      </case-image>
+    </a>
+
+    <case-image
+      [path]="imageObject.image"
+      [replacement]="defaultImage"
+      [title]="imageObject.label"
+      [alt]="imageObject.label"
+      className="avatar"
+      *ngIf="!imageObject.link"
+    >
+    </case-image>
+  </ng-container>
+</ng-container>
+<a
+  class="has-avatar has-avatar tooltip has-tooltip has-tooltip-right"
+  *ngIf="imageObjects.length > maxLength"
+>
+  <span class="avatar is-number">
+    + {{ imageObjects.length - maxLength }}
+  </span>
+</a>
+<span *ngIf="label" class="ml-2">{{ label }}</span>

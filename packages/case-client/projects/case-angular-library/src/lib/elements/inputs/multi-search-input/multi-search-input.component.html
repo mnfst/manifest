@@ -1,0 +1,73 @@
+<div class="multisearch-box">
+  <div class="control">
+    <label for="multi-search-input-{{ uniqueId }}"
+      >{{ label }}<span class="has-text-danger" *ngIf="required">*</span></label
+    >
+    <div
+      *ngIf="selectedSearchResults.length"
+      class="field is-grouped is-grouped-multiline"
+    >
+      <div
+        class="control"
+        *ngFor="let selectedSearchResult of selectedSearchResults"
+      >
+        <div class="tags has-addons">
+          <span class="tag is-link"
+            ><i
+              class="icon pr-5 pl-3 {{
+                getResourceIcon(selectedSearchResult.resourceName)
+              }}"
+            ></i
+            >{{ selectedSearchResult.label }}</span
+          >
+          <a
+            class="tag is-delete has-background-link-light"
+            (click)="toggleItem(selectedSearchResult)"
+            *ngIf="!readonly"
+          ></a>
+        </div>
+      </div>
+    </div>
+    <div class="multisearch-input-field">
+      <input
+        id="multi-search-input-{{ uniqueId }}"
+        type="text"
+        class="input"
+        (keyup)="onSearchInputKeyup($event)"
+        [placeholder]="
+          selectedSearchResults.length ? '' : placeholder || label + '...'
+        "
+        (focus)="showList = true"
+        [disabled]="
+          readonly ||
+          (maxSelectedItems && selectedSearchResults.length >= maxSelectedItems)
+        "
+        [ngClass]="{
+          'is-danger': showErrors && required && !selectedSearchResults.length
+        }"
+        autocomplete="off"
+        #searchInput
+      />
+      <ul class="box list" *ngIf="showList && suggestedSearchResults.length">
+        <li
+          *ngFor="let searchResult of suggestedSearchResults; let i = index"
+          class="pointer"
+          [ngClass]="{
+            'is-active': selectedSearchResults.indexOf(searchResult) > -1,
+            'is-focused': focusedItemIndex === i
+          }"
+          (click)="toggleItem(searchResult)"
+        >
+          <!-- Icon-->
+          <i
+            class="icon is-size-5 {{
+              getResourceIcon(searchResult.resourceName)
+            }}"
+          ></i>
+          <span innerHTML="{{ searchResult.label }}"></span>
+        </li>
+      </ul>
+    </div>
+    <p class="help" *ngIf="helpText">{{ helpText }}</p>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<div class="control">
+  <label for="file-input-{{ uniqueId }}">
+    {{ label }}<span class="has-text-danger" *ngIf="required">*</span>
+  </label>
+
+  <div *ngIf="!filePath">
+    <div
+      class="file"
+      [ngClass]="{ 'show-errors': showErrors, 'is-invalid': !filePath }"
+    >
+      <label class="file-label">
+        <!-- Input element -->
+        <input
+          id="file-input-{{ uniqueId }}"
+          class="file-input"
+          type="file"
+          [accept]="accept"
+          #fileInput
+          [placeholder]="placeholder"
+          (change)="fileInputEvent($event)"
+        />
+        <span class="file-cta" *ngIf="!loading">
+          <span class="file-icon">
+            <i class="icon icon-upload-cloud is-size-5"></i>
+          </span>
+          <span class="file-label">
+            {{ placeholder }}
+          </span>
+        </span>
+        <button class="button is-link is-loading" *ngIf="loading">
+          Chargement
+        </button>
+      </label>
+    </div>
+  </div>
+
+  <!-- Uploaded file -->
+  <div
+    *ngIf="filePath"
+    class="
+      has-current-file
+      is-flex is-justify-content-space-between is-align-items-center
+      mt-1
+      has-background-white-ter
+      pl-1
+    "
+  >
+    <a [href]="storagePath + '/' + filePath" target="_blank">
+      {{ filePath }}
+    </a>
+    <span class="file-cta file-remove">
+      <a (click)="removeFile()">
+        <i class="icon icon-x is-size-5"></i>
+      </a>
+    </span>
+  </div>
+  <p class="help" *ngIf="helpText">{{ helpText }}</p>
+</div>

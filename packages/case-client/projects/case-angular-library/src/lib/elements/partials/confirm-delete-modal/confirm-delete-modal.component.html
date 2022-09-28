@@ -1,0 +1,46 @@
+<div class="modal is-active" *ngIf="showModal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head pb-0">
+      <p class="modal-card-title">
+        Supprimer {{ itemToDelete[resourceDefinition.mainIdentifier] }} ?
+      </p>
+      <a
+        class="is-flex is-align-item-center has-text-dark"
+        aria-label="close"
+        (click)="close()"
+      >
+        <i class="icon icon-x is-size-2"></i>
+      </a>
+    </header>
+    <section class="modal-card-body is-size-5">
+      <div class="columns">
+        <div class="column">
+          <!-- Conditional texts -->
+          <p>
+            Voulez-vous vraiment supprimer
+            <strong
+              >{{ itemToDelete[resourceDefinition.mainIdentifier] }}
+            </strong>
+            ?
+          </p>
+          <p>Cette action sera irréversible.</p>
+        </div>
+      </div>
+    </section>
+    <footer
+      class="modal-card-foot pt-0 is-flex is-justify-content-space-between"
+    >
+      <button class="button is-white" (click)="close()">Annuler</button>
+      <button class="button is-link is-hidden-touch" (click)="confirmDelete()">
+        Supprimer
+      </button>
+      <button
+        class="button is-link is-hidden-desktop"
+        (click)="confirmDelete()"
+      >
+        <i class="icon-icon-trash"></i>
+      </button>
+    </footer>
+  </div>
+</div>
