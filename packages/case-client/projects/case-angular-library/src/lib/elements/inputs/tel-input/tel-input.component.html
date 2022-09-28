@@ -1,0 +1,17 @@
+<div [formGroup]="telForm">
+  <div class="control">
+    <label for="tel-input-{{ uniqueId }}"
+      >{{ label }}<span class="has-text-danger" *ngIf="required">*</span></label
+    >
+    <input
+      type="tel"
+      class="input form-control"
+      [ngClass]="{ 'is-danger': showErrors && telForm.invalid }"
+      [placeholder]="placeholder || label + '...'"
+      formControlName="text"
+      id="tel-input-{{ uniqueId }}"
+      (keyup)="onChange($event.target.value)"
+    />
+    <p class="help" *ngIf="helpText">{{ helpText }}</p>
+  </div>
+</div>

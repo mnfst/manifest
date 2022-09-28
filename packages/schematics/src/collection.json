@@ -1,0 +1,15 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "createResourceServer": {
+      "description": "Create CASE resource (server)",
+      "factory": "./server-schematics/index#createResource",
+      "schema": "./create-server-resource-schema.json"
+    },
+    "createResourceClient": {
+      "description": "Create CASE resource (client)",
+      "factory": "./client-schematics/index#createResource",
+      "schema": "./create-client-resource-schema.json"
+    }
+  }
+}

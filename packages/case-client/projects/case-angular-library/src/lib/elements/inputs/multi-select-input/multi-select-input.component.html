@@ -1,0 +1,72 @@
+<div class="multiselect-box">
+  <div class="control">
+    <label (click)="showList = true"
+      >{{ label }}
+      <span class="has-text-danger" *ngIf="required">*</span>
+    </label>
+
+    <!-- Fake select -->
+    <div
+      class="select select--simulate"
+      [ngClass]="{
+        'is-danger': showErrors && required && !activeOptions.length,
+        'is-focus': showList && selectOptions && selectOptions.length,
+        'is-disabled': readonly
+      }"
+      (click)="showList = !showList"
+    >
+      <ng-container [ngPlural]="activeOptions.length">
+        <ng-template ngPluralCase="=0">{{ placeholder }}</ng-template>
+        <ng-template ngPluralCase="=1"
+          >1 {{ itemNameSingular }} sélectionné</ng-template
+        >
+        <ng-template ngPluralCase="other"
+          >{{ activeOptions.length }} {{ itemNamePlural }} sélectionnés
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="activeOptions.length && maxSelectedItems">
+        sur {{ maxSelectedItems }}</ng-container
+      >
+    </div>
+
+    <!-- Dropdown checkbox list -->
+    <div
+      class="box"
+      [ngClass]="{ 'is-disabled': readonly }"
+      *ngIf="showList && selectOptions && selectOptions.length"
+    >
+      <!-- Mass selection -->
+      <p class="pb-2 px-4" *ngIf="!readonly">
+        <a
+          class="small-meta mass-selection-button has-text-grey-dark is-underlined is-inline-block is-fullwidth"
+          *ngIf="activeOptions.length < selectOptions.length"
+          (click)="selectAll()"
+          >Tout sélectionner</a
+        >
+        <a
+          class="small-meta mass-selection-button has-text-grey-dark is-underlined is-inline-block is-fullwidth"
+          *ngIf="activeOptions.length === selectOptions.length"
+          (click)="selectNone()"
+          >Déséléctionner tout</a
+        >
+      </p>
+      <div
+        class="control px-4 py-1 is-fullwidth"
+        *ngFor="let option of selectOptions"
+      >
+        <label
+          class="checkbox"
+          [ngClass]="{
+            'is-checked': option.selected,
+            'has-text-grey is-disabled': readonly
+          }"
+          (click)="toggleSelected(option)"
+        >
+          {{ option.label }}
+          <span class="checkmark"></span>
+        </label>
+      </div>
+      <p class="help" *ngIf="helpText">{{ helpText }}</p>
+    </div>
+  </div>
+</div>

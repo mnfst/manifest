@@ -1,0 +1,117 @@
+<table class="table is-fullwidth is-hoverable" width="100%">
+  <thead>
+    <tr>
+      <th
+        *ngFor="let yield of yields"
+        class="{{ yield.headingClassName }}"
+        [ngClass]="{ 'has-text-right': yield.type === YieldType.Currency }"
+      >
+        <span *ngIf="yield.disableOrderBy">{{ yield.label }}</span>
+        <a class="no-deco" (click)="order(yield)" *ngIf="!yield.disableOrderBy"
+          >{{ yield.label }}
+          <span
+            class="tooltip has-tooltip has-tooltip-bottom"
+            [attr.data-tooltip]="yield.tooltip"
+          >
+            <i
+              class="icon icon-info is-size-5 has-text-link"
+              *ngIf="yield.tooltip"
+            ></i>
+          </span>
+          <i
+            *ngIf="
+              orderBy &&
+              (orderBy === yield.orderByProperty || orderBy === yield.property)
+            "
+            class="icon"
+            [ngClass]="{
+              'icon-chevron-up': this.orderByDesc,
+              'icon-chevron-down': !this.orderByDesc
+            }"
+          ></i>
+        </a>
+      </th>
+      <th
+        class="has-text-right"
+        *ngIf="definition.actionButtons && definition.actionButtons.length"
+      ></th>
+      <th
+        class="has-text-right"
+        width="115"
+        *ngIf="definition.dropdownLinks.length"
+      ></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr
+      *ngFor="let item of formattedItems; let i = index"
+      [ngClass]="{
+        'is-warning': item.isWarningHighlight,
+        'is-info': item.isInfoHighlight,
+        'is-success': item.isSuccessHighlight,
+        'is-dark': item.isDisabledHighlight,
+        'is-danger': item.isDangerHighlight
+      }"
+      class="pos-{{ i }} rev-pos-{{ formattedItems.length - 1 - i }}"
+    >
+      <td
+        *ngFor="let yield of item.yields"
+        [width]="yield.width"
+        class="{{ yield.className }}"
+        [ngClass]="{
+          pointer: definition.defaultLink,
+          'has-custom-link': yield.link,
+          'has-text-right': yield.type === YieldType.Currency
+        }"
+        (click)="onYieldClick(yield, item, $event)"
+      >
+        <!-- TODO: This <a> tag should take 100% height and width to be bigger -->
+        <a
+          [routerLink]="yield.routerLink.pathWithoutParams"
+          [queryParams]="yield.routerLink.queryParams"
+          *ngIf="yield.routerLink"
+        >
+          <case-yield [yield]="yield"></case-yield>
+        </a>
+        <case-yield [yield]="yield" *ngIf="!yield.routerLink"></case-yield>
+      </td>
+      <td
+        class="has-text-right"
+        *ngIf="definition.actionButtons && definition.actionButtons.length"
+      >
+        <!-- Action buttons loop -->
+        <a
+          *ngFor="let actionButton of item.actionButtons"
+          [ngClass]="actionButton.className"
+          [caseAction]="actionButton.action(item)"
+        >
+          <i
+            class="icon is-size-5"
+            [ngClass]="actionButton.icon"
+            *ngIf="actionButton.icon"
+          ></i>
+          {{ actionButton.label }}
+        </a>
+      </td>
+      <td class="has-text-right" *ngIf="definition.dropdownLinks.length">
+        <case-action-dropdown
+          [item]="item"
+          [definition]="definition"
+          [preventDeleteMessage]="item.preventDeleteMessage"
+          *ngIf="definition.dropdownLinks && definition.dropdownLinks.length"
+        ></case-action-dropdown>
+      </td>
+    </tr>
+    <tr *ngIf="formattedItems && !formattedItems.length">
+      <td [attr.colspan]="yields.length">
+        <ng-container *ngIf="definition.gender === Gender.Feminine"
+          >Aucune</ng-container
+        >
+        <ng-container *ngIf="definition.gender === Gender.Masculine"
+          >Aucun</ng-container
+        >
+        {{ definition.nameSingular }}
+      </td>
+    </tr>
+  </tbody>
+</table>

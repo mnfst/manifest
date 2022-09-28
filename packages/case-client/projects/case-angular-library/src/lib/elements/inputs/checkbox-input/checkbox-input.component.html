@@ -1,0 +1,12 @@
+<div class="control my-4">
+  <label
+    class="checkbox"
+    for=""
+    (click)="toggleCheck()"
+    [ngClass]="{ 'is-checked': checked }"
+    >{{ label }}
+    <span class="has-text-danger" *ngIf="required">*</span>
+    <span class="checkmark"></span>
+  </label>
+  <p class="help" *ngIf="helpText">{{ helpText }}</p>
+</div>

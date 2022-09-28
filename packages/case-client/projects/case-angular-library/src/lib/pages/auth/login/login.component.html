@@ -1,0 +1,53 @@
+<section class="hero is-fullheight">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <div class="columns">
+        <div class="column col-login">
+          <div>
+            <figure class="logo">
+              <img src="../../../../assets/images/logo.svg" alt="logo" />
+            </figure>
+            <h3 class="title is-2 my-5">Connectez-vous</h3>
+            <form [formGroup]="loginForm" (submit)="submitForm(loginForm)">
+              <div class="field mb-5">
+                <div class="control">
+                  <input
+                    class="input is-large"
+                    type="email"
+                    placeholder="E-mail"
+                    formControlName="email"
+                    autofocus=""
+                  />
+                </div>
+              </div>
+
+              <div class="field mb-5">
+                <div class="control">
+                  <input
+                    class="input is-large"
+                    type="password"
+                    placeholder="Mot de passe"
+                    formControlName="password"
+                    (keydown.enter)="textareaEnterPressed($event)"
+                  />
+                </div>
+              </div>
+              <button
+                class="button is-block is-link is-large is-fullwidth mb-3"
+                [disabled]="loginForm.invalid"
+              >
+                <span class="has-text-weight-bold">Se connecter</span>
+              </button>
+              <a routerLink="/forgot-password">Mot de passe oublié ?</a>
+            </form>
+          </div>
+        </div>
+        <div class="column col-decoration">
+          <div class="drawing">
+            <img src="../../../../assets/images/bg-3.svg" alt="" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

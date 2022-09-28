@@ -1,0 +1,77 @@
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+*:focus {
+  outline: none;
+}
+html {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  text-rendering: optimizeLegibility;
+  -moz-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+
+  @include touch {
+    font-size: $body-size-touch;
+  }
+
+  &.is-clipped {
+    position: fixed;
+    overflow: hidden !important;
+
+    body {
+      position: fixed;
+      overflow: hidden !important;
+    }
+  }
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  background: $main-background;
+  color: $black;
+  font-size: $size-8;
+}
+
+.wrapper {
+  padding: 0 #{$column-gap};
+  width: 100vw;
+}
+
+.wrapper,
+.aside {
+  min-height: calc(100vh - #{$navbar-height} + #{$gap});
+}
+.section {
+  @include mobile {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+aside {
+  border-right: 1px solid $border-color;
+}
+
+main {
+  min-height: calc(100vh - #{$gap} - #{$navbar-height});
+  margin-top: $gap;
+  padding-bottom: $gap;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.is-borderless {
+  border: 0;
+}

@@ -1,0 +1,778 @@
+//_ Vars
+:root {
+  --bg: transparent;
+}
+
+//_ `Placeholders
+::-webkit-input-placeholder {
+  /* Chrome/Opera/Safari */
+  color: $placeholder !important;
+}
+::-moz-placeholder {
+  /* Firefox 19+ */
+  color: $placeholder !important;
+}
+:-ms-input-placeholder {
+  /* IE 10+ */
+  color: $placeholder !important;
+}
+:-moz-placeholder {
+  /* Firefox 18- */
+  color: $placeholder !important;
+}
+
+//_ File label
+
+.file-label--fullwidth {
+  width: 100%;
+}
+
+//_ Fields
+.field.is-horizontal {
+  .field-body {
+    display: flex;
+    align-items: center;
+  }
+}
+
+label.checkbox,
+label.radio {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Hide the browser's default checkbox */
+
+  .aligned-checkbox & {
+    margin-bottom: 10px;
+  }
+
+  &.label-danger {
+    color: $danger;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+
+    /* When the checkbox is checked, add a colored background */
+    &:checked ~ .checkmark {
+      background-color: $light;
+      box-shadow: 0 0 0 4px $link inset;
+
+      /* Show the checkmark when checked */
+      &:after {
+        display: block;
+      }
+    }
+    &:focus:checked ~ .checkmark {
+      box-shadow: 0 0 0 4px $link inset;
+    }
+    &:focus ~ .checkmark {
+      box-shadow: 0 0 0 4px $grey-light inset;
+    }
+  }
+
+  /* On mouse-over, add a grey background color */
+  &:hover input ~ .checkmark {
+    box-shadow: 0 0 0 4px $grey-light inset;
+  }
+  &:hover input:checked ~ .checkmark {
+    box-shadow: 0 0 0 4px $link inset;
+  }
+  /* Style the checkmark/indicator */
+  .checkmark:after {
+    // left: calc(50% - 4px);
+    // top: calc(50% - 4px);
+    // width: 8px;
+    // height: 8px;
+    // border: 0;
+    // background-color: $link;
+    // border-radius: 50%;
+  }
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 0 0 1px $grey-light inset;
+  @include transition(all 0.2s ease-in-out);
+
+  /* Create the checkmark/indicator (hidden when not checked) */
+  &:after {
+    content: '';
+    position: absolute;
+    display: none;
+    @include transition(all 0.2s ease-in-out);
+  }
+}
+
+.no-label {
+  @include tablet {
+    margin-top: 3.8rem;
+  }
+}
+.no-label-desktop {
+  @include desktop {
+    margin-top: 3.8rem;
+  }
+}
+input,
+.select--simulate,
+select {
+  &:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
+.select:not(.is-multiple):not(.is-loading)::after {
+  border-color: $black;
+}
+
+.file.is-success .file-cta,
+.file.is-success:hover .file-cta,
+.file.is-success.is-hovered .file-cta {
+  background-color: $link;
+  color: $light;
+}
+.file-cta,
+.file-name {
+  border-color: $border;
+
+  &.file-remove {
+    padding: 10px 15px;
+    background-color: $light;
+    border: 0;
+  }
+}
+.file-label {
+  display: inline-block;
+  text-overflow: ellipsis;
+}
+.file-label .file-cta {
+  height: $field-height;
+  color: $link;
+  border-color: $link-light;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  background-color: $link-light;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  width: 100%;
+}
+.file-label:hover .file-cta {
+  border-color: rgba($link-light, 0.82);
+  background-color: rgba($link-light, 0.82);
+  color: $link;
+}
+.file-label .file-name {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.file {
+  > .file-label {
+    text-transform: inherit;
+    max-width: calc(100% - 45px);
+    @include touch {
+      width: calc(100% - 45px);
+    }
+    .file-cta {
+      color: $light;
+
+      border-radius: 3px;
+      border: 0;
+      color: $link;
+      @include touch {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+  }
+  &:not(.is-boxed) {
+    > .file-label {
+      .file-cta {
+        height: $field-height;
+      }
+    }
+  }
+  .input-wrapper {
+    max-width: 100%;
+    display: flex;
+  }
+}
+
+.ql-toolbar.ql-snow,
+.ql-container.ql-snow {
+  background-color: $link-alpha03;
+}
+
+.ql-container {
+  font-size: 1.8rem;
+}
+
+a.dropdown-item {
+  font-size: $size-8;
+  padding-right: 2rem;
+  padding-left: 2rem;
+
+  &:focus,
+  &:hover,
+  &:active,
+  &.is-active {
+    background-color: transparent;
+    color: $link;
+  }
+}
+
+.dropdown {
+  height: 100%;
+}
+
+.dropdown-divider {
+  margin: 1rem 0;
+}
+
+.dropdown-menu {
+  left: unset;
+  right: -8px;
+}
+
+.dropdown-content {
+  text-align: left;
+
+  .dropdown-menu & {
+    @include shadow($link-alpha07);
+    border: 1px solid $border;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+.drop--left {
+  left: unset;
+  right: 30px;
+  top: -9.5px;
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 22px;
+    right: -5px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 6px;
+    border-color: transparent transparent transparent $light;
+  }
+  &:before {
+    content: '';
+    position: absolute;
+    top: 22px;
+    right: -6px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 6px;
+    border-color: transparent transparent transparent $grey-lighter;
+  }
+}
+
+.mydp .selectiongroup .selection,
+input[type='text'],
+input[type='search'],
+input[type='email'],
+input[type='tel'],
+input[type='number'],
+input[type='date'],
+input[type='time'],
+input[type='range'],
+.select select,
+.select--simulate,
+textarea,
+.textarea,
+.ck.ck-editor__main > .ck-editor__editable,
+input[type='password'] {
+  background-color: $field-background;
+  border: 2px solid $border;
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  box-shadow: none;
+  height: $field-height;
+  padding: 15px;
+  font-size: 1.5rem;
+  color: $dark;
+  &:hover {
+    background-color: $field-background-hover;
+    border-color: $border;
+  }
+  &:focus,
+  &:focus:hover,
+  &:active:hover,
+  &:active {
+    background-color: $field-background-active;
+    border-color: $field-border-focus;
+  }
+}
+.ck.ck-toolbar.ck-toolbar_grouping {
+  border: 2px solid $border !important;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  border-bottom: 0;
+}
+.ck.ck-editor__main > .ck-editor__editable {
+  height: 124px;
+  background-color: $field-background !important;
+  &:not(.ck-focused) {
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border-top: 0;
+    box-shadow: none !important;
+    border-color: $border !important;
+  }
+  &.ck-focused,
+  &.ck-blurred {
+    border: 2px solid $field-border-focus;
+    border-top: 0 !important;
+    box-shadow: none !important;
+  }
+}
+.select--simulate {
+  min-width: 100%;
+  line-height: $field-height;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.select,
+.select--simulate {
+  height: $field-height !important;
+  width: 100%;
+
+  select {
+    min-width: 100%;
+    line-height: $field-height;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    option:disabled {
+      color: $placeholder !important;
+    }
+  }
+
+  &.is-multiple {
+    z-index: 3;
+    height: 196px !important;
+
+    select {
+      height: 100%;
+
+      option {
+        padding: 12px 1em;
+      }
+    }
+  }
+}
+
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked {
+  background: linear-gradient($link, $link);
+  background-color: $link !important; /* for IE */
+  color: $light !important;
+}
+// tags
+
+.tag:not(body) {
+  height: 29px;
+  line-height: 29px;
+  margin: 5px 5px 0 0;
+  padding: 0;
+  border-radius: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  -ms-border-radius: 0;
+  -o-border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &.is-info {
+    color: $info;
+    background-color: rgba($info, 0.1);
+  }
+  > span,
+  > i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px 0 7px;
+    height: 100%;
+
+    &.close-tag:last-child {
+      border-left: 1px solid $light;
+      padding: 0;
+      width: 29px;
+    }
+    &:first-child {
+      padding: 0;
+      width: 23px;
+      padding-right: 3px;
+      justify-content: flex-end;
+    }
+  }
+  h1.title & {
+    margin: 0 0 0 #{$column-gap / 2};
+    padding: 0 20px;
+    font-weight: $weight-bold;
+    font-size: 14px;
+    display: inline-block;
+    line-height: 23px;
+    height: 23px;
+  }
+}
+
+.label,
+label {
+  font-size: $size-8;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  color: $label-color;
+  padding-bottom: 5px;
+  display: inline-block;
+  @include touch {
+    margin-top: $column-gap;
+  }
+}
+
+// MyDatepicker Override
+.mydp {
+  border: 0 !important;
+
+  .selectiongroup {
+    height: $field-height;
+    font-family: 'Rubik', sans-serif;
+
+    input.selection {
+      padding-right: 45px;
+      border-bottom-left-radius: 0;
+      border-top-left-radius: 0;
+      font-family: 'Rubik', sans-serif;
+      font-size: 1.3rem !important;
+
+      &:focus,
+      &:active {
+        + .selbtngroup .btnpicker[type='button'] {
+          border-color: $field-border-focus;
+        }
+      }
+    }
+    .btnclear {
+      background: transparent;
+      &:hover {
+        background: transparent;
+      }
+    }
+  }
+  .selector {
+    border-color: $border;
+    @include shadow;
+  }
+
+  .currmonth {
+    background: transparent !important;
+    color: $black;
+    font-size: $size-8;
+  }
+  .prevmonth,
+  .nextmonth {
+    background: transparent !important;
+    color: $grey-light;
+    font-size: $size-8;
+  }
+  .datevalue {
+    width: 42px;
+    line-height: 30px;
+  }
+  .daycell:hover {
+    .datevalue {
+      color: $link;
+    }
+  }
+  .daycell:nth-child(6),
+  .daycell:nth-child(7) {
+    .highlight,
+    .datevalue {
+      color: $grey-light;
+      font-size: $size-8;
+    }
+  }
+  .caltable {
+    height: 268px !important;
+  }
+  .header {
+    width: 100% !important;
+    height: 42px !important;
+    background-color: $light !important;
+
+    .headerbtncell .headerbtn {
+      @extend %icon;
+      @extend .icon-chevron-left;
+    }
+    .headermonthtxt + .headerbtncell .headerbtn,
+    .headeryeartxt + .headerbtncell .headerbtn {
+      @extend .icon-chevron-right;
+    }
+
+    button,
+    .headerbtncell {
+      background: transparent;
+    }
+    .headerbtncell {
+      padding: 0 0 3px 0;
+    }
+    .mydpicon.icon-mydptoday {
+      display: none;
+    }
+    .headertodaybtn {
+      border: 0;
+      border-radius: 0;
+      background-color: transparent;
+      color: $grey-light;
+      font-weight: $weight-bold;
+      text-transform: uppercase;
+
+      @include transition(all 0.25s ease-in-out);
+      &:hover {
+        background-color: transparent;
+        color: $black;
+      }
+    }
+  }
+  .weekdaytitle {
+    background: transparent !important;
+    color: $grey-light !important;
+    font-weight: $weight-bold !important;
+    font-size: 1.3rem !important;
+    width: 44px !important;
+    max-width: 44px !important;
+  }
+
+  .btnpicker[type='button'] {
+    background-color: var(--bg);
+    border-top: 2px solid $border;
+    border-right: 2px solid $border;
+    border-bottom: 2px solid $border;
+    box-shadow: none;
+    height: $field-height;
+    width: $field-height;
+    padding: 13px;
+    font-size: 1.5rem;
+
+    &:hover,
+    &:focus {
+      background-color: var(--bg);
+    }
+
+    .mydpicon.icon-mydpcalendar {
+      @extend %icon;
+      @extend .icon-calendar;
+    }
+  }
+  .mydpicon.icon-mydpremove {
+    @extend %icon;
+    @extend .icon-x;
+    background-color: transparent;
+  }
+  table {
+    min-width: unset;
+  }
+}
+
+my-date-picker {
+  width: calc(50% - 45px);
+}
+
+.input-text {
+  width: $field-height;
+  height: $field-height;
+  line-height: $field-height;
+  background-color: $link-alpha03;
+  text-align: center;
+  border-top: 2px solid $border;
+  border-bottom: 2px solid $border;
+  color: $grey;
+  font-weight: $weight-bold;
+  @include mobile {
+    background: $light;
+    text-align: left !important;
+    border: 0;
+    color: $dark;
+  }
+  &:first-child {
+    border-left: 2px solid $border;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    @include mobile {
+      border: 0;
+    }
+    + my-date-picker {
+      .btnpicker[type='button'] {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        -webkit-border-top-right-radius: 0;
+        -webkit-border-bottom-right-radius: 0;
+        -moz-border-top-right-radius: 0;
+        -moz-border-bottom-right-radius: 0;
+        -ms-border-top-right-radius: 0;
+        -ms-border-bottom-right-radius: 0;
+        -o-border-top-right-radius: 0;
+        -o-border-bottom-right-radius: 0;
+      }
+    }
+  }
+}
+.mydp * {
+  font-family: 'Rubik', sans-serif !important;
+}
+
+.tablesingleday.selectedday:hover .datevalue,
+.tablesingleday.selectedday:focus .datevalue,
+.tablesingleday.selectedday .datevalue {
+  background-color: $link !important;
+  color: $light;
+  border-radius: 3px;
+}
+
+//_ Multisearch
+
+.list {
+  border-radius: 0;
+  width: 100%;
+
+  .modal-content & {
+    @include tablet {
+      width: calc(430px - 120px);
+
+      position: fixed;
+      z-index: 1;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  }
+
+  @include shadow;
+
+  li {
+    padding: 6px $column-gap;
+    display: inline-flex;
+    align-items: start;
+    justify-content: flex-start;
+    width: 100%;
+    i {
+      margin-right: 10px;
+      margin-top: 2px;
+      color: $grey-light;
+    }
+
+    &:hover,
+    &.is-focused {
+      background-color: $link-alpha07;
+      color: $link;
+    }
+  }
+}
+
+//_ Toggle Switch
+
+.switch[type='checkbox'] + label {
+  padding-left: 48px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+
+  &:before {
+    width: 38px;
+    height: 22px;
+  }
+
+  &:after {
+    height: 18px;
+    width: 18px;
+    top: 2px;
+    left: 2px;
+  }
+}
+
+.switch[type='checkbox']:checked + label:after {
+  left: 18px;
+}
+
+.switch[type='checkbox']:checked + label:before {
+  background: $link;
+}
+
+.switch[type='checkbox']:not(:checked) + label:before {
+  background: $grey-light;
+}
+.switch[type='checkbox']:focus + label:before,
+.switch[type='checkbox']:focus + label:after {
+  outline: 0;
+}
+
+.pac-container {
+  @include shadow;
+  margin-top: -2 px;
+  &:after {
+    margin: #{$gap / 3} $gap;
+  }
+  .pac-item {
+    padding: #{$gap / 2} $gap;
+  }
+}
+
+.is-danger {
+  border-color: $danger !important;
+
+  input:not(:focus),
+  input:not(:focus) + .selbtngroup .btnpicker,
+  .mydp .selectiongroup .selection:not(:focus),
+  .mydp .selectiongroup .selection:not(:focus) + .selbtngroup .btnpicker,
+  .ck.ck-editor__main > .ck-editor__editable:not(.ck-focused) {
+    border-color: $danger !important;
+  }
+}
+
+.image-label {
+  .file-cta {
+    height: $field-height;
+    border-width: 2px;
+  }
+}
+
+// TODO: Check if that is correct (imported from create-edit).
+.column--classic {
+  display: flex;
+  align-items: flex-end;
+
+  > * {
+    width: 100%;
+  }
+}

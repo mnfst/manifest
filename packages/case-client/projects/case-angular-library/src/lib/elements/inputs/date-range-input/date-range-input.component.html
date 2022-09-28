@@ -1,0 +1,48 @@
+<form [formGroup]="form" novalidate>
+  <div class="control" [ngClass]="{ 'is-danger': showErrors && form.invalid }">
+    <label for="date-from-{{ uniqueId }}-input">{{ label }}</label>
+    <div class="is-flex date-range-wrapper">
+      <div class="input-text">Du</div>
+      <div class="is-relative is-fullwidth">
+        <input
+          angular-mydatepicker
+          id="date-from-{{ uniqueId }}-input"
+          class="input"
+          [placeholder]="placeholder || 'Date de début...'"
+          [options]="datePickerOptions"
+          (dateChanged)="onDateChanged($event, 'dateFrom')"
+          (click)="dp1.openCalendar()"
+          #dp1="angular-mydatepicker"
+          formControlName="dateFrom"
+        />
+        <a
+          *ngIf="form.value.dateFrom"
+          (click)="clear('dateFrom')"
+          class="datepicker-clear"
+          ><i class="icon icon-x"></i
+        ></a>
+      </div>
+      <div class="input-text">au</div>
+      <div class="is-relative is-fullwidth">
+        <input
+          angular-mydatepicker
+          id="date-to-{{ uniqueId }}-input"
+          class="input"
+          [placeholder]="secondPlaceholder || 'Date de fin...'"
+          [options]="datePickerOptions"
+          (dateChanged)="onDateChanged($event, 'dateTo')"
+          (click)="dp2.openCalendar()"
+          #dp2="angular-mydatepicker"
+          formControlName="dateTo"
+        />
+        <a
+          *ngIf="form.value.dateTo"
+          (click)="clear('dateTo')"
+          class="datepicker-clear"
+          ><i class="icon icon-x"></i
+        ></a>
+      </div>
+    </div>
+    <p class="help" *ngIf="helpText">{{ helpText }}</p>
+  </div>
+</form>

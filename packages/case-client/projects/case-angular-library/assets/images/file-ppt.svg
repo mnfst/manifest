@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20.777" height="19.48" viewBox="0 0 20.777 19.48">
+  <g id="powerpoint" transform="translate(0 -15.989)">
+    <path id="Tracé_579" data-name="Tracé 579" d="M265.739,80.011h-9.09a.65.65,0,0,0-.649.649V93.646a.65.65,0,0,0,.649.649h9.09a.65.65,0,0,0,.649-.649V80.66A.65.65,0,0,0,265.739,80.011Z" transform="translate(-245.611 -61.424)" fill="#eceff1"/>
+    <g id="Groupe_782" data-name="Groupe 782" transform="translate(10.389 19.886)">
+      <path id="Tracé_580" data-name="Tracé 580" d="M263.142,337.31h-6.493a.649.649,0,0,1,0-1.3h6.493a.649.649,0,0,1,0,1.3Z" transform="translate(-256 -326.921)" fill="#f57c00"/>
+      <path id="Tracé_581" data-name="Tracé 581" d="M275.246,144.011a3.246,3.246,0,1,0,3.246,3.246h-3.246Z" transform="translate(-271.351 -142.712)" fill="#f57c00"/>
+      <path id="Tracé_582" data-name="Tracé 582" d="M384,112.011v3.246h3.246A3.246,3.246,0,0,0,384,112.011Z" transform="translate(-378.806 -112.011)" fill="#f57c00"/>
+    </g>
+    <path id="Tracé_583" data-name="Tracé 583" d="M11.452,16.14A.638.638,0,0,0,10.918,16L.53,17.95a.647.647,0,0,0-.53.638V32.872a.648.648,0,0,0,.53.638l10.389,1.948a.611.611,0,0,0,.119.012.649.649,0,0,0,.649-.649V16.64A.648.648,0,0,0,11.452,16.14Z" transform="translate(0 0)" fill="#ef6c00"/>
+    <path id="Tracé_584" data-name="Tracé 584" d="M96.649,183.8a.65.65,0,0,1-.649-.649V176.66a.65.65,0,0,1,.649-.649H98.6a2.6,2.6,0,0,1,0,5.194H97.3v1.948A.65.65,0,0,1,96.649,183.8Zm.649-3.9h1.3a1.3,1.3,0,0,0,0-2.6H97.3Z" transform="translate(-92.104 -153.528)" fill="#fafafa"/>
+  </g>
+</svg>

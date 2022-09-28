@@ -1,0 +1,59 @@
+.navbar {
+  position: relative;
+  height: $navbar-height;
+  &:before {
+    position: absolute;
+    content: '';
+    top: 0;
+    height: 100%;
+    width: 100%;
+    border-bottom: 1px solid $border-color;
+
+    case-top-menu:not(.is-collapsed) & {
+      @include desktop {
+        left: calc(#{$aside-width-desktop} + #{$aside-border-width});
+        width: calc(100% - #{$aside-width-desktop} - #{$aside-border-width});
+      }
+      @include widescreen {
+        left: calc(#{$aside-width-widescreen} + #{$aside-border-width});
+        width: calc(100% - #{$aside-width-widescreen} - #{$aside-border-width});
+      }
+      @include fullhd {
+        left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
+        width: calc(100% - #{$aside-width-fullhd} - #{$aside-border-width});
+      }
+    }
+  }
+  .navbar-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: none;
+    width: 100%;
+    background-color: $sidenav-background-color;
+
+    @include desktop {
+      width: calc(#{$aside-width-desktop} + 1px);
+    }
+    @include widescreen {
+      width: calc(#{$aside-width-widescreen} + 1px);
+    }
+    @include fullhd {
+      width: calc(#{$aside-width-fullhd} + 1px);
+    }
+  }
+}
+
+.logo {
+  display: inline-block;
+  padding: math.div($gap, 3);
+  width: 100%;
+  height: 100%;
+
+  &--image {
+    height: 100%;
+    max-height: 100%;
+    width: auto;
+    max-width: 100%;
+  }
+}

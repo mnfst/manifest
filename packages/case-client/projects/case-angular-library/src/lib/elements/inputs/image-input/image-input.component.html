@@ -1,0 +1,61 @@
+<div class="control">
+  <label for="image-input-{{ uniqueId }}" class="full-width">
+    {{ label }}
+    <span class="has-text-danger" *ngIf="required">*</span>
+  </label>
+
+  <div class="image" *ngIf="!imagePath">
+    <div
+      class="file"
+      [ngClass]="{
+        'show-errors': showErrors,
+        'is-invalid': !imagePath
+      }"
+    >
+      <label class="image-label">
+        <!-- Input element -->
+        <input
+          id="image-input-{{ uniqueId }}"
+          class="file-input"
+          type="file"
+          accept="image/*"
+          #imageInput
+          [placeholder]="placeholder"
+          (change)="imageInputEvent($event)"
+        />
+        <span class="file-cta" *ngIf="!loading">
+          <span class="file-icon">
+            <i class="icon icon-upload-cloud is-size-5"></i>
+          </span>
+          <span class="file-label">
+            {{ placeholder }}
+          </span>
+        </span>
+
+        <button class="button is-link is-loading full-width" *ngIf="loading">
+          Chagement
+        </button>
+      </label>
+    </div>
+  </div>
+
+  <!-- Previously uploaded file -->
+  <div
+    *ngIf="imagePath"
+    class="
+      has-current-file
+      is-flex is-align-items-center is-justify-content-space-between
+      mt-1
+      has-background-white-ter
+      pl-1
+    "
+  >
+    <case-image [path]="imagePath" className="py-1 is-block"> </case-image>
+    <span class="file-cta file-remove">
+      <a (click)="removeFile()">
+        <i class="icon icon-x is-size-5"></i>
+      </a>
+    </span>
+  </div>
+  <p class="help" *ngIf="helpText">{{ helpText }}</p>
+</div>

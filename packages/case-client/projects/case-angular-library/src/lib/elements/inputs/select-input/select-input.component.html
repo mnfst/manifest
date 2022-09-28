@@ -1,0 +1,35 @@
+<div [formGroup]="form">
+  <div class="control">
+    <label for="select-input-{{ uniqueId }}"
+      >{{ label }}<span class="has-text-danger" *ngIf="required">*</span>
+    </label>
+    <div class="control">
+      <div
+        class="select"
+        [ngClass]="{ 'is-danger': showErrors && form.invalid }"
+      >
+        <select
+          id="select-input-{{ uniqueId }}"
+          class="select"
+          (change)="onSelect($event.target.value)"
+          formControlName="select"
+          [attr.disabled]="readonly"
+        >
+          <option value="null" *ngIf="!required">
+            {{ placeholder || 'Tous' }}
+          </option>
+          <option
+            [value]="option.value"
+            [selected]="initialValue === option.value"
+            [disabled]="option.disabled"
+            *ngFor="let option of selectOptions"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <p class="help" *ngIf="helpText">{{ helpText }}</p>
+    </div>
+  </div>
+</div>

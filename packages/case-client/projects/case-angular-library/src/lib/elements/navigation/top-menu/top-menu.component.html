@@ -1,0 +1,138 @@
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-wrapper">
+    <a class="logo" routerLink="/">
+      <img src="/assets/images/logo.svg" class="logo--image" />
+    </a>
+  </div>
+
+  <div class="navbar-menu" id="create-dropdown">
+    <!-- Breadcrumbs -->
+    <case-breadcrumbs></case-breadcrumbs>
+
+    <div class="navbar-end">
+      <div class="navbar-item pr-4">
+        <div class="buttons mb-0">
+          <div class="control mr-6" *ngIf="isStaging">
+            <div class="tags has-addons">
+              <span class="tag is-dark">Version</span>
+              <span class="tag is-warning">Pre-Production</span>
+            </div>
+          </div>
+
+          <!-- Notifications -->
+          <div
+            class="dropdown mr-4 is-right"
+            [ngClass]="{ 'is-active': showNotificationMenu }"
+          >
+            <div class="dropdown-trigger">
+              <a
+                class="button is-light px-5 is-rounded mb-0"
+                aria-haspopup="true"
+                aria-controls="dropdown-menu2"
+                (click)="toggleNotificationMenu()"
+              >
+                <span class="icon has-text-expo">
+                  <i class="icon icon-bell is-size-4 icon has-text-grey">
+                    <span class="has-notification is-link">
+                      <span>1</span>
+                    </span>
+                  </i>
+                </span>
+              </a>
+            </div>
+            <div class="dropdown-menu is-large" id="dropdown-menu2" role="menu">
+              <div class="dropdown-content">
+                <ng-container
+                  *ngFor="let notification of notifications; last as isLast"
+                >
+                  <div class="dropdown-item">
+                    <div
+                      class="is-flex is-flex-wrap-wrap p-5 is-justify-content-start is-align-items-center"
+                    >
+                      <div class="notification-excerpt">
+                        <ng-container *ngIf="!notification.linkPath">
+                          <p>
+                            {{ notification.description }}
+                          </p>
+                        </ng-container>
+                        <p *ngIf="notification.linkPath">
+                          <a
+                            [routerLink]="notification.linkPath"
+                            [queryParams]="notification.queryParams"
+                            >{{ notification.description }}
+                          </a>
+                        </p>
+                        <p
+                          class="is-size-8 pt-1 is-uppercase is-font-weight-500 has-text-weight-medium"
+                        >
+                          le {{ notification.date | date }}
+                        </p>
+                      </div>
+                      <span class="notification-dot"></span>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider" *ngIf="!isLast" />
+                </ng-container>
+              </div>
+            </div>
+          </div>
+
+          <!-- Menu links -->
+          <ng-container *ngFor="let link of links">
+            <a
+              [routerLink]="[link.routePath]"
+              [queryParams]="link.queryParams"
+              [attr.data-tooltip]="link.label"
+              *caseHasPermission="link.permission"
+              class="button is-circle is-white mr-5 has-tooltip has-tooltip-left"
+            >
+              <span class="icon has-text-grey">
+                <i class="icon {{ link.icon }} is-size-3"></i>
+              </span>
+            </a>
+          </ng-container>
+
+          <!-- UserMenu dropdown -->
+          <div
+            class="dropdown is-right"
+            [ngClass]="{ 'is-active': showUserMenu }"
+            *ngIf="currentUser"
+          >
+            <div class="dropdown-trigger">
+              <a
+                aria-haspopup="true"
+                aria-controls="dropdown-menu2"
+                (click)="
+                  showUserMenu = !showUserMenu;
+                  showLinkMenu = false;
+                  showNotificationMenu = false
+                "
+              >
+                <case-image
+                  [path]="currentUser.image"
+                  replacement="/assets/images/avatar.svg"
+                  [title]="currentUser.name"
+                  [alt]="currentUser.name"
+                  className="avatar"
+                >
+                </case-image>
+              </a>
+            </div>
+            <div class="dropdown-menu is-small" role="menu">
+              <div class="dropdown-content">
+                <a
+                  [routerLink]="['/collaborateurs', currentUser.id, 'edit']"
+                  class="dropdown-item"
+                >
+                  Modifier mon profil
+                </a>
+                <hr class="dropdown-divider" />
+                <a routerLink="/logout" class="dropdown-item"> Deconnexion </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

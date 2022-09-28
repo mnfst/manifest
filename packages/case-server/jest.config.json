@@ -1,0 +1,23 @@
+{
+  "globals": {
+    "ts-jest": {
+      "tsConfig": "<rootDir>/tsconfig.json"
+    }
+  },
+  "moduleDirectories": [
+    "node_modules",
+    "src"
+  ],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "testEnvironment": "node",
+  "testMatch": [
+    "<rootDir>/**/*.spec.ts"
+  ],
+  "transform": {
+    "^.+\\.(js|ts|tsx)$": "ts-jest"
+  }
+}

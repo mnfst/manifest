@@ -1,0 +1,22 @@
+// CKeditor related.
+:host ::ng-deep .ck.ck-label.ck-voice-label {
+  display: none;
+}
+
+ckeditor {
+  .ck.ck-editor__editable_inline,
+  .ck.ck-toolbar {
+    border-width: $control-border-width;
+  }
+}
+
+@each $name, $pair in $colors {
+  $color: nth($pair, 1);
+  .is-#{$name} {
+    .ck.ck-editor__editable_inline,
+    .ck.ck-editor__main > .ck-editor__editable:not(.ck-focused),
+    .ck.ck-toolbar {
+      border-color: $color;
+    }
+  }
+}
