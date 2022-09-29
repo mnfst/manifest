@@ -15,7 +15,6 @@ import { SelectOption } from '../../../interfaces/select-option.interface'
 export class CaseInputComponent implements CaseInput {
   // Common props.
   @Input() type: InputType
-  @Input() properties: string[]
   @Input() label: string
   @Input() placeholder: string
   @Input() helpText: string

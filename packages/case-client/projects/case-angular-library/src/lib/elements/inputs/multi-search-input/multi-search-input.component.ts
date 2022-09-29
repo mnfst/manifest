@@ -39,9 +39,15 @@ export class MultiSearchInputComponent implements CaseInput, OnChanges {
   @Input() validators: ValidatorFn[] = []
   @Input() uniqueId: string
 
-  @Output() valueChanged: EventEmitter<{
-    [key: string]: number[]
-  }> = new EventEmitter()
+  /**
+   * Returns an object with selected results by resource. In case of a single selection, we return the id of the selected item.
+   */
+  @Output() valueChanged: EventEmitter<
+    | {
+        [key: string]: number[]
+      }
+    | number
+  > = new EventEmitter()
 
   @ViewChild('searchInput', { static: false }) searchInputEl: ElementRef
 
@@ -70,7 +76,17 @@ export class MultiSearchInputComponent implements CaseInput, OnChanges {
 
   // Fetch full objects from API to display them. Based on initialValue (ids ony).
   getSearchResultObjects(initialValue: any): Promise<SearchResult[]> {
-    if (initialValue && Object.values(this.initialValue).some((v) => !!v)) {
+    // If we just have one selected item (and thus one resource), we get the resourceName from the resource prop to build
+    // an object for the query.
+    if (this.maxSelectedItems === 1) {
+      initialValue = {
+        [this.firstLetterInLowerCase(this.resources[0].className) + 'Ids']: [
+          initialValue
+        ]
+      }
+    }
+
+    if (initialValue && Object.values(initialValue).some((v) => !!v)) {
       return this.resourceService.list(
         'search/get-search-result-objects',
         initialValue
@@ -133,7 +149,9 @@ export class MultiSearchInputComponent implements CaseInput, OnChanges {
   }
 
   // Transform an array of search results into an object of properties that have as value an array of ids.
-  formatToEmit(selectedResults: SearchResult[]): { [key: string]: any } {
+  formatToEmit(
+    selectedResults: SearchResult[]
+  ): { [key: string]: any } | number {
     const emittedValueObject: {
       [key: string]: any
     } = this.resources.reduce((acc, resourceDefinition: ResourceDefinition) => {
@@ -147,11 +165,7 @@ export class MultiSearchInputComponent implements CaseInput, OnChanges {
 
     // If one item only, we return value directly instead of array.
     if (this.maxSelectedItems === 1) {
-      const resourceName = Object.keys(emittedValueObject)[0]
-      return {
-        [this.firstLetterInLowerCase(resourceName) + 'Id']:
-          emittedValueObject[resourceName][0]
-      }
+      return selectedResults[0]?.id || null
     }
 
     // Format "array-of-ids" name based on resource name. Ex: cars => carIds.
