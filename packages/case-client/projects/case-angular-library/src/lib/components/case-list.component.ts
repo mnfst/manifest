@@ -82,7 +82,7 @@ export class CaseListComponent {
         .then((res: Paginator<any> | { filePath: string }) => {
           this.loading = false
           // If it's an export, we open a new tab to download Excel file.
-          if (queryParams.toXLS) {
+          if (queryParams.toXLS === 'true') {
             return this.exportFile((res as { filePath: string }).filePath)
           } else {
             this.paginator = res as Paginator<any>
@@ -167,12 +167,8 @@ export class CaseListComponent {
 
   exportFile(path: string) {
     window.open(`${this.config.storagePath}/${path}`)
-
-    // Remove param and reload list
-    const exportParams: any = {}
-    exportParams.toXLS = null
     this.router.navigate([`/${this.definition.path || this.definition.slug}`], {
-      queryParams: exportParams,
+      queryParams: { toXLS: 'null' }, // Remove param and reload list.
       queryParamsHandling: 'merge'
     })
   }

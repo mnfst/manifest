@@ -124,11 +124,12 @@ export class FilterService {
   savePersistentFilters(resourceName: string, filterForm: any): void {
     const persistentFilters = this.getPersistentFiltersStorageItem() || {}
 
-    // We do not save order filers for UX reasons.
+    // Some filters are never persistent.
     const newFilters = Object.assign({}, filterForm)
     delete newFilters.orderBy
     delete newFilters.orderByDesc
     delete newFilters.page
+    delete newFilters.toXLS
 
     // Delete empty filters.
     Object.keys(newFilters).forEach((key) => {
