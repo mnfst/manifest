@@ -58,7 +58,6 @@ export const caseListTemplate = `
       >
         <case-input
           [type]="filter.inputType"
-          [properties]="filter.properties"
           [initialValue]="filter.value"
           [selectOptions]="filter.selectOptions"
           [label]="filter.label"
