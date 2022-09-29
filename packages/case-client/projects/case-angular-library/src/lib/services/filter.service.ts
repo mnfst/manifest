@@ -96,7 +96,7 @@ export class FilterService {
   static formatQueryParam(
     queryParam: string
   ): string | string[] | number | boolean | null {
-    if (queryParam.includes(',')) {
+    if (typeof queryParam === 'string' && queryParam.includes(',')) {
       return queryParam.split(',')
     } else if (queryParam === 'null') {
       return null
