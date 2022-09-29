@@ -53,28 +53,46 @@ export class RoleCreateEditComponent
   }
 
   async initRoleCreateEditView() {
-    this.mode = this.customActivatedRoute.snapshot.data.mode
+    if (
+      typeof this.customActivatedRoute?.snapshot?.data?.mode !== 'undefined'
+    ) {
+      this.mode = this.customActivatedRoute?.snapshot?.data?.mode
+    }
     this.redirectTo = this.customActivatedRoute.snapshot.queryParams.redirectTo
+
+    const queryParams: { [key: string]: string } =
+      this.customActivatedRoute?.snapshot?.queryParams
+    const params: { [key: string]: string } =
+      this.customActivatedRoute?.snapshot?.params
+
+    if (queryParams?.redirectTo) {
+      this.redirectTo = queryParams?.redirectTo
+    }
+    if (queryParams?.redirectToQueryParams) {
+      this.redirectToQueryParams =
+        queryParams?.redirectToQueryParams &&
+        JSON.parse(queryParams.redirectToQueryParams)
+    }
+
+    // Apply special rules from queryParams.
+    if (queryParams?.specialRules) {
+      this.fieldSpecialRules =
+        (queryParams?.specialRules && JSON.parse(queryParams.specialRules)) ||
+        []
+    }
+
+    if (this.mode === ResourceMode.Edit && !this.item) {
+      this.item = await this.customResourceService
+        .show(this.definition.slug, params.id)
+        .then((itemRes) => itemRes)
+    }
 
     // Get list of permissions to display.
     this.permissions = await this.customResourceService
       .list('permissions')
       .then((res) => res)
 
-    // Apply special rules from queryParams.
-    if (this.customActivatedRoute.snapshot.queryParams.specialRules) {
-      this.fieldSpecialRules = JSON.parse(
-        this.customActivatedRoute.snapshot.queryParams.specialRules
-      )
-    }
-
     this.resolvedFields = await this.resolveFields(this.fields)
-
-    // Get remote resource on edit mode.
-    if (this.mode === ResourceMode.Edit) {
-      this.item = this.customActivatedRoute.snapshot.params.id
-    }
-
     this.form = await this.generateForm(this.fields)
 
     // Check permissionIds boxes.
