@@ -2,7 +2,6 @@ import stackTrace from 'stack-trace'
 import { ulid } from 'ulid'
 import winston from 'winston'
 import ora from 'ora'
-import { track } from 'medusa-telemetry'
 
 import { panicHandler } from './panic-handler'
 

@@ -2,16 +2,12 @@ const path = require(`path`)
 const resolveCwd = require(`resolve-cwd`)
 const yargs = require(`yargs`)
 const existsSync = require(`fs-exists-cached`).sync
-const { setTelemetryEnabled } = require('medusa-telemetry')
 
 const { getLocalMedusaVersion } = require(`./util/version`)
 const { didYouMean } = require(`./did-you-mean`)
 
 const reporter = require('./reporter').default
 const { newStarter } = require('./commands/new')
-const { whoami } = require('./commands/whoami')
-const { login } = require('./commands/login')
-const { link } = require('./commands/link')
 
 const handlerP =
   (fn) =>
@@ -33,16 +29,6 @@ function buildLocalCommands(cli, isLocalProject) {
   if (isLocalProject) {
     const json = require(path.join(directory, `package.json`))
     projectInfo.sitePackageJson = json
-  }
-
-  function getLocalMedusaMajorVersion() {
-    let version = getLocalMedusaVersion()
-
-    if (version) {
-      version = Number(version.split(`.`)[0])
-    }
-
-    return version
   }
 
   function resolveLocalCommand(command) {
@@ -183,11 +169,6 @@ function buildLocalCommands(cli, isLocalProject) {
       )
     })
     .command({
-      command: `whoami`,
-      desc: `View the details of the currently logged in user.`,
-      handler: handlerP(whoami)
-    })
-    .command({
       command: `link`,
       desc: `Creates your Medusa Cloud user in your local database for local testing.`,
       builder: (_) =>
@@ -211,11 +192,6 @@ function buildLocalCommands(cli, isLocalProject) {
 
         return link(args)
       })
-    })
-    .command({
-      command: `login`,
-      desc: `Logs you into Medusa Cloud.`,
-      handler: handlerP(login)
     })
     .command({
       command: `develop`,

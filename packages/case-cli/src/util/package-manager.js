@@ -7,7 +7,7 @@ const packageMangerConfigKey = `cli.packageManager`
 
 export const getPackageManager = () => {
   if (!config) {
-    config = new ConfigStore(`medusa`, {}, { globalConfigPath: true })
+    config = new ConfigStore(`case`, {}, { globalConfigPath: true })
   }
 
   return config.get(packageMangerConfigKey)
@@ -15,7 +15,7 @@ export const getPackageManager = () => {
 
 export const setPackageManager = (packageManager) => {
   if (!config) {
-    config = new ConfigStore(`medusa`, {}, { globalConfigPath: true })
+    config = new ConfigStore(`case`, {}, { globalConfigPath: true })
   }
   config.set(packageMangerConfigKey, packageManager)
   reporter.info(`Preferred package manager set to "${packageManager}"`)

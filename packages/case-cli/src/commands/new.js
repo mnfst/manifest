@@ -13,7 +13,6 @@ import prompts from 'prompts'
 import { Pool } from 'pg'
 import url from 'url'
 import { createDatabase } from 'pg-god'
-import { track } from 'medusa-telemetry'
 import inquirer from 'inquirer'
 
 import reporter from '../reporter'
@@ -121,7 +120,7 @@ const install = async (rootPath) => {
       await spawn(`yarnpkg`)
     } else {
       await fs.remove(`yarn.lock`)
-      await spawn(`npm install`)
+      await spawn(`npm run case:install`)
     }
   } finally {
     process.chdir(prevDir)
@@ -218,40 +217,28 @@ const getPaths = async (starterPath, rootPath) => {
         name: `path`,
         message: `What is your project called?`,
         initial: `my-case-app`
-      },
-      {
-        type: `select`,
-        name: `starter`,
-        message: `What starter would you like to use?`,
-        choices: [
-          { title: `case-starter`, value: `case-starter` },
-          { title: `(Use a different starter)`, value: `different` }
-        ],
-        initial: 0
       }
     ])
 
-    // exit gracefully if responses aren't provided
-    if (!response.starter || !response.path.trim()) {
+    // Exit gracefully if responses aren't provided.
+    if (!response.path.trim()) {
       throw new Error(
         `Please mention both starter package and project name along with path(if its not in the root)`
       )
     }
 
-    selectedOtherStarter = response.starter === `different`
-    starterPath = `case-app/${response.starter}`
     rootPath = response.path
   }
 
   // set defaults if no root or starter has been set yet
   rootPath = rootPath || process.cwd()
-  starterPath = starterPath || `case-app/medusa-starter-default`
+  starterPath = `case-app/case-starter`
 
   return { starterPath, rootPath, selectedOtherStarter }
 }
 
 const successMessage = (path) => {
-  reporter.info(`Ready to start developing ? Here are some commands to get you started:
+  reporter.info(`Ready to start developing? Here are some commands to get you started:
 
   cd ${path}
   npm run start:client
