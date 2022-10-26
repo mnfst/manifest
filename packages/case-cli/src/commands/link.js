@@ -1,24 +1,24 @@
-const axios = require("axios").default
-const inquirer = require("inquirer")
-const open = require("open")
-const execa = require("execa")
+const axios = require('axios').default
+const inquirer = require('inquirer')
+const open = require('open')
+const execa = require('execa')
 const resolveCwd = require(`resolve-cwd`)
-const { track } = require("medusa-telemetry")
+const { track } = require('medusa-telemetry')
 
-const { getToken } = require("../util/token-store")
-const logger = require("../reporter").default
+const { getToken } = require('../util/token-store')
+const logger = require('../reporter').default
 
 const MEDUSA_CLI_DEBUG = process.env.MEDUSA_CLI_DEBUG || false
 
 module.exports = {
-  link: async argv => {
-    track("CLI_LINK", { args: argv })
+  link: async (argv) => {
+    track('CLI_LINK', { args: argv })
     const port = process.env.PORT || 9000
     const appHost =
-      process.env.MEDUSA_APP_HOST || "https://app.medusa-commerce.com"
+      process.env.MEDUSA_APP_HOST || 'https://app.medusa-commerce.com'
 
     const apiHost =
-      process.env.MEDUSA_API_HOST || "https://api.medusa-commerce.com"
+      process.env.MEDUSA_API_HOST || 'https://api.medusa-commerce.com'
 
     // Checks if there is already a token from a previous log in; this is
     // necessary to redirect the customer to the page where local linking is
@@ -26,7 +26,7 @@ module.exports = {
     const tok = getToken()
     if (!tok) {
       console.log(
-        "You must login to Medusa Cloud first. Please run medusa login."
+        'You must login to Medusa Cloud first. Please run medusa login.'
       )
       process.exit(1)
     }
@@ -37,15 +37,15 @@ module.exports = {
     const { data: auth } = await axios
       .get(`${apiHost}/auth`, {
         headers: {
-          authorization: `Bearer ${tok}`,
-        },
+          authorization: `Bearer ${tok}`
+        }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err)
         process.exit(1)
       })
 
-    const linkActivity = logger.activity("Linking local project")
+    const linkActivity = logger.activity('Linking local project')
 
     // Create the user with the user id
     if (!argv.skipLocalUser && auth.user) {
@@ -57,8 +57,8 @@ module.exports = {
           {
             env: {
               ...process.env,
-              NODE_ENV: "command",
-            },
+              NODE_ENV: 'command'
+            }
           }
         )
 
@@ -69,15 +69,15 @@ module.exports = {
 
         const res = await proc
         if (res.stderr) {
-          const err = new Error("stderr error")
+          const err = new Error('stderr error')
           err.stderr = res.stderr
           throw err
         }
       } catch (error) {
-        logger.failure(linkActivity, "Failed to perform local linking")
+        logger.failure(linkActivity, 'Failed to perform local linking')
         if (error.stderr) {
           console.error(error.stderr)
-        } else if (error.code === "ENOENT") {
+        } else if (error.code === 'ENOENT') {
           logger.error(
             `Couldn't find the Medusa CLI - please make sure that you have installed it globally`
           )
@@ -86,25 +86,25 @@ module.exports = {
       }
     }
 
-    logger.success(linkActivity, "Local project linked")
-    track("CLI_LINK_COMPLETED")
+    logger.success(linkActivity, 'Local project linked')
+    track('CLI_LINK_COMPLETED')
 
     console.log()
     console.log(
-      "Link Medusa Cloud to your local server. This will open the browser"
+      'Link Medusa Cloud to your local server. This will open the browser'
     )
     console.log()
 
     const prompts = [
       {
-        type: "input",
-        name: "open",
-        message: "Press enter key to open browser for linking or n to exit",
-      },
+        type: 'input',
+        name: 'open',
+        message: 'Press enter key to open browser for linking or n to exit'
+      }
     ]
 
-    await inquirer.prompt(prompts).then(async a => {
-      if (a.open === "n") {
+    await inquirer.prompt(prompts).then(async (a) => {
+      if (a.open === 'n') {
         process.exit(0)
       }
 
@@ -114,19 +114,19 @@ module.exports = {
       const browserOpen = await open(
         `${appHost}/local-link?${encodeURI(params)}`,
         {
-          app: "browser",
-          wait: false,
+          app: 'browser',
+          wait: false
         }
       )
 
-      browserOpen.on("error", err => {
+      browserOpen.on('error', (err) => {
         console.warn(err)
         console.log(
           `Could not open browser go to: ${appHost}/local-link?lurl=http://localhost:9000&ltoken=${auth.user.id}`
         )
       })
 
-      track("CLI_LINK_BROWSER_OPENED")
+      track('CLI_LINK_BROWSER_OPENED')
     })
 
     if (argv.develop) {
@@ -135,5 +135,5 @@ module.exports = {
       proc.stderr.pipe(process.stderr)
       await proc
     }
-  },
+  }
 }

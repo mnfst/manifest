@@ -2,24 +2,24 @@
  * Adapted from https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-cli/src/init-starter.ts
  */
 
-import { execSync } from "child_process"
-import execa from "execa"
-import { sync as existsSync } from "fs-exists-cached"
-import fs from "fs-extra"
-import hostedGitInfo from "hosted-git-info"
-import isValid from "is-valid-path"
-import sysPath from "path"
-import prompts from "prompts"
-import { Pool } from "pg"
-import url from "url"
-import { createDatabase } from "pg-god"
-import { track } from "medusa-telemetry"
-import inquirer from "inquirer"
+import { execSync } from 'child_process'
+import execa from 'execa'
+import { sync as existsSync } from 'fs-exists-cached'
+import fs from 'fs-extra'
+import hostedGitInfo from 'hosted-git-info'
+import isValid from 'is-valid-path'
+import sysPath from 'path'
+import prompts from 'prompts'
+import { Pool } from 'pg'
+import url from 'url'
+import { createDatabase } from 'pg-god'
+import { track } from 'medusa-telemetry'
+import inquirer from 'inquirer'
 
-import reporter from "../reporter"
-import { getPackageManager, setPackageManager } from "../util/package-manager"
+import reporter from '../reporter'
+import { getPackageManager, setPackageManager } from '../util/package-manager'
 
-const removeUndefined = obj => {
+const removeUndefined = (obj) => {
   return Object.fromEntries(
     Object.entries(obj)
       .filter(([_, v]) => v != null)
@@ -49,22 +49,22 @@ const checkForYarn = () => {
 const isAlreadyGitRepository = async () => {
   try {
     return await spawn(`git rev-parse --is-inside-work-tree`, {
-      stdio: `pipe`,
-    }).then(output => output.stdout === `true`)
+      stdio: `pipe`
+    }).then((output) => output.stdout === `true`)
   } catch (err) {
     return false
   }
 }
 
 // Initialize newly cloned directory as a git repo
-const gitInit = async rootPath => {
+const gitInit = async (rootPath) => {
   reporter.info(`Initialising git in ${rootPath}`)
 
   return await spawn(`git init`, { cwd: rootPath })
 }
 
 // Create a .gitignore file if it is missing in the new directory
-const maybeCreateGitIgnore = async rootPath => {
+const maybeCreateGitIgnore = async (rootPath) => {
   if (existsSync(sysPath.join(rootPath, `.gitignore`))) {
     return
   }
@@ -88,7 +88,7 @@ const createInitialGitCommit = async (rootPath, starterUrl) => {
   // pgp signatures (with password)
   try {
     execSync(`git commit -m "Initial commit from medusa: (${starterUrl})"`, {
-      cwd: rootPath,
+      cwd: rootPath
     })
   } catch {
     // Remove git support if initial commit fails
@@ -98,7 +98,7 @@ const createInitialGitCommit = async (rootPath, starterUrl) => {
 }
 
 // Executes `npm install` or `yarn install` in rootPath.
-const install = async rootPath => {
+const install = async (rootPath) => {
   const prevDir = process.cwd()
 
   reporter.info(`Installing packages...`)
@@ -128,7 +128,7 @@ const install = async rootPath => {
   }
 }
 
-const ignored = path => !/^\.(git|hg)$/.test(sysPath.basename(path))
+const ignored = (path) => !/^\.(git|hg)$/.test(sysPath.basename(path))
 
 // Copy starter from file system.
 const copy = async (starterPath, rootPath) => {
@@ -186,14 +186,14 @@ const clone = async (hostInfo, rootPath) => {
     url,
     rootPath,
     `--recursive`,
-    `--depth=1`,
-  ].filter(arg => Boolean(arg))
+    `--depth=1`
+  ].filter((arg) => Boolean(arg))
 
   await execa(`git`, args, {})
     .then(() => {
       reporter.success(createAct, `Created starter directory layout`)
     })
-    .catch(err => {
+    .catch((err) => {
       reporter.failure(createAct, `Failed to clone repository`)
       throw err
     })
@@ -207,9 +207,9 @@ const clone = async (hostInfo, rootPath) => {
   if (!isGit) await createInitialGitCommit(rootPath, url)
 }
 
-const getMedusaConfig = rootPath => {
+const getMedusaConfig = (rootPath) => {
   try {
-    const configPath = sysPath.join(rootPath, "medusa-config.js")
+    const configPath = sysPath.join(rootPath, 'medusa-config.js')
     if (existsSync(configPath)) {
       const resolved = sysPath.resolve(configPath)
       const configModule = require(resolved)
@@ -235,18 +235,18 @@ const getPaths = async (starterPath, rootPath) => {
         type: `text`,
         name: `path`,
         message: `What is your project called?`,
-        initial: `my-medusa-store`,
+        initial: `my-case-app`
       },
       {
         type: `select`,
         name: `starter`,
         message: `What starter would you like to use?`,
         choices: [
-          { title: `medusa-starter-default`, value: `medusa-starter-default` },
-          { title: `(Use a different starter)`, value: `different` },
+          { title: `case-starter`, value: `case-starter` },
+          { title: `(Use a different starter)`, value: `different` }
         ],
-        initial: 0,
-      },
+        initial: 0
+      }
     ])
 
     // exit gracefully if responses aren't provided
@@ -268,7 +268,7 @@ const getPaths = async (starterPath, rootPath) => {
   return { starterPath, rootPath, selectedOtherStarter }
 }
 
-const successMessage = path => {
+const successMessage = (path) => {
   reporter.info(`Your new Medusa project is ready for you! To start developing run:
 
   cd ${path}
@@ -277,17 +277,17 @@ const successMessage = path => {
 }
 
 const defaultDBCreds = {
-  user: process.env.USER || "postgres",
-  database: "postgres",
-  password: "",
+  user: process.env.USER || 'postgres',
+  database: 'postgres',
+  password: '',
   port: 5432,
-  host: "localhost",
+  host: 'localhost'
 }
 
-const verifyPgCreds = async creds => {
+const verifyPgCreds = async (creds) => {
   const pool = new Pool(creds)
   return new Promise((resolve, reject) => {
-    pool.query("SELECT NOW()", (err, res) => {
+    pool.query('SELECT NOW()', (err, res) => {
       pool.end()
       if (err) {
         reject(err)
@@ -305,8 +305,8 @@ const interactiveDbCreds = async (dbName, dbCreds = {}) => {
     const result = await inquirer
       .prompt([
         {
-          type: "list",
-          name: "continueWithDefault",
+          type: 'list',
+          name: 'continueWithDefault',
           message: `
 
 Will attempt to setup database "${dbName}" with credentials:
@@ -318,68 +318,68 @@ Will attempt to setup database "${dbName}" with credentials:
 Do you wish to continue with these credentials?
 
           `,
-          choices: [`Continue`, `Change credentials`, `Skip database setup`],
+          choices: [`Continue`, `Change credentials`, `Skip database setup`]
         },
         {
-          type: "input",
+          type: 'input',
           when: ({ continueWithDefault }) =>
             continueWithDefault === `Change credentials`,
-          name: "user",
+          name: 'user',
           default: credentials.user,
-          message: `DB user`,
+          message: `DB user`
         },
         {
-          type: "password",
+          type: 'password',
           when: ({ continueWithDefault }) =>
             continueWithDefault === `Change credentials`,
-          name: "password",
+          name: 'password',
           default: credentials.password,
-          message: `DB password`,
+          message: `DB password`
         },
         {
-          type: "number",
+          type: 'number',
           when: ({ continueWithDefault }) =>
             continueWithDefault === `Change credentials`,
-          name: "port",
+          name: 'port',
           default: credentials.port,
-          message: `DB port`,
+          message: `DB port`
         },
         {
-          type: "input",
+          type: 'input',
           when: ({ continueWithDefault }) =>
             continueWithDefault === `Change credentials`,
-          name: "host",
+          name: 'host',
           default: credentials.host,
-          message: `DB host`,
+          message: `DB host`
         },
         {
-          type: "input",
+          type: 'input',
           when: ({ continueWithDefault }) =>
             continueWithDefault === `Change credentials`,
-          name: "database",
+          name: 'database',
           default: credentials.database,
-          message: `DB database`,
-        },
+          message: `DB database`
+        }
       ])
-      .then(async answers => {
+      .then(async (answers) => {
         const collectedCreds = Object.assign({}, credentials, {
           user: answers.user,
           password: answers.password,
           host: answers.host,
           port: answers.port,
-          database: answers.database,
+          database: answers.database
         })
 
         switch (answers.continueWithDefault) {
-          case "Continue": {
-            const done = await verifyPgCreds(credentials).catch(_ => false)
+          case 'Continue': {
+            const done = await verifyPgCreds(credentials).catch((_) => false)
             if (done) {
               return credentials
             }
             return false
           }
-          case "Change credentials": {
-            const done = await verifyPgCreds(collectedCreds).catch(_ => false)
+          case 'Change credentials': {
+            const done = await verifyPgCreds(collectedCreds).catch((_) => false)
             if (done) {
               return collectedCreds
             }
@@ -394,7 +394,7 @@ Do you wish to continue with these credentials?
       return result
     }
 
-    console.log("\n\nCould not verify DB credentials - please try again\n\n")
+    console.log('\n\nCould not verify DB credentials - please try again\n\n')
   }
 }
 
@@ -405,15 +405,15 @@ const setupDB = async (dbName, dbCreds = {}) => {
   await createDatabase(
     {
       databaseName: dbName,
-      errorIfExist: true,
+      errorIfExist: true
     },
     credentials
   )
     .then(() => {
       reporter.success(dbActivity, `Created database "${dbName}"`)
     })
-    .catch(err => {
-      if (err.name === "PDG_ERR::DuplicateDatabase") {
+    .catch((err) => {
+      if (err.name === 'PDG_ERR::DuplicateDatabase') {
         reporter.success(
           dbActivity,
           `Database ${dbName} already exists; skipping setup`
@@ -434,15 +434,15 @@ const setupEnvVars = async (
   dbCreds = {},
   isPostgres = true
 ) => {
-  const templatePath = sysPath.join(rootPath, ".env.template")
-  const destination = sysPath.join(rootPath, ".env")
+  const templatePath = sysPath.join(rootPath, '.env.template')
+  const destination = sysPath.join(rootPath, '.env')
   if (existsSync(templatePath)) {
     fs.renameSync(templatePath, destination)
   }
 
   if (isPostgres) {
     const credentials = Object.assign({}, defaultDBCreds, dbCreds)
-    let dbUrl = ""
+    let dbUrl = ''
     if (
       credentials.user !== defaultDBCreds.user ||
       credentials.password !== defaultDBCreds.password
@@ -456,8 +456,8 @@ const setupEnvVars = async (
   }
 }
 
-const runMigrations = async rootPath => {
-  const migrationActivity = reporter.activity("Applying database migrations...")
+const runMigrations = async (rootPath) => {
+  const migrationActivity = reporter.activity('Applying database migrations...')
 
   const cliPath = sysPath.join(
     `node_modules`,
@@ -467,29 +467,29 @@ const runMigrations = async rootPath => {
   )
 
   return await execa(cliPath, [`migrations`, `run`], {
-    cwd: rootPath,
+    cwd: rootPath
   })
     .then(() => {
-      reporter.success(migrationActivity, "Database migrations completed.")
+      reporter.success(migrationActivity, 'Database migrations completed.')
     })
-    .catch(err => {
+    .catch((err) => {
       reporter.failure(
         migrationActivity,
-        "Failed to migrate database you must complete migration manually before starting your server."
+        'Failed to migrate database you must complete migration manually before starting your server.'
       )
       console.error(err)
     })
 }
 
-const attemptSeed = async rootPath => {
-  const seedActivity = reporter.activity("Seeding database")
+const attemptSeed = async (rootPath) => {
+  const seedActivity = reporter.activity('Seeding database')
 
-  const pkgPath = sysPath.resolve(rootPath, "package.json")
+  const pkgPath = sysPath.resolve(rootPath, 'package.json')
   if (existsSync(pkgPath)) {
     const pkg = require(pkgPath)
     if (pkg.scripts && pkg.scripts.seed) {
       const proc = execa(getPackageManager(), [`run`, `seed`], {
-        cwd: rootPath,
+        cwd: rootPath
       })
 
       // Useful for development
@@ -497,10 +497,10 @@ const attemptSeed = async rootPath => {
 
       await proc
         .then(() => {
-          reporter.success(seedActivity, "Seed completed")
+          reporter.success(seedActivity, 'Seed completed')
         })
-        .catch(err => {
-          reporter.failure(seedActivity, "Failed to complete seed; skipping")
+        .catch((err) => {
+          reporter.failure(seedActivity, 'Failed to complete seed; skipping')
           console.error(err)
         })
     } else {
@@ -510,15 +510,15 @@ const attemptSeed = async rootPath => {
       )
     }
   } else {
-    reporter.failure(seedActivity, "Could not find package.json")
+    reporter.failure(seedActivity, 'Could not find package.json')
   }
 }
 
 /**
  * Main function that clones or copies the starter.
  */
-export const newStarter = async args => {
-  track("CLI_NEW")
+export const newStarter = async (args) => {
+  track('CLI_NEW')
 
   const {
     starter,
@@ -532,7 +532,7 @@ export const newStarter = async args => {
     dbDatabase,
     dbPass,
     dbPort,
-    dbHost,
+    dbHost
   } = args
 
   const dbCredentials = removeUndefined({
@@ -540,7 +540,7 @@ export const newStarter = async args => {
     database: dbDatabase,
     password: dbPass,
     port: dbPort,
-    host: dbHost,
+    host: dbHost
   })
 
   const { starterPath, rootPath, selectedOtherStarter } = await getPaths(
@@ -570,16 +570,16 @@ medusa new ${rootPath} [url-to-starter]
         id: `10000`,
         context: {
           starter,
-          rootPath,
-        },
+          rootPath
+        }
       })
       return
     }
     reporter.panic({
       id: `10001`,
       context: {
-        rootPath,
-      },
+        rootPath
+      }
     })
     return
   }
@@ -588,8 +588,8 @@ medusa new ${rootPath} [url-to-starter]
     reporter.panic({
       id: `10002`,
       context: {
-        path: sysPath.resolve(rootPath),
-      },
+        path: sysPath.resolve(rootPath)
+      }
     })
     return
   }
@@ -598,8 +598,8 @@ medusa new ${rootPath} [url-to-starter]
     reporter.panic({
       id: `10003`,
       context: {
-        rootPath,
-      },
+        rootPath
+      }
     })
     return
   }
@@ -616,10 +616,10 @@ medusa new ${rootPath} [url-to-starter]
   let isPostgres = false
   if (medusaConfig && medusaConfig.projectConfig) {
     const databaseType = medusaConfig.projectConfig.database_type
-    isPostgres = databaseType === "postgres"
+    isPostgres = databaseType === 'postgres'
   }
 
-  track("CLI_NEW_LAYOUT_COMPLETED")
+  track('CLI_NEW_LAYOUT_COMPLETED')
 
   let creds = dbCredentials
 
@@ -628,29 +628,29 @@ medusa new ${rootPath} [url-to-starter]
   }
 
   if (creds === null) {
-    reporter.info("Skipping automatic database setup")
+    reporter.info('Skipping automatic database setup')
   } else {
     if (!skipDb && isPostgres) {
-      track("CLI_NEW_SETUP_DB")
+      track('CLI_NEW_SETUP_DB')
       await setupDB(rootPath, creds)
     }
 
     if (!skipEnv) {
-      track("CLI_NEW_SETUP_ENV")
+      track('CLI_NEW_SETUP_ENV')
       await setupEnvVars(rootPath, rootPath, creds, isPostgres)
     }
 
     if (!skipMigrations && isPostgres) {
-      track("CLI_NEW_RUN_MIGRATIONS")
+      track('CLI_NEW_RUN_MIGRATIONS')
       await runMigrations(rootPath)
     }
 
     if (seed) {
-      track("CLI_NEW_SEED_DB")
+      track('CLI_NEW_SEED_DB')
       await attemptSeed(rootPath)
     }
   }
 
   successMessage(rootPath)
-  track("CLI_NEW_SUCCEEDED")
+  track('CLI_NEW_SUCCEEDED')
 }

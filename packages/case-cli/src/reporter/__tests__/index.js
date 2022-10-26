@@ -1,26 +1,26 @@
-import logger, { Reporter } from "../"
+import logger, { Reporter } from '../'
 
 describe(`Reporter`, () => {
   const winstonMock = {
-    log: jest.fn(),
+    log: jest.fn()
   }
 
   const reporter = new Reporter({
     logger: winstonMock,
-    activityLogger: {},
+    activityLogger: {}
   })
 
-  const getErrorMessages = fn =>
+  const getErrorMessages = (fn) =>
     fn.mock.calls
       .map(([firstArg]) => firstArg)
-      .filter(structuredMessage => structuredMessage.level === `error`)
+      .filter((structuredMessage) => structuredMessage.level === `error`)
 
   beforeEach(() => {
     winstonMock.log.mockClear()
   })
 
   it(`handles "String" signature correctly`, () => {
-    reporter.error("Test log")
+    reporter.error('Test log')
 
     const generated = getErrorMessages(winstonMock.log)[0]
 
@@ -28,22 +28,22 @@ describe(`Reporter`, () => {
   })
 
   it(`handles "String, Error" signature correctly`, () => {
-    reporter.error("Test log", new Error("String Error"))
+    reporter.error('Test log', new Error('String Error'))
 
     const generated = getErrorMessages(winstonMock.log)[0]
 
     expect(generated).toMatchSnapshot({
-      stack: expect.any(Array),
+      stack: expect.any(Array)
     })
   })
 
   it(`handles "Error" signature correctly`, () => {
-    reporter.error(new Error("Error"))
+    reporter.error(new Error('Error'))
 
     const generated = getErrorMessages(winstonMock.log)[0]
 
     expect(generated).toMatchSnapshot({
-      stack: expect.any(Array),
+      stack: expect.any(Array)
     })
   })
 })

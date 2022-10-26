@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 
 require('dotenv').config()
-require('./dist/index.js.js')
+require('./dist/index.js')

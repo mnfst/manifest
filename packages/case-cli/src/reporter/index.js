@@ -1,14 +1,14 @@
-import stackTrace from "stack-trace"
-import { ulid } from "ulid"
-import winston from "winston"
-import ora from "ora"
-import { track } from "medusa-telemetry"
+import stackTrace from 'stack-trace'
+import { ulid } from 'ulid'
+import winston from 'winston'
+import ora from 'ora'
+import { track } from 'medusa-telemetry'
 
-import { panicHandler } from "./panic-handler"
+import { panicHandler } from './panic-handler'
 
-const LOG_LEVEL = process.env.LOG_LEVEL || "silly"
-const NODE_ENV = process.env.NODE_ENV || "development"
-const IS_DEV = NODE_ENV === "development"
+const LOG_LEVEL = process.env.LOG_LEVEL || 'silly'
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const IS_DEV = NODE_ENV === 'development'
 
 const transports = []
 if (!IS_DEV) {
@@ -19,7 +19,7 @@ if (!IS_DEV) {
       format: winston.format.combine(
         winston.format.cli(),
         winston.format.splat()
-      ),
+      )
     })
   )
 }
@@ -29,13 +29,13 @@ const loggerInstance = winston.createLogger({
   levels: winston.config.npm.levels,
   format: winston.format.combine(
     winston.format.timestamp({
-      format: "YYYY-MM-DD HH:mm:ss",
+      format: 'YYYY-MM-DD HH:mm:ss'
     }),
     winston.format.errors({ stack: true }),
     winston.format.splat(),
     winston.format.json()
   ),
-  transports,
+  transports
 })
 
 export class Reporter {
@@ -49,13 +49,13 @@ export class Reporter {
     const parsedPanic = panicHandler(data)
 
     this.loggerInstance_.log({
-      level: "error",
+      level: 'error',
       details: data,
-      message: parsedPanic.message,
+      message: parsedPanic.message
     })
 
-    track("PANIC_ERROR_REACHED", {
-      id: data.id,
+    track('PANIC_ERROR_REACHED', {
+      id: data.id
     })
 
     process.exit(1)
@@ -97,26 +97,26 @@ export class Reporter {
    */
   activity = (message, config = {}) => {
     const id = ulid()
-    if (IS_DEV && this.shouldLog("info")) {
+    if (IS_DEV && this.shouldLog('info')) {
       const activity = this.ora_(message).start()
 
       this.activities_[id] = {
         activity,
         config,
-        start: Date.now(),
+        start: Date.now()
       }
 
       return id
     } else {
       this.activities_[id] = {
         start: Date.now(),
-        config,
+        config
       }
       this.loggerInstance_.log({
         activity_id: id,
-        level: "info",
+        level: 'info',
         config,
-        message,
+        message
       })
 
       return id
@@ -132,11 +132,11 @@ export class Reporter {
    */
   progress = (activityId, message) => {
     const toLog = {
-      level: "info",
-      message,
+      level: 'info',
+      message
     }
 
-    if (typeof activityId === "string" && this.activities_[activityId]) {
+    if (typeof activityId === 'string' && this.activities_[activityId]) {
       const activity = this.activities_[activityId]
       if (activity.activity) {
         activity.text = message
@@ -158,14 +158,14 @@ export class Reporter {
    */
   error = (messageOrError, error) => {
     let message = messageOrError
-    if (typeof messageOrError === "object") {
+    if (typeof messageOrError === 'object') {
       message = messageOrError.message
       error = messageOrError
     }
 
     const toLog = {
-      level: "error",
-      message,
+      level: 'error',
+      message
     }
 
     if (error) {
@@ -191,11 +191,11 @@ export class Reporter {
   failure = (activityId, message) => {
     const time = Date.now()
     const toLog = {
-      level: "error",
-      message,
+      level: 'error',
+      message
     }
 
-    if (typeof activityId === "string" && this.activities_[activityId]) {
+    if (typeof activityId === 'string' && this.activities_[activityId]) {
       const activity = this.activities_[activityId]
       if (activity.activity) {
         activity.activity.fail(`${message} – ${time - activity.start}`)
@@ -212,7 +212,7 @@ export class Reporter {
       const activity = this.activities_[activityId]
       return {
         ...activity,
-        duration: time - activity.start,
+        duration: time - activity.start
       }
     }
 
@@ -230,11 +230,11 @@ export class Reporter {
   success = (activityId, message) => {
     const time = Date.now()
     const toLog = {
-      level: "info",
-      message,
+      level: 'info',
+      message
     }
 
-    if (typeof activityId === "string" && this.activities_[activityId]) {
+    if (typeof activityId === 'string' && this.activities_[activityId]) {
       const activity = this.activities_[activityId]
       if (activity.activity) {
         activity.activity.succeed(`${message} – ${time - activity.start}ms`)
@@ -251,7 +251,7 @@ export class Reporter {
       const activity = this.activities_[activityId]
       return {
         ...activity,
-        duration: time - activity.start,
+        duration: time - activity.start
       }
     }
 
@@ -264,8 +264,8 @@ export class Reporter {
    */
   debug = (message) => {
     this.loggerInstance_.log({
-      level: "debug",
-      message,
+      level: 'debug',
+      message
     })
   }
 
@@ -275,8 +275,8 @@ export class Reporter {
    */
   info = (message) => {
     this.loggerInstance_.log({
-      level: "info",
-      message,
+      level: 'info',
+      message
     })
   }
 
@@ -286,8 +286,8 @@ export class Reporter {
    */
   warn = (message) => {
     this.loggerInstance_.warn({
-      level: "warn",
-      message,
+      level: 'warn',
+      message
     })
   }
 
@@ -301,7 +301,7 @@ export class Reporter {
 
 const logger = new Reporter({
   logger: loggerInstance,
-  activityLogger: ora,
+  activityLogger: ora
 })
 
 export default logger

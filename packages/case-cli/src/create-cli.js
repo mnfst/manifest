@@ -2,23 +2,25 @@ const path = require(`path`)
 const resolveCwd = require(`resolve-cwd`)
 const yargs = require(`yargs`)
 const existsSync = require(`fs-exists-cached`).sync
-const { setTelemetryEnabled } = require("medusa-telemetry")
+const { setTelemetryEnabled } = require('medusa-telemetry')
 
 const { getLocalMedusaVersion } = require(`./util/version`)
 const { didYouMean } = require(`./did-you-mean`)
 
-const reporter = require("./reporter").default
-const { newStarter } = require("./commands/new")
-const { whoami } = require("./commands/whoami")
-const { login } = require("./commands/login")
-const { link } = require("./commands/link")
+const reporter = require('./reporter').default
+const { newStarter } = require('./commands/new')
+const { whoami } = require('./commands/whoami')
+const { login } = require('./commands/login')
+const { link } = require('./commands/link')
 
-const handlerP = fn => (...args) => {
-  Promise.resolve(fn(...args)).then(
-    () => process.exit(0),
-    err => console.log(err)
-  )
-}
+const handlerP =
+  (fn) =>
+  (...args) => {
+    Promise.resolve(fn(...args)).then(
+      () => process.exit(0),
+      (err) => console.log(err)
+    )
+  }
 
 function buildLocalCommands(cli, isLocalProject) {
   const defaultHost = `localhost`
@@ -59,7 +61,7 @@ function buildLocalCommands(cli, isLocalProject) {
   }
 
   function getCommandHandler(command, handler) {
-    return argv => {
+    return (argv) => {
       const localCmd = resolveLocalCommand(command)
       const args = { ...argv, ...projectInfo, useYarn }
 
@@ -70,68 +72,68 @@ function buildLocalCommands(cli, isLocalProject) {
   cli
     .command({
       command: `new [root] [starter]`,
-      builder: _ =>
+      builder: (_) =>
         _.option(`seed`, {
           type: `boolean`,
           describe: `If flag is set the command will attempt to seed the database after setup.`,
-          default: false,
+          default: false
         })
           .option(`y`, {
             type: `boolean`,
-            alias: "useDefaults",
+            alias: 'useDefaults',
             describe: `If flag is set the command will not interactively collect database credentials`,
-            default: false,
+            default: false
           })
           .option(`skip-db`, {
             type: `boolean`,
             describe: `If flag is set the command will not attempt to complete database setup`,
-            default: false,
+            default: false
           })
           .option(`skip-migrations`, {
             type: `boolean`,
             describe: `If flag is set the command will not attempt to complete database migration`,
-            default: false,
+            default: false
           })
           .option(`skip-env`, {
             type: `boolean`,
             describe: `If flag is set the command will not attempt to populate .env`,
-            default: false,
+            default: false
           })
           .option(`db-user`, {
             type: `string`,
-            describe: `The database user to use for database setup and migrations.`,
+            describe: `The database user to use for database setup and migrations.`
           })
           .option(`db-database`, {
             type: `string`,
-            describe: `The database use for database setup and migrations.`,
+            describe: `The database use for database setup and migrations.`
           })
           .option(`db-pass`, {
             type: `string`,
-            describe: `The database password to use for database setup and migrations.`,
+            describe: `The database password to use for database setup and migrations.`
           })
           .option(`db-port`, {
             type: `number`,
-            describe: `The database port to use for database setup and migrations.`,
+            describe: `The database port to use for database setup and migrations.`
           })
           .option(`db-host`, {
             type: `string`,
-            describe: `The database host to use for database setup and migrations.`,
+            describe: `The database host to use for database setup and migrations.`
           }),
       desc: `Create a new Medusa project.`,
-      handler: handlerP(newStarter),
+      handler: handlerP(newStarter)
     })
     .command({
       command: `telemetry`,
       describe: `Enable or disable collection of anonymous usage data.`,
-      builder: yargs =>
+      builder: (yargs) =>
         yargs
           .option(`enable`, {
             type: `boolean`,
-            description: `Enable telemetry (default)`,
+            description: `Enable telemetry (default)`
           })
           .option(`disable`, {
             type: `boolean`,
-            description: `Disable telemetry`,
+            description: `Disable telemetry`
           }),
 
       handler: handlerP(({ enable, disable }) => {
@@ -140,29 +142,29 @@ function buildLocalCommands(cli, isLocalProject) {
         reporter.info(
           `Telemetry collection ${enabled ? `enabled` : `disabled`}`
         )
-      }),
+      })
     })
     .command({
       command: `seed`,
       desc: `Migrates and populates the database with the provided file.`,
-      builder: _ =>
+      builder: (_) =>
         _.option(`f`, {
           alias: `seed-file`,
           type: `string`,
           describe: `Path to the file where the seed is defined.`,
-          required: true,
+          required: true
         }).option(`m`, {
           alias: `migrate`,
           type: `boolean`,
           default: true,
-          describe: `Flag to indicate if migrations should be run prior to seeding the database`,
+          describe: `Flag to indicate if migrations should be run prior to seeding the database`
         }),
       handler: handlerP(
         getCommandHandler(`seed`, (args, cmd) => {
           process.env.NODE_ENV = process.env.NODE_ENV || `development`
           return cmd(args)
         })
-      ),
+      )
     })
     .command({
       command: `migrations [action]`,
@@ -170,67 +172,67 @@ function buildLocalCommands(cli, isLocalProject) {
       builder: {
         action: {
           demand: true,
-          choices: ["run", "revert", "show"],
-        },
+          choices: ['run', 'revert', 'show']
+        }
       },
       handler: handlerP(
         getCommandHandler(`migrate`, (args, cmd) => {
           process.env.NODE_ENV = process.env.NODE_ENV || `development`
           return cmd(args)
         })
-      ),
+      )
     })
     .command({
       command: `whoami`,
       desc: `View the details of the currently logged in user.`,
-      handler: handlerP(whoami),
+      handler: handlerP(whoami)
     })
     .command({
       command: `link`,
       desc: `Creates your Medusa Cloud user in your local database for local testing.`,
-      builder: _ =>
+      builder: (_) =>
         _.option(`su`, {
           alias: `skip-local-user`,
           type: `boolean`,
           default: false,
-          describe: `If set a user will not be created in the database.`,
+          describe: `If set a user will not be created in the database.`
         }).option(`develop`, {
           type: `boolean`,
           default: false,
-          describe: `If set medusa develop will be run after successful linking.`,
+          describe: `If set medusa develop will be run after successful linking.`
         }),
-      handler: handlerP(argv => {
+      handler: handlerP((argv) => {
         if (!isLocalProject) {
-          console.log("must be a local project")
+          console.log('must be a local project')
           cli.showHelp()
         }
 
         const args = { ...argv, ...projectInfo, useYarn }
 
         return link(args)
-      }),
+      })
     })
     .command({
       command: `login`,
       desc: `Logs you into Medusa Cloud.`,
-      handler: handlerP(login),
+      handler: handlerP(login)
     })
     .command({
       command: `develop`,
       desc: `Start development server. Watches file and rebuilds when something changes`,
-      builder: _ =>
+      builder: (_) =>
         _.option(`H`, {
           alias: `host`,
           type: `string`,
           default: defaultHost,
-          describe: `Set host. Defaults to ${defaultHost}`,
+          describe: `Set host. Defaults to ${defaultHost}`
         }).option(`p`, {
           alias: `port`,
           type: `string`,
           default: process.env.PORT || defaultPort,
           describe: process.env.PORT
             ? `Set port. Defaults to ${process.env.PORT} (set by env.PORT) (otherwise defaults ${defaultPort})`
-            : `Set port. Defaults to ${defaultPort}`,
+            : `Set port. Defaults to ${defaultPort}`
         }),
       handler: handlerP(
         getCommandHandler(`develop`, (args, cmd) => {
@@ -239,26 +241,26 @@ function buildLocalCommands(cli, isLocalProject) {
           // Return an empty promise to prevent handlerP from exiting early.
           // The development server shouldn't ever exit until the user directly
           // kills it so this is fine.
-          return new Promise(resolve => {})
+          return new Promise((resolve) => {})
         })
-      ),
+      )
     })
     .command({
       command: `start`,
       desc: `Start development server.`,
-      builder: _ =>
+      builder: (_) =>
         _.option(`H`, {
           alias: `host`,
           type: `string`,
           default: defaultHost,
-          describe: `Set host. Defaults to ${defaultHost}`,
+          describe: `Set host. Defaults to ${defaultHost}`
         }).option(`p`, {
           alias: `port`,
           type: `string`,
           default: process.env.PORT || defaultPort,
           describe: process.env.PORT
             ? `Set port. Defaults to ${process.env.PORT} (set by env.PORT) (otherwise defaults ${defaultPort})`
-            : `Set port. Defaults to ${defaultPort}`,
+            : `Set port. Defaults to ${defaultPort}`
         }),
       handler: handlerP(
         getCommandHandler(`start`, (args, cmd) => {
@@ -267,28 +269,28 @@ function buildLocalCommands(cli, isLocalProject) {
           // Return an empty promise to prevent handlerP from exiting early.
           // The development server shouldn't ever exit until the user directly
           // kills it so this is fine.
-          return new Promise(resolve => {})
+          return new Promise((resolve) => {})
         })
-      ),
+      )
     })
     .command({
       command: `user`,
       desc: `Create a user`,
-      builder: _ =>
+      builder: (_) =>
         _.option(`e`, {
           alias: `email`,
           type: `string`,
-          describe: `User's email.`,
+          describe: `User's email.`
         })
           .option(`p`, {
             alias: `password`,
             type: `string`,
-            describe: `User's password.`,
+            describe: `User's password.`
           })
           .option(`i`, {
             alias: `id`,
             type: `string`,
-            describe: `User's id.`,
+            describe: `User's id.`
           }),
       handler: handlerP(
         getCommandHandler(`user`, (args, cmd) => {
@@ -296,9 +298,9 @@ function buildLocalCommands(cli, isLocalProject) {
           // Return an empty promise to prevent handlerP from exiting early.
           // The development server shouldn't ever exit until the user directly
           // kills it so this is fine.
-          return new Promise(resolve => {})
+          return new Promise((resolve) => {})
         })
-      ),
+      )
     })
 }
 
@@ -309,8 +311,8 @@ function isLocalMedusaProject() {
       `./package.json`
     ))
     inMedusaProject =
-      (dependencies && dependencies["@medusajs/medusa"]) ||
-      (devDependencies && devDependencies["@medusajs/medusa"])
+      (dependencies && dependencies['@medusajs/medusa']) ||
+      (devDependencies && devDependencies['@medusajs/medusa'])
   } catch (err) {
     /* ignore */
   }
@@ -335,7 +337,7 @@ Medusa version: ${medusaVersion}
   }
 }
 
-module.exports = argv => {
+module.exports = (argv) => {
   const cli = yargs()
   const isLocalProject = isLocalMedusaProject()
 
@@ -348,20 +350,20 @@ module.exports = argv => {
       default: false,
       type: `boolean`,
       describe: `Turn on verbose output`,
-      global: true,
+      global: true
     })
     .option(`no-color`, {
       alias: `no-colors`,
       default: false,
       type: `boolean`,
       describe: `Turn off the color in output`,
-      global: true,
+      global: true
     })
     .option(`json`, {
       describe: `Turn on the JSON logger`,
       default: false,
       type: `boolean`,
-      global: true,
+      global: true
     })
 
   buildLocalCommands(cli, isLocalProject)
@@ -381,10 +383,12 @@ module.exports = argv => {
     .demandCommand(1, `Pass --help to see all available commands and options.`)
     .strict()
     .fail((msg, err, yargs) => {
-      const availableCommands = yargs.getCommands().map(commandDescription => {
-        const [command] = commandDescription
-        return command.split(` `)[0]
-      })
+      const availableCommands = yargs
+        .getCommands()
+        .map((commandDescription) => {
+          const [command] = commandDescription
+          return command.split(` `)[0]
+        })
       const arg = argv.slice(2)[0]
       const suggestion = arg ? didYouMean(arg, availableCommands) : ``
 

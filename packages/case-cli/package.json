@@ -4,7 +4,7 @@
   "description": "Command Line interface for CASE framework",
   "main": "dist/index.js",
   "bin": {
-    "medusa": "cli.js"
+    "case": "cli.js"
   },
   "publishConfig": {
     "access": "public"

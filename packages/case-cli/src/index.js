@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-import "core-js/stable"
-import "regenerator-runtime/runtime"
-import os from "os"
-import semver from "semver"
-import util from "util"
-import createCli from "./create-cli"
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
+import os from 'os'
+import semver from 'semver'
+import util from 'util'
+import createCli from './create-cli'
 // import report from "./reporter"
-import pkg from "../package.json"
+import pkg from '../package.json'
 // import updateNotifier from "update-notifier"
 // import { ensureWindowsDriveLetterIsUppercase } from "./util/ensure-windows-drive-letter-is-uppercase"
 
-const useJsonLogger = process.argv.slice(2).some(arg => arg.includes(`json`))
+const useJsonLogger = process.argv.slice(2).some((arg) => arg.includes(`json`))
 
 if (useJsonLogger) {
   process.env.GATSBY_LOGGER = `json`
@@ -47,7 +47,7 @@ if (!semver.satisfies(process.version, `>=${MIN_NODE_VERSION}`)) {
 //   )
 // }
 
-process.on(`unhandledRejection`, reason => {
+process.on(`unhandledRejection`, (reason) => {
   // This will exit the process in newer Node anyway so lets be consistent
   // across versions and crash
 
@@ -61,7 +61,7 @@ process.on(`unhandledRejection`, reason => {
   // report.panic(`UNHANDLED REJECTION`, reason as Error)
 })
 
-process.on(`uncaughtException`, error => {
+process.on(`uncaughtException`, (error) => {
   console.log(error)
   // report.panic(`UNHANDLED EXCEPTION`, error)
 })
