@@ -29,6 +29,9 @@
     "task": "tasks",
     "search": "utils",
     "schematics": "batch",
-    "case-core": "error"
+    "case-core": "error",
+    "case-client": "angular",
+    "case-server": "api",
+    "case-cli": "command"
   }
 }
