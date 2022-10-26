@@ -207,24 +207,6 @@ const clone = async (hostInfo, rootPath) => {
   if (!isGit) await createInitialGitCommit(rootPath, url)
 }
 
-const getMedusaConfig = (rootPath) => {
-  try {
-    const configPath = sysPath.join(rootPath, 'medusa-config.js')
-    if (existsSync(configPath)) {
-      const resolved = sysPath.resolve(configPath)
-      const configModule = require(resolved)
-      return configModule
-    }
-    throw Error()
-  } catch (err) {
-    console.log(err)
-    reporter.warn(
-      `Couldn't find a medusa-config.js file; please double check that you have the correct starter installed`
-    )
-  }
-  return {}
-}
-
 const getPaths = async (starterPath, rootPath) => {
   let selectedOtherStarter = false
 
@@ -257,22 +239,23 @@ const getPaths = async (starterPath, rootPath) => {
     }
 
     selectedOtherStarter = response.starter === `different`
-    starterPath = `medusajs/${response.starter}`
+    starterPath = `case-app/${response.starter}`
     rootPath = response.path
   }
 
   // set defaults if no root or starter has been set yet
   rootPath = rootPath || process.cwd()
-  starterPath = starterPath || `medusajs/medusa-starter-default`
+  starterPath = starterPath || `case-app/medusa-starter-default`
 
   return { starterPath, rootPath, selectedOtherStarter }
 }
 
 const successMessage = (path) => {
-  reporter.info(`Your new Medusa project is ready for you! To start developing run:
+  reporter.info(`Ready to start developing ? Here are some commands to get you started:
 
   cd ${path}
-  medusa develop
+  npm run start:client
+  npm run start:server
 `)
 }
 
@@ -518,8 +501,6 @@ const attemptSeed = async (rootPath) => {
  * Main function that clones or copies the starter.
  */
 export const newStarter = async (args) => {
-  track('CLI_NEW')
-
   const {
     starter,
     root,
@@ -611,15 +592,7 @@ medusa new ${rootPath} [url-to-starter]
     await copy(starterPath, rootPath)
   }
 
-  const medusaConfig = getMedusaConfig(rootPath)
-
   let isPostgres = false
-  if (medusaConfig && medusaConfig.projectConfig) {
-    const databaseType = medusaConfig.projectConfig.database_type
-    isPostgres = databaseType === 'postgres'
-  }
-
-  track('CLI_NEW_LAYOUT_COMPLETED')
 
   let creds = dbCredentials
 
@@ -631,26 +604,21 @@ medusa new ${rootPath} [url-to-starter]
     reporter.info('Skipping automatic database setup')
   } else {
     if (!skipDb && isPostgres) {
-      track('CLI_NEW_SETUP_DB')
       await setupDB(rootPath, creds)
     }
 
     if (!skipEnv) {
-      track('CLI_NEW_SETUP_ENV')
       await setupEnvVars(rootPath, rootPath, creds, isPostgres)
     }
 
     if (!skipMigrations && isPostgres) {
-      track('CLI_NEW_RUN_MIGRATIONS')
       await runMigrations(rootPath)
     }
 
     if (seed) {
-      track('CLI_NEW_SEED_DB')
       await attemptSeed(rootPath)
     }
   }
 
   successMessage(rootPath)
-  track('CLI_NEW_SUCCEEDED')
 }

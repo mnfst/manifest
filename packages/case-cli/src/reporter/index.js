@@ -54,10 +54,6 @@ export class Reporter {
       message: parsedPanic.message
     })
 
-    track('PANIC_ERROR_REACHED', {
-      id: data.id
-    })
-
     process.exit(1)
   }
 
