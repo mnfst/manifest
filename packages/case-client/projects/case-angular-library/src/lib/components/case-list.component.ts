@@ -94,7 +94,7 @@ export class CaseListComponent {
         .catch((err) => {
           this.loading = false
           this.flashMessageService.error(
-            `Une erreur a eu lieu : impossible de récupérer la liste des ${this.definition.namePlural}.`
+            `Error: Cannot get the list of ${this.definition.namePlural} from server.`
           )
         })
 

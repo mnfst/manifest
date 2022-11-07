@@ -23,10 +23,10 @@ export class MultiSelectInputComponent implements CaseInput, OnChanges {
   @Input() label: string
   @Input() initialValue: string[] = []
   @Input() selectOptions: SelectOption[]
-  @Input() placeholder = 'Selectionnez un ou plusieurs éléments'
+  @Input() placeholder = 'Select one or more items...'
   @Input() helpText: string
-  @Input() itemNameSingular = 'élément'
-  @Input() itemNamePlural = 'éléments'
+  @Input() itemNameSingular = 'item'
+  @Input() itemNamePlural = 'items'
   @Input() readonly: boolean
   @Input() showErrors = false
   @Input() maxSelectedItems: number

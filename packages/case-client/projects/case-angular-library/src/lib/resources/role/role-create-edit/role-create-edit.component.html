@@ -6,15 +6,13 @@
       class="title is-2 has-text-weight-light"
       *ngIf="mode === ResourceMode.Create"
     >
-      Ajouter {{ definition.gender === 'Masculine' ? 'un' : 'une' }}
-      {{ definition.nameSingular }}
+      Add a {{ definition.nameSingular }}
     </h1>
     <h1
       class="title is-2 has-text-weight-light"
       *ngIf="mode === ResourceMode.Edit"
     >
-      Modifier {{ definition.gender === 'Masculine' ? 'un' : 'une' }}
-      {{ definition.nameSingular }}
+      Update a {{ definition.nameSingular }}
     </h1>
   </div>
   <div class="right-part">
@@ -23,7 +21,7 @@
       (click)="submit()"
       [ngClass]="{ 'is-loading': loading }"
     >
-      Enregistrer
+      Save
     </button>
     <button
       class="button is-link is-rounded is-hidden-desktop"
@@ -42,9 +40,8 @@
         <div class="column">
           <article class="message is-warning">
             <div class="message-body">
-              ⚠️ Changer <strong>le nom ou l'indentifiant</strong> d'un rôle
-              existant nécessite que tous les utilisateurs connectés se
-              déconnectent et reconnectent.
+              ⚠️ Changes the name or identifier of a role will affect all users
+              who have this role. They will need to re-login to the system.
             </div>
           </article>
         </div>
@@ -98,12 +95,12 @@
           <a
             class="small-meta mass-selection-button has-text-grey-dark"
             (click)="selectAll()"
-            >Tout sélectionner</a
+            >Select all</a
           >
           <a
             class="small-meta mass-selection-button has-text-grey-dark"
             (click)="selectNone()"
-            >Déséléctionner tout</a
+            >Select none</a
           >
         </div>
       </div>

@@ -1,15 +1,15 @@
 <p>
   <span *ngIf="paginator.lastPage > 1">
-    Page {{ paginator.currentPage }} sur {{ paginator.lastPage }} •
+    Page {{ paginator.currentPage }} of {{ paginator.lastPage }} •
   </span>
   <span>
     <ng-container [ngPlural]="paginator.total">
-      <ng-template ngPluralCase="0">Aucun résultat</ng-template>
-      <ng-template ngPluralCase="1">1 résultat</ng-template>
+      <ng-template ngPluralCase="0">No result</ng-template>
+      <ng-template ngPluralCase="1">1 result</ng-template>
       <ng-template ngPluralCase="other">
-        {{ paginator.total }} résultats
+        {{ paginator.total }} results
       </ng-template>
     </ng-container>
-    <span *ngIf="paginator.lastPage > 1">au total</span>
+    <span *ngIf="paginator.lastPage > 1">in total</span>
   </span>
 </p>

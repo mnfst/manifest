@@ -15,7 +15,7 @@
           <div class="control mr-6" *ngIf="isStaging">
             <div class="tags has-addons">
               <span class="tag is-dark">Version</span>
-              <span class="tag is-warning">Pre-Production</span>
+              <span class="tag is-warning">Staging</span>
             </div>
           </div>
 
@@ -65,7 +65,7 @@
                         <p
                           class="is-size-8 pt-1 is-uppercase is-font-weight-500 has-text-weight-medium"
                         >
-                          le {{ notification.date | date }}
+                          {{ notification.date | date }}
                         </p>
                       </div>
                       <span class="notification-dot"></span>
@@ -124,10 +124,10 @@
                   [routerLink]="['/collaborateurs', currentUser.id, 'edit']"
                   class="dropdown-item"
                 >
-                  Modifier mon profil
+                  My profile
                 </a>
                 <hr class="dropdown-divider" />
-                <a routerLink="/logout" class="dropdown-item"> Deconnexion </a>
+                <a routerLink="/logout" class="dropdown-item"> Sign out </a>
               </div>
             </div>
           </div>

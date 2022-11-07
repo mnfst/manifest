@@ -19,7 +19,7 @@ export const caseListTemplate = `
       [queryParams]="{ toXLS: 'true' }"
       queryParamsHandling="merge"
     >
-      Exporter
+      Export
     </a>
     <!-- Create button -->
     <ng-container *caseHasPermission="createResourcePermission">
@@ -28,8 +28,7 @@ export const caseListTemplate = `
       class="button is-link ml-5 is-hidden-touch"
       routerLink="/{{ definition.path || definition.slug }}/create"
     >
-      Ajouter {{ definition.gender === 'Masculine' ? 'un' : 'une' }}
-      {{ definition.nameSingular }}
+      Add a {{ definition.nameSingular }}
     </a>
     <a
       *ngIf="definition.buttons.indexOf(LinkType.CREATE) > -1"

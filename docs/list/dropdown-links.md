@@ -37,9 +37,9 @@ dropdownLinks: [
     disabled: (user: User) => user.projects.length || user.isActive,
     tooltip: (user: User) =>
       user.projects.length
-        ? 'Vous ne pouvez supprimer un collaborateur relié à des projets.'
+        ? 'You cannot delete a user that has projects'
         : null || user.isActive
-        ? 'Vous ne pouvez supprimer un collaborateur relié actuellement en activité.'
+        ? 'You cannot delete an active user.'
         : null
   }
 ]
