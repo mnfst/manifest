@@ -74,7 +74,7 @@ function takes 3 parameters, an array with the column headings, and array of arr
   async export(query: SelectQueryBuilder<User>) {
     const users = await query.getMany()
     return this.excelService.export(
-      ['Nom et prénom', 'E-mail', 'Hourly rate'],
+      ['Name', 'Email', 'Hourly rate'],
       users.map((u: User) => [
         u.name,
         u.email,
