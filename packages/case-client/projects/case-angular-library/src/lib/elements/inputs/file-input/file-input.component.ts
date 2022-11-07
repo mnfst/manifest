@@ -78,7 +78,7 @@ export class FileInputComponent implements CaseInput, OnChanges {
         (err) => {
           this.loading = false
           this.flashMessageService.error(
-            `Une erreur à eu lieu lors de l'envoi du fichier`
+            'There was an error uploading your file.'
           )
         }
       )

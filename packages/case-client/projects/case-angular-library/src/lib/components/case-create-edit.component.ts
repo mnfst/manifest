@@ -257,7 +257,7 @@ export class CaseCreateEditComponent {
       this.debugFindInvalidControls()
 
       return this.flashMessageService.error(
-        `Impossible d'envoyer le formulaire: certains champs n'ont pas été remplis correctement.`
+        `Invalid form. Please check fields in red.`
       )
     }
 
@@ -286,17 +286,9 @@ export class CaseCreateEditComponent {
     action.then(
       (res: { id: number }) => {
         this.flashMessageService.success(
-          `${this.definition.gender === 'Masculine' ? 'Le' : 'La'} ${
-            this.definition.nameSingular
-          } a bien été ${
-            this.mode === ResourceMode.Create
-              ? this.definition.gender === 'Masculine'
-                ? 'créé'
-                : 'créée'
-              : this.definition.gender === 'Masculine'
-              ? 'mis à jour'
-              : 'mise à jour'
-          }.`
+          `The ${this.definition.nameSingular} has been ${
+            this.mode === ResourceMode.Create ? 'created' : 'updated'
+          } successfully.`
         )
         this.loading = false
 
@@ -358,7 +350,7 @@ export class CaseCreateEditComponent {
         this.flashMessageService.error(
           err && err.error && err.error.message
             ? err.error.message
-            : `Une erreur à eu lieu. La ressource n'a pas pu être sauvegardée.`
+            : `An error occurred. The resource could not be saved.`
         )
       }
     )
@@ -416,7 +408,7 @@ export class CaseCreateEditComponent {
         invalid.push(name)
       }
     }
-    console.log('Invalid controls :', invalid)
+    console.log('Invalid controls:', invalid)
     return invalid
   }
 

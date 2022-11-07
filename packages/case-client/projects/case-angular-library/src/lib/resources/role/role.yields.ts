@@ -2,11 +2,11 @@ import { Yield } from '../../interfaces/yield.interface'
 
 export const roleYields: Yield[] = [
   {
-    label: 'Identifiant',
-    property: 'name'
+    label: 'Name',
+    property: 'displayName'
   },
   {
-    label: 'Nom',
-    property: 'displayName'
+    label: 'Identifier',
+    property: 'name'
   }
 ]

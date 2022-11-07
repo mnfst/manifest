@@ -15,7 +15,7 @@ export class MetaService {
 
   defaultMeta: MetaObject = {
     title: this.config.appName,
-    description: `Application de gestion d'activité`,
+    description: `A Case app for ${this.config.appName}`,
     path: '',
     ogImage: 'assets/images/logo.png'
   }

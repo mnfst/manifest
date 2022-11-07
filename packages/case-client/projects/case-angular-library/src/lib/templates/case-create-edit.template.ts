@@ -6,12 +6,10 @@ export const caseCreateEditTemplate = `
        <span class="icon is-large">
           <i class="icon {{definition.icon}} is-size-2 has-text-link"></i>
         </span>
-        Ajouter {{ definition.gender === 'Masculine' ? 'un' : 'une' }}
-        {{ definition.nameSingular }}
+        Add a {{ definition.nameSingular }}
       </h1>
       <h1 class="title is-2 has-text-weight-light" *ngIf="mode === ResourceMode.Edit">
-        Modifier {{ definition.gender === 'Masculine' ? 'un' : 'une' }}
-        {{ definition.nameSingular }}
+        Update a {{ definition.nameSingular }}
       </h1>
     </div>
     <div class="right-part">
@@ -20,7 +18,7 @@ export const caseCreateEditTemplate = `
         (click)="submit()"
         [ngClass]="{ 'is-loading': loading }"
       >
-        Enregistrer
+        Save
       </button>
       <button
         class="button is-link is-rounded is-hidden-desktop"
