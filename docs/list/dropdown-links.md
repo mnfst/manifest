@@ -13,7 +13,7 @@ By giving a string to the property _tooltip_ a tooltip will appear on hover.
 ```js
 dropdownLinks: [
   {
-    label: 'Editer collaborateur',
+    label: 'Edit user',
     permission: 'editUsers',
     condition: (user: User) => user.isActive,
     action: (user: User) => ({
@@ -24,7 +24,7 @@ dropdownLinks: [
     })
   },
   {
-    label: 'Effacer collaborateur',
+    label: 'Delete user',
     permission: 'deleteUsers',
     withDivision: true,
     action: (user: User) => ({
