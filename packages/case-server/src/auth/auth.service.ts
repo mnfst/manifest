@@ -161,7 +161,7 @@ export class AuthService {
 
     return this.emailService.send({
       to: user.email,
-      subject: `Réinitialisation de votre mot de passe`,
+      subject: `Reset your password`,
       html: template({
         name: user.name,
         resetLink: `${process.env.FRONT_URL}/reset-password?token=${user.token}`

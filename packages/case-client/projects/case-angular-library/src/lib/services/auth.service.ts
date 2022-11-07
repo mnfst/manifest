@@ -105,7 +105,7 @@ export class AuthService {
           this.router.navigate(['/logout'])
         } else {
           this.flashMessageService.error(
-            `Erreur: Impossible de se connecter au serveur. Veuillez vérifier la connexion internet et rafraîchir la page.`
+            'Error getting server information. Please try again and reload the page.'
           )
         }
 

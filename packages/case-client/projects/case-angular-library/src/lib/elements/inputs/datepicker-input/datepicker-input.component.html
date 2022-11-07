@@ -8,7 +8,7 @@
         angular-mydatepicker
         class="input"
         id="datepicker-input-{{ uniqueId }}"
-        [placeholder]="placeholder || 'Choisir une date...'"
+        [placeholder]="placeholder || 'Pickup a date...'"
         [options]="datePickerOptions"
         [ngClass]="{ 'is-danger': showErrors && form.invalid }"
         (dateChanged)="onDateChanged($event)"

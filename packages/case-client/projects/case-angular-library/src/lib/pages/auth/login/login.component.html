@@ -7,14 +7,14 @@
             <figure class="logo">
               <img src="../../../../assets/images/logo.svg" alt="logo" />
             </figure>
-            <h3 class="title is-2 my-5">Connectez-vous</h3>
+            <h3 class="title is-2 my-5">Sign in</h3>
             <form [formGroup]="loginForm" (submit)="submitForm(loginForm)">
               <div class="field mb-5">
                 <div class="control">
                   <input
                     class="input is-large"
                     type="email"
-                    placeholder="E-mail"
+                    placeholder="Email"
                     formControlName="email"
                     autofocus=""
                   />
@@ -26,7 +26,7 @@
                   <input
                     class="input is-large"
                     type="password"
-                    placeholder="Mot de passe"
+                    placeholder="Password"
                     formControlName="password"
                     (keydown.enter)="textareaEnterPressed($event)"
                   />
@@ -36,9 +36,9 @@
                 class="button is-block is-link is-large is-fullwidth mb-3"
                 [disabled]="loginForm.invalid"
               >
-                <span class="has-text-weight-bold">Se connecter</span>
+                <span class="has-text-weight-bold">Sign in</span>
               </button>
-              <a routerLink="/forgot-password">Mot de passe oublié ?</a>
+              <a routerLink="/forgot-password">Forgot password ?</a>
             </form>
           </div>
         </div>

@@ -4,9 +4,9 @@ import { LinkType } from '../../enums/link-type.enum'
 import { ResourceDefinition } from '../../interfaces/resource-definition.interface'
 
 export const roleDefinition: ResourceDefinition = {
-  title: 'Rôles',
-  nameSingular: 'rôle',
-  namePlural: 'rôles',
+  title: 'Roles',
+  nameSingular: 'role',
+  namePlural: 'roles',
   className: 'Role',
   icon: 'icon-pie-chart',
   gender: Gender.Masculine,
@@ -19,7 +19,7 @@ export const roleDefinition: ResourceDefinition = {
   defaultLink: LinkType.EDIT,
   dropdownLinks: [
     {
-      label: 'Editer rôle',
+      label: 'Edit role',
       permission: 'editRoles',
       action: (role) => ({
         type: ActionType.Link,
@@ -29,7 +29,7 @@ export const roleDefinition: ResourceDefinition = {
       })
     },
     {
-      label: 'Effacer rôle',
+      label: 'Delete role',
       permission: 'deleteRoles',
       action: (role) => ({
         type: ActionType.Delete,

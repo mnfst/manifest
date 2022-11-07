@@ -26,6 +26,6 @@ export class IsUserAlreadyExist implements ValidatorConstraintInterface {
   }
 
   defaultMessage() {
-    return 'Erreur : Un utilisateur avec le même e-mail est déjà présent en base de données.'
+    return 'Error: A user with this email already exists.'
   }
 }

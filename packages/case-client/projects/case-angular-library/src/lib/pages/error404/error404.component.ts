@@ -10,7 +10,7 @@ export class Error404Component {
   constructor(breadcrumbService: BreadcrumbService) {
     breadcrumbService.breadcrumbLinks.next([
       {
-        label: 'Erreur 404'
+        label: 'Page not found'
       }
     ])
   }

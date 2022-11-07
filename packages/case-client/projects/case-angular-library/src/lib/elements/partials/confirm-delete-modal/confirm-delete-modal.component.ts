@@ -55,12 +55,12 @@ export class ConfirmDeleteModalComponent implements OnInit {
               queryParamsHandling: 'merge'
             }
           )
-          this.flashMessageService.success(`La ressource a bien été supprimée`)
+          this.flashMessageService.success(`The item was deleted.`)
         },
         (err) => {
           this.close()
           this.flashMessageService.error(
-            `Une erreur à lieu et l'élément n'a pas pu être effacé. Veuillez contacter votre administrateur si le problème persiste.`
+            `Error while deleting the item: Please contact the administrator.`
           )
         }
       )

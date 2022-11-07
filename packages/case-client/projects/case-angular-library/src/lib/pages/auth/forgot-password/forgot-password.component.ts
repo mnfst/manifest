@@ -25,7 +25,7 @@ export class ForgotPasswordComponent {
     this.authService.sendResetPasswordEmail(this.form.value.email).subscribe(
       () => {
         this.flashMessageService.success(
-          'Un email avec un lien de réinitialisation vous a été envoyé. Veuillez consulter votre boite mail.'
+          'Check your email for a link to reset your password. If it doesn’t appear within a few minutes, check your spam folder.'
         )
 
         return this.router.navigate(['/'])

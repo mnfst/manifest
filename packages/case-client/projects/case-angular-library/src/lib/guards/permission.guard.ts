@@ -21,7 +21,7 @@ export class PermissionGuard {
 
     if (permission && !userPermissions.includes(permission)) {
       this.flashMessageService.error(
-        `Vous n'avez pas les droit d'accès à ce contenu. Veuillez contacter votre administrateur.`
+        `You don't have the permission to access this page. Please contact your administrator.`
       )
 
       return false

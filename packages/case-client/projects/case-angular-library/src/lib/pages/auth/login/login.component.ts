@@ -41,7 +41,7 @@ export class LoginComponent implements OnInit {
         (err: HttpErrorResponse) => {
           this.flashMessageService.error(
             err.status === 401
-              ? `Erreur : Identifiants invalides, veuillez vérifier vos identifiants de connexion.`
+              ? `Error: Incorrect username or password.`
               : err.error.message
           )
           this.loginForm.reset()

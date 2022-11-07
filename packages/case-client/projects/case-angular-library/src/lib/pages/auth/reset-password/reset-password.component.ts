@@ -34,7 +34,7 @@ export class ResetPasswordComponent implements OnInit {
       .subscribe(
         () => {
           this.flashMessageService.success(
-            `Votre mot de passe a bien été réinitialisé, veuillez vous connecter à l'application`
+            `Psst! Your password has been reset. Now you can log in with your new password.`
           )
 
           return this.router.navigate(['/login'])
