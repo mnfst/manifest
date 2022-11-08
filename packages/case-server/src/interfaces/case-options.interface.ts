@@ -9,4 +9,5 @@ export interface CaseOptions {
 
   connectionOptions: MysqlConnectionOptions
   reflector: Reflector
+  imageSizes: { [key: string]: any }
 }
