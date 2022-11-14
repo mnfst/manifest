@@ -92,7 +92,7 @@ export function createResource(options: any): Rule {
 
     appRoutingString =
       appRoutingString.substring(0, caseRoutesImportPosition) +
-      `...${camelize(options.name)}Routes,\n` +
+      `  ...${camelize(options.name)}Routes,\n` +
       appRoutingString.substring(caseRoutesImportPosition)
 
     tree.overwrite(appRoutingModulePath, appRoutingString)

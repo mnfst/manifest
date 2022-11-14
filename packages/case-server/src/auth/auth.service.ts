@@ -101,35 +101,22 @@ export class AuthService {
 
   async getUserFromToken(req: Request): Promise<CaseUser> {
     const token =
-      req.headers &&
-      req.headers.authorization &&
+      req.headers?.authorization &&
       req.headers.authorization.replace('Bearer ', '')
     return jwt.verify(
       token,
       process.env.TOKEN_SECRET_KEY,
-      async (err, decoded) => {
+      async (_err, decoded) => {
         if (decoded) {
-          const user: CaseUser = await this.userRepository
+          return this.userRepository
             .createQueryBuilder('user')
             .where('user.email = :email', { email: decoded.email })
             .leftJoinAndSelect('user.role', 'role')
             .leftJoinAndSelect('role.permissions', 'permission')
             .addSelect('user.lastNotificationCheck')
             .getOne()
-
-          if (!user) {
-            return new HttpException(
-              'Cannot find JWT user in database.',
-              StatusCodes.FORBIDDEN
-            )
-          }
-
-          return user
         } else {
-          return new HttpException(
-            'Only logged in users can see this content.',
-            StatusCodes.FORBIDDEN
-          )
+          return null
         }
       }
     )
@@ -170,11 +157,7 @@ export class AuthService {
   }
 
   hasPermission(user: CaseUser, permission: string): boolean {
-    return (
-      user.role.permissions &&
-      user.role.permissions.length &&
-      user.role.permissions.some((p) => p.name === permission)
-    )
+    return user?.role?.permissions?.some((p) => p.name === permission)
   }
 
   async resetPassword(

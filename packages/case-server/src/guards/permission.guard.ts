@@ -37,11 +37,11 @@ export class PermissionGuard implements CanActivate {
 
     const hasPermission = () =>
       (permissions as string[]).some((permission: string) =>
-        user.role.permissions.some(
+        user?.role.permissions.some(
           (userPermission) => userPermission.name === permission
         )
       )
 
-    return user && user.role && hasPermission()
+    return user?.role && hasPermission()
   }
 }
