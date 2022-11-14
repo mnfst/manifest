@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import * as moment from 'moment'
-import { DataSource, EntityTarget, getRepository, Repository } from 'typeorm'
+import { DataSource, EntityTarget, Repository } from 'typeorm'
 
 import { CaseNotification } from '../interfaces/case-notification.interface'
 import { CaseUser } from '../interfaces/case-user.interface'
