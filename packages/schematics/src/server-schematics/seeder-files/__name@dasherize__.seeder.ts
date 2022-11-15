@@ -1,7 +1,7 @@
 import * as faker from 'faker/locale/fr'
 import { DataSource, EntityManager } from 'typeorm'
 
-import { <%= classify(name) %> } from '../../src/resources/<%= dasherize(name) %>/<%= dasherize(name) %>.entity'
+import { <%= classify(name) %> } from '../../resources/<%= dasherize(name) %>/<%= dasherize(name) %>.entity'
 
 export class <%= classify(name) %>Seeder {
   entityManager: EntityManager

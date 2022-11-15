@@ -81,7 +81,7 @@ When you [create a resource using CASE CLI](resources/create-a-resource.md), CAS
 
 In addition to that. The same permissions for **own resources** will be created (_browseOwnResource_, _readOwnResource_...). In some cases, it can be useful to restrict a role to its own resources (ex: a project manager that can modify only his or her projects).
 
-If you want to create a permission and include it in the default data for development, you can add it the the permission content seeder `/server/database/seeders/content/permissions.content.seeder`.
+If you want to create a permission and include it in the default data for development, you can add it the the permission content seeder `/server/src/database/seeders/content/permissions.content.seeder`.
 
 ```js
 export const allPermissions: string[] = [].concat(
