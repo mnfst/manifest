@@ -238,7 +238,9 @@ const getPaths = async (starterPath, rootPath) => {
 }
 
 const successMessage = (path) => {
-  reporter.info(`Ready to start developing? Here are some commands to get you started:
+  reporter.info(`Ready to start coding? Here are some commands to get you started:
+
+  Adapt the .env file to your needs: "${path}/server/.env" and then run:
 
   cd ${path}
   npm run start:client
