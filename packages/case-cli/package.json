@@ -11,9 +11,6 @@
     "url": "https://github.com/case-app/case",
     "directory": "packages/case-cli"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "test": "jest",
     "build": "babel src --out-dir dist/ --ignore **/__tests__",
