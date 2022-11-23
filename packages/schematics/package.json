@@ -1,16 +1,20 @@
 {
   "name": "@case-app/schematics",
   "private": false,
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Set of schematics for CASE Framework",
   "scripts": {
     "build": "npm run move && tsc -p tsconfig.json",
     "build:watch": "tsc -p tsconfig.json --watch",
     "move": "rm -rf dist && mkdir -p dist/commands/create-resource/server-files && cp -ar ./src/commands/create-resource/server-files/* dist/commands/create-resource/server-files && mkdir -p dist/commands/create-resource/client-files && cp -ar ./src/commands/create-resource/client-files/* dist/commands/create-resource/client-files",
-    "move_old": "rm -rf dist && mkdir -p dist/server-schematics/files && cp -ar ./src/server-schematics/files/* dist/server-schematics/files && mkdir -p dist/server-schematics/seeder-files && cp -ar ./src/server-schematics/seeder-files/* dist/server-schematics/seeder-files && mkdir -p dist/client-schematics/files && cp -ar ./src/client-schematics/files/* dist/client-schematics/files",
     "postbuild": "cp package.json dist/package.json",
     "test": "npm run build && jasmine src/**/*_spec.js",
     "publish": "npm run build && cd dist && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/case-app/case",
+    "directory": "packages/schematics"
   },
   "keywords": [
     "schematics"
