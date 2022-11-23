@@ -28,7 +28,7 @@
           </span>
         </span>
         <button class="button is-link is-loading" *ngIf="loading">
-          Chargement
+          Loading
         </button>
       </label>
     </div>
@@ -37,13 +37,7 @@
   <!-- Uploaded file -->
   <div
     *ngIf="filePath"
-    class="
-      has-current-file
-      is-flex is-justify-content-space-between is-align-items-center
-      mt-1
-      has-background-white-ter
-      pl-1
-    "
+    class="has-current-file is-flex is-justify-content-space-between is-align-items-center mt-1 has-background-white-ter pl-1"
   >
     <a [href]="storagePath + '/' + filePath" target="_blank">
       {{ filePath }}

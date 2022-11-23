@@ -57,10 +57,10 @@ export function createResource(options: any): Rule {
 
     // * Add seeder.
     const seedTemplates: Source = url('./seeder-files')
-    const seederFolderPath = './server/database/seeders'
-    const mainSeederPath = './server/database/seeders/seeder.ts'
+    const seederFolderPath = './server/src/database/seeders'
+    const mainSeederPath = './server/src/database/seeders/seeder.ts'
     const permissionContentPath =
-      './server/database/seeders/content/permissions.content.ts'
+      './server/src/database/seeders/content/permissions.content.ts'
 
     // Add "seeder-files" to seeder folder.
     const seedParametrizedTemplates: Source = apply(seedTemplates, [

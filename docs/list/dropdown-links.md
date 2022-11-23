@@ -13,7 +13,7 @@ By giving a string to the property _tooltip_ a tooltip will appear on hover.
 ```js
 dropdownLinks: [
   {
-    label: 'Editer collaborateur',
+    label: 'Edit user',
     permission: 'editUsers',
     condition: (user: User) => user.isActive,
     action: (user: User) => ({
@@ -24,7 +24,7 @@ dropdownLinks: [
     })
   },
   {
-    label: 'Effacer collaborateur',
+    label: 'Delete user',
     permission: 'deleteUsers',
     withDivision: true,
     action: (user: User) => ({
@@ -37,9 +37,9 @@ dropdownLinks: [
     disabled: (user: User) => user.projects.length || user.isActive,
     tooltip: (user: User) =>
       user.projects.length
-        ? 'Vous ne pouvez supprimer un collaborateur relié à des projets.'
+        ? 'You cannot delete a user that has projects'
         : null || user.isActive
-        ? 'Vous ne pouvez supprimer un collaborateur relié actuellement en activité.'
+        ? 'You cannot delete an active user.'
         : null
   }
 ]

@@ -18,14 +18,14 @@
       <ng-container [ngPlural]="activeOptions.length">
         <ng-template ngPluralCase="=0">{{ placeholder }}</ng-template>
         <ng-template ngPluralCase="=1"
-          >1 {{ itemNameSingular }} sélectionné</ng-template
+          >1 {{ itemNameSingular }} selected</ng-template
         >
         <ng-template ngPluralCase="other"
-          >{{ activeOptions.length }} {{ itemNamePlural }} sélectionnés
+          >{{ activeOptions.length }} {{ itemNamePlural }} selected
         </ng-template>
       </ng-container>
       <ng-container *ngIf="activeOptions.length && maxSelectedItems">
-        sur {{ maxSelectedItems }}</ng-container
+        of {{ maxSelectedItems }}</ng-container
       >
     </div>
 
@@ -41,13 +41,13 @@
           class="small-meta mass-selection-button has-text-grey-dark is-underlined is-inline-block is-fullwidth"
           *ngIf="activeOptions.length < selectOptions.length"
           (click)="selectAll()"
-          >Tout sélectionner</a
+          >Select all</a
         >
         <a
           class="small-meta mass-selection-button has-text-grey-dark is-underlined is-inline-block is-fullwidth"
           *ngIf="activeOptions.length === selectOptions.length"
           (click)="selectNone()"
-          >Déséléctionner tout</a
+          >Select none</a
         >
       </p>
       <div

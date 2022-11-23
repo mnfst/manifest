@@ -2,13 +2,13 @@
   <div class="control" [ngClass]="{ 'is-danger': showErrors && form.invalid }">
     <label for="date-from-{{ uniqueId }}-input">{{ label }}</label>
     <div class="is-flex date-range-wrapper">
-      <div class="input-text">Du</div>
+      <div class="input-text">From</div>
       <div class="is-relative is-fullwidth">
         <input
           angular-mydatepicker
           id="date-from-{{ uniqueId }}-input"
           class="input"
-          [placeholder]="placeholder || 'Date de début...'"
+          [placeholder]="placeholder || 'Date from...'"
           [options]="datePickerOptions"
           (dateChanged)="onDateChanged($event, 'dateFrom')"
           (click)="dp1.openCalendar()"
@@ -22,13 +22,13 @@
           ><i class="icon icon-x"></i
         ></a>
       </div>
-      <div class="input-text">au</div>
+      <div class="input-text">to</div>
       <div class="is-relative is-fullwidth">
         <input
           angular-mydatepicker
           id="date-to-{{ uniqueId }}-input"
           class="input"
-          [placeholder]="secondPlaceholder || 'Date de fin...'"
+          [placeholder]="secondPlaceholder || 'Date to...'"
           [options]="datePickerOptions"
           (dateChanged)="onDateChanged($event, 'dateTo')"
           (click)="dp2.openCalendar()"

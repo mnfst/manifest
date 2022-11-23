@@ -30,9 +30,7 @@ export class CaseDetailComponent {
     this.item = await this.resourceService.show(this.definition.slug, id).then(
       (itemRes) => itemRes,
       (error) => {
-        this.flashMessageService.error(
-          'Erreur : impossible de récupérer la ressource depuis le serveur.'
-        )
+        this.flashMessageService.error(`Error while fetching data from server`)
       }
     )
   }

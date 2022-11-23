@@ -3,20 +3,20 @@ import { Field } from '../../interfaces/field.interface'
 
 export const roleFields: Field[] = [
   {
-    label: 'Identifiant',
+    label: 'Identifier',
     property: 'name',
     inputType: InputType.Text,
     required: true
   },
   {
-    label: 'Nom',
+    label: 'Name',
     property: 'displayName',
     inputType: InputType.Text,
     required: true
   },
   {
     label: 'Homepage',
-    helpText: 'L\'URL de la page d\'accueil de ce rôle (ex: "/projets").',
+    helpText: 'Set the homepage for this role, e.g. /dashboard',
     property: 'homepagePath',
     inputType: InputType.Text
   },

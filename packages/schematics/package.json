@@ -1,7 +1,7 @@
 {
   "name": "@case-app/schematics",
   "private": false,
-  "version": "0.4.3",
+  "version": "0.4.5",
   "description": "Set of schematics for CASE Framework",
   "scripts": {
     "build": "npm run move && tsc -p tsconfig.json",

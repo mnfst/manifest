@@ -57,6 +57,10 @@ export class CaseCoreModule {
         useValue: options.reflector
       },
       {
+        provide: 'IMAGE_SIZES',
+        useValue: options.imageSizes
+      },
+      {
         provide: 'DATA_SOURCE',
         useFactory: async () => {
           const dataSource = new DataSource({

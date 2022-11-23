@@ -16,7 +16,7 @@ cd dist
 npm link // May required sudo.
 ```
 
-and then in the root of the server project of CASE :
+and then at the root of your CASE project :
 
 ```bash
 npm link @case-app/schematics

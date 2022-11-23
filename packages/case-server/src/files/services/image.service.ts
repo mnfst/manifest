@@ -1,11 +1,16 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import * as mkdirp from 'mkdirp'
 import * as sharp from 'sharp'
 import * as uniqId from 'uniqid'
+
 import { caseConstants } from '../../case.constants'
 
 @Injectable()
 export class ImageService {
+  constructor(
+    @Inject('IMAGE_SIZES') private imageSizes: { [key: string]: any }
+  ) {}
+
   save(file: any, entityName: string): string {
     // CamelCase to kebab-case
     const kebabCaseEntityName = entityName
@@ -22,15 +27,15 @@ export class ImageService {
     const name: string = uniqId()
 
     // Iterate through all entity image sizes
-    Object.keys(caseConstants.imageSizes[entityName]).forEach((key: string) => {
+    Object.keys(this.imageSizes[entityName]).forEach((key: string) => {
       const path = `${folder}/${name}-${key}.jpg`
       sharp(file.buffer)
         .jpeg({ quality: 80 })
         .resize(
-          caseConstants.imageSizes[entityName][key].width,
-          caseConstants.imageSizes[entityName][key].height,
+          this.imageSizes[entityName][key].width,
+          this.imageSizes[entityName][key].height,
           {
-            fit: caseConstants.imageSizes[entityName][key].fit
+            fit: this.imageSizes[entityName][key].fit
           }
         )
         .toFile(

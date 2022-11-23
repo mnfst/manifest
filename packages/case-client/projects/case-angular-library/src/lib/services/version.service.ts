@@ -32,7 +32,7 @@ export class VersionService {
             localStorage.setItem('version', res.version.toString())
 
             this.flashMessageService.info(
-              `Une nouvelle version de ${this.config.appName} est disponible ! Rafraichissez la page de votre navigateur pour être à jour.`,
+              `A new version of ${this.config.appName} is available. Please reload the page to get the latest version.`,
               true
             )
           }

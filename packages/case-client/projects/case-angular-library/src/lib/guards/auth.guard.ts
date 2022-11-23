@@ -27,7 +27,7 @@ export class AuthGuard {
     })
 
     this.flashMessageService.info(
-      `Veuillez vous connecter pour accéder à l'application.`
+      'You need to be logged in to access this page.'
     )
     return false
   }

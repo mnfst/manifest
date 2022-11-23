@@ -1,6 +1,6 @@
 {
   "name": "@case-app/nest-library",
-  "version": "0.3.1",
+  "version": "0.3.4",
   "description": "Nest Library for CASE Framework",
   "author": "Buddyweb",
   "private": false,

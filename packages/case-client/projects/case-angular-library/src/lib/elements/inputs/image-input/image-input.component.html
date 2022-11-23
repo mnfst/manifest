@@ -33,7 +33,7 @@
         </span>
 
         <button class="button is-link is-loading full-width" *ngIf="loading">
-          Chagement
+          Loading
         </button>
       </label>
     </div>
@@ -42,13 +42,7 @@
   <!-- Previously uploaded file -->
   <div
     *ngIf="imagePath"
-    class="
-      has-current-file
-      is-flex is-align-items-center is-justify-content-space-between
-      mt-1
-      has-background-white-ter
-      pl-1
-    "
+    class="has-current-file is-flex is-align-items-center is-justify-content-space-between mt-1 has-background-white-ter pl-1"
   >
     <case-image [path]="imagePath" className="py-1 is-block"> </case-image>
     <span class="file-cta file-remove">
