@@ -16,7 +16,6 @@ export { TruncatePipe } from './lib/pipes/truncate.pipe'
 // Enums.
 export { ActionType } from './lib/enums/action-type.enum'
 export { FileMime } from './lib/enums/file-mime.enum'
-export { Gender } from './lib/enums/gender.enum'
 export { ImageSize } from './lib/enums/image-size.enum'
 export { InputType } from './lib/enums/input-type.enum'
 export { LinkType } from './lib/enums/link-type.enum'

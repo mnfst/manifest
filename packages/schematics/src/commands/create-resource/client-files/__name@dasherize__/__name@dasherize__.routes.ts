@@ -8,7 +8,7 @@ import { <%= classify(name) %>ListComponent } from './<%= dasherize(name) %>-lis
 
 export const <%= camelize(name) %>Routes: Route[] = [
   {
-    path: '<%= dasherize(displayName) %>s',
+    path: '<%= dasherize(name) %>s',
     component: <%= classify(name) %>ListComponent,
     canActivate: [AuthGuard, PermissionGuard],
     data: {
@@ -16,7 +16,7 @@ export const <%= camelize(name) %>Routes: Route[] = [
     }
   },
   {
-    path: '<%= dasherize(displayName) %>s/create',
+    path: '<%= dasherize(name) %>s/create',
     component: <%= classify(name) %>CreateEditComponent,
     canActivate: [AuthGuard, PermissionGuard],
     data: {
@@ -25,7 +25,7 @@ export const <%= camelize(name) %>Routes: Route[] = [
     },
   },
   {
-    path: '<%= dasherize(displayName) %>s/:id/edit',
+    path: '<%= dasherize(name) %>s/:id/edit',
     component: <%= classify(name) %>CreateEditComponent,
     canActivate: [AuthGuard, PermissionGuard],
     data: {

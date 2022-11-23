@@ -1,6 +1,6 @@
 {
   "name": "@case-app/case-cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Command Line interface for CASE framework",
   "main": "dist/index.js",
   "bin": {
@@ -11,14 +11,10 @@
     "url": "https://github.com/case-app/case",
     "directory": "packages/case-cli"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "test": "jest",
     "build": "babel src --out-dir dist/ --ignore **/__tests__",
-    "prepare": "cross-env NODE_ENV=production yarn run build",
-    "watch": "babel -w src --out-dir dist/ --ignore **/__tests__"
+    "build:watch": "babel -w src --out-dir dist/ --ignore **/__tests__"
   },
   "author": "CASE",
   "license": "MIT",
@@ -54,6 +50,7 @@
     "prompts": "^2.4.1",
     "regenerator-runtime": "^0.13.5",
     "resolve-cwd": "^3.0.0",
+    "shelljs": "^0.8.5",
     "stack-trace": "^0.0.10",
     "ulid": "^2.3.0",
     "url": "^0.11.0",

@@ -14,8 +14,10 @@
     "prepublishOnly": "npm run clean:build",
     "test": "jest --config jest.config.json"
   },
-  "publishConfig": {
-    "access": "public"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/case-app/case",
+    "directory": "packages/case-server"
   },
   "dependencies": {
     "@bugsnag/js": "^7.17.0",

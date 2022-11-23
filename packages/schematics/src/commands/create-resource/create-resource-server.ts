@@ -12,13 +12,12 @@ import {
   chain
 } from '@angular-devkit/schematics'
 
-import {
-  camelize,
-  classify,
-  dasherize
-} from '@angular-devkit/core/src/utils/strings'
-
-export function createResourceServer(options: any): Rule {
+export function createResourceServer(names: {
+  camelize: string
+  classify: string
+  dasherize: string
+  name: string
+}): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     const sourceTemplates: Source = url('./server-files/resource')
     const resourceFolderPath = './server/src/resources'
@@ -27,7 +26,7 @@ export function createResourceServer(options: any): Rule {
     // Add "files" to resource folder.
     const sourceParametrizedTemplates: Source = apply(sourceTemplates, [
       template({
-        ...options,
+        ...names,
         ...strings
       }),
       move(resourceFolderPath)
@@ -39,9 +38,8 @@ export function createResourceServer(options: any): Rule {
 
     // Insert import declaration at beginning.
     appModuleString =
-      `import { ${classify(options.name)}Module } from './resources/${dasherize(
-        options.name
-      )}/${dasherize(options.name)}.module'\n` + appModuleString
+      `import { ${names.classify}Module } from './resources/${names.dasherize}/${names.dasherize}.module'\n` +
+      appModuleString
 
     // Push resource routes to array.
     const importPosition: number = appModuleString.indexOf(
@@ -50,7 +48,7 @@ export function createResourceServer(options: any): Rule {
 
     appModuleString =
       appModuleString.substring(0, importPosition) +
-      `${classify(options.name)}Module,\n` +
+      `${names.classify}Module,\n` +
       appModuleString.substring(importPosition)
 
     tree.overwrite(appModulePath, appModuleString)
@@ -65,7 +63,7 @@ export function createResourceServer(options: any): Rule {
     // Add "seeder-files" to seeder folder.
     const seedParametrizedTemplates: Source = apply(seedTemplates, [
       template({
-        ...options,
+        ...names,
         ...strings
       }),
       move(seederFolderPath)
@@ -81,7 +79,7 @@ export function createResourceServer(options: any): Rule {
 
     mainSeederString =
       mainSeederString.substring(0, resourceCountsPosition + 52) +
-      `\nconst ${camelize(options.name)}Count = 40\n` +
+      `\nconst ${names.camelize}Count = 40\n` +
       mainSeederString.substring(resourceCountsPosition + 52)
 
     const tableNamesPosition: number = mainSeederString.indexOf(
@@ -90,7 +88,7 @@ export function createResourceServer(options: any): Rule {
 
     mainSeederString =
       mainSeederString.substring(0, tableNamesPosition + 47) +
-      `\n  '${camelize(options.name)}s',\n` +
+      `\n  '${names.camelize}s',\n` +
       mainSeederString.substring(tableNamesPosition + 47)
 
     const closeConnectionPosition: number = mainSeederString.indexOf(
@@ -98,13 +96,9 @@ export function createResourceServer(options: any): Rule {
     )
 
     mainSeederString =
-      `import { ${classify(options.name)}Seeder } from './${dasherize(
-        options.name
-      )}.seeder'\n` +
+      `import { ${names.classify}Seeder } from './${names.dasherize}.seeder'\n` +
       mainSeederString.substring(0, closeConnectionPosition) +
-      `await (new ${classify(options.name)}Seeder(dataSource, ${camelize(
-        options.name
-      )}Count)).seed()\n  ` +
+      `await (new ${names.classify}Seeder(dataSource, ${names.camelize}Count)).seed()\n  ` +
       mainSeederString.substring(closeConnectionPosition)
 
     tree.overwrite(mainSeederPath, mainSeederString)
@@ -121,7 +115,7 @@ export function createResourceServer(options: any): Rule {
 
     permissionContentString =
       permissionContentString.substring(0, resourceListPosition + 45) +
-      `\n  '${camelize(options.name)}s',\n` +
+      `\n  '${names.camelize}s',\n` +
       permissionContentString.substring(resourceListPosition + 45)
 
     tree.overwrite(permissionContentPath, permissionContentString)
@@ -136,21 +130,15 @@ export function createResourceServer(options: any): Rule {
     )
 
     searchServiceString =
-      `import { ${classify(options.name)} } from './../resources/${dasherize(
-        options.name
-      )}/${dasherize(options.name)}.entity'\n` +
+      `import { ${names.classify} } from './../resources/${names.dasherize}/${names.dasherize}.entity'\n` +
       searchServiceString.substring(0, searchResourcesPosition + 52) +
       `\nif (
-        resources.includes(${classify(options.name)}.name) &&
-        ${classify(options.name)}.searchableFields &&
-        ${classify(options.name)}.searchableFields.length
+        resources.includes(${names.classify}.name) &&
+        ${names.classify}.searchableFields &&
+        ${names.classify}.searchableFields.length
       ) {
-        const ${camelize(
-          options.name
-        )}s: SearchResult[] = await this.searchResource(${classify(
-        options.name
-      )}, terms)
-        searchResults = [...searchResults, ...${camelize(options.name)}s]
+        const ${names.camelize}s: SearchResult[] = await this.searchResource(${names.classify}, terms)
+        searchResults = [...searchResults, ...${names.camelize}s]
       }` +
       searchServiceString.substring(searchResourcesPosition + 52)
 
@@ -159,18 +147,12 @@ export function createResourceServer(options: any): Rule {
     )
     searchServiceString =
       searchServiceString.substring(0, getObjectsPosition + 61) +
-      `\nif (query.${camelize(options.name)}Ids && query.${camelize(
-        options.name
-      )}Ids.length || query.${camelize(options.name)}Id) {
-        const ${camelize(
-          options.name
-        )}s: SearchResult[] = await this.getSearchResultObjectsForResource(
-          ${classify(options.name)},
-          query.${camelize(options.name)}Ids || query.${camelize(
-        options.name
-      )}Id
+      `\nif (query.${names.camelize}Ids && query.${names.camelize}Ids.length || query.${names.camelize}Id) {
+        const ${names.camelize}s: SearchResult[] = await this.getSearchResultObjectsForResource(
+          ${names.classify},
+          query.${names.camelize}Ids || query.${names.camelize}Id
         )
-        searchResults = [...searchResults, ...${camelize(options.name)}s]
+        searchResults = [...searchResults, ...${names.camelize}s]
       }` +
       searchServiceString.substring(getObjectsPosition + 61)
 

@@ -18,7 +18,6 @@ export const itemDefinition: ResourceDefinition = {
   slug: 'items',
   path: 'items',
   icon: 'icon-grid',
-  gender: Gender.Feminine,
   hasDetailPage: false,
   hasListPage: true,
   buttons: [LinkType.CREATE],
