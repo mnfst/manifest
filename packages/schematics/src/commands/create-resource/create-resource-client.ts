@@ -22,9 +22,9 @@ import {
   dasherize
 } from '@angular-devkit/core/src/utils/strings'
 
-export function createResource(options: any): Rule {
+export function createResourceClient(options: any): Rule {
   return (tree: Tree, _context: SchematicContext) => {
-    const sourceTemplates: Source = url('./files')
+    const sourceTemplates: Source = url('./client-files')
 
     const appModulePath = 'client/src/app/app.module.ts'
     const appRoutingModulePath = 'client/src/app/app-routing.module.ts'
