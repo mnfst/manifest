@@ -103,15 +103,7 @@
       </td>
     </tr>
     <tr *ngIf="formattedItems && !formattedItems.length">
-      <td [attr.colspan]="yields.length">
-        <ng-container *ngIf="definition.gender === Gender.Feminine"
-          >Aucune</ng-container
-        >
-        <ng-container *ngIf="definition.gender === Gender.Masculine"
-          >Aucun</ng-container
-        >
-        {{ definition.nameSingular }}
-      </td>
+      <td [attr.colspan]="yields.length">No {{ definition.nameSingular }}</td>
     </tr>
   </tbody>
 </table>

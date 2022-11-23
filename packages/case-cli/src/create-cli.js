@@ -7,6 +7,7 @@ const { didYouMean } = require(`./did-you-mean`)
 
 const reporter = require('./reporter').default
 const { newStarter } = require('./commands/new')
+const { createResource } = require('./commands/resource')
 
 const handlerP =
   (fn) =>
@@ -54,11 +55,17 @@ function buildLocalCommands(cli, isLocalProject) {
     }
   }
 
-  cli.command({
-    command: `new`,
-    desc: `Create a new CASE project.`,
-    handler: handlerP(newStarter)
-  })
+  cli
+    .command({
+      command: `new`,
+      desc: `Create a new CASE project`,
+      handler: handlerP(newStarter)
+    })
+    .command({
+      command: `resource [name]`,
+      desc: `Create a resource in a CASE project`,
+      handler: handlerP(createResource)
+    })
 }
 
 function isLocalMedusaProject() {

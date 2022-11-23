@@ -1,4 +1,3 @@
-import { Gender } from '../enums/gender.enum'
 import { LinkType } from '../enums/link-type.enum'
 import { ActionButton } from './action-button.interface'
 import { DropdownLink } from './dropdown-link.interface'
@@ -8,7 +7,6 @@ export interface ResourceDefinition {
   title: string
   nameSingular: string
   namePlural: string
-  gender: Gender
 
   // Server-side class name.
   className: string
