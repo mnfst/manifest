@@ -17,8 +17,7 @@
   "scripts": {
     "test": "jest",
     "build": "babel src --out-dir dist/ --ignore **/__tests__",
-    "prepare": "cross-env NODE_ENV=production yarn run build",
-    "watch": "babel -w src --out-dir dist/ --ignore **/__tests__"
+    "build:watch": "babel -w src --out-dir dist/ --ignore **/__tests__"
   },
   "author": "CASE",
   "license": "MIT",
@@ -54,6 +53,7 @@
     "prompts": "^2.4.1",
     "regenerator-runtime": "^0.13.5",
     "resolve-cwd": "^3.0.0",
+    "shelljs": "^0.8.5",
     "stack-trace": "^0.0.10",
     "ulid": "^2.3.0",
     "url": "^0.11.0",

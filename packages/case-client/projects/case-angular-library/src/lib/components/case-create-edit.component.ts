@@ -209,9 +209,9 @@ export class CaseCreateEditComponent {
         label: this.definition.title
       },
       {
-        label: `${this.mode === ResourceMode.Create ? 'Ajouter' : 'Modifier'} ${
-          this.definition.gender === 'Masculine' ? 'un' : 'une'
-        } ${this.definition.nameSingular}`
+        label: `${this.mode === ResourceMode.Create ? 'Add' : 'Edit'} a ${
+          this.definition.nameSingular
+        }`
       }
     ])
   }

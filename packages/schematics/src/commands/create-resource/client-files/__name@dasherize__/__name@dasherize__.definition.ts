@@ -1,15 +1,14 @@
-import { Gender, LinkType, ResourceDefinition, ActionType } from '@case-app/angular-library'
+import { LinkType, ResourceDefinition, ActionType } from '@case-app/angular-library'
 
 export const <%= camelize(name) %>Definition: ResourceDefinition = {
-  title: '<%= classify(displayName) %>s',
-  nameSingular: '<%= displayName %>',
-  namePlural: '<%= displayName %>s',
+  title: '<%= classify(name) %>s',
+  nameSingular: '<%= name %>',
+  namePlural: '<%= name %>s',
   className: '<%= classify(name) %>',
   mainIdentifier: 'id',
   slug: '<%= dasherize(name) %>s',
-  path: '<%= dasherize(displayName) %>s',
+  path: '<%= dasherize(name) %>s',
   icon: 'icon-grid',
-  gender: Gender.<%= gender %>,
   hasDetailPage: false,
   hasListPage: true,
   buttons: [LinkType.CREATE],
@@ -17,7 +16,7 @@ export const <%= camelize(name) %>Definition: ResourceDefinition = {
   childrenThatPreventDelete: [],
   dropdownLinks: [
     {
-      label: 'Modifier',
+      label: 'Edit',
       permission: 'edit<%= classify(name) %>s',
       action: (<%= camelize(name) %>) => ({
         type: ActionType.Link,
@@ -27,7 +26,7 @@ export const <%= camelize(name) %>Definition: ResourceDefinition = {
       })
     },
     {
-      label: 'Supprimer',
+      label: 'Delete',
       permission: 'delete<%= classify(name) %>s',
       action: (<%= camelize(name) %>) => ({
         type: ActionType.Delete,

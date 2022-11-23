@@ -16,13 +16,13 @@ import * as ts from 'typescript'
 import { addDeclarationToModule } from '@schematics/angular/utility/ast-utils'
 
 import { InsertChange } from '@schematics/angular/utility/change'
-import {
-  camelize,
-  classify,
-  dasherize
-} from '@angular-devkit/core/src/utils/strings'
 
-export function createResourceClient(options: any): Rule {
+export function createResourceClient(names: {
+  camelize: string
+  classify: string
+  dasherize: string
+  name: string
+}): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     const sourceTemplates: Source = url('./client-files')
 
@@ -33,7 +33,7 @@ export function createResourceClient(options: any): Rule {
 
     const sourceParametrizedTemplates: Source = apply(sourceTemplates, [
       template({
-        ...options,
+        ...names,
         ...strings
       }),
       move(resourceFolderPath)
@@ -45,19 +45,15 @@ export function createResourceClient(options: any): Rule {
       ...addDeclarationToModule(
         readIntoSourceFile(tree, appModulePath),
         appModulePath,
-        classify(`${classify(options.name)}CreateEditComponent`),
-        `./resources/${dasherize(options.name)}/${dasherize(
-          options.name
-        )}-create-edit/${dasherize(options.name)}-create-edit.component`
+        `${names.classify}CreateEditComponent`,
+        `./resources/${names.dasherize}/${names.dasherize}-create-edit/${names.dasherize}-create-edit.component`
       ),
       // Declare List module.
       ...addDeclarationToModule(
         readIntoSourceFile(tree, appModulePath),
         appModulePath,
-        classify(`${classify(options.name)}ListComponent`),
-        `./resources/${dasherize(options.name)}/${dasherize(
-          options.name
-        )}-list/${dasherize(options.name)}-list.component`
+        `${names.classify}ListComponent`,
+        `./resources/${names.dasherize}/${names.dasherize}-list/${names.dasherize}-list.component`
       )
     ]
 
@@ -80,9 +76,7 @@ export function createResourceClient(options: any): Rule {
 
     appRoutingString =
       appRoutingString.substring(0, routeDeclarationPosition) +
-      `import { ${camelize(options.name)}Routes } from './resources/${dasherize(
-        options.name
-      )}/${dasherize(options.name)}.routes'\n` +
+      `import { ${names.camelize}Routes } from './resources/${names.dasherize}/${names.dasherize}.routes'\n` +
       appRoutingString.substring(routeDeclarationPosition)
 
     // Push resource routes to array.
@@ -92,7 +86,7 @@ export function createResourceClient(options: any): Rule {
 
     appRoutingString =
       appRoutingString.substring(0, caseRoutesImportPosition) +
-      `  ...${camelize(options.name)}Routes,\n` +
+      `  ...${names.camelize}Routes,\n` +
       appRoutingString.substring(caseRoutesImportPosition)
 
     tree.overwrite(appRoutingModulePath, appRoutingString)
@@ -108,12 +102,12 @@ export function createResourceClient(options: any): Rule {
       menuItemsString.substring(0, arrayOpeningPosition) +
       '\n' +
       JSON.stringify({
-        label: `${classify(options.displayName)}s`,
+        label: `${names.name}s`,
         permissionsOr: [
-          `browse${classify(options.name)}s`,
-          `browseOwn${classify(options.name)}s`
+          `browse${names.classify}s`,
+          `browseOwn${names.classify}s`
         ],
-        routePath: `/${dasherize(options.displayName)}s`,
+        routePath: `/${names.dasherize}s`,
         icon: 'icon-grid',
         items: []
       }) +
