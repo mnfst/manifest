@@ -21,6 +21,9 @@
     "target": "es6",
     "types": ["jasmine", "node"]
   },
-  "include": ["src/**/*", "src/*.json"],
-  "exclude": ["src/**/files", "src/**/seeder-files"]
+  "include": ["src/**/*", "src/*.json", "src/commands/**/*.json"],
+  "exclude": [
+    "src/commands/create-resource/client-files",
+    "src/commands/create-resource/server-files"
+  ]
 }

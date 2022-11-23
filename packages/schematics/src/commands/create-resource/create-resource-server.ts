@@ -18,9 +18,9 @@ import {
   dasherize
 } from '@angular-devkit/core/src/utils/strings'
 
-export function createResource(options: any): Rule {
+export function createResourceServer(options: any): Rule {
   return (tree: Tree, _context: SchematicContext) => {
-    const sourceTemplates: Source = url('./files')
+    const sourceTemplates: Source = url('./server-files/resource')
     const resourceFolderPath = './server/src/resources'
     const appModulePath = './server/src/app.module.ts'
 
@@ -56,7 +56,7 @@ export function createResource(options: any): Rule {
     tree.overwrite(appModulePath, appModuleString)
 
     // * Add seeder.
-    const seedTemplates: Source = url('./seeder-files')
+    const seedTemplates: Source = url('./server-files/seeder')
     const seederFolderPath = './server/src/database/seeders'
     const mainSeederPath = './server/src/database/seeders/seeder.ts'
     const permissionContentPath =
