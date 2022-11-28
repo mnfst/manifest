@@ -1,0 +1,34 @@
+<ng-container *ngIf="item">
+  <!-- Left side -->
+  <div class="level-left">
+    <div class="level-item">
+      <span class="icon is-large">
+        <i class="icon icon-grid is-size-2 has-text-link"></i>
+      </span>
+    </div>
+    <div class="level-item">
+      <h1 class="title is-2 has-text-weight-light">{{ item.name }}</h1>
+    </div>
+  </div>
+</ng-container>
+<!-- TODO: Detail page onboarding -->
+<div class="columns" style="background-color: hotpink">
+  <div class="column">
+    <br /><br />
+    <p>
+      Welcome to your detail page ! Here you can see the details of your
+      {{ definition.nameSingular }}.
+    </p>
+    <p>
+      You can edit this template on:
+      <strong
+        >/client/src/app/resources/{{ definition.slug }}/{{
+          definition.slug
+        }}-detail/{{ definition.slug }}-detail.component.html</strong
+      >
+    </p>
+    <br />
+    <p>Check out the doc about the detail pages:</p>
+    <p>And delete this element when ready !</p>
+  </div>
+</div>

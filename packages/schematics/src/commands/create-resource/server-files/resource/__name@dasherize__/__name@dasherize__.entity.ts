@@ -8,11 +8,14 @@ import {
 
 @Entity({ name: '<%= camelize(name) %>s' })
 export class <%= classify(name) %> {
-  public static searchableFields: string[] = []
-  public static displayName: string = 'id'
+  public static searchableFields: string[] = ['name']
+  public static displayName: string = 'name'
 
   @PrimaryGeneratedColumn()
   id: number
+
+  @Column()
+  name: string
 
   @CreateDateColumn({ select: false })
   createdAt: Date

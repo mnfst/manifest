@@ -13,6 +13,7 @@ describe('<%= classify(name) %>Controller', () => {
 
   const test<%= classify(name) %> = {
     id: 1,
+    name: 'Test'
   }
 
   beforeEach(async () => {

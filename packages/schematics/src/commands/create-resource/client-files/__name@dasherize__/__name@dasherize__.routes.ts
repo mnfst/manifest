@@ -4,7 +4,8 @@ import { AuthGuard, PermissionGuard, ResourceMode  } from '@case-app/angular-lib
 
 import { <%= classify(name) %>CreateEditComponent } from './<%= dasherize(name) %>-create-edit/<%= dasherize(name) %>-create-edit.component'
 import { <%= classify(name) %>ListComponent } from './<%= dasherize(name) %>-list/<%= dasherize(name) %>-list.component'
-
+import { <%= classify(name) %>DetailComponent } from './<%= dasherize(name) %>-detail/<%= dasherize(name) %>-detail.component'
+import { <%= camelize(name) %>Definition } from './<%= dasherize(name) %>.definition'
 
 export const <%= camelize(name) %>Routes: Route[] = [
   {
@@ -34,3 +35,16 @@ export const <%= camelize(name) %>Routes: Route[] = [
     },
   },
 ]
+
+if(<%= camelize(name) %>Definition.hasDetailPage) {
+  <%= camelize(name) %>Routes.push(
+    {
+      path: '<%= dasherize(name) %>s/:id',
+      component: <%= classify(name) %>DetailComponent,
+      canActivate: [AuthGuard, PermissionGuard],
+      data: {
+        permission: 'read<%= classify(name) %>s'
+      }
+    }
+  )
+}

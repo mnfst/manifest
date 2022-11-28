@@ -28,6 +28,7 @@ export class <%= classify(name) %>Seeder {
   private get<%= classify(name) %>(): Promise<<%= classify(name) %>> {
     const <%= camelize(name) %>: <%= classify(name) %> = this.entityManager.create(<%= classify(name) %>, {
       // Insert factory properties here.
+      name: faker.lorem.word()
     })
 
     return Promise.resolve(<%= camelize(name) %>)

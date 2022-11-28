@@ -30,6 +30,17 @@ export const caseCreateEditTemplate = `
     </div>
   </div>
 
+  <!-- TODO: Create edit Onboarding -->
+  <div class="columns" style="background-color: hotpink" *ngIf="isOnboarding">
+  <div class="column">
+    <br /><br />
+    <p>Welcome to the create-edit page for {{ definition.nameSingular }}.</p>
+    <p>This page will allow users to add and edit {{ definition.namePlural }}.</p>
+    <p>You can customize the form below to your needs and chose among different input types (text, dates, files, select dropdowns...) See the doc (link).</p>
+    <p>Remove the isOnboarding prop to hide this message :)</p>
+  </div>
+  </div>
+
   <form [formGroup]="form" *ngIf="form">
     <div class="card p-4">
       <!-- Fields -->

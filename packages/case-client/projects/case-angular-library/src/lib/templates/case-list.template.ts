@@ -46,7 +46,7 @@ export const caseListTemplate = `
   <div class="card p-4 mb-6 mt-4">
     <div class="columns">
       <div class="column">
-        <h2 class="title is-6 has-text-weight-bold is-uppercase has-text-grey">Filtres</h2>
+        <h2 class="title is-6 has-text-weight-bold is-uppercase has-text-grey">Filters</h2>
       </div>
     </div>
     <div class="columns is-multiline is-align-items-flex-end" *ngIf="isFilterSelectOptionsFetched">
@@ -73,6 +73,24 @@ export const caseListTemplate = `
   </div>
 </section>
 
+<!-- TODO: List Onboarding -->
+<div class="columns" style="background-color: hotpink" *ngIf="isOnboarding">
+<div class="column">
+  <br /><br />
+  <p>You just created the <strong>{{ definition.nameSingular }}</strong> entity, cheers !</p>
+  <p>
+    Welcome to your list page. Here you can see the list of your
+    {{ definition.namePlural }} !
+  </p>
+  <p>
+    Make sure that you add properties to your {{ definition.nameSingular }} entity file and then you can show them here with Yields (link) !
+  </p>
+  <br />
+  <p>Add add filters too (link) !</p>
+  <p>Remove the isOnboarding prop to hide this message :)</p>
+</div>
+</div>
+ 
 <!-- List -->
 <ng-container *ngIf="paginator">
 <!-- Main container -->

@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core'
+import { HttpErrorResponse } from '@angular/common/http'
+import { Component, Inject, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
 
-import { HttpErrorResponse } from '@angular/common/http'
+import { CaseConfig } from '../../../interfaces/case-config.interface'
 import { AuthService } from '../../../services/auth.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
+import { ResourceService } from '../../../services/resource.service'
 
 @Component({
   templateUrl: './login.component.html',
@@ -17,19 +19,28 @@ export class LoginComponent implements OnInit {
   })
 
   redirectTo: string
+  isEmpty: boolean
+  production = !!this.config.production
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private flashMessageService: FlashMessageService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private resourceService: ResourceService,
+
+    @Inject('CASE_CONFIG_TOKEN') private config: CaseConfig
   ) {}
 
   ngOnInit(): void {
     this.redirectTo =
       this.activatedRoute.snapshot.queryParams &&
       this.activatedRoute.snapshot.queryParams.redirectTo
+
+    this.resourceService.show('users', 'is-empty').then((isEmpty: boolean) => {
+      this.isEmpty = isEmpty
+    })
   }
 
   submitForm(loginForm: FormGroup): void {
