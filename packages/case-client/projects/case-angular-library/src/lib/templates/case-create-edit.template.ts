@@ -30,15 +30,33 @@ export const caseCreateEditTemplate = `
     </div>
   </div>
 
-  <!-- TODO: Create edit Onboarding -->
-  <div class="columns" style="background-color: hotpink" *ngIf="isOnboarding">
-  <div class="column">
-    <br /><br />
-    <p>Welcome to the create-edit page for {{ definition.nameSingular }}.</p>
-    <p>This page will allow users to add and edit {{ definition.namePlural }}.</p>
-    <p>You can customize the form below to your needs and chose among different input types (text, dates, files, select dropdowns...) See the doc (link).</p>
-    <p>Remove the isOnboarding prop to hide this message :)</p>
-  </div>
+  <div class="columns" *ngIf="isOnboarding">
+    <div class="column is-12-mobile is-8-tablet is-offset-2-tablet  is-6-fullhd is-offset-3-fullhd">
+      <article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
+        <div class="message-body has-background-light">
+          <p class="has-text-dark has-text-weight-bold">
+            🎉 Welcome to the create-edit page for <strong>{{ definition.nameSingular }}</strong>.
+          </p>
+          <p class="has-text-dark mt-4">
+            This page will allow users to add and edit {{ definition.namePlural }}.
+          </p>
+          <p class="has-text-dark mt-4">
+          You can customize the form below to your needs and chose among different input types (text, dates, files, select dropdowns...)
+          </p>
+          <div class="buttons mt-3 mb-4">
+          
+          <a class="button is-outlined is-success" href="https://docs.case.app/#/create-edit/create-edit" target="_blank">See how "create-edit view" works</a>
+          
+          <a class="button is-outlined is-success" href="https://docs.case.app/#/create-edit/field-types"  target="_blank">See all the field types</a>
+          
+          </div>
+          <p class="message is-warning p-3 has-text-dark is-size-5">
+           ℹ️ Remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project to hide this content.
+          </p>
+        </div>
+        
+      </article>
+    </div>
   </div>
 
   <form [formGroup]="form" *ngIf="form">

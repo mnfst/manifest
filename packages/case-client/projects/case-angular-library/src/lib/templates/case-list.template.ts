@@ -77,7 +77,7 @@ export const caseListTemplate = `
 <div class="column is-12-mobile is-8-tablet is-offset-2-tablet  is-6-fullhd is-offset-3-fullhd">
 <article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
   <div class="message-body has-background-light">
-    <p>
+    <p class="has-text-dark has-text-weight-bold">
     🎉 Awesome, You just created the
       <strong> {{ definition.nameSingular }} </strong> entity!
     </p>
@@ -100,6 +100,9 @@ export const caseListTemplate = `
     </a>
     </li>
     </ul>
+    <p class="message is-warning p-3 has-text-dark is-size-5">
+    ℹ️ Remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project to hide this content.
+  </p>
   </div>
   
 </article>
