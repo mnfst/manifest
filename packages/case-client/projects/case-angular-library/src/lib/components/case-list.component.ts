@@ -32,6 +32,7 @@ export class CaseListComponent {
 
   filterForm: { [key: string]: any }
   loading = false
+  isOnboarding: boolean
 
   LinkType = LinkType
 

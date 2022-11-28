@@ -8,6 +8,10 @@ import { <%= camelize(name) %>Definition } from '../<%= dasherize(name) %>.defin
 
 @Component({ template: caseCreateEditTemplate })
 export class <%= classify(name) %>CreateEditComponent extends CaseCreateEditComponent implements OnInit {
+
+  // Remove this property to hide onboarding message.
+  isOnboarding = true
+
   definition: ResourceDefinition = <%= camelize(name) %>Definition
   fields: Field[] = [
     {
@@ -15,7 +19,7 @@ export class <%= classify(name) %>CreateEditComponent extends CaseCreateEditComp
       property: 'name',
       className: 'is-6',
       required: true,
-      InputType: InputType.Text
+      inputType: InputType.Text
     }
   ]
 
