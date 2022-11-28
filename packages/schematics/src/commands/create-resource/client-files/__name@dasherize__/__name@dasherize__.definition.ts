@@ -11,7 +11,7 @@ export const <%= camelize(name) %>Definition: ResourceDefinition = {
   icon: 'icon-grid',
   hasDetailPage: true,
   hasListPage: true,
-  buttons: [LinkType.CREATE],
+  buttons: [LinkType.CREATE, LinkType.EXPORT],
   defaultLink: LinkType.DETAIL,
   childrenThatPreventDelete: [],
   dropdownLinks: [
