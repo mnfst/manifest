@@ -80,9 +80,8 @@ export class MultiSearchInputComponent implements CaseInput, OnChanges {
     // an object for the query.
     if (this.resources.length === 1) {
       initialValue = {
-        [this.firstLetterInLowerCase(this.resources[0].className) + 'Ids']: [
+        [this.firstLetterInLowerCase(this.resources[0].className) + 'Ids']:
           initialValue
-        ]
       }
     }
 
