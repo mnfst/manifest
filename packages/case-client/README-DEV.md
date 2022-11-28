@@ -6,13 +6,21 @@ CASE Angular Library
 
 ## Installation
 
+run the following command:
+
 ```bash
 $ npm install
 ```
 
-## Develop
+go to projects/case-angular-library and run:
+
+```bash
+$ npm install
+```
 
 ### Build library
+
+From `/client` repository, run:
 
 ```bash
 $ npm run build
@@ -33,7 +41,7 @@ $ cd dist/case-angular-library
 $ npm link // May require sudo.
 ```
 
-Then go to your `@case-app/case` project it the `/client` folder (Angular project) :
+Then go to your CASE project in the `/client` repository (Angular project) and run:
 
 ```bash
 $ npm link @case-app/angular-library
