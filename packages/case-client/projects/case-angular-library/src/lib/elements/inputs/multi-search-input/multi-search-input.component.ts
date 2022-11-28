@@ -76,9 +76,9 @@ export class MultiSearchInputComponent implements CaseInput, OnChanges {
 
   // Fetch full objects from API to display them. Based on initialValue (ids ony).
   getSearchResultObjects(initialValue: any): Promise<SearchResult[]> {
-    // If we just have one selected item (and thus one resource), we get the resourceName from the resource prop to build
+    // If we just have one resource, we get the resourceName from the resource prop to build
     // an object for the query.
-    if (this.maxSelectedItems === 1) {
+    if (this.resources.length === 1) {
       initialValue = {
         [this.firstLetterInLowerCase(this.resources[0].className) + 'Ids']: [
           initialValue
