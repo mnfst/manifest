@@ -20,7 +20,7 @@ $ npm install
 
 ### Build library
 
-From `/case-client` repository, run:
+From `packages/case-client` repository, run:
 
 ```bash
 $ npm run build
