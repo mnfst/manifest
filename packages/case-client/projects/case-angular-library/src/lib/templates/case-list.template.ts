@@ -100,21 +100,6 @@ export const caseListTemplate = `
     </a>
     </li>
     </ul>
-    <a
-      class="button is-success my-3 is-outlined"
-      href="https://docs.case.app/#/resources/entity-file"
-      target="_blank"
-      >See how to add properties</a
-    >
-    <p class="has-text-dark mt-4">
-      ➡️ Then, add filters to allow users to easily find {{ definition.namePlural }}.
-    </p>
-    <a
-      class="button is-success mt-3 is-outlined"
-      href="https://docs.case.app/#/list/filters"
-      target="_blank"
-      >See how filters work</a
-    >
   </div>
   
 </article>
