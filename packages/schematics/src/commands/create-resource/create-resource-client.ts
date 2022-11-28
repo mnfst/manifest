@@ -41,19 +41,26 @@ export function createResourceClient(names: {
 
     // Modify appModule.
     const declarationChanges: any[] = [
-      // Declare CreateEdit module.
+      // Declare CreateEdit component.
       ...addDeclarationToModule(
         readIntoSourceFile(tree, appModulePath),
         appModulePath,
         `${names.classify}CreateEditComponent`,
         `./resources/${names.dasherize}/${names.dasherize}-create-edit/${names.dasherize}-create-edit.component`
       ),
-      // Declare List module.
+      // Declare List component.
       ...addDeclarationToModule(
         readIntoSourceFile(tree, appModulePath),
         appModulePath,
         `${names.classify}ListComponent`,
         `./resources/${names.dasherize}/${names.dasherize}-list/${names.dasherize}-list.component`
+      ),
+      // Declare Detail component.
+      ...addDeclarationToModule(
+        readIntoSourceFile(tree, appModulePath),
+        appModulePath,
+        `${names.classify}DetailComponent`,
+        `./resources/${names.dasherize}/${names.dasherize}-detail/${names.dasherize}-detail.component`
       )
     ]
 
@@ -102,7 +109,7 @@ export function createResourceClient(names: {
       menuItemsString.substring(0, arrayOpeningPosition) +
       '\n' +
       JSON.stringify({
-        label: `${names.name}s`,
+        label: `${names.name.charAt(0).toUpperCase() + names.name.slice(1)}s`,
         permissionsOr: [
           `browse${names.classify}s`,
           `browseOwn${names.classify}s`

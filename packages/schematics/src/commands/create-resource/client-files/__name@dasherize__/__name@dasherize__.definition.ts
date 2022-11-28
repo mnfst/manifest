@@ -9,10 +9,10 @@ export const <%= camelize(name) %>Definition: ResourceDefinition = {
   slug: '<%= dasherize(name) %>s',
   path: '<%= dasherize(name) %>s',
   icon: 'icon-grid',
-  hasDetailPage: false,
+  hasDetailPage: true,
   hasListPage: true,
   buttons: [LinkType.CREATE],
-  defaultLink: LinkType.EDIT,
+  defaultLink: LinkType.DETAIL,
   childrenThatPreventDelete: [],
   dropdownLinks: [
     {
