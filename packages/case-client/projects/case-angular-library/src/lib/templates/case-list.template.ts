@@ -73,24 +73,54 @@ export const caseListTemplate = `
   </div>
 </section>
 
-<!-- TODO: List Onboarding -->
-<div class="columns" style="background-color: hotpink" *ngIf="isOnboarding">
-<div class="column">
-  <br /><br />
-  <p>You just created the <strong>{{ definition.nameSingular }}</strong> entity, cheers !</p>
-  <p>
-    Welcome to your list page. Here you can see the list of your
-    {{ definition.namePlural }} !
-  </p>
-  <p>
-    Make sure that you add properties to your {{ definition.nameSingular }} entity file and then you can show them here with Yields (link) !
-  </p>
-  <br />
-  <p>Add add filters too (link) !</p>
-  <p>Remove the isOnboarding prop to hide this message :)</p>
+<div class="columns">
+<div class="column is-12-mobile is-8-tablet is-offset-2-tablet  is-6-fullhd is-offset-3-fullhd">
+<article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
+  <div class="message-body has-background-light">
+    <p>
+    🎉 Awesome, You just created the
+      <strong> {{ definition.nameSingular }} </strong> entity!
+    </p>
+    <p class="has-text-dark mt-4">
+      Here you can see your list of {{ definition.namePlural }} !
+    </p>
+    <p class="has-text-dark mt-4">
+      ➡️ Now make your resource attractive.
+    </p>
+    <ul class='has-text-dark my-2'>
+    <li class="mt-2">
+    <span class="ml-2">1. </span><a class="has-text-success" href="https://docs.case.app/#/resources/entity-file" target='_blank'>add properties to your {{ definition.nameSingular }} entity  to define it</a><span> For example, this resource can get a size, a color, dates...</span>
+    </li>
+    <li class="mt-2">
+    <span class="ml-2">2. </span><a class="has-text-success" href="https://docs.case.app/#/list/yields" target='_blank'>Display these properties in the list below as "yields"
+    </a>
+    </li>
+    <li class="mt-2">
+    <span class="ml-2">3. </span><a class="has-text-success" href="https://docs.case.app/#/list/filters" target='_blank'>Add filters and allow users to easily find {{ definition.namePlural }}.
+    </a>
+    </li>
+    </ul>
+    <a
+      class="button is-success my-3 is-outlined"
+      href="https://docs.case.app/#/resources/entity-file"
+      target="_blank"
+      >See how to add properties</a
+    >
+    <p class="has-text-dark mt-4">
+      ➡️ Then, add filters to allow users to easily find {{ definition.namePlural }}.
+    </p>
+    <a
+      class="button is-success mt-3 is-outlined"
+      href="https://docs.case.app/#/list/filters"
+      target="_blank"
+      >See how filters work</a
+    >
+  </div>
+  
+</article>
 </div>
 </div>
- 
+
 <!-- List -->
 <ng-container *ngIf="paginator">
 <!-- Main container -->
