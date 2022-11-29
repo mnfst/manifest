@@ -1,15 +1,17 @@
 <ng-container *ngIf="item">
-  <!-- Left side -->
-  <div class="level-left">
-    <div class="level-item">
-      <span class="icon is-large">
-        <i class="icon icon-grid is-size-2 has-text-link"></i>
-      </span>
+  <nav class="level">
+    <!-- Left side -->
+    <div class="level-left">
+      <div class="level-item">
+        <span class="icon is-large">
+          <i class="icon icon-grid is-size-2 has-text-link"></i>
+        </span>
+      </div>
+      <div class="level-item">
+        <h1 class="title is-2 has-text-weight-light">{{ item.name }}</h1>
+      </div>
     </div>
-    <div class="level-item">
-      <h1 class="title is-2 has-text-weight-light">{{ item.name }}</h1>
-    </div>
-  </div>
+  </nav>
 </ng-container>
 
 <div class="columns">
@@ -41,5 +43,61 @@
         >
       </div>
     </article>
+  </div>
+</div>
+
+<div class="columns is-multiline">
+  <div class="column is-9">
+    <div class="card is-fullheight">
+      <div class="card-content">
+        <div class="columns is-multiline">
+          <div class="column is-12">
+            <p class="is-uppercase has-text-grey has-text-weight-medium">
+              Entity informations
+            </p>
+            <p>💡 Have all the information of your entity as you wish</p>
+          </div>
+        </div>
+        <hr />
+        <div class="columns is-multiline">
+          <div class="column is-12">
+            <p class="is-uppercase has-text-grey has-text-weight-medium">
+              Related entities information
+            </p>
+            <p>
+              💡 CASE allows you to display information to related entities. For
+              example, You could display all the contacts who work for a client.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="column is-3">
+    <div class="card is-fullheight">
+      <div class="card-content">
+        <p class="is-uppercase has-text-grey has-text-weight-medium">Notes</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="columns is-multiline">
+  <div class="column is-12">
+    <div class="card is-fullheight mt-4">
+      <div class="card-content">
+        <div class="columns is-multiline">
+          <div class="column is-12">
+            <p class="is-uppercase has-text-grey has-text-weight-medium">
+              Analytics
+            </p>
+            <p>
+              💡 Display analytical results of your entity via charts or key
+              figures. You will allow users to quickly access relevant
+              information
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
