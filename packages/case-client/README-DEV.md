@@ -23,13 +23,13 @@ $ npm install
 From `packages/case-client` repository, run:
 
 ```bash
-$ npm run build
+npm run build
 ```
 
 or to watch file changes :
 
 ```bash
-$ npm run build:watch
+npm run build:watch
 ```
 
 ### Create a NPM Link to test on local CASE app
@@ -37,15 +37,17 @@ $ npm run build:watch
 After building library :
 
 ```bash
-$ cd dist/case-angular-library
-$ npm link // May require sudo.
+cd dist/case-angular-library
+npm link // May require sudo.
 ```
 
 Then go to your CASE project in the `/client` repository (Angular project) and run:
 
 ```bash
-$ npm link @case-app/angular-library
+npm link @case-app/angular-library
 ```
+
+> ⚠️ If your CASE project returns errors while serving the client, you may have to restart the watcher after linking your CASE project
 
 ## Publish to NPM
 
