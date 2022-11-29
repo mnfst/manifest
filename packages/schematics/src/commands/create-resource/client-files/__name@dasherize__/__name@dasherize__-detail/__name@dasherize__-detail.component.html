@@ -11,24 +11,35 @@
     </div>
   </div>
 </ng-container>
-<!-- TODO: Detail page onboarding -->
-<div class="columns" style="background-color: hotpink">
-  <div class="column">
-    <br /><br />
-    <p>
-      Welcome to your detail page ! Here you can see the details of your
-      {{ definition.nameSingular }}.
-    </p>
-    <p>
-      You can edit this template on:
-      <strong
-        >/client/src/app/resources/{{ definition.slug }}/{{
-          definition.slug
-        }}-detail/{{ definition.slug }}-detail.component.html</strong
-      >
-    </p>
-    <br />
-    <p>Check out the doc about the detail pages:</p>
-    <p>And delete this element when ready !</p>
+
+<div class="columns">
+  <div
+    class="column is-12 is-10-desktop is-offset-1-desktop is-6-fullhd is-offset-3-fullhd"
+  >
+    <article class="message is-success has-text-left mt-4">
+      <div class="message-body has-background-light">
+        <p class="has-text-dark title is-1">
+          Welcome to the detail page of a
+          <strong>{{ definition.nameSingular }}</strong> 🙏
+        </p>
+        <p class="has-text-dark mt-4">
+          This page will allow users to have an overview of each
+          {{ definition.nameSingular }}.
+        </p>
+        <p class="has-text-dark mt-4">
+          To customize this template, go to `/client/src/app/resources/{{
+            definition.slug
+          }}/{{ definition.slug }}-detail/{{
+            definition.slug
+          }}-detail.component.html` and make yourself happy.
+        </p>
+        <a
+          class="button is-outlined is-success mt-4"
+          href="https://docs.case.app/#/detail/detail?id=detail-view"
+          target="_blank"
+          >Read more about detail page</a
+        >
+      </div>
+    </article>
   </div>
 </div>
