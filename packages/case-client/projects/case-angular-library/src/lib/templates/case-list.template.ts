@@ -74,34 +74,34 @@ export const caseListTemplate = `
 </section>
 
 <div class="columns">
-<div class="column is-12-mobile is-8-tablet is-offset-2-tablet  is-6-fullhd is-offset-3-fullhd">
+<div class="column is-12 is-10-desktop is-offset-1-desktop  is-6-fullhd is-offset-3-fullhd">
 <article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
   <div class="message-body has-background-light">
-    <p class="has-text-dark has-text-weight-bold">
-    🎉 Awesome, You just created the
-      <strong> {{ definition.nameSingular }} </strong> entity!
+    <p class="has-text-dark  title is-1 ">
+    Here you can see your list of {{ definition.namePlural }} 👌
     </p>
     <p class="has-text-dark mt-4">
-      Here you can see your list of {{ definition.namePlural }} !
+    ✅ Good going, You just created the
+      <strong> {{ definition.nameSingular }} </strong> entity !
     </p>
     <p class="has-text-dark mt-4">
-      ➡️ Now make your resource attractive.
+      Now make your resource attractive.
     </p>
-    <ul class='has-text-dark my-2'>
-    <li class="mt-2">
-    <span class="ml-2">1. </span><a class="has-text-success" href="https://docs.case.app/#/resources/entity-file" target='_blank'>add properties to your {{ definition.nameSingular }} entity  to define it</a><span> For example, this resource can get a size, a color, dates...</span>
+    <ul class='has-text-dark mt-3 mb-6'>
+    <li class="mt-4 ml-6">
+    <span>1. </span><a class="has-text-success" href="https://docs.case.app/#/resources/entity-file" target='_blank'>Add properties to your {{ definition.nameSingular }} entity  to define it</a><span> For example, this resource can get a size, a color, dates...</span>
     </li>
-    <li class="mt-2">
-    <span class="ml-2">2. </span><a class="has-text-success" href="https://docs.case.app/#/list/yields" target='_blank'>Display these properties in the list below as "yields"
+    <li class="mt-4 ml-6">
+    <span>2. </span><a class="has-text-success" href="https://docs.case.app/#/list/yields" target='_blank'>Display these properties in the list below as "yields"
     </a>
     </li>
-    <li class="mt-2">
-    <span class="ml-2">3. </span><a class="has-text-success" href="https://docs.case.app/#/list/filters" target='_blank'>Add filters and allow users to easily find {{ definition.namePlural }}.
+    <li class="mt-4 ml-6">
+    <span>3. </span><a class="has-text-success" href="https://docs.case.app/#/list/filters" target='_blank'>Add filters and allow users to easily find {{ definition.namePlural }}.
     </a>
     </li>
     </ul>
     <p class="message is-warning p-3 has-text-dark is-size-5">
-    ℹ️ Remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project to hide this content.
+    ℹ️ To hide this content, remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project.
   </p>
   </div>
   

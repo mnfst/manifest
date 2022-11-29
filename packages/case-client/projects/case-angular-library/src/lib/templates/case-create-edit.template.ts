@@ -31,12 +31,12 @@ export const caseCreateEditTemplate = `
   </div>
 
   <div class="columns" *ngIf="isOnboarding">
-    <div class="column is-12-mobile is-8-tablet is-offset-2-tablet  is-6-fullhd is-offset-3-fullhd">
+    <div class="column is-12 is-10-desktop is-offset-1-desktop  is-6-fullhd is-offset-3-fullhd">
       <article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
         <div class="message-body has-background-light">
-          <p class="has-text-dark has-text-weight-bold">
-            🎉 Welcome to the create-edit page for <strong>{{ definition.nameSingular }}</strong>.
-          </p>
+        <p class="has-text-dark  title is-1 ">
+            Welcome to the create-edit page for <strong>{{ definition.nameSingular }}</strong> 🙏
+        </p>
           <p class="has-text-dark mt-4">
             This page will allow users to add and edit {{ definition.namePlural }}.
           </p>
@@ -51,7 +51,7 @@ export const caseCreateEditTemplate = `
           
           </div>
           <p class="message is-warning p-3 has-text-dark is-size-5">
-           ℹ️ Remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project to hide this content.
+          ℹ️ To hide this content, remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project.
           </p>
         </div>
         
