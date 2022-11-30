@@ -12,7 +12,7 @@ If you want to modify the drop down links you can go on the resource.definition.
 //customer.definition.ts
 dropdownLinks: [
   {
-    label: 'Modifier',
+    label: 'Edit',
     permission: 'editCustomers',
     action: (customer) => ({
       type: ActionType.Link,
@@ -22,7 +22,7 @@ dropdownLinks: [
     })
   },
   {
-    label: 'Supprimer',
+    label: 'Delete',
     permission: 'deleteCustomers',
     action: (customer) => ({
       type: ActionType.Delete,
