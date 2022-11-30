@@ -40,6 +40,16 @@
               </button>
               <a routerLink="/forgot-password">Forgot password ?</a>
             </form>
+            <div *ngIf="!production" style="background-color: hotpink">
+              <p>Welcome to CASE</p>
+              <p *ngIf="isEmpty">
+                It seems that your database is empty. Please run "npm run seed"
+                to create a bunch of dummy users and be able to log !
+              </p>
+              <p *ngIf="!isEmpty">
+                Default admin user: admin@case.case with password "case"
+              </p>
+            </div>
           </div>
         </div>
         <div class="column col-decoration">

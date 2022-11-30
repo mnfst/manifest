@@ -28,13 +28,15 @@ export class <%= classify(name) %>Controller {
     @Query('page') page?: string,
     @Query('orderBy') orderBy?: string,
     @Query('orderByDesc', ParseBoolPipe) orderByDesc?: boolean,
-    @Query('withoutPagination', ParseBoolPipe) withoutPagination?: boolean
-  ): Promise<Paginator<<%= classify(name) %>> | <%= classify(name) %>[]> {
+    @Query('withoutPagination', ParseBoolPipe) withoutPagination?: boolean,
+    @Query('toXLS', ParseBoolPipe) toXLS?: boolean
+  ): Promise<Paginator<<%= classify(name) %>> | <%= classify(name) %>[] | string> {
     return this.<%= camelize(name) %>Service.index({
       page,
       orderBy,
       orderByDesc,
-      withoutPagination
+      withoutPagination,
+      toXLS
     })
   }
 

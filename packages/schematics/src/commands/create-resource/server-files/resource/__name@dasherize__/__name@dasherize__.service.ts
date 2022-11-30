@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DeleteResult, Repository, UpdateResult } from 'typeorm'
+import { DeleteResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm'
 
-import { Paginator, PaginationService } from '@case-app/nest-library'
+import { Paginator, PaginationService, ExcelService } from '@case-app/nest-library'
 import { <%= classify(name) %> } from './<%= dasherize(name) %>.entity'
 import { CreateUpdate<%= classify(name) %>Dto } from './dtos/create-update-<%= dasherize(name) %>.dto'
 
@@ -11,20 +11,23 @@ export class <%= classify(name) %>Service {
 constructor(
     @InjectRepository(<%= classify(name) %>)
     private readonly repository: Repository<<%= classify(name) %>>,
-    private paginationService: PaginationService
+    private paginationService: PaginationService,
+    private excelService: ExcelService
   ) {}
 
   async index({
     page,
     orderBy,
     orderByDesc,
+    toXLS,
     withoutPagination
   }: {
     page?: string
     orderBy?: string
     orderByDesc?: boolean
+    toXLS?: boolean
     withoutPagination?: boolean
-  }): Promise<Paginator<<%= classify(name) %>> | <%= classify(name) %>[]> {
+  }): Promise<Paginator<<%= classify(name) %>> | <%= classify(name) %>[] | string> {
     const query = this.repository
       .createQueryBuilder('<%= camelize(name) %>')
  
@@ -33,7 +36,11 @@ constructor(
         orderBy.includes('.') ? orderBy : '<%= camelize(name) %>.' + orderBy,
         orderByDesc ? 'DESC' : 'ASC'
       )
-    } 
+    }
+
+    if (toXLS) {
+      return this.export(query)
+    }
 
     if (withoutPagination) {
       return await query.getMany()
@@ -43,6 +50,15 @@ constructor(
       query,
       currentPage: page ? parseInt(page, 10) : 1
     })
+  }
+
+  async export(query: SelectQueryBuilder<<%= classify(name) %>>) {
+    const <%= camelize(name) %>s = await query.getMany()
+    return this.excelService.export(
+      ['Id', 'Name'],
+      <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => [<%= camelize(name) %>.id, <%= camelize(name) %>.name]),
+      '<%= camelize(name) %>s'
+    )
   }
 
   async show(id: number): Promise<<%= classify(name) %>> {

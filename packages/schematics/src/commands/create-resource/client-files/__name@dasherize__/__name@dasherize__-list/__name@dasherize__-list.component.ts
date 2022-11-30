@@ -19,6 +19,10 @@ import { <%= camelize(name) %>Yields } from '../<%= dasherize(name) %>.yields'
 
 @Component({ template: caseListTemplate })
 export class <%= classify(name) %>ListComponent extends CaseListComponent implements OnInit {
+  
+  // Remove this property to hide onboarding message.
+  isOnboarding = true
+
   definition: ResourceDefinition = <%= camelize(name) %>Definition
   yields: Yield[] = <%= camelize(name) %>Yields
 

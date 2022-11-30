@@ -20,7 +20,7 @@
   cursor: pointer;
 
   &:after {
-    content: 'Modifier';
+    content: 'Edit';
     display: inline-block;
     line-height: $control-height;
     padding-left: #{$control-height * 1.25};
