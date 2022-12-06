@@ -31,7 +31,7 @@ export const caseCreateEditTemplate = `
   </div>
 
   <div class="columns" *ngIf="isOnboarding">
-    <div class="column is-12 is-10-desktop is-offset-1-desktop  is-6-fullhd is-offset-3-fullhd">
+    <div class="column is-12 is-10-desktop is-offset-1-desktop is-8-fullhd is-offset-2-fullhd">
       <article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
         <div class="message-body has-background-light">
         <p class="has-text-dark  title is-1 ">

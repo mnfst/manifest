@@ -18,6 +18,10 @@
   <body>
     <div id="app"></div>
     <style>
+      .markdown-section {
+        max-width: 1140px;
+        font-size: 17px;
+      }
       .markdown-section pre,
       .markdown-section pre > code {
         background-color: #292c33;
@@ -25,6 +29,19 @@
       }
       .is-bordered {
         border: 1px solid rgba(0, 0, 0, 0.07);
+      }
+      h2 {
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid #eaeaef;
+      }
+      img.has-shadow {
+        margin: 1.5rem 3rem 3rem 3rem;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        box-shadow: 0px 82px 33px rgba(59, 59, 59, 0.01),
+          0px 46px 28px rgba(59, 59, 59, 0.05),
+          0px 20px 20px rgba(59, 59, 59, 0.09),
+          0px 5px 11px rgba(59, 59, 59, 0.1), 0px 0px 0px rgba(59, 59, 59, 0.1);
+        width: calc(100% - 6rem);
       }
     </style>
     <script>

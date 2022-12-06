@@ -21,6 +21,8 @@ npm i -g @case-app/case-cli
 
 ### Step 2: Create a new CASE projet
 
+Run the following command:
+
 ```sh
 case-app new
 ```
@@ -46,19 +48,19 @@ The backend server will run here => http://localhost:3000
 
 For now, you can go to the login page of your project http://localhost:4200/ but you still can not connect to the platform.
 
-![Login](../assets/images/introduction/login-01.png ':class=is-bordered')
+![Login](../assets/images/introduction/login-01.png ':class=has-shadow')
 
 We will seed the data to add users including your CASE admin user.
 
 ### Step 4: Seed the data
 
+To generate a bunch of dummy data for all exisiting entities (Users and roles) run the following command:
+
 ```sh
 npm run seed
 ```
 
-The seeder will generate a bunch of dummy data for all exisiting entities (Users and roles)
-
-![Seed](../assets/images/introduction/seed.png)
+![Seed](../assets/images/introduction/seed.svg)
 
 ### Step 5: sign in and have a look at your ERP
 
@@ -66,11 +68,20 @@ Once the seed is finished, you can access to your product via the browser. You w
 
 > Use the email `admin@case.app` and password `case` to log in.
 
-![Seed](../assets/images/introduction/homepage.png ':class=is-bordered')
-
-Once done, you become the first user to access your CASE product. Welcome On Board ! 👋
+![Seed](../assets/images/introduction/homepage.png ':class=has-shadow')
 
 <div style="background-color:#42b98316; border-left: 4px solid #42b983; padding: 20px;">
 <h2 style="margin-top: 0">Congratulations 🎉</h2>
-<p>Your product is ready! You can start playing with CASE and discover the product by yourself using our documentation, or proceed to section B below.</p>
+<p>Your product is ready! You become the first user to access your CASE product. Welcome On Board ! 👋</p>
+<p>You can start playing with CASE and discover the product by yourself using our documentation, or proceed to section B below.</p>
 </div>
+
+## Section B: Add resources and make them useful / great
+
+### Step 1: Create a new resource
+
+### Step 2: ...
+
+### Step final: Rely 2 resources
+
+## Section C: What's next ?
