@@ -2,7 +2,6 @@
 
   - [Overview](getting-started/overview.md)
   - [Quick start guide](getting-started/quick-start-guide.md)
-  - [Install](getting-started/install.md)
   - [Structure](getting-started/structure.md)
   - [Testing](getting-started/testing.md)
 
