@@ -19,9 +19,15 @@
     <div id="app"></div>
     <style>
       .markdown-section {
-        max-width: 1140px;
+        max-width: 80%;
         font-size: 17px;
       }
+      @media screen and (min-width: 1480px) {
+        .markdown-section {
+          max-width: 1140px;
+        }
+      }
+
       .markdown-section pre,
       .markdown-section pre > code {
         background-color: #292c33;

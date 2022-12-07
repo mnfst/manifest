@@ -9,7 +9,7 @@ The installation requires the following software to be already installed on your
 - [Node.js](https://nodejs.org/en/) to run your environment: only LTS versions are supported (v14 and v16). Other versions of Node.js may not be compatible with the latest release of CASE. The 16.x version is most recommended.
 - [npm](https://docs.npmjs.com/cli/v6/commands/npm-install) to run the CLI installation scripts: (v6 only).
 
-## Section A: Create a new project with CASE Starter
+## Section A: Create a new project
 
 CASE starter covers many use cases (ERP, dashboards, CRM, Custom software, Analytic platform). For now, CASE works only with npm, nodejs and Angular.
 
@@ -77,6 +77,10 @@ Once the seed is finished, you can access to your product via the browser. You w
 </div>
 
 ## Section B: Add resources and make them useful / great
+
+The installation script has just created an project with users and roles. We will now guide you through creating hero characters and the works that belong to them.
+
+We will use the CLI to create the entity and its parameters. Once the everything is ready, the user will be able to manage those characters
 
 ### Step 1: Create a new resource
 
