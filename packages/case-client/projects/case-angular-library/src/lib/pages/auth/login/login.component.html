@@ -5,8 +5,34 @@
         <div class="column col-login">
           <div>
             <figure class="logo">
-              <img src="../../../../assets/images/logo.svg" alt="logo" />
+              <img src="../../../../assets/images/logo.svg" alt="logo test" />
             </figure>
+            <article
+              class="message is-success has-text-left mt-4"
+              *ngIf="!production"
+            >
+              <div class="message-body has-background-light">
+                <h3 class="title is-3">Welcome to CASE 👋</h3>
+                <p *ngIf="isEmpty">
+                  ✅ You have successfully installed and launched your project
+                  on CASE
+                </p>
+                <p *ngIf="isEmpty" class="mt-4 has-text-dark">
+                  ➡️ <b>Next step:</b> Generate a bunch of dummy data including
+                  your admin’s user credentials to log in by running
+                  <code>npm run seed</code> 🌱
+                </p>
+                <p *ngIf="!isEmpty">
+                  ✅ Awesome, the seed is completed! You can now use your
+                  admin’s user credentials to log in.
+                </p>
+                <p *ngIf="!isEmpty" class="mt-4 has-text-dark">
+                  Default admin user: <code>admin@case.case</code> password:
+                  <code>case</code>
+                </p>
+              </div>
+            </article>
+
             <h3 class="title is-2 my-5">Sign in</h3>
             <form [formGroup]="loginForm" (submit)="submitForm(loginForm)">
               <div class="field mb-5">
@@ -40,16 +66,6 @@
               </button>
               <a routerLink="/forgot-password">Forgot password ?</a>
             </form>
-            <div *ngIf="!production" style="background-color: hotpink">
-              <p>Welcome to CASE</p>
-              <p *ngIf="isEmpty">
-                It seems that your database is empty. Please run "npm run seed"
-                to create a bunch of dummy users and be able to log !
-              </p>
-              <p *ngIf="!isEmpty">
-                Default admin user: admin@case.case with password "case"
-              </p>
-            </div>
           </div>
         </div>
         <div class="column col-decoration">
