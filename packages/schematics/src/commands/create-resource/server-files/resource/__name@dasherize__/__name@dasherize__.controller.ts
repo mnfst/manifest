@@ -44,8 +44,7 @@ export class <%= classify(name) %>Controller {
   @UseGuards(AuthGuard)
   async listSelectOptions(
     @Query('orderBy') orderBy?: string,
-    @Query('orderByDesc', ParseBoolPipe) orderByDesc?: boolean,
-    @Query('withoutPagination', ParseBoolPipe) withoutPagination?: boolean
+    @Query('orderByDesc', ParseBoolPipe) orderByDesc?: boolean
   ): Promise<SelectOption[]> {
     const <%= camelize(name) %>s: <%= classify(name) %>[] = (await this.<%= camelize(name) %>Service.index({
       withoutPagination: true,
@@ -54,7 +53,7 @@ export class <%= classify(name) %>Controller {
     })) as <%= classify(name) %>[]
 
     return <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => ({
-      label: `Label for <%= name %> with id ${<%= camelize(name) %>.id}`,
+      label: <%= camelize(name) %>.name,
       value: <%= camelize(name) %>.id
     }))
   }

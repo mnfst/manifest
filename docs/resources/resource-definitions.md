@@ -25,7 +25,7 @@ export const itemDefinition: ResourceDefinition = {
   childrenThatPreventDelete: [],
   dropdownLinks: [
     {
-      label: 'Modifier',
+      label: 'Edit',
       permission: 'editItems',
       action: (item) => ({
         type: ActionType.Link,
@@ -35,7 +35,7 @@ export const itemDefinition: ResourceDefinition = {
       })
     },
     {
-      label: 'Supprimer',
+      label: 'Delete',
       permission: 'deleteItems',
       action: (item) => ({
         type: ActionType.Delete,
