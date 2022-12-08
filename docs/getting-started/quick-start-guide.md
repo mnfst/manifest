@@ -31,20 +31,25 @@ During the installation, the terminal will ask you **what is the name of your ap
 
 The CLI will create a monorepo and install dependencies.
 
-### Step 3: Run your project
+### Step 3: Setup and serve
+
+Copy the environment file and set your environment variables:
 
 ```sh
-cd my-case-project
-
-# 1st terminal window
-npm run start:client
-
-# 2nd terminal window
-npm run start:server
+cp server/.env.example server/.env
 ```
 
-The frontend server will run here => http://localhost:4200
-The backend server will run here => http://localhost:3000
+CASE uses **MySQL** for the database.
+
+You will need to create a new database and add the name to the _DB_NAME_ property of your `.env` file. The default name for the database is **case**. Once done you can install dependencies:
+
+```sh
+npm run start:client
+
+# Simultaneously open a 2nd terminal window and run :
+npm run start:server
+
+```
 
 For now, you can go to the login page of your project http://localhost:4200/ but you still can not connect to the platform.
 
@@ -59,8 +64,6 @@ To generate a bunch of dummy data for all existing entities (Users and roles) ru
 ```sh
 npm run seed
 ```
-
-![Seed](../assets/images/introduction/seed.svg)
 
 ### Step 5: sign in and have a look at your ERP
 
