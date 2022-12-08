@@ -51,11 +51,7 @@ npm run start:server
 
 ```
 
-For now, you can go to the login page of your project http://localhost:4200/ but you still cannot connect to the platform.
-
-![Login](../assets/images/introduction/login-01.png ':class=has-shadow')
-
-We will seed the data to add users including your CASE admin user.
+Your ERP is served. Let's go to the next step and seed the data to add users including your CASE admin user.
 
 ### Step 4: Seed the data
 
@@ -96,6 +92,8 @@ case-app resource painter
 That's it, you have now a functional list of painters ! You already can create painters, edit them and delete them.
 
 With your command, a bunch of new files was generated, you can have a look at [the resource doc](/resources/create-a-resource.md) to see the detail of those new files.
+
+![Painters](../assets/images/introduction/painter-list.png ':class=has-shadow')
 
 ### Step 2: Add properties to a resource
 
@@ -153,6 +151,8 @@ export const painterYields: Yield[] = [
 ]
 ```
 
+![list with countries](../assets/images/introduction/list-with-countries.png ':class=has-shadow')
+
 Last but not least, let's add the "country" field in create and edit forms to allow users to change it ! On the `painter.create-edit.component.ts` file, add a new field in the form:
 
 ```js
@@ -173,35 +173,12 @@ Last but not least, let's add the "country" field in create and edit forms to al
   ]
 ```
 
-### Step 3: Add relations to resources
+👏 Bravo! you can now go to the ERP and create a new painter with a name and an country.
+![`Create edit view`](../assets/images/introduction/painter-create-edit.png ':class=has-shadow')
 
-What is a painter without a painting ? Nothing, so let's create the **Painting** resource and the relationship with the **Painter** entity.
+### Step 3: Add a search filter to the painter list
 
-Let's start by creating the painting resource:
-
-```sh
-case-app resource painting
-```
-
-We want a **one-to-many relationship**: a painter can have many paintings and a painting belongs necessarily to a painter.
-
-The relation has to be done on both sides: in the `painter.entity.ts` file:
-
-```js
-  // New relation property: a painter has many paintings.
-  @OneToMany(() => Painting, (painting) => painting.painter)
-  paintings: Painting[]
-```
-
-And in the `painting.entity.ts` file:
-
-```js
-  // New relation property: a painting belongs to a painter.
-  @ManyToOne(() => Painter, (painter) => painter.paintings)
-  painter: Painter
-```
-
-That code above should create the appropriate relationship in your database. Then you can follow the [relation doc](/resources/relations.md) to learn how to **edit** an entity relations, **seed** dummy data and even filter your lists by its relations.
+> ...
 
 ## What's next ?
 
