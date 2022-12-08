@@ -41,7 +41,7 @@ cp server/.env.example server/.env
 
 CASE uses **MySQL** for the database.
 
-You will need to create a new database and add the name to the _DB_NAME_ property of your `.env` file. The default name for the database is **case**. Once done you can install dependencies:
+You will need to create a new database and add the name to the _DB_NAME_ property of your `.env` file. The default name for the database is **case**. Once done you can serve the app:
 
 ```sh
 npm run start:client
@@ -51,7 +51,7 @@ npm run start:server
 
 ```
 
-For now, you can go to the login page of your project http://localhost:4200/ but you still can not connect to the platform.
+For now, you can go to the login page of your project http://localhost:4200/ but you still cannot connect to the platform.
 
 ![Login](../assets/images/introduction/login-01.png ':class=has-shadow')
 
@@ -121,7 +121,7 @@ export class Painter {
 }
 ```
 
-You can check the database structure changed: the "country" column has been created in your database. All values are empty for now, let's add some dummy data to make it more fun ! In the `painter.seeder.ts` you can add a dummy value for it:
+The database structure changed: the "country" column has been created. All values are empty for now, let's add some dummy data to make it more fun ! In the `painter.seeder.ts` you can add a dummy value for it:
 
 ```js
 const painter: Painter = this.entityManager.create(Painter, {
