@@ -10,10 +10,10 @@ Under the table, CASE is using [TypeORM Entities](https://typeorm.io/#/entities)
 
 ### Create a resource
 
-On the root level, run the command below and follow the instructions :
+On the root level, run the command below replacing `[name]` by the name of your resource.
 
 ```bash
-npm run case:resource
+case-app resource [name]
 ```
 
 ### Files generated

@@ -170,7 +170,7 @@ Last but not least, let's add the "country" field in create and edit forms to al
   ]
 ```
 
-### Final step: Add relations to resources
+### Step 3: Add relations to resources
 
 What is a painter without a painting ? Nothing, so let's create the **Painting** resource and the relationship with the **Painter** entity.
 
@@ -180,4 +180,30 @@ Let's start by creating the painting resource:
 case-app resource painting
 ```
 
-## Section C: What's next ?
+We want a **one-to-many relationship**: a painter can have many paintings and a painting belongs necessarily to a painter.
+
+The relation has to be done on both sides: in the `painter.entity.ts` file:
+
+```js
+  // New relation property: a painter has many paintings.
+  @OneToMany(() => Painting, (painting) => painting.painter)
+  paintings: Painting[]
+```
+
+And in the `painting.entity.ts` file:
+
+```js
+  // New relation property: a painting belongs to a painter.
+  @ManyToOne(() => Painter, (painter) => painter.paintings)
+  painter: Painter
+```
+
+That code above should create the appropriate relationship in your database. Then you can follow the [relation doc](/resources/relations.md) to learn how to **edit** an entity relations, **seed** dummy data and even filter your lists by its relations.
+
+## What's next ?
+
+Now that you have the basics, you are free to make your CASE project evolve your way. Each project is different and its own business logic, you can add your own features.
+
+If you encounter bugs or issues, [please let us know](https://github.com/case-app/case/issues/new).
+
+Happy coding !

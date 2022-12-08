@@ -24,7 +24,6 @@
   - [List view](list/list.md)
   - [Filters](list/filters.md)
   - [Yields](list/yields.md)
-  - [Yield types](list/yield-types.md)
   - [Key numbers](list/key-numbers.md)
   - [Action buttons](list/action-buttons.md)
   - [Dropdown links](list/dropdown-links.md)
@@ -34,7 +33,7 @@
 - 📝 Create-Edit view
 
   - [Create-edit view](create-edit/create-edit.md)
-  - [Field types](create-edit/field-types.md)
+  - [Fields](create-edit/field-types.md)
 
 - 🖥️ Detail view
 
@@ -52,6 +51,7 @@
   - [Send emails](features/send-emails.md)
   - [Pipes\*]()
   - [Task scheduling\*](features/task-scheduling.md)
+  - [CLI](features/cli.md)
   - [Notifications\*]()
   - [Generate an Excel/Word/PDF file\*]()
 
