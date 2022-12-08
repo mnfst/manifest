@@ -6,8 +6,8 @@ CASE allows you to quickly launch a reliable and flexible ERP. If you want to pr
 
 The installation requires the following software to be already installed on your computer:
 
-- [Node.js](https://nodejs.org/en/) to run your environment: only LTS versions are supported (v14 and v16). Other versions of Node.js may not be compatible with the latest release of CASE. The 16.x version is most recommended.
-- [npm](https://docs.npmjs.com/cli/v6/commands/npm-install) to run the CLI installation scripts: (v6 only).
+- [NodeJS](https://nodejs.org/en/) to run your environment: only LTS versions are supported (v14 and v16). Other versions of Node.js may not be compatible with the latest release of CASE. The 16.x version is most recommended.
+- [MySQL](https://www.mysql.com/) for the database.
 
 ## Section A: Create a new project
 
@@ -19,7 +19,7 @@ CASE starter covers many use cases (ERP, dashboards, CRM, Custom software, Analy
 npm i -g @case-app/case-cli
 ```
 
-### Step 2: Create a new CASE projet
+### Step 2: Create a new CASE project
 
 Run the following command:
 
@@ -36,10 +36,10 @@ The CLI will create a monorepo and install dependencies.
 ```sh
 cd my-case-project
 
-#1st terminal window
+# 1st terminal window
 npm run start:client
 
-#2nd terminal window
+# 2nd terminal window
 npm run start:server
 ```
 
@@ -54,7 +54,7 @@ We will seed the data to add users including your CASE admin user.
 
 ### Step 4: Seed the data
 
-To generate a bunch of dummy data for all exisiting entities (Users and roles) run the following command:
+To generate a bunch of dummy data for all existing entities (Users and roles) run the following command:
 
 ```sh
 npm run seed
@@ -76,16 +76,108 @@ Once the seed is finished, you can access to your product via the browser. You w
 <p>You can start playing with CASE and discover the product by yourself using our documentation, or proceed to section B below.</p>
 </div>
 
-## Section B: Add resources and make them useful / great
+## Section B: Add resources and business logic
 
-The installation script has just created an project with users and roles. We will now guide you through creating hero characters and the works that belong to them.
-
-We will use the CLI to create the entity and its parameters. Once the everything is ready, the user will be able to manage those characters
+Now that we have our project ready with users and roles, we will need to add some resources to manage. It can be projects, customers, invoices, cars or even horses !
 
 ### Step 1: Create a new resource
 
-### Step 2: ...
+In our example, we will create **an app that lists famous painters and their works** (why not ?).
 
-### Step final: Rely 2 resources
+Run the `case-app resource [name]` command replacing the name by the singular, "camelCase" name of your resource:
+
+```sh
+case-app resource painter
+```
+
+That's it, you have now a functional list of painters ! You already can create painters, edit them and delete them.
+
+With your command, a bunch of new files was generated, you can have a look at [the resource doc](/resources/create-a-resource.md) to see the detail of those new files.
+
+### Step 2: Add properties to a resource
+
+Our list of painters is quite boring right now, let's add a new property: their country of origin. Look at the newly created `painter.entity.ts` and add the country property with the column decorator. Let's keep it easy for now and say that it is a string. See that `@Entity` and `@Column` decorators ? CASE uses [TypeORM](https://typeorm.io/) to transcribe that code into a database structure change.
+
+```js
+@Entity({ name: 'painters' })
+export class Painter {
+  public static searchableFields: string[] = ['name']
+  public static displayName: string = 'name'
+
+  @PrimaryGeneratedColumn()
+  id: number
+
+  @Column()
+  name: string
+
+  // Add country property.
+  @Column()
+  country: string
+
+  [...]
+}
+```
+
+You can check the database structure changed: the "country" column has been created in your database. All values are empty for now, let's add some dummy data to make it more fun ! In the `painter.seeder.ts` you can add a dummy value for it:
+
+```js
+const painter: Painter = this.entityManager.create(Painter, {
+  // Insert factory properties here.
+  name: faker.lorem.word(),
+  // Faker function to create dummy countries.
+  country: faker.address.country()
+})
+```
+
+And seed the new data.
+
+```sh
+npm run seed
+```
+
+All our painters have now a country ! To create a "Country" column in the list, add a [yield](/list/yields.md) to the `painter.yields.ts`.
+
+```js
+export const painterYields: Yield[] = [
+  {
+    label: 'Name',
+    property: 'name'
+  },
+  {
+    label: 'Country',
+    property: 'country'
+  }
+]
+```
+
+Last but not least, let's add the "country" field in create and edit forms to allow users to change it ! On the `painter.create-edit.component.ts` file, add a new field in the form:
+
+```js
+  fields: Field[] = [
+    {
+      label: 'Name',
+      property: 'name',
+      className: 'is-6',
+      required: true,
+      inputType: InputType.Text
+    },
+    {
+      label: 'Country of origin',
+      property: 'country',
+      required: true,
+      inputType: InputType.Text
+    }
+  ]
+```
+
+### Final step: Add relations to resources
+
+What is a painter without a painting ? Nothing, so let's create the **Painting** resource and the relationship with the **Painter** entity.
+
+Let's start by creating the painting resource:
+
+```sh
+case-app resource painting
+```
 
 ## Section C: What's next ?

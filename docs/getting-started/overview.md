@@ -4,7 +4,7 @@ Welcome to the CASE Developer documentation !
 
 CASE is a framework that allows you to **create web apps, ERPs and dashboards easily**.
 
-![CASE App](./assets/images/case-projects.png ':size=40%')
+![CASE App](./assets/images/case-projects.png ':size=60%')
 
 ## Main features
 
@@ -30,10 +30,11 @@ If you would like to to see CASE powered by a different stack, let us know !
 
 Those features can make you save a lot of time as they come along with any CASE install:
 
+- A Command Line Interface to generate resources files in one command
 - 20 [CASE inputs](elements/inputs.md) ready for your forms: text, email, date picker, rich text, color picker...
 - 13 [CASE yields](list/yields.md) to custom the display of your lists: date, currency, icon, progress bar...
 - 7 [CASE filters](list/filters.md) for your lists: checkbox, single and multi select dropdown, date range...
-- PDF, Excel and DocX file generation
+- File generation based on your data: PDF, Excel and Word
 - [Send emails](features/send-emails.md)
 - [Advanced search](features/search.md)
 - CRON tasks and notifications
