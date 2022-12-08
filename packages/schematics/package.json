@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run move && tsc -p tsconfig.json",
     "build:watch": "tsc -p tsconfig.json --watch",
-    "move": "rm -rf dist && mkdir -p dist/commands/create-resource/server-files && cp -ar ./src/commands/create-resource/server-files/* dist/commands/create-resource/server-files && mkdir -p dist/commands/create-resource/client-files && cp -ar ./src/commands/create-resource/client-files/* dist/commands/create-resource/client-files",
+    "move": "rm -rf dist && mkdir -p dist/commands/create-resource/server-files && cp -aR ./src/commands/create-resource/server-files/* dist/commands/create-resource/server-files && mkdir -p dist/commands/create-resource/client-files && cp -aR ./src/commands/create-resource/client-files/* dist/commands/create-resource/client-files",
     "postbuild": "cp package.json dist/package.json",
     "test": "npm run build && jasmine src/**/*_spec.js",
     "publish": "npm run build && cd dist && npm publish"

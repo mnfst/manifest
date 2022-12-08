@@ -49,6 +49,10 @@
   padding: math.div($gap, 3);
   width: 100%;
   height: 100%;
+  
+  .col-login & {
+    max-width: 190px;
+  }
 
   &--image {
     height: 100%;

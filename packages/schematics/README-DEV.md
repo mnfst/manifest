@@ -2,14 +2,35 @@
 
 This repository is a set of CASE Framework schematics for the client (Angular) and the server (NestJS).
 
+## Installation
+
+From `packages/schematics`, run:
+
+```bash
+npm install
+```
+
 ## Development
+
+To build the schematics, still `packages/schematics` repository, run:
+
+```bash
+npm run build
+```
+
+or to watch file changes :
 
 ```bash
 npm run build:watch
-npm run move // Manual action if changes in /files directory.
 ```
 
-To link and use in CASE :
+After any change in `/client-files` or `/server-files` sub-directories, run this command:
+
+```bash
+npm run move
+```
+
+To link and use in any CASE project:
 
 ```bash
 cd dist
