@@ -23,21 +23,21 @@
   > div {
     margin: auto;
     margin: auto;
-    @include widescreen {
-      max-width: $col-left-max-width-widescreen;
-      min-width: $col-left-min-width-widescreen;
-    }
-    @include desktop {
-      max-width: $col-left-max-width-desktop;
-      min-width: $col-left-min-width-desktop;
+    @include mobile {
+      max-width: $col-left-max-width-mobile;
+      min-width: $col-left-min-width-mobile;
     }
     @include tablet {
       max-width: $col-left-max-width-tablet;
       min-width: $col-left-min-width-tablet;
     }
-    @include mobile {
-      max-width: $col-left-max-width-mobile;
-      min-width: $col-left-min-width-mobile;
+    @include desktop {
+      max-width: $col-left-max-width-desktop;
+      min-width: $col-left-min-width-desktop;
+    }
+    @include widescreen {
+      max-width: $col-left-max-width-widescreen;
+      min-width: $col-left-min-width-widescreen;
     }
   }
 }

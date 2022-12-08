@@ -1,54 +1,65 @@
-# CASE
+<p align="center">
+  <a href="https://www.case.app">
+    <img alt="CASE" src="https://user-images.githubusercontent.com/11723962/163216302-7ceab1a8-19a1-444b-93f7-3d7469ee9986.png" />
+  </a>
+</p>
+<h1 align="center" style="font-weight: bold">
+  CASE
+</h1>
 
-This README would document whatever steps are necessary to get your application up and running.
+CASE allows you to launch a reliable and powerful application or ERP instantly and easily. CASE is fully customizable and open to contributions. You can contribute by adding features, reporting bugs or participating in discussions.
 
-If you need more documentation about the project, please check our full documentation at https://case-app.github.io/docs/#/.
+![screenshot image](./screenshot.png)
 
-CASE is an Open-Source Project, feel free to make as many pull-request as you want to contribute it!
+# Quick start
 
-### Install
+Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CASE project step by step.
 
-Install schematics cli and CASE schematics globally :
+# Getting started
 
-```bash
-sudo npm i -g @angular-devkit/schematics-cli
-```
+1. **Install CASE CLI**
 
-_Note for development :_ Always make sure that you have the latest version of those 2 dependencies with `@latest` as the versions evolve very fast.
+   ```sh
+   npm i -g @case-app/case-cli
+   ```
 
-To run the docs you need to install docsify globally:
+2. **Create a new CASE proejct**
 
-```bash
-npm install docsify-cli --global
-```
+   ```sh
+   case-app new
+   ```
 
-As of today, there is no CLI to crate a new project in one command so you have to clone or download the [CASE source code](https://github.com/case-app/case) and then open your terminal in the CASE root folder for the following steps.
+   During the installation, when the terminal asks you what is the name of your application, just write your application's name and press `Enter`.
 
-```
-npm run case:install
-```
+   The CLI will create a monorepo and install dependencies.
 
-- Create a new DB, you can name it "case" for example
-- Eventually change DB name into `/server/.env`
+3. **Run your project**
 
-### Serve
+   ```sh
+   cd my-case-project
 
-Open 3 terminal windows and run simultaneously :
+   #1st terminal window
+   npm run start:client
 
-- `npm run seed` for create data.
-- `npm run start:client`
-- `npm run start:server`
+   #2nd terminal window
+   npm run start:server
+   ```
 
-Now you can open your browser on `http://localhost:4200`
+   The frontend server will run here => http://localhost:4200
 
-IMPORTANT FOR DEMO : You can connect with the user **admin@case.app** with the password **case**
+   The backend server will run here => http://localhost:3000
 
-## Resource
+4. **Seed the data**
 
-CASE allow you to easily build custom web-apps with resources and relations between them.
+   ```sh
+   npm run seed
+   ```
 
-Create resources with this command and follow the instructions in your terminal:
+5. **Got http://localhost:4200/**
+   And Use your CASE admin’s user credentials to log in.
 
-```
-npm run case:resource
-```
+   > You can use the email `admin@case.app` and password `case` to log in.
+
+# Deploying to production
+
+...Coming soon

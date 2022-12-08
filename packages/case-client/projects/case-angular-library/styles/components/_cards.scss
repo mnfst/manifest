@@ -22,3 +22,9 @@
     }
   }
 }
+
+.card.has-border {
+  border: $control-border-width solid $border;
+}
+
+
