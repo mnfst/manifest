@@ -176,10 +176,6 @@ Last but not least, let's add the "country" field in create and edit forms to al
 👏 Bravo! you can now go to the ERP and create a new painter with a name and an country.
 ![`Create edit view`](../assets/images/introduction/painter-create-edit.png ':class=has-shadow')
 
-### Step 3: Add a search filter to the painter list
-
-> ...
-
 ## What's next ?
 
 Now that you have the basics, you are free to make your CASE project evolve your way. Each project is different and its own business logic, you can add your own features.
