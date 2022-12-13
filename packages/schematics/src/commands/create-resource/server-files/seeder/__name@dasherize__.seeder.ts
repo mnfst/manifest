@@ -1,4 +1,4 @@
-import * as faker from 'faker/locale/fr'
+import * as faker from 'faker'
 import { DataSource, EntityManager } from 'typeorm'
 
 import { <%= classify(name) %> } from '../../resources/<%= dasherize(name) %>/<%= dasherize(name) %>.entity'

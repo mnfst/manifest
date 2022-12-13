@@ -41,7 +41,7 @@ cp server/.env.example server/.env
 
 CASE uses **MySQL** for the database.
 
-You will need to create a new database and add the name to the _DB_NAME_ property of your `.env` file. The default name for the database is **case**. Once done you can install dependencies:
+You will need to create a new database and add the name to the _DB_NAME_ property of your `.env` file. The default name for the database is **case**. Once done you can serve the app:
 
 ```sh
 npm run start:client
@@ -51,11 +51,7 @@ npm run start:server
 
 ```
 
-For now, you can go to the login page of your project http://localhost:4200/ but you still can not connect to the platform.
-
-![Login](../assets/images/introduction/login-01.png ':class=has-shadow')
-
-We will seed the data to add users including your CASE admin user.
+Your ERP is served. Let's go to the next step and seed the data to add users including your CASE admin user.
 
 ### Step 4: Seed the data
 
@@ -97,6 +93,8 @@ That's it, you have now a functional list of painters ! You already can create p
 
 With your command, a bunch of new files was generated, you can have a look at [the resource doc](/resources/create-a-resource.md) to see the detail of those new files.
 
+![Painters](../assets/images/introduction/painter-list.png ':class=has-shadow')
+
 ### Step 2: Add properties to a resource
 
 Our list of painters is quite boring right now, let's add a new property: their country of origin. Look at the newly created `painter.entity.ts` and add the country property with the column decorator. Let's keep it easy for now and say that it is a string. See that `@Entity` and `@Column` decorators ? CASE uses [TypeORM](https://typeorm.io/) to transcribe that code into a database structure change.
@@ -121,7 +119,7 @@ export class Painter {
 }
 ```
 
-You can check the database structure changed: the "country" column has been created in your database. All values are empty for now, let's add some dummy data to make it more fun ! In the `painter.seeder.ts` you can add a dummy value for it:
+The database structure changed: the "country" column has been created. All values are empty for now, let's add some dummy data to make it more fun ! In the `painter.seeder.ts` you can add a dummy value for it:
 
 ```js
 const painter: Painter = this.entityManager.create(Painter, {
@@ -153,6 +151,8 @@ export const painterYields: Yield[] = [
 ]
 ```
 
+![list with countries](../assets/images/introduction/list-with-countries.png ':class=has-shadow')
+
 Last but not least, let's add the "country" field in create and edit forms to allow users to change it ! On the `painter.create-edit.component.ts` file, add a new field in the form:
 
 ```js
@@ -173,35 +173,8 @@ Last but not least, let's add the "country" field in create and edit forms to al
   ]
 ```
 
-### Step 3: Add relations to resources
-
-What is a painter without a painting ? Nothing, so let's create the **Painting** resource and the relationship with the **Painter** entity.
-
-Let's start by creating the painting resource:
-
-```sh
-case-app resource painting
-```
-
-We want a **one-to-many relationship**: a painter can have many paintings and a painting belongs necessarily to a painter.
-
-The relation has to be done on both sides: in the `painter.entity.ts` file:
-
-```js
-  // New relation property: a painter has many paintings.
-  @OneToMany(() => Painting, (painting) => painting.painter)
-  paintings: Painting[]
-```
-
-And in the `painting.entity.ts` file:
-
-```js
-  // New relation property: a painting belongs to a painter.
-  @ManyToOne(() => Painter, (painter) => painter.paintings)
-  painter: Painter
-```
-
-That code above should create the appropriate relationship in your database. Then you can follow the [relation doc](/resources/relations.md) to learn how to **edit** an entity relations, **seed** dummy data and even filter your lists by its relations.
+👏 Bravo! you can now go to the ERP and create a new painter with a name and an country.
+![`Create edit view`](../assets/images/introduction/painter-create-edit.png ':class=has-shadow')
 
 ## What's next ?
 

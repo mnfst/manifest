@@ -9,7 +9,7 @@
             </figure>
             <article
               class="message is-success has-text-left mt-4"
-              *ngIf="!production"
+              *ngIf="!production && isEmpty"
             >
               <div class="message-body has-background-light">
                 <h3 class="title is-3">Welcome to CASE 👋</h3>
@@ -19,16 +19,8 @@
                 </p>
                 <p *ngIf="isEmpty" class="mt-4 has-text-dark">
                   ➡️ <b>Next step:</b> Generate a bunch of dummy data including
-                  your admin’s user credentials to log in by running
+                  your admin's user credentials to log in by running
                   <code>npm run seed</code> 🌱
-                </p>
-                <p *ngIf="!isEmpty">
-                  ✅ Awesome, the seed is completed! You can now use your
-                  admin’s user credentials to log in.
-                </p>
-                <p *ngIf="!isEmpty" class="mt-4 has-text-dark">
-                  Default admin user: <code>admin@case.case</code> password:
-                  <code>case</code>
                 </p>
               </div>
             </article>
