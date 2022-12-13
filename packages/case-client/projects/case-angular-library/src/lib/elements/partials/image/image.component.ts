@@ -1,6 +1,5 @@
 import { Component, Inject, Input, OnChanges } from '@angular/core'
 
-import { ImageSize } from '../../../enums/image-size.enum'
 import { CaseConfig } from '../../../interfaces/case-config.interface'
 
 @Component({
@@ -10,7 +9,7 @@ import { CaseConfig } from '../../../interfaces/case-config.interface'
 })
 export class ImageComponent implements OnChanges {
   @Input() path: string
-  @Input() size: ImageSize = ImageSize.Thumbnail
+  @Input() size: string = 'thumbnail'
   @Input() replacement = '/assets/images/avatar.svg'
   @Input() className = ''
   @Input() style = ''
@@ -28,11 +27,8 @@ export class ImageComponent implements OnChanges {
       let sizePath: string
 
       // Adds extensions to images based on requested size.
-      switch (this.size) {
-        case ImageSize.Thumbnail:
-          sizePath = `${this.path}-thumbnail.jpg`
-          break
-      }
+      sizePath = `${this.path}-${this.size}.jpg`
+
       this.absolutePath = this.path
         ? `${this.storagePath}/${sizePath}`
         : this.replacement
