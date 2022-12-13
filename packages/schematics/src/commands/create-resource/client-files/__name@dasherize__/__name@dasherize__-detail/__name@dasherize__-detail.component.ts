@@ -31,7 +31,7 @@ export class <%= classify(name) %>DetailComponent extends CaseDetailComponent im
     )
   }
 
-  ngOnInit() {
-    this.initDetailView()
+  async ngOnInit(): Promise<void> {
+    await this.initDetailView()
   }
 }
