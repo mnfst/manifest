@@ -41,6 +41,42 @@ export const caseListTemplate = `
   </div>
 </div>
 
+<!-- Onboarding -->
+<div class="columns" *ngIf="isOnboarding">
+<div class="column is-12 is-10-desktop is-offset-1-desktop  is-6-fullhd is-offset-3-fullhd">
+<article class="message is-success has-text-left mt-4">
+  <div class="message-body has-background-light">
+    <p class="has-text-dark  title is-1 ">
+    Here you can see your list of {{ definition.namePlural }} 👌
+    </p>
+    <p class="has-text-dark mt-4">
+    ✅ Good going, You just created the
+      <strong> {{ definition.nameSingular }} </strong> entity !
+    </p>
+    <p class="has-text-dark mt-4">
+      Now make your resource attractive.
+    </p>
+    <ul class='has-text-dark mt-3 mb-6'>
+    <li class="mt-4 ml-6">
+    <span>1. </span><a class="has-text-success" href="https://docs.case.app/#/resources/entity-file" target='_blank'>Add properties to your {{ definition.nameSingular }} entity  to define it</a><span> For example, this resource can get a size, a color, dates...</span>
+    </li>
+    <li class="mt-4 ml-6">
+    <span>2. </span><a class="has-text-success" href="https://docs.case.app/#/list/yields" target='_blank'>Display these properties in the list below as "yields"
+    </a>
+    </li>
+    <li class="mt-4 ml-6">
+    <span>3. </span><a class="has-text-success" href="https://docs.case.app/#/list/filters" target='_blank'>Add filters and allow users to easily find {{ definition.namePlural }}.
+    </a>
+    </li>
+    </ul>
+    <p class="message is-warning p-3 has-text-dark is-size-5">
+    ℹ️ To hide this content, remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project.
+  </p>
+  </div>
+</article>
+</div>
+</div>
+
 <!-- Filters -->
 <section *ngIf="filters?.length">
   <div class="card p-4 mb-6 mt-4">
@@ -72,42 +108,6 @@ export const caseListTemplate = `
     </div>
   </div>
 </section>
-
-<div class="columns">
-<div class="column is-12 is-10-desktop is-offset-1-desktop  is-6-fullhd is-offset-3-fullhd">
-<article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
-  <div class="message-body has-background-light">
-    <p class="has-text-dark  title is-1 ">
-    Here you can see your list of {{ definition.namePlural }} 👌
-    </p>
-    <p class="has-text-dark mt-4">
-    ✅ Good going, You just created the
-      <strong> {{ definition.nameSingular }} </strong> entity !
-    </p>
-    <p class="has-text-dark mt-4">
-      Now make your resource attractive.
-    </p>
-    <ul class='has-text-dark mt-3 mb-6'>
-    <li class="mt-4 ml-6">
-    <span>1. </span><a class="has-text-success" href="https://docs.case.app/#/resources/entity-file" target='_blank'>Add properties to your {{ definition.nameSingular }} entity  to define it</a><span> For example, this resource can get a size, a color, dates...</span>
-    </li>
-    <li class="mt-4 ml-6">
-    <span>2. </span><a class="has-text-success" href="https://docs.case.app/#/list/yields" target='_blank'>Display these properties in the list below as "yields"
-    </a>
-    </li>
-    <li class="mt-4 ml-6">
-    <span>3. </span><a class="has-text-success" href="https://docs.case.app/#/list/filters" target='_blank'>Add filters and allow users to easily find {{ definition.namePlural }}.
-    </a>
-    </li>
-    </ul>
-    <p class="message is-warning p-3 has-text-dark is-size-5">
-    ℹ️ To hide this content, remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project.
-  </p>
-  </div>
-  
-</article>
-</div>
-</div>
 
 <!-- List -->
 <ng-container *ngIf="paginator">
