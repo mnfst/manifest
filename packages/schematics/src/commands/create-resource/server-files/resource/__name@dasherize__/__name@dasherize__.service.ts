@@ -16,12 +16,14 @@ constructor(
   ) {}
 
   async index({
+    <%= camelize(name) %>Ids,
     page,
     orderBy,
     orderByDesc,
     toXLS,
     withoutPagination
   }: {
+    <%= camelize(name) %>Ids?: string[]
     page?: string
     orderBy?: string
     orderByDesc?: boolean
@@ -30,6 +32,10 @@ constructor(
   }): Promise<Paginator<<%= classify(name) %>> | <%= classify(name) %>[] | string> {
     const query = this.repository
       .createQueryBuilder('<%= camelize(name) %>')
+
+    if (<%= camelize(name) %>Ids) {
+      query.andWhere('<%= camelize(name) %>.id IN (:<%= camelize(name) %>Ids)', { <%= camelize(name) %>Ids })
+    }
  
     if (orderBy) {
       query.orderBy(
