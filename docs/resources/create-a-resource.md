@@ -56,7 +56,7 @@ In **client** directory _(front-end)_ :
 > - Add new properties/columns to Customers to the `customer.entity.ts` file
 > - Add example values to those properties in the `customer.seeder.ts` and then seed with `npm run seed` to see the result
 > - Add [yields](list/yields.md) and [filters](list/filters.md) to add columns in the list view >in `customer.yields.ts`
-> - Add [fields](create-edit/field-types.md) to the create and edit view to allow users to create >and edit **Customers**
+> - Add [fields](create-edit/fields.md) to the create and edit view to allow users to create >and edit **Customers**
 > - Edit the [roles](features/roles-and-permissions.md) to decide which user can or cannot edit >**Customers**
 > - Find a nice icon for it on [Feather icons](https://feathericons.com/) and set it in `menu-items.ts`
 > - And voilà ! You have now a manageable list of customers entirely manageable.

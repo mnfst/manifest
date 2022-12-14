@@ -33,7 +33,7 @@
 - 📝 Create-Edit view
 
   - [Create-edit view](create-edit/create-edit.md)
-  - [Fields](create-edit/field-types.md)
+  - [Fields](create-edit/fields.md)
 
 - 🖥️ Detail view
 

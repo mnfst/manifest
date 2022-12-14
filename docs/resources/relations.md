@@ -38,6 +38,142 @@ export class CorporateGroup {
 }
 ```
 
+## Store and update resource relations
+
+Our app needs to allow users to create a new **Customer** and attach it to an existing **CorporateGroup**.
+
+Let's start to add a [create-edit field](create-edit/fields.md) for the **Customer** as each customer needs to have one corporate group.
+
+```js
+// customer-create-edit.component.ts (client)
+  fields: Field[] = [
+    {
+      label: 'Name',
+      property: 'name',
+      required: true,
+      inputType: InputType.Text,
+    },
+    {
+      label: 'Corporate group',
+      property: 'corporateGroupId'
+      retrievedItemProperties: {
+        corporateGroupId: 'corporateGroup.id',
+      },
+      required: true,
+      inputType: InputType.Select,
+      selectOptions: () =>
+        this.customResourceService.listSelectOptions('corporate-groups'),
+    },
+  ]
+```
+
+The property `retrievedItemProperties` indicated to the client where to look for to get the initial value on "edit" mode whereas the `property` property gives the name of the property in which the value will be sent to the server.
+
+Once we have that, we can move to the server.
+
+We are now expecting a `corporateGroupId` in the create/update HTTP request body, let's add it to the DTO (Data Transfer Object). A 400 error will be returned if that property is empty.
+
+```js
+// create-update-customer.dto.ts (server)
+import { IsNotEmpty, IsString } from 'class-validator'
+
+export class CreateUpdateCustomerDto {
+  @IsNotEmpty()
+  @IsString()
+  readonly name: string
+
+  @IsNotEmpty()
+  readonly corporateGroupId: number | string
+}
+```
+
+To finish, we need to go to the `customer.service.ts` and update the `store()` and `update()` methods adding the corporate group to the customer. Make sur that you get the TypeORM entity manager with `getManager()`
+
+```js
+  // customer.service.ts (server)
+  private entityManager: EntityManager = getManager()
+
+  [...]
+
+  async store(customerDto: CreateUpdateCustomerDto): Promise<Customer> {
+    const customer: Customer = this.repository.create(customerDto)
+
+    customer.corporateGroup = await this.entityManager.findOneOrFail(
+      CorporateGroup,
+      customerDto.corporateGroupId
+    )
+
+    return this.repository.save(customer)
+  }
+
+  async update(
+    id: string,
+    customerDto: CreateUpdateCustomerDto
+  ): Promise<UpdateResult> {
+    const customer: Customer = this.repository.create(customerDto)
+
+    customer.corporateGroup = await this.entityManager.findOneOrFail(
+      CorporateGroup,
+      customerDto.corporateGroupId
+    )
+
+    return this.repository.update(id, customer)
+  }
+```
+
+> [!TIP]
+> The process of seeding for relationships is explained in the [database seeder page](resources/database-seeder#seeding-relationships).
+
+## Display relation values in yields
+
+To display a property of a relation of the items you are querying, you first need to tell TypeORM to fetch the relationship data.
+
+We do it by using the `leftJoinAndSelect()` method of TypeORM.
+
+```js
+// customer.service.ts (client)
+Promise<Paginator<Customer> | Customer[]> {
+    const query = this.repository
+      .createQueryBuilder('customer')
+      .leftJoinAndSelect('customer.corporateGroup', 'corporateGroup')
+```
+
+Then in the yield you can access to the properties of that relation:
+
+```js
+// customer.yields.ts (client)
+  {
+    label: 'Corporate Group Name',
+    property: 'corporateGroup.name'
+  },
+  {
+    label: 'Corporate Group Id',
+    property: 'corporateGroup.id'
+  },
+```
+
+It works the same way for relations with several levels:
+
+```js
+// customer.service.ts (server)
+const query = this.repository
+  .createQueryBuilder('leaf')
+  .leftJoinAndSelect('leaf.tree', 'tree')
+  .leftJoinAndSelect('tree.forest', 'forest')
+```
+
+```js
+// customer.yields.ts (client)
+  {
+    label: 'Tree',
+    property: 'tree.name'
+  },
+    {
+    label: 'Forest',
+    property: 'tree.forest.name'
+  },
+```
+
 ## Filter by relation
 
 Following our example, we want to filter the list of customers by corporate group.
@@ -125,139 +261,3 @@ To make that filtering effective, we have to listen to that query param in the c
 
 > [!NOTE]
 > CASE uses **NestJS** for the server side Typescript NodeJS app. Read more about controllers on [NestJS Controllers doc](https://docs.nestjs.com/controllers)
-
-## Display relation values in yields
-
-To display a property of a relation of the items you are querying, you first need to tell TypeORM to fetch the relationship data.
-
-We do it by using the `leftJoinAndSelect()` method of TypeORM.
-
-```js
-// customer.service.ts (client)
-Promise<Paginator<Customer> | Customer[]> {
-    const query = this.repository
-      .createQueryBuilder('customer')
-      .leftJoinAndSelect('customer.corporateGroup', 'corporateGroup')
-```
-
-Then in the yield you can access to the properties of that relation:
-
-```js
-// customer.yields.ts (client)
-  {
-    label: 'Corporate Group Name',
-    property: 'corporateGroup.name'
-  },
-  {
-    label: 'Corporate Group Id',
-    property: 'corporateGroup.id'
-  },
-```
-
-It works the same way for relations with several levels:
-
-```js
-// customer.service.ts (server)
-const query = this.repository
-  .createQueryBuilder('leaf')
-  .leftJoinAndSelect('leaf.tree', 'tree')
-  .leftJoinAndSelect('tree.forest', 'forest')
-```
-
-```js
-// customer.yields.ts (client)
-  {
-    label: 'Tree',
-    property: 'tree.name'
-  },
-    {
-    label: 'Forest',
-    property: 'tree.forest.name'
-  },
-```
-
-## Store and update resource relations
-
-Our app needs to allow users to create a new **Customer** and attach it to an existing **CorporateGroup**.
-
-Let's start to add a [create-edit field](create-edit/field-types.md) for the **Customer** as each customer needs to have one corporate group.
-
-```js
-// customer-create-edit.component.ts (client)
-  fields: Field[] = [
-    {
-      label: 'Name',
-      property: 'name',
-      required: true,
-      inputType: InputType.Text,
-    },
-    {
-      label: 'Corporate group',
-      property: 'corporateGroupId'
-      retrievedItemProperties: {
-        corporateGroupId: 'corporateGroup.id',
-      },
-      required: true,
-      inputType: InputType.Select,
-      selectOptions: () =>
-        this.customResourceService.listSelectOptions('corporate-groups'),
-    },
-  ]
-```
-
-The property `retrievedItemProperties` indicated to the client where to look for to get the initial value on "edit" mode whereas the `property` property gives the name of the property in which the value will be sent to the server.
-
-Once we have that, we can move to the server.
-
-We are now expecting a `corporateGroupId` in the create/update HTTP request body, let's add it to the DTO (Data Transfer Object). A 400 error will be returned if that property is empty.
-
-```js
-// create-update-customer.dto.ts (server)
-import { IsNotEmpty, IsString } from 'class-validator'
-
-export class CreateUpdateCustomerDto {
-  @IsNotEmpty()
-  @IsString()
-  readonly name: string
-
-  @IsNotEmpty()
-  readonly corporateGroupId: number | string
-}
-```
-
-To finish, we need to go to the `customer.service.ts` and update the `store()` and `update()` methods adding the corporate group to the customer. Make sur that you get the TypeORM entity manager with `getManager()`
-
-```js
-  // customer.service.ts (server)
-  private entityManager: EntityManager = getManager()
-
-  [...]
-
-  async store(customerDto: CreateUpdateCustomerDto): Promise<Customer> {
-    const customer: Customer = this.repository.create(customerDto)
-
-    customer.corporateGroup = await this.entityManager.findOneOrFail(
-      CorporateGroup,
-      customerDto.corporateGroupId
-    )
-
-    return this.repository.save(customer)
-  }
-
-  async update(
-    id: string,
-    customerDto: CreateUpdateCustomerDto
-  ): Promise<UpdateResult> {
-    const customer: Customer = this.repository.create(customerDto)
-
-    customer.corporateGroup = await this.entityManager.findOneOrFail(
-      CorporateGroup,
-      customerDto.corporateGroupId
-    )
-
-    return this.repository.update(id, customer)
-  }
-```
-
-> [!TIP]
-> The process of seeding for relationships is explained in the [database seeder page](resources/database-seeder#seeding-relationships).

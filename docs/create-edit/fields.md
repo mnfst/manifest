@@ -1,6 +1,10 @@
-# Field types
+# Fields
 
-The `inputType` property allows you to choose the type of input for your fields.
+In a [create-edit view](/create-edit/create-edit.md), the form contains a set of **fields**, materialized in the form of **inputs**.
+
+Each field correspond to one or several properties of the entity you are creating or updating. CASE provides a lot of powerful inputs to match different cases.
+
+The `inputType` property allows you to choose the type of input for your fields:
 
 ## Address
 
