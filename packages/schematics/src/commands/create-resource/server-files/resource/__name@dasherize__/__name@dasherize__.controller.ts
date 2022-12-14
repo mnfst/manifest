@@ -25,6 +25,7 @@ export class <%= classify(name) %>Controller {
   @Get()
   @Permission('browse<%= classify(name) %>s')
   async index(
+    @Query('<%= camelize(name) %>Ids') <%= camelize(name) %>Ids?: string[],
     @Query('page') page?: string,
     @Query('orderBy') orderBy?: string,
     @Query('orderByDesc', ParseBoolPipe) orderByDesc?: boolean,
@@ -32,6 +33,7 @@ export class <%= classify(name) %>Controller {
     @Query('toXLS', ParseBoolPipe) toXLS?: boolean
   ): Promise<Paginator<<%= classify(name) %>> | <%= classify(name) %>[] | string> {
     return this.<%= camelize(name) %>Service.index({
+      <%= camelize(name) %>Ids,
       page,
       orderBy,
       orderByDesc,
