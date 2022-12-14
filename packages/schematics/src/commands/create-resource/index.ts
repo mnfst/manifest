@@ -8,8 +8,6 @@ import { createResourceClient } from './create-resource-client'
 import { createResourceServer } from './create-resource-server'
 
 export function createResource(options: { name: string }): Rule {
-  console.log('createResource', options)
-
   const names = {
     name: options.name,
     classify: classify(options.name),
@@ -17,8 +15,8 @@ export function createResource(options: { name: string }): Rule {
     camelize: camelize(options.name)
   }
 
-  const clientRule: Rule = createResourceClient(names)
   const serverRule: Rule = createResourceServer(names)
+  const clientRule: Rule = createResourceClient(names)
 
-  return chain([clientRule, serverRule])
+  return chain([serverRule, clientRule])
 }

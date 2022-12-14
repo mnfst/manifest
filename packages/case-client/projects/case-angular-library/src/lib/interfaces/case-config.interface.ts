@@ -9,4 +9,5 @@ export interface CaseConfig {
   flashMessageTimeout?: number
   production?: boolean
   enablePersistentFilters?: boolean
+  isOnboarding?: boolean
 }
