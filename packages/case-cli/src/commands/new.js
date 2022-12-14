@@ -215,7 +215,7 @@ const getPaths = async (starterPath, rootPath) => {
       {
         type: `text`,
         name: `path`,
-        message: `What is your project called?`,
+        message: `What is the name of your project ?`,
         initial: `my-case-app`
       }
     ])
@@ -238,14 +238,13 @@ const getPaths = async (starterPath, rootPath) => {
 }
 
 const successMessage = (path) => {
-  reporter.info(`Ready to start coding? Here are some commands to get you started:
-
-  Adapt the .env file to your needs: "${path}/server/.env" and then run:
-
+  reporter.info(`
+  Your new CASE app is ready to go !
+  
   cd ${path}
-  npm run start:client
-  npm run start:server
-`)
+
+  Follow our quickstart guide for setup: https://docs.case.app/#/getting-started/quick-start-guide?id=step-3-setup-and-serve
+  `)
 }
 
 const defaultDBCreds = {
