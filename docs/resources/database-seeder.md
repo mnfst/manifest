@@ -19,7 +19,7 @@ private getCustomer(): Promise<Customer> {
     })
 ```
 
-CASE imports [Faker.js](https://github.com/marak/Faker.js/) by default to generate fake data.
+CASE imports [Faker](https://fakerjs.dev/) by default to generate fake data.
 
 Note that the factory function returns a promise, if you need add some **async** code in it.
 
@@ -36,7 +36,7 @@ We need to know the number of **Corporate group** entities to add to the fill co
 
 ```js
 // seeder.ts
-await new CustomerSeeder(connection, customerCount, corporateGroupCount).seed();
+await new CustomerSeeder(connection, customerCount, corporateGroupCount).seed()
 ```
 
 And then store it in a property to use it in the "corporateGroupId" column seeder.

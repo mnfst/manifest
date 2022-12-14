@@ -14,6 +14,7 @@ import {
   Yield
 } from '@case-app/angular-library'
 
+import { environment } from '../../../../environments/environment'
 import { <%= camelize(name) %>Definition } from '../<%= dasherize(name) %>.definition'
 import { <%= camelize(name) %>Yields } from '../<%= dasherize(name) %>.yields'
 
@@ -21,7 +22,7 @@ import { <%= camelize(name) %>Yields } from '../<%= dasherize(name) %>.yields'
 export class <%= classify(name) %>ListComponent extends CaseListComponent implements OnInit {
   
   // Remove this property to hide onboarding message.
-  isOnboarding = true
+  isOnboarding = environment.isOnboarding
 
   definition: ResourceDefinition = <%= camelize(name) %>Definition
   yields: Yield[] = <%= camelize(name) %>Yields

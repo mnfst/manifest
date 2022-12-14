@@ -2,7 +2,7 @@
 
 ![multi-search input](../assets/images/inputs/multi-search-input.png)
 
-The [Multi search field](create-edit/field-types.md?id=multi-search) is a component that provides a simple way of searching and selecting one or several resources simultaneously. It is possible to search through different entities at the same time. Multi search inputs are widely used in [Create-edit Fields](../create-edit/field-types.md) and in [List filters](../list/filters.md)
+The [Multi search field](create-edit/fields.md?id=multi-search) is a component that provides a simple way of searching and selecting one or several resources simultaneously. It is possible to search through different entities at the same time. Multi search inputs are widely used in [Create-edit Fields](../create-edit/fields.md) and in [List filters](../list/filters.md)
 
 ## Make entities searchable
 

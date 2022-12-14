@@ -35,7 +35,7 @@ export class CaseCreateEditComponent {
   loading: boolean
   showErrors: boolean
   isModal: boolean
-  isOnboarding: boolean
+  isOnboarding = false
   redirectTo: string
   redirectToQueryParams: { [key: string]: string }
   patchURL: string

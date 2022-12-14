@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit {
 
   redirectTo: string
   isEmpty: boolean
-  production = !!this.config.production
+  isOnboarding = this.config.isOnboarding
 
   constructor(
     private formBuilder: FormBuilder,

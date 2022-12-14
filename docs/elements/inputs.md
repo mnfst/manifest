@@ -1,6 +1,6 @@
 # Inputs
 
-Inputs are CASE elements that can be used either as [filters](/list/filters.md) in a list or as [fields](create-edit/field-types.md) in create-edit pages.
+Inputs are CASE elements that can be used either as [filters](/list/filters.md) in a list or as [fields](create-edit/fields.md) in create-edit pages.
 
 ## Full list of input types
 

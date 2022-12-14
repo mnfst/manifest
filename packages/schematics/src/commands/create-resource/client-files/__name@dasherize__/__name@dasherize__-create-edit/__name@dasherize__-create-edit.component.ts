@@ -4,13 +4,14 @@ import { FormBuilder } from '@angular/forms'
 
 import { CaseCreateEditComponent, ResourceDefinition, Field, InputType, BreadcrumbService, FlashMessageService, ResourceService, caseCreateEditTemplate } from '@case-app/angular-library'
 
+import { environment } from '../../../../environments/environment'
 import { <%= camelize(name) %>Definition } from '../<%= dasherize(name) %>.definition'
 
 @Component({ template: caseCreateEditTemplate })
 export class <%= classify(name) %>CreateEditComponent extends CaseCreateEditComponent implements OnInit {
 
   // Remove this property to hide onboarding message.
-  isOnboarding = true
+  isOnboarding = environment.isOnboarding
 
   definition: ResourceDefinition = <%= camelize(name) %>Definition
   fields: Field[] = [

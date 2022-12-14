@@ -2,137 +2,56 @@
 
 The Create Edit view is the view that contains the form to create a new resource or to update an existing one.
 
-You can see the **dropdownLinks** in the **viewList** of your resource being displayed as follow
+![Create edit](../assets/images/create-edit/update-resource.png ':size=100%')
 
-![DropDownLinks](../assets/images/create-edit/dropdown-links-action-button-display.png ':size=100%')
-
-If you want to modify the drop down links you can go on the resource.definition.ts :
-
-```js
-//customer.definition.ts
-dropdownLinks: [
-  {
-    label: 'Edit',
-    permission: 'editCustomers',
-    action: (customer) => ({
-      type: ActionType.Link,
-      link: {
-        path: `${customerDefinition.path}/${customer.id}/edit`
-      }
-    })
-  },
-  {
-    label: 'Delete',
-    permission: 'deleteCustomers',
-    action: (customer) => ({
-      type: ActionType.Delete,
-      delete: {
-        itemToDelete: customer,
-        definition: customerDefinition
-      }
-    })
-  }
-]
-```
-
-![DropDownLinks](../assets/images/create-edit/update-resource.png ':size=100%')
-
-You can modify the fields that appears on the create-edit views on the resource-create-edit.component.ts
+You can set the [fields](create-edit/fields.md) that appears on the create-edit views on the `myResource-create-edit.component.ts`
 
 ```js
 //customer-create-edit.component.ts
 
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder } from '@angular/forms';
-
-import {
-  CaseCreateEditComponent,
-  ResourceDefinition,
-  Field,
-  Filter,
-  InputType,
-  BreadcrumbService,
-  FlashMessageService,
-  ResourceService,
-  caseCreateEditTemplate,
-} from 'case';
-
-import { customerDefinition } from '../customer.definition';
-
-@Component({ template: caseCreateEditTemplate })
-export class CustomerCreateEditComponent
-  extends CaseCreateEditComponent
-  implements OnInit
-{
-  definition: ResourceDefinition = customerDefinition;
-  fields: Field[] = [
-    {
-      label: 'Customer name',
-      placeholder: 'Enter the customer name...',
-      property: 'name',
-      inputType: InputType.Text,
-      required: true,
+[...]
+fields: Field[] = [
+  {
+    label: 'Customer name',
+    placeholder: 'Enter the customer name...',
+    property: 'name',
+    inputType: InputType.Text,
+    required: true,
+  },
+  {
+    label: 'Billing Email',
+    placeholder: 'Enter the customer billing email...',
+    property: 'billingEmail',
+    inputType: InputType.Text,
+    required: true,
+  },
+  {
+    label: 'Address',
+    placeholder: 'Enter the customer address...',
+    property: 'address',
+    inputType: InputType.Text,
+  },
+  {
+    label: 'Billing Address',
+    placeholder: 'Enter the customer billing address...',
+    property: 'billingAddress',
+    inputType: InputType.Text,
+    required: true,
+  },
+  {
+    label: 'Account manager',
+    properties: {
+      value: 'accountManagerId',
     },
-    {
-      label: 'Billing Email',
-      placeholder: 'Enter the customer billing email...',
-      property: 'billingEmail',
-      inputType: InputType.Text,
-      required: true,
+    retrievedItemProperties: {
+      accountManagerId: 'accountManager.id',
     },
-    {
-      label: 'Address',
-      placeholder: 'Enter the customer address...',
-      property: 'address',
-      inputType: InputType.Text,
-    },
-    {
-      label: 'Billing Address',
-      placeholder: 'Enter the customer billing address...',
-      property: 'billingAddress',
-      inputType: InputType.Text,
-      required: true,
-    },
-    {
-      label: 'Account manager',
-      properties: {
-        value: 'accountManagerId',
-      },
-      retrievedItemProperties: {
-        accountManagerId: 'accountManager.id',
-      },
-      required: true,
-      inputType: InputType.Select,
-      selectOptions: () =>
-        this.customResourceService.listSelectOptions('users'),
-    },
-  ];
-
-  constructor(
-    formBuilder: FormBuilder,
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    resourceService: ResourceService,
-    breadcrumbService: BreadcrumbService,
-    flashMessageService: FlashMessageService,
-    private customResourceService: ResourceService
-  ) {
-    super(
-      formBuilder,
-      router,
-      breadcrumbService,
-      resourceService,
-      flashMessageService,
-      activatedRoute
-    );
-  }
-
-  ngOnInit() {
-    this.initCreateEditView();
-  }
-}
-
+    required: true,
+    inputType: InputType.Select,
+    selectOptions: () =>
+      this.customResourceService.listSelectOptions('users'),
+  },
+];
 ```
 
 You have to specify the object you use by the DTO to manage this object in the client directory and in the server one
