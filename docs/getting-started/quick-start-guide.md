@@ -63,7 +63,7 @@ npm run seed
 
 ### Step 5: sign in and have a look at your ERP
 
-Once the seed is finished, you can access to your product via the browser. You will land to the login page. Use your CASE admin’s user credentials to log in.
+Once the seed is finished, you can access to your product on [http://localhost:4200/](http://localhost:4200/). You will land to the login page. Use your CASE admin’s user credentials to log in.
 
 > Use the email `admin@case.app` and password `case` to log in.
 
