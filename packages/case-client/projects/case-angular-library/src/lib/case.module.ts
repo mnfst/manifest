@@ -85,7 +85,6 @@ import { FlashMessageService } from './services/flash-message.service'
 import { MetaService } from './services/meta.service'
 import { ResourceService } from './services/resource.service'
 import { UploadService } from './services/upload.service'
-import { VersionService } from './services/version.service'
 import { ViewportService } from './services/viewport.service'
 
 // Register locale data
@@ -298,7 +297,6 @@ export class CaseModule {
         MetaService,
         ResourceService,
         UploadService,
-        VersionService,
         ViewportService,
         ActionService,
         { provide: 'CASE_CONFIG_TOKEN', useValue: configuration }

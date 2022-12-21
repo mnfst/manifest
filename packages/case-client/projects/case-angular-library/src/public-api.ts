@@ -61,7 +61,6 @@ export { FilterService } from './lib/services/filter.service'
 export { MetaService } from './lib/services/meta.service'
 export { ResourceService } from './lib/services/resource.service'
 export { UploadService } from './lib/services/upload.service'
-export { VersionService } from './lib/services/version.service'
 export { ViewportService } from './lib/services/viewport.service'
 export { ActionService } from './lib/services/action.service'
 
