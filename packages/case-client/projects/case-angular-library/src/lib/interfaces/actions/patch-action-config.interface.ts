@@ -3,4 +3,8 @@ export interface PatchActionConfig {
   successMessage: string
   errorMessage: string
   formData?: FormData
+
+  // Redirect after successful patch.
+  redirectTo?: string
+  redirectToQueryParams?: { [key: string]: string }
 }

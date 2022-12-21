@@ -47,6 +47,20 @@ export class ActionService {
     return this.resourceService.patch(action.patch.path).then(
       (res) => {
         this.flashMessageService.success(action.patch.successMessage)
+        // Change query params to force reload on lists.
+        this.router.navigate(
+          [action.patch.redirectTo || this.router.url.split('?')[0]],
+          {
+            queryParams: Object.assign(
+              action.patch.redirectToQueryParams || {},
+              {
+                t: new Date().getTime()
+              }
+            ),
+            queryParamsHandling: 'merge'
+          }
+        )
+
         return Promise.resolve(res)
       },
       (err) => {
