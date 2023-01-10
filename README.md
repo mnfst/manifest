@@ -33,7 +33,19 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
 
    The CLI will create a monorepo and install dependencies.
 
-3. **Run your project**
+3. **Setup**
+
+   Copy the environment file and set your environment variables:
+
+   ```sh
+   cp server/.env.example server/.env
+   ```
+
+   CASE uses MySQL for the database.
+
+   Create a new database and add the database name to the _DB_NAME_ property of your `.env` file. The default name for the database is case.
+
+4. **Run your project**
 
    ```sh
    cd my-case-project
@@ -49,13 +61,13 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
 
    The backend server will run here => http://localhost:3000
 
-4. **Seed the data**
+5. **Seed the data**
 
    ```sh
    npm run seed
    ```
 
-5. **Got http://localhost:4200/**
+6. **Got http://localhost:4200/**
    And Use your CASE admin’s user credentials to log in.
 
    > You can use the email `admin@case.app` and password `case` to log in.
