@@ -1,3 +1,6 @@
 export const caseConstants = {
-  TOUCH_BREAKPOINT: 999
+  touchBreakpoint: 999,
+
+  defaultUserEmail: 'admin@case.app',
+  defaultUserPassword: 'case'
 }

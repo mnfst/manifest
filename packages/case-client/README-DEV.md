@@ -10,11 +10,7 @@ run the following command:
 
 ```bash
 $ npm install
-```
-
-go to projects/case-angular-library and run:
-
-```bash
+$ cd projects/case-angular-library
 $ npm install
 ```
 
