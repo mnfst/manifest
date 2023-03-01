@@ -6,7 +6,7 @@ CASE Angular Library
 
 ## Installation
 
-run the following command:
+From `packages/case-client`, run the following command:
 
 ```bash
 $ npm install
