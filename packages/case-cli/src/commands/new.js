@@ -243,7 +243,7 @@ const successMessage = (path) => {
   
   cd ${path}
 
-  Follow our quickstart guide for setup: https://docs.case.app/#/getting-started/quick-start-guide?id=step-3-setup-and-serve
+  {.➜ Follow our quickstart guide for setup https://docs.case.app/#/getting-started/quick-start-guide?id=step-3-setup-and-serve}
   `)
 }
 
