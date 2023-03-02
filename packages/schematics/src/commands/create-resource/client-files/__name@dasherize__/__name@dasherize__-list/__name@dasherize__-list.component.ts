@@ -16,7 +16,6 @@ import {
 
 import { environment } from '../../../../environments/environment'
 import { <%= camelize(name) %>Definition } from '../<%= dasherize(name) %>.definition'
-import { <%= camelize(name) %>Yields } from '../<%= dasherize(name) %>.yields'
 
 @Component({ template: caseListTemplate })
 export class <%= classify(name) %>ListComponent extends CaseListComponent implements OnInit {
@@ -25,7 +24,12 @@ export class <%= classify(name) %>ListComponent extends CaseListComponent implem
   isOnboarding = environment.isOnboarding
 
   definition: ResourceDefinition = <%= camelize(name) %>Definition
-  yields: Yield[] = <%= camelize(name) %>Yields
+  yields: Yield[] = [
+    {
+      label: 'Name',
+      property: 'name'
+    }
+  ]
 
   filters: Filter[] = []
 
