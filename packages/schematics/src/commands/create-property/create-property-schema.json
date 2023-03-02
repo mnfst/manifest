@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "createClientProperty",
+  "title": "Create Client Property Schema",
+  "type": "object",
+  "description": "Create a property",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of the property"
+    },
+    "resource": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of the resource where the property will be created"
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the property",
+      "enum": ["string", "number", "boolean"],
+      "default": "string"
+    }
+  },
+  "required": ["name"]
+}
