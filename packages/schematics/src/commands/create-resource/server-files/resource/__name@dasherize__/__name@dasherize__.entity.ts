@@ -1,8 +1,10 @@
+import { CaseProperty } from '@case-app/nest-library'
+import { faker } from '@faker-js/faker'
 import {
   Column,
+  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
   UpdateDateColumn
 } from 'typeorm'
 
@@ -15,6 +17,9 @@ export class <%= classify(name) %> {
   id: number
 
   @Column()
+  @CaseProperty({
+    seed: (index: number) => faker.lorem.word() 
+  })
   name: string
 
   @CreateDateColumn({ select: false })

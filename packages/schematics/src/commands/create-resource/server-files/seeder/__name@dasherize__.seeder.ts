@@ -1,22 +1,26 @@
-import * as faker from 'faker'
-import { DataSource, EntityManager } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { <%= classify(name) %> } from '../../resources/<%= dasherize(name) %>/<%= dasherize(name) %>.entity'
 
 export class <%= classify(name) %>Seeder {
-  entityManager: EntityManager
+  dataSource: DataSource
   count: number
 
   constructor(dataSource: DataSource, count: number) {
-    this.entityManager = dataSource.manager
+    this.dataSource = dataSource
     this.count = count
   }
 
   async seed(): Promise<<%= classify(name) %>[]> {
     console.log('\x1b[35m', '[] Seeding <%= camelize(name) %>s...')
+
+    const properties: string[] = this.dataSource
+      .getMetadata(<%= classify(name) %>)
+      .ownColumns.map((column) => column.propertyName)
+
     const save<%= classify(name) %>Promises: Promise<<%= classify(name) %>>[] = Array.from(Array(this.count)).map(
-      async () => {
-        return this.entityManager.save(await this.get<%= classify(name) %>())
+      async (_value, index: number) => {
+        return this.dataSource.manager.save(await this.new(properties, index))
       }
     )
 
@@ -25,12 +29,16 @@ export class <%= classify(name) %>Seeder {
     })
   }
 
-  private get<%= classify(name) %>(): Promise<<%= classify(name) %>> {
-    const <%= camelize(name) %>: <%= classify(name) %> = this.entityManager.create(<%= classify(name) %>, {
-      // Insert factory properties here with faker dummy data: https://fakerjs.dev/api/
-      name: faker.lorem.word()
+  private new(properties: string[], index): Promise<<%= classify(name) %>> {
+    const <%= camelize(name) %>Model = this.dataSource.manager.create(<%= classify(name) %>, {})
+
+    properties.forEach((property: string) => {
+      const seederFunction = Reflect.getMetadata(`${property}:seed`, <%= camelize(name) %>Model)
+      if (seederFunction) {
+        <%= camelize(name) %>Model[property] = seederFunction(index)
+      }
     })
 
-    return Promise.resolve(<%= camelize(name) %>)
+    return Promise.resolve(<%= camelize(name) %>Model)
   }
 }

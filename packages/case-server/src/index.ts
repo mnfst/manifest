@@ -46,6 +46,7 @@ export { CasePermission } from './resources/interfaces/case-permission.interface
 // Decorators.
 export { Permission } from './decorators/permission.decorator'
 export { IsUserAlreadyExist } from './decorators/is-user-already-exist.decorator'
+export { CaseProperty } from './decorators/case-property.decorator'
 
 // Guards.
 export { AuthGuard } from './guards/auth.guard'
