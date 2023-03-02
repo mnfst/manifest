@@ -7,7 +7,7 @@ export function createPropertyClient(options: {
 }): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     updateListFile(options, tree)
-    // updateCreateEditFile(options, tree)
+    updateCreateEditFile(options, tree)
   }
 }
 
@@ -31,4 +31,28 @@ function updateListFile(
   )
 
   tree.overwrite(listFilePath, listFileString)
+}
+
+function updateCreateEditFile(
+  options: { name: string; resource: string; type: string },
+  tree: Tree
+): void {
+  const createEditFilePath: string = `./client/src/app/resources/${options.resource}/${options.resource}-create-edit/${options.resource}-create-edit.component.ts`
+
+  const createEditFileBuffer: Buffer = tree.read(createEditFilePath) as Buffer
+  let createEditFileString: string = createEditFileBuffer.toString()
+
+  // Insert a new object in the yields array.
+  createEditFileString = createEditFileString.replace(
+    `fields: Field[] = [`,
+    `fields: Field[] = [
+    {
+      label: '${options.name}',
+      property: '${options.name}',
+      required: true,
+      inputType: InputType.Text
+    },`
+  )
+
+  tree.overwrite(createEditFilePath, createEditFileString)
 }
