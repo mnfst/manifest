@@ -28,6 +28,9 @@ function updateEntityFile(
     entityFileString.substring(0, closingBracketIndex) +
     `
   @Column()
+  @CaseProperty({
+    seed: (index: number) => faker.lorem.word() 
+  })
   ${options.name}: ${options.type}
 ` +
     entityFileString.substring(closingBracketIndex)
