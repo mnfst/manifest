@@ -6,8 +6,9 @@ import {
 import { chain, Rule } from '@angular-devkit/schematics'
 import { createResourceClient } from './create-resource-client'
 import { createResourceServer } from './create-resource-server'
+import { createProperty } from '../create-property'
 
-export function createResource(options: { name: string }): Rule {
+export function createResource(options: { name: string; props: string }): Rule {
   const names = {
     name: options.name,
     classify: classify(options.name),
@@ -15,8 +16,24 @@ export function createResource(options: { name: string }): Rule {
     camelize: camelize(options.name)
   }
 
-  const serverRule: Rule = createResourceServer(names)
-  const clientRule: Rule = createResourceClient(names)
+  const rules: Rule[] = [
+    createResourceServer(names),
+    createResourceClient(names)
+  ]
 
-  return chain([serverRule, clientRule])
+  if (options.props) {
+    const props = options.props.split(',')
+    // TODO: extract type when available.
+    props.forEach((prop) => {
+      rules.push(
+        createProperty({
+          name: prop,
+          resource: names.camelize,
+          type: 'string'
+        })
+      )
+    })
+  }
+
+  return chain(rules)
 }
