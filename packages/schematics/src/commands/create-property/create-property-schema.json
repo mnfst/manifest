@@ -18,7 +18,7 @@
     "type": {
       "type": "string",
       "description": "The type of the property",
-      "enum": ["string", "number", "boolean"],
+      "enum": ["string", "number"],
       "default": "string"
     }
   },

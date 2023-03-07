@@ -1,9 +1,12 @@
 import { Rule, SchematicContext, Tree } from '@angular-devkit/schematics'
 
+import { PropType } from './enums/prop-type.enum'
+import { typeFillers } from './type-fillers'
+
 export function createPropertyServer(options: {
   name: string
   resource: string
-  type: string
+  type: PropType
 }): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     updateEntityFile(options, tree)
@@ -12,7 +15,7 @@ export function createPropertyServer(options: {
 }
 
 function updateEntityFile(
-  options: { name: string; resource: string; type: string },
+  options: { name: string; resource: string; type: PropType },
   tree: Tree
 ): void {
   // Update entity file.
@@ -28,19 +31,20 @@ function updateEntityFile(
   entityFileString =
     entityFileString.substring(0, closingBracketIndex) +
     `
-  @Column()
+  @Column('${typeFillers[options.type].server.columnType}')
   @CaseProperty({
-    seed: (index: number) => faker.lorem.word() 
+    seed: (index: number) => ${typeFillers[options.type].server.fakerFunction}
   })
-  ${options.name}: string
+  ${options.name}: ${typeFillers[options.type].server.type}
 ` +
     entityFileString.substring(closingBracketIndex)
 
   tree.overwrite(entityFilePath, entityFileString)
 }
 
+// TODO: import Decorators if they're not already imported.
 function updateDtoFile(
-  options: { name: string; resource: string; type: string },
+  options: { name: string; resource: string; type: PropType },
   tree: Tree
 ): void {
   const dtoFilePath: string = `./server/src/resources/${options.resource}/dtos/create-update-${options.resource}.dto.ts`
@@ -56,8 +60,8 @@ function updateDtoFile(
     dtoFileString.substring(0, closingBracketIndex) +
     `
   @IsNotEmpty()
-  @IsString() 
-  ${options.name}: string
+  ${typeFillers[options.type].server.dtoValidatorDecorator}
+  ${options.name}: ${typeFillers[options.type].server.type}
 ` +
     dtoFileString.substring(closingBracketIndex)
 

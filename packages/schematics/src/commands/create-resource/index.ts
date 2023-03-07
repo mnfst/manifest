@@ -7,6 +7,7 @@ import { chain, Rule } from '@angular-devkit/schematics'
 import { createResourceClient } from './create-resource-client'
 import { createResourceServer } from './create-resource-server'
 import { createProperty } from '../create-property'
+import { PropType } from '../create-property/enums/prop-type.enum'
 
 export function createResource(options: { name: string; props: string }): Rule {
   const names = {
@@ -29,7 +30,7 @@ export function createResource(options: { name: string; props: string }): Rule {
         createProperty({
           name: prop,
           resource: names.camelize,
-          type: 'string'
+          type: PropType.String
         })
       )
     })
