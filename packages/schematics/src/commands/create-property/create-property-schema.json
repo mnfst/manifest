@@ -18,7 +18,18 @@
     "type": {
       "type": "string",
       "description": "The type of the property",
-      "enum": ["string", "number"],
+      "enum": [
+        "string",
+        "number",
+        "currency",
+        "date",
+        "text",
+        "color",
+        "email",
+        "file",
+        "image",
+        "boolean"
+      ],
       "default": "string"
     }
   },

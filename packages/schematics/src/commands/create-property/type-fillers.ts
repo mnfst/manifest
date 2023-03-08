@@ -24,5 +24,101 @@ export const typeFillers: Record<PropType, TypeFiller> = {
       inputType: 'Number',
       yieldType: 'Text'
     }
+  },
+  [PropType.Currency]: {
+    server: {
+      columnType: 'decimal',
+      fakerFunction: 'faker.finance.amount()',
+      type: 'number',
+      dtoValidatorDecorator: 'IsNumber'
+    },
+    client: {
+      inputType: 'Number',
+      yieldType: 'Currency'
+    }
+  },
+  [PropType.Date]: {
+    server: {
+      columnType: 'datetime',
+      fakerFunction: 'faker.date.past()',
+      type: 'Date',
+      dtoValidatorDecorator: 'IsDate'
+    },
+    client: {
+      inputType: 'Datepicker',
+      yieldType: 'Date'
+    }
+  },
+  [PropType.Text]: {
+    server: {
+      columnType: 'text',
+      fakerFunction: 'faker.lorem.paragraphs()',
+      type: 'string',
+      dtoValidatorDecorator: 'IsString'
+    },
+    client: {
+      inputType: 'Textarea',
+      yieldType: 'Text'
+    }
+  },
+  [PropType.Color]: {
+    server: {
+      columnType: '',
+      fakerFunction: 'faker.internet.color()',
+      type: 'string',
+      dtoValidatorDecorator: 'IsString'
+    },
+    client: {
+      inputType: 'ColorPicker',
+      yieldType: 'Color'
+    }
+  },
+  [PropType.Email]: {
+    server: {
+      columnType: '',
+      fakerFunction: 'faker.internet.email()',
+      type: 'string',
+      dtoValidatorDecorator: 'IsEmail'
+    },
+    client: {
+      inputType: 'Email',
+      yieldType: 'Text'
+    }
+  },
+  [PropType.File]: {
+    server: {
+      columnType: '',
+      fakerFunction: 'faker.system.fileName()',
+      type: 'string',
+      dtoValidatorDecorator: 'IsString'
+    },
+    client: {
+      inputType: 'File',
+      yieldType: 'Download'
+    }
+  },
+  [PropType.Image]: {
+    server: {
+      columnType: '',
+      fakerFunction: 'faker.system.fileName()',
+      type: 'string',
+      dtoValidatorDecorator: 'IsString'
+    },
+    client: {
+      inputType: 'Image',
+      yieldType: 'Image'
+    }
+  },
+  [PropType.Boolean]: {
+    server: {
+      columnType: 'tinyint',
+      fakerFunction: 'faker.datatype.boolean()',
+      type: 'boolean',
+      dtoValidatorDecorator: 'IsBoolean'
+    },
+    client: {
+      inputType: 'Checkbox',
+      yieldType: 'Check'
+    }
   }
 }
