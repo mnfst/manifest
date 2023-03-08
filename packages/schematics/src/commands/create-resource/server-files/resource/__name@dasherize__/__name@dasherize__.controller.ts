@@ -55,7 +55,7 @@ export class <%= classify(name) %>Controller {
     })) as <%= classify(name) %>[]
 
     return <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => ({
-      label: <%= camelize(name) %>.name,
+      label: `<%= camelize(name) %> ${<%= camelize(name) %>.id}`,
       value: <%= camelize(name) %>.id
     }))
   }

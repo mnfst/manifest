@@ -23,16 +23,35 @@ export function createResource(options: { name: string; props: string }): Rule {
   ]
 
   if (options.props) {
-    const props = options.props.split(',')
-    // TODO: extract type when available.
+    let props = options.props.split(',')
+
+    // If no props are specified, create a default "name" property.
+    if (!props.length) {
+      props = ['name']
+    }
+
     props.forEach((prop) => {
-      rules.push(
-        createProperty({
-          name: prop,
-          resource: names.camelize,
-          type: PropType.String
-        })
-      )
+      // Extract type from prop if available
+      if (prop.includes(':')) {
+        const [propName, propType]: string[] = prop.split(':')
+        rules.push(
+          createProperty({
+            name: propName,
+            resource: names.camelize,
+            type: Object.values(PropType).includes(propType as PropType)
+              ? (propType as PropType)
+              : PropType.String
+          })
+        )
+      } else {
+        rules.push(
+          createProperty({
+            name: prop,
+            resource: names.camelize,
+            type: PropType.String
+          })
+        )
+      }
     })
   }
 

@@ -10,17 +10,11 @@ import {
 
 @Entity({ name: '<%= camelize(name) %>s' })
 export class <%= classify(name) %> {
-  public static searchableFields: string[] = ['name']
-  public static displayName: string = 'name'
+  public static searchableFields: string[] = ['id']
+  public static displayName: string = 'id'
 
   @PrimaryGeneratedColumn()
   id: number
-
-  @Column()
-  @CaseProperty({
-    seed: (index: number) => faker.lorem.word() 
-  })
-  name: string
 
   @CreateDateColumn({ select: false })
   createdAt: Date

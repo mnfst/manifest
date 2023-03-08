@@ -15,13 +15,6 @@ export class <%= classify(name) %>CreateEditComponent extends CaseCreateEditComp
 
   definition: ResourceDefinition = <%= camelize(name) %>Definition
   fields: Field[] = [
-    {
-      label: 'Name',
-      property: 'name',
-      className: 'is-6',
-      required: true,
-      inputType: InputType.Text
-    }
   ]
 
   constructor(

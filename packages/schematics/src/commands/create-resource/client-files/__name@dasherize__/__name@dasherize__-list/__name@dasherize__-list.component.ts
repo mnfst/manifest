@@ -25,10 +25,6 @@ export class <%= classify(name) %>ListComponent extends CaseListComponent implem
 
   definition: ResourceDefinition = <%= camelize(name) %>Definition
   yields: Yield[] = [
-    {
-      label: 'Name',
-      property: 'name'
-    }
   ]
 
   filters: Filter[] = []

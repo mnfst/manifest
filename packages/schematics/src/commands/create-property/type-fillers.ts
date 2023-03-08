@@ -6,7 +6,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
       columnType: '',
       fakerFunction: 'faker.random.word()',
       type: 'string',
-      dtoValidatorDecorator: '@IsString()'
+      dtoValidatorDecorator: 'IsString'
     },
     client: {
       inputType: 'Text',
