@@ -18,7 +18,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
       columnType: 'int',
       fakerFunction: 'faker.datatype.number()',
       type: 'number',
-      dtoValidatorDecorator: '@IsNumber()'
+      dtoValidatorDecorator: 'IsNumber'
     },
     client: {
       inputType: 'Number',

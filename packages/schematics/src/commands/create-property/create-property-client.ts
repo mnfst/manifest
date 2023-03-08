@@ -1,4 +1,7 @@
 import { Rule, SchematicContext, Tree } from '@angular-devkit/schematics'
+import { insertImport } from '@schematics/angular/utility/ast-utils'
+import { InsertChange } from '@schematics/angular/utility/change'
+import * as ts from 'typescript'
 
 import { PropType } from './enums/prop-type.enum'
 import { typeFillers } from './type-fillers'
@@ -14,7 +17,6 @@ export function createPropertyClient(options: {
   }
 }
 
-// TODO: import YieldType if it's not already imported.
 function updateListFile(
   options: { name: string; resource: string; type: PropType },
   tree: Tree
@@ -22,6 +24,7 @@ function updateListFile(
   const listFilePath: string = `./client/src/app/resources/${options.resource}/${options.resource}-list/${options.resource}-list.component.ts`
 
   const listFileBuffer: Buffer = tree.read(listFilePath) as Buffer
+
   let listFileString: string = listFileBuffer.toString()
 
   // Insert a new object in the yields array.
@@ -36,6 +39,25 @@ function updateListFile(
   )
 
   tree.overwrite(listFilePath, listFileString)
+
+  const source: ts.SourceFile = ts.createSourceFile(
+    listFilePath,
+    listFileString,
+    ts.ScriptTarget.Latest,
+    true
+  )
+
+  const updateRecorder = tree.beginUpdate(listFilePath)
+  const change = insertImport(
+    source,
+    listFilePath,
+    'YieldType',
+    '@case-app/angular-library'
+  )
+  if (change instanceof InsertChange) {
+    updateRecorder.insertRight(change.pos, change.toAdd)
+  }
+  tree.commitUpdate(updateRecorder)
 }
 
 function updateCreateEditFile(
@@ -60,4 +82,23 @@ function updateCreateEditFile(
   )
 
   tree.overwrite(createEditFilePath, createEditFileString)
+
+  const source: ts.SourceFile = ts.createSourceFile(
+    createEditFilePath,
+    createEditFileString,
+    ts.ScriptTarget.Latest,
+    true
+  )
+
+  const updateRecorder = tree.beginUpdate(createEditFilePath)
+  const change = insertImport(
+    source,
+    createEditFilePath,
+    'InputType',
+    '@case-app/angular-library'
+  )
+  if (change instanceof InsertChange) {
+    updateRecorder.insertRight(change.pos, change.toAdd)
+  }
+  tree.commitUpdate(updateRecorder)
 }
