@@ -30,6 +30,9 @@ export function createResource(options: { name: string; props: string }): Rule {
       props = ['name']
     }
 
+    // We reverse array because the schematics adds the text above the previous one.
+    props.reverse()
+
     props.forEach((prop) => {
       // Extract type from prop if available
       if (prop.includes(':')) {
