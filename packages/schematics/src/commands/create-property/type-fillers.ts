@@ -100,7 +100,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
   [PropType.Image]: {
     server: {
       columnType: '',
-      fakerFunction: `'dummy/dummy-image.pdf'`,
+      fakerFunction: `'dummy/dummy-image'`,
       type: 'string',
       dtoValidatorDecorator: 'IsString'
     },
