@@ -23,7 +23,7 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
    npm i -g @case-app/case-cli
    ```
 
-2. **Create a new CASE proejct**
+2. **Create a new CASE project**
 
    ```sh
    case-app new

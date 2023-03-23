@@ -9,7 +9,7 @@ CASE is a framework that allows you to **create web apps, ERPs and dashboards ea
 ## Main features
 
 - Instant **CRUD system** for your entities ⚡
-- Out-of-the-box **authentication** and **role-based access control** 🔐
+- Out-of-the-box **authentication** and **role-based access control (RBAC)** 🔐
 - Nice and clear **UI** ✨
 
 ## Why CASE ?
