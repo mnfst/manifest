@@ -52,9 +52,10 @@
         <ng-container *ngFor="let field of resolvedFields">
           <ng-container *caseHasPermission="field.permission">
             <div
-              class="column is-flex is-align-items-flex-end"
+              class="column is-flex is-align-items-flex-end  {{
+                field.className || 'is-6'
+              }}"
               [id]="field.id"
-              [ngClass]="field.className"
               *ngIf="!field.hidden"
             >
               <case-input
