@@ -50,15 +50,15 @@ cs g prop isValidated:boolean --resource=intervention
 
 ### Available types
 
-| Type         | Column yield | Input       | TS type | DB column | Seed function            | DTO Validator |
-| ------------ | ------------ | ----------- | ------- | --------- | ------------------------ | ------------- |
-| **string**   | text         | text        | string  | varchar   | faker.random.word()      | @IsString()   |
-| **number**   | text         | number      | number  | int       | faker.datatype.number()  | @IsNumber()   |
-| **currency** | currency     | number      | number  | decimal   | faker.finance.amount()   | @IsNumber()   |
-| **date**     | date         | datepicker  | Date    | datetime  | faker.date.past()        | @IsDate()     |
-| **text**     | text         | textarea    | string  | text      | faker.lorem.paragraphs() | @IsString()   |
-| **email**    | text         | email       | string  | varchar   | faker.internet.email()   | @IsEmail()    |
-| **boolean**  | check        | checkbox    | boolean | tinyint   | faker.datatype.boolean() | @IsBoolean()  |
-| **file**     | download     | file        | string  | varchar   | case.dummyFile()         | @IsString()   |
-| **image**    | image        | image       | string  | varchar   | case.dummyImage()        | @IsString()   |
-| **color**    | color        | colorPicker | string  | varchar   | faker.internet.color()   | @IsString()   |
+| Type         | Column yield | Input       | TS type | DB column | Seed function            | DTO Validator   |
+| ------------ | ------------ | ----------- | ------- | --------- | ------------------------ | --------------- |
+| **string**   | text         | text        | string  | varchar   | faker.random.word()      | @IsString()     |
+| **number**   | text         | number      | number  | int       | faker.datatype.number()  | @IsNumber()     |
+| **currency** | currency     | number      | number  | decimal   | faker.finance.amount()   | @IsNumber()     |
+| **date**     | date         | datepicker  | string  | date      | faker.date.past()        | @IsDateString() |
+| **text**     | text         | textarea    | string  | text      | faker.lorem.paragraphs() | @IsString()     |
+| **email**    | text         | email       | string  | varchar   | faker.internet.email()   | @IsEmail()      |
+| **boolean**  | check        | checkbox    | boolean | tinyint   | faker.datatype.boolean() | @IsBoolean()    |
+| **file**     | download     | file        | string  | varchar   | case.dummyFile()         | @IsString()     |
+| **image**    | image        | image       | string  | varchar   | case.dummyImage()        | @IsString()     |
+| **color**    | color        | colorPicker | string  | varchar   | faker.internet.color()   | @IsString()     |

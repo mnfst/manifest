@@ -42,8 +42,8 @@ export const typeFillers: Record<PropType, TypeFiller> = {
       columnType: 'date',
       columnOptions: `{ default: () => '(CURRENT_DATE)' }`,
       fakerFunction: 'faker.date.past()',
-      type: 'Date',
-      dtoValidatorDecorator: 'IsDate'
+      type: 'string',
+      dtoValidatorDecorator: 'IsDateString'
     },
     client: {
       inputType: 'Datepicker',
