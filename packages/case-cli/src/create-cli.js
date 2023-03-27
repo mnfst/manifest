@@ -1,14 +1,10 @@
-const path = require(`path`)
-const resolveCwd = require(`resolve-cwd`)
 const yargs = require(`yargs`)
-const existsSync = require(`fs-exists-cached`).sync
 
 const { didYouMean } = require(`./did-you-mean`)
 
 const reporter = require('./reporter').default
 const { newStarter } = require('./commands/new')
-const { createResource } = require('./commands/resource')
-const { createProperty } = require('./commands/property')
+const { generate } = require('./commands/generate')
 
 const handlerP =
   (fn) =>
@@ -27,14 +23,9 @@ function buildLocalCommands(cli) {
       handler: handlerP(newStarter)
     })
     .command({
-      command: `generate resource [name]`,
-      desc: `Generates a resource`,
-      handler: handlerP(createResource)
-    })
-    .command({
-      command: `generate property [name]`,
-      desc: `Generates a property`,
-      handler: handlerP(createProperty)
+      command: `generate [schematic] [name]`,
+      desc: `Generates a CASE resource or property`,
+      handler: handlerP(generate)
     })
 }
 
