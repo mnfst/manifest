@@ -72,6 +72,12 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
 
    > You can use the email `admin@case.app` and password `case` to log in.
 
+# Serve the documentation
+
+```sh
+npm run start:docs
+```
+
 # Deploying to production
 
 ...Coming soon
