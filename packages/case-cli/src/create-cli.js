@@ -8,6 +8,7 @@ const { didYouMean } = require(`./did-you-mean`)
 const reporter = require('./reporter').default
 const { newStarter } = require('./commands/new')
 const { createResource } = require('./commands/resource')
+const { createProperty } = require('./commands/property')
 
 const handlerP =
   (fn) =>
@@ -18,78 +19,31 @@ const handlerP =
     )
   }
 
-function buildLocalCommands(cli, isLocalProject) {
-  const defaultHost = `localhost`
-  const defaultPort = `9000`
-  const directory = path.resolve(`.`)
-
-  const projectInfo = { directory }
-  const useYarn = existsSync(path.join(directory, `yarn.lock`))
-
-  if (isLocalProject) {
-    const json = require(path.join(directory, `package.json`))
-    projectInfo.sitePackageJson = json
-  }
-
-  function resolveLocalCommand(command) {
-    if (!isLocalProject) {
-      cli.showHelp()
-    }
-
-    try {
-      const cmdPath = resolveCwd.silent(
-        `@medusajs/medusa/dist/commands/${command}`
-      )
-      return require(cmdPath).default
-    } catch (err) {
-      cli.showHelp()
-    }
-  }
-
-  function getCommandHandler(command, handler) {
-    return (argv) => {
-      const localCmd = resolveLocalCommand(command)
-      const args = { ...argv, ...projectInfo, useYarn }
-
-      return handler ? handler(args, localCmd) : localCmd(args)
-    }
-  }
-
+function buildLocalCommands(cli) {
   cli
     .command({
       command: `new`,
-      desc: `Create a new CASE project`,
+      desc: `Creates a new CASE project`,
       handler: handlerP(newStarter)
     })
     .command({
-      command: `resource [name]`,
-      desc: `Create a resource in a CASE project`,
+      command: `generate resource [name]`,
+      desc: `Generates a resource`,
       handler: handlerP(createResource)
     })
-}
-
-function isLocalMedusaProject() {
-  let inMedusaProject = false
-  try {
-    const { dependencies, devDependencies } = require(path.resolve(
-      `./package.json`
-    ))
-    inMedusaProject =
-      (dependencies && dependencies['@medusajs/medusa']) ||
-      (devDependencies && devDependencies['@medusajs/medusa'])
-  } catch (err) {
-    /* ignore */
-  }
-  return !!inMedusaProject
+    .command({
+      command: `generate property [name]`,
+      desc: `Generates a property`,
+      handler: handlerP(createProperty)
+    })
 }
 
 module.exports = (argv) => {
   const cli = yargs()
-  const isLocalProject = isLocalMedusaProject()
 
-  cli.scriptName(`case-app`).usage(`Usage: $0 <command> [options]`)
+  cli.scriptName(`cs`).usage(`Usage: $0 <command> [options]`)
 
-  buildLocalCommands(cli, isLocalProject)
+  buildLocalCommands(cli)
 
   return cli
     .wrap(cli.terminalWidth())

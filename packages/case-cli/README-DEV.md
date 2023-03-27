@@ -2,6 +2,10 @@
 
 ## Develop
 
+```
+npm install
+```
+
 Watch changes:
 
 ```bash
