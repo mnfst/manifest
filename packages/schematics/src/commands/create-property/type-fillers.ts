@@ -3,7 +3,7 @@ import { PropType } from './enums/prop-type.enum'
 export const typeFillers: Record<PropType, TypeFiller> = {
   [PropType.String]: {
     server: {
-      columnType: '',
+      columnType: 'varchar',
       fakerFunction: 'faker.random.word()',
       type: 'string',
       dtoValidatorDecorator: 'IsString'
@@ -39,7 +39,8 @@ export const typeFillers: Record<PropType, TypeFiller> = {
   },
   [PropType.Date]: {
     server: {
-      columnType: 'datetime',
+      columnType: 'date',
+      columnOptions: `{ default: () => '(CURRENT_DATE)' }`,
       fakerFunction: 'faker.date.past()',
       type: 'Date',
       dtoValidatorDecorator: 'IsDate'
