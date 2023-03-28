@@ -34,7 +34,9 @@ function updateEntityFile(
   entityFileString =
     entityFileString.substring(0, closingBracketIndex) +
     `
-  @Column('${typeFillers[options.type].server.columnType}')
+  @Column('${typeFillers[options.type].server.columnType}', ${
+      typeFillers[options.type].server.columnOptions || '{}'
+    })
   @CaseProperty({
     seed: (index: number) => ${typeFillers[options.type].server.fakerFunction}
   })

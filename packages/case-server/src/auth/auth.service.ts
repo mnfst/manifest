@@ -101,7 +101,7 @@ export class AuthService {
 
   async getUserFromToken(token: string): Promise<CaseUser> {
     return jwt.verify(
-      token.replace('Bearer ', ''),
+      token?.replace('Bearer ', ''),
       process.env.TOKEN_SECRET_KEY,
       async (_err, decoded) => {
         if (decoded) {
