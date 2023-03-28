@@ -50,29 +50,28 @@
     <div class="column is-9">
       <div class="card is-fullheight">
         <div class="card-content">
-          <div class="columns">
-            <div class="column">
-              <!-- Table with item properties - Feel free to remove it and customize the layout -->
-              <table class="table">
-                <tr>
-                  <th *ngFor="let property of item.propertiesInArray">
-                    {{ property.key }}
-                  </th>
-                </tr>
-                <tr>
-                  <td *ngFor="let property of item.propertiesInArray">
-                    {{ property.value }}
-                  </td>
-                </tr>
-              </table>
+          <div class="columns is-multiline">
+            <div
+              class="column is-3"
+              *ngFor="let property of item.propertiesInArray"
+            >
+              <p class="is-uppercase has-text-grey has-text-weight-medium">
+                {{ property.key }}
+              </p>
+              <p>
+                {{ property.value }}
+              </p>
             </div>
           </div>
           <div class="columns is-multiline">
             <div class="column is-12">
               <p class="is-uppercase has-text-grey has-text-weight-medium">
-                Resource informations
+                Additional information
               </p>
-              <p>💡 Have all the information of your resource as you wish</p>
+              <p>
+                💡 Add additional dynamic information here, such as graphics,
+                key numbers, etc...
+              </p>
             </div>
           </div>
           <hr />
