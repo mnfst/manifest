@@ -34,14 +34,19 @@ module.exports = (argv) => {
         yargs
           .positional(`schematic`, {
             describe: `Schematic to generate: "resource" or "property"`,
-            type: `string`,
-            choices: [`resource`, `property`]
+            type: `string`
           })
           .positional(`name`, {
             describe: `Name of the resource or property`,
             type: `string`
           })
+          .option(`resourceName`, {
+            alias: `res`,
+            describe: `Name of the resource or property`,
+            type: `string`
+          })
           .option(`props`, {
+            alias: `p`,
             describe: `Properties to generate, comma separated. Example: "name,age:number,active:boolean"`,
             type: `string`
           })
