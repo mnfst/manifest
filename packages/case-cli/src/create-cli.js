@@ -1,8 +1,7 @@
 const yargs = require(`yargs`)
-
 const { didYouMean } = require(`./did-you-mean`)
-
 const reporter = require('./reporter').default
+
 const { newStarter } = require('./commands/new')
 const { generate } = require('./commands/generate')
 
@@ -15,28 +14,40 @@ const handlerP =
     )
   }
 
-function buildLocalCommands(cli) {
-  cli
+module.exports = (argv) => {
+  const cli = yargs()
+
+  return cli
+    .scriptName(`cs`)
+    .usage(`Usage: $0 <command> [options]`)
     .command({
       command: `new`,
+      aliases: ['n'],
       desc: `Creates a new CASE project`,
       handler: handlerP(newStarter)
     })
     .command({
       command: `generate [schematic] [name]`,
+      aliases: ['g'],
       desc: `Generates a CASE resource or property`,
+      builder: (yargs) => {
+        yargs
+          .positional(`schematic`, {
+            describe: `Schematic to generate: "resource" or "property"`,
+            type: `string`,
+            choices: [`resource`, `property`]
+          })
+          .positional(`name`, {
+            describe: `Name of the resource or property`,
+            type: `string`
+          })
+          .option(`props`, {
+            describe: `Properties to generate, comma separated. Example: "name,age:number,active:boolean"`,
+            type: `string`
+          })
+      },
       handler: handlerP(generate)
     })
-}
-
-module.exports = (argv) => {
-  const cli = yargs()
-
-  cli.scriptName(`cs`).usage(`Usage: $0 <command> [options]`)
-
-  buildLocalCommands(cli)
-
-  return cli
     .wrap(cli.terminalWidth())
     .demandCommand(1, `Pass --help to see all available commands and options.`)
     .strict()
