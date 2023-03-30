@@ -35,23 +35,17 @@ export const caseCreateEditTemplate = `
       <article class="message is-success has-text-left mt-4" *ngIf="isOnboarding">
         <div class="message-body has-background-light">
         <p class="has-text-dark  title is-1 ">
-            Welcome to the create-edit page for <strong>{{ definition.nameSingular }}</strong> 🙏
+            Welcome to the <strong>{{ definition.nameSingular }}</strong> create-edit page 👋
         </p>
           <p class="has-text-dark mt-4">
-            This page will allow users to add and edit {{ definition.namePlural }}.
-          </p>
-          <p class="has-text-dark mt-4">
-          You can customize the form below to your needs and chose among different input types (text, dates, files, select dropdowns...)
+            This page allows users to add and update {{ definition.namePlural }}.
           </p>
           <div class="buttons mt-3 mb-4">
-          
-          <a class="button is-outlined is-success" href="https://docs.case.app/#/create-edit/create-edit" target="_blank">See how "create-edit view" works</a>
-          
-          <a class="button is-outlined is-success" href="https://docs.case.app/#/create-edit/field-types"  target="_blank">See all the field types</a>
-          
+          <a class="button is-outlined is-success" href="https://docs.case.app/#/create-edit/create-edit" target="_blank">See how "create-edit" views works</a>
+          <a class="button is-outlined is-success" href="https://docs.case.app/#/create-edit/fields"  target="_blank">See available fields</a>
           </div>
           <p class="message is-warning p-3 has-text-dark is-size-5">
-          ℹ️ To hide this content, remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project.
+          ℹ️ To hide this message, set the <span class="tag is-medium is-white-ter">isOnboarding</span> property to <strong>false</strong> in your environment file.
           </p>
         </div>
         
