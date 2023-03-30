@@ -40,7 +40,7 @@ npm link // May require sudo.
 Then go to your CASE project in the `/client` repository (Angular project) and run:
 
 ```bash
-npm link @case-app/angular-library
+npm link @casejs/angular-library
 ```
 
 > ⚠️ If your CASE project returns errors while serving the client, you may have to restart the watcher after linking your CASE project

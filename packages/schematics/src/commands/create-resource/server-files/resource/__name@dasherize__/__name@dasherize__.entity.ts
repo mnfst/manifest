@@ -1,4 +1,4 @@
-import { CaseProperty } from '@case-app/nest-library'
+import { CaseProperty } from '@casejs/nest-library'
 import { faker } from '@faker-js/faker'
 import {
   Column,

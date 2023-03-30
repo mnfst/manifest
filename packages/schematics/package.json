@@ -1,7 +1,7 @@
 {
-  "name": "@case-app/schematics",
+  "name": "@casejs/schematics",
   "private": false,
-  "version": "0.5.5",
+  "version": "1.0.0",
   "description": "Set of schematics for CASE Framework",
   "author": "Buddyweb",
   "license": "MIT",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/case-app/case",
+    "url": "https://github.com/casejs/case",
     "directory": "packages/schematics"
   },
   "keywords": [

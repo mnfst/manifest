@@ -52,7 +52,7 @@ function updateListFile(
     source,
     listFilePath,
     'YieldType',
-    '@case-app/angular-library'
+    '@casejs/angular-library'
   )
   if (change instanceof InsertChange) {
     updateRecorder.insertRight(change.pos, change.toAdd)
@@ -95,7 +95,7 @@ function updateCreateEditFile(
     source,
     createEditFilePath,
     'InputType',
-    '@case-app/angular-library'
+    '@casejs/angular-library'
   )
   if (change instanceof InsertChange) {
     updateRecorder.insertRight(change.pos, change.toAdd)

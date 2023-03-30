@@ -1,4 +1,4 @@
-import { LinkType, ResourceDefinition, ActionType } from '@case-app/angular-library'
+import { LinkType, ResourceDefinition, ActionType } from '@casejs/angular-library'
 
 export const <%= camelize(name) %>Definition: ResourceDefinition = {
   title: '<%= classify(name) %>s',

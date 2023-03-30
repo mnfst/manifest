@@ -429,12 +429,7 @@ const setupEnvVars = async (
 const runMigrations = async (rootPath) => {
   const migrationActivity = reporter.activity('Applying database migrations...')
 
-  const cliPath = sysPath.join(
-    `node_modules`,
-    `@case-app`,
-    `case-cli`,
-    `cli.js`
-  )
+  const cliPath = sysPath.join(`node_modules`, `@casejs`, `case-cli`, `cli.js`)
 
   return await execa(cliPath, [`migrations`, `run`], {
     cwd: rootPath

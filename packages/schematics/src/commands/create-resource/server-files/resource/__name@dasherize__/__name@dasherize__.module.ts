@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { PaginationService } from '@case-app/nest-library'
+import { PaginationService } from '@casejs/nest-library'
 
 import { <%= classify(name) %>Controller } from './<%= dasherize(name) %>.controller'
 import { <%= classify(name) %>Service } from './<%= dasherize(name) %>.service'

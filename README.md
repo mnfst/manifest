@@ -20,7 +20,7 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
 1. **Install CASE CLI**
 
    ```sh
-   npm i -g @case-app/case-cli
+   npm i -g @casejs/case-cli
    ```
 
 2. **Create a new CASE project**

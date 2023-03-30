@@ -1,6 +1,6 @@
 # CASE Angular Library
 
-Angular library version of the [CASE](https://case.app) application for the client. Made by
+Angular library version of the CASE application for the client
 
 ## Installation
 
