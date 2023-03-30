@@ -1,4 +1,6 @@
-import { Component, Input } from '@angular/core'
+import { Component, Inject, Input } from '@angular/core'
+
+import { CaseConfig } from '../../../interfaces/case-config.interface'
 
 @Component({
   selector: 'case-image-yield',
@@ -6,13 +8,11 @@ import { Component, Input } from '@angular/core'
   styleUrls: ['./image-yield.component.scss']
 })
 export class ImageYieldComponent {
-  @Input() imageObjects: {
-    image: string
-    label?: string
-    link?: { path: string; queryParams?: { [key: string]: string } }
-  }[]
+  @Input() image: string
   @Input() defaultImage = '/assets/images/avatar.svg'
   @Input() label: string
 
-  maxLength = 4
+  storagePath: string = this.config.storagePath
+
+  constructor(@Inject('CASE_CONFIG_TOKEN') private config: CaseConfig) {}
 }
