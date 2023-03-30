@@ -40,7 +40,7 @@ npm link // May required sudo.
 and then at the root of your CASE project :
 
 ```bash
-npm link @case-app/schematics
+npm link @casejs/schematics
 ```
 
 ## Publishing
