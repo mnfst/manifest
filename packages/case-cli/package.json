@@ -1,6 +1,6 @@
 {
   "name": "@casejs/case-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Command Line interface for CASE framework",
   "main": "dist/index.js",
   "bin": {
