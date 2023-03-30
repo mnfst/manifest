@@ -4,7 +4,7 @@
   "description": "Command Line interface for CASE framework",
   "main": "dist/index.js",
   "bin": {
-    "case-app": "./cli.js"
+    "cs": "./cli.js"
   },
   "repository": {
     "type": "git",

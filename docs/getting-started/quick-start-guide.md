@@ -24,7 +24,7 @@ npm i -g @case-app/case-cli
 Run the following command:
 
 ```sh
-case-app new
+cs new
 ```
 
 During the installation, the terminal will ask you **what is the name of your application**. Type `my-case-project`
@@ -83,10 +83,10 @@ Now that we have our project ready with users and roles, we will need to add som
 
 In our example, we will create **an app that lists famous painters and their works** (why not ?).
 
-Run the `case-app resource [name]` command replacing the name by the singular, "camelCase" name of your resource:
+Run the `cs generate resource [name]` command replacing the name by the singular, "camelCase" name of your resource:
 
 ```sh
-case-app resource painter
+cs generate resource painter
 ```
 
 That's it, you have now a functional list of painters ! You already can create painters, edit them and delete them.

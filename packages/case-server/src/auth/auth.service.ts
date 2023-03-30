@@ -99,12 +99,9 @@ export class AuthService {
     })
   }
 
-  async getUserFromToken(req: Request): Promise<CaseUser> {
-    const token =
-      req.headers?.authorization &&
-      req.headers.authorization.replace('Bearer ', '')
+  async getUserFromToken(token: string): Promise<CaseUser> {
     return jwt.verify(
-      token,
+      token?.replace('Bearer ', ''),
       process.env.TOKEN_SECRET_KEY,
       async (_err, decoded) => {
         if (decoded) {

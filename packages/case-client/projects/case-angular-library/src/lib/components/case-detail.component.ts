@@ -28,11 +28,23 @@ export class CaseDetailComponent {
   // Get remote item from API for "edit" mode.
   async getItem(id: string) {
     this.item = await this.resourceService.show(this.definition.slug, id).then(
-      (itemRes) => itemRes,
+      (itemRes) => {
+        itemRes.propertiesInArray = this.getPropertiesInArray(itemRes)
+        return itemRes
+      },
       (error) => {
         this.flashMessageService.error(`Error while fetching data from server`)
       }
     )
+  }
+
+  getPropertiesInArray(item: any): { key: string; value: any }[] {
+    return Object.keys(item).map((key) => {
+      return {
+        key,
+        value: item[key]
+      }
+    })
   }
 
   setBreadcrumbs() {

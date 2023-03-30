@@ -26,8 +26,7 @@
           <ng-container *ngFor="let field of resolvedFields">
             <ng-container *caseHasPermission="field.permission">
               <div
-                class="column"
-                [ngClass]="field.className"
+                class="column  {{ field.className || 'is-6' }}"
                 *ngIf="!field.hidden"
               >
                 <case-input

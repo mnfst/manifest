@@ -36,7 +36,7 @@ export class AuthController {
 
   @Get('me')
   public async getCurrentUser(@Req() req: Request): Promise<CaseUser> {
-    return this.authService.getUserFromToken(req)
+    return this.authService.getUserFromToken(req.headers?.authorization)
   }
 
   @Get('forgot-password')

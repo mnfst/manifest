@@ -61,8 +61,8 @@ constructor(
   async export(query: SelectQueryBuilder<<%= classify(name) %>>): Promise<string> {
     const <%= camelize(name) %>s = await query.getMany()
     return this.excelService.export(
-      ['Id', 'Name'],
-      <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => [<%= camelize(name) %>.id, <%= camelize(name) %>.name]),
+      ['Id'],
+      <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => [<%= camelize(name) %>.id]),
       '<%= camelize(name) %>s'
     )
   }

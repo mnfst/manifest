@@ -3,6 +3,7 @@ import { Component, Inject, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
 
+import { caseConstants } from '../../../constants/case.constants'
 import { CaseConfig } from '../../../interfaces/case-config.interface'
 import { AuthService } from '../../../services/auth.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
@@ -22,6 +23,9 @@ export class LoginComponent implements OnInit {
   isEmpty: boolean
   isOnboarding = this.config.isOnboarding
 
+  defaultUserEmail = caseConstants.defaultUserEmail
+  defaultUserPassword = caseConstants.defaultUserPassword
+
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
@@ -29,7 +33,6 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private resourceService: ResourceService,
-
     @Inject('CASE_CONFIG_TOKEN') private config: CaseConfig
   ) {}
 
@@ -40,6 +43,13 @@ export class LoginComponent implements OnInit {
 
     this.resourceService.show('users', 'is-empty').then((isEmpty: boolean) => {
       this.isEmpty = isEmpty
+
+      if (this.isOnboarding && !this.isEmpty) {
+        this.loginForm.patchValue({
+          email: this.defaultUserEmail,
+          password: this.defaultUserPassword
+        })
+      }
     })
   }
 

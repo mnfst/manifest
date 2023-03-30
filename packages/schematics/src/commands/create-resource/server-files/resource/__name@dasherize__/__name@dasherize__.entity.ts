@@ -1,21 +1,20 @@
+import { CaseProperty } from '@case-app/nest-library'
+import { faker } from '@faker-js/faker'
 import {
   Column,
+  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
   UpdateDateColumn
 } from 'typeorm'
 
 @Entity({ name: '<%= camelize(name) %>s' })
 export class <%= classify(name) %> {
-  public static searchableFields: string[] = ['name']
-  public static displayName: string = 'name'
+  public static searchableFields: string[] = ['id']
+  public static displayName: string = 'id'
 
   @PrimaryGeneratedColumn()
   id: number
-
-  @Column()
-  name: string
 
   @CreateDateColumn({ select: false })
   createdAt: Date

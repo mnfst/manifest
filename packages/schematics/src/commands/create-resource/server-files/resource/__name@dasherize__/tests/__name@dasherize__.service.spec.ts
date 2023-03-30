@@ -17,7 +17,7 @@ describe('<%= classify(name) %>Service', () => {
 
   const test<%= classify(name) %> = { id: 1, name: 'Test' }
   const test<%= classify(name) %>Dto: CreateUpdate<%= classify(name) %>Dto = {
-    name: 'test <%= camelize(name) %>',
+    
   }
   const createQueryBuilder: any = {
     select: () => createQueryBuilder,

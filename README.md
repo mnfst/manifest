@@ -23,7 +23,7 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
    npm i -g @case-app/case-cli
    ```
 
-2. **Create a new CASE proejct**
+2. **Create a new CASE project**
 
    ```sh
    case-app new
@@ -71,6 +71,12 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
    And Use your CASE admin’s user credentials to log in.
 
    > You can use the email `admin@case.app` and password `case` to log in.
+
+# Serve the documentation
+
+```sh
+npm run start:docs
+```
 
 # Deploying to production
 
