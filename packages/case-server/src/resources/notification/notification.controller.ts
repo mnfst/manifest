@@ -15,7 +15,9 @@ export class NotificationController {
 
   @Get('/')
   async index(@Req() req: Request): Promise<CaseNotification[]> {
-    const currentUser: CaseUser = await this.authService.getUserFromToken(req)
+    const currentUser: CaseUser = await this.authService.getUserFromToken(
+      req.headers?.authorization
+    )
 
     if (!currentUser) {
       throw new ForbiddenException()
@@ -26,7 +28,9 @@ export class NotificationController {
 
   @Patch('/mark-checked')
   async markChecked(@Req() req: Request): Promise<Date> {
-    const currentUser: CaseUser = await this.authService.getUserFromToken(req)
+    const currentUser: CaseUser = await this.authService.getUserFromToken(
+      req.headers?.authorization
+    )
 
     if (!currentUser) {
       throw new ForbiddenException()

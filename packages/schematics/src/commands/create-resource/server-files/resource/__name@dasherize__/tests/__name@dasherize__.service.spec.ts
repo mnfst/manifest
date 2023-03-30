@@ -2,7 +2,7 @@ import {
   ExcelService,
   PaginationService,
   Paginator
-} from '@case-app/nest-library'
+} from '@casejs/nest-library'
 import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { Repository, UpdateResult } from 'typeorm'
@@ -17,7 +17,7 @@ describe('<%= classify(name) %>Service', () => {
 
   const test<%= classify(name) %> = { id: 1, name: 'Test' }
   const test<%= classify(name) %>Dto: CreateUpdate<%= classify(name) %>Dto = {
-    name: 'test <%= camelize(name) %>',
+    
   }
   const createQueryBuilder: any = {
     select: () => createQueryBuilder,

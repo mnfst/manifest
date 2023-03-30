@@ -1,14 +1,14 @@
 {
-  "name": "@case-app/case-cli",
-  "version": "0.0.3",
+  "name": "@casejs/case-cli",
+  "version": "1.0.0",
   "description": "Command Line interface for CASE framework",
   "main": "dist/index.js",
   "bin": {
-    "case-app": "./cli.js"
+    "cs": "./cli.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/case-app/case",
+    "url": "https://github.com/casejs/case",
     "directory": "packages/case-cli"
   },
   "scripts": {

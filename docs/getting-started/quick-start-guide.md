@@ -16,7 +16,7 @@ CASE starter covers many use cases (ERP, dashboards, CRM, Custom software, Analy
 ### Step 1: Install CASE CLI
 
 ```
-npm i -g @case-app/case-cli
+npm i -g @casejs/case-cli
 ```
 
 ### Step 2: Create a new CASE project
@@ -24,7 +24,7 @@ npm i -g @case-app/case-cli
 Run the following command:
 
 ```sh
-case-app new
+cs new
 ```
 
 During the installation, the terminal will ask you **what is the name of your application**. Type `my-case-project`
@@ -83,10 +83,10 @@ Now that we have our project ready with users and roles, we will need to add som
 
 In our example, we will create **an app that lists famous painters and their works** (why not ?).
 
-Run the `case-app resource [name]` command replacing the name by the singular, "camelCase" name of your resource:
+Run the `cs generate resource [name]` command replacing the name by the singular, "camelCase" name of your resource:
 
 ```sh
-case-app resource painter
+cs generate resource painter
 ```
 
 That's it, you have now a functional list of painters ! You already can create painters, edit them and delete them.
@@ -180,6 +180,6 @@ Last but not least, let's add the "country" field in create and edit forms to al
 
 Now that you have the basics, you are free to make your CASE project evolve your way. Each project is different and its own business logic, you can add your own features.
 
-If you encounter bugs or issues, [please let us know](https://github.com/case-app/case/issues/new).
+If you encounter bugs or issues, [please let us know](https://github.com/casejs/case/issues/new).
 
 Happy coding !

@@ -1,6 +1,6 @@
 import { Route } from '@angular/router'
 
-import { AuthGuard, PermissionGuard, ResourceMode  } from '@case-app/angular-library'
+import { AuthGuard, PermissionGuard, ResourceMode  } from '@casejs/angular-library'
 
 import { <%= classify(name) %>CreateEditComponent } from './<%= dasherize(name) %>-create-edit/<%= dasherize(name) %>-create-edit.component'
 import { <%= classify(name) %>ListComponent } from './<%= dasherize(name) %>-list/<%= dasherize(name) %>-list.component'

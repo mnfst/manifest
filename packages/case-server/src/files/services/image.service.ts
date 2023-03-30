@@ -7,6 +7,13 @@ import { caseConstants } from '../../case.constants'
 
 @Injectable()
 export class ImageService {
+  defaultImageSizes = {
+    thumbnail: {
+      width: 80,
+      height: 80
+    }
+  }
+
   constructor(
     @Inject('IMAGE_SIZES') private imageSizes: { [key: string]: any }
   ) {}
@@ -26,18 +33,18 @@ export class ImageService {
 
     const name: string = uniqId()
 
+    const entityImageSizes: {
+      [key: string]: { width: number; height: number; fit?: string }
+    } = this.imageSizes[entityName] || this.defaultImageSizes
+
     // Iterate through all entity image sizes
-    Object.keys(this.imageSizes[entityName]).forEach((key: string) => {
+    Object.keys(entityImageSizes).forEach((key: string) => {
       const path = `${folder}/${name}-${key}.jpg`
       sharp(file.buffer)
         .jpeg({ quality: 80 })
-        .resize(
-          this.imageSizes[entityName][key].width,
-          this.imageSizes[entityName][key].height,
-          {
-            fit: this.imageSizes[entityName][key].fit
-          }
-        )
+        .resize(entityImageSizes[key].width, entityImageSizes[key].height, {
+          fit: entityImageSizes[key].fit
+        })
         .toFile(
           `${caseConstants.storagePath}/${path}`,
           (err: Error, info: sharp.OutputInfo) => {

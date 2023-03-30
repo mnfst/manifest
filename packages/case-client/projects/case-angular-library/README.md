@@ -1,6 +1,6 @@
 # CASE Angular Library
 
-Angular library version of the CASE application for the client. Made by [Buddyweb](https://buddyweb.fr)
+Angular library version of the CASE application for the client
 
 ## Installation
 

@@ -9,13 +9,13 @@ Development of reliable and powerful application and ERP. CASE is fully customiz
 ### 1. Clone the repository
 
 ```sh
-git clone git@github.com:case-app/case.git
+git clone git@github.com:casejs/case.git
 ```
 
 ### 2. Clone the case-starter repository
 
 ```sh
-git clone git@github.com:case-app/case-starter.git
+git clone git@github.com:casejs/case-starter.git
 ```
 
 ### 3. Install the dependencies

@@ -3,21 +3,15 @@
   - [Overview](getting-started/overview.md)
   - [Quick start guide](getting-started/quick-start-guide.md)
   - [Structure](getting-started/structure.md)
-  - [Testing](getting-started/testing.md)
 
-- 📖 Resources
+- 📖 CRUD resources
 
   - [Create a resource](resources/create-a-resource.md)
+  - [Create a property](resources/create-a-property.md)
   - [Entity file](resources/entity-file.md)
   - [Resource definitions](resources/resource-definitions.md)
   - [Database seeder](resources/database-seeder)
   - [Relations](resources/relations.md)
-
-- 🧱 Elements
-
-  - [Inputs](elements/inputs.md)
-  - [Top menu quick links](elements/quick-links.md)
-  - [Breadcrumbs\*]()
 
 - 📋 List view
 
@@ -28,7 +22,6 @@
   - [Action buttons](list/action-buttons.md)
   - [Dropdown links](list/dropdown-links.md)
   - [Calculated columns](list/calculated-columns.md)
-  - [Pagination\*]()
 
 - 📝 Create-Edit view
 
@@ -49,11 +42,11 @@
   - [Actions](features/actions.md)
   - [Flash messages](features/flash-messages.md)
   - [Send emails](features/send-emails.md)
-  - [Pipes\*]()
-  - [Task scheduling\*](features/task-scheduling.md)
-  - [CLI](features/cli.md)
-  - [Notifications\*]()
-  - [Generate an Excel/Word/PDF file\*]()
 
-- 🎨 Theme
-  - [Customize](theme/customize.md)
+  - [Task scheduling](features/task-scheduling.md)
+  - [Inputs](elements/inputs.md)
+  - [Testing](getting-started/testing.md)
+
+- 🎨 Customization
+  - [Theme](theme/customize.md)
+  - [Top menu quick links](elements/quick-links.md)

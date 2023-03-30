@@ -12,7 +12,7 @@ import {
   UseGuards
 } from '@nestjs/common'
 import { UpdateResult, DeleteResult } from 'typeorm'
-import { Permission, Paginator, AuthGuard, SelectOption } from '@case-app/nest-library'
+import { Permission, Paginator, AuthGuard, SelectOption } from '@casejs/nest-library'
 
 import { <%= classify(name) %>Service } from './<%= dasherize(name) %>.service'
 import { <%= classify(name) %> } from './<%= dasherize(name) %>.entity'
@@ -55,7 +55,7 @@ export class <%= classify(name) %>Controller {
     })) as <%= classify(name) %>[]
 
     return <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => ({
-      label: <%= camelize(name) %>.name,
+      label: `<%= camelize(name) %> ${<%= camelize(name) %>.id}`,
       value: <%= camelize(name) %>.id
     }))
   }

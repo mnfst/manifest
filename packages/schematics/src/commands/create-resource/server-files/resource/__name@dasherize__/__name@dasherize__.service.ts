@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DeleteResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm'
 
-import { Paginator, PaginationService, ExcelService } from '@case-app/nest-library'
+import { Paginator, PaginationService, ExcelService } from '@casejs/nest-library'
 import { <%= classify(name) %> } from './<%= dasherize(name) %>.entity'
 import { CreateUpdate<%= classify(name) %>Dto } from './dtos/create-update-<%= dasherize(name) %>.dto'
 
@@ -61,8 +61,8 @@ constructor(
   async export(query: SelectQueryBuilder<<%= classify(name) %>>): Promise<string> {
     const <%= camelize(name) %>s = await query.getMany()
     return this.excelService.export(
-      ['Id', 'Name'],
-      <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => [<%= camelize(name) %>.id, <%= camelize(name) %>.name]),
+      ['Id'],
+      <%= camelize(name) %>s.map((<%= camelize(name) %>: <%= classify(name) %>) => [<%= camelize(name) %>.id]),
       '<%= camelize(name) %>s'
     )
   }

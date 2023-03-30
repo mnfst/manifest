@@ -68,14 +68,14 @@ const maybeCreateGitIgnore = async (rootPath) => {
     return
   }
 
-  const gignore = reporter.activity(
+  const gitignore = reporter.activity(
     `Creating minimal .gitignore in ${rootPath}`
   )
   await fs.writeFile(
     sysPath.join(rootPath, `.gitignore`),
     `.cache\nnode_modules\npublic\n`
   )
-  reporter.success(gignore, `Created .gitignore in ${rootPath}`)
+  reporter.success(gitignore, `Created .gitignore in ${rootPath}`)
 }
 
 // Create an initial git commit in the new directory
@@ -86,7 +86,7 @@ const createInitialGitCommit = async (rootPath, starterUrl) => {
   // use execSync instead of spawn to handle git clients using
   // pgp signatures (with password)
   try {
-    execSync(`git commit -m "Initial commit from medusa: (${starterUrl})"`, {
+    execSync(`git commit -m "Initial commit from CASE: (${starterUrl})"`, {
       cwd: rootPath
     })
   } catch {
@@ -143,8 +143,7 @@ const copy = async (starterPath, rootPath) => {
     throw new Error(
       `You can't create a starter from the existing directory. If you want to
       create a new project in the current directory, the trailing dot isn't
-      necessary. If you want to create a project from a local starter, run
-      something like "medusa new my-medusa-store ../local-medusa-starter"`
+      necessary.`
     )
   }
 
@@ -232,7 +231,7 @@ const getPaths = async (starterPath, rootPath) => {
 
   // set defaults if no root or starter has been set yet
   rootPath = rootPath || process.cwd()
-  starterPath = `case-app/case-starter`
+  starterPath = `casejs/case-starter`
 
   return { starterPath, rootPath, selectedOtherStarter }
 }
@@ -243,7 +242,7 @@ const successMessage = (path) => {
   
   cd ${path}
 
-  Follow our quickstart guide for setup: https://docs.case.app/#/getting-started/quick-start-guide?id=step-3-setup-and-serve
+  {.➜ Follow our quickstart guide for setup https://docs.case.app/#/getting-started/quick-start-guide?id=step-3-setup-and-serve}
   `)
 }
 
@@ -430,12 +429,7 @@ const setupEnvVars = async (
 const runMigrations = async (rootPath) => {
   const migrationActivity = reporter.activity('Applying database migrations...')
 
-  const cliPath = sysPath.join(
-    `node_modules`,
-    `@medusajs`,
-    `medusa-cli`,
-    `cli.js`
-  )
+  const cliPath = sysPath.join(`node_modules`, `@casejs`, `case-cli`, `cli.js`)
 
   return await execa(cliPath, [`migrations`, `run`], {
     cwd: rootPath
@@ -519,22 +513,11 @@ export const newStarter = async (args) => {
 
   const urlObject = url.parse(rootPath)
 
-  if (selectedOtherStarter) {
-    reporter.info(
-      `Find the url of the Medusa starter you wish to create and run:
-
-medusa new ${rootPath} [url-to-starter]
-
-`
-    )
-    return
-  }
-
   if (urlObject.protocol && urlObject.host) {
     const isStarterAUrl =
       starter && !url.parse(starter).hostname && !url.parse(starter).protocol
 
-    if (/medusa-starter/gi.test(rootPath) && isStarterAUrl) {
+    if (/case-starter/gi.test(rootPath) && isStarterAUrl) {
       reporter.panic({
         id: `10000`,
         context: {

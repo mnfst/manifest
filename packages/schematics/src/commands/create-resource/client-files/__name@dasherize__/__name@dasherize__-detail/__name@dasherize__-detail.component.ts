@@ -6,7 +6,7 @@ import {
   FlashMessageService,
   ResourceDefinition,
   ResourceService,
-} from '@case-app/angular-library'
+} from '@casejs/angular-library'
 
 import { <%= camelize(name) %>Definition } from '../<%= dasherize(name) %>.definition'
 

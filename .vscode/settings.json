@@ -20,7 +20,14 @@
     "commandCenter.border": "#15202b99"
   },
   "peacock.color": "#fcdc3d",
-  "cSpell.words": ["bugsnag", "dasherize", "dtos", "nestjs", "typeorm"],
+  "cSpell.words": [
+    "bugsnag",
+    "casejs",
+    "dasherize",
+    "dtos",
+    "nestjs",
+    "typeorm"
+  ],
   "material-icon-theme.files.associations": {
     "**.controller.ts": "nest-controller"
   },

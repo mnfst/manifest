@@ -24,11 +24,12 @@
                 </p>
                 <p *ngIf="!isEmpty">
                   ✅ Awesome, the seed is completed! You can now use your
-                  admin’s user credentials to log in.
+                  admin's user credentials to log in.
                 </p>
                 <p *ngIf="!isEmpty" class="mt-4 has-text-dark">
-                  Default admin user: <code>admin@case.app</code> password:
-                  <code>case</code>
+                  Default admin user:
+                  <code>{{ defaultUserEmail }}</code> password:
+                  <code>{{ defaultUserPassword }}</code>
                 </p>
               </div>
             </article>

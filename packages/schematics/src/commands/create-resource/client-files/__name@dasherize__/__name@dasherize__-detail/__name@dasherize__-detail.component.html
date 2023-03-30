@@ -51,11 +51,27 @@
       <div class="card is-fullheight">
         <div class="card-content">
           <div class="columns is-multiline">
+            <div
+              class="column is-3"
+              *ngFor="let property of item.propertiesInArray"
+            >
+              <p class="is-uppercase has-text-grey has-text-weight-medium">
+                {{ property.key }}
+              </p>
+              <p>
+                {{ property.value }}
+              </p>
+            </div>
+          </div>
+          <div class="columns is-multiline">
             <div class="column is-12">
               <p class="is-uppercase has-text-grey has-text-weight-medium">
-                Entity informations
+                Additional information
               </p>
-              <p>💡 Have all the information of your entity as you wish</p>
+              <p>
+                💡 Add additional dynamic information here, such as graphics,
+                key numbers, etc...
+              </p>
             </div>
           </div>
           <hr />
@@ -65,7 +81,7 @@
                 Related entities information
               </p>
               <p>
-                💡 CASE allows you to display information to related entities.
+                💡 CASE allows you to display information to related resources.
                 For example, You could display all the contacts who work for a
                 client.
               </p>
@@ -94,7 +110,7 @@
               <p>
                 💡 Display analytical results of your entity via charts or key
                 figures. You will allow users to quickly access relevant
-                information
+                information.
               </p>
             </div>
           </div>
