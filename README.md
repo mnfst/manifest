@@ -7,9 +7,10 @@
   CASE
 </h1>
 
-CASE allows you to launch a reliable and powerful application or ERP instantly and easily. CASE is fully customizable and open to contributions. You can contribute by adding features, reporting bugs or participating in discussions.
+CASE is an Angular and Nest based framework, wich enabling developers to create solid custom business applications quickly and easily by providing resource management functionality. 👊
 
-![screenshot image](./screenshot.png)
+![case-projects](https://user-images.githubusercontent.com/50170060/227974728-8226b455-8661-429d-bb90-47b554f8112f.png)
+
 
 # Quick start
 
@@ -79,5 +80,3 @@ npm run start:docs
 ```
 
 # Deploying to production
-
-...Coming soon
