@@ -34,7 +34,7 @@ $ npm link // May require sudo.
 Then go to your CASE project and cd into the `/server` folder and then:
 
 ```bash
-$ npm link @case-app/nest-library
+$ npm link @casejs/nest-library
 ```
 
 ## Publish to npm
