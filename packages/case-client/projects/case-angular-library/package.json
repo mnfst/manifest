@@ -1,6 +1,6 @@
 {
-  "name": "@case-app/angular-library",
-  "version": "0.7.6",
+  "name": "@casejs/angular-library",
+  "version": "1.0.0",
   "dependencies": {
     "@ckeditor/ckeditor5-angular": "^2.0.2",
     "@ckeditor/ckeditor5-build-classic": "^32.0.0",
