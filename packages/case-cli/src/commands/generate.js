@@ -31,7 +31,6 @@ export const generate = async (args) => {
       ;[args.name, args.type] = args.name.split(':')
     }
 
-    console.log(args, 'args PROPERTY')
     shell.exec(
       `npm run case:property -- --name=${args.name} --type=${args.type} --resource=${args.resourceName}`
     )
