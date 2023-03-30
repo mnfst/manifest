@@ -26,7 +26,7 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
 2. **Create a new CASE project**
 
    ```sh
-   case-app new
+   cs new
    ```
 
    During the installation, when the terminal asks you what is the name of your application, just write your application's name and press `Enter`.

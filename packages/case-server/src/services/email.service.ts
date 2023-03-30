@@ -21,7 +21,7 @@ export class EmailService {
   }): Promise<any> {
     const mailgun = new Mailgun(formData)
     const mg = mailgun.client({
-      username: 'buddyweb',
+      username: process.env.MAILGUN_USERNAME,
       key: process.env.MAILGUN_API_KEY
     })
 

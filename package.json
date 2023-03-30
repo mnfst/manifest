@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/case-app/case.git"
+    "url": "git+https://github.com/casejs/case.git"
   },
   "scripts": {
     "start:docs": "cd docs && docsify serve"
   },
   "author": "CASE",
   "bugs": {
-    "url": "https://github.com/case-app/case/issues"
+    "url": "https://github.com/casejs/case/issues"
   },
   "homepage": "https://case.app",
   "dependencies": {

@@ -42,13 +42,10 @@
   - [Actions](features/actions.md)
   - [Flash messages](features/flash-messages.md)
   - [Send emails](features/send-emails.md)
-  - [Pipes\*]()
-  - [Task scheduling\*](features/task-scheduling.md)
-  - [CLI](features/cli.md)
+
+  - [Task scheduling](features/task-scheduling.md)
   - [Inputs](elements/inputs.md)
   - [Testing](getting-started/testing.md)
-  - [Notifications\*]()
-  - [Generate an Excel/Word/PDF file\*]()
 
 - 🎨 Customization
   - [Theme](theme/customize.md)

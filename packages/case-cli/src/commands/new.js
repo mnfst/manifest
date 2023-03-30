@@ -231,7 +231,7 @@ const getPaths = async (starterPath, rootPath) => {
 
   // set defaults if no root or starter has been set yet
   rootPath = rootPath || process.cwd()
-  starterPath = `case-app/case-starter`
+  starterPath = `casejs/case-starter`
 
   return { starterPath, rootPath, selectedOtherStarter }
 }
