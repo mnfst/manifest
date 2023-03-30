@@ -47,31 +47,22 @@ export const caseListTemplate = `
 <article class="message is-success has-text-left mt-4">
   <div class="message-body has-background-light">
     <p class="has-text-dark  title is-1 ">
-    Here you can see your list of {{ definition.namePlural }} 👌
+     Welcome to the {{ definition.nameSingular }} list 👋🏽
     </p>
     <p class="has-text-dark mt-4">
     ✅ Good going, You just created the
       <strong> {{ definition.nameSingular }} </strong> entity !
     </p>
     <p class="has-text-dark mt-4">
-      Now make your resource attractive.
-    </p>
-    <ul class='has-text-dark mt-3 mb-6'>
-    <li class="mt-4 ml-6">
-    <span>1. </span><a class="has-text-success" href="https://docs.case.app/#/resources/entity-file" target='_blank'>Add properties to your {{ definition.nameSingular }} entity  to define it</a><span> For example, this resource can get a size, a color, dates...</span>
-    </li>
-    <li class="mt-4 ml-6">
-    <span>2. </span><a class="has-text-success" href="https://docs.case.app/#/list/yields" target='_blank'>Display these properties in the list below as "yields"
-    </a>
-    </li>
-    <li class="mt-4 ml-6">
-    <span>3. </span><a class="has-text-success" href="https://docs.case.app/#/list/filters" target='_blank'>Add filters and allow users to easily find {{ definition.namePlural }}.
-    </a>
-    </li>
-    </ul>
-    <p class="message is-warning p-3 has-text-dark is-size-5">
-    ℹ️ To hide this content, remove the <span class="tag is-medium is-white-ter">isOnboarding</span> property in your project.
+    This page shows the list of {{ definition.namePlural }}. You can customize it by adding <strong>filters</strong>, new <strong>columns</strong>, action <strong>buttons</strong> and even key numbers.
   </p>
+    <div class="buttons mt-3 mb-4">
+    <a class="button is-outlined is-success" href="https://docs.case.app/#/list/list"  target="_blank">Add features to this list</a>
+    <a class="button is-outlined is-success" href="https://docs.case.app/#/resources/create-a-property" target="_blank">Add a properties to {{ definition.namePlural }}</a>
+    </div>
+    <p class="message is-warning p-3 has-text-dark is-size-5">
+    ℹ️ To hide this message, set the <span class="tag is-medium is-white-ter">isOnboarding</span> property to <strong>false</strong> in your environment file.
+    </p>
   </div>
 </article>
 </div>

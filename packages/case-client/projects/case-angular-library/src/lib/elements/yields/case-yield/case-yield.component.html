@@ -1,7 +1,7 @@
 <ng-container [ngSwitch]="yield.type">
   <case-image-yield
     *ngSwitchCase="YieldType.Image"
-    [imageObjects]="yield.propertyValue"
+    [image]="yield.propertyValue"
     [label]="yield.secondPropertyValue"
   ></case-image-yield>
 

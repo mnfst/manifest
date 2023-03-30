@@ -64,7 +64,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
   },
   [PropType.Color]: {
     server: {
-      columnType: '',
+      columnType: 'varchar',
       fakerFunction: 'faker.internet.color()',
       type: 'string',
       dtoValidatorDecorator: 'IsString'
@@ -76,7 +76,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
   },
   [PropType.Email]: {
     server: {
-      columnType: '',
+      columnType: 'varchar',
       fakerFunction: 'faker.internet.email()',
       type: 'string',
       dtoValidatorDecorator: 'IsEmail'
@@ -88,7 +88,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
   },
   [PropType.File]: {
     server: {
-      columnType: '',
+      columnType: 'varchar',
       fakerFunction: `'dummy/dummy-documentation.pdf'`,
       type: 'string',
       dtoValidatorDecorator: 'IsString'
@@ -100,7 +100,7 @@ export const typeFillers: Record<PropType, TypeFiller> = {
   },
   [PropType.Image]: {
     server: {
-      columnType: '',
+      columnType: 'varchar',
       fakerFunction: `'dummy/dummy-image'`,
       type: 'string',
       dtoValidatorDecorator: 'IsString'
