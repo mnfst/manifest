@@ -1,6 +1,26 @@
 {
   "name": "case-client",
   "version": "0.0.0",
+  "author": "CASE",
+  "homepage": "https://case.app",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/casejs/case",
+    "directory": "packages/schematics"
+  },
+  "keywords": [
+    "schematics",
+    "angular",
+    "case",
+    "inputs",
+    "fields",
+    "forms",
+    "library",
+    "web app development",
+    "admin panel",
+    "dashboard"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

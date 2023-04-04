@@ -3,7 +3,13 @@
   "private": false,
   "version": "1.0.0",
   "description": "Nest Library for CASE Framework",
-  "author": "Buddyweb",
+  "author": "CASE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/casejs/case",
+    "directory": "packages/case-server"
+  },
+  "homepage": "https://case.app",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,11 +19,6 @@
     "postbuild": "ts-node postbuild.ts",
     "prepublishOnly": "npm run clean:build",
     "test": "jest --config jest.config.json"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/casejs/case",
-    "directory": "packages/case-server"
   },
   "dependencies": {
     "@bugsnag/js": "^7.17.0",
