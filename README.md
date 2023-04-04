@@ -78,5 +78,3 @@ Follow our [quickstart guide](https://docs.case.app) to learn how to set up a CA
 ```sh
 npm run start:docs
 ```
-
-# Deploying to production
