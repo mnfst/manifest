@@ -1,23 +1,36 @@
 {
   "name": "@casejs/nest-library",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Nest Library for CASE Framework",
-  "author": "Buddyweb",
+  "author": "CASE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/casejs/case",
+    "directory": "packages/case-server"
+  },
+  "homepage": "https://case.app",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "keywords": [
+    "nestjs",
+    "case",
+    "crud",
+    "auth",
+    "upload",
+    "rbac",
+    "email",
+    "pdf",
+    "excel"
+  ],
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
     "build:watch": "rimraf dist && tsc -p tsconfig.json --watch",
     "postbuild": "ts-node postbuild.ts",
     "prepublishOnly": "npm run clean:build",
-    "test": "jest --config jest.config.json"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/casejs/case",
-    "directory": "packages/case-server"
+    "test": "jest --config jest.config.json",
+    "publish": "npm run build && cp README.md dist/README.md && cd dist && npm publish"
   },
   "dependencies": {
     "@bugsnag/js": "^7.17.0",

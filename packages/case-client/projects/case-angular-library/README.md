@@ -1,6 +1,6 @@
 # CASE Angular Library
 
-Angular library version of the CASE application for the client
+Angular library version of the CASE application for the client.
 
 ## Installation
 
@@ -58,3 +58,7 @@ Import CASE styles in your main styles.scss file :
 ```scss
 @import 'case-angular-library/styles/main';
 ```
+
+## Documentation
+
+See https://docs.case.app
