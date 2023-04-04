@@ -1,7 +1,7 @@
 {
   "name": "@casejs/schematics",
   "private": false,
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Set of schematics for CASE Framework",
   "author": "CASE",
   "homepage": "https://case.app",
@@ -21,7 +21,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "npm run move && tsc -p tsconfig.json",
+    "build": "npm run move && tsc -p tsconfig.json && cp README.md dist/README.md",
     "build:watch": "tsc -p tsconfig.json --watch",
     "move": "rm -rf dist && mkdir -p dist/commands/create-resource/server-files && cp -aR ./src/commands/create-resource/server-files/* dist/commands/create-resource/server-files && mkdir -p dist/commands/create-resource/client-files && cp -aR ./src/commands/create-resource/client-files/* dist/commands/create-resource/client-files",
     "postbuild": "cp package.json dist/package.json",

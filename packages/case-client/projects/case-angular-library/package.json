@@ -1,6 +1,26 @@
 {
   "name": "@casejs/angular-library",
-  "version": "1.0.1",
+  "version": "1.0.2",
+  "author": "CASE",
+  "homepage": "https://case.app",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/casejs/case",
+    "directory": "packages/schematics"
+  },
+  "keywords": [
+    "schematics",
+    "angular",
+    "case",
+    "inputs",
+    "fields",
+    "forms",
+    "library",
+    "web app development",
+    "admin panel",
+    "dashboard"
+  ],
   "dependencies": {
     "@ckeditor/ckeditor5-angular": "^2.0.2",
     "@ckeditor/ckeditor5-build-classic": "^32.0.0",
@@ -20,8 +40,6 @@
     "ngx-google-places-autocomplete": "^2.0.5",
     "tslib": "^2.0.0"
   },
-  "author": "CASE",
-  "license": "MIT",
   "peerDependencies": {
     "@angular/common": "~13.2.5",
     "@angular/core": "~13.2.5",
