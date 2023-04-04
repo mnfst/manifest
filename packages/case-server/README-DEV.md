@@ -42,9 +42,7 @@ $ npm link @casejs/nest-library
 Update your version number in `package.json` and then:
 
 ```bash
-npm run build
-cd dist
-npm publish
+npm run publish
 ```
 
 ### Updating your published package version number
