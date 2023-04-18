@@ -77,7 +77,8 @@ export class CaseCoreModule {
               options.permissionEntity,
               options.notificationEntity
             ],
-            synchronize: false
+            synchronize: false,
+            ssl: options.connectionOptions.ssl
           })
 
           return dataSource.initialize()

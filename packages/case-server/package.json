@@ -1,7 +1,7 @@
 {
   "name": "@casejs/nest-library",
   "private": false,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Nest Library for CASE Framework",
   "author": "CASE",
   "repository": {
