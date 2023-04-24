@@ -21,7 +21,7 @@ Under the table, CASE is using [TypeORM Entities](https://typeorm.io/#/entities)
 On the root level, run the command below replacing `[name]` by the name of your resource (singular and camelCase, example: "user", "vendingMachine").
 
 ```
-cs generate resource [name]
+cs generate resourceName [name]
 cs g res [name]
 ```
 
@@ -30,7 +30,7 @@ By default, the resource generated will have a `name` property.
 Of course you can [add properties](resources/create-a-property.md) directly from this command to make it real quick:
 
 ```
-cs generate resource product --props=name,price:currency,photo:image
+cs generate resourceName product --props=name,price:currency,photo:image
 ```
 
 > [!TIP]

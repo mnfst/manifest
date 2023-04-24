@@ -27,8 +27,8 @@ CASE properties are fast to create and adapted to the context because they are t
 On the root level, run the command below replacing `[name]` by the name of your property in camelCase. You also need to pass the "resource" argument with the name of your resource (singular, camelCase).
 
 ```
-cs generate property [name] --resource=[resourceName]
-cs g prop [name] --resource=[resourceName]
+cs generate property [name] --resourceName=[resourceName]
+cs g prop [name] --resourceName=[resourceName]
 ```
 
 If you [create a new resource](resources/create-a-resource.md)
@@ -38,11 +38,11 @@ If you [create a new resource](resources/create-a-resource.md)
 CASE properties have "types" that will help you to format their logic and display on the flow.
 
 ```
-cs g prop [name]:[type] --resource=[resourceName]
+cs g prop [name]:[type] --resourceName=[resourceName]
 
-cs g prop bio:text --resource=user
-cs g prop photo:image --resource=product
-cs g prop isValidated:boolean --resource=intervention
+cs g prop bio:text --resourceName=user
+cs g prop photo:image --resourceName=product
+cs g prop isValidated:boolean --resourceName=intervention
 ```
 
 > [!ATTENTION]
