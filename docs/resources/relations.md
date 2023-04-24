@@ -302,6 +302,34 @@ The `@JoinTable` decorator will create a new table in the DB for this relation. 
   actorIds?: number[]
 ```
 
-Despite for this precise step, the Many-to-Many relation works like other type of relation.
+## Store and update resource relations
 
-You can check this repo GitHub for more infos : https://github.com/ismaelguerrib/many-to-many-case-tutorial
+In a Many-to-Many relation, when you want to store and update you will more used a MultiSearch Input.
+
+```js
+//movie-create-edit.component.ts (client)
+
+  definition: ResourceDefinition = movieDefinition
+  fields: Field[] = [
+    {
+      label: 'name',
+      property: 'name',
+      required: true,
+      inputType: InputType.Text
+    },
+    {
+      label: 'Actors',
+      properties: {
+        actorIds: 'actorIds'
+      },
+      className: 'is-6',
+      searchResources: [actorDefinition],
+      inputType: InputType.MultiSearch
+    }
+  ]
+
+```
+
+Despite for this precise step, the Many-to-Many relation works like other type of relation so you will now have to refer to documentation above.
+
+You can still check this repo GitHub for a full many-to-many example : https://github.com/ismaelguerrib/many-to-many-case-tutorial
