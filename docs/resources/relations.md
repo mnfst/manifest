@@ -261,3 +261,75 @@ To make that filtering effective, we have to listen to that query param in the c
 
 > [!NOTE]
 > CASE uses **NestJS** for the server side Typescript NodeJS app. Read more about controllers on [NestJS Controllers doc](https://docs.nestjs.com/controllers)
+
+# Many-to-Many Relation
+
+### Create a relationship between 2 entities
+
+Let's take the following relation example : actors and movies.
+
+Each **Actor** can belongs to several **Movie** and a **Movie** can have several **Actor** :
+
+You can check this repo GitHub for the entire Many-to-Many relation example with CASE : https://github.com/ismaelguerrib/many-to-many-case-tutorial
+
+```js
+//actor.entity.ts (server)
+
+  @ManyToMany((type) => Movie, (movie) => movie.actors, { cascade: true })
+  @JoinTable({ name: 'actor_movie' })
+  movies: Movie[]
+
+  // Calculated column for list display.
+  movieNames?: string
+
+  // Calculated column for create-edit form.
+  movieIds?: number[]
+
+```
+
+The `@JoinTable` decorator will create a new table in the DB for this relation. You only put this decorator once and the naming convention of this table is snake_case with alphabetical order.
+
+```js
+//movie.entity.ts (server)
+
+  @ManyToMany((type) => Actor, (actor) => actor.movies)
+  actors: Actor[]
+
+  // Calculated column for list display.
+  actorNames?: string
+
+  // Calculated column for create-edit form.
+  actorIds?: number[]
+```
+
+## Store and update resource relations
+
+In a Many-to-Many relation, when you want to store and update you will more used a MultiSearch Input.
+
+```js
+//movie-create-edit.component.ts (client)
+
+  definition: ResourceDefinition = movieDefinition
+  fields: Field[] = [
+    {
+      label: 'name',
+      property: 'name',
+      required: true,
+      inputType: InputType.Text
+    },
+    {
+      label: 'Actors',
+      properties: {
+        actorIds: 'actorIds'
+      },
+      className: 'is-6',
+      searchResources: [actorDefinition],
+      inputType: InputType.MultiSearch
+    }
+  ]
+
+```
+
+Despite for this precise step, the Many-to-Many relation works like other type of relation so you will now have to refer to documentation above.
+
+You can still check this repo GitHub for a full many-to-many example : https://github.com/ismaelguerrib/many-to-many-case-tutorial
