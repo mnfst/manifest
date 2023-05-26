@@ -1,20 +1,22 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { DynamicEntityController } from './dynamic-entity/dynamic-entity.controller'
+import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: __dirname + '../../../../../db/case.sqlite',
-      entities: [join(__dirname, '../../../../entities/*.entity{.ts,.js}')],
-      synchronize: true,
-    }),
+      // TODO: TMP for dev
+      database: 'db/case.sqlite',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      // database: __dirname + '../../../../../db/case.sqlite',
+      // entities: [join(__dirname, '../../../../entities/*.entity{.ts,.js}')],
+      synchronize: true
+    })
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [DynamicEntityController],
+  providers: [DynamicEntityService]
+  // TODO: Integrate Dynamic CRUD Module from frameworkless POC
 })
 export class AppModule {}
