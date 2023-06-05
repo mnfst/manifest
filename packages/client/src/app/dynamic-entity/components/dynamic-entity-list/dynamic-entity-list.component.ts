@@ -47,4 +47,14 @@ export class DynamicEntityListComponent implements OnInit {
       })
     })
   }
+
+  delete(id: number): void {
+    this.dynamicEntityService
+      .delete(this.entity.definition.slug, id)
+      .subscribe((res) => {
+        this.entity.data = this.entity.data.filter(
+          (item: any) => item.id !== id
+        )
+      })
+  }
 }

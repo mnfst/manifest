@@ -21,6 +21,7 @@
           <a [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
             >See detail</a
           >
+          -
           <a
             [routerLink]="[
               '/',
@@ -31,6 +32,7 @@
             ]"
             >Edit</a
           >
+          - <a (click)="delete(item.id)">Delete</a>
         </td>
       </tr>
     </tbody>
