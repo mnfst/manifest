@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
+
+import { AppRulesController } from './app-rules/app-rules.controller'
+import { AppRulesService } from './app-rules/app-rules.service'
 import { DynamicEntityController } from './dynamic-entity/dynamic-entity.controller'
 import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
 
@@ -15,8 +18,8 @@ import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
       synchronize: true
     })
   ],
-  controllers: [DynamicEntityController],
-  providers: [DynamicEntityService]
+  controllers: [DynamicEntityController, AppRulesController],
+  providers: [DynamicEntityService, AppRulesService]
   // TODO: Integrate Dynamic CRUD Module from frameworkless POC
 })
 export class AppModule {}
