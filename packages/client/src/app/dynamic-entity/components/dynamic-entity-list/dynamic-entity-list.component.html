@@ -1,0 +1,38 @@
+<ng-container *ngIf="entity">
+  <h1>List of {{ entity.definition.namePlural }}</h1>
+
+  <a [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+    >Create a new {{ entity.definition.nameSingular }}</a
+  >
+
+  <table>
+    <thead>
+      <td *ngFor="let prop of props">
+        {{ prop }}
+      </td>
+      <td></td>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of entity.data">
+        <td *ngFor="let prop of props">
+          {{ item[prop] }}
+        </td>
+        <td>
+          <a [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
+            >See detail</a
+          >
+          <a
+            [routerLink]="[
+              '/',
+              'dynamic',
+              entity.definition.slug,
+              item.id,
+              'edit'
+            ]"
+            >Edit</a
+          >
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</ng-container>

@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component } from '@angular/core'
+import { NavigationEnd, Router } from '@angular/router'
+
+import { SettingsService } from './shared/services/settings.service'
 
 @Component({
   selector: 'app-root',
@@ -6,5 +9,19 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'client';
+  settings: any
+
+  constructor(private router: Router, settingsService: SettingsService) {
+    settingsService.loadSettings().subscribe((res) => {
+      this.settings = res.settings
+    })
+  }
+
+  ngOnInit() {
+    this.router.events.subscribe((routeChanged) => {
+      if (routeChanged instanceof NavigationEnd) {
+        window.scrollTo(0, 0)
+      }
+    })
+  }
 }

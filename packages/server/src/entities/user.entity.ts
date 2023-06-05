@@ -3,8 +3,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 @Entity()
 export class User {
   public static definition = {
-    nameSingular: 'User',
-    namePlural: 'Users'
+    nameSingular: 'user',
+    namePlural: 'users',
+    slug: 'user'
   }
 
   @PrimaryGeneratedColumn()

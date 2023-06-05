@@ -27,7 +27,7 @@ export class AppRulesService {
 
   getAppSettings() {
     return {
-      name: 'CASE Starter',
+      appName: 'CASE Starter',
       description: 'A starter project for CASE',
       logo: 'TODO: Add logo',
       favicon: 'TODO: Add favicon',

@@ -1,0 +1,17 @@
+<ng-container *ngIf="entity">
+  <h1>Create a new {{ entity.definition.nameSingular }}</h1>
+
+  <form [formGroup]="form" *ngIf="props">
+    <div class="form-group" *ngFor="let prop of props">
+      <label [for]="prop">{{ prop }}</label>
+      <input
+        [id]="prop"
+        type="text"
+        [placeholder]="prop"
+        [formControlName]="prop"
+      />
+    </div>
+
+    <button type="submit" (click)="submit()">Submit</button>
+  </form>
+</ng-container>
