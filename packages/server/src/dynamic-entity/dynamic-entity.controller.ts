@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
-  Post
+  Post,
+  Put
 } from '@nestjs/common'
 import { DynamicEntityService } from './dynamic-entity.service'
 
@@ -30,5 +32,20 @@ export class DynamicEntityController {
     return this.dynamicEntityService.store(entity, entityDto)
   }
 
-  // TODO: Update and Delete.
+  @Put(':entity/:id')
+  update(
+    @Param('entity') entity: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() entityDto: any
+  ) {
+    return this.dynamicEntityService.update(entity, id, entityDto)
+  }
+
+  @Delete(':entity/:id')
+  delete(
+    @Param('entity') entity: string,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.dynamicEntityService.delete(entity, id)
+  }
 }

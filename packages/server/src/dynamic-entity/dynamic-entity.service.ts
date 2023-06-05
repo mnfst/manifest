@@ -40,7 +40,31 @@ export class DynamicEntityService {
     return entityRepository.insert(item)
   }
 
-  // TODO: Update and Delete.
+  async update(entityTableName: string, id: number, entityDto: any) {
+    const entityRepository: Repository<any> =
+      this.getRepository(entityTableName)
+
+    const item = await entityRepository.findOne({ where: { id } })
+
+    if (!item) {
+      throw new NotFoundException('Item not found')
+    }
+
+    return entityRepository.update(id, entityDto)
+  }
+
+  async delete(entityTableName: string, id: number) {
+    const entityRepository: Repository<any> =
+      this.getRepository(entityTableName)
+
+    const item = await entityRepository.findOne({ where: { id } })
+
+    if (!item) {
+      throw new NotFoundException('Item not found')
+    }
+
+    return entityRepository.delete(id)
+  }
 
   private getRepository(entityTableName: string): Repository<any> {
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
