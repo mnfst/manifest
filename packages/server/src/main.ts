@@ -18,6 +18,7 @@ async function bootstrap() {
   })
 
   app.use(compression())
+  app.use(express.static('public'))
 
   await app.listen(3000)
 }
