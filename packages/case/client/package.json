@@ -1,6 +1,6 @@
 {
   "name": "@casejs/client",
-  "version": "0.0.4",
+  "version": "0.0.0",
   "description": "Client for CASE",
   "scripts": {
     "ng": "ng",
