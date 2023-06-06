@@ -8,25 +8,22 @@ export class DynamicEntityService {
   constructor(private http: HttpClient) {}
 
   list(entityName: string) {
-    return this.http.get(`http://localhost:3000/dynamic/${entityName}`)
+    return this.http.get(`/api/dynamic/${entityName}`)
   }
 
   show(entityName: string, id: number) {
-    return this.http.get(`http://localhost:3000/dynamic/${entityName}/${id}`)
+    return this.http.get(`/api/dynamic/${entityName}/${id}`)
   }
 
   create(entityName: string, data: any) {
-    return this.http.post(`http://localhost:3000/dynamic/${entityName}`, data)
+    return this.http.post(`/api/dynamic/${entityName}`, data)
   }
 
   update(entityName: string, id: number, data: any) {
-    return this.http.put(
-      `http://localhost:3000/dynamic/${entityName}/${id}`,
-      data
-    )
+    return this.http.put(`/api/dynamic/${entityName}/${id}`, data)
   }
 
   delete(entityName: string, id: number) {
-    return this.http.delete(`http://localhost:3000/dynamic/${entityName}/${id}`)
+    return this.http.delete(`/api/dynamic/${entityName}/${id}`)
   }
 }

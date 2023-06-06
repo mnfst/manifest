@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { join } from 'path'
 
 import { DataSource, EntityMetadata } from 'typeorm'
 
@@ -8,8 +9,8 @@ async function seed() {
   // Create connection.
   const dataSource: DataSource = new DataSource({
     type: 'sqlite',
-    database: 'db/case.sqlite',
-    entities: [__dirname + './../**/*.entity{.ts,.js}']
+    database: __dirname + '../../../../../../../db/case.sqlite',
+    entities: [join(__dirname, '../../../../../../entities/*.entity{.ts,.js}')]
   })
   await dataSource.initialize()
 

@@ -1,11 +1,11 @@
 {
   "name": "@casejs/client",
-  "version": "0.0.3",
+  "version": "0.0.0",
   "description": "Client for CASE",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build && cp package.json dist/package.json && cp README.md dist/README.md",
+    "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
