@@ -1,0 +1,17 @@
+<ng-container *ngIf="entity">
+  <h1>{{ edit ? 'Edit' : 'Create' }} a {{ entity.definition.nameSingular }}</h1>
+
+  <form [formGroup]="form" *ngIf="item || !edit">
+    <div class="form-group" *ngFor="let field of fields">
+      <label [for]="field">{{ field }}</label>
+      <input
+        [id]="field"
+        type="text"
+        [placeholder]="field"
+        [formControlName]="field"
+      />
+    </div>
+
+    <button type="submit" (click)="submit()">Submit</button>
+  </form>
+</ng-container>

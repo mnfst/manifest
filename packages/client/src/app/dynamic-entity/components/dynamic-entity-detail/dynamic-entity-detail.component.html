@@ -1,0 +1,12 @@
+<h1>{{ entity.definition.nameSingular }} detail</h1>
+
+<table class="table">
+  <tbody>
+    <tr *ngFor="let prop of props">
+      <td>{{ prop }}</td>
+      <td>
+        <strong>{{ item[prop] }}</strong>
+      </td>
+    </tr>
+  </tbody>
+</table>
