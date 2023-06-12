@@ -11,7 +11,7 @@ import { environment } from '../../../environments/environment'
   providedIn: 'root'
 })
 export class SettingsService {
-  private readonly ENV_URL = environment.settingsEndpointUrl
+  private readonly ENV_URL = environment.apiBaseUrl + '/app-rules/settings'
   private settings$: Observable<any> | undefined
 
   constructor(private http: HttpClient) {}

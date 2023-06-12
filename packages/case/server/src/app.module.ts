@@ -12,7 +12,10 @@ import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: __dirname + '../../../../../../db/case.sqlite',
-      entities: [join(__dirname, '../../../../../entities/*.entity{.ts,.js}')],
+      entities: [
+        join(__dirname, '../../../../../entities/*.entity{.ts,.js}'),
+        'src/entities/*.entity{.ts,.js}'
+      ],
       synchronize: true
     })
   ],
