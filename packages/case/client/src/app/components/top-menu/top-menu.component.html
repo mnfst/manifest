@@ -20,10 +20,13 @@
           </div>
 
           <!-- UserMenu dropdown -->
-          <div class="dropdown is-right">
+          <div
+            class="dropdown is-right"
+            [ngClass]="{ 'is-active': showUserMenu }"
+          >
             <div class="dropdown-trigger">
-              <a>
-                <div className="avatar"></div>
+              <a (click)="showUserMenu = !showUserMenu">
+                <app-avatar></app-avatar>
               </a>
             </div>
             <div class="dropdown-menu is-small" role="menu">
