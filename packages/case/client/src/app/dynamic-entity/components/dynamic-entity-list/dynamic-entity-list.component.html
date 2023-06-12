@@ -22,36 +22,43 @@
     </div>
   </div>
 
-  <table>
-    <thead>
-      <td *ngFor="let prop of props">
-        {{ prop }}
-      </td>
-      <td></td>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of entity.data">
-        <td *ngFor="let prop of props">
-          {{ item[prop] }}
-        </td>
-        <td>
-          <a [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
-            >See detail</a
-          >
-          -
-          <a
-            [routerLink]="[
-              '/',
-              'dynamic',
-              entity.definition.slug,
-              item.id,
-              'edit'
-            ]"
-            >Edit</a
-          >
-          - <a (click)="delete(item.id)">Delete</a>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="card p-0 mb-6">
+    <div class="table-container">
+      <table class="table is-fullwidth is-hoverable">
+        <thead>
+          <tr>
+            <th *ngFor="let prop of props">
+              {{ prop }}
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of entity.data">
+            <td *ngFor="let prop of props">
+              {{ item[prop] }}
+            </td>
+            <td>
+              <a
+                [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
+                >See detail</a
+              >
+              -
+              <a
+                [routerLink]="[
+                  '/',
+                  'dynamic',
+                  entity.definition.slug,
+                  item.id,
+                  'edit'
+                ]"
+                >Edit</a
+              >
+              - <a (click)="delete(item.id)">Delete</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </ng-container>
