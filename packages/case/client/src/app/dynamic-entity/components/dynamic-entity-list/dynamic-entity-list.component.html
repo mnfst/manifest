@@ -38,13 +38,15 @@
             <td *ngFor="let prop of props">
               {{ item[prop] }}
             </td>
-            <td>
+            <td class="has-text-right">
               <a
+                class="button is-small is-white"
                 [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
                 >See detail</a
               >
-              -
+
               <a
+                class="button is-small is-white"
                 [routerLink]="[
                   '/',
                   'dynamic',
@@ -54,7 +56,9 @@
                 ]"
                 >Edit</a
               >
-              - <a (click)="delete(item.id)">Delete</a>
+              <a class="button is-small is-white" (click)="delete(item.id)"
+                >Delete</a
+              >
             </td>
           </tr>
         </tbody>
