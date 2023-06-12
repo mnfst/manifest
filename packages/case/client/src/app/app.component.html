@@ -26,8 +26,19 @@
     <div class="column main">
       <main>
         <router-outlet></router-outlet>
-        <h1>Welcome to {{ settings.appName }}</h1>
-        <p>{{ settings.description }}</p>
+        <div class="columns">
+          <div class="column is-6 is-offset-3 is-4-fullhd is-offset-3-fullhd">
+            <div class="card">
+              <div class="card-content">
+                <div class="content has-text-centered">
+                  <span class="is-size-1">👋</span>
+                  <h1>Welcome to {{ settings.appName }}</h1>
+                  <p class="is-size-6">{{ settings.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   </div>

@@ -40,13 +40,13 @@
             </td>
             <td class="has-text-right">
               <a
-                class="button is-small is-white"
+                class="has-text-weight-bold has-text-link"
                 [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
-                >See detail</a
-              >
+                ><i class="icon icon-eye"></i
+              ></a>
 
               <a
-                class="button is-small is-white"
+                class="has-text-weight-bold ml-6"
                 [routerLink]="[
                   '/',
                   'dynamic',
@@ -54,11 +54,11 @@
                   item.id,
                   'edit'
                 ]"
-                >Edit</a
-              >
-              <a class="button is-small is-white" (click)="delete(item.id)"
-                >Delete</a
-              >
+                ><i class="icon icon-edit-2"></i
+              ></a>
+              <a class="has-text-weight-bold ml-6" (click)="delete(item.id)"
+                ><i class="icon icon-trash-2"></i
+              ></a>
             </td>
           </tr>
         </tbody>
