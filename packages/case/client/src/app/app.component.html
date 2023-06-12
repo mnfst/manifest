@@ -1,7 +1,7 @@
-<app-header
+<app-top-menu
   [ngClass]="{ 'is-collapsed': isCollapsed }"
   class="is-hidden-touch"
-></app-header>
+></app-top-menu>
 <app-touch-menu class="is-hidden-desktop"></app-touch-menu>
 <div class="collapse-button is-hidden-desktop">
   <a
@@ -20,9 +20,10 @@
 
 <div class="wrapper" [ngClass]="{ 'is-collapsed': isCollapsed }">
   <div class="columns">
-    <aside #menuList class="column aside menu px-0"></aside>
+    <aside #menuList class="column aside menu px-0">
+      <app-side-menu></app-side-menu>
+    </aside>
     <div class="column main">
-      <app-sidemenu></app-sidemenu>
       <main>
         <router-outlet></router-outlet>
         <h1>Welcome to {{ settings.appName }}</h1>
