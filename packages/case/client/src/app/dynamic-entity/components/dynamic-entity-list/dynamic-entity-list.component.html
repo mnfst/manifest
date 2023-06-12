@@ -1,9 +1,26 @@
 <ng-container *ngIf="entity">
-  <h1>List of {{ entity.definition.namePlural }}</h1>
-
-  <a [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
-    >Create a new {{ entity.definition.nameSingular }}</a
+  <div
+    class="is-flex flex-mobile is-justify-content-space-between is-align-items-center mb-2"
   >
+    <div class="left-part">
+      <h1 class="title is-2 has-text-weight-light">
+        List of {{ entity.definition.namePlural }}
+      </h1>
+    </div>
+    <div class="right-part">
+      <a
+        class="button is-link ml-5 is-hidden-touch"
+        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+        >Create new {{ entity.definition.nameSingular }}</a
+      >
+
+      <a
+        class="button is-circle is-link ml-5 is-hidden-desktop"
+        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+        ><i class="icon icon-plus"></i
+      ></a>
+    </div>
+  </div>
 
   <table>
     <thead>
