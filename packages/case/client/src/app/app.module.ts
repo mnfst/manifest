@@ -7,10 +7,13 @@ import { firstValueFrom } from 'rxjs'
 import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
-import { SettingsService } from './shared/services/settings.service'
+import { SettingsService } from './shared/services/settings.service';
+import { HeaderComponent } from './components/header/header.component';
+import { SidemenuComponent } from './components/sidemenu/sidemenu.component';
+import { TouchMenuComponent } from './components/touch-menu/touch-menu.component'
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, HeaderComponent, SidemenuComponent, TouchMenuComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

@@ -10,6 +10,7 @@ import { SettingsService } from './shared/services/settings.service'
 })
 export class AppComponent {
   settings: any
+  isCollapsed = false
 
   constructor(private router: Router, settingsService: SettingsService) {
     settingsService.loadSettings().subscribe((res) => {

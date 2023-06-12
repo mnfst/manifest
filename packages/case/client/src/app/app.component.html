@@ -1,11 +1,33 @@
-<h1>Welcome to {{ settings.appName }}</h1>
-<p>{{ settings.description }}</p>
+<app-header
+  [ngClass]="{ 'is-collapsed': isCollapsed }"
+  class="is-hidden-touch"
+></app-header>
+<app-touch-menu class="is-hidden-desktop"></app-touch-menu>
+<div class="collapse-button is-hidden-desktop">
+  <a
+    role="button"
+    class="navbar-burger burger ghost"
+    aria-label="menu"
+    aria-expanded="false"
+    data-target="navbarBasicExample"
+    (click)="isCollapsed = !isCollapsed"
+  >
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+  </a>
+</div>
 
-<p>
-  <a routerLink="/">Home</a> -
-  <a routerLink="/dynamic/user">Users</a>
-</p>
-
-<main>
-  <router-outlet></router-outlet>
-</main>
+<div class="wrapper" [ngClass]="{ 'is-collapsed': isCollapsed }">
+  <div class="columns">
+    <aside #menuList class="column aside menu px-0"></aside>
+    <div class="column main">
+      <app-sidemenu></app-sidemenu>
+      <main>
+        <router-outlet></router-outlet>
+        <h1>Welcome to {{ settings.appName }}</h1>
+        <p>{{ settings.description }}</p>
+      </main>
+    </div>
+  </div>
+</div>
