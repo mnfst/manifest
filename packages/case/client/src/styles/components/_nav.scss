@@ -96,15 +96,22 @@
   }
 }
 
-// TODO : Put all this css in the appropriate component when JS is developed
-.is-collapsed {
-  li a {
-    i + span,
-    span + i {
-      display: none;
+li a {
+  i + span,
+  span + i {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity $transition-duration $transition-timing .18s, visibility 0.01s linear;
+    .is-collapsed & {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity $transition-duration $transition-timing, visibility 0.01s linear .18s;
     }
   }
-  aside .has-submenu + ul {
+}
+
+aside .has-submenu + ul {
+  .is-collapsed & {
     position: absolute;
     top: 0;
     left: 100%;
@@ -117,6 +124,7 @@
     }
   }
 }
+
 .navbar-burger {
   @include desktop {
     display: block;

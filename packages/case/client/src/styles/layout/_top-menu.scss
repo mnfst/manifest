@@ -2,6 +2,7 @@
   position: relative;
   height: $navbar-height;
   &:before {
+    transition: all $transition-duration $transition-timing;
     position: absolute;
     content: '';
     top: 0;

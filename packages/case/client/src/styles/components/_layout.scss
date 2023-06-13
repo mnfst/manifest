@@ -51,10 +51,12 @@ body {
   }
 }
 aside {
+  transition: all $transition-duration $transition-timing;
   border-right: 1px solid $border-color;
 }
 
 main {
+  transition: all $transition-duration $transition-timing;
   min-height: calc(100vh - #{$column-gap} - #{$navbar-height} - 36.5px);
   margin-top: $gap;
   padding-bottom: $gap;
