@@ -55,7 +55,7 @@ aside {
 }
 
 main {
-  min-height: calc(100vh - #{$gap} - #{$navbar-height});
+  min-height: calc(100vh - #{$gap} - #{$navbar-height} - 36.5px);
   margin-top: $gap;
   padding-bottom: $gap;
 }
