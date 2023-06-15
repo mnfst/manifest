@@ -1,9 +1,11 @@
 import 'dotenv/config'
-import { join } from 'path'
 
+import { join } from 'path'
 import { DataSource, EntityMetadata } from 'typeorm'
 
 seed()
+
+// TODO: Include seeder as a service to use datasource.
 
 async function seed() {
   // Create connection.

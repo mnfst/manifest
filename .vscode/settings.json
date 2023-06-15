@@ -25,6 +25,7 @@
     "casejs",
     "dasherize",
     "dtos",
+    "metadatas",
     "nestjs",
     "typeorm"
   ],

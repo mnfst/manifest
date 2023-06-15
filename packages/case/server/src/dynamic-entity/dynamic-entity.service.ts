@@ -1,21 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { join } from 'path'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 
 @Injectable()
 export class DynamicEntityService {
-  dataSource: DataSource
-
-  constructor() {
-    this.dataSource = new DataSource({
-      type: 'sqlite',
-      database: __dirname + '../../../../../../../db/case.sqlite',
-      entities: [
-        join(__dirname, '../../../../../../entities/*.entity{.ts,.js}')
-      ]
-    })
-    this.dataSource.initialize()
-  }
+  constructor(private dataSource: DataSource) {}
 
   findAll(entityTableName: string) {
     return this.getRepository(entityTableName).find({
@@ -78,10 +66,6 @@ export class DynamicEntityService {
       throw new NotFoundException('Entity not found')
     }
 
-    const entityRepository: Repository<any> = this.dataSource.getRepository(
-      entity.target
-    )
-
-    return entityRepository
+    return this.dataSource.getRepository(entity.target)
   }
 }
