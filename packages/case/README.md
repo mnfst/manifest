@@ -10,7 +10,7 @@ npm run start:dev
 npm run seed:dev
 ```
 
-You can put your temporary entities in `packages/case/server/dev-entities`
+You can put your temporary entities in `packages/case/server/entities`
 
 ## Publish
 
