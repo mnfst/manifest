@@ -1,0 +1,31 @@
+button,
+.button {
+  font-weight: $weight-bold;
+  transition: all 0.1s ease-in-out;
+
+  &.is-circle {
+    height: $perimeter;
+    width: $perimeter;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: $perimeter;
+
+    &.is-small {
+      height: $perimeter-small;
+      width: $perimeter-small;
+      border-radius: $perimeter-small;
+    }
+    &.is-medium {
+      height: $perimeter-medium;
+      width: $perimeter-medium;
+      border-radius: $perimeter-medium;
+    }
+    &.is-large {
+      height: $perimeter-large;
+      width: $perimeter-large;
+      border-radius: $perimeter-large;
+    }
+  }
+}

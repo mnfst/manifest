@@ -8,9 +8,25 @@ import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 import { SettingsService } from './shared/services/settings.service'
+import { SideMenuComponent } from './elements/side-menu/side-menu.component'
+import { TouchMenuComponent } from './elements/touch-menu/touch-menu.component'
+import { TopMenuComponent } from './elements/top-menu/top-menu.component'
+import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component'
+import { AvatarComponent } from './components/avatar/avatar.component'
+import { HomeComponent } from './pages/home/home.component'
+import { FooterComponent } from './elements/footer/footer.component'
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [
+    AppComponent,
+    SideMenuComponent,
+    TouchMenuComponent,
+    TopMenuComponent,
+    BreadcrumbsComponent,
+    AvatarComponent,
+    HomeComponent,
+    FooterComponent
+  ],
   imports: [
     BrowserModule,
     AppRoutingModule,

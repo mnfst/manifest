@@ -50,6 +50,20 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "contribution": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.contribution.ts"
+                }
+              ],
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
@@ -62,6 +76,9 @@
             },
             "development": {
               "browserTarget": "client:build:development"
+            },
+            "contribution": {
+              "browserTarget": "client:build:contribution"
             }
           },
           "defaultConfiguration": "development"

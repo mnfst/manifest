@@ -1,0 +1,26 @@
+#bar {
+  height: 8px;
+  width: 28px;
+  background-color: $link-light;
+  overflow: hidden;
+  border-radius: 8px;
+  &.bar--long {
+    width: 50px;
+    height: 12px;
+  }
+}
+
+#progress {
+  height: 100%;
+  width: 10px;
+
+  &.is-success {
+    background-color: $success;
+  }
+  &.is-danger {
+    background-color: $danger;
+  }
+  &.is-warning {
+    background-color: $warning;
+  }
+}

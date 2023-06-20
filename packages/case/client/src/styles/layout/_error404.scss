@@ -1,0 +1,12 @@
+.welcome-wrapper {
+  height: calc(100vh - 112px);
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+
+  img {
+    margin-bottom: 2rem;
+  }
+}
