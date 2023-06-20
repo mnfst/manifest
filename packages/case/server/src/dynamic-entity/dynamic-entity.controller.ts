@@ -15,7 +15,7 @@ export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 
   @Get(':entity')
-  findAll(@Param('entity') entity: string) {
+  findAll(@Param('entity') entity: string): Promise<any> {
     return this.dynamicEntityService.findAll(entity)
   }
 
@@ -23,12 +23,12 @@ export class DynamicEntityController {
   findOne(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
-  ) {
+  ): Promise<any> {
     return this.dynamicEntityService.findOne(entity, id)
   }
 
   @Post(':entity')
-  store(@Param('entity') entity: string, @Body() entityDto: any) {
+  store(@Param('entity') entity: string, @Body() entityDto: any): Promise<any> {
     return this.dynamicEntityService.store(entity, entityDto)
   }
 
@@ -37,7 +37,7 @@ export class DynamicEntityController {
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number,
     @Body() entityDto: any
-  ) {
+  ): Promise<any> {
     return this.dynamicEntityService.update(entity, id, entityDto)
   }
 
@@ -45,7 +45,7 @@ export class DynamicEntityController {
   delete(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
-  ) {
+  ): Promise<any> {
     return this.dynamicEntityService.delete(entity, id)
   }
 }
