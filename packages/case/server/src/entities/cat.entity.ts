@@ -1,5 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+
 import { CaseProp } from '../decorators/case-prop.decorator'
+import { PropType } from '../dynamic-entity/prop-types/prop-type.enum'
 
 @Entity()
 export class Cat {
@@ -17,7 +19,8 @@ export class Cat {
 
   @Column()
   @CaseProp({
-    seed: (index?: number) => index
+    seed: (index?: number) => index,
+    type: PropType.Integer
   })
   age: string
 }

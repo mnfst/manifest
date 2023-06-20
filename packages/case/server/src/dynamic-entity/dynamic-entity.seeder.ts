@@ -50,6 +50,7 @@ export class DynamicEntitySeeder {
           if (propSeederFn) {
             newItem[column.propertyName] = propSeederFn(index)
           } else {
+            // TODO: If no seed function, we should return something based on the propType.
             newItem[column.propertyName] = `test-value-${column.propertyName}`
           }
         })
