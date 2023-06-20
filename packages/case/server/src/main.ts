@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
   // Static files (including client app).
-  app.use(express.static('public'))
+  app.use(express.static('public/client'))
 
   await app.listen(3000)
 }
