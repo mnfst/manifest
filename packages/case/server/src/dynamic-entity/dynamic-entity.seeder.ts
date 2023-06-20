@@ -26,7 +26,7 @@ export class DynamicEntitySeeder {
     await Promise.all(deleteTablePromises)
     console.log('\x1b[35m', '[x] Removed all existing data...')
 
-    const seedTablePromises: Promise<void>[] = []
+    const seedPromises: Promise<void>[] = []
 
     entities.forEach((entity: EntityMetadata) => {
       const entityRepository: Repository<any> = this.getRepository(
@@ -36,20 +36,29 @@ export class DynamicEntitySeeder {
       console.log('\x1b[35m', `[x] Seeding ${entity.tableName}...`)
 
       Array.from({ length: 10 }).forEach((_, index) => {
-        const newEntity = {}
+        const newItem = entityRepository.create()
 
         entity.columns.forEach((column) => {
-          if (column.databaseName === 'id') {
+          if (column.propertyName === 'id') {
             return
           }
-          newEntity[column.databaseName] = `test-value-${column.databaseName}`
+
+          const propSeederFn = Reflect.getMetadata(
+            `${column.propertyName}:seed`,
+            newItem
+          )
+          if (propSeederFn) {
+            newItem[column.propertyName] = propSeederFn(index)
+          } else {
+            newItem[column.propertyName] = `test-value-${column.propertyName}`
+          }
         })
 
-        seedTablePromises.push(entityRepository.save(newEntity))
+        seedPromises.push(entityRepository.save(newItem))
       })
     })
 
-    await Promise.all(seedTablePromises)
+    await Promise.all(seedPromises)
   }
 
   private getRepository(entityTableName: string): Repository<any> {
