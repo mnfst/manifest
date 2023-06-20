@@ -3,16 +3,7 @@ import { DataSource, EntityMetadata } from 'typeorm'
 
 @Injectable()
 export class AppRulesService {
-  dataSource: DataSource
-
-  constructor() {
-    this.dataSource = new DataSource({
-      type: 'sqlite',
-      database: 'db/case.sqlite',
-      entities: [__dirname + './../**/*.entity{.ts,.js}']
-    })
-    this.dataSource.initialize()
-  }
+  constructor(private dataSource: DataSource) {}
 
   // Return a list of entities and their metadata and rules.
   getAppEntities() {

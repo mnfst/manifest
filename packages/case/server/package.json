@@ -1,15 +1,10 @@
 {
-  "name": "@casejs/server",
-  "version": "0.0.0",
-  "description": "",
-  "author": "",
-  "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "nest start --watch -- dev",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "test": "jest",
@@ -17,7 +12,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node -r tsconfig-paths/register src/dynamic-entity/dynamic-entity.seeder.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/dynamic-entity/seed.ts",
+    "seed:dev": "ts-node -r tsconfig-paths/register src/dynamic-entity/seed.ts dev"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",

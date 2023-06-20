@@ -1,0 +1,45 @@
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-wrapper">
+    <a class="logo" routerLink="/">
+      <img src="/assets/images/logo.svg" class="logo--image" />
+    </a>
+  </div>
+
+  <div class="navbar-menu" id="create-dropdown">
+    <!-- Breadcrumbs -->
+    <app-breadcrumbs></app-breadcrumbs>
+    <!-- <case-breadcrumbs></case-breadcrumbs> -->
+
+    <div class="navbar-end">
+      <div class="navbar-item pr-4">
+        <div class="buttons mb-0">
+          <div class="control mr-6">
+            <div class="tags has-addons">
+              <span class="tag is-dark">Version</span>
+              <span class="tag is-warning">Staging</span>
+            </div>
+          </div>
+
+          <!-- UserMenu dropdown -->
+          <div
+            class="dropdown is-right"
+            [ngClass]="{ 'is-active': showUserMenu }"
+          >
+            <div class="dropdown-trigger">
+              <a (click)="showUserMenu = !showUserMenu">
+                <app-avatar></app-avatar>
+              </a>
+            </div>
+            <div class="dropdown-menu is-small" role="menu">
+              <div class="dropdown-content">
+                <a class="dropdown-item"> My profile </a>
+                <hr class="dropdown-divider" />
+                <a routerLink="/logout" class="dropdown-item"> Sign out </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

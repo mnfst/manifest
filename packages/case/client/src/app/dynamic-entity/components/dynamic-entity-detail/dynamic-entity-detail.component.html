@@ -1,12 +1,38 @@
-<h1>{{ entity.definition.nameSingular }} detail</h1>
-
-<table class="table">
-  <tbody>
-    <tr *ngFor="let prop of props">
-      <td>{{ prop }}</td>
-      <td>
-        <strong>{{ item[prop] }}</strong>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<section>
+  <div
+    class="is-flex is-justify-content-space-between is-align-items-center mb-5"
+  >
+    <div class="left-part">
+      <h1 class="title is-2 has-text-weight-light">
+        {{ entity.definition.nameSingular }} detail
+      </h1>
+    </div>
+    <div class="right-part is-flex is-flex-direction-row">
+      <a class="button is-link is-light is-hidden-touch">%% Delete</a>
+      <a class="button is-link is-light is-hidden-desktop is-circle">
+        <i class="icon icon-trash-2"></i>
+      </a>
+      <a routerLink="edit" class="button is-link ml-2 is-hidden-touch">Edit </a>
+      <a
+        routerLink="edit"
+        class="button is-link ml-2 is-hidden-desktop is-circle"
+      >
+        <i class="icon icon-edit"></i>
+      </a>
+    </div>
+  </div>
+  <div class="card p-0 mb-6">
+    <div class="table-container">
+      <table class="table is-fullwidth is-hoverable">
+        <tbody>
+          <tr *ngFor="let prop of props">
+            <td>{{ prop }}</td>
+            <td>
+              <strong>{{ item[prop] }}</strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,19 @@
+<ul class="menu-list mt-5">
+  <ng-container>
+    <li>
+      <a routerLink="/">
+        <i class="icon icon-grid mr-3 is-size-4 my-0"></i>
+        <span class="pl-1">Home</span>
+      </a>
+      <ng-container *ngIf="entities">
+        <a
+          [routerLink]="['/dynamic', entity.definition.slug]"
+          *ngFor="let entity of entities"
+        >
+          <i class="icon icon-box mr-3 is-size-4 my-0"></i>
+          <span class="pl-1">{{ entity.definition.namePlural }}</span>
+        </a>
+      </ng-container>
+    </li>
+  </ng-container>
+</ul>

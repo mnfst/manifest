@@ -1,40 +1,68 @@
 <ng-container *ngIf="entity">
-  <h1>List of {{ entity.definition.namePlural }}</h1>
-
-  <a [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
-    >Create a new {{ entity.definition.nameSingular }}</a
+  <div
+    class="is-flex flex-mobile is-justify-content-space-between is-align-items-center mb-2"
   >
+    <div class="left-part">
+      <h1 class="title is-2 has-text-weight-light">
+        List of {{ entity.definition.namePlural }}
+      </h1>
+    </div>
+    <div class="right-part">
+      <a
+        class="button is-link ml-5 is-hidden-touch"
+        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+        >Create a new {{ entity.definition.nameSingular }}</a
+      >
 
-  <table>
-    <thead>
-      <td *ngFor="let prop of props">
-        {{ prop }}
-      </td>
-      <td></td>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of entity.data">
-        <td *ngFor="let prop of props">
-          {{ item[prop] }}
-        </td>
-        <td>
-          <a [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
-            >See detail</a
-          >
-          -
-          <a
-            [routerLink]="[
-              '/',
-              'dynamic',
-              entity.definition.slug,
-              item.id,
-              'edit'
-            ]"
-            >Edit</a
-          >
-          - <a (click)="delete(item.id)">Delete</a>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+      <a
+        class="button is-circle is-link ml-5 is-hidden-desktop"
+        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+        ><i class="icon icon-plus"></i
+      ></a>
+    </div>
+  </div>
+
+  <div class="card p-0 mb-6">
+    <div class="table-container">
+      <table class="table is-fullwidth is-hoverable">
+        <thead>
+          <tr>
+            <th *ngFor="let prop of props">
+              {{ prop }}
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of entity.data">
+            <td *ngFor="let prop of props">
+              {{ item[prop] }}
+            </td>
+            <td class="has-text-right">
+              <a
+                class="has-text-weight-bold has-text-link"
+                [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
+                ><i class="icon icon-eye"></i
+              ></a>
+
+              <a
+                class="has-text-weight-bold ml-6"
+                [routerLink]="[
+                  '/',
+                  'dynamic',
+                  entity.definition.slug,
+                  item.id,
+                  'edit'
+                ]"
+                ><i class="icon icon-edit"></i
+              ></a>
+              <a class="has-text-weight-bold ml-6" (click)="delete(item.id)"
+                ><i class="icon icon-trash-2"></i
+              ></a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </ng-container>

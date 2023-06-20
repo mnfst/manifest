@@ -9,7 +9,7 @@ export class AppRulesController {
   async getAppSettings() {
     return {
       settings: this.appRulesService.getAppSettings(),
-      entities: await this.appRulesService.getAppEntities()
+      entities: this.appRulesService.getAppEntities()
     }
   }
 }
