@@ -78,8 +78,6 @@ export class DynamicEntityCreateEditComponent {
           this.router.navigate(['/dynamic', this.entity.definition.slug])
         })
     } else {
-      console.log(this.form.value)
-
       this.dynamicEntityService
         .create(this.entity.definition.slug, this.form.value)
         .subscribe((res) => {
