@@ -2,7 +2,7 @@
 /dist
 /node_modules
 db/case.sqlite
-public/client
+
 
 # Logs
 logs
