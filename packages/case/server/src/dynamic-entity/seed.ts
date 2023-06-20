@@ -9,7 +9,10 @@ async function bootstrap() {
       seeder
         .seed()
         .then(() => {
-          console.log('Seeding complete!')
+          console.log(
+            '\x1b[33m',
+            '[x] Seed complete ! Please refresh your browser to see the new data.'
+          )
         })
         .catch((error) => {
           console.error('Seeding failed!')

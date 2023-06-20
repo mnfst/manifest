@@ -44,10 +44,5 @@ export class DynamicEntitySeeder {
     })
 
     await Promise.all(seedTablePromises)
-
-    console.log(
-      '\x1b[33m',
-      '[x] Seed complete ! Please refresh your browser to see the new data.'
-    )
   }
 }
