@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
+import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 
 @Injectable()
 export class AppRulesService {
@@ -31,21 +32,24 @@ export class AppRulesService {
     )
     const newItem = entityRepository.create()
 
-    return entity.columns.map((column) => {
-      const propType = Reflect.getMetadata(
-        `${column.propertyName}:type`,
-        newItem
-      )
-      const propName = Reflect.getMetadata(
-        `${column.propertyName}:name`,
-        newItem
-      )
+    return entity.columns
+      .filter((column: ColumnMetadata) => column.propertyName !== 'id')
+      .map((column: ColumnMetadata) => {
+        const propType = Reflect.getMetadata(
+          `${column.propertyName}:type`,
+          newItem
+        )
+        const label = Reflect.getMetadata(
+          `${column.propertyName}:name`,
+          newItem
+        )
 
-      return {
-        name: propName,
-        type: propType
-      }
-    })
+        return {
+          name: column.propertyName,
+          label: label || column.propertyName,
+          type: propType
+        }
+      })
   }
 
   // Refactor: This code is duplicated (3 times). We should refactor this into a shared service.
