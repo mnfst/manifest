@@ -5,11 +5,11 @@ import { CaseProp } from '../decorators/case-prop.decorator'
 import { PropType } from '../dynamic-entity/prop-types/prop-type.enum'
 
 @CaseEntity({
-  nameSingular: 'cat',
-  namePlural: 'cats',
-  slug: 'cat'
+  nameSingular: 'mouse',
+  namePlural: 'mouses',
+  slug: 'mouse'
 })
-export class Cat {
+export class Mouse {
   @PrimaryGeneratedColumn()
   id: number
 
@@ -17,11 +17,5 @@ export class Cat {
     type: PropType.String,
     seed: (index?: number) => index
   })
-  name: string
-
-  @CaseProp({
-    type: PropType.Integer,
-    seed: (index?: number) => index
-  })
-  age: string
+  nickName: string
 }
