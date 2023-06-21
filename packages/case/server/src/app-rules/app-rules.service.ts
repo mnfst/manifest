@@ -9,7 +9,7 @@ export class AppRulesService {
   getAppEntities() {
     return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => {
       return {
-        name: entity.name,
+        className: entity.name,
         definition: (entity.inheritanceTree[0] as any).definition
       }
     })

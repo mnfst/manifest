@@ -12,8 +12,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node -r tsconfig-paths/register src/dynamic-entity/seed.ts",
-    "seed:dev": "ts-node -r tsconfig-paths/register src/dynamic-entity/seed.ts dev"
+    "seed": "node dist/server/src/dynamic-entity/seed.js",
+    "seed:dev": "node dist/server/src/dynamic-entity/seed.js dev"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
