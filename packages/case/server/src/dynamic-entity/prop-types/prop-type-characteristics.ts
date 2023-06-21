@@ -1,49 +1,94 @@
+import { InputType } from '~shared/enums/input-type.enum'
+import { YieldType } from '~shared/enums/yield-type.enum'
+
 import { PropType } from './prop-type.enum'
 
-// Legacy CASE v1
-// TODO: Define things affected by propType in server and client.
 type PropTypeCharacteristics = {
-  server?: {
-    columnType: string
-    columnOptions?: string
-    fakerFunction: string
-    type: string
-    dtoValidatorDecorator: string
-  }
-  client?: {
-    inputType: string
-    yieldType: string
-  }
+  input: InputType
+  yield: YieldType
+  columnType: string
+  defaultSeedFunction: (index?: number) => any
 }
 
 export const propTypeCharacteristics: Record<
   PropType,
   PropTypeCharacteristics
 > = {
+  [PropType.String]: {
+    input: InputType.Text,
+    yield: YieldType.Text,
+    columnType: 'varchar',
+    defaultSeedFunction: (index?: number) => `Value ${index}`
+  },
   [PropType.Integer]: {
-    server: {
-      columnType: 'int',
-      fakerFunction: 'faker.datatype.number()',
-      type: 'number',
-      dtoValidatorDecorator: 'IsNumber'
-    },
-    client: {
-      inputType: 'Number',
-      yieldType: 'Text'
-    }
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => index
   },
 
-  [PropType.String]: {},
-  [PropType.RichText]: {},
-  [PropType.Relation]: {},
-  [PropType.Currency]: {},
-  [PropType.Date]: {},
-  [PropType.Text]: {},
-  [PropType.Color]: {},
-  [PropType.Email]: {},
-  [PropType.File]: {},
-  [PropType.Image]: {},
-  [PropType.Boolean]: {}
+  // TODO: Set those propTypes
+
+  [PropType.RichText]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Relation]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Currency]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Date]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Text]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Color]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Email]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.File]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Image]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  },
+  [PropType.Boolean]: {
+    input: InputType.Number,
+    yield: YieldType.Number,
+    columnType: 'int',
+    defaultSeedFunction: (index?: number) => 'Change me'
+  }
 
   // ! Legacy CASE v1
   //   [PropType.String]: {
