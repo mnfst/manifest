@@ -16,6 +16,8 @@ export class DynamicEntityListComponent implements OnInit {
   entity: any
   fields: { name: string; label: string; type: PropType }[] = []
 
+  PropType = PropType
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,

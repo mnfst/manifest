@@ -36,7 +36,15 @@
         <tbody>
           <tr *ngFor="let item of entity.data">
             <td *ngFor="let field of fields">
-              {{ item[field.name] }}
+              <ng-container *ngIf="field.type === PropType.String">
+                {{ item[field.name] }}
+              </ng-container>
+              <span
+                *ngIf="field.type === PropType.Integer"
+                style="color: blue; font-style: italic"
+              >
+                {{ item[field.name] }}
+              </span>
             </td>
             <td class="has-text-right">
               <a
