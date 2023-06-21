@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { error } from 'console'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 
 @Injectable()
@@ -33,7 +32,10 @@ export class DynamicEntitySeeder {
         entity.tableName
       )
 
-      console.log('\x1b[35m', `[x] Seeding ${entity.tableName}...`)
+      console.log(
+        '\x1b[35m',
+        `[x] Seeding ${(entity.target as any).definition.namePlural}...`
+      )
 
       Array.from({ length: 10 }).forEach((_, index) => {
         const newItem = entityRepository.create()
@@ -47,12 +49,8 @@ export class DynamicEntitySeeder {
             `${column.propertyName}:seed`,
             newItem
           )
-          if (propSeederFn) {
-            newItem[column.propertyName] = propSeederFn(index)
-          } else {
-            // TODO: If no seed function, we should return something based on the propType.
-            newItem[column.propertyName] = `test-value-${column.propertyName}`
-          }
+
+          newItem[column.propertyName] = propSeederFn(index)
         })
 
         seedPromises.push(entityRepository.save(newItem))
@@ -68,7 +66,7 @@ export class DynamicEntitySeeder {
     )
 
     if (!entity) {
-      throw new error('Entity not found')
+      throw new Error('Entity not found')
     }
 
     return this.dataSource.getRepository(entity.target)

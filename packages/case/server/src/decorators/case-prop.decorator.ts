@@ -4,15 +4,16 @@ import { PropertyDefinition } from '~shared/interfaces/property-definition'
 
 import {
   PropTypeCharacteristics,
-  propTypeCharacteristics
-} from '../dynamic-entity/prop-types/prop-type-characteristics'
+  propTypeCharacteristicsRecord
+} from '~shared/records/prop-type-characteristics.record'
 
-export const CaseProp = (definition: PropertyDefinition): PropertyDecorator => {
+export const CaseProp = (
+  definition?: PropertyDefinition
+): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     const defaultType: PropType = PropType.String
-
     const typeCharacteristics: PropTypeCharacteristics =
-      propTypeCharacteristics[definition.type || defaultType]
+      propTypeCharacteristicsRecord[definition?.type || defaultType]
 
     // Extend the Column decorator from TypeORM.
     Column({
@@ -22,9 +23,18 @@ export const CaseProp = (definition: PropertyDefinition): PropertyDecorator => {
 
     Reflect.defineMetadata(
       `${propertyKey}:seed`,
-      definition.seed || typeCharacteristics.defaultSeedFunction,
+      definition?.seed || typeCharacteristics.defaultSeedFunction,
       target
     )
-    Reflect.defineMetadata(`${propertyKey}:type`, definition.type, target)
+    Reflect.defineMetadata(
+      `${propertyKey}:type`,
+      definition?.type || defaultType,
+      target
+    )
+    Reflect.defineMetadata(
+      `${propertyKey}:name`,
+      definition?.name || propertyKey,
+      target
+    )
   }
 }

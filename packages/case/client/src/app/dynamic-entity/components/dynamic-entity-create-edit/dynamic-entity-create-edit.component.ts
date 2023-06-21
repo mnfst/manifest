@@ -1,9 +1,10 @@
 import { Component } from '@angular/core'
-import { ActivatedRoute, Params, Router, Data } from '@angular/router'
-import { DynamicEntityService } from '../../dynamic-entity.service'
-import { SettingsService } from '../../../shared/services/settings.service'
-import { combineLatest, of } from 'rxjs'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
+import { ActivatedRoute, Data, Params, Router } from '@angular/router'
+import { combineLatest, of } from 'rxjs'
+
+import { SettingsService } from '../../../shared/services/settings.service'
+import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
   selector: 'app-dynamic-entity-create-edit',

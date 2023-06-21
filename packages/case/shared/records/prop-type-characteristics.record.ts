@@ -11,7 +11,7 @@ export type PropTypeCharacteristics = {
   defaultSeedFunction: (index?: number) => any
 }
 
-export const propTypeCharacteristics: Record<
+export const propTypeCharacteristicsRecord: Record<
   PropType,
   PropTypeCharacteristics
 > = {
@@ -28,8 +28,7 @@ export const propTypeCharacteristics: Record<
     defaultSeedFunction: (index?: number) => index
   },
 
-  // TODO: Set those propTypes
-
+  // TODO: Create those propTypes (dummy for now).
   [PropType.RichText]: {
     input: InputType.Number,
     yield: YieldType.Number,

@@ -1,19 +1,20 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { PrimaryGeneratedColumn } from 'typeorm'
 
-@Entity()
+import { CaseEntity } from '../decorators/case-entity.decorator'
+import { CaseProp } from '../decorators/case-prop.decorator'
+
+@CaseEntity({
+  nameSingular: 'user',
+  namePlural: 'users',
+  slug: 'user'
+})
 export class User {
-  public static definition = {
-    nameSingular: 'user',
-    namePlural: 'users',
-    slug: 'user'
-  }
-
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column()
+  @CaseProp()
   name: string
 
-  @Column()
+  @CaseProp()
   familyName: string
 }
