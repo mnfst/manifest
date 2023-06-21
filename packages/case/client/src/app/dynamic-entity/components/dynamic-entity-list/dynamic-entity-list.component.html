@@ -27,16 +27,16 @@
       <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
-            <th *ngFor="let prop of props">
-              {{ prop }}
+            <th *ngFor="let field of fields">
+              {{ field.label }}
             </th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of entity.data">
-            <td *ngFor="let prop of props">
-              {{ item[prop] }}
+            <td *ngFor="let field of fields">
+              {{ item[field.name] }}
             </td>
             <td class="has-text-right">
               <a

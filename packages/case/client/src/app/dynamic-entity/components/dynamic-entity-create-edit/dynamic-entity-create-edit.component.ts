@@ -22,6 +22,8 @@ export class DynamicEntityCreateEditComponent {
   form: FormGroup = this.formBuilder.group({})
   edit: boolean = false
 
+  PropType = PropType
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,

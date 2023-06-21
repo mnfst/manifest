@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
 import { of } from 'rxjs'
+import { PropType } from '~shared/enums/prop-type.enum'
 
 import { SettingsService } from '../../../shared/services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -13,7 +14,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityListComponent implements OnInit {
   entities: any[] = []
   entity: any
-  props: string[] = []
+  fields: { name: string; label: string; type: PropType }[] = []
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -37,12 +38,12 @@ export class DynamicEntityListComponent implements OnInit {
           this.router.navigate(['/404'])
         }
 
+        this.fields = this.entity.props
+
         this.dynamicEntityService
           .list(this.entity.definition.slug)
           .subscribe((res) => {
             this.entity.data = res
-
-            this.props = Object.keys(this.entity.data[0])
           })
       })
     })
