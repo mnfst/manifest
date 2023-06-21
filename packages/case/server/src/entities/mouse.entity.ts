@@ -15,7 +15,7 @@ export class Mouse {
 
   @CaseProp({
     type: PropType.String,
-    seed: (index?: number) => index
+    seed: (index?: number) => `Mouse ${index}`
   })
   nickName: string
 }

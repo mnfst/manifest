@@ -23,5 +23,5 @@ export class Cat {
     type: PropType.Integer,
     seed: (index?: number) => index
   })
-  age: string
+  age: number
 }

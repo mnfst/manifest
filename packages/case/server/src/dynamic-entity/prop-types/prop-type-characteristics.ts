@@ -1,3 +1,4 @@
+import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
 import { InputType } from '~shared/enums/input-type.enum'
 import { YieldType } from '~shared/enums/yield-type.enum'
 
@@ -6,7 +7,7 @@ import { PropType } from './prop-type.enum'
 type PropTypeCharacteristics = {
   input: InputType
   yield: YieldType
-  columnType: string
+  columnType: ColumnType
   defaultSeedFunction: (index?: number) => any
 }
 
