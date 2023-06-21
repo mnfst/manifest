@@ -2,9 +2,9 @@ import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
 import { InputType } from '~shared/enums/input-type.enum'
 import { YieldType } from '~shared/enums/yield-type.enum'
 
-import { PropType } from './prop-type.enum'
+import { PropType } from '~shared/enums/prop-type.enum'
 
-type PropTypeCharacteristics = {
+export type PropTypeCharacteristics = {
   input: InputType
   yield: YieldType
   columnType: ColumnType

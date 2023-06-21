@@ -2,7 +2,7 @@ import { PrimaryGeneratedColumn } from 'typeorm'
 
 import { CaseEntity } from '../decorators/case-entity.decorator'
 import { CaseProp } from '../decorators/case-prop.decorator'
-import { PropType } from '../dynamic-entity/prop-types/prop-type.enum'
+import { PropType } from '~shared/enums/prop-type.enum'
 
 @CaseEntity({
   nameSingular: 'mouse',
@@ -14,8 +14,15 @@ export class Mouse {
   id: number
 
   @CaseProp({
+    name: 'Nickname',
     type: PropType.String,
     seed: (index?: number) => `Mouse ${index}`
   })
   nickName: string
+
+  @CaseProp({
+    name: 'Family name',
+    type: PropType.String
+  })
+  familyName: string
 }

@@ -10,7 +10,6 @@ export class AppRulesService {
     return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => {
       return {
         name: entity.name,
-        rules: this.getEntityRules(entity),
         definition: (entity.inheritanceTree[0] as any).definition
       }
     })
@@ -24,33 +23,5 @@ export class AppRulesService {
       favicon: 'TODO: Add favicon',
       theme: 'TODO: Add theme'
     }
-  }
-
-  // TODO: Return a list of rules for a given entity.
-  private getEntityRules(entity: EntityMetadata) {
-    const props: string[] = entity.columns
-      .filter((column) => column.databaseName !== 'id')
-      .map((column) => column.propertyName)
-
-    const entityRules = {
-      create: {
-        fields: props,
-        rules: []
-      },
-      read: {
-        fields: [],
-        rules: []
-      },
-      update: {
-        fields: props,
-        rules: []
-      },
-      delete: {
-        fields: [],
-        rules: []
-      }
-    }
-
-    return entityRules
   }
 }

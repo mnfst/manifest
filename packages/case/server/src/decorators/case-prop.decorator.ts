@@ -1,19 +1,30 @@
 import { Column } from 'typeorm'
+import { PropType } from '~shared/enums/prop-type.enum'
+import { PropertyDefinition } from '~shared/interfaces/property-definition'
 
-import { propTypeCharacteristics } from '../dynamic-entity/prop-types/prop-type-characteristics'
-import { PropType } from '../dynamic-entity/prop-types/prop-type.enum'
+import {
+  PropTypeCharacteristics,
+  propTypeCharacteristics
+} from '../dynamic-entity/prop-types/prop-type-characteristics'
 
-export const CaseProp = (options: {
-  seed: (index?: number) => any
-  type: PropType
-}): PropertyDecorator => {
+export const CaseProp = (definition: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
+    const defaultType: PropType = PropType.String
+
+    const typeCharacteristics: PropTypeCharacteristics =
+      propTypeCharacteristics[definition.type || defaultType]
+
     // Extend the Column decorator from TypeORM.
     Column({
-      type: propTypeCharacteristics[options.type].columnType
+      type: typeCharacteristics.columnType,
+      nullable: true // Everything is nullable for now (for simplicity).
     })(target, propertyKey)
 
-    Reflect.defineMetadata(`${propertyKey}:seed`, options.seed, target)
-    Reflect.defineMetadata(`${propertyKey}:type`, options.type, target)
+    Reflect.defineMetadata(
+      `${propertyKey}:seed`,
+      definition.seed || typeCharacteristics.defaultSeedFunction,
+      target
+    )
+    Reflect.defineMetadata(`${propertyKey}:type`, definition.type, target)
   }
 }
