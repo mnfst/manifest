@@ -77,9 +77,9 @@ export class ResourceService {
       .toPromise()
   }
 
-  patch(path: string, formData?: FormData): Promise<any> {
+  patch(path: string, body?: any): Promise<any> {
     return this.http
-      .patch(`${this.config.apiBaseUrl}/${path}`, formData)
+      .patch(`${this.config.apiBaseUrl}/${path}`, body)
       .toPromise()
   }
 
