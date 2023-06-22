@@ -2,7 +2,7 @@ export interface PatchActionConfig {
   path: string
   successMessage: string
   errorMessage: string
-  body: any
+  body?: any
 
   // Redirect after successful patch.
   redirectTo?: string
