@@ -44,30 +44,32 @@ export class ActionService {
   }
 
   private triggerPatch(action: Action): Promise<any> {
-    return this.resourceService.patch(action.patch.path).then(
-      (res) => {
-        this.flashMessageService.success(action.patch.successMessage)
-        // Change query params to force reload on lists.
-        this.router.navigate(
-          [action.patch.redirectTo || this.router.url.split('?')[0]],
-          {
-            queryParams: Object.assign(
-              action.patch.redirectToQueryParams || {},
-              {
-                t: new Date().getTime()
-              }
-            ),
-            queryParamsHandling: 'merge'
-          }
-        )
+    return this.resourceService
+      .patch(action.patch.path, action.patch.body)
+      .then(
+        (res) => {
+          this.flashMessageService.success(action.patch.successMessage)
+          // Change query params to force reload on lists.
+          this.router.navigate(
+            [action.patch.redirectTo || this.router.url.split('?')[0]],
+            {
+              queryParams: Object.assign(
+                action.patch.redirectToQueryParams || {},
+                {
+                  t: new Date().getTime()
+                }
+              ),
+              queryParamsHandling: 'merge'
+            }
+          )
 
-        return Promise.resolve(res)
-      },
-      (err) => {
-        this.flashMessageService.error(action.patch.errorMessage)
-        return Promise.reject(err)
-      }
-    )
+          return Promise.resolve(res)
+        },
+        (err) => {
+          this.flashMessageService.error(action.patch.errorMessage)
+          return Promise.reject(err)
+        }
+      )
   }
 
   private triggerDelete(action: Action): Promise<void> {
