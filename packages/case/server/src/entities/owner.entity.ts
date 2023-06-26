@@ -1,8 +1,8 @@
+import { faker } from '@faker-js/faker'
 import { PrimaryGeneratedColumn } from 'typeorm'
 
 import { CaseEntity } from '../decorators/case-entity.decorator'
 import { CaseProp } from '../decorators/case-prop.decorator'
-import { PropType } from '~shared/enums/prop-type.enum'
 
 @CaseEntity({
   nameSingular: 'owner',
@@ -14,6 +14,8 @@ export class Owner {
   @PrimaryGeneratedColumn()
   id: number
 
-  @CaseProp({})
+  @CaseProp({
+    seed: () => faker.person.firstName()
+  })
   name: string
 }
