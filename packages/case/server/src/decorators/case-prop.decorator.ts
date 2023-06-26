@@ -1,10 +1,11 @@
 import { Column } from 'typeorm'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDefinition } from '~shared/interfaces/property-definition.interface'
+
 import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord
-} from '~shared/records/prop-type-characteristics.record'
+} from '../records/prop-type-characteristics.record'
 
 export const CaseProp = (
   definition?: PropertyDefinition

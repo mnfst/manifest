@@ -1,14 +1,10 @@
+import { faker } from '@faker-js/faker'
 import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
-import { InputType } from '~shared/enums/input-type.enum'
-import { YieldType } from '~shared/enums/yield-type.enum'
-
 import { PropType } from '~shared/enums/prop-type.enum'
 
 export type PropTypeCharacteristics = {
-  input: InputType
-  yield: YieldType
   columnType: ColumnType
-  defaultSeedFunction: (index?: number) => any
+  defaultSeedFunction: (index?: number, relationSeedCount?: number) => any
 }
 
 export const propTypeCharacteristicsRecord: Record<
@@ -16,78 +12,56 @@ export const propTypeCharacteristicsRecord: Record<
   PropTypeCharacteristics
 > = {
   [PropType.String]: {
-    input: InputType.Text,
-    yield: YieldType.Text,
     columnType: 'varchar',
-    defaultSeedFunction: (index?: number) => `Value ${index}`
+    defaultSeedFunction: (index: number) => `Value ${index}`
   },
   [PropType.Integer]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => index
+    defaultSeedFunction: (index: number) => index
+  },
+  [PropType.Relation]: {
+    columnType: 'int',
+    defaultSeedFunction: (_index: number, relationSeedCount: number) =>
+      faker.number.int({ min: 1, max: relationSeedCount })
   },
 
   // TODO: Create those propTypes (dummy for now).
   [PropType.RichText]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
-  [PropType.Relation]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
-    columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
-  },
+
   [PropType.Currency]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.Date]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.Text]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.Color]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.Email]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.File]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.Image]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   },
   [PropType.Boolean]: {
-    input: InputType.Number,
-    yield: YieldType.Number,
     columnType: 'int',
-    defaultSeedFunction: (index?: number) => 'Change me'
+    defaultSeedFunction: (index: number) => 'Change me'
   }
 
   // ! Legacy CASE v1
