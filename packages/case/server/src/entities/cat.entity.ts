@@ -3,6 +3,7 @@ import { PrimaryGeneratedColumn } from 'typeorm'
 import { CaseEntity } from '../decorators/case-entity.decorator'
 import { CaseProp } from '../decorators/case-prop.decorator'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { Owner } from './owner.entity'
 
 @CaseEntity({
   nameSingular: 'cat',
@@ -22,4 +23,13 @@ export class Cat {
     seed: (index?: number) => index
   })
   age: number
+
+  @CaseProp({
+    name: 'Owner',
+    type: PropType.Relation,
+    settings: {
+      entity: Owner
+    }
+  })
+  owner: Owner
 }

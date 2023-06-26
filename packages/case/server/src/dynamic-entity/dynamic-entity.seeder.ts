@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 
+import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
+
 @Injectable()
 export class DynamicEntitySeeder {
+  defaultSeedCount = 10
+
   constructor(private dataSource: DataSource) {}
 
   async seed() {
@@ -28,16 +32,17 @@ export class DynamicEntitySeeder {
     const seedPromises: Promise<void>[] = []
 
     entities.forEach((entity: EntityMetadata) => {
+      const definition: EntityDefinition = (entity.target as any).definition
+
       const entityRepository: Repository<any> = this.getRepository(
         entity.tableName
       )
 
-      console.log(
-        '\x1b[35m',
-        `[x] Seeding ${(entity.target as any).definition.namePlural}...`
-      )
+      console.log('\x1b[35m', `[x] Seeding ${definition.namePlural}...`)
 
-      Array.from({ length: 10 }).forEach((_, index) => {
+      Array.from({
+        length: definition.seedCount || this.defaultSeedCount
+      }).forEach((_, index) => {
         const newItem = entityRepository.create()
 
         entity.columns.forEach((column) => {

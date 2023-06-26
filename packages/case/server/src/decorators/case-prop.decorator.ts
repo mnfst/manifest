@@ -1,7 +1,6 @@
 import { Column } from 'typeorm'
 import { PropType } from '~shared/enums/prop-type.enum'
-import { PropertyDefinition } from '~shared/interfaces/property-definition'
-
+import { PropertyDefinition } from '~shared/interfaces/property-definition.interface'
 import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord
