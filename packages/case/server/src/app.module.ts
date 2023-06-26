@@ -9,12 +9,11 @@ import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 const devMode: boolean = process.argv[2] === 'dev'
 
 const databasePath: string = `${process.cwd()}/db/case.sqlite`
-
-const entitiesFolders: string[] = [
+const entityFolders: string[] = [
   devMode
-    ? 'dist/entities/*.entity.js'
+    ? 'dist/server/src/entities/*.entity.js'
     : `${process.cwd()}/entities/*.entity{.ts,.js}`,
-  join(__dirname, '../dist/core-entities/*.entity.js')
+  join(__dirname, '../src/core-entities/*.entity.js')
 ]
 
 @Module({
@@ -22,7 +21,7 @@ const entitiesFolders: string[] = [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: databasePath,
-      entities: entitiesFolders,
+      entities: entityFolders,
       synchronize: true
     }),
     AppRulesModule,
@@ -37,7 +36,7 @@ export class AppModule {
       entities: this.dataSource.entityMetadatas.map(
         (entity) => entity.tableName
       ),
-      entitiesFolders: entitiesFolders
+      entityFolders
     })
   }
 }

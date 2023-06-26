@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, EntityMetadata } from 'typeorm'
+import { DataSource, EntityMetadata, Repository } from 'typeorm'
+import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 
 @Injectable()
 export class AppRulesService {
@@ -7,13 +8,11 @@ export class AppRulesService {
 
   // Return a list of entities and their metadata and rules.
   getAppEntities() {
-    return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => {
-      return {
-        name: entity.name,
-        rules: this.getEntityRules(entity),
-        definition: (entity.inheritanceTree[0] as any).definition
-      }
-    })
+    return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => ({
+      className: entity.name,
+      definition: (entity.inheritanceTree[0] as any).definition,
+      props: this.getEntityProps(entity)
+    }))
   }
 
   getAppSettings() {
@@ -26,31 +25,43 @@ export class AppRulesService {
     }
   }
 
-  // TODO: Return a list of rules for a given entity.
-  private getEntityRules(entity: EntityMetadata) {
-    const props: string[] = entity.columns
-      .filter((column) => column.databaseName !== 'id')
-      .map((column) => column.propertyName)
+  getEntityProps(entity: EntityMetadata) {
+    // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
+    const entityRepository: Repository<any> = this.getRepository(
+      entity.tableName
+    )
+    const newItem = entityRepository.create()
 
-    const entityRules = {
-      create: {
-        fields: props,
-        rules: []
-      },
-      read: {
-        fields: [],
-        rules: []
-      },
-      update: {
-        fields: props,
-        rules: []
-      },
-      delete: {
-        fields: [],
-        rules: []
-      }
+    return entity.columns
+      .filter((column: ColumnMetadata) => column.propertyName !== 'id')
+      .map((column: ColumnMetadata) => {
+        const propType = Reflect.getMetadata(
+          `${column.propertyName}:type`,
+          newItem
+        )
+        const label = Reflect.getMetadata(
+          `${column.propertyName}:name`,
+          newItem
+        )
+
+        return {
+          name: column.propertyName,
+          label: label || column.propertyName,
+          type: propType
+        }
+      })
+  }
+
+  // Refactor: This code is duplicated (3 times). We should refactor this into a shared service.
+  private getRepository(entityTableName: string): Repository<any> {
+    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
+      (entity: EntityMetadata) => entity.tableName === entityTableName
+    )
+
+    if (!entity) {
+      throw new Error('Entity not found')
     }
 
-    return entityRules
+    return this.dataSource.getRepository(entity.target)
   }
 }

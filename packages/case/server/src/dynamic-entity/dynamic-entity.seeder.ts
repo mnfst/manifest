@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, EntityMetadata } from 'typeorm'
+import { DataSource, EntityMetadata, Repository } from 'typeorm'
 
 @Injectable()
 export class DynamicEntitySeeder {
@@ -25,24 +25,50 @@ export class DynamicEntitySeeder {
     await Promise.all(deleteTablePromises)
     console.log('\x1b[35m', '[x] Removed all existing data...')
 
-    const seedTablePromises: Promise<void>[] = []
+    const seedPromises: Promise<void>[] = []
 
     entities.forEach((entity: EntityMetadata) => {
+      const entityRepository: Repository<any> = this.getRepository(
+        entity.tableName
+      )
+
+      console.log(
+        '\x1b[35m',
+        `[x] Seeding ${(entity.target as any).definition.namePlural}...`
+      )
+
       Array.from({ length: 10 }).forEach((_, index) => {
-        seedTablePromises.push(
-          queryRunner.query(
-            `INSERT INTO ${entity.tableName} (${entity.columns
-              .filter((column) => column.databaseName !== 'id')
-              .map((column) => column.databaseName)
-              .join(', ')}) VALUES (${entity.columns
-              .filter((column) => column.databaseName !== 'id')
-              .map((column) => `'test-value-${column.databaseName}'`)
-              .join(', ')})`
+        const newItem = entityRepository.create()
+
+        entity.columns.forEach((column) => {
+          if (column.propertyName === 'id') {
+            return
+          }
+
+          const propSeederFn = Reflect.getMetadata(
+            `${column.propertyName}:seed`,
+            newItem
           )
-        )
+
+          newItem[column.propertyName] = propSeederFn(index)
+        })
+
+        seedPromises.push(entityRepository.save(newItem))
       })
     })
 
-    await Promise.all(seedTablePromises)
+    await Promise.all(seedPromises)
+  }
+
+  private getRepository(entityTableName: string): Repository<any> {
+    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
+      (entity: EntityMetadata) => entity.tableName === entityTableName
+    )
+
+    if (!entity) {
+      throw new Error('Entity not found')
+    }
+
+    return this.dataSource.getRepository(entity.target)
   }
 }

@@ -1,8 +1,9 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
-import { DynamicEntityService } from '../../dynamic-entity.service'
-import { SettingsService } from '../../../shared/services/settings.service'
 import { of } from 'rxjs'
+
+import { SettingsService } from '../../../shared/services/settings.service'
+import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
   selector: 'app-dynamic-entity-detail',

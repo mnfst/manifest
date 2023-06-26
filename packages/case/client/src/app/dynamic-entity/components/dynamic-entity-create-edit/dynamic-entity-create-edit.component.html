@@ -35,13 +35,23 @@
             <div class="form-group">
               <div class="field mt-2 mb-4" *ngFor="let field of fields">
                 <div class="control">
-                  <label [for]="field">{{ field }}</label>
+                  <label [for]="field.name">{{ field.label }}</label>
                   <input
+                    [id]="field.name"
+                    [placeholder]="field.label"
+                    [formControlName]="field.name"
                     class="input form-control"
-                    [id]="field"
                     type="text"
-                    [placeholder]="field"
-                    [formControlName]="field"
+                    *ngIf="field.type === PropType.String"
+                  />
+                  <input
+                    [id]="field.name"
+                    [placeholder]="field.label"
+                    [formControlName]="field.name"
+                    class="input form-control"
+                    type="number"
+                    step="1"
+                    *ngIf="field.type === PropType.Integer"
                   />
                 </div>
               </div>
