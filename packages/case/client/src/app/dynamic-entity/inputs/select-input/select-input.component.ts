@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
   selector: 'app-select-input',
@@ -6,5 +7,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./select-input.component.scss']
 })
 export class SelectInputComponent {
-
+  @Input() prop: PropertyDescription
+  @Output() valueChanged: EventEmitter<number> = new EventEmitter()
 }

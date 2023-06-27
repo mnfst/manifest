@@ -7,14 +7,15 @@ import { SettingsService } from '../services/settings.service'
 import { DynamicEntityCreateEditComponent } from './components/dynamic-entity-create-edit/dynamic-entity-create-edit.component'
 import { DynamicEntityDetailComponent } from './components/dynamic-entity-detail/dynamic-entity-detail.component'
 import { DynamicEntityListComponent } from './components/dynamic-entity-list/dynamic-entity-list.component'
+import { InputComponent } from './inputs/input.component'
+import { NumberInputComponent } from './inputs/number-input/number-input.component'
 import { SelectInputComponent } from './inputs/select-input/select-input.component'
+import { TextInputComponent } from './inputs/text-input/text-input.component'
 import { NumberYieldComponent } from './yields/number-yield/number-yield.component'
 import { RelationYieldComponent } from './yields/relation-yield/relation-yield.component'
 import { TextYieldComponent } from './yields/text-yield/text-yield.component'
 import { YieldComponent } from './yields/yield.component'
 
-import { NumberInputComponent } from './inputs/number-input/number-input.component'
-import { TextInputComponent } from './inputs/text-input/text-input.component'
 @NgModule({
   declarations: [
     DynamicEntityCreateEditComponent,
@@ -26,7 +27,8 @@ import { TextInputComponent } from './inputs/text-input/text-input.component'
     YieldComponent,
     NumberYieldComponent,
     NumberInputComponent,
-    TextInputComponent
+    TextInputComponent,
+    InputComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]

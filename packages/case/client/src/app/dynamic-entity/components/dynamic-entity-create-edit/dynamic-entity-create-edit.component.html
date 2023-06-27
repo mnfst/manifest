@@ -33,27 +33,18 @@
             class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
           >
             <div class="form-group">
-              <div class="field mt-2 mb-4" *ngFor="let field of fields">
+              <div class="field mt-2 mb-4" *ngFor="let prop of props">
                 <div class="control">
-                  <label [for]="field.propName">{{ field.label }}</label>
-                  <input
-                    [id]="field.propName"
-                    [placeholder]="field.label"
-                    [formControlName]="field.propName"
-                    class="input form-control"
-                    type="text"
-                    *ngIf="field.type === PropType.String"
-                  />
-
-                  <app-number-input
-                    [field]="field"
-                    placeholder="Enter a number por favor"
-                    (inputValueChanged)="
-                      onFieldValueChange({ field: field, newValue: $event })
+                  <label [for]="prop.propName">{{ prop.label }}</label>
+                  <app-input
+                    [prop]="prop"
+                    (valueChanged)="
+                      onChange({
+                        propName: prop.propName,
+                        newValue: $event
+                      })
                     "
-                    *ngIf="field.type === PropType.Number"
-                  ></app-number-input>
-                  <!-- TODO: Relation select here -->
+                  ></app-input>
                 </div>
               </div>
             </div>

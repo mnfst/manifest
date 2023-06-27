@@ -18,7 +18,7 @@ export class DynamicEntityCreateEditComponent {
   entity: any
 
   item: any
-  fields: PropertyDescription[] = []
+  props: PropertyDescription[] = []
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean = false
@@ -53,7 +53,7 @@ export class DynamicEntityCreateEditComponent {
           this.router.navigate(['/404'])
         }
 
-        this.fields = this.entity.props
+        this.props = this.entity.props
 
         if (this.edit) {
           this.item = this.dynamicEntityService.show(
@@ -62,21 +62,18 @@ export class DynamicEntityCreateEditComponent {
           )
         }
 
-        this.fields.forEach((field) => {
+        this.props.forEach((prop) => {
           this.form.addControl(
-            field.propName,
-            new FormControl(this.item ? this.item[field.propName] : null)
+            prop.propName,
+            new FormControl(this.item ? this.item[prop.propName] : null)
           )
         })
       })
     })
   }
 
-  onFieldValueChange(params: {
-    newValue: any
-    field: PropertyDescription
-  }): void {
-    this.form.controls[params.field.propName].setValue(params.newValue)
+  onChange(params: { newValue: any; propName: string }): void {
+    this.form.controls[params.propName].setValue(params.newValue)
   }
 
   submit(): void {
