@@ -40,70 +40,56 @@ export class DynamicEntitySeeder {
 
     console.log('\x1b[35m', '[x] Removed all existing data...')
 
-    // TODO: This does not sequence promises and therefore fails when relations are seeded in the wrong order.
-    return BluebirdPromise.map(
-      entities,
-      (entity: EntityMetadata) => {
-        const definition: EntityDefinition = (entity.target as any).definition
+    for (const entity of entities) {
+      const definition: EntityDefinition = (entity.target as any).definition
 
-        const entityRepository: Repository<any> = this.getRepository(
-          entity.tableName
-        )
+      const entityRepository: Repository<any> = this.getRepository(
+        entity.tableName
+      )
 
-        const seedCount: number = definition.seedCount || this.defaultSeedCount
+      const seedCount: number = definition.seedCount || this.defaultSeedCount
 
-        console.log(
-          '\x1b[35m',
-          `[x] Seeding ${seedCount} ${definition.namePlural}...`
-        )
+      console.log(
+        '\x1b[35m',
+        `[x] Seeding ${seedCount} ${definition.namePlural}...`
+      )
 
-        return BluebirdPromise.map(
-          Array.from({
-            length: seedCount
-          }),
-          (_, index) => {
-            const newItem = entityRepository.create()
+      for (const index of Array(seedCount).keys()) {
+        const newItem = entityRepository.create()
 
-            entity.columns.forEach((column: ColumnMetadata) => {
-              if (column.propertyName === 'id') {
-                return
-              }
+        entity.columns.forEach((column: ColumnMetadata) => {
+          if (column.propertyName === 'id') {
+            return
+          }
 
-              const propSeederFn: (
-                index?: number,
-                relationSeedCount?: number
-              ) => any = Reflect.getMetadata(
-                `${column.propertyName}:seed`,
-                newItem
-              )
+          const propSeederFn: (
+            index?: number,
+            relationSeedCount?: number
+          ) => any = Reflect.getMetadata(`${column.propertyName}:seed`, newItem)
 
-              const propType: PropType = Reflect.getMetadata(
-                `${column.propertyName}:type`,
-                newItem
-              )
+          const propType: PropType = Reflect.getMetadata(
+            `${column.propertyName}:type`,
+            newItem
+          )
 
-              if (propType === PropType.Relation) {
-                const relatedEntity = Reflect.getMetadata(
-                  `${column.propertyName}:options`,
-                  newItem
-                )?.entity
+          if (propType === PropType.Relation) {
+            const relatedEntity = Reflect.getMetadata(
+              `${column.propertyName}:options`,
+              newItem
+            )?.entity
 
-                newItem[`${column.propertyName}`] = propSeederFn(
-                  index,
-                  relatedEntity.definition.seedCount || this.defaultSeedCount
-                )
-              } else {
-                newItem[column.propertyName] = propSeederFn(index)
-              }
-            })
+            newItem[`${column.propertyName}`] = propSeederFn(
+              index,
+              relatedEntity.definition.seedCount || this.defaultSeedCount
+            )
+          } else {
+            newItem[column.propertyName] = propSeederFn(index)
+          }
+        })
 
-            return entityRepository.save(newItem)
-          },
-          { concurrency: 1 }
-        )
-      },
-      { concurrency: 1 }
-    )
+        await entityRepository.save(newItem)
+      }
+    }
   }
 
   private getRepository(entityTableName: string): Repository<any> {
