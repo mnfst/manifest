@@ -9,4 +9,8 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 export class TextInputComponent {
   @Input() prop: PropertyDescription
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
+
+  onChange(event: any) {
+    this.valueChanged.emit(event.target.value)
+  }
 }
