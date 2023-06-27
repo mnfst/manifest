@@ -1,3 +1,3 @@
 export interface RelationOptions {
-  entity: any
+  entity: Object | string
 }

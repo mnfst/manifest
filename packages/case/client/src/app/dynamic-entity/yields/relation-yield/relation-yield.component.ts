@@ -19,7 +19,6 @@ export class RelationYieldComponent implements OnInit {
 
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe((res) => {
-      console.log(res.entities, this.options.entity)
       this.entityDescription = res.entities.find(
         (entity: EntityDescription) => entity.className === this.options.entity
       )

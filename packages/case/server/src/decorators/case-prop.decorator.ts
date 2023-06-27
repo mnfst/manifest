@@ -18,7 +18,7 @@ export const CaseProp = (
     if (definition?.type === PropType.Relation) {
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
-        (_type) => definition.options.entity,
+        (_type) => definition.options.entity as any,
         (entity) => entity[propertyKey]
       )(target, propertyKey)
     } else {

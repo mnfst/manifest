@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { cp } from 'fs'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 import { PropType } from '~shared/enums/prop-type.enum'
@@ -50,7 +51,11 @@ export class AppRulesService {
 
         if (propDescription.type === PropType.Relation) {
           // Convert class to string to use in the client.
-          propDescription.options.entity = propDescription.options.entity?.name
+          const relatedEntityName: string = (
+            propDescription.options.entity as any
+          ).name
+
+          propDescription.options.entity = relatedEntityName
         }
 
         return propDescription
