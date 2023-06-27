@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
 import { of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 import { SettingsService } from '../../../shared/services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -14,7 +15,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityListComponent implements OnInit {
   entities: any[] = []
   entity: any
-  fields: { name: string; label: string; type: PropType }[] = []
+  fields: PropertyDescription[] = []
 
   PropType = PropType
 

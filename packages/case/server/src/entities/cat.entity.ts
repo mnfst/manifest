@@ -19,14 +19,14 @@ export class Cat {
   name: string
 
   @CaseProp({
-    name: 'Age',
+    label: 'Age',
     type: PropType.Integer,
     seed: (index?: number) => index
   })
   age: number
 
   @CaseProp({
-    name: 'Owner',
+    label: 'Owner',
     type: PropType.Relation,
     settings: {
       entity: Owner

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
+import { PropType } from '~shared/enums/prop-type.enum'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Injectable()
 export class AppRulesService {
@@ -25,7 +27,7 @@ export class AppRulesService {
     }
   }
 
-  getEntityProps(entity: EntityMetadata) {
+  getEntityProps(entity: EntityMetadata): PropertyDescription[] {
     // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
     const entityRepository: Repository<any> = this.getRepository(
       entity.tableName
@@ -35,20 +37,20 @@ export class AppRulesService {
     return entity.columns
       .filter((column: ColumnMetadata) => column.propertyName !== 'id')
       .map((column: ColumnMetadata) => {
-        const propType = Reflect.getMetadata(
-          `${column.propertyName}:type`,
-          newItem
-        )
-        const label = Reflect.getMetadata(
-          `${column.propertyName}:name`,
-          newItem
-        )
-
-        return {
-          name: column.propertyName,
-          label: label || column.propertyName,
-          type: propType
+        const propDescription: PropertyDescription = {
+          propName: column.propertyName,
+          label: Reflect.getMetadata(`${column.propertyName}:label`, newItem),
+          type: Reflect.getMetadata(`${column.propertyName}:type`, newItem)
         }
+
+        if (propDescription.type === PropType.Relation) {
+          propDescription.settings = Reflect.getMetadata(
+            `${column.propertyName}:settings`,
+            newItem
+          )
+        }
+
+        return propDescription
       })
   }
 
