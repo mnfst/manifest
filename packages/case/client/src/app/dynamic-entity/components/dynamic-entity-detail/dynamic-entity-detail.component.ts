@@ -41,7 +41,7 @@ export class DynamicEntityDetailComponent {
 
         this.dynamicEntityService
           .show(this.entity.definition.slug, params['id'])
-          .subscribe((res) => {
+          .then((res) => {
             this.item = res
 
             this.props = Object.keys(this.item)

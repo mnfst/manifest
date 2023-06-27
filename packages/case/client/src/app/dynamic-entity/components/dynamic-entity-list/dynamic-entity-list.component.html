@@ -27,25 +27,29 @@
       <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
-            <th *ngFor="let field of fields">
-              {{ field.label }}
+            <th *ngFor="let prop of props">
+              {{ prop.label }}
             </th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of entity.data">
-            <td *ngFor="let field of fields">
-              <ng-container *ngIf="field.type === PropType.String">
-                {{ item[field.propName] }}
+          <tr *ngFor="let item of items">
+            <td *ngFor="let prop of props">
+              <ng-container *ngIf="prop.type === PropType.String">
+                {{ item[prop.propName] }}
               </ng-container>
               <span
-                *ngIf="field.type === PropType.Integer"
+                *ngIf="prop.type === PropType.Integer"
                 style="color: blue; font-style: italic"
               >
-                {{ item[field.propName] }}
+                {{ item[prop.propName] }}
               </span>
-              <!-- TODO: Relation yield here -->
+              <app-relation-yield
+                *ngIf="prop.type === PropType.Relation"
+                [entity]="item[prop.propName]"
+                [relatedEntity]="prop.relatedEntity"
+              ></app-relation-yield>
             </td>
             <td class="has-text-right">
               <a

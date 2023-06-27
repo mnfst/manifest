@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Injectable()
@@ -9,7 +10,7 @@ export class AppRulesService {
   constructor(private dataSource: DataSource) {}
 
   // Return a list of entities and their metadata and rules.
-  getAppEntities() {
+  getAppEntities(): EntityDescription[] {
     return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => ({
       className: entity.name,
       definition: (entity.inheritanceTree[0] as any).definition,
@@ -44,10 +45,10 @@ export class AppRulesService {
         }
 
         if (propDescription.type === PropType.Relation) {
-          propDescription.settings = Reflect.getMetadata(
+          propDescription.relatedEntity = Reflect.getMetadata(
             `${column.propertyName}:settings`,
             newItem
-          )
+          ).entity.name
         }
 
         return propDescription

@@ -55,11 +55,9 @@ export class DynamicEntityCreateEditComponent {
         this.fields = this.entity.props
 
         if (this.edit) {
-          this.item = await firstValueFrom(
-            this.dynamicEntityService.show(
-              this.entity.definition.slug,
-              params['id']
-            )
+          this.item = this.dynamicEntityService.show(
+            this.entity.definition.slug,
+            params['id']
           )
         }
 
@@ -77,13 +75,13 @@ export class DynamicEntityCreateEditComponent {
     if (this.item) {
       this.dynamicEntityService
         .update(this.entity.definition.slug, this.item.id, this.form.value)
-        .subscribe((res) => {
+        .then((res) => {
           this.router.navigate(['/dynamic', this.entity.definition.slug])
         })
     } else {
       this.dynamicEntityService
         .create(this.entity.definition.slug, this.form.value)
-        .subscribe((res) => {
+        .then((res) => {
           this.router.navigate(['/dynamic', this.entity.definition.slug])
         })
     }

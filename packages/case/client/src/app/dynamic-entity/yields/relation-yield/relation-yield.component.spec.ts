@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TextComponent } from './text.component';
+import { RelationYieldComponent } from './relation-yield.component';
 
-describe('TextComponent', () => {
-  let component: TextComponent;
-  let fixture: ComponentFixture<TextComponent>;
+describe('RelationYieldComponent', () => {
+  let component: RelationYieldComponent;
+  let fixture: ComponentFixture<RelationYieldComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TextComponent ]
+      declarations: [ RelationYieldComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(TextComponent);
+    fixture = TestBed.createComponent(RelationYieldComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

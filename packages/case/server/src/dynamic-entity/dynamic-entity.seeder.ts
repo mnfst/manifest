@@ -59,8 +59,6 @@ export class DynamicEntitySeeder {
             length: seedCount
           }),
           (_, index) => {
-            console.log(index)
-
             const newItem = entityRepository.create()
 
             entity.columns.forEach((column: ColumnMetadata) => {

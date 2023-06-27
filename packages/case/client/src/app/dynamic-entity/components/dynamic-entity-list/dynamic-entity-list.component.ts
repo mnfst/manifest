@@ -13,9 +13,12 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-list.component.scss']
 })
 export class DynamicEntityListComponent implements OnInit {
+  items: any[] = []
+
   entities: any[] = []
   entity: any
-  fields: PropertyDescription[] = []
+
+  props: PropertyDescription[] = []
 
   PropType = PropType
 
@@ -41,12 +44,12 @@ export class DynamicEntityListComponent implements OnInit {
           this.router.navigate(['/404'])
         }
 
-        this.fields = this.entity.props
+        this.props = this.entity.props
 
         this.dynamicEntityService
           .list(this.entity.definition.slug)
-          .subscribe((res) => {
-            this.entity.data = res
+          .then((res: any[]) => {
+            this.items = res
           })
       })
     })
@@ -55,7 +58,7 @@ export class DynamicEntityListComponent implements OnInit {
   delete(id: number): void {
     this.dynamicEntityService
       .delete(this.entity.definition.slug, id)
-      .subscribe((res) => {
+      .then((res) => {
         this.entity.data = this.entity.data.filter(
           (item: any) => item.id !== id
         )
