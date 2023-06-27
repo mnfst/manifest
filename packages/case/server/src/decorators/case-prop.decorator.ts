@@ -16,7 +16,7 @@ export const CaseProp = (
       propTypeCharacteristicsRecord[definition?.type || defaultType]
 
     if (definition?.type === PropType.Relation) {
-      // Many to one relation.
+      // Extend ManyToOne TypeORM decorator.
       ManyToOne(
         (_type) => definition?.settings?.entity,
         (entity) => entity[propertyKey]
@@ -41,8 +41,8 @@ export const CaseProp = (
       target
     )
     Reflect.defineMetadata(
-      `${propertyKey}:name`,
-      definition?.name || propertyKey,
+      `${propertyKey}:label`,
+      definition?.label || propertyKey,
       target
     )
     Reflect.defineMetadata(
