@@ -30,6 +30,6 @@ export class InputComponent {
   PropType = PropType
 
   onChange(event: any) {
-    this.valueChanged.emit(event.target.value)
+    this.valueChanged.emit(event)
   }
 }
