@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core'
 
 @Component({
   selector: 'app-text-yield',
@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./text-yield.component.scss']
 })
 export class TextYieldComponent {
-
+  @Input() value: string
 }

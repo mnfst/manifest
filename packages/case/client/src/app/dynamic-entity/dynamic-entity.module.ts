@@ -8,8 +8,10 @@ import { DynamicEntityCreateEditComponent } from './components/dynamic-entity-cr
 import { DynamicEntityDetailComponent } from './components/dynamic-entity-detail/dynamic-entity-detail.component'
 import { DynamicEntityListComponent } from './components/dynamic-entity-list/dynamic-entity-list.component'
 import { SelectInputComponent } from './inputs/select-input/select-input.component'
+import { NumberYieldComponent } from './yields/number-yield/number-yield.component'
 import { RelationYieldComponent } from './yields/relation-yield/relation-yield.component'
 import { TextYieldComponent } from './yields/text-yield/text-yield.component'
+import { YieldComponent } from './yields/yield.component'
 
 @NgModule({
   declarations: [
@@ -18,7 +20,9 @@ import { TextYieldComponent } from './yields/text-yield/text-yield.component'
     DynamicEntityListComponent,
     SelectInputComponent,
     RelationYieldComponent,
-    TextYieldComponent
+    TextYieldComponent,
+    YieldComponent,
+    NumberYieldComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]

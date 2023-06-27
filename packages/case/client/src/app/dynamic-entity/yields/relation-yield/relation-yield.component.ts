@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { RelationOptions } from '~shared/interfaces/type-settings/relation-options.interface'
 
 import { SettingsService } from '../../../services/settings.service'
 
@@ -13,13 +14,14 @@ export class RelationYieldComponent implements OnInit {
 
   constructor(private settingsService: SettingsService) {}
 
-  @Input() entity: any
-  @Input() relatedEntity: string
+  @Input() item: any
+  @Input() options: RelationOptions
 
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe((res) => {
+      console.log(res.entities, this.options.entity)
       this.entityDescription = res.entities.find(
-        (entity: EntityDescription) => entity.className === this.relatedEntity
+        (entity: EntityDescription) => entity.className === this.options.entity
       )
     })
   }

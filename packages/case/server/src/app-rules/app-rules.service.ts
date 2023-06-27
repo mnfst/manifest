@@ -41,14 +41,16 @@ export class AppRulesService {
         const propDescription: PropertyDescription = {
           propName: column.propertyName,
           label: Reflect.getMetadata(`${column.propertyName}:label`, newItem),
-          type: Reflect.getMetadata(`${column.propertyName}:type`, newItem)
+          type: Reflect.getMetadata(`${column.propertyName}:type`, newItem),
+          options: Reflect.getMetadata(
+            `${column.propertyName}:options`,
+            newItem
+          )
         }
 
         if (propDescription.type === PropType.Relation) {
-          propDescription.relatedEntity = Reflect.getMetadata(
-            `${column.propertyName}:settings`,
-            newItem
-          ).entity.name
+          // Convert class to string to use in the client.
+          propDescription.options.entity = propDescription.options.entity?.name
         }
 
         return propDescription

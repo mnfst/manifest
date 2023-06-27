@@ -28,9 +28,12 @@
           <tr *ngFor="let prop of entityDescription.props">
             <td>{{ prop.label }}</td>
             <td>
-              <strong>{{ item[prop.propName] }}</strong>
+              <app-yield
+                [value]="item[prop.propName]"
+                [type]="prop.type"
+                [options]="prop.options"
+              ></app-yield>
             </td>
-            <!-- TODO: Relation yield here -->
           </tr>
         </tbody>
       </table>

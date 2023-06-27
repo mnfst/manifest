@@ -36,20 +36,11 @@
         <tbody>
           <tr *ngFor="let item of items">
             <td *ngFor="let prop of props">
-              <ng-container *ngIf="prop.type === PropType.String">
-                {{ item[prop.propName] }}
-              </ng-container>
-              <span
-                *ngIf="prop.type === PropType.Integer"
-                style="color: blue; font-style: italic"
-              >
-                {{ item[prop.propName] }}
-              </span>
-              <app-relation-yield
-                *ngIf="prop.type === PropType.Relation"
-                [entity]="item[prop.propName]"
-                [relatedEntity]="prop.relatedEntity"
-              ></app-relation-yield>
+              <app-yield
+                [value]="item[prop.propName]"
+                [type]="prop.type"
+                [options]="prop.options"
+              ></app-yield>
             </td>
             <td class="has-text-right">
               <a

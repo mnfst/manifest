@@ -18,7 +18,7 @@ export const CaseProp = (
     if (definition?.type === PropType.Relation) {
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
-        (_type) => definition?.settings?.entity,
+        (_type) => definition.options.entity,
         (entity) => entity[propertyKey]
       )(target, propertyKey)
     } else {
@@ -46,8 +46,8 @@ export const CaseProp = (
       target
     )
     Reflect.defineMetadata(
-      `${propertyKey}:settings`,
-      definition?.settings || {},
+      `${propertyKey}:options`,
+      definition?.options || {},
       target
     )
   }

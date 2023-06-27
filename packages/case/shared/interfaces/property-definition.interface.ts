@@ -1,9 +1,9 @@
 import { PropType } from '../enums/prop-type.enum'
-import { RelationSettings } from './type-settings/relation-settings.interface'
+import { RelationOptions } from './type-settings/relation-options.interface'
 
 export interface PropertyDefinition {
   label?: string
   type?: PropType
   seed?: (index?: number) => any
-  settings?: RelationSettings
+  options?: RelationOptions
 }

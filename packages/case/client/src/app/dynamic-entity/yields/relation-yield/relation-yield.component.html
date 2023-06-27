@@ -1,6 +1,4 @@
-<a
-  [routerLink]="['/', 'dynamic', entityDescription.definition.slug, entity.id]"
->
+<a [routerLink]="['/', 'dynamic', entityDescription.definition.slug, item.id]">
   <i class="icon icon-link mr-3 is-size-6 my-0"></i>
-  <span>{{ entity[entityDescription.definition.propIdentifier] }}</span>
+  <span>{{ item[entityDescription.definition.propIdentifier] }}</span>
 </a>

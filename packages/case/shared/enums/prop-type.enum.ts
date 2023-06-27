@@ -1,6 +1,6 @@
 export enum PropType {
   String,
-  Integer,
+  Number,
   Currency,
   Date,
   Text,
