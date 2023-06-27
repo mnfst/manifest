@@ -5,6 +5,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
 import { CaseEntity } from '../decorators/case-entity.decorator'
 import { CaseProp } from '../decorators/case-prop.decorator'
 import { Owner } from './owner.entity'
+import { type } from 'os'
 
 @CaseEntity({
   nameSingular: 'cat',
@@ -21,6 +22,12 @@ export class Cat {
     seed: () => faker.person.firstName()
   })
   name: string
+
+  @CaseProp({
+    seed: () => faker.lorem.sentences(),
+    type: PropType.Text
+  })
+  description: string
 
   @CaseProp({
     label: 'Age',

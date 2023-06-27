@@ -2,15 +2,15 @@ import { Component, EventEmitter, Input, Output } from '@angular/core'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
-  selector: 'app-text-input',
+  selector: 'app-string-input',
   template: `<input
     class="input form-control"
-    type="text"
+    type="string"
     (change)="onChange($event)"
   />`,
-  styleUrls: ['./text-input.component.scss']
+  styleUrls: ['./string-input.component.scss']
 })
-export class TextInputComponent {
+export class StringInputComponent {
   @Input() prop: PropertyDescription
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
 

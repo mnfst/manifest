@@ -14,7 +14,8 @@ import { TextInputComponent } from './inputs/text-input/text-input.component'
 import { NumberYieldComponent } from './yields/number-yield/number-yield.component'
 import { RelationYieldComponent } from './yields/relation-yield/relation-yield.component'
 import { TextYieldComponent } from './yields/text-yield/text-yield.component'
-import { YieldComponent } from './yields/yield.component'
+import { YieldComponent } from './yields/yield.component';
+import { StringInputComponent } from './inputs/string-input/string-input.component'
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { YieldComponent } from './yields/yield.component'
     NumberYieldComponent,
     NumberInputComponent,
     TextInputComponent,
-    InputComponent
+    InputComponent,
+    StringInputComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]
