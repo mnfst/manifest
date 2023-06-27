@@ -1,26 +1,26 @@
-import { Component, Input } from '@angular/core'
-import { SettingsService } from '../../../shared/services/settings.service'
-
+import { Component, Input, OnInit } from '@angular/core'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+
+import { SettingsService } from '../../../shared/services/settings.service'
 
 @Component({
   selector: 'app-relation-yield',
   templateUrl: './relation-yield.component.html',
   styleUrls: ['./relation-yield.component.scss']
 })
-export class RelationYieldComponent {
+export class RelationYieldComponent implements OnInit {
   entityDescription: EntityDescription
 
-  constructor(settingsService: SettingsService) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.entityDescription = res.entities.find(
-        (entity: EntityDescription) => entity.className === this.relatedEntity
-      )
-
-      console.log(this.entityDescription, this.relatedEntity)
-    })
-  }
+  constructor(private settingsService: SettingsService) {}
 
   @Input() entity: any
   @Input() relatedEntity: string
+
+  ngOnInit(): void {
+    this.settingsService.loadSettings().subscribe((res) => {
+      this.entityDescription = res.entities.find(
+        (entity: EntityDescription) => entity.className === this.relatedEntity
+      )
+    })
+  }
 }

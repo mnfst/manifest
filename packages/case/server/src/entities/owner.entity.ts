@@ -7,6 +7,7 @@ import { CaseProp } from '../decorators/case-prop.decorator'
 @CaseEntity({
   nameSingular: 'owner',
   namePlural: 'owners',
+  propIdentifier: 'name',
   slug: 'owner',
   seedCount: 5
 })
