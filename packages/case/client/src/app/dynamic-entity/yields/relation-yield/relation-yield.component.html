@@ -1,4 +1,9 @@
-<a [routerLink]="['/', 'dynamic', entityDescription.definition.slug, item.id]">
+<a
+  [routerLink]="['/', 'dynamic', entityDescription.definition.slug, item.id]"
+  *ngIf="item"
+>
   <i class="icon icon-link mr-3 is-size-6 my-0"></i>
   <span>{{ item[entityDescription.definition.propIdentifier] }}</span>
 </a>
+
+<span *ngIf="!item">-</span>
