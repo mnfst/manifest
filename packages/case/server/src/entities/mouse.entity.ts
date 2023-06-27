@@ -7,7 +7,8 @@ import { CaseProp } from '../decorators/case-prop.decorator'
 @CaseEntity({
   nameSingular: 'mouse',
   namePlural: 'mouses',
-  slug: 'mouse'
+  slug: 'mouse',
+  propIdentifier: 'nickName'
 })
 export class Mouse {
   @PrimaryGeneratedColumn()

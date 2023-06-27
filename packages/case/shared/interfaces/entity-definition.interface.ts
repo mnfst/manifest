@@ -3,5 +3,5 @@ export interface EntityDefinition {
   namePlural: string
   slug: string
   seedCount?: number
-  propIdentifier?: string
+  propIdentifier: string
 }

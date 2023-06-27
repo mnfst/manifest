@@ -6,7 +6,8 @@ import { CaseProp } from '../decorators/case-prop.decorator'
 @CaseEntity({
   nameSingular: 'user',
   namePlural: 'users',
-  slug: 'user'
+  slug: 'user',
+  propIdentifier: 'name'
 })
 export class User {
   @PrimaryGeneratedColumn()

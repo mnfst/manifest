@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
-import { ActivatedRoute, Params, Router } from '@angular/router'
-import { of } from 'rxjs'
+import { ActivatedRoute, Router } from '@angular/router'
 
+import { EntityDescription } from '../../../../../../shared/interfaces/entity-description.interface'
 import { SettingsService } from '../../../shared/services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
@@ -11,40 +11,28 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-detail.component.scss']
 })
 export class DynamicEntityDetailComponent {
-  entities: any[] = []
-  entity: any
-  props: string[] = []
-
   item: any
+  entityDescription: EntityDescription
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
-    settingsService: SettingsService
-  ) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.entities = res.entities
-    })
-  }
+    private settingsService: SettingsService
+  ) {}
 
   ngOnInit(): void {
-    of(this.entities).subscribe((res) => {
-      this.activatedRoute.params.subscribe((params: Params) => {
-        this.entity = this.entities.find(
-          (entity) => entity.definition.slug === params['entityName']
+    this.activatedRoute.params.subscribe((params) => {
+      this.settingsService.loadSettings().subscribe((res) => {
+        this.entityDescription = res.entities.find(
+          (entity: EntityDescription) =>
+            entity.definition.slug === params['entityName']
         )
 
-        if (!this.entity) {
-          this.router.navigate(['/404'])
-        }
-
         this.dynamicEntityService
-          .show(this.entity.definition.slug, params['id'])
+          .show(this.entityDescription.definition.slug, params['id'])
           .then((res) => {
             this.item = res
-
-            this.props = Object.keys(this.item)
           })
       })
     })

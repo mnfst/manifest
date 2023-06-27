@@ -10,7 +10,8 @@ import { Owner } from './owner.entity'
   nameSingular: 'cat',
   namePlural: 'cats',
   slug: 'cat',
-  seedCount: 50
+  seedCount: 50,
+  propIdentifier: 'name'
 })
 export class Cat {
   @PrimaryGeneratedColumn()
