@@ -20,7 +20,8 @@ export class RelationYieldComponent implements OnInit {
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe((res) => {
       this.entityDescription = res.entities.find(
-        (entity: EntityDescription) => entity.className === this.options.entity
+        (entity: EntityDescription) =>
+          entity.className === this.options.entityName
       )
     })
   }
