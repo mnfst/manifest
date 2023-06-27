@@ -30,6 +30,18 @@ export class Cat {
   description: string
 
   @CaseProp({
+    seed: () => faker.number.int({ min: 0, max: 1000 }),
+    type: PropType.Currency
+  })
+  price: string
+
+  @CaseProp({
+    seed: () => faker.datatype.boolean(),
+    type: PropType.Boolean
+  })
+  adopted: string
+
+  @CaseProp({
     label: 'Age',
     type: PropType.Number,
     seed: (index?: number) => index

@@ -15,7 +15,11 @@ import { NumberYieldComponent } from './yields/number-yield/number-yield.compone
 import { RelationYieldComponent } from './yields/relation-yield/relation-yield.component'
 import { TextYieldComponent } from './yields/text-yield/text-yield.component'
 import { YieldComponent } from './yields/yield.component';
-import { StringInputComponent } from './inputs/string-input/string-input.component'
+import { StringInputComponent } from './inputs/string-input/string-input.component';
+import { CurrencyInputComponent } from './inputs/currency-input/currency-input.component';
+import { DateInputComponent } from './inputs/date-input/date-input.component';
+import { BooleanInputComponent } from './inputs/boolean-input/boolean-input.component';
+import { EmailInputComponent } from './inputs/email-input/email-input.component'
 
 @NgModule({
   declarations: [
@@ -30,7 +34,11 @@ import { StringInputComponent } from './inputs/string-input/string-input.compone
     NumberInputComponent,
     TextInputComponent,
     InputComponent,
-    StringInputComponent
+    StringInputComponent,
+    CurrencyInputComponent,
+    DateInputComponent,
+    BooleanInputComponent,
+    EmailInputComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]

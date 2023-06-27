@@ -26,6 +26,18 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       *ngIf="prop.type === PropType.Relation"
     >
     </app-select-input>
+    <app-currency-input
+      [prop]="prop"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Currency"
+    >
+    </app-currency-input>
+    <app-boolean-input
+      [prop]="prop"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Boolean"
+    >
+    </app-boolean-input>
   `
 })
 export class InputComponent {
