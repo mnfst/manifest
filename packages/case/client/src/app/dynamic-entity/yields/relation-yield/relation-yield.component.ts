@@ -23,7 +23,6 @@ export class RelationYieldComponent implements OnInit {
         (entity: EntityDescription) =>
           entity.className === this.options.entityName
       )
-      console.log(this.entityDescription, res, this.item)
     })
   }
 }

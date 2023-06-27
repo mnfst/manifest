@@ -3,10 +3,18 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 @Component({
   selector: 'app-text-input',
-  templateUrl: './text-input.component.html',
+  template: `<input
+    class="input form-control"
+    type="string"
+    (change)="onChange($event)"
+  />`,
   styleUrls: ['./text-input.component.scss']
 })
 export class TextInputComponent {
   @Input() prop: PropertyDescription
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
+
+  onChange(event: any) {
+    this.valueChanged.emit(event.target.value)
+  }
 }
