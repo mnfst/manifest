@@ -1,4 +1,4 @@
-import { Column } from 'typeorm'
+import { Column, ManyToOne } from 'typeorm'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDefinition } from '~shared/interfaces/property-definition.interface'
 
@@ -15,12 +15,21 @@ export const CaseProp = (
     const typeCharacteristics: PropTypeCharacteristics =
       propTypeCharacteristicsRecord[definition?.type || defaultType]
 
-    // Extend the Column decorator from TypeORM.
-    Column({
-      type: typeCharacteristics.columnType,
-      nullable: true // Everything is nullable for now (for simplicity).
-    })(target, propertyKey)
+    if (definition?.type === PropType.Relation) {
+      // Many to one relation.
+      ManyToOne(
+        (_type) => definition?.settings?.entity,
+        (entity) => entity[propertyKey]
+      )(target, propertyKey)
+    } else {
+      // Extend the Column decorator from TypeORM.
+      Column({
+        type: typeCharacteristics.columnType,
+        nullable: true // Everything is nullable for now (for simplicity).
+      })(target, propertyKey)
+    }
 
+    // Set the property definition on the target.
     Reflect.defineMetadata(
       `${propertyKey}:seed`,
       definition?.seed || typeCharacteristics.defaultSeedFunction,
@@ -34,6 +43,11 @@ export const CaseProp = (
     Reflect.defineMetadata(
       `${propertyKey}:name`,
       definition?.name || propertyKey,
+      target
+    )
+    Reflect.defineMetadata(
+      `${propertyKey}:settings`,
+      definition?.settings || {},
       target
     )
   }

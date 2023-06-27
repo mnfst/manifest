@@ -8,7 +8,8 @@ import { Owner } from './owner.entity'
 @CaseEntity({
   nameSingular: 'cat',
   namePlural: 'cats',
-  slug: 'cat'
+  slug: 'cat',
+  seedCount: 50
 })
 export class Cat {
   @PrimaryGeneratedColumn()
