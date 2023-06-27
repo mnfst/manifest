@@ -35,24 +35,17 @@
             <div class="form-group">
               <div class="field mt-2 mb-4" *ngFor="let field of fields">
                 <div class="control">
-                  <label [for]="field.name">{{ field.label }}</label>
+                  <label [for]="field.propName">{{ field.label }}</label>
                   <input
-                    [id]="field.name"
+                    [id]="field.propName"
                     [placeholder]="field.label"
-                    [formControlName]="field.name"
+                    [formControlName]="field.propName"
                     class="input form-control"
                     type="text"
                     *ngIf="field.type === PropType.String"
                   />
-                  <input
-                    [id]="field.name"
-                    [placeholder]="field.label"
-                    [formControlName]="field.name"
-                    class="input form-control"
-                    type="number"
-                    step="1"
-                    *ngIf="field.type === PropType.Integer"
-                  />
+
+                  <app-number-input [field]="field" placeholder="Enter a number por favor" (inputValueChanged)="onFieldValueChange({field:field, newValue:$event })"  *ngIf="field.type === PropType.Number"></app-number-input>
                   <!-- TODO: Relation select here -->
                 </div>
               </div>

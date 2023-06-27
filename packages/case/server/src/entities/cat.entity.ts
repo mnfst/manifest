@@ -20,7 +20,7 @@ export class Cat {
 
   @CaseProp({
     label: 'Age',
-    type: PropType.Integer,
+    type: PropType.Number,
     seed: (index?: number) => index
   })
   age: number

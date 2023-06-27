@@ -15,7 +15,7 @@ export const propTypeCharacteristicsRecord: Record<
     columnType: 'varchar',
     defaultSeedFunction: (index: number) => `Value ${index}`
   },
-  [PropType.Integer]: {
+  [PropType.Number]: {
     columnType: 'int',
     defaultSeedFunction: (index: number) => index
   },

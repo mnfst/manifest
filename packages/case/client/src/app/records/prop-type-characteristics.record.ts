@@ -15,7 +15,7 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Text,
     yield: YieldType.Text
   },
-  [PropType.Integer]: {
+  [PropType.Number]: {
     input: InputType.Number,
     yield: YieldType.Number
   },

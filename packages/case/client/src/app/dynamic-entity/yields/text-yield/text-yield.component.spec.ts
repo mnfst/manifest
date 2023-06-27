@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TextComponent } from './text.component';
+import { TextYieldComponent } from './text-yield.component';
 
-describe('TextComponent', () => {
-  let component: TextComponent;
-  let fixture: ComponentFixture<TextComponent>;
+describe('TextYieldComponent', () => {
+  let component: TextYieldComponent;
+  let fixture: ComponentFixture<TextYieldComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TextComponent ]
+      declarations: [ TextYieldComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(TextComponent);
+    fixture = TestBed.createComponent(TextYieldComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
