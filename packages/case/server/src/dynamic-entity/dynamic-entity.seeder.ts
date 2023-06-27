@@ -18,6 +18,8 @@ export class DynamicEntitySeeder {
       this.dataSource.entityMetadatas
     )
 
+    console.log(entities.map((entity) => entity.tableName))
+
     const queryRunner = this.dataSource.createQueryRunner()
 
     await queryRunner.query('PRAGMA foreign_keys = OFF')
@@ -38,6 +40,7 @@ export class DynamicEntitySeeder {
 
     console.log('\x1b[35m', '[x] Removed all existing data...')
 
+    // TODO: This does not sequence promises and therefore fails when relations are seeded in the wrong order.
     return BluebirdPromise.map(
       entities,
       (entity: EntityMetadata) => {
@@ -81,7 +84,7 @@ export class DynamicEntitySeeder {
 
               if (propType === PropType.Relation) {
                 const relatedEntity = Reflect.getMetadata(
-                  `${column.propertyName}:settings`,
+                  `${column.propertyName}:options`,
                   newItem
                 )?.entity
 
