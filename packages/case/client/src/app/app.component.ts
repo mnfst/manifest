@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
-import { SettingsService } from './shared/services/settings.service'
+import { SettingsService } from './services/settings.service'
 
 @Component({
   selector: 'app-root',

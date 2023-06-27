@@ -4,7 +4,7 @@ import { ActivatedRoute, Data, Params, Router } from '@angular/router'
 import { combineLatest, firstValueFrom, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 
-import { SettingsService } from '../../../shared/services/settings.service'
+import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({

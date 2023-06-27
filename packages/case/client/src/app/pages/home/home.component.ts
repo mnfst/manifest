@@ -1,6 +1,5 @@
 import { Component } from '@angular/core'
-import { NavigationEnd, Router } from '@angular/router'
-import { SettingsService } from 'src/app/shared/services/settings.service'
+import { SettingsService } from 'src/app/services/settings.service'
 
 @Component({
   selector: 'app-home',
@@ -10,7 +9,7 @@ import { SettingsService } from 'src/app/shared/services/settings.service'
 export class HomeComponent {
   settings: any
 
-  constructor(private router: Router, settingsService: SettingsService) {
+  constructor(settingsService: SettingsService) {
     settingsService.loadSettings().subscribe((res) => {
       this.settings = res.settings
     })

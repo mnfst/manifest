@@ -4,7 +4,7 @@ import { of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
-import { SettingsService } from '../../../shared/services/settings.service'
+import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({

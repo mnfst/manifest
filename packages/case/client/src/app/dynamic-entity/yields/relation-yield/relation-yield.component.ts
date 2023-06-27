@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 
-import { SettingsService } from '../../../shared/services/settings.service'
+import { SettingsService } from '../../../services/settings.service'
 
 @Component({
   selector: 'app-relation-yield',
