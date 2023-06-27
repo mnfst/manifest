@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
+import { SelectOption } from '~shared/interfaces/select-option.interface'
 
 @Injectable()
 export class DynamicEntityService {
   constructor(private dataSource: DataSource) {}
 
-  findAll(entityTableName: string) {
+  findAll(entityTableName: string): Promise<any[]> {
     const entityRepository: Repository<any> =
       this.getRepository(entityTableName)
 
@@ -21,6 +22,20 @@ export class DynamicEntityService {
         (relation: RelationMetadata) => relation.propertyName
       )
     })
+  }
+
+  async findSelectOptions(entityTableName: string): Promise<SelectOption[]> {
+    const items: any[] = await this.findAll(entityTableName)
+
+    // Get entity propIdentifier.
+    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
+      (entity: EntityMetadata) => entity.tableName === entityTableName
+    )
+
+    return items.map((item: any) => ({
+      id: item.id,
+      label: item[(entity.target as any).definition.propIdentifier]
+    }))
   }
 
   async findOne(entityTableName: string, id: number) {

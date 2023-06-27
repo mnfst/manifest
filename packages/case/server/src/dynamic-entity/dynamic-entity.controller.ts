@@ -19,6 +19,11 @@ export class DynamicEntityController {
     return this.dynamicEntityService.findAll(entity)
   }
 
+  @Get(':entity/select-options')
+  findSelectOptions(@Param('entity') entity: string): Promise<any> {
+    return this.dynamicEntityService.findSelectOptions(entity)
+  }
+
   @Get(':entity/:id')
   findOne(
     @Param('entity') entity: string,
