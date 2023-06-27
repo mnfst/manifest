@@ -6,6 +6,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
 
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
   selector: 'app-dynamic-entity-create-edit',
@@ -17,7 +18,7 @@ export class DynamicEntityCreateEditComponent {
   entity: any
 
   item: any
-  fields: { name: string; label: string; type: PropType }[] = []
+  fields: PropertyDescription[] = []
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean = false
@@ -61,14 +62,21 @@ export class DynamicEntityCreateEditComponent {
           )
         }
 
-        this.fields.forEach((prop: { name: string; type: PropType }) => {
+        this.fields.forEach((field) => {
           this.form.addControl(
-            prop.name,
-            new FormControl(this.item ? this.item[prop.name] : null)
+            field.propName,
+            new FormControl(this.item ? this.item[field.propName] : null)
           )
         })
       })
     })
+  }
+
+  onFieldValueChange(params: {
+    newValue: any
+    field: PropertyDescription
+  }): void {
+    this.form.controls[params.field.propName].setValue(params.newValue)
   }
 
   submit(): void {

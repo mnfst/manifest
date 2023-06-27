@@ -13,6 +13,8 @@ import { RelationYieldComponent } from './yields/relation-yield/relation-yield.c
 import { TextYieldComponent } from './yields/text-yield/text-yield.component'
 import { YieldComponent } from './yields/yield.component'
 
+import { NumberInputComponent } from './inputs/number-input/number-input.component'
+import { TextInputComponent } from './inputs/text-input/text-input.component'
 @NgModule({
   declarations: [
     DynamicEntityCreateEditComponent,
@@ -22,7 +24,9 @@ import { YieldComponent } from './yields/yield.component'
     RelationYieldComponent,
     TextYieldComponent,
     YieldComponent,
-    NumberYieldComponent
+    NumberYieldComponent,
+    NumberInputComponent,
+    TextInputComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]
