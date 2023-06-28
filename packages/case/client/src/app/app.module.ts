@@ -6,15 +6,14 @@ import { firstValueFrom } from 'rxjs'
 
 import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
-import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
-import { SettingsService } from './services/settings.service'
-import { SideMenuComponent } from './elements/side-menu/side-menu.component'
-import { TouchMenuComponent } from './elements/touch-menu/touch-menu.component'
-import { TopMenuComponent } from './elements/top-menu/top-menu.component'
-import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component'
 import { AvatarComponent } from './components/avatar/avatar.component'
+import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
+import { FooterComponent } from './layout/footer/footer.component'
+import { SideMenuComponent } from './layout/side-menu/side-menu.component'
+import { TopMenuComponent } from './layout/top-menu/top-menu.component'
+import { TouchMenuComponent } from './layout/touch-menu/touch-menu.component'
 import { HomeComponent } from './pages/home/home.component'
-import { FooterComponent } from './elements/footer/footer.component'
+import { SettingsService } from './services/settings.service'
 
 @NgModule({
   declarations: [
@@ -22,7 +21,6 @@ import { FooterComponent } from './elements/footer/footer.component'
     SideMenuComponent,
     TouchMenuComponent,
     TopMenuComponent,
-    BreadcrumbsComponent,
     AvatarComponent,
     HomeComponent,
     FooterComponent
