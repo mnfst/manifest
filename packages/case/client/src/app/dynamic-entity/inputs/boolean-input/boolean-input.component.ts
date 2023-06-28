@@ -17,6 +17,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
         for=""
         (click)="toggleCheck()"
         [ngClass]="{ 'is-checked': checked }"
+        #input
         >{{ prop.label }}
         <span class="checkmark"></span>
       </label>

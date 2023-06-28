@@ -18,14 +18,12 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
         type="email"
         placeholder="Email"
         (change)="onChange($event)"
+        #input
       />
       <span class="icon is-small is-left">
         <i class="fas fa-envelope"></i>
       </span>
-      <span
-        class="icon is-small is-right"
-        *ngIf="this.input.nativeElement.value"
-      >
+      <span class="icon is-small is-right">
         <i class="fas fa-check"></i>
       </span>
     </div>`,
@@ -35,7 +33,7 @@ export class EmailInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
 
-  @Output() valueChanged: EventEmitter<number> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 
   @ViewChild('input', { static: true }) input: ElementRef
 

@@ -64,4 +64,11 @@ export class Cat {
     seed: () => faker.internet.email()
   })
   email: string
+
+  @CaseProp({
+    label: 'Birthdate',
+    type: PropType.Date,
+    seed: () => faker.date.past()
+  })
+  birthdate: Date
 }
