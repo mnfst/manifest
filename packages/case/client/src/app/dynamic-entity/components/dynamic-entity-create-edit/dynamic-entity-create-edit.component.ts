@@ -7,6 +7,7 @@ import { EntityDescription } from '~shared/interfaces/entity-description.interfa
 
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
+import { BreadcrumbService } from '../../../services/breadcrumb.service'
 
 @Component({
   selector: 'app-dynamic-entity-create-edit',
@@ -29,6 +30,7 @@ export class DynamicEntityCreateEditComponent {
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
     private formBuilder: FormBuilder,
+    private breadcrumbService: BreadcrumbService,
     settingsService: SettingsService
   ) {
     settingsService.loadSettings().subscribe((res) => {
@@ -57,6 +59,30 @@ export class DynamicEntityCreateEditComponent {
             this.entity.definition.slug,
             params['id']
           )
+
+          this.breadcrumbService.breadcrumbLinks.next([
+            {
+              label: this.entity.definition.namePlural,
+              path: `/dynamic-entity/${this.entity.definition.slug}`
+            },
+            {
+              label: this.item[this.entity.definition.propIdentifier],
+              path: `/dynamic-entity/${this.entity.definition.slug}/${this.item.id}`
+            },
+            {
+              label: 'Edit'
+            }
+          ])
+        } else {
+          this.breadcrumbService.breadcrumbLinks.next([
+            {
+              label: this.entity.definition.namePlural,
+              path: `/dynamic-entity/${this.entity.definition.slug}`
+            },
+            {
+              label: `Create a new ${this.entity.definition.nameSingular}`
+            }
+          ])
         }
 
         this.entity.props.forEach((prop) => {

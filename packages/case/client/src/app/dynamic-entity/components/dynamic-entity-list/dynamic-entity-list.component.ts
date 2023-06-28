@@ -6,6 +6,8 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
+import { BreadcrumbService } from '../../../services/breadcrumb.service'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 
 @Component({
   selector: 'app-dynamic-entity-list',
@@ -15,8 +17,8 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityListComponent implements OnInit {
   items: any[] = []
 
-  entities: any[] = []
-  entity: any
+  entities: EntityDescription[] = []
+  entity: EntityDescription
 
   props: PropertyDescription[] = []
 
@@ -26,16 +28,19 @@ export class DynamicEntityListComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
+    private breadcrumbService: BreadcrumbService,
     settingsService: SettingsService
   ) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.entities = res.entities
-    })
+    settingsService
+      .loadSettings()
+      .subscribe((res: { entities: EntityDescription[] }) => {
+        this.entities = res.entities
+      })
   }
 
   ngOnInit(): void {
     of(this.entities).subscribe((res) => {
-      this.activatedRoute.params.subscribe((params: Params) => {
+      this.activatedRoute.params.subscribe(async (params: Params) => {
         this.entity = this.entities.find(
           (entity) => entity.definition.slug === params['entityName']
         )
@@ -46,11 +51,15 @@ export class DynamicEntityListComponent implements OnInit {
 
         this.props = this.entity.props
 
-        this.dynamicEntityService
-          .list(this.entity.definition.slug)
-          .then((res: any[]) => {
-            this.items = res
-          })
+        this.breadcrumbService.breadcrumbLinks.next([
+          {
+            label: this.entity.definition.namePlural
+          }
+        ])
+
+        this.items = await this.dynamicEntityService.list(
+          this.entity.definition.slug
+        )
       })
     })
   }
@@ -59,9 +68,7 @@ export class DynamicEntityListComponent implements OnInit {
     this.dynamicEntityService
       .delete(this.entity.definition.slug, id)
       .then((res) => {
-        this.entity.data = this.entity.data.filter(
-          (item: any) => item.id !== id
-        )
+        this.items = this.items.filter((item: any) => item.id !== id)
       })
   }
 }
