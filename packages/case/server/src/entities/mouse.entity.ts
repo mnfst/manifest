@@ -3,6 +3,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
 
 import { CaseEntity } from '../decorators/case-entity.decorator'
 import { CaseProp } from '../decorators/case-prop.decorator'
+import { Cat } from './cat.entity'
 
 @CaseEntity({
   nameSingular: 'mouse',
@@ -26,4 +27,13 @@ export class Mouse {
     type: PropType.String
   })
   familyName: string
+
+  @CaseProp({
+    label: 'Predator',
+    type: PropType.Relation,
+    options: {
+      entity: Cat
+    }
+  })
+  predator: Cat
 }

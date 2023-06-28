@@ -33,11 +33,12 @@
             class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
           >
             <div class="form-group">
-              <div class="field mt-2 mb-4" *ngFor="let prop of props">
+              <div class="field mt-2 mb-4" *ngFor="let prop of entity.props">
                 <div class="control">
                   <label [for]="prop.propName">{{ prop.label }}</label>
                   <app-input
                     [prop]="prop"
+                    [value]="edit ? item[prop.propName] : null"
                     (valueChanged)="
                       onChange({
                         propName: prop.propName,

@@ -34,4 +34,8 @@ export class SelectInputComponent implements OnInit {
       )
     })
   }
+
+  onChange(event: any): void {
+    this.valueChanged.emit(event.target.value)
+  }
 }
