@@ -11,7 +11,7 @@ export const propTypeCharacteristicsRecord: Record<
   PropType,
   PropTypeCharacteristics
 > = {
-  [PropType.String]: {
+  [PropType.Text]: {
     input: InputType.Text,
     yield: YieldType.Text
   },
@@ -38,7 +38,7 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Number,
     yield: YieldType.Number
   },
-  [PropType.Text]: {
+  [PropType.TextArea]: {
     input: InputType.Number,
     yield: YieldType.Number
   },
@@ -64,7 +64,7 @@ export const propTypeCharacteristicsRecord: Record<
   }
 
   // ! Legacy CASE v1
-  //   [PropType.String]: {
+  //   [PropType.Text]: {
   //     server: {
   //       columnType: 'varchar',
   //       fakerFunction: 'faker.random.word()',
@@ -102,7 +102,7 @@ export const propTypeCharacteristicsRecord: Record<
   //       yieldType: 'Date'
   //     }
   //   },
-  //   [PropType.Text]: {
+  //   [PropType.TextArea]: {
   //     server: {
   //       columnType: 'text',
   //       fakerFunction: 'faker.lorem.paragraphs()',

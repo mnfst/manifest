@@ -20,13 +20,13 @@ export class Cat {
 
   @CaseProp({
     seed: () => faker.person.firstName(),
-    type: PropType.String
+    type: PropType.Text
   })
   name: string
 
   @CaseProp({
     seed: () => faker.lorem.sentences(),
-    type: PropType.Text
+    type: PropType.TextArea
   })
   description: string
 

@@ -11,7 +11,7 @@ export const CaseProp = (
   definition?: PropertyDefinition
 ): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
-    const defaultType: PropType = PropType.String
+    const defaultType: PropType = PropType.Text
     const typeCharacteristics: PropTypeCharacteristics =
       propTypeCharacteristicsRecord[definition?.type || defaultType]
 

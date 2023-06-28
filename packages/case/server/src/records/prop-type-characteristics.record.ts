@@ -11,7 +11,7 @@ export const propTypeCharacteristicsRecord: Record<
   PropType,
   PropTypeCharacteristics
 > = {
-  [PropType.String]: {
+  [PropType.Text]: {
     columnType: 'varchar',
     defaultSeedFunction: (index: number) => `Value ${index}`
   },
@@ -39,7 +39,7 @@ export const propTypeCharacteristicsRecord: Record<
     columnType: 'int',
     defaultSeedFunction: (index: number) => 'Change me'
   },
-  [PropType.Text]: {
+  [PropType.TextArea]: {
     columnType: 'int',
     defaultSeedFunction: (index: number) => 'Change me'
   },
@@ -65,7 +65,7 @@ export const propTypeCharacteristicsRecord: Record<
   }
 
   // ! Legacy CASE v1
-  //   [PropType.String]: {
+  //   [PropType.Text]: {
   //     server: {
   //       columnType: 'varchar',
   //       fakerFunction: 'faker.random.word()',
@@ -103,7 +103,7 @@ export const propTypeCharacteristicsRecord: Record<
   //       yieldType: 'Date'
   //     }
   //   },
-  //   [PropType.Text]: {
+  //   [PropType.TextArea]: {
   //     server: {
   //       columnType: 'text',
   //       fakerFunction: 'faker.lorem.paragraphs()',

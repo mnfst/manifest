@@ -17,14 +17,14 @@ export class Mouse {
 
   @CaseProp({
     label: 'Nickname',
-    type: PropType.String,
+    type: PropType.Text,
     seed: (index?: number) => `Mouse ${index}`
   })
   nickName: string
 
   @CaseProp({
     label: 'Family name',
-    type: PropType.String
+    type: PropType.Text
   })
   familyName: string
 
