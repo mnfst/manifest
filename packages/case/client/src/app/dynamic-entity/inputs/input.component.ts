@@ -15,13 +15,13 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       [prop]="prop"
       [value]="value"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.String"
+      *ngIf="prop.type === PropType.Text"
     ></app-string-input>
     <app-text-input
       [prop]="prop"
       [value]="value"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Text"
+      *ngIf="prop.type === PropType.TextArea"
     ></app-text-input>
     <app-select-input
       [prop]="prop"

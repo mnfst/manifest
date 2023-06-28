@@ -6,7 +6,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
   selector: 'app-yield',
   template: `
     <app-text-yield
-      *ngIf="type === PropType.String"
+      *ngIf="type === PropType.Text"
       [value]="value"
     ></app-text-yield>
     <app-number-yield
