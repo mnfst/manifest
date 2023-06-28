@@ -24,8 +24,6 @@ export class TopMenuComponent {
         setTimeout(() => {
           this.breadcrumbLinks = newValue
 
-          console.log('this.breadcrumbLinks', this.breadcrumbLinks)
-
           if (this.breadcrumbLinks.length) {
             const currentLink: BreadcrumbLink =
               this.breadcrumbLinks[this.breadcrumbLinks.length - 1]

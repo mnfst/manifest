@@ -2,7 +2,8 @@
   "name": "@casejs/case",
   "version": "2.0.10",
   "description": "Instant CRUD Apps with CASE",
-  "main": "index.js",
+  "main": "server/dist/server/src/index.js",
+  "types": "server/dist/server/src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd client && npm i && npm run build && cd ../server && npm i && npm run build"
