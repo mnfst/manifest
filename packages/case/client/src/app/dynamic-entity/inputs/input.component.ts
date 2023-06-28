@@ -7,6 +7,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
   template: `
     <app-number-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Number"
     ></app-number-input>
@@ -25,9 +26,12 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 })
 export class InputComponent {
   @Input() prop: PropertyDescription
+  @Input() value: any
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()
 
   PropType = PropType
+
+  // TODO: Manage EDIT views and finish Select Input for relations.
 
   onChange(event: any) {
     this.valueChanged.emit(event)
