@@ -1,6 +1,6 @@
 // Decorators
-export { CaseEntity } from './decorators/case-entity.decorator'
-export { CaseProp } from './decorators/case-prop.decorator'
+export { Entity } from './decorators/entity.decorator'
+export { Prop } from './decorators/case-prop.decorator'
 
 // Enums
 export { PropType } from '../../shared/enums/prop-type.enum'

@@ -7,9 +7,7 @@ import {
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
 
-export const CaseProp = (
-  definition?: PropertyDefinition
-): PropertyDecorator => {
+export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     const defaultType: PropType = PropType.String
     const typeCharacteristics: PropTypeCharacteristics =

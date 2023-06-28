@@ -1,21 +1,17 @@
-import { PrimaryGeneratedColumn } from 'typeorm'
+import { Prop } from '../decorators/case-prop.decorator'
+import { Entity } from '../decorators/entity.decorator'
+import { CaseEntity } from './case-entity'
 
-import { CaseEntity } from '../decorators/case-entity.decorator'
-import { CaseProp } from '../decorators/case-prop.decorator'
-
-@CaseEntity({
+@Entity({
   nameSingular: 'user',
   namePlural: 'users',
   slug: 'user',
   propIdentifier: 'name'
 })
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number
-
-  @CaseProp()
+export class User extends CaseEntity {
+  @Prop()
   name: string
 
-  @CaseProp()
+  @Prop()
   familyName: string
 }
