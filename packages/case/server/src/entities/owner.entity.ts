@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 
-import { CaseEntity } from '../core-entities/case-entity'
+import { CaseEntity } from '../core-entities/case.entity'
 import { Prop } from '../decorators/case-prop.decorator'
 import { Entity } from '../decorators/entity.decorator'
 

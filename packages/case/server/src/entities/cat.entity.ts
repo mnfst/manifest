@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
-import { CaseEntity } from '../core-entities/case-entity'
+import { CaseEntity } from '../core-entities/case.entity'
 import { Prop } from '../decorators/case-prop.decorator'
 import { Entity } from '../decorators/entity.decorator'
 import { Owner } from './owner.entity'

@@ -41,7 +41,7 @@ Then go to your case starter project and run
 
 ```
 npm link @casejs/case
-npm run start:link
+npm run start
 ```
 
 ## Publish
