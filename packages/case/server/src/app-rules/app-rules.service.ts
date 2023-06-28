@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { AppSettings } from '~shared/interfaces/app-settings.interface'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
@@ -18,13 +19,11 @@ export class AppRulesService {
     }))
   }
 
-  getAppSettings() {
+  // TODO: Get AppSettings from CASE STARTER.
+  getAppSettings(): AppSettings {
     return {
       appName: 'CASE Starter',
-      description: 'A starter project for CASE',
-      logo: 'TODO: Add logo',
-      favicon: 'TODO: Add favicon',
-      theme: 'TODO: Add theme'
+      description: 'A starter project for CASE'
     }
   }
 

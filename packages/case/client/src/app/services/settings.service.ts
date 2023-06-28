@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core'
 import { Observable, shareReplay } from 'rxjs'
 
 import { environment } from '../../environments/environment'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { AppSettings } from '~shared/interfaces/app-settings.interface'
 
 /*
  * This service allows to fetch all app settings from the server for SSOT (Single Source of Truth).
@@ -12,7 +14,9 @@ import { environment } from '../../environments/environment'
 })
 export class SettingsService {
   private readonly ENV_URL = environment.apiBaseUrl + '/app-rules/settings'
-  private settings$: Observable<any> | undefined
+  private settings$:
+    | Observable<{ entities: EntityDescription; settings: AppSettings }>
+    | undefined
 
   constructor(private http: HttpClient) {}
 

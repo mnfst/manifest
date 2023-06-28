@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router'
 import { EntityDescription } from '../../../../../../shared/interfaces/entity-description.interface'
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
+import { BreadcrumbService } from '../../../services/breadcrumb.service'
 
 @Component({
   selector: 'app-dynamic-entity-detail',
@@ -16,9 +17,9 @@ export class DynamicEntityDetailComponent {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private router: Router,
     private dynamicEntityService: DynamicEntityService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private breadcrumbService: BreadcrumbService
   ) {}
 
   ngOnInit(): void {
@@ -33,6 +34,17 @@ export class DynamicEntityDetailComponent {
           .show(this.entityDescription.definition.slug, params['id'])
           .then((res) => {
             this.item = res
+
+            this.breadcrumbService.breadcrumbLinks.next([
+              {
+                label: this.entityDescription.definition.namePlural,
+                path: `/dynamic-entity/${this.entityDescription.definition.slug}`
+              },
+              {
+                label:
+                  this.item[this.entityDescription.definition.propIdentifier]
+              }
+            ])
           })
       })
     })
