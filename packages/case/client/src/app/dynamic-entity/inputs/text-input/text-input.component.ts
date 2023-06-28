@@ -12,13 +12,12 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 @Component({
   selector: 'app-text-input',
   template: `<label [for]="prop.propName">{{ prop.label }}</label>
-    <textarea
-      class="textarea"
+    <input
+      class="input form-control"
+      type="text"
       (change)="onChange($event)"
       #input
-      [name]="prop.propName"
-    >
-    </textarea> `,
+    />`,
   styleUrls: ['./text-input.component.scss']
 })
 export class TextInputComponent implements OnInit {
@@ -34,7 +33,6 @@ export class TextInputComponent implements OnInit {
       this.input.nativeElement.value = this.value
     }
   }
-
   onChange(event: any) {
     this.valueChanged.emit(event.target.value)
   }

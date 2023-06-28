@@ -11,18 +11,18 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Number"
     ></app-number-input>
-    <app-string-input
-      [prop]="prop"
-      [value]="value"
-      (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Text"
-    ></app-string-input>
     <app-text-input
       [prop]="prop"
       [value]="value"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.TextArea"
+      *ngIf="prop.type === PropType.Text"
     ></app-text-input>
+    <app-text-area-input
+      [prop]="prop"
+      [value]="value"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.TextArea"
+    ></app-text-area-input>
     <app-select-input
       [prop]="prop"
       [value]="value"

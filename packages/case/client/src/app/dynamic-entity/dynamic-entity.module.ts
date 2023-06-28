@@ -10,15 +10,15 @@ import { DynamicEntityListComponent } from './components/dynamic-entity-list/dyn
 import { InputComponent } from './inputs/input.component'
 import { NumberInputComponent } from './inputs/number-input/number-input.component'
 import { SelectInputComponent } from './inputs/select-input/select-input.component'
-import { TextInputComponent } from './inputs/text-input/text-input.component'
+import { TextAreaInputComponent } from './inputs/text-area-input/text-area-input.component'
 import { NumberYieldComponent } from './yields/number-yield/number-yield.component'
 import { RelationYieldComponent } from './yields/relation-yield/relation-yield.component'
 import { TextYieldComponent } from './yields/text-yield/text-yield.component'
-import { YieldComponent } from './yields/yield.component';
-import { StringInputComponent } from './inputs/string-input/string-input.component';
-import { CurrencyInputComponent } from './inputs/currency-input/currency-input.component';
-import { DateInputComponent } from './inputs/date-input/date-input.component';
-import { BooleanInputComponent } from './inputs/boolean-input/boolean-input.component';
+import { YieldComponent } from './yields/yield.component'
+import { TextInputComponent } from './inputs/text-input/text-input.component'
+import { CurrencyInputComponent } from './inputs/currency-input/currency-input.component'
+import { DateInputComponent } from './inputs/date-input/date-input.component'
+import { BooleanInputComponent } from './inputs/boolean-input/boolean-input.component'
 import { EmailInputComponent } from './inputs/email-input/email-input.component'
 
 @NgModule({
@@ -32,9 +32,9 @@ import { EmailInputComponent } from './inputs/email-input/email-input.component'
     YieldComponent,
     NumberYieldComponent,
     NumberInputComponent,
-    TextInputComponent,
+    TextAreaInputComponent,
     InputComponent,
-    StringInputComponent,
+    TextInputComponent,
     CurrencyInputComponent,
     DateInputComponent,
     BooleanInputComponent,
