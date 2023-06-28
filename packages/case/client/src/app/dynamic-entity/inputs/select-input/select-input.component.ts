@@ -7,7 +7,12 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
   selector: 'app-select-input',
-  templateUrl: './select-input.component.html',
+  template: `<select class="select" (change)="onChange($event)">
+    <option value="">Select {{ prop.label }}</option>
+    <option *ngFor="let option of options" [value]="option.id">
+      {{ option.label }}
+    </option>
+  </select>`,
   styleUrls: ['./select-input.component.scss']
 })
 export class SelectInputComponent implements OnInit {

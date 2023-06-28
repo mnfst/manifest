@@ -1,24 +1,53 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core'
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges
+} from '@angular/core'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
   selector: 'app-boolean-input',
   template: `
-    <input
-      type="checkbox"
-      [id]="prop.propName"
-      class="input form-control"
-      checked
-    />
-    <label [for]="prop.propName">{{ prop.propName }}</label>
+    <div class="control my-4">
+      <label
+        class="checkbox"
+        for=""
+        (click)="toggleCheck()"
+        [ngClass]="{ 'is-checked': checked }"
+        >{{ prop.label }}
+        <span class="checkmark"></span>
+      </label>
+      <p class="help" *ngIf="helpText">{{ helpText }}</p>
+    </div>
   `,
   styleUrls: ['./boolean-input.component.scss']
 })
-export class BooleanInputComponent {
+export class BooleanInputComponent implements OnChanges {
   @Input() prop: PropertyDescription
-  @Output() valueChanged: EventEmitter<number> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<boolean> = new EventEmitter()
 
-  onChange(event: any) {
-    this.valueChanged.emit(event.target.value)
+  @Input() value: boolean
+  @Input() helpText?: string
+
+  checked: boolean
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Prevent value from being reset if showErrors changes.
+    if (
+      Object.keys(changes).length === 1 &&
+      Object.keys(changes)[0] === 'showErrors'
+    ) {
+      return
+    }
+
+    this.checked = !!this.value
+  }
+
+  toggleCheck() {
+    this.checked = !this.checked
+    this.valueChanged.emit(this.checked)
   }
 }

@@ -13,11 +13,13 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
     ></app-number-input>
     <app-string-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.String"
     ></app-string-input>
     <app-text-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Text"
     ></app-text-input>
@@ -29,12 +31,14 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
     </app-select-input>
     <app-currency-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Currency"
     >
     </app-currency-input>
     <app-boolean-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Boolean"
     >

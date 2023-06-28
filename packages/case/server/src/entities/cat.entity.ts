@@ -19,7 +19,8 @@ export class Cat {
   id: number
 
   @CaseProp({
-    seed: () => faker.person.firstName()
+    seed: () => faker.person.firstName(),
+    type: PropType.String
   })
   name: string
 
