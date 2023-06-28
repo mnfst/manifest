@@ -1,7 +1,8 @@
 import { Controller, Get } from '@nestjs/common'
-import { AppRulesService } from './app-rules.service'
-import { EntityDescription } from '../../../shared/interfaces/entity-description.interface'
+
 import { AppSettings } from '../../../shared/interfaces/app-settings.interface'
+import { EntityDescription } from '../../../shared/interfaces/entity-description.interface'
+import { AppRulesService } from './app-rules.service'
 
 @Controller('app-rules')
 export class AppRulesController {
@@ -13,7 +14,7 @@ export class AppRulesController {
     settings: AppSettings
   }> {
     return {
-      settings: this.appRulesService.getAppSettings(),
+      settings: await this.appRulesService.getAppSettings(),
       entities: this.appRulesService.getAppEntities()
     }
   }

@@ -18,8 +18,6 @@ export class DynamicEntitySeeder {
       this.dataSource.entityMetadatas
     )
 
-    console.log(entities.map((entity) => entity.tableName))
-
     const queryRunner = this.dataSource.createQueryRunner()
 
     await queryRunner.query('PRAGMA foreign_keys = OFF')
