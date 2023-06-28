@@ -32,8 +32,6 @@ export class InputComponent {
 
   PropType = PropType
 
-  // TODO: Manage EDIT views and finish Select Input for relations.
-
   onChange(event: any) {
     this.valueChanged.emit(event)
   }
