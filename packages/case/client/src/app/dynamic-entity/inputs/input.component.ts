@@ -44,6 +44,13 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       *ngIf="prop.type === PropType.Boolean"
     >
     </app-boolean-input>
+    <app-email-input
+      [prop]="prop"
+      [value]="value"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Email"
+    >
+    </app-email-input>
   `
 })
 export class InputComponent {

@@ -57,4 +57,11 @@ export class Cat {
     }
   })
   owner: Owner
+
+  @CaseProp({
+    label: 'Email',
+    type: PropType.Email,
+    seed: () => faker.internet.email()
+  })
+  email: string
 }
