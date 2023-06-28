@@ -1,6 +1,6 @@
 import { Column, ManyToOne } from 'typeorm'
-import { PropType } from '~shared/enums/prop-type.enum'
-import { PropertyDefinition } from '~shared/interfaces/property-definition.interface'
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { PropertyDefinition } from '../../../shared/interfaces/property-definition.interface'
 
 import {
   PropTypeCharacteristics,

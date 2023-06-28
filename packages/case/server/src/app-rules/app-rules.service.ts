@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
-import { PropType } from '~shared/enums/prop-type.enum'
-import { AppSettings } from '~shared/interfaces/app-settings.interface'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
-import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { AppSettings } from '../../../shared/interfaces/app-settings.interface'
+import { EntityDescription } from '../../../shared/interfaces/entity-description.interface'
+import { PropertyDescription } from '../../../shared/interfaces/property-description.interface'
 
 @Injectable()
 export class AppRulesService {

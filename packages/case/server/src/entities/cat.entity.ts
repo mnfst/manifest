@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { PrimaryGeneratedColumn } from 'typeorm'
-import { PropType } from '~shared/enums/prop-type.enum'
+import { PropType } from '../../../shared/enums/prop-type.enum'
 
 import { CaseEntity } from '../decorators/case-entity.decorator'
 import { CaseProp } from '../decorators/case-prop.decorator'

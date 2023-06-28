@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
-import { SelectOption } from '~shared/interfaces/select-option.interface'
+import { SelectOption } from '../../../shared/interfaces/select-option.interface'
 
 @Injectable()
 export class DynamicEntityService {
