@@ -1,4 +1,5 @@
 export enum InputType {
   Text,
-  Number
+  Number,
+  Select
 }

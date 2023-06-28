@@ -1,10 +1,11 @@
 import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
-import { combineLatest, firstValueFrom, of } from 'rxjs'
+import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 
-import { SettingsService } from '../../../shared/services/settings.service'
+import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
@@ -13,14 +14,13 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-create-edit.component.scss']
 })
 export class DynamicEntityCreateEditComponent {
-  entities: any[] = []
-  entity: any
+  entities: EntityDescription[] = []
+  entity: EntityDescription
 
   item: any
-  fields: { name: string; label: string; type: PropType }[] = []
 
   form: FormGroup = this.formBuilder.group({})
-  edit: boolean = false
+  edit: boolean
 
   PropType = PropType
 
@@ -37,7 +37,7 @@ export class DynamicEntityCreateEditComponent {
   }
 
   async ngOnInit(): Promise<void> {
-    of(this.entities).subscribe((res) => {
+    of(this.entities).subscribe((_entities: EntityDescription[]) => {
       combineLatest([
         this.activatedRoute.params,
         this.activatedRoute.data
@@ -52,40 +52,41 @@ export class DynamicEntityCreateEditComponent {
           this.router.navigate(['/404'])
         }
 
-        this.fields = this.entity.props
-
         if (this.edit) {
-          this.item = await firstValueFrom(
-            this.dynamicEntityService.show(
-              this.entity.definition.slug,
-              params['id']
-            )
+          this.item = await this.dynamicEntityService.show(
+            this.entity.definition.slug,
+            params['id']
           )
         }
 
-        this.fields.forEach((prop: { name: string; type: PropType }) => {
+        this.entity.props.forEach((prop) => {
           this.form.addControl(
-            prop.name,
-            new FormControl(this.item ? this.item[prop.name] : null)
+            prop.propName,
+            new FormControl(this.item ? this.item[prop.propName] : null)
           )
         })
       })
     })
   }
 
+  onChange(params: { newValue: any; propName: string }): void {
+    this.form.controls[params.propName].setValue(params.newValue)
+  }
+
   submit(): void {
-    if (this.item) {
-      this.dynamicEntityService
-        .update(this.entity.definition.slug, this.item.id, this.form.value)
-        .subscribe((res) => {
-          this.router.navigate(['/dynamic', this.entity.definition.slug])
-        })
-    } else {
-      this.dynamicEntityService
-        .create(this.entity.definition.slug, this.form.value)
-        .subscribe((res) => {
-          this.router.navigate(['/dynamic', this.entity.definition.slug])
-        })
-    }
+    let submitRequest: Promise<any> = this.edit
+      ? this.dynamicEntityService.update(
+          this.entity.definition.slug,
+          this.item.id,
+          this.form.value
+        )
+      : this.dynamicEntityService.create(
+          this.entity.definition.slug,
+          this.form.value
+        )
+
+    submitRequest.then(() => {
+      this.router.navigate(['/dynamic', this.entity.definition.slug])
+    })
   }
 }

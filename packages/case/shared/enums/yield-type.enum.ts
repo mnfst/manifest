@@ -1,4 +1,5 @@
 export enum YieldType {
   Text,
-  Number
+  Number,
+  Link
 }

@@ -27,24 +27,20 @@
       <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
-            <th *ngFor="let field of fields">
-              {{ field.label }}
+            <th *ngFor="let prop of props">
+              {{ prop.label }}
             </th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of entity.data">
-            <td *ngFor="let field of fields">
-              <ng-container *ngIf="field.type === PropType.String">
-                {{ item[field.name] }}
-              </ng-container>
-              <span
-                *ngIf="field.type === PropType.Integer"
-                style="color: blue; font-style: italic"
-              >
-                {{ item[field.name] }}
-              </span>
+          <tr *ngFor="let item of items">
+            <td *ngFor="let prop of props">
+              <app-yield
+                [value]="item[prop.propName]"
+                [type]="prop.type"
+                [options]="prop.options"
+              ></app-yield>
             </td>
             <td class="has-text-right">
               <a

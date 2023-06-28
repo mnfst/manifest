@@ -1,5 +1,5 @@
 import { Entity } from 'typeorm'
-import { EntityDefinition } from '~shared/interfaces/entity-definition'
+import { EntityDefinition } from '~shared/interfaces/entity-definition.interface'
 
 export const CaseEntity = (
   entityDefinition: EntityDefinition

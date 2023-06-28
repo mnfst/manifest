@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
 import { of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
-import { SettingsService } from '../../../shared/services/settings.service'
+import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
@@ -12,9 +13,12 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-list.component.scss']
 })
 export class DynamicEntityListComponent implements OnInit {
+  items: any[] = []
+
   entities: any[] = []
   entity: any
-  fields: { name: string; label: string; type: PropType }[] = []
+
+  props: PropertyDescription[] = []
 
   PropType = PropType
 
@@ -40,12 +44,12 @@ export class DynamicEntityListComponent implements OnInit {
           this.router.navigate(['/404'])
         }
 
-        this.fields = this.entity.props
+        this.props = this.entity.props
 
         this.dynamicEntityService
           .list(this.entity.definition.slug)
-          .subscribe((res) => {
-            this.entity.data = res
+          .then((res: any[]) => {
+            this.items = res
           })
       })
     })
@@ -54,7 +58,7 @@ export class DynamicEntityListComponent implements OnInit {
   delete(id: number): void {
     this.dynamicEntityService
       .delete(this.entity.definition.slug, id)
-      .subscribe((res) => {
+      .then((res) => {
         this.entity.data = this.entity.data.filter(
           (item: any) => item.id !== id
         )

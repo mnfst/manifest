@@ -1,10 +1,10 @@
-<section>
+<section *ngIf="item && entityDescription">
   <div
     class="is-flex is-justify-content-space-between is-align-items-center mb-5"
   >
     <div class="left-part">
       <h1 class="title is-2 has-text-weight-light">
-        {{ entity.definition.nameSingular }} detail
+        {{ item[entityDescription.definition.propIdentifier] }}
       </h1>
     </div>
     <div class="right-part is-flex is-flex-direction-row">
@@ -25,10 +25,14 @@
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">
         <tbody>
-          <tr *ngFor="let prop of props">
-            <td>{{ prop }}</td>
+          <tr *ngFor="let prop of entityDescription.props">
+            <td>{{ prop.label }}</td>
             <td>
-              <strong>{{ item[prop] }}</strong>
+              <app-yield
+                [value]="item[prop.propName]"
+                [type]="prop.type"
+                [options]="prop.options"
+              ></app-yield>
             </td>
           </tr>
         </tbody>
