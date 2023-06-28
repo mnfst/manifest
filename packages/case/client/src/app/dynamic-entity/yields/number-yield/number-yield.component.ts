@@ -2,7 +2,9 @@ import { Component, Input } from '@angular/core'
 
 @Component({
   selector: 'app-number-yield',
-  templateUrl: './number-yield.component.html',
+  template: `<span style="color: blue; font-style: italic">
+    {{ value }}
+  </span>`,
   styleUrls: ['./number-yield.component.scss']
 })
 export class NumberYieldComponent {
