@@ -18,6 +18,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
     ></app-text-input>
     <app-select-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Relation"
     >
