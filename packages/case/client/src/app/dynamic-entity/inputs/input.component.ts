@@ -25,6 +25,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
     ></app-text-input>
     <app-select-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Relation"
     >
@@ -51,8 +52,6 @@ export class InputComponent {
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()
 
   PropType = PropType
-
-  // TODO: Manage EDIT views and finish Select Input for relations.
 
   onChange(event: any) {
     this.valueChanged.emit(event)
