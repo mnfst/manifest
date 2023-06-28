@@ -20,6 +20,10 @@ import { CurrencyInputComponent } from './inputs/currency-input/currency-input.c
 import { DateInputComponent } from './inputs/date-input/date-input.component'
 import { BooleanInputComponent } from './inputs/boolean-input/boolean-input.component'
 import { EmailInputComponent } from './inputs/email-input/email-input.component'
+import { BooleanYieldComponent } from './yields/boolean-yield/boolean-yield.component'
+import { CurrencyYieldComponent } from './yields/currency-yield/currency-yield.component'
+import { DateYieldComponent } from './yields/date-yield/date-yield.component'
+import { EmailYieldComponent } from './yields/email-yield/email-yield.component'
 
 @NgModule({
   declarations: [
@@ -38,7 +42,11 @@ import { EmailInputComponent } from './inputs/email-input/email-input.component'
     CurrencyInputComponent,
     DateInputComponent,
     BooleanInputComponent,
-    EmailInputComponent
+    EmailInputComponent,
+    BooleanYieldComponent,
+    CurrencyYieldComponent,
+    DateYieldComponent,
+    EmailYieldComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]
