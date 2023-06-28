@@ -1,5 +1,10 @@
 export enum InputType {
   Text,
   Number,
-  Select
+  Select,
+  Currency,
+  Date,
+  Boolean,
+  TextArea,
+  Email
 }

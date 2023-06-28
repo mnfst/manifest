@@ -4,11 +4,7 @@ export enum PropType {
   Currency,
   Date,
   TextArea,
-  RichText,
-  Color,
   Email,
-  File,
-  Image,
   Boolean,
   Relation
 }
