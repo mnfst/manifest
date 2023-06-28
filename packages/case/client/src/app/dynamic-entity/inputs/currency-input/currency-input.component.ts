@@ -3,17 +3,18 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 @Component({
   selector: 'app-currency-input',
-  template: ` <p class="control has-icons-right">
-    <input
-      class="input"
-      type="number"
-      step="0.01"
-      (change)="onChange($event)"
-    />
-    <span class="icon is-small is-right">
-      <i class="icon icon-dollar-sign"></i>
-    </span>
-  </p>`,
+  template: ` <label [for]="prop.propName">{{ prop.label }}</label>
+    <p class="control has-icons-right">
+      <input
+        class="input"
+        type="number"
+        step="0.01"
+        (change)="onChange($event)"
+      />
+      <span class="icon is-small is-right">
+        <i class="icon icon-dollar-sign"></i>
+      </span>
+    </p>`,
   styleUrls: ['./currency-input.component.scss']
 })
 export class CurrencyInputComponent {

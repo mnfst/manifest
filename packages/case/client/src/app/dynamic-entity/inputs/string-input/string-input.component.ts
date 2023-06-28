@@ -11,12 +11,13 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 @Component({
   selector: 'app-string-input',
-  template: `<input
-    class="input form-control"
-    type="text"
-    (change)="onChange($event)"
-    #input
-  />`,
+  template: `<label [for]="prop.propName">{{ prop.label }}</label>
+    <input
+      class="input form-control"
+      type="text"
+      (change)="onChange($event)"
+      #input
+    />`,
   styleUrls: ['./string-input.component.scss']
 })
 export class StringInputComponent implements OnInit {

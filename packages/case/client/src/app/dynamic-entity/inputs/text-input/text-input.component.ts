@@ -11,15 +11,14 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 @Component({
   selector: 'app-text-input',
-  template: `
+  template: `<label [for]="prop.propName">{{ prop.label }}</label>
     <textarea
       class="textarea"
       (change)="onChange($event)"
       #input
       [name]="prop.propName"
     >
-    </textarea>
-  `,
+    </textarea> `,
   styleUrls: ['./text-input.component.scss']
 })
 export class TextInputComponent implements OnInit {
