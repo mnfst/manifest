@@ -29,6 +29,21 @@ npm run seed:dev
 
 You can put your temporary entities in `packages/case/server/entities`
 
+## Contribute (work from starter)
+
+Using `npm link` you can link your `/node_modules/@casejs/case` to this folder in your project made with CASE starter.
+
+```
+npm link
+```
+
+Then go to your case starter project and run
+
+```
+npm link @casejs/case
+npm run start
+```
+
 ## Publish
 
 Update the version number in `package.json` and run:

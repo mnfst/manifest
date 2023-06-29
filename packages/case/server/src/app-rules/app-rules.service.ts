@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common'
+import { join } from 'path'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
-import { PropType } from '~shared/enums/prop-type.enum'
-import { AppSettings } from '~shared/interfaces/app-settings.interface'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
-import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { AppSettings } from '../../../shared/interfaces/app-settings.interface'
+import { EntityDescription } from '../../../shared/interfaces/entity-description.interface'
+import { PropertyDescription } from '../../../shared/interfaces/property-description.interface'
 
 @Injectable()
 export class AppRulesService {
@@ -19,12 +21,16 @@ export class AppRulesService {
     }))
   }
 
-  // TODO: Get AppSettings from CASE STARTER.
-  getAppSettings(): AppSettings {
-    return {
-      appName: 'CASE Starter',
-      description: 'A starter project for CASE'
-    }
+  getAppSettings(): Promise<AppSettings> {
+    const devMode: boolean = process.argv[2] === 'dev'
+
+    const appSettingsPath = devMode
+      ? join(__dirname, '../dev-app-settings.js')
+      : join(process.cwd(), 'app-settings.ts')
+
+    return import(appSettingsPath).then((res: { appSettings: AppSettings }) => {
+      return res.appSettings
+    })
   }
 
   getEntityProps(entity: EntityMetadata): PropertyDescription[] {

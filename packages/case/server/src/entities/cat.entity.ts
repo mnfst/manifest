@@ -1,55 +1,32 @@
 import { faker } from '@faker-js/faker'
-import { PrimaryGeneratedColumn } from 'typeorm'
-import { PropType } from '~shared/enums/prop-type.enum'
 
-import { CaseEntity } from '../decorators/case-entity.decorator'
-import { CaseProp } from '../decorators/case-prop.decorator'
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { CaseEntity } from '../core-entities/case.entity'
+import { Prop } from '../decorators/case-prop.decorator'
+import { Entity } from '../decorators/entity.decorator'
 import { Owner } from './owner.entity'
-import { type } from 'os'
 
-@CaseEntity({
+@Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
   slug: 'cat',
   seedCount: 50,
   propIdentifier: 'name'
 })
-export class Cat {
-  @PrimaryGeneratedColumn()
-  id: number
-
-  @CaseProp({
-    seed: () => faker.person.firstName(),
-    type: PropType.Text
+export class Cat extends CaseEntity {
+  @Prop({
+    seed: () => faker.person.firstName()
   })
   name: string
 
-  @CaseProp({
-    seed: () => faker.lorem.sentences(),
-    type: PropType.TextArea
-  })
-  description: string
-
-  @CaseProp({
-    seed: () => faker.number.int({ min: 0, max: 1000 }),
-    type: PropType.Currency
-  })
-  price: string
-
-  @CaseProp({
-    seed: () => faker.datatype.boolean(),
-    type: PropType.Boolean
-  })
-  adopted: string
-
-  @CaseProp({
+  @Prop({
     label: 'Age',
     type: PropType.Number,
     seed: (index?: number) => index
   })
   age: number
 
-  @CaseProp({
+  @Prop({
     label: 'Owner',
     type: PropType.Relation,
     options: {
@@ -58,17 +35,35 @@ export class Cat {
   })
   owner: Owner
 
-  @CaseProp({
+  @Prop({
     label: 'Email',
     type: PropType.Email,
     seed: () => faker.internet.email()
   })
   email: string
 
-  @CaseProp({
+  @Prop({
     label: 'Birthdate',
     type: PropType.Date,
     seed: () => faker.date.past()
   })
   birthdate: Date
+
+  @Prop({
+    seed: () => faker.lorem.sentences(),
+    type: PropType.TextArea
+  })
+  description: string
+
+  @Prop({
+    seed: () => faker.number.int({ min: 0, max: 1000 }),
+    type: PropType.Currency
+  })
+  price: number
+
+  @Prop({
+    seed: () => faker.datatype.boolean(),
+    type: PropType.Boolean
+  })
+  adopted: boolean
 }

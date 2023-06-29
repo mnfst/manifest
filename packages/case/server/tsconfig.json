@@ -16,10 +16,6 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "~shared/*": ["../shared/*"],
-      "~server/*": ["./*"]
-    }
+    "noFallthroughCasesInSwitch": false
   }
 }
