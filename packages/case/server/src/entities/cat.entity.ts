@@ -56,7 +56,7 @@ export class Cat extends CaseEntity {
   description: string
 
   @Prop({
-    seed: () => faker.number.int({ min: 0, max: 1000 }),
+    seed: () => faker.finance.amount(0, 500, 2),
     type: PropType.Currency
   })
   price: number
