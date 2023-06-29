@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import chalk from 'chalk'
+import { execSync } from 'child_process'
+import ora from 'ora'
 
-const { execSync } = require('child_process')
-
-const runCommand = (command) => {
+const runCommand = (command, stdio) => {
   try {
-    execSync(command, { stdio: 'inherit' })
+    execSync(command, { stdio })
   } catch (e) {
     console.error(`Failed to run command: ${command}`, e)
     return false
@@ -17,19 +18,32 @@ const branchName = process.argv[3] || 'master'
 const gitCheckoutCommand = `git clone --depth 1 https://github.com/casejs/case-starter --branch ${branchName} ${repoName}`
 const installCommand = `cd ${repoName} && npm install`
 
-console.log(`Creating new CASE app in ${repoName}...`)
-const checkedOut = runCommand(gitCheckoutCommand)
+console.log()
+console.log(chalk.blue(`Creating new CASE app in ${repoName}...`))
+console.log()
+const checkedOut = runCommand(gitCheckoutCommand, 'pipe')
 if (!checkedOut) {
   console.error('Failed to checkout repo')
   process.exit(1)
 }
 
-console.log(`Installing dependencies for ${repoName}...`)
-const installed = runCommand(installCommand)
+const loader = ora(`Installing dependencies for ${repoName}...`).start()
+const installed = runCommand(installCommand, 'pipe')
 if (!installed) {
-  console.error('Failed to install dependencies')
+  loader.fail(`Failed to install dependencies for ${repoName}`)
   process.exit(1)
 }
 
-console.log(`Successfully created new CASE app in ${repoName}`)
+loader.succeed(`Successfully installed dependencies for ${repoName}`)
 console.log(`To get started, run: cd ${repoName} && npm start`)
+
+console.log()
+console.log(
+  chalk.green(
+    `🎉 The "${repoName}" CASE app has been created successfully! To get started:`
+  )
+)
+console.log()
+console.log(chalk.blue(`cd ${repoName}`))
+console.log(chalk.blue(`npm start`))
+console.log()

@@ -57,7 +57,7 @@ export class AppModule {
     )
 
     console.log(table.toString())
-    console.log('\n')
+    console.log()
     console.log(
       chalk.blue(
         '🎉 CASE app successfully started! See it at',
