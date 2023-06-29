@@ -30,7 +30,7 @@
             <th
               *ngFor="let prop of props"
               [ngClass]="{
-                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number,  
+                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
                 }"
             >
               {{ prop.label }}
@@ -43,7 +43,7 @@
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number,  
+            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
             }"
             >
               <app-yield
@@ -52,7 +52,7 @@
                 [options]="prop.options"
               ></app-yield>
             </td>
-            <td class="has-text-right">
+            <td class="has-text-right is-nowrap">
               <a
                 class="has-text-weight-bold has-text-link"
                 [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
