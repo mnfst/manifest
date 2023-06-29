@@ -4,7 +4,7 @@ An entity is an object often linked to a real world concept like users, customer
 
 ## Create an entity
 
-In our example, we will create an app that lists cats. To do taht, simply run on the terminal the following command:
+In our example, we will create an app that lists cats. To do that, simply run on the terminal the following command:
 
 ```
 npm run case:entity cat
@@ -12,7 +12,7 @@ npm run case:entity cat
 
 The application should reload with some cats now !
 
-The new `/entities/cat.entity.ts` file has been created with the following content:
+A new `/entities/cat.entity.ts` file was created with the following content:
 
 ```js
 @Entity({
