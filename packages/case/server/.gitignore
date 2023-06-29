@@ -1,8 +1,8 @@
 # compiled output
 /dist
+/public
 /node_modules
 db/case.sqlite
-
 
 # Logs
 logs
