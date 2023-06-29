@@ -11,13 +11,14 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 @Component({
   selector: 'app-number-input',
-  template: `<input
-    class="input form-control"
-    type="number"
-    (change)="onChange($event)"
-    step="1"
-    #input
-  />`,
+  template: ` <label [for]="prop.propName">{{ prop.label }}</label>
+    <input
+      class="input form-control"
+      type="number"
+      (change)="onChange($event)"
+      step="1"
+      #input
+    />`,
   styleUrls: ['./number-input.component.scss']
 })
 export class NumberInputComponent implements OnInit {

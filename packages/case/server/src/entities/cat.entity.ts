@@ -34,4 +34,36 @@ export class Cat extends CaseEntity {
     }
   })
   owner: Owner
+
+  @Prop({
+    label: 'Email',
+    type: PropType.Email,
+    seed: () => faker.internet.email()
+  })
+  email: string
+
+  @Prop({
+    label: 'Birthdate',
+    type: PropType.Date,
+    seed: () => faker.date.past()
+  })
+  birthdate: Date
+
+  @Prop({
+    seed: () => faker.lorem.sentences(),
+    type: PropType.TextArea
+  })
+  description: string
+
+  @Prop({
+    seed: () => faker.finance.amount(0, 500, 2),
+    type: PropType.Currency
+  })
+  price: number
+
+  @Prop({
+    seed: () => faker.datatype.boolean(),
+    type: PropType.Boolean
+  })
+  adopted: boolean
 }

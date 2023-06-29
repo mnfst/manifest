@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { IntegerInputComponent } from './number-input.component'
+import { NumberInputComponent } from './number-input.component'
 
-describe('IntegerInputComponent', () => {
-  let component: IntegerInputComponent
-  let fixture: ComponentFixture<IntegerInputComponent>
+describe('NumberInputComponent', () => {
+  let component: NumberInputComponent
+  let fixture: ComponentFixture<NumberInputComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [IntegerInputComponent]
+      declarations: [NumberInputComponent]
     }).compileComponents()
 
-    fixture = TestBed.createComponent(IntegerInputComponent)
+    fixture = TestBed.createComponent(NumberInputComponent)
     component = fixture.componentInstance
     fixture.detectChanges()
   })

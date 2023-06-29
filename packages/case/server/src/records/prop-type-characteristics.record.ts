@@ -11,13 +11,13 @@ export const propTypeCharacteristicsRecord: Record<
   PropType,
   PropTypeCharacteristics
 > = {
-  [PropType.String]: {
+  [PropType.Text]: {
     columnType: 'varchar',
-    defaultSeedFunction: (index: number) => `Value ${index}`
+    defaultSeedFunction: () => faker.commerce.product()
   },
   [PropType.Number]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => index
+    columnType: 'decimal',
+    defaultSeedFunction: (index: number) => faker.number.int({ max: 50 })
   },
   [PropType.Relation]: {
     columnType: 'int',
@@ -25,154 +25,25 @@ export const propTypeCharacteristicsRecord: Record<
       faker.number.int({ min: 1, max: relationSeedCount })
   },
 
-  // TODO: Create those propTypes (dummy for now).
-  [PropType.RichText]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
+  [PropType.TextArea]: {
+    columnType: 'text',
+    defaultSeedFunction: () => faker.commerce.productDescription()
   },
 
   [PropType.Currency]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
+    columnType: 'decimal',
+    defaultSeedFunction: (index: number) => faker.finance.amount(index, 500, 2)
   },
   [PropType.Date]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
-  },
-  [PropType.Text]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
-  },
-  [PropType.Color]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
+    columnType: 'date',
+    defaultSeedFunction: () => faker.date.past()
   },
   [PropType.Email]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
-  },
-  [PropType.File]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
-  },
-  [PropType.Image]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
+    columnType: 'varchar',
+    defaultSeedFunction: (index: number) => faker.internet.email()
   },
   [PropType.Boolean]: {
-    columnType: 'int',
-    defaultSeedFunction: (index: number) => 'Change me'
+    columnType: 'boolean',
+    defaultSeedFunction: (index: number) => faker.datatype.boolean()
   }
-
-  // ! Legacy CASE v1
-  //   [PropType.String]: {
-  //     server: {
-  //       columnType: 'varchar',
-  //       fakerFunction: 'faker.random.word()',
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsString'
-  //     },
-  //     client: {
-  //       inputType: 'Text',
-  //       yieldType: 'Text'
-  //     }
-  //   },
-
-  //   [PropType.Currency]: {
-  //     server: {
-  //       columnType: 'decimal',
-  //       fakerFunction: 'faker.finance.amount()',
-  //       type: 'number',
-  //       dtoValidatorDecorator: 'IsNumber'
-  //     },
-  //     client: {
-  //       inputType: 'Number',
-  //       yieldType: 'Currency'
-  //     }
-  //   },
-  //   [PropType.Date]: {
-  //     server: {
-  //       columnType: 'date',
-  //       columnOptions: `{ default: () => '(CURRENT_DATE)' }`,
-  //       fakerFunction: 'faker.date.past()',
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsDateString'
-  //     },
-  //     client: {
-  //       inputType: 'Datepicker',
-  //       yieldType: 'Date'
-  //     }
-  //   },
-  //   [PropType.Text]: {
-  //     server: {
-  //       columnType: 'text',
-  //       fakerFunction: 'faker.lorem.paragraphs()',
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsString'
-  //     },
-  //     client: {
-  //       inputType: 'Textarea',
-  //       yieldType: 'Text'
-  //     }
-  //   },
-  //   [PropType.Color]: {
-  //     server: {
-  //       columnType: 'varchar',
-  //       fakerFunction: 'faker.internet.color()',
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsString'
-  //     },
-  //     client: {
-  //       inputType: 'ColorPicker',
-  //       yieldType: 'Color'
-  //     }
-  //   },
-  //   [PropType.Email]: {
-  //     server: {
-  //       columnType: 'varchar',
-  //       fakerFunction: 'faker.internet.email()',
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsEmail'
-  //     },
-  //     client: {
-  //       inputType: 'Email',
-  //       yieldType: 'Text'
-  //     }
-  //   },
-  //   [PropType.File]: {
-  //     server: {
-  //       columnType: 'varchar',
-  //       fakerFunction: `'dummy/dummy-documentation.pdf'`,
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsString'
-  //     },
-  //     client: {
-  //       inputType: 'File',
-  //       yieldType: 'Download'
-  //     }
-  //   },
-  //   [PropType.Image]: {
-  //     server: {
-  //       columnType: 'varchar',
-  //       fakerFunction: `'dummy/dummy-image'`,
-  //       type: 'string',
-  //       dtoValidatorDecorator: 'IsString'
-  //     },
-  //     client: {
-  //       inputType: 'Image',
-  //       yieldType: 'Image'
-  //     }
-  //   },
-  //   [PropType.Boolean]: {
-  //     server: {
-  //       columnType: 'tinyint',
-  //       fakerFunction: 'faker.datatype.boolean()',
-  //       type: 'boolean',
-  //       dtoValidatorDecorator: 'IsBoolean'
-  //     },
-  //     client: {
-  //       inputType: 'Checkbox',
-  //       yieldType: 'Check'
-  //     }
-  //   }
 }
