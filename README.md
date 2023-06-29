@@ -9,7 +9,7 @@
 
 CASE lets developers quickly and easily build CRUD applications from their data.
 
-- **Focus on your data**. With CASE, you don't need to learn a new framework. It is agnostic technology. Your application is generated from your data.
+- **Focus on your data**. With CASE, you don't need to learn a new framework. It is technology agnostic. Add your entites, define your rules. That's it.
 - **Instant end-to-end results**. Install case in 1 command line, develop simply and deploy ultra-fast
 - **Beautiful and professional UI**. Case offers an intuitive, functional and attractive interface, designed with the help of end-users
 
