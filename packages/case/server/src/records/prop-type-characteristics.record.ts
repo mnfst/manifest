@@ -17,7 +17,7 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Number]: {
     columnType: 'decimal',
-    defaultSeedFunction: (index: number) => faker.finance.amount(index, 100)
+    defaultSeedFunction: (index: number) => faker.number.int({ max: 50 })
   },
   [PropType.Relation]: {
     columnType: 'int',
