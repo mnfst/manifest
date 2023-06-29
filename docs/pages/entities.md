@@ -4,23 +4,23 @@ An entity is an object often linked to a real world concept like users, customer
 
 ## Create an entity
 
-In our example, we will create an app that lists famous painters and their works (why not ?). Simply run on the terminal the following command:
+In our example, we will create an app that lists cats. To do taht, simply run on the terminal the following command:
 
 ```
-npm run case:new-resource painter
+npm run case:entity cat
 ```
 
-The application should reload with some painters now !
+The application should reload with some cats now !
 
-This is because a new `/entities/painter.entity.ts` file for this entity was created with the following content:
+The new `/entities/cat.entity.ts` file has been created with the following content:
 
 ```js
 @Entity({
-  nameSingular: 'painter',
-  namePlural: 'painters',
-  slug: 'painter'
+  nameSingular: 'cat',
+  namePlural: 'cats',
+  slug: 'cat'
 })
-export class Painter {
+export class Cat {
   @Prop()
   name: string
 }
