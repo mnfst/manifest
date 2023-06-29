@@ -27,7 +27,12 @@
       <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
-            <th *ngFor="let prop of props">
+            <th
+              *ngFor="let prop of props"
+              [ngClass]="{
+              'has-text-right':prop.type === PropType.Currency,  
+              }"
+            >
               {{ prop.label }}
             </th>
             <th></th>
@@ -35,7 +40,12 @@
         </thead>
         <tbody *ngIf="items?.length">
           <tr *ngFor="let item of items">
-            <td *ngFor="let prop of props">
+            <td
+              *ngFor="let prop of props"
+              [ngClass]="{
+            'has-text-right':prop.type === PropType.Currency,  
+            }"
+            >
               <app-yield
                 [value]="item[prop.propName]"
                 [type]="prop.type"
