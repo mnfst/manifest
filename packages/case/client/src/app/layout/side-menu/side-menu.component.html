@@ -16,7 +16,9 @@
           *ngFor="let entity of entities"
         >
           <i class="icon icon-box mr-3 is-size-4 my-0"></i>
-          <span class="pl-1">{{ entity.definition.namePlural }}</span>
+          <span class="pl-1">{{
+            entity.definition.namePlural | capitalizeFirstLetter
+          }}</span>
         </a>
       </ng-container>
     </li>

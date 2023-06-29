@@ -32,6 +32,12 @@ const entityFolders: string[] = [
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {
+    if (!process.argv[1].includes('seed')) {
+      this.logAppInfo()
+    }
+  }
+
+  logAppInfo() {
     const table = new cliTable({
       head: []
     })
