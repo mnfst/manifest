@@ -1,6 +1,6 @@
 # CASE Documentation 👋
 
-![CASE App](../assets/images/case-projects.png ':size=60%')
+![CASE App](../assets/images/cat-list.png ':class=is-bordered shadow')
 
 ## Main features
 
