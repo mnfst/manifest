@@ -13,14 +13,14 @@ import { Cat } from './cat.entity'
 export class Mouse extends CaseEntity {
   @Prop({
     label: 'Nickname',
-    type: PropType.String,
+    type: PropType.Text,
     seed: (index?: number) => `Mouse ${index}`
   })
   nickName: string
 
   @Prop({
     label: 'Family name',
-    type: PropType.String
+    type: PropType.Text
   })
   familyName: string
 

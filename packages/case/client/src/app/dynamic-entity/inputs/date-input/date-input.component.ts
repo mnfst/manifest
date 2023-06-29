@@ -3,24 +3,25 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnInit,
   Output,
-  ViewChild,
-  OnInit
+  ViewChild
 } from '@angular/core'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
-  selector: 'app-text-input',
+  selector: 'app-date-input',
   template: `<label [for]="prop.propName">{{ prop.label }}</label>
     <input
-      class="input form-control"
-      type="text"
+      class="input"
+      type="date"
+      [value]="value ? value : today"
       (change)="onChange($event)"
       #input
     />`,
-  styleUrls: ['./text-input.component.scss']
+  styleUrls: ['./date-input.component.scss']
 })
-export class TextInputComponent implements OnInit {
+export class DateInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
 
@@ -28,11 +29,14 @@ export class TextInputComponent implements OnInit {
 
   @ViewChild('input', { static: true }) input: ElementRef
 
+  today = Date.now()
+
   ngOnInit(): void {
     if (this.value !== undefined) {
       this.input.nativeElement.value = this.value
     }
   }
+
   onChange(event: any) {
     this.valueChanged.emit(event.target.value)
   }
