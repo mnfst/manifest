@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core'
+
 import { AppModule } from '../app.module'
 import { DynamicEntitySeeder } from './dynamic-entity.seeder'
 
 async function bootstrap() {
-  NestFactory.createApplicationContext(AppModule)
+  NestFactory.createApplicationContext(AppModule, {
+    logger: ['error', 'warn']
+  })
     .then((appContext) => {
       const seeder = appContext.get(DynamicEntitySeeder)
       seeder
