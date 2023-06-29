@@ -1,35 +1,32 @@
 import { faker } from '@faker-js/faker'
-import { PrimaryGeneratedColumn } from 'typeorm'
-import { PropType } from '~shared/enums/prop-type.enum'
 
-import { CaseEntity } from '../decorators/case-entity.decorator'
-import { CaseProp } from '../decorators/case-prop.decorator'
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { CaseEntity } from '../core-entities/case.entity'
+import { Prop } from '../decorators/case-prop.decorator'
+import { Entity } from '../decorators/entity.decorator'
 import { Owner } from './owner.entity'
 
-@CaseEntity({
+@Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
   slug: 'cat',
   seedCount: 50,
   propIdentifier: 'name'
 })
-export class Cat {
-  @PrimaryGeneratedColumn()
-  id: number
-
-  @CaseProp({
+export class Cat extends CaseEntity {
+  @Prop({
     seed: () => faker.person.firstName()
   })
   name: string
 
-  @CaseProp({
+  @Prop({
     label: 'Age',
     type: PropType.Number,
     seed: (index?: number) => index
   })
   age: number
 
-  @CaseProp({
+  @Prop({
     label: 'Owner',
     type: PropType.Relation,
     options: {

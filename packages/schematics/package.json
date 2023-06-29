@@ -1,0 +1,46 @@
+{
+  "name": "@casejs/schematics",
+  "private": false,
+  "version": "2.0.0",
+  "description": "Set of schematics for CASE Framework",
+  "author": "CASE",
+  "homepage": "https://case.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/casejs/case",
+    "directory": "packages/schematics"
+  },
+  "keywords": [
+    "schematics",
+    "angular",
+    "nestjs",
+    "case",
+    "framework",
+    "typeorm",
+    "cli"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "npm run move && tsc -p tsconfig.json && cp README.md dist/README.md",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "move": "rm -rf dist && mkdir -p dist/commands/create-entity/files && cp -aR ./src/commands/create-entity/files/* dist/commands/create-entity/files",
+    "postbuild": "cp package.json dist/package.json",
+    "test": "npm run build && jasmine src/**/*_spec.js",
+    "publish": "npm run build && cd dist && npm publish"
+  },
+  "schematics": "./src/collection.json",
+  "dependencies": {
+    "@angular-devkit/core": "^11.2.9",
+    "@angular-devkit/schematics": "^11.2.9",
+    "@schematics/angular": "^11.2.10",
+    "pluralize": "^8.0.0",
+    "typescript": "~4.1.2"
+  },
+  "devDependencies": {
+    "@types/jasmine": "~3.5.0",
+    "@types/node": "^12.11.1",
+    "@types/pluralize": "^0.0.29",
+    "jasmine": "^3.5.0",
+    "ts-node": "^9.1.1"
+  }
+}

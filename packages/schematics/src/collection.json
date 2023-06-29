@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "createEntity": {
+      "description": "Create CASE entity",
+      "factory": "./commands/create-entity/index#createEntity",
+      "schema": "./commands/create-entity/create-entity-schema.json"
+    }
+  }
+}

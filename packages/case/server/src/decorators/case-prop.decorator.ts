@@ -1,15 +1,13 @@
 import { Column, ManyToOne } from 'typeorm'
-import { PropType } from '~shared/enums/prop-type.enum'
-import { PropertyDefinition } from '~shared/interfaces/property-definition.interface'
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { PropertyDefinition } from '../../../shared/interfaces/property-definition.interface'
 
 import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
 
-export const CaseProp = (
-  definition?: PropertyDefinition
-): PropertyDecorator => {
+export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     const defaultType: PropType = PropType.String
     const typeCharacteristics: PropTypeCharacteristics =

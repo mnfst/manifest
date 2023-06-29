@@ -1,34 +1,30 @@
-import { PrimaryGeneratedColumn } from 'typeorm'
-import { PropType } from '~shared/enums/prop-type.enum'
-
-import { CaseEntity } from '../decorators/case-entity.decorator'
-import { CaseProp } from '../decorators/case-prop.decorator'
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { CaseEntity } from '../core-entities/case.entity'
+import { Prop } from '../decorators/case-prop.decorator'
+import { Entity } from '../decorators/entity.decorator'
 import { Cat } from './cat.entity'
 
-@CaseEntity({
+@Entity({
   nameSingular: 'mouse',
   namePlural: 'mouses',
   slug: 'mouse',
   propIdentifier: 'nickName'
 })
-export class Mouse {
-  @PrimaryGeneratedColumn()
-  id: number
-
-  @CaseProp({
+export class Mouse extends CaseEntity {
+  @Prop({
     label: 'Nickname',
     type: PropType.String,
     seed: (index?: number) => `Mouse ${index}`
   })
   nickName: string
 
-  @CaseProp({
+  @Prop({
     label: 'Family name',
     type: PropType.String
   })
   familyName: string
 
-  @CaseProp({
+  @Prop({
     label: 'Predator',
     type: PropType.Relation,
     options: {

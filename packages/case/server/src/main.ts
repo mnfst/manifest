@@ -10,8 +10,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
-  // Static files (including client app).
-  app.use(express.static(join(__dirname, '../../../public')))
+  const devMode: boolean = process.argv[2] === 'dev'
+  const clientPath = devMode
+    ? join(__dirname, '../../../public')
+    : join(__dirname, '../public')
+
+  app.use(express.static(clientPath))
 
   await app.listen(3000)
 }

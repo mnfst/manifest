@@ -14,6 +14,7 @@ import { TopMenuComponent } from './layout/top-menu/top-menu.component'
 import { TouchMenuComponent } from './layout/touch-menu/touch-menu.component'
 import { HomeComponent } from './pages/home/home.component'
 import { SettingsService } from './services/settings.service'
+import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { SettingsService } from './services/settings.service'
     TopMenuComponent,
     AvatarComponent,
     HomeComponent,
-    FooterComponent
+    FooterComponent,
+    CapitalizeFirstLetterPipe
   ],
   imports: [
     BrowserModule,
@@ -39,7 +41,8 @@ import { SettingsService } from './services/settings.service'
         firstValueFrom(settingsService.loadSettings()),
       deps: [SettingsService],
       multi: true
-    }
+    },
+    CapitalizeFirstLetterPipe
   ],
   bootstrap: [AppComponent]
 })
