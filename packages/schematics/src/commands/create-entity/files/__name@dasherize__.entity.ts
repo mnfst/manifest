@@ -7,6 +7,9 @@ import { CaseEntity, Entity, Prop } from '@casejs/case'
   slug: '<%= dasherizedName %>s',
 })
 export class <%= classifiedName %> extends CaseEntity {
-  @Prop()
+  @Prop({
+    label: 'Name of the <%= name %>',
+    seed: (index) => `<%= name %> ${index}`
+  })
   name: string
 }
