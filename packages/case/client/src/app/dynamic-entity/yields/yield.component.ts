@@ -6,7 +6,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
   selector: 'app-yield',
   template: `
     <app-text-yield
-      *ngIf="type === PropType.String"
+      *ngIf="type === PropType.Text || type === PropType.TextArea"
       [value]="value"
     ></app-text-yield>
     <app-number-yield
@@ -18,6 +18,22 @@ import { PropType } from '~shared/enums/prop-type.enum'
       [item]="value"
       [options]="options"
     ></app-relation-yield>
+    <app-boolean-yield
+      *ngIf="type === PropType.Boolean"
+      [value]="value"
+    ></app-boolean-yield>
+    <app-currency-yield
+      *ngIf="type === PropType.Currency"
+      [value]="value"
+    ></app-currency-yield>
+    <app-date-yield
+      *ngIf="type === PropType.Date"
+      [value]="value"
+    ></app-date-yield>
+    <app-email-yield
+      *ngIf="type === PropType.Email"
+      [value]="value"
+    ></app-email-yield>
   `
 })
 export class YieldComponent {

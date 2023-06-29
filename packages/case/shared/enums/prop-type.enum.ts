@@ -1,14 +1,10 @@
 export enum PropType {
-  String,
+  Text,
   Number,
   Currency,
   Date,
-  Text,
-  RichText,
-  Color,
+  TextArea,
   Email,
-  File,
-  Image,
   Boolean,
   Relation
 }

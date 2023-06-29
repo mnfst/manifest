@@ -6,7 +6,19 @@ import { SettingsService } from '../../../services/settings.service'
 
 @Component({
   selector: 'app-relation-yield',
-  templateUrl: './relation-yield.component.html',
+  template: ` <a
+      [routerLink]="[
+        '/',
+        'dynamic',
+        entityDescription.definition.slug,
+        item.id
+      ]"
+      *ngIf="item"
+    >
+      <span>{{ item[entityDescription.definition.propIdentifier] }}</span>
+    </a>
+
+    <span *ngIf="!item">-</span>`,
   styleUrls: ['./relation-yield.component.scss']
 })
 export class RelationYieldComponent implements OnInit {

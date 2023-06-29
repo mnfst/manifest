@@ -50,10 +50,11 @@ th {
   }
 
   a {
-    color: inherit;
-    &:hover,
-    &:focus {
-      color: inherit;
+    
+    &:not(.button):hover,
+    &:not(.button):focus,
+    &:not(.button):active {
+      text-decoration: underline;
     }
   }
 }

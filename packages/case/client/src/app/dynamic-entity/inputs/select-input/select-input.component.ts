@@ -10,6 +10,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 @Component({
   selector: 'app-select-input',
   template: `
+    <label [for]="prop.propName">{{ prop.label }}</label>
     <div [formGroup]="form">
       <select
         class="select"

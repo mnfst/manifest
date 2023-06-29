@@ -1,5 +1,9 @@
 export enum YieldType {
   Text,
   Number,
-  Link
+  Link,
+  Currency,
+  Date,
+  Boolean,
+  Email
 }
