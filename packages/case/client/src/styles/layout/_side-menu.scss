@@ -18,7 +18,10 @@
     a {
       position: relative;
       color: $sidenav-item-color;
-      display: inline-flex;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       align-items: center;
       justify-content: flex-start;
       width: 100%;

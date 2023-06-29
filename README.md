@@ -5,8 +5,7 @@
 </p>
 
 <h3 align='center' style="margin-bottom:30px">Develop CRUD applications fast and easy.</h3>
-
-![case-projects](https://user-images.githubusercontent.com/50170060/227974728-8226b455-8661-429d-bb90-47b554f8112f.png)
+<img  src="./docs/assets/images/cat-list.png" alt="CASE App" width="100%" style="border: 1px solid #dedede; margin-bottom: 2rem" />
 
 CASE lets developers quickly and easily build CRUD applications from their data.
 
