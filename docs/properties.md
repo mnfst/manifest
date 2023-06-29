@@ -1,76 +1,89 @@
 # Properties
 
-Now that you have one or several entities, you can describe them by adding properties.
+Properties are key-value pairs inside entities. They are usually mapped to database columns.
 
-## Add a property
+## Add a property to an entity
 
-The only file you will need is the `entity.ts` of your entity.
-
-You can add the properties age and owner to your `/entities/painter.entity.ts` like follow.
+You can add the properties to your entities by adding the CASE `@Prop()` decorator above the property name.
 
 ```js
-@Prop({
-    label: 'Age',
-    type: PropType.Number,
+export class Cat extends CaseEntity {
+  @Prop()
+  nickName: string
+
+  @Prop({
+    type: PropType.Number
   })
   age: number
 
-    @Prop({
-    label: 'Owner',
+  @Prop({
+    label: 'Owner of the cat',
     type: PropType.Relation,
     options: {
       entity: Owner
     }
   })
   owner: Owner
+}
 ```
 
-#### Property definition params
+### Property params
 
-You can pass different arguments to the `Prop()` decorator to configure your entities.
+You can pass arguments to the `@Prop()` decorator:
 
-| Option      | Type            | Description                                                                                                                                                    |
-| ----------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **label\*** | string          | The label of the property that will be displayed either on the list, the detail and the create-edit page.                                                      |
-| **type\***  | PropType        | The type of the property define the type of input, display , default seed and other behavior regarding the property.                                           |
-| **seed\***  | -               | The seed of the property is the value you want to be return to your property when you seed. We recommend to use `faker.js`to have close to reality dummy data. |
-| **options** | RelationOptions | The different options you can add to the property. Currently you can define if the property is a Relation.                                                     |
+| Option      | Default              | Type     | Description                    |
+| ----------- | -------------------- | -------- | ------------------------------ |
+| **label**   | _same as propName_   | string   | The label of the property      |
+| **type**    | PropType.Text        | PropType | The CASE type of the property  |
+| **seed**    | _type seed function_ | function | Seed function for the property |
+| **options** | {}                   | Object   | Property options based on type |
 
-#### PropType
+### Property types
 
-The `type` you can give to your property has to be one of those.
+CASE works with it's own set of **PropTypes** that corresponds to different types of data often used in CRUD apps.
 
-| Type     |
-| -------- |
-| Text     |
-| Number   |
-| Currency |
-| Date     |
-| TextArea |
-| Email    |
-| Boolean  |
-| Relation |
+Under the hood, each **PropType** corresponds to a set a different logic. For example by specifying once that this value is a **Currency**, CASE takes care of displaying it correctly, adding the 2 digits after the comma and choosing the correct database column format. If you do not specify a `seed` param, it will still generate a nice amount when you seed
 
-#### RelationOptions
+| Type     | Input    | Seed function         | Comments                       |
+| -------- | -------- | --------------------- | ------------------------------ |
+| Text     | Text     | product name          |                                |
+| Number   | Number   | random integer        |                                |
+| Currency | Number   | random amount         | Only € currency                |
+| Date     | Date     | passed date           |                                |
+| TextArea | Textarea | product description   |                                |
+| Email    | Email    | random email          |                                |
+| Boolean  | Checkbox | random boolean        |                                |
+| Relation | Select   | random related entity | only many-to-one relationships |
 
-The options you can add to your property to link it with an other entity is working like so.
+#### Create entity relationships with the "Relation" PropType
 
-| Option           | Type   | Description                                    |
-| ---------------- | ------ | ---------------------------------------------- |
-| **entity\***     | Entity | The `@Entity()`class related to this property. |
-| **entityName\*** | string | The entity name of the related entity          |
+It is very easy to create relationships between 2 entities in CASE: You just need to pass the `type: PropType.Relation` and the related entity class to the `options.entity` param like so:
 
-## Custom seeders
+```js
+export class Cat extends CaseEntity {
+  @Prop({
+    label: 'Owner of the cat',
+    type: PropType.Relation,
+    options: {
+      entity: Owner
+    }
+  })
+  owner: Owner
+}
+```
 
-You can customize the seed of your property by setting the value you want to be displayed.
+Relations only work in the **Children => Parent** direction on many-to-one relationships.
 
-You can use `faker.js`like follow to add a random dummy data close to your development environment.
+### Custom property seeders
+
+To generate high quality dummy data, you can choose the way a property is seeded through the `@Prop()` decorator's `seed` param:
 
 ```js
 @Prop({
-    label: 'Age',
-    type: PropType.Number,
-    seed: () => faker.number.int({ max: 100 })
+    label: 'Full name',
+    seed: () => `${faker.person.firstName()} ${faker.person.familyName()}`
   })
-  age: number
+  fullName: string
 ```
+
+The seed function accepts an `index: number` param that returns the index of the item in the seed process.
