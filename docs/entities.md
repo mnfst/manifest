@@ -19,7 +19,7 @@ A new `/entities/cat.entity.ts` file was created with the following content:
   propIdentifier: 'name',
   slug: 'cats'
 })
-export class Cat {
+export class Cat extends CaseEntity {
   @Prop({
     label: 'Name of the cat',
     seed: (index) => `cat ${index}`
