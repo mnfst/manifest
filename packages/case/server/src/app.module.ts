@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import * as chalk from 'chalk'
-import * as cliTable from 'cli-table'
+import * as cliTable from 'cli-table3'
 import { join } from 'path'
 import { DataSource } from 'typeorm'
 
