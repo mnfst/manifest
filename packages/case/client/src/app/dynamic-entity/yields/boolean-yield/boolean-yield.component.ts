@@ -4,8 +4,10 @@ import { Component, Input } from '@angular/core'
   selector: 'app-boolean-yield',
   template: `
     <div>
-      <span *ngIf="value">true</span>
-      <span *ngIf="!value">false</span>
+      <span *ngIf="value">
+        <i class="icon icon-check-circle has-text-success"></i>
+      </span>
+      <span *ngIf="!value"> </span>
     </div>
   `,
   styleUrls: ['./boolean-yield.component.scss']
