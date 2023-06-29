@@ -33,7 +33,7 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody *ngIf="items?.length">
           <tr *ngFor="let item of items">
             <td *ngFor="let prop of props">
               <app-yield
@@ -63,6 +63,13 @@
               <a class="has-text-weight-bold ml-6" (click)="delete(item.id)"
                 ><i class="icon icon-trash-2"></i
               ></a>
+            </td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="items && !items.length">
+          <tr>
+            <td [attr.colspan]="props.length">
+              There is no {{ entity.definition.nameSingular }} yet.
             </td>
           </tr>
         </tbody>
