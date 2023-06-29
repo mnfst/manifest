@@ -10,7 +10,7 @@
 
 ## Forget about the framework, focus on your data
 
-When you want to develop quickly an app, often the **choice of the framework(s)** quickly takes up all the space in the discussions. That's why CASE took the approach to remove the it so you can focus on your data.
+When you want to develop quickly an app, often the **choice of the framework(s)** quickly takes up all the space in the discussions. That's why CASE took the approach to remove it so you can focus on your data.
 
 > _Architecture is about intent, not frameworks_
 >
