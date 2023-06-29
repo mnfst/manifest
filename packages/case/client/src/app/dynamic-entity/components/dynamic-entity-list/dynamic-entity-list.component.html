@@ -30,8 +30,8 @@
             <th
               *ngFor="let prop of props"
               [ngClass]="{
-              'has-text-right':prop.type === PropType.Currency,  
-              }"
+                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number,  
+                }"
             >
               {{ prop.label }}
             </th>
@@ -43,7 +43,7 @@
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency,  
+            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number,  
             }"
             >
               <app-yield
