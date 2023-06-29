@@ -1,6 +1,5 @@
 import { CaseEntity, Entity, Prop } from '@casejs/case'
 
-
 @Entity({
   nameSingular: '<%= name %>',
   namePlural: '<%= pluralizedName %>',
