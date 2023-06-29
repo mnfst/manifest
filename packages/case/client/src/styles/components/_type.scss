@@ -96,21 +96,14 @@ hr {
 
 a {
   cursor: pointer;
+
   &.no-deco {
     color: inherit;
 
     &:hover,
     &:focus {
       color: inherit;
-    }
-  }
-
-  &.become-link {
-    color: $grey;
-    &:hover,
-    &:focus,
-    &:active {
-      color: $link !important;
+      text-decoration: none;
     }
   }
 }
@@ -177,4 +170,8 @@ a {
   &:hover {
     color: $link;
   }
+}
+
+.is-nowrap {
+  white-space: nowrap;
 }

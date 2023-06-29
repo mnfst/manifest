@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import * as BluebirdPromise from 'bluebird'
+import * as chalk from 'chalk'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
-import e from 'express'
 
 @Injectable()
 export class DynamicEntitySeeder {
@@ -13,10 +12,16 @@ export class DynamicEntitySeeder {
 
   constructor(private dataSource: DataSource) {}
 
-  async seed() {
-    const entities: EntityMetadata[] = this.orderEntities(
+  async seed(tableName?: string) {
+    let entities: EntityMetadata[] = this.orderEntities(
       this.dataSource.entityMetadatas
     )
+
+    if (tableName) {
+      entities = entities.filter(
+        (entity: EntityMetadata) => entity.tableName === tableName
+      )
+    }
 
     const queryRunner = this.dataSource.createQueryRunner()
 
@@ -36,7 +41,7 @@ export class DynamicEntitySeeder {
 
     await queryRunner.query('PRAGMA foreign_keys = ON')
 
-    console.log('\x1b[35m', '[x] Removed all existing data...')
+    console.log(chalk.blue('[x] Removed all existing data...'))
 
     for (const entity of entities) {
       const definition: EntityDefinition = (entity.target as any).definition
@@ -48,8 +53,7 @@ export class DynamicEntitySeeder {
       const seedCount: number = definition.seedCount || this.defaultSeedCount
 
       console.log(
-        '\x1b[35m',
-        `[x] Seeding ${seedCount} ${definition.namePlural}...`
+        chalk.blue(`[x] Seeding ${seedCount} ${definition.namePlural}...`)
       )
 
       for (const index of Array(seedCount).keys()) {

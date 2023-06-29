@@ -1,15 +1,23 @@
 # create-case-app
 
-Create a CASE app quickly installing the basic CASE Starter.
+Create a [CASE](https://github.com/casejs/case) app quickly installing the basic [CASE Starter](https://github.com/casejs/case-starter).
 
 ## How to use
 
 ```bash
-$ npx @casejs/create-case-app@latest my-case-app
+$ npx create-case-app@latest my-case-app
 ```
 
 Or you can specify a specific branch
 
 ```bash
-$ npx @casejs/create-case-app@latest my-case-app BRANCH_NAME
+$ npx create-case-app@latest my-case-app BRANCH_NAME
+```
+
+## Publish
+
+Update the `package.json` version number and run:
+
+```
+npm publish
 ```

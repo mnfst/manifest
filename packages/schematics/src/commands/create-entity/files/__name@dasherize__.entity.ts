@@ -4,9 +4,12 @@ import { CaseEntity, Entity, Prop } from '@casejs/case'
   nameSingular: '<%= name %>',
   namePlural: '<%= pluralizedName %>',
   propIdentifier: 'name',
-  slug: '<%= dasherizedName %>',
+  slug: '<%= dasherizedName %>s',
 })
 export class <%= classifiedName %> extends CaseEntity {
-  @Prop()
+  @Prop({
+    label: 'Name of the <%= name %>',
+    seed: (index) => `<%= name %> ${index}`
+  })
   name: string
 }

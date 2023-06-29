@@ -1,6 +1,6 @@
 {
   "name": "@casejs/case",
-  "version": "2.0.15",
+  "version": "2.0.17",
   "description": "Instant CRUD Apps with CASE",
   "main": "server/dist/index.js",
   "types": "server/dist/index.d.ts",

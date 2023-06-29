@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core'
 
 @Component({
   selector: 'app-date-yield',
-  template: ` {{ value | date : 'MM/dd/yy' }}`,
+  template: `<span class="is-nowrap">{{ value | date : 'MM/dd/yy' }}</span>`,
   styleUrls: ['./date-yield.component.scss']
 })
 export class DateYieldComponent {

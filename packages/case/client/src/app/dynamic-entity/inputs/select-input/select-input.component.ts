@@ -10,18 +10,22 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 @Component({
   selector: 'app-select-input',
   template: `
-    <label [for]="prop.propName">{{ prop.label }}</label>
     <div [formGroup]="form">
-      <select
-        class="select"
-        (change)="onChange($event)"
-        formControlName="select"
-      >
-        <option value="">Select {{ prop.label }}</option>
-        <option *ngFor="let option of options" [value]="option.id">
-          {{ option.label }}
-        </option>
-      </select>
+      <label [for]="prop.propName">{{ prop.label }}</label>
+      <div class="control">
+        <div class="select">
+          <select
+            class="is-fullwidth"
+            (change)="onChange($event)"
+            formControlName="select"
+          >
+            <option value="">Select {{ prop.label }}</option>
+            <option *ngFor="let option of options" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+      </div>
     </div>
   `,
   styleUrls: ['./select-input.component.scss']

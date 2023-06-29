@@ -6,7 +6,7 @@ import { SettingsService } from '../../../services/settings.service'
 
 @Component({
   selector: 'app-relation-yield',
-  template: `<a
+  template: ` <a
       [routerLink]="[
         '/',
         'dynamic',
@@ -15,7 +15,6 @@ import { SettingsService } from '../../../services/settings.service'
       ]"
       *ngIf="item"
     >
-      <i class="icon icon-link mr-3 is-size-6 my-0"></i>
       <span>{{ item[entityDescription.definition.propIdentifier] }}</span>
     </a>
 

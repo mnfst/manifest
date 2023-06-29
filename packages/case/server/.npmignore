@@ -1,6 +1,5 @@
-# compiled output
+# compiled output (public folder is gitignored but pushed into npm package)
 /dist
-/public
 /node_modules
 db/case.sqlite
 

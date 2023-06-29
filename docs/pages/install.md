@@ -9,7 +9,7 @@
 Run on your terminal:
 
 ```
-npx @casejs/create-case-app@latest my-case-app
+npx create-case-app my-case-app
 ```
 
 ## Serve the app locally

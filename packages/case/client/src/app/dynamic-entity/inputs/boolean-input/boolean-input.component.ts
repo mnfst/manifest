@@ -11,7 +11,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 @Component({
   selector: 'app-boolean-input',
   template: `
-    <div class="control my-4">
+    <div class="control mt-7 mb-4">
       <label
         class="checkbox"
         for=""
