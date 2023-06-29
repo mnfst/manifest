@@ -6,8 +6,7 @@
         routerLinkActive="is-active"
         [routerLinkActiveOptions]="{ exact: true }"
       >
-        <i class="icon icon-grid mr-3 is-size-4 my-0"></i>
-        <span class="pl-1">Home</span>
+        <span>Home</span>
       </a>
       <ng-container *ngIf="entities">
         <a
@@ -15,8 +14,7 @@
           routerLinkActive="is-active"
           *ngFor="let entity of entities"
         >
-          <i class="icon icon-box mr-3 is-size-4 my-0"></i>
-          <span class="pl-1">{{
+          <span>{{
             entity.definition.namePlural | capitalizeFirstLetter
           }}</span>
         </a>
