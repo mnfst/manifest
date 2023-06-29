@@ -18,7 +18,7 @@ CASE lets developers quickly and easily build CRUD applications from their data.
 
 1. **Requirements**
 
-   (NodeJS)[https://nodejs.org/en] (v14 and v16).
+   [NodeJS](https://nodejs.org/en) (v14 and v16).
 
 2. **Install CASE**
    Install CASE with this command to create a CASE project instantly:
