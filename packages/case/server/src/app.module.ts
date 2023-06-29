@@ -11,19 +11,16 @@ import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 const devMode: boolean = process.argv[2] === 'dev'
 
 const databasePath: string = `${process.cwd()}/db/case.sqlite`
-const entityFolders: string[] = [
-  devMode
-    ? 'dist/server/src/entities/*.entity.js'
-    : `${process.cwd()}/entities/*.entity{.ts,.js}`,
-  join(__dirname, '../src/core-entities/*.entity.js')
-]
+const entityFolder: string = devMode
+  ? 'dist/server/src/entities/*.entity.js'
+  : `${process.cwd()}/entities/*.entity{.ts,.js}`
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: databasePath,
-      entities: entityFolders,
+      entities: [entityFolder],
       synchronize: true
     }),
     AppRulesModule,
@@ -45,15 +42,15 @@ export class AppModule {
     table.push(
       ['client URL', chalk.green('http://localhost:3000')],
       ['API URL', chalk.green('http://localhost:3000/api')],
-      ['databasePath', chalk.green(databasePath)],
+      ['database path', chalk.green(databasePath)],
       [
         'entities',
         chalk.green(
           this.dataSource.entityMetadatas.map((entity) => entity.tableName)
         )
       ],
-      ['entityFolders', chalk.green(entityFolders)],
-      ['devMode', chalk.green(devMode)]
+      ['entity folder', chalk.green(entityFolder)],
+      ['dev mode', chalk.green(devMode)]
     )
 
     console.log(table.toString())

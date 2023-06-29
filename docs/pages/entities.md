@@ -7,7 +7,7 @@ An entity is an object often linked to a real world concept like users, customer
 In our example, we will create an app that lists famous painters and their works (why not ?). Simply run on the terminal the following command:
 
 ```
-npm run case:new-resource painter
+npm run case:entity painter
 ```
 
 The application should reload with some painters now !

@@ -12,10 +12,16 @@ export class DynamicEntitySeeder {
 
   constructor(private dataSource: DataSource) {}
 
-  async seed() {
-    const entities: EntityMetadata[] = this.orderEntities(
+  async seed(tableName?: string) {
+    let entities: EntityMetadata[] = this.orderEntities(
       this.dataSource.entityMetadatas
     )
+
+    if (tableName) {
+      entities = entities.filter(
+        (entity: EntityMetadata) => entity.tableName === tableName
+      )
+    }
 
     const queryRunner = this.dataSource.createQueryRunner()
 
