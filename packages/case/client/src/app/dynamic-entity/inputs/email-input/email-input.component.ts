@@ -11,8 +11,9 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 
 @Component({
   selector: 'app-email-input',
-  template: ` <label [for]="prop.propName">{{ prop.label }}</label>
-    <div class="control has-icons-left has-icons-right">
+  template: `
+    <label [for]="prop.propName">{{ prop.label }}</label>
+    <div class="control">
       <input
         class="input"
         type="email"
@@ -20,13 +21,8 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
         (change)="onChange($event)"
         #input
       />
-      <span class="icon is-small is-left">
-        <i class="fas fa-envelope"></i>
-      </span>
-      <span class="icon is-small is-right">
-        <i class="fas fa-check"></i>
-      </span>
-    </div>`,
+    </div>
+  `,
   styleUrls: ['./email-input.component.scss']
 })
 export class EmailInputComponent implements OnInit {
