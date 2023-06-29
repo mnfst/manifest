@@ -1,5 +1,5 @@
 {
-  "name": "@casejs/create-case-app",
+  "name": "create-case-app",
   "version": "0.0.3",
   "description": "Generate a new CASE app",
   "bin": "index.js",

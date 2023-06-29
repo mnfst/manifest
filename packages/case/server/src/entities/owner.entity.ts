@@ -8,7 +8,7 @@ import { Entity } from '../decorators/entity.decorator'
   nameSingular: 'owner',
   namePlural: 'owners',
   propIdentifier: 'name',
-  slug: 'owner',
+  slug: 'owners',
   seedCount: 5
 })
 export class Owner extends CaseEntity {

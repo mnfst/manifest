@@ -11,6 +11,7 @@ import { BreadcrumbService } from '../../services/breadcrumb.service'
 })
 export class HomeComponent {
   settings: AppSettings
+  isAppBlank: boolean
 
   constructor(
     settingsService: SettingsService,
@@ -18,6 +19,7 @@ export class HomeComponent {
   ) {
     settingsService.loadSettings().subscribe((res) => {
       this.settings = res.settings
+      this.isAppBlank = res.entities.length === 0
     })
     breadcrumbService.breadcrumbLinks.next([
       {

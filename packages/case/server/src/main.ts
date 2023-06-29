@@ -5,7 +5,10 @@ import { join } from 'path'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true })
+  const app = await NestFactory.create(AppModule, {
+    cors: true,
+    logger: ['error', 'warn']
+  })
 
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
