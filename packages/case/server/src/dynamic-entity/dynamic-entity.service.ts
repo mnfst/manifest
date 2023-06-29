@@ -7,13 +7,13 @@ import { SelectOption } from '../../../shared/interfaces/select-option.interface
 export class DynamicEntityService {
   constructor(private dataSource: DataSource) {}
 
-  findAll(entityTableName: string): Promise<any[]> {
-    const entityRepository: Repository<any> =
-      this.getRepository(entityTableName)
+  findAll(entitySlug: string): Promise<any[]> {
+    const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     // Get entity relations
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) => entity.tableName === entityTableName
+      (entity: EntityMetadata) =>
+        (entity.target as any).definition.slug === entitySlug
     )
 
     return entityRepository.find({
@@ -24,12 +24,13 @@ export class DynamicEntityService {
     })
   }
 
-  async findSelectOptions(entityTableName: string): Promise<SelectOption[]> {
-    const items: any[] = await this.findAll(entityTableName)
+  async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
+    const items: any[] = await this.findAll(entitySlug)
 
     // Get entity propIdentifier.
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) => entity.tableName === entityTableName
+      (entity: EntityMetadata) =>
+        (entity.target as any).definition.slug === entitySlug
     )
 
     return items.map((item: any) => ({
@@ -38,12 +39,13 @@ export class DynamicEntityService {
     }))
   }
 
-  async findOne(entityTableName: string, id: number) {
+  async findOne(entitySlug: string, id: number) {
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) => entity.tableName === entityTableName
+      (entity: EntityMetadata) =>
+        (entity.target as any).definition.slug === entitySlug
     )
 
-    const item = await this.getRepository(entityTableName).findOne({
+    const item = await this.getRepository(entitySlug).findOne({
       where: { id },
       relations: entity.relations.map(
         (relation: RelationMetadata) => relation.propertyName
@@ -56,18 +58,16 @@ export class DynamicEntityService {
     return item
   }
 
-  async store(entityTableName: string, entityDto: any) {
-    const entityRepository: Repository<any> =
-      this.getRepository(entityTableName)
+  async store(entitySlug: string, entityDto: any) {
+    const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     const item = entityRepository.create(entityDto)
 
     return entityRepository.insert(item)
   }
 
-  async update(entityTableName: string, id: number, entityDto: any) {
-    const entityRepository: Repository<any> =
-      this.getRepository(entityTableName)
+  async update(entitySlug: string, id: number, entityDto: any) {
+    const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     const item = await entityRepository.findOne({ where: { id } })
 
@@ -78,9 +78,8 @@ export class DynamicEntityService {
     return entityRepository.update(id, entityDto)
   }
 
-  async delete(entityTableName: string, id: number) {
-    const entityRepository: Repository<any> =
-      this.getRepository(entityTableName)
+  async delete(entitySlug: string, id: number) {
+    const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     const item = await entityRepository.findOne({ where: { id } })
 
@@ -91,9 +90,10 @@ export class DynamicEntityService {
     return entityRepository.delete(id)
   }
 
-  private getRepository(entityTableName: string): Repository<any> {
+  private getRepository(entitySlug: string): Repository<any> {
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) => entity.tableName === entityTableName
+      (entity: EntityMetadata) =>
+        (entity.target as any).definition.slug === entitySlug
     )
 
     if (!entity) {
