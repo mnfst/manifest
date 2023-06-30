@@ -1,0 +1,30 @@
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-wrapper">
+    <a class="logo" routerLink="/">
+      <img src="/assets/images/logo.svg" class="logo--image" />
+    </a>
+  </div>
+
+  <div class="navbar-menu" id="create-dropdown">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li>
+          <a routerLink="/">Home</a>
+        </li>
+
+        <li
+          *ngFor="let breadcrumbLink of breadcrumbLinks"
+          [ngClass]="{ 'is-active': !breadcrumbLink.path }"
+        >
+          <a [routerLink]="breadcrumbLink.path" *ngIf="breadcrumbLink.path">
+            {{ breadcrumbLink.label | capitalizeFirstLetter }}
+          </a>
+          <a class="is-active" *ngIf="!breadcrumbLink.path">{{
+            breadcrumbLink.label | capitalizeFirstLetter
+          }}</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</nav>

@@ -1,0 +1,24 @@
+<ul class="menu-list mt-5">
+  <ng-container>
+    <li>
+      <a
+        routerLink="/"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span>Home</span>
+      </a>
+      <ng-container *ngIf="entities">
+        <a
+          [routerLink]="['/dynamic', entity.definition.slug]"
+          routerLinkActive="is-active"
+          *ngFor="let entity of entities"
+        >
+          <span>{{
+            entity.definition.namePlural | capitalizeFirstLetter
+          }}</span>
+        </a>
+      </ng-container>
+    </li>
+  </ng-container>
+</ul>

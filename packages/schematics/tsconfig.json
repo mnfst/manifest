@@ -22,8 +22,5 @@
     "types": ["jasmine", "node"]
   },
   "include": ["src/**/*", "src/*.json", "src/commands/**/*.json"],
-  "exclude": [
-    "src/commands/create-resource/client-files",
-    "src/commands/create-resource/server-files"
-  ]
+  "exclude": ["src/commands/create-entity/files"]
 }
