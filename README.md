@@ -4,23 +4,22 @@
   </a>
 </p>
 
-<h3 align='center' style="margin-bottom:30px">Develop CRUD applications fast and easy.</h3>
+<h3 align='center' style="margin-bottom:30px">The fastest and easiest way to develop CRUD apps</h3>
 <img  src="./docs/assets/images/cat-list.png" alt="CASE App" width="100%" style="border: 1px solid #dedede; margin-bottom: 2rem" />
 
-CASE lets developers quickly and easily build CRUD applications from their data.
+## Why CASE ?
 
-- **Focus on your data**. With CASE, you don't need to learn a new framework. It is technology agnostic. Add your entites, define your rules. That's it.
-- **Instant end-to-end results**. Install case in 1 command line, develop simply and deploy ultra-fast
-- **Beautiful and professional UI**. Case offers an intuitive, functional and attractive interface, designed with the help of end-users
+- 🧠 **Focus on your data, not on your framework(s)**. Data-oriented approach, no need to learn new stuff
+- ⚡ **Ultra-fast development**. 1 command install, simple and effective codebase
+- ✨ **Beautiful and clear UI**. Professional quality interface, designed with end-users
 
-# Getting started
+## Getting started
 
 1. **Requirements**
 
-   [NodeJS](https://nodejs.org/en) (v14 and v16).
+   [NodeJS](https://nodejs.org/en) (v14 or ulterior).
 
 2. **Install CASE**
-   Install CASE with this command to create a CASE project instantly:
 
    ```sh
    npx create-case-app my-case-app
@@ -29,6 +28,7 @@ CASE lets developers quickly and easily build CRUD applications from their data.
 3. **Start the application**
 
    ```sh
+   cd my-case-app
    npm start
    ```
 
@@ -36,11 +36,11 @@ CASE lets developers quickly and easily build CRUD applications from their data.
 
    The API is accessible at http://localhost:3000/api.
 
-# Learn more
+## Learn more
 
 - [CASE documentation](https://docs.case.app/) - Official CASE documentation
 
-# Community
+## Community
 
 - [Discord](https://discord.gg/FepAked3W7) - Come chat with the CASE community
 - [Dev.to](https://dev.to/casejs) - Stay tuned to CASE developments

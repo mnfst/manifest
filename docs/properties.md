@@ -72,7 +72,10 @@ export class Cat extends CaseEntity {
 }
 ```
 
-Relations only work in the **Children => Parent** direction on many-to-one relationships.
+Notes:
+
+- CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
+- We use **cascade delete**: if you delete the _Owner_ on the UI, it will also delete all his or her _Cat_ entities
 
 ### Custom property seeders
 
