@@ -28,6 +28,15 @@
         }
       }
 
+      .pagination-item {
+        padding: 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        border-radius: 4px;
+      }
+      .pagination-item:hover {
+        border: 1px solid rgba(0, 0, 0, 0.27);
+      }
+
       .markdown-section pre,
       .markdown-section pre > code {
         background-color: #1e2432;
@@ -58,12 +67,12 @@
     </style>
     <script>
       window.$docsify = {
-        homepage: 'getting-started/overview.md',
+        homepage: 'introduction.md',
         loadSidebar: true,
         subMaxLevel: 2,
 
         auto2top: true,
-        name: 'CASE doc',
+        name: 'CASE Documentation',
         repo: '',
         copyCode: {
           buttonText: 'Copy to clipboard',
@@ -78,6 +87,9 @@
 
     <!-- Plugins: https://github.com/fzankl/docsify-plugin-flexible-alerts -->
     <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+
+    <!-- Plugins: https://github.com/imyelo/docsify-pagination -->
+    <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
 
     <!-- Latest v2.1.1 -->
     <script src="https://unpkg.com/docsify-copy-code@2"></script>

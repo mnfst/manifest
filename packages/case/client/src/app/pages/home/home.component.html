@@ -1,0 +1,38 @@
+<div class="columns is-multiline">
+  <div
+    class="column is-8 is-offset-2 is-6-widescreen is-offset-3-widescreen is-4-fullhd is-offset-4-fullhd"
+  >
+    <div class="card mt-4">
+      <div class="card-content">
+        <div class="content has-text-centered">
+          <span class="is-size-1">👋</span>
+          <h1>Welcome to {{ settings.appName }}</h1>
+          <p class="is-size-5">{{ settings.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="columns" *ngIf="isAppBlank">
+  <div class="column is-6 is-offset-3 is-4-fullhd is-offset-4-fullhd">
+    <div class="card mt-4 is-warning-light">
+      <div class="card-content">
+        <div class="content has-text-centered">
+          <span class="is-size-1">✨</span>
+          <h2>Let's create a new entity !</h2>
+          <code class="is-size-4"> npm run case:entity my-entity</code>
+          <p class="is-size-5 mt-2">
+            Replacing "<strong>my-entity</strong>" by the name of your entity
+            (lowercase, singular)
+          </p>
+          <p class="is-size-5">
+            See the full
+            <a href="https://docs.case.app/entities" target="_blank"
+              >documentation about entities in CASE</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

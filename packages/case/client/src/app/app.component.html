@@ -1,0 +1,33 @@
+<app-top-menu
+  [ngClass]="{ 'is-collapsed': isCollapsed }"
+  class="is-hidden-touch"
+></app-top-menu>
+<app-touch-menu class="is-hidden-desktop"></app-touch-menu>
+<div class="collapse-button is-hidden-touch">
+  <a
+    role="button"
+    class="navbar-burger burger ghost"
+    aria-label="menu"
+    aria-expanded="false"
+    data-target="navbarBasicExample"
+    (click)="isCollapsed = !isCollapsed"
+  >
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+  </a>
+</div>
+
+<div class="wrapper" [ngClass]="{ 'is-collapsed': isCollapsed }">
+  <div class="columns">
+    <aside #menuList class="column aside menu px-0">
+      <app-side-menu></app-side-menu>
+    </aside>
+    <div class="column main">
+      <main>
+        <router-outlet></router-outlet>
+      </main>
+      <app-footer></app-footer>
+    </div>
+  </div>
+</div>

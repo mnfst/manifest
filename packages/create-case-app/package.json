@@ -1,0 +1,31 @@
+{
+  "name": "create-case-app",
+  "version": "0.0.4",
+  "description": "Generate a new CASE app",
+  "bin": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/casejs/case.git"
+  },
+  "keywords": [
+    "case",
+    "starter",
+    "generate",
+    "case",
+    "app"
+  ],
+  "author": "CASE",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/casejs/case/issues"
+  },
+  "homepage": "https://github.com/casejs/case#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "ora": "^6.3.1"
+  },
+  "type": "module"
+}
