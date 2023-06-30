@@ -24,6 +24,7 @@ import { BooleanYieldComponent } from './yields/boolean-yield/boolean-yield.comp
 import { CurrencyYieldComponent } from './yields/currency-yield/currency-yield.component'
 import { DateYieldComponent } from './yields/date-yield/date-yield.component'
 import { EmailYieldComponent } from './yields/email-yield/email-yield.component'
+import { TruncatePipe } from '../pipes/truncate.pipe'
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { EmailYieldComponent } from './yields/email-yield/email-yield.component'
     BooleanYieldComponent,
     CurrencyYieldComponent,
     DateYieldComponent,
-    EmailYieldComponent
+    EmailYieldComponent,
+    TruncatePipe
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]
