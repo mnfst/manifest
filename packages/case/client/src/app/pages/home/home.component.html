@@ -7,59 +7,25 @@
         <div class="content has-text-centered">
           <span class="is-size-1">👋</span>
           <h1>Welcome to {{ settings.appName }}</h1>
-          <p class="is-size-6">{{ settings.description }}</p>
+          <p class="is-size-5">{{ settings.description }}</p>
         </div>
       </div>
     </div>
-    <a
-      href="https://docs.case.app/#/pages/entities"
-      target="_blank"
-      class="is-block"
-    >
-      <div class="card mt-4 has-background-warning-light">
-        <div class="card-content">
-          <div class="media">
-            <div class="media-left">
-              <figure class="image is-48x48">
-                <img
-                  src="/assets/images/add-resource.svg"
-                  width="96"
-                  alt="Add resource"
-                />
-              </figure>
-            </div>
-            <div class="media-content">
-              <p class="title is-4">Create an entity</p>
-              <p class="subtitle is-6">
-                Go to the documentation to see how to create an entity
-              </p>
-            </div>
-            <div
-              class="media-right is-flex is-align-items-center"
-              style="height: 48px"
-            >
-              <i class="icon icon-chevron-right is-size-2"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
   </div>
 </div>
-
 <div class="columns" *ngIf="isAppBlank">
   <div class="column is-6 is-offset-3 is-4-fullhd is-offset-4-fullhd">
-    <div class="card mt-4">
+    <div class="card mt-4 is-warning-light">
       <div class="card-content">
         <div class="content has-text-centered">
           <span class="is-size-1">✨</span>
-          <h1>Let's create a new entity !</h1>
-          <code class="is-size-3"> npm run case:entity my-entity</code>
-          <p class="is-size-6">
-            Replacing "my-entity" by the name of your entity (lowercase,
-            singular)
+          <h2>Let's create a new entity !</h2>
+          <code class="is-size-4"> npm run case:entity my-entity</code>
+          <p class="is-size-5 mt-2">
+            Replacing "<strong>my-entity</strong>" by the name of your entity
+            (lowercase, singular)
           </p>
-          <p class="is-size-6">
+          <p class="is-size-5">
             See the full
             <a href="https://docs.case.app/entities" target="_blank"
               >documentation about entities in CASE</a

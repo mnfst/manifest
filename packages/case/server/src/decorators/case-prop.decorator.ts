@@ -17,7 +17,10 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
         (_type) => definition.options.entity as any,
-        (entity) => entity[propertyKey]
+        (entity) => entity[propertyKey],
+        {
+          onDelete: 'CASCADE'
+        }
       )(target, propertyKey)
     } else {
       // Extend the Column decorator from TypeORM.
