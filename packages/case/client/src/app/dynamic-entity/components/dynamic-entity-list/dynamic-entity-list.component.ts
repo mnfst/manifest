@@ -22,6 +22,7 @@ export class DynamicEntityListComponent implements OnInit {
   entity: EntityDescription
 
   props: PropertyDescription[] = []
+  filtrableProps: PropertyDescription[] = []
 
   PropType = PropType
 
@@ -52,6 +53,7 @@ export class DynamicEntityListComponent implements OnInit {
         }
 
         this.props = this.entity.props
+        this.filtrableProps = this.props.filter((prop) => prop.filter)
 
         this.breadcrumbService.breadcrumbLinks.next([
           {

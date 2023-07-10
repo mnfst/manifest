@@ -29,6 +29,7 @@ export class Cat extends CaseEntity {
   @Prop({
     label: 'Owner',
     type: PropType.Relation,
+    filter: true,
     options: {
       entity: Owner
     }

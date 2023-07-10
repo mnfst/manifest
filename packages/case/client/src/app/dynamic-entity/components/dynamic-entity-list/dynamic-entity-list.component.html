@@ -22,6 +22,14 @@
     </div>
   </div>
 
+  <!-- Filters -->
+  <div class="columns card p-0 mb-6" *ngIf="filtrableProps?.length">
+    <h2 class="title is-5">Filters</h2>
+    <div class="column" *ngFor="let filtrableProp of filtrableProps">
+      <app-filter [prop]="filtrableProp"></app-filter>
+    </div>
+  </div>
+
   <div class="card p-0 mb-6">
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">

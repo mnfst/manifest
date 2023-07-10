@@ -51,5 +51,10 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       definition?.options || {},
       target
     )
+    Reflect.defineMetadata(
+      `${propertyKey}:filter`,
+      definition?.filter || false,
+      target
+    )
   }
 }
