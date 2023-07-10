@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
-import { of } from 'rxjs'
+import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
@@ -24,6 +24,8 @@ export class DynamicEntityListComponent implements OnInit {
   props: PropertyDescription[] = []
   filtrableProps: PropertyDescription[] = []
 
+  queryParams: Params
+
   PropType = PropType
 
   constructor(
@@ -43,7 +45,11 @@ export class DynamicEntityListComponent implements OnInit {
 
   ngOnInit(): void {
     of(this.entities).subscribe((res) => {
-      this.activatedRoute.params.subscribe(async (params: Params) => {
+      combineLatest([
+        this.activatedRoute.queryParams,
+        this.activatedRoute.params
+      ]).subscribe(async ([queryParams, params]: Params[]) => {
+        this.queryParams = queryParams
         this.entity = this.entities.find(
           (entity) => entity.definition.slug === params['entityName']
         )
@@ -65,6 +71,14 @@ export class DynamicEntityListComponent implements OnInit {
           this.entity.definition.slug
         )
       })
+    })
+  }
+
+  filter(propName: string, value: string): void {
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { [propName]: value },
+      queryParamsHandling: 'merge'
     })
   }
 

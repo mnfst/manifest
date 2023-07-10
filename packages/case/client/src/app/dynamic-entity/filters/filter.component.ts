@@ -20,7 +20,6 @@ export class FilterComponent {
   PropType = PropType
 
   onChange(event: any) {
-    console.log('event', event)
     this.valueChanged.emit(event)
   }
 }

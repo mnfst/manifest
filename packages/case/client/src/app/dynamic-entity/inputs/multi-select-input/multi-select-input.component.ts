@@ -20,7 +20,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class MultiSelectInputComponent {
   @Input() prop: PropertyDescription
-  @Input() value: { id: number } | { id: number }[]
+  @Input() value: number[] | string[] | number | string
 
   @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
 
@@ -48,11 +48,20 @@ export class MultiSelectInputComponent {
       )
 
       if (this.value) {
-        if (!Array.isArray(this.value)) {
-          this.value = [this.value]
-        }
+        this.value = this.forceNumberArray(this.value)
 
-        // TODO: initial value
+        this.selectedOptions = []
+
+        this.options
+          .filter((option) =>
+            this.forceNumberArray(this.value).find(
+              (value) => value === option.id
+            )
+          )
+          .forEach((option) => {
+            option.selected = true
+            this.selectedOptions.push(option)
+          })
       }
     })
   }
@@ -81,6 +90,15 @@ export class MultiSelectInputComponent {
 
     option.selected = !option.selected
     this.valueChanged.emit(this.selectedOptions.map((option) => option.id))
+  }
+
+  forceNumberArray(value: string | number | number[] | string[]): number[] {
+    if (typeof value === 'number') {
+      return [value]
+    } else if (typeof value === 'string') {
+      return [parseInt(value)]
+    }
+    return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
   }
 
   @HostListener('document:click', ['$event.target'])
