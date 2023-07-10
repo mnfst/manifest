@@ -13,6 +13,7 @@ import { CurrencyInputComponent } from './inputs/currency-input/currency-input.c
 import { DateInputComponent } from './inputs/date-input/date-input.component'
 import { EmailInputComponent } from './inputs/email-input/email-input.component'
 import { InputComponent } from './inputs/input.component'
+import { MultiSelectInputComponent } from './inputs/multi-select-input/multi-select-input.component'
 import { NumberInputComponent } from './inputs/number-input/number-input.component'
 import { SelectInputComponent } from './inputs/select-input/select-input.component'
 import { TextAreaInputComponent } from './inputs/text-area-input/text-area-input.component'
@@ -48,7 +49,8 @@ import { YieldComponent } from './yields/yield.component'
     CurrencyYieldComponent,
     DateYieldComponent,
     EmailYieldComponent,
-    FilterComponent
+    FilterComponent,
+    MultiSelectInputComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]

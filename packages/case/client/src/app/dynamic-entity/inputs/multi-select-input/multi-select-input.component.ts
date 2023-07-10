@@ -1,0 +1,96 @@
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  Output
+} from '@angular/core'
+
+import { EntityDescription } from '../../../../../../shared/interfaces/entity-description.interface'
+import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
+import { SelectOption } from '../../../../../../shared/interfaces/select-option.interface'
+import { SettingsService } from '../../../services/settings.service'
+import { DynamicEntityService } from '../../dynamic-entity.service'
+
+@Component({
+  selector: 'app-multi-select-input',
+  templateUrl: './multi-select-input.component.html',
+  styleUrls: ['./multi-select-input.component.scss']
+})
+export class MultiSelectInputComponent {
+  @Input() prop: PropertyDescription
+  @Input() value: { id: number } | { id: number }[]
+
+  @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
+
+  entityDescription: EntityDescription
+  options: SelectOption[]
+  selectedOptions: SelectOption[] = []
+
+  showList: boolean
+
+  constructor(
+    private settingsService: SettingsService,
+    private dynamicEntityService: DynamicEntityService,
+    private elementRef: ElementRef
+  ) {}
+
+  ngOnInit(): void {
+    this.settingsService.loadSettings().subscribe(async (res) => {
+      this.entityDescription = res.entities.find(
+        (entity: EntityDescription) =>
+          entity.className === this.prop.options.entityName
+      )
+
+      this.options = await this.dynamicEntityService.listSelectOptions(
+        this.entityDescription.definition.slug
+      )
+
+      if (this.value) {
+        if (!Array.isArray(this.value)) {
+          this.value = [this.value]
+        }
+
+        // TODO: initial value
+      }
+    })
+  }
+
+  selectAll(): void {
+    this.options.forEach((option) => (option.selected = true))
+    this.selectedOptions = this.options
+    this.valueChanged.emit(this.selectedOptions.map((option) => option.id))
+  }
+
+  selectNone(): void {
+    this.options.forEach((option) => (option.selected = false))
+    this.selectedOptions = []
+    this.valueChanged.emit([])
+  }
+
+  toggleSelected(option: SelectOption): void {
+    const index = this.selectedOptions.findIndex(
+      (selectedOption) => selectedOption.id === option.id
+    )
+    if (index > -1) {
+      this.selectedOptions.splice(index, 1)
+    } else {
+      this.selectedOptions.push(option)
+    }
+
+    option.selected = !option.selected
+    this.valueChanged.emit(this.selectedOptions.map((option) => option.id))
+  }
+
+  @HostListener('document:click', ['$event.target'])
+  clickOut(eventTarget: any) {
+    if (
+      this.showList &&
+      !this.elementRef.nativeElement.contains(eventTarget) &&
+      !eventTarget.className.includes('mass-selection-button')
+    ) {
+      this.showList = false
+    }
+  }
+}
