@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
-import { of } from 'rxjs'
+import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { Paginator } from '~shared/interfaces/paginator.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
+import { BreadcrumbService } from '../../../services/breadcrumb.service'
+import { FlashMessageService } from '../../../services/flash-message.service'
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
-import { BreadcrumbService } from '../../../services/breadcrumb.service'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 
 @Component({
   selector: 'app-dynamic-entity-list',
@@ -15,12 +17,15 @@ import { EntityDescription } from '~shared/interfaces/entity-description.interfa
   styleUrls: ['./dynamic-entity-list.component.scss']
 })
 export class DynamicEntityListComponent implements OnInit {
-  items: any[] = []
+  paginator: Paginator<any>
 
   entities: EntityDescription[] = []
   entity: EntityDescription
 
   props: PropertyDescription[] = []
+  filtrableProps: PropertyDescription[] = []
+
+  queryParams: Params
 
   PropType = PropType
 
@@ -29,6 +34,7 @@ export class DynamicEntityListComponent implements OnInit {
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
     private breadcrumbService: BreadcrumbService,
+    private flashMessageService: FlashMessageService,
     settingsService: SettingsService
   ) {
     settingsService
@@ -40,7 +46,11 @@ export class DynamicEntityListComponent implements OnInit {
 
   ngOnInit(): void {
     of(this.entities).subscribe((res) => {
-      this.activatedRoute.params.subscribe(async (params: Params) => {
+      combineLatest([
+        this.activatedRoute.queryParams,
+        this.activatedRoute.params
+      ]).subscribe(async ([queryParams, params]: Params[]) => {
+        this.queryParams = queryParams
         this.entity = this.entities.find(
           (entity) => entity.definition.slug === params['entityName']
         )
@@ -50,6 +60,7 @@ export class DynamicEntityListComponent implements OnInit {
         }
 
         this.props = this.entity.props
+        this.filtrableProps = this.props.filter((prop) => prop.filter)
 
         this.breadcrumbService.breadcrumbLinks.next([
           {
@@ -57,10 +68,25 @@ export class DynamicEntityListComponent implements OnInit {
           }
         ])
 
-        this.items = await this.dynamicEntityService.list(
-          this.entity.definition.slug
+        this.paginator = await this.dynamicEntityService.list(
+          this.entity.definition.slug,
+          queryParams
         )
       })
+    })
+  }
+
+  filter(propName: string, value: string | number): void {
+    const queryParams: Params = { [propName]: value }
+
+    if (propName !== 'page') {
+      queryParams['page'] = 1
+    }
+
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+      queryParamsHandling: 'merge'
     })
   }
 
@@ -68,7 +94,12 @@ export class DynamicEntityListComponent implements OnInit {
     this.dynamicEntityService
       .delete(this.entity.definition.slug, id)
       .then((res) => {
-        this.items = this.items.filter((item: any) => item.id !== id)
+        this.flashMessageService.success(
+          `The ${this.entity.definition.nameSingular} has been deleted.`
+        )
+        this.paginator.data = this.paginator.data.filter(
+          (item: any) => item.id !== id
+        )
       })
   }
 }

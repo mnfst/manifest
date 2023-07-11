@@ -22,6 +22,20 @@
     </div>
   </div>
 
+  <!-- Filters -->
+  <div class="columns card p-0 mb-6" *ngIf="filtrableProps?.length">
+    <h2 class="title is-5">Filters</h2>
+    <div class="column is-4" *ngFor="let filtrableProp of filtrableProps">
+      <app-filter
+        [prop]="filtrableProp"
+        (valueChanged)="filter(filtrableProp.propName, $event)"
+        [value]="queryParams[filtrableProp.propName]"
+      ></app-filter>
+    </div>
+  </div>
+
+  <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
+
   <div class="card p-0 mb-6">
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">
@@ -38,8 +52,8 @@
             <th></th>
           </tr>
         </thead>
-        <tbody *ngIf="items?.length">
-          <tr *ngFor="let item of items">
+        <tbody *ngIf="paginator?.data?.length">
+          <tr *ngFor="let item of paginator.data">
             <td
               *ngFor="let prop of props"
               [ngClass]="{
@@ -76,14 +90,20 @@
             </td>
           </tr>
         </tbody>
-        <tbody *ngIf="items && !items.length">
+        <tbody *ngIf="paginator?.data && !paginator.data.length">
           <tr>
             <td [attr.colspan]="props.length">
-              There is no {{ entity.definition.nameSingular }} yet.
+              There is no {{ entity.definition.nameSingular }}.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <app-pagination
+    [paginator]="paginator"
+    (pageChanged)="filter('page', $event)"
+    *ngIf="paginator"
+  ></app-pagination>
 </ng-container>

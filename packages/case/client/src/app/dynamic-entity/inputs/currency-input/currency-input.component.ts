@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -21,7 +22,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
         #input
       />
       <span class="icon is-small is-right">
-        <i class="icon icon-dollar-sign"></i>
+        {{ symbol }}
       </span>
     </p>`,
   styleUrls: ['./currency-input.component.scss']
@@ -29,12 +30,15 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 export class CurrencyInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
-
   @Input() value: string
 
   @ViewChild('input', { static: true }) input: ElementRef
 
+  symbol: string
+
   ngOnInit(): void {
+    this.symbol = getCurrencySymbol((this.prop.options as any).currency, 'wide')
+
     if (this.value !== undefined) {
       this.input.nativeElement.value = this.value
     }

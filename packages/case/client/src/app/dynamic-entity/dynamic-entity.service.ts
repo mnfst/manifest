@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs'
 
 import { environment } from '../../environments/environment'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
+import { Paginator } from '~shared/interfaces/paginator.interface'
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +14,12 @@ export class DynamicEntityService {
 
   constructor(private http: HttpClient) {}
 
-  list(entityName: string): Promise<any[]> {
+  list(entityName: string, params?: any): Promise<Paginator<any>> {
     return firstValueFrom(
-      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}`)
-    ) as Promise<any[]>
+      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}`, {
+        params
+      })
+    ) as Promise<Paginator<any>>
   }
 
   listSelectOptions(entityName: string): Promise<SelectOption[]> {

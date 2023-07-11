@@ -6,8 +6,11 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Put
+  Put,
+  Query
 } from '@nestjs/common'
+
+import { Paginator } from '../../../shared/interfaces/paginator.interface'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
@@ -15,8 +18,15 @@ export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 
   @Get(':entity')
-  findAll(@Param('entity') entity: string): Promise<any> {
-    return this.dynamicEntityService.findAll(entity)
+  findAll(
+    @Param('entity') entity: string,
+    @Query() queryParams: { [key: string]: string | string[] }
+  ): Promise<Paginator<any>> {
+    return this.dynamicEntityService.findAll({
+      entitySlug: entity,
+      queryParams,
+      options: { paginated: true }
+    }) as Promise<Paginator<any>>
   }
 
   @Get(':entity/select-options')

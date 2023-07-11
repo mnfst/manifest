@@ -10,7 +10,7 @@ import { Owner } from './owner.entity'
   nameSingular: 'cat',
   namePlural: 'cats',
   slug: 'cat',
-  seedCount: 5,
+  seedCount: 50,
   propIdentifier: 'name'
 })
 export class Cat extends CaseEntity {
@@ -20,15 +20,13 @@ export class Cat extends CaseEntity {
   name: string
 
   @Prop({
-    label: 'Age',
-    type: PropType.Number,
-    seed: (index?: number) => index
+    type: PropType.Number
   })
   age: number
 
   @Prop({
-    label: 'Owner',
     type: PropType.Relation,
+    filter: true,
     options: {
       entity: Owner
     }
@@ -36,33 +34,26 @@ export class Cat extends CaseEntity {
   owner: Owner
 
   @Prop({
-    label: 'Email',
-    type: PropType.Email,
-    seed: () => faker.internet.email()
+    type: PropType.Email
   })
   email: string
 
   @Prop({
-    label: 'Birthdate',
-    type: PropType.Date,
-    seed: () => faker.date.past()
+    type: PropType.Date
   })
   birthdate: Date
 
   @Prop({
-    seed: () => faker.lorem.sentences(),
     type: PropType.TextArea
   })
   description: string
 
   @Prop({
-    seed: () => faker.finance.amount(0, 500, 2),
     type: PropType.Currency
   })
   price: number
 
   @Prop({
-    seed: () => faker.datatype.boolean(),
     type: PropType.Boolean
   })
   adopted: boolean

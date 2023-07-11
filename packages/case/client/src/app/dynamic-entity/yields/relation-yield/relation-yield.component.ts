@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
-import { RelationOptions } from '~shared/interfaces/type-settings/relation-options.interface'
+import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
 
 import { SettingsService } from '../../../services/settings.service'
 

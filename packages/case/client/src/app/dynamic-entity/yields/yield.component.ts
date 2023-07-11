@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core'
-import { RelationOptions } from '~shared/interfaces/type-settings/relation-options.interface'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { CurrencyOptions } from '~shared/interfaces/property-options/currency-options.interface'
+import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
 
 @Component({
   selector: 'app-yield',
@@ -25,6 +26,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
     <app-currency-yield
       *ngIf="type === PropType.Currency"
       [value]="value"
+      [options]="options"
     ></app-currency-yield>
     <app-date-yield
       *ngIf="type === PropType.Date"
@@ -39,7 +41,7 @@ import { PropType } from '~shared/enums/prop-type.enum'
 export class YieldComponent {
   @Input() value: any
   @Input() type: PropType
-  @Input() options?: RelationOptions
+  @Input() options?: RelationOptions | CurrencyOptions | any
 
   PropType = PropType
 }

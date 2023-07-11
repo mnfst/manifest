@@ -1,0 +1,7 @@
+<div
+  class="flash-messages notification"
+  *ngIf="flashMessage"
+  [ngClass]="flashMessage.className"
+>
+  <p>{{ flashMessage.message }}</p>
+</div>

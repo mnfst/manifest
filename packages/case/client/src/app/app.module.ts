@@ -13,8 +13,9 @@ import { SideMenuComponent } from './layout/side-menu/side-menu.component'
 import { TopMenuComponent } from './layout/top-menu/top-menu.component'
 import { TouchMenuComponent } from './layout/touch-menu/touch-menu.component'
 import { HomeComponent } from './pages/home/home.component'
-import { SettingsService } from './services/settings.service'
+import { FlashMessageComponent } from './partials/flash-message/flash-message.component'
 import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
+import { SettingsService } from './services/settings.service'
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
     AvatarComponent,
     HomeComponent,
     FooterComponent,
-    CapitalizeFirstLetterPipe
+    CapitalizeFirstLetterPipe,
+    FlashMessageComponent
   ],
   imports: [
     BrowserModule,
