@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core'
 import { ReactiveFormsModule } from '@angular/forms'
 
 import { AppRoutingModule } from '../app-routing.module'
+import { TruncatePipe } from '../pipes/truncate.pipe'
 import { SettingsService } from '../services/settings.service'
 import { DynamicEntityCreateEditComponent } from './components/dynamic-entity-create-edit/dynamic-entity-create-edit.component'
 import { DynamicEntityDetailComponent } from './components/dynamic-entity-detail/dynamic-entity-detail.component'
@@ -49,6 +50,7 @@ import { YieldComponent } from './yields/yield.component'
     CurrencyYieldComponent,
     DateYieldComponent,
     EmailYieldComponent,
+    TruncatePipe,
     FilterComponent,
     MultiSelectInputComponent
   ],
