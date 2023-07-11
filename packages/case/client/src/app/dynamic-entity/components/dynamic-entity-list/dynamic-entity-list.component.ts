@@ -77,9 +77,15 @@ export class DynamicEntityListComponent implements OnInit {
   }
 
   filter(propName: string, value: string | number): void {
+    const queryParams: Params = { [propName]: value }
+
+    if (propName !== 'page') {
+      queryParams['page'] = 1
+    }
+
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
-      queryParams: { [propName]: value },
+      queryParams,
       queryParamsHandling: 'merge'
     })
   }

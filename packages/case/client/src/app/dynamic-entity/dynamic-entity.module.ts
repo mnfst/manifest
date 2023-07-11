@@ -19,6 +19,7 @@ import { NumberInputComponent } from './inputs/number-input/number-input.compone
 import { SelectInputComponent } from './inputs/select-input/select-input.component'
 import { TextAreaInputComponent } from './inputs/text-area-input/text-area-input.component'
 import { TextInputComponent } from './inputs/text-input/text-input.component'
+import { ListMetaComponent } from './partials/list-meta/list-meta.component'
 import { PaginationComponent } from './partials/pagination/pagination.component'
 import { BooleanYieldComponent } from './yields/boolean-yield/boolean-yield.component'
 import { CurrencyYieldComponent } from './yields/currency-yield/currency-yield.component'
@@ -54,7 +55,8 @@ import { YieldComponent } from './yields/yield.component'
     TruncatePipe,
     FilterComponent,
     MultiSelectInputComponent,
-    PaginationComponent
+    PaginationComponent,
+    ListMetaComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]

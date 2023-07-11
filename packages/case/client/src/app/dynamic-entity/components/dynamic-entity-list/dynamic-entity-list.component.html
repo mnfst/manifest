@@ -34,6 +34,8 @@
     </div>
   </div>
 
+  <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
+
   <div class="card p-0 mb-6">
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">
@@ -91,7 +93,7 @@
         <tbody *ngIf="paginator?.data && !paginator.data.length">
           <tr>
             <td [attr.colspan]="props.length">
-              There is no {{ entity.definition.nameSingular }} yet.
+              There is no {{ entity.definition.nameSingular }}.
             </td>
           </tr>
         </tbody>
