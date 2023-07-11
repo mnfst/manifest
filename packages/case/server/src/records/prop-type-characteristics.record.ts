@@ -45,5 +45,13 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Boolean]: {
     columnType: 'boolean',
     defaultSeedFunction: (index: number) => faker.datatype.boolean()
+  },
+  [PropType.Password]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () =>
+      faker.internet.password({
+        length: 10,
+        memorable: true
+      })
   }
 }

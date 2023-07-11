@@ -51,7 +51,6 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       *ngIf="prop.type === PropType.Email"
     >
     </app-email-input>
-
     <app-date-input
       [prop]="prop"
       [value]="value"
@@ -59,6 +58,12 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       *ngIf="prop.type === PropType.Date"
     >
     </app-date-input>
+    <app-password-input
+      [prop]="prop"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Password"
+    >
+    </app-password-input>
   `
 })
 export class InputComponent {

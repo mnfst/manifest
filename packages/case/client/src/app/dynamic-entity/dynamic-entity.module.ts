@@ -15,6 +15,7 @@ import { EmailInputComponent } from './inputs/email-input/email-input.component'
 import { InputComponent } from './inputs/input.component'
 import { MultiSelectInputComponent } from './inputs/multi-select-input/multi-select-input.component'
 import { NumberInputComponent } from './inputs/number-input/number-input.component'
+import { PasswordInputComponent } from './inputs/password-input/password-input.component'
 import { SelectInputComponent } from './inputs/select-input/select-input.component'
 import { TextAreaInputComponent } from './inputs/text-area-input/text-area-input.component'
 import { TextInputComponent } from './inputs/text-input/text-input.component'
@@ -54,7 +55,8 @@ import { YieldComponent } from './yields/yield.component'
     FilterComponent,
     MultiSelectInputComponent,
     PaginationComponent,
-    ListMetaComponent
+    ListMetaComponent,
+    PasswordInputComponent
   ],
   imports: [CommonModule, AppRoutingModule, ReactiveFormsModule],
   providers: [SettingsService]

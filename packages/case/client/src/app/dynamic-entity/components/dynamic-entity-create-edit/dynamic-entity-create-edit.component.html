@@ -5,7 +5,8 @@
     >
       <div class="left-part">
         <h1 class="title is-2 has-text-weight-light">
-          {{ edit ? 'Edit' : 'Create' }} a {{ entity.definition.nameSingular }}
+          {{ edit ? 'Edit an existing' : 'Create a new' }}
+          {{ entity.definition.nameSingular }}
         </h1>
       </div>
       <div class="right-part">
@@ -35,7 +36,6 @@
             <div class="form-group">
               <div class="field mt-2 mb-4" *ngFor="let prop of entity.props">
                 <div class="control">
-
                   <app-input
                     [prop]="prop"
                     [value]="edit ? item[prop.propName] : null"

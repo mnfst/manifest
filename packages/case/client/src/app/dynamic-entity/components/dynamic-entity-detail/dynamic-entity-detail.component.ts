@@ -38,7 +38,7 @@ export class DynamicEntityDetailComponent {
             this.breadcrumbService.breadcrumbLinks.next([
               {
                 label: this.entityDescription.definition.namePlural,
-                path: `/dynamic-entity/${this.entityDescription.definition.slug}`
+                path: `/dynamic/${this.entityDescription.definition.slug}`
               },
               {
                 label:
