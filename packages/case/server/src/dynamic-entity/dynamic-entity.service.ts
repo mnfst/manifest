@@ -124,9 +124,7 @@ export class DynamicEntityService {
   async store(entitySlug: string, entityDto: any) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
-    const item = entityRepository.create(entityDto)
-
-    return entityRepository.insert(item)
+    return entityRepository.insert(entityRepository.create(entityDto))
   }
 
   async update(entitySlug: string, id: number, entityDto: any) {
@@ -138,7 +136,12 @@ export class DynamicEntityService {
       throw new NotFoundException('Item not found')
     }
 
-    return entityRepository.update(id, entityDto)
+    const entityToSave = entityRepository.create({
+      ...item,
+      ...entityDto
+    })
+
+    return entityRepository.save(entityToSave)
   }
 
   async delete(entitySlug: string, id: number) {

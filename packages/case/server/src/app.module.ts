@@ -6,6 +6,7 @@ import { join } from 'path'
 import { DataSource } from 'typeorm'
 
 import { AppRulesModule } from './app-rules/app-rules.module'
+import { AuthModule } from './auth/auth.module'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 
 const devMode: boolean = process.argv[2] === 'dev'
@@ -28,7 +29,8 @@ const entityFolders: string[] = [
       synchronize: true
     }),
     AppRulesModule,
-    DynamicEntityModule
+    DynamicEntityModule,
+    AuthModule
   ]
 })
 export class AppModule {
