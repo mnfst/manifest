@@ -1,4 +1,4 @@
-import { Column, ManyToOne } from 'typeorm'
+import { Column, ManyToOne, Relation } from 'typeorm'
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { PropertyDefinition } from '../../../shared/interfaces/property-definition.interface'
 
@@ -6,6 +6,7 @@ import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
+import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
 
 export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
@@ -13,10 +14,12 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
     const typeCharacteristics: PropTypeCharacteristics =
       propTypeCharacteristicsRecord[definition?.type || defaultType]
 
+    const options: RelationOptions = definition?.options as RelationOptions
+
     if (definition?.type === PropType.Relation) {
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
-        (_type) => definition.options.entity as any,
+        (_type) => options?.entity,
         (entity) => entity[propertyKey],
         {
           onDelete: 'CASCADE'
