@@ -10,7 +10,7 @@ import { Owner } from './owner.entity'
   nameSingular: 'cat',
   namePlural: 'cats',
   slug: 'cat',
-  seedCount: 5,
+  seedCount: 50,
   propIdentifier: 'name'
 })
 export class Cat extends CaseEntity {

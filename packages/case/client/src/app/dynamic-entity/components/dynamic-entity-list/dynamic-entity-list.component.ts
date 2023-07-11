@@ -3,6 +3,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router'
 import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { Paginator } from '~shared/interfaces/paginator.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
@@ -16,7 +17,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-list.component.scss']
 })
 export class DynamicEntityListComponent implements OnInit {
-  items: any[] = []
+  paginator: Paginator<any>
 
   entities: EntityDescription[] = []
   entity: EntityDescription
@@ -67,7 +68,7 @@ export class DynamicEntityListComponent implements OnInit {
           }
         ])
 
-        this.items = await this.dynamicEntityService.list(
+        this.paginator = await this.dynamicEntityService.list(
           this.entity.definition.slug,
           queryParams
         )
@@ -75,7 +76,7 @@ export class DynamicEntityListComponent implements OnInit {
     })
   }
 
-  filter(propName: string, value: string): void {
+  filter(propName: string, value: string | number): void {
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
       queryParams: { [propName]: value },
@@ -90,7 +91,9 @@ export class DynamicEntityListComponent implements OnInit {
         this.flashMessageService.success(
           `The ${this.entity.definition.nameSingular} has been deleted.`
         )
-        this.items = this.items.filter((item: any) => item.id !== id)
+        this.paginator.data = this.paginator.data.filter(
+          (item: any) => item.id !== id
+        )
       })
   }
 }
