@@ -68,7 +68,8 @@ export class DynamicEntityListComponent implements OnInit {
         ])
 
         this.items = await this.dynamicEntityService.list(
-          this.entity.definition.slug
+          this.entity.definition.slug,
+          queryParams
         )
       })
     })

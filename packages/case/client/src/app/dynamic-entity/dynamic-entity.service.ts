@@ -13,9 +13,11 @@ export class DynamicEntityService {
 
   constructor(private http: HttpClient) {}
 
-  list(entityName: string): Promise<any[]> {
+  list(entityName: string, params?: any): Promise<any[]> {
     return firstValueFrom(
-      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}`)
+      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}`, {
+        params
+      })
     ) as Promise<any[]>
   }
 
