@@ -1,5 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { DataSource, EntityMetadata, Repository } from 'typeorm'
+import {
+  DataSource,
+  EntityMetadata,
+  FindOptionsWhere,
+  In,
+  Repository
+} from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import { SelectOption } from '../../../shared/interfaces/select-option.interface'
 
@@ -7,7 +13,10 @@ import { SelectOption } from '../../../shared/interfaces/select-option.interface
 export class DynamicEntityService {
   constructor(private dataSource: DataSource) {}
 
-  findAll(entitySlug: string): Promise<any[]> {
+  findAll(
+    entitySlug: string,
+    queryParams?: { [key: string]: string | string[] }
+  ): Promise<any[]> {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     // Get entity relations
@@ -16,11 +25,29 @@ export class DynamicEntityService {
         (entity.target as any).definition.slug === entitySlug
     )
 
+    const relations: string[] = entity.relations.map(
+      (relation: RelationMetadata) => relation.propertyName
+    )
+
+    // Dynamic filtering.
+    const where: FindOptionsWhere<any> = {}
+
+    Object.keys(queryParams || {}).forEach((key: string) => {
+      // Check if key is a relation.
+      if (relations.includes(key)) {
+        // Force array.
+        if (typeof queryParams[key] === 'string') {
+          queryParams[key] = [queryParams[key] as string]
+        }
+        // Add relation where clause: { relation: In([1, 2, 3])  }
+        where[key] = In(queryParams[key] as string[])
+      }
+    })
+
     return entityRepository.find({
       order: { id: 'DESC' },
-      relations: entity.relations.map(
-        (relation: RelationMetadata) => relation.propertyName
-      )
+      relations,
+      where
     })
   }
 

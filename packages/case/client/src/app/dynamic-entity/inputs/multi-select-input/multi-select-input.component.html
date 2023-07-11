@@ -1,0 +1,54 @@
+<div class="multiselect-box">
+  <div class="control">
+    <label (click)="showList = true">{{ prop.label }} </label>
+
+    <!-- Fake select -->
+    <div class="select select--simulate" (click)="showList = !showList">
+      <ng-container [ngPlural]="selectedOptions.length">
+        <ng-template ngPluralCase="=0">{{ prop.label }}</ng-template>
+        <ng-template ngPluralCase="=1"
+          >1
+          {{ entityDescription.definition.nameSingular }} selected</ng-template
+        >
+        <ng-template ngPluralCase="other"
+          >{{ selectedOptions.length }}
+          {{ entityDescription.definition.namePlural }} selected
+        </ng-template>
+      </ng-container>
+    </div>
+
+    <!-- Dropdown checkbox list -->
+    <div class="box" *ngIf="showList && options?.length">
+      <!-- Mass selection -->
+      <p class="pb-2 px-4">
+        <a
+          class="small-meta mass-selection-button has-text-grey-dark is-underlined is-inline-block is-fullwidth"
+          *ngIf="selectedOptions.length < options.length"
+          (click)="selectAll()"
+          >Select all</a
+        >
+        <a
+          class="small-meta mass-selection-button has-text-grey-dark is-underlined is-inline-block is-fullwidth"
+          *ngIf="selectedOptions.length === options.length"
+          (click)="selectNone()"
+          >Select none</a
+        >
+      </p>
+      <div
+        class="control px-4 py-1 is-fullwidth"
+        *ngFor="let option of options"
+      >
+        <label
+          class="checkbox"
+          [ngClass]="{
+            'is-checked': option.selected,
+          }"
+          (click)="toggleSelected(option)"
+        >
+          {{ option.label }}
+          <span class="checkmark"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>

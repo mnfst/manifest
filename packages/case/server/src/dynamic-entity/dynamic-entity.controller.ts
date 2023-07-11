@@ -6,7 +6,8 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Put
+  Put,
+  Query
 } from '@nestjs/common'
 import { DynamicEntityService } from './dynamic-entity.service'
 
@@ -15,8 +16,11 @@ export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 
   @Get(':entity')
-  findAll(@Param('entity') entity: string): Promise<any> {
-    return this.dynamicEntityService.findAll(entity)
+  findAll(
+    @Param('entity') entity: string,
+    @Query() queryParams: { [key: string]: string | string[] }
+  ): Promise<any> {
+    return this.dynamicEntityService.findAll(entity, queryParams)
   }
 
   @Get(':entity/select-options')

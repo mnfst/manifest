@@ -5,9 +5,10 @@ import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 
+import { BreadcrumbService } from '../../../services/breadcrumb.service'
+import { FlashMessageService } from '../../../services/flash-message.service'
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
-import { BreadcrumbService } from '../../../services/breadcrumb.service'
 
 @Component({
   selector: 'app-dynamic-entity-create-edit',
@@ -31,6 +32,7 @@ export class DynamicEntityCreateEditComponent {
     private dynamicEntityService: DynamicEntityService,
     private formBuilder: FormBuilder,
     private breadcrumbService: BreadcrumbService,
+    private flashMessageService: FlashMessageService,
     settingsService: SettingsService
   ) {
     settingsService.loadSettings().subscribe((res) => {
@@ -63,11 +65,11 @@ export class DynamicEntityCreateEditComponent {
           this.breadcrumbService.breadcrumbLinks.next([
             {
               label: this.entity.definition.namePlural,
-              path: `/dynamic-entity/${this.entity.definition.slug}`
+              path: `/dynamic/${this.entity.definition.slug}`
             },
             {
               label: this.item[this.entity.definition.propIdentifier],
-              path: `/dynamic-entity/${this.entity.definition.slug}/${this.item.id}`
+              path: `/dynamic/${this.entity.definition.slug}/${this.item.id}`
             },
             {
               label: 'Edit'
@@ -77,7 +79,7 @@ export class DynamicEntityCreateEditComponent {
           this.breadcrumbService.breadcrumbLinks.next([
             {
               label: this.entity.definition.namePlural,
-              path: `/dynamic-entity/${this.entity.definition.slug}`
+              path: `/dynamic/${this.entity.definition.slug}`
             },
             {
               label: `Create a new ${this.entity.definition.nameSingular}`
@@ -100,19 +102,28 @@ export class DynamicEntityCreateEditComponent {
   }
 
   submit(): void {
-    let submitRequest: Promise<any> = this.edit
-      ? this.dynamicEntityService.update(
-          this.entity.definition.slug,
-          this.item.id,
-          this.form.value
-        )
-      : this.dynamicEntityService.create(
-          this.entity.definition.slug,
-          this.form.value
-        )
-
-    submitRequest.then(() => {
-      this.router.navigate(['/dynamic', this.entity.definition.slug])
-    })
+    if (this.edit) {
+      this.dynamicEntityService
+        .update(this.entity.definition.slug, this.item.id, this.form.value)
+        .then(() => {
+          this.flashMessageService.success(
+            `The ${this.entity.definition.nameSingular} has been updated`
+          )
+          this.router.navigate(['/dynamic', this.entity.definition.slug])
+        })
+    } else {
+      this.dynamicEntityService
+        .create(this.entity.definition.slug, this.form.value)
+        .then((res: { identifiers: { id: number }[] }) => {
+          this.flashMessageService.success(
+            `The ${this.entity.definition.nameSingular} has been created`
+          )
+          this.router.navigate([
+            '/dynamic',
+            this.entity.definition.slug,
+            res.identifiers[0].id
+          ])
+        })
+    }
   }
 }
