@@ -1,16 +1,17 @@
+import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core'
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
-import { SettingsService } from '../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
+import { SettingsService } from '../../services/settings.service'
 
 @Component({
   selector: 'app-select-input',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   template: `
     <div [formGroup]="form">
       <label [for]="prop.propName">{{ prop.label }}</label>

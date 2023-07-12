@@ -37,14 +37,14 @@ export class AuthService {
     }
 
     return {
-      token: jwt.sign({ email }, process.env.TOKEN_SECRET_KEY)
+      token: jwt.sign({ email }, 'TODO: use a secret key')
     }
   }
 
   async getUserFromToken(token: string): Promise<any> {
     return jwt.verify(
       token?.replace('Bearer ', ''),
-      process.env.TOKEN_SECRET_KEY,
+      'TODO: use a secret key',
       async (_err, decoded: jwt.JwtPayload) => {
         if (decoded) {
           return this.dataSource.getRepository(User).findOne({

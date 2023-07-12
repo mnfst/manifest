@@ -16,7 +16,7 @@ import { AuthGuard } from '../auth/auth.guard'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 

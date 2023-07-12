@@ -4,7 +4,7 @@ import { RelationOptions } from './property-options/relation-options.interface'
 export interface PropertyDescription {
   propName: string
   label: string
-  filter: boolean
   type: PropType
+  filter?: boolean
   options?: RelationOptions
 }

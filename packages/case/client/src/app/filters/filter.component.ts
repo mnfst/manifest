@@ -1,12 +1,14 @@
+import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, Output } from '@angular/core'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+
 import { MultiSelectInputComponent } from '../inputs/multi-select-input/multi-select-input.component'
 
 @Component({
   selector: 'app-filter',
   standalone: true,
-  imports: [MultiSelectInputComponent],
+  imports: [MultiSelectInputComponent, CommonModule],
   template: ` <app-multi-select-input
     [prop]="prop"
     [value]="value"

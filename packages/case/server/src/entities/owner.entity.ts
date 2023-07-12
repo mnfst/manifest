@@ -19,7 +19,10 @@ export class Owner extends CaseEntity {
   name: string
 
   @Prop({
-    type: PropType.Currency
+    type: PropType.Currency,
+    options: {
+      currency: 'TBH'
+    }
   })
   wealth: number
 }

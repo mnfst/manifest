@@ -38,7 +38,10 @@ export class CurrencyInputComponent implements OnInit {
   symbol: string
 
   ngOnInit(): void {
-    this.symbol = getCurrencySymbol((this.prop.options as any).currency, 'wide')
+    this.symbol = getCurrencySymbol(
+      (this.prop.options as any).currency || 'USD',
+      'wide'
+    )
 
     if (this.value !== undefined) {
       this.input.nativeElement.value = this.value

@@ -1,13 +1,15 @@
 import { NgModule } from '@angular/core'
-import { RouterModule, Routes } from '@angular/router'
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router'
 
-import { HomeComponent } from './pages/home/home.component'
+import { AuthGuard } from './auth/auth.guard'
 import { Error404Component } from './pages/error404/error404.component'
+import { HomeComponent } from './pages/home/home.component'
 
 const routes: Routes = [
   {
     path: '',
-    component: HomeComponent
+    component: HomeComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'auth',
@@ -18,12 +20,13 @@ const routes: Routes = [
     loadChildren: () =>
       import('./dynamic-entity/dynamic-entity.module').then(
         (m) => m.DynamicEntityModule
-      )
+      ),
+    canActivate: [AuthGuard]
   },
   {
     path: '404',
-    component: Error404Component
-    // canActivate: [AuthGuard]
+    component: Error404Component,
+    canActivate: [AuthGuard]
   },
   {
     path: '**',
@@ -32,7 +35,11 @@ const routes: Routes = [
 ]
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [
+    RouterModule.forRoot(routes, {
+      preloadingStrategy: PreloadAllModules
+    })
+  ],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}

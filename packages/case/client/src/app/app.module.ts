@@ -2,11 +2,13 @@ import { HttpClientModule } from '@angular/common/http'
 import { APP_INITIALIZER, NgModule } from '@angular/core'
 import { ReactiveFormsModule } from '@angular/forms'
 import { BrowserModule } from '@angular/platform-browser'
+import { JwtModule } from '@auth0/angular-jwt'
 import { firstValueFrom } from 'rxjs'
 
 import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
 import { AvatarComponent } from './components/avatar/avatar.component'
+import { constants } from './constants'
 import { FooterComponent } from './layout/footer/footer.component'
 import { SideMenuComponent } from './layout/side-menu/side-menu.component'
 import { TopMenuComponent } from './layout/top-menu/top-menu.component'
@@ -34,7 +36,14 @@ import { SettingsService } from './services/settings.service'
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    JwtModule.forRoot({
+      config: {
+        tokenGetter: () => localStorage.getItem(constants.tokenName),
+        // TODO (Ship): This should be an environment variable.
+        allowedDomains: ['localhost:3000']
+      }
+    })
   ],
   providers: [
     {

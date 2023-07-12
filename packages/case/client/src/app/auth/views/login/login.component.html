@@ -3,6 +3,24 @@
     <h1 class="title is-1">Login</h1>
   </div>
   <div class="column">
-    <!-- <app-input></app-input> -->
+    <div class="columns" *ngFor="let prop of fields">
+      <div class="column">
+        <app-input
+          [prop]="prop"
+          (valueChanged)="patchValue(prop.propName, $event)"
+        ></app-input>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column">
+        <button
+          class="button is-primary"
+          (click)="submit()"
+          [disabled]="!form.valid"
+        >
+          Login
+        </button>
+      </div>
+    </div>
   </div>
 </div>

@@ -23,13 +23,15 @@ export class User extends CaseEntity {
   name: string
 
   @Prop({
-    type: PropType.Email
+    type: PropType.Email,
+    seed: (index) => 'user' + index + '@case.app'
   })
   email: string
 
   // TODO: Hide those 2 props from the client.
   @Prop({
-    type: PropType.Password
+    type: PropType.Password,
+    seed: () => SHA3('case').toString()
   })
   password: string
 
