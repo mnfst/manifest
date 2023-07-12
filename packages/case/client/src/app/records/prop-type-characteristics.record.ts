@@ -35,14 +35,16 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.TextArea,
     yield: YieldType.Text
   },
-
   [PropType.Email]: {
     input: InputType.Email,
     yield: YieldType.Email
   },
-
   [PropType.Boolean]: {
     input: InputType.Boolean,
     yield: YieldType.Boolean
+  },
+  [PropType.Password]: {
+    input: InputType.Password,
+    yield: YieldType.Text
   }
 }

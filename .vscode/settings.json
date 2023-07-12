@@ -26,11 +26,13 @@
     "dasherize",
     "dtos",
     "metadatas",
+    "metas",
     "nestjs",
     "typeorm"
   ],
   "material-icon-theme.files.associations": {
-    "**.controller.ts": "nest-controller"
+    "**.controller.ts": "nest-controller",
+    "**routing.module.ts": "routing"
   },
   "material-icon-theme.folders.associations": {
     "dtos": "interface",

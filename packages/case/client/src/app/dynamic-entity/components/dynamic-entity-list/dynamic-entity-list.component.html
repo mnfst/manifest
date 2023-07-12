@@ -1,22 +1,22 @@
-<ng-container *ngIf="entity">
+<ng-container *ngIf="entityMeta">
   <div
     class="is-flex flex-mobile is-justify-content-space-between is-align-items-center mb-2"
   >
     <div class="left-part">
       <h1 class="title is-2 has-text-weight-light">
-        List of {{ entity.definition.namePlural }}
+        List of {{ entityMeta.definition.namePlural }}
       </h1>
     </div>
     <div class="right-part">
       <a
         class="button is-link ml-5 is-hidden-touch"
-        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
-        >Create a new {{ entity.definition.nameSingular }}</a
+        [routerLink]="['/', 'dynamic', entityMeta.definition.slug, 'create']"
+        >Create a new {{ entityMeta.definition.nameSingular }}</a
       >
 
       <a
         class="button is-circle is-link ml-5 is-hidden-desktop"
-        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+        [routerLink]="['/', 'dynamic', entityMeta.definition.slug, 'create']"
         ><i class="icon icon-plus"></i
       ></a>
     </div>
@@ -69,7 +69,12 @@
             <td class="has-text-right is-nowrap">
               <a
                 class="has-text-weight-bold has-text-link"
-                [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
+                [routerLink]="[
+                  '/',
+                  'dynamic',
+                  entityMeta.definition.slug,
+                  item.id
+                ]"
                 ><i class="icon icon-eye"></i
               ></a>
 
@@ -78,7 +83,7 @@
                 [routerLink]="[
                   '/',
                   'dynamic',
-                  entity.definition.slug,
+                  entityMeta.definition.slug,
                   item.id,
                   'edit'
                 ]"
@@ -93,7 +98,7 @@
         <tbody *ngIf="paginator?.data && !paginator.data.length">
           <tr>
             <td [attr.colspan]="props.length">
-              There is no {{ entity.definition.nameSingular }}.
+              There is no {{ entityMeta.definition.nameSingular }}.
             </td>
           </tr>
         </tbody>

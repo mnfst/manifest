@@ -7,15 +7,25 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query
+  Query,
+  UseGuards
 } from '@nestjs/common'
 
+import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
 import { Paginator } from '../../../shared/interfaces/paginator.interface'
+import { SelectOption } from '../../../shared/interfaces/select-option.interface'
+import { AuthGuard } from '../auth/auth.guard'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
+@UseGuards(AuthGuard)
 export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
+
+  @Get('meta')
+  getMeta(): Promise<EntityMeta[]> {
+    return this.dynamicEntityService.getMeta()
+  }
 
   @Get(':entity')
   findAll(
@@ -30,7 +40,7 @@ export class DynamicEntityController {
   }
 
   @Get(':entity/select-options')
-  findSelectOptions(@Param('entity') entity: string): Promise<any> {
+  findSelectOptions(@Param('entity') entity: string): Promise<SelectOption[]> {
     return this.dynamicEntityService.findSelectOptions(entity)
   }
 

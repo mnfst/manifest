@@ -1,0 +1,32 @@
+<div class="columns">
+  <div class="column">
+    <h1 class="title is-1" *ngIf="appConfig">{{ appConfig.appName }}</h1>
+    <p *ngIf="appConfig">{{ appConfig.description }}</p>
+  </div>
+  <div class="column">
+    <div class="columns">
+      <div class="column">
+        <h2 class="title is-2">Login</h2>
+      </div>
+    </div>
+    <div class="columns" *ngFor="let prop of fields">
+      <div class="column">
+        <app-input
+          [prop]="prop"
+          (valueChanged)="patchValue(prop.propName, $event)"
+        ></app-input>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column">
+        <button
+          class="button is-primary"
+          (click)="submit()"
+          [disabled]="!form.valid"
+        >
+          Login
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

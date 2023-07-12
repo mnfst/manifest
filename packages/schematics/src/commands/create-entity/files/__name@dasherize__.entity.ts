@@ -9,7 +9,6 @@ import { CaseEntity, Entity, Prop } from '@casejs/case'
 export class <%= classifiedName %> extends CaseEntity {
   @Prop({
     label: 'Name of the <%= name %>',
-    seed: (index) => `<%= name %> ${index}`
   })
   name: string
 }

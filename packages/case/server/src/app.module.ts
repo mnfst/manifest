@@ -5,26 +5,32 @@ import * as cliTable from 'cli-table'
 import { join } from 'path'
 import { DataSource } from 'typeorm'
 
-import { AppRulesModule } from './app-rules/app-rules.module'
+import { AppConfigModule } from './app-config/app-config.module'
+import { AuthModule } from './auth/auth.module'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 
 const devMode: boolean = process.argv[2] === 'dev'
 
 const databasePath: string = `${process.cwd()}/db/case.sqlite`
-const entityFolder: string = devMode
-  ? 'dist/server/src/entities/*.entity.js'
-  : `${process.cwd()}/entities/*.entity{.ts,.js}`
+
+const entityFolders: string[] = [
+  devMode
+    ? 'dist/server/src/entities/*.entity.js'
+    : `${process.cwd()}/entities/*.entity{.ts,.js}`,
+  join(__dirname, '../src/core-entities/*.entity.js')
+]
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: databasePath,
-      entities: [entityFolder],
+      entities: entityFolders,
       synchronize: true
     }),
-    AppRulesModule,
-    DynamicEntityModule
+    AppConfigModule,
+    DynamicEntityModule,
+    AuthModule
   ]
 })
 export class AppModule {
@@ -49,7 +55,7 @@ export class AppModule {
           this.dataSource.entityMetadatas.map((entity) => entity.tableName)
         )
       ],
-      ['entity folder', chalk.green(entityFolder)],
+      ['entity folder', chalk.green(entityFolders[0])],
       ['dev mode', chalk.green(devMode)]
     )
 

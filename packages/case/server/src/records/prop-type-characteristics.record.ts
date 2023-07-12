@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
+
 import { PropType } from '../../../shared/enums/prop-type.enum'
 
 export type PropTypeCharacteristics = {
@@ -17,7 +18,7 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Number]: {
     columnType: 'decimal',
-    defaultSeedFunction: (index: number) => faker.number.int({ max: 50 })
+    defaultSeedFunction: () => faker.number.int({ max: 50 })
   },
   [PropType.Relation]: {
     columnType: 'int',
@@ -32,7 +33,7 @@ export const propTypeCharacteristicsRecord: Record<
 
   [PropType.Currency]: {
     columnType: 'decimal',
-    defaultSeedFunction: (index: number) => faker.finance.amount(index, 500, 2)
+    defaultSeedFunction: () => faker.finance.amount(1, 500, 2)
   },
   [PropType.Date]: {
     columnType: 'date',
@@ -40,10 +41,18 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Email]: {
     columnType: 'varchar',
-    defaultSeedFunction: (index: number) => faker.internet.email()
+    defaultSeedFunction: () => faker.internet.email()
   },
   [PropType.Boolean]: {
     columnType: 'boolean',
-    defaultSeedFunction: (index: number) => faker.datatype.boolean()
+    defaultSeedFunction: () => faker.datatype.boolean()
+  },
+  [PropType.Password]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () =>
+      faker.internet.password({
+        length: 10,
+        memorable: true
+      })
   }
 }

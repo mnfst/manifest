@@ -1,7 +1,9 @@
 import { Component } from '@angular/core'
-import { SettingsService } from 'src/app/services/settings.service'
+import { AppConfig } from '~shared/interfaces/app-config.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
-import { AppSettings } from '../../../../../shared/interfaces/app-settings.interface'
+import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
+import { AppConfigService } from '../../services/app-config.service'
 import { BreadcrumbService } from '../../services/breadcrumb.service'
 
 @Component({
@@ -10,21 +12,20 @@ import { BreadcrumbService } from '../../services/breadcrumb.service'
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-  settings: AppSettings
+  appConfig: AppConfig
   isAppBlank: boolean
 
   constructor(
-    settingsService: SettingsService,
+    appConfigService: AppConfigService,
+    dynamicEntityService: DynamicEntityService,
     breadcrumbService: BreadcrumbService
   ) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.settings = res.settings
-      this.isAppBlank = res.entities.length === 0
+    appConfigService.loadAppConfig().subscribe((res) => {
+      this.appConfig = res
     })
-    breadcrumbService.breadcrumbLinks.next([
-      {
-        label: 'Home'
-      }
-    ])
+    dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
+      this.isAppBlank = res.length === 0
+    })
+    breadcrumbService.breadcrumbLinks.next([])
   }
 }

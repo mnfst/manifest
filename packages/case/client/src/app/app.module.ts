@@ -2,20 +2,23 @@ import { HttpClientModule } from '@angular/common/http'
 import { APP_INITIALIZER, NgModule } from '@angular/core'
 import { ReactiveFormsModule } from '@angular/forms'
 import { BrowserModule } from '@angular/platform-browser'
-import { firstValueFrom } from 'rxjs'
+import { JwtModule } from '@auth0/angular-jwt'
+import { combineLatest } from 'rxjs'
 
 import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
 import { AvatarComponent } from './components/avatar/avatar.component'
-import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
+import { constants } from './constants'
+import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
 import { FooterComponent } from './layout/footer/footer.component'
 import { SideMenuComponent } from './layout/side-menu/side-menu.component'
 import { TopMenuComponent } from './layout/top-menu/top-menu.component'
 import { TouchMenuComponent } from './layout/touch-menu/touch-menu.component'
+import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { FlashMessageComponent } from './partials/flash-message/flash-message.component'
 import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
-import { SettingsService } from './services/settings.service'
+import { AppConfigService } from './services/app-config.service'
 
 @NgModule({
   declarations: [
@@ -27,21 +30,36 @@ import { SettingsService } from './services/settings.service'
     HomeComponent,
     FooterComponent,
     CapitalizeFirstLetterPipe,
-    FlashMessageComponent
+    FlashMessageComponent,
+    Error404Component
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     ReactiveFormsModule,
-    DynamicEntityModule
+    JwtModule.forRoot({
+      config: {
+        tokenGetter: () => localStorage.getItem(constants.tokenName),
+        // TODO (Ship): This should be an environment variable.
+        allowedDomains: ['localhost:3000']
+      }
+    })
   ],
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: (settingsService: SettingsService) => () =>
-        firstValueFrom(settingsService.loadSettings()),
-      deps: [SettingsService],
+      useFactory:
+        (
+          appConfigService: AppConfigService,
+          dynamicEntityService: DynamicEntityService
+        ) =>
+        () =>
+          combineLatest([
+            appConfigService.loadAppConfig(),
+            dynamicEntityService.loadEntityMeta()
+          ]),
+      deps: [AppConfigService, DynamicEntityService],
       multi: true
     },
     CapitalizeFirstLetterPipe

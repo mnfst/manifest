@@ -6,5 +6,6 @@ export enum PropType {
   TextArea,
   Email,
   Boolean,
-  Relation
+  Relation,
+  Password
 }

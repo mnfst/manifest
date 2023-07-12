@@ -6,5 +6,6 @@ export enum InputType {
   Date,
   Boolean,
   TextArea,
-  Email
+  Email,
+  Password
 }

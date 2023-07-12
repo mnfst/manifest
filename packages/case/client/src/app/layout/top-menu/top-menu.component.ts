@@ -11,6 +11,7 @@ import { CapitalizeFirstLetterPipe } from '../../pipes/capitalize-first-letter.p
 })
 export class TopMenuComponent {
   breadcrumbLinks: BreadcrumbLink[]
+  showUserMenu = false
 
   constructor(
     private breadcrumbService: BreadcrumbService,

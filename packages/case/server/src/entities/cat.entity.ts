@@ -9,7 +9,7 @@ import { Owner } from './owner.entity'
 @Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
-  slug: 'cat',
+  slug: 'cats',
   seedCount: 50,
   propIdentifier: 'name'
 })
@@ -26,9 +26,9 @@ export class Cat extends CaseEntity {
 
   @Prop({
     type: PropType.Relation,
-    filter: true,
     options: {
-      entity: Owner
+      entity: Owner,
+      filter: true
     }
   })
   owner: Owner
@@ -44,7 +44,10 @@ export class Cat extends CaseEntity {
   birthdate: Date
 
   @Prop({
-    type: PropType.TextArea
+    type: PropType.TextArea,
+    options: {
+      isHiddenInList: true
+    }
   })
   description: string
 

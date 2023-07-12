@@ -1,11 +1,12 @@
-<ng-container *ngIf="entity">
+<ng-container *ngIf="entityMeta">
   <section>
     <div
       class="is-flex is-justify-content-space-between is-align-items-center mb-5"
     >
       <div class="left-part">
         <h1 class="title is-2 has-text-weight-light">
-          {{ edit ? 'Edit' : 'Create' }} a {{ entity.definition.nameSingular }}
+          {{ edit ? 'Edit an existing' : 'Create a new' }}
+          {{ entityMeta.definition.nameSingular }}
         </h1>
       </div>
       <div class="right-part">
@@ -33,9 +34,11 @@
             class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
           >
             <div class="form-group">
-              <div class="field mt-2 mb-4" *ngFor="let prop of entity.props">
+              <div
+                class="field mt-2 mb-4"
+                *ngFor="let prop of entityMeta.props"
+              >
                 <div class="control">
-
                   <app-input
                     [prop]="prop"
                     [value]="edit ? item[prop.propName] : null"

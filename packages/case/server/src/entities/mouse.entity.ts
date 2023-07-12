@@ -7,7 +7,7 @@ import { Cat } from './cat.entity'
 @Entity({
   nameSingular: 'mouse',
   namePlural: 'mouses',
-  slug: 'mouse',
+  slug: 'mouses',
   propIdentifier: 'nickName'
 })
 export class Mouse extends CaseEntity {
