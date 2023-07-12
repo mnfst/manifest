@@ -3,12 +3,13 @@ import { APP_INITIALIZER, NgModule } from '@angular/core'
 import { ReactiveFormsModule } from '@angular/forms'
 import { BrowserModule } from '@angular/platform-browser'
 import { JwtModule } from '@auth0/angular-jwt'
-import { firstValueFrom } from 'rxjs'
+import { combineLatest } from 'rxjs'
 
 import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
 import { AvatarComponent } from './components/avatar/avatar.component'
 import { constants } from './constants'
+import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
 import { FooterComponent } from './layout/footer/footer.component'
 import { SideMenuComponent } from './layout/side-menu/side-menu.component'
 import { TopMenuComponent } from './layout/top-menu/top-menu.component'
@@ -48,9 +49,17 @@ import { AppConfigService } from './services/app-config.service'
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: (appConfigService: AppConfigService) => () =>
-        firstValueFrom(appConfigService.loadAppConfig()),
-      deps: [AppConfigService],
+      useFactory:
+        (
+          appConfigService: AppConfigService,
+          dynamicEntityService: DynamicEntityService
+        ) =>
+        () =>
+          combineLatest([
+            appConfigService.loadAppConfig(),
+            dynamicEntityService.loadEntityMeta()
+          ]),
+      deps: [AppConfigService, DynamicEntityService],
       multi: true
     },
     CapitalizeFirstLetterPipe

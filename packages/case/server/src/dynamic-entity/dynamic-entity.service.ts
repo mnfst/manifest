@@ -172,7 +172,7 @@ export class DynamicEntityService {
   getPropDescriptions(entity: EntityMetadata): PropertyDescription[] {
     // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
     const entityRepository: Repository<any> = this.getRepository(
-      entity.tableName
+      (entity.inheritanceTree[0] as any).definition.slug
     )
     const newItem = entityRepository.create()
 

@@ -5,8 +5,8 @@ import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
+import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
-import { AppConfigService } from '../../services/app-config.service'
 
 @Component({
   selector: 'app-select-input',
@@ -48,29 +48,31 @@ export class SelectInputComponent implements OnInit {
   options: SelectOption[]
 
   constructor(
-    private appConfigService: AppConfigService,
     private dynamicEntityService: DynamicEntityService,
     private formBuilder: FormBuilder
   ) {}
 
   ngOnInit(): void {
-    this.appConfigService.loadAppConfig().subscribe(async (res) => {
-      // Note: only works for PropType.Relation at this time.
-      // this.entityMeta = res.entities.find(
-      //   (entity: EntityMeta) =>
-      //     entity.className === (this.prop.options as RelationOptions).entitySlug
-      // )
+    this.dynamicEntityService
+      .loadEntityMeta()
+      .subscribe(async (res: EntityMeta[]) => {
+        // Note: only works for PropType.Relation at this time.
+        this.entityMeta = res.find(
+          (entity: EntityMeta) =>
+            entity.className ===
+            (this.prop.options as RelationOptions).entitySlug
+        )
 
-      // this.options = await this.dynamicEntityService.listSelectOptions(
-      //   this.entityMeta.definition.slug
-      // )
+        this.options = await this.dynamicEntityService.listSelectOptions(
+          this.entityMeta.definition.slug
+        )
 
-      if (this.value) {
-        this.form.patchValue({
-          select: this.value.id
-        })
-      }
-    })
+        if (this.value) {
+          this.form.patchValue({
+            select: this.value.id
+          })
+        }
+      })
   }
 
   onChange(event: any): void {

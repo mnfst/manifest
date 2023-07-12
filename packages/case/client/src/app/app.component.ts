@@ -1,8 +1,6 @@
 import { Component } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
-import { AppConfigService } from './services/app-config.service'
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -12,9 +10,7 @@ export class AppComponent {
   isCollapsed = false
   isLogin = true
 
-  constructor(private router: Router, appConfigService: AppConfigService) {
-    appConfigService.loadAppConfig().subscribe(() => {})
-  }
+  constructor(private router: Router) {}
 
   ngOnInit() {
     this.router.events.subscribe((routeChanged) => {

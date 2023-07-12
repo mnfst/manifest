@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 
 import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
-import { AppConfigService } from '../../services/app-config.service'
+import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
 @Component({
   selector: 'app-side-menu',
@@ -9,11 +9,11 @@ import { AppConfigService } from '../../services/app-config.service'
   styleUrls: ['./side-menu.component.scss']
 })
 export class SideMenuComponent {
-  entities: EntityMeta[]
+  entityMetas: EntityMeta[]
 
-  constructor(appConfigService: AppConfigService) {
-    appConfigService.loadAppConfig().subscribe((res) => {
-      // this.entities = res.entities
+  constructor(dynamicEntityService: DynamicEntityService) {
+    dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
+      this.entityMetas = res
     })
   }
 }

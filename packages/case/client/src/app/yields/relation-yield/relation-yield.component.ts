@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
 
-import { AppConfigService } from '../../services/app-config.service'
+import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
 @Component({
   selector: 'app-relation-yield',
@@ -23,16 +23,18 @@ import { AppConfigService } from '../../services/app-config.service'
 export class RelationYieldComponent implements OnInit {
   entityMeta: EntityMeta
 
-  constructor(private appConfigService: AppConfigService) {}
+  constructor(private dynamicEntityService: DynamicEntityService) {}
 
   @Input() item: any
   @Input() options: RelationOptions
 
   ngOnInit(): void {
-    this.appConfigService.loadAppConfig().subscribe((res) => {
-      // this.entityMeta = res.entities.find(
-      //   (entity: EntityMeta) => entity.className === this.options.entitySlug
-      // )
-    })
+    this.dynamicEntityService
+      .loadEntityMeta()
+      .subscribe((res: EntityMeta[]) => {
+        this.entityMeta = res.find(
+          (entity: EntityMeta) => entity.className === this.options.entitySlug
+        )
+      })
   }
 }

@@ -19,8 +19,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityListComponent implements OnInit {
   paginator: Paginator<any>
 
-  entities: EntityMeta[]
-  entity: EntityMeta
+  entityMeta: EntityMeta
 
   props: PropertyDescription[] = []
   filtrableProps: PropertyDescription[] = []
@@ -38,42 +37,47 @@ export class DynamicEntityListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.appConfigService.loadAppConfig().subscribe((res) => {
-      // if (!res.entities) {
-      //   return
-      // }
-
-      combineLatest([
-        this.activatedRoute.queryParams,
-        this.activatedRoute.params
-      ]).subscribe(async ([queryParams, params]: Params[]) => {
-        this.queryParams = queryParams
-
-        // this.entity = res.entities.find(
-        //   (entity) => entity.definition.slug === params['entitySlug']
-        // )
-
-        if (!this.entity) {
-          this.router.navigate(['/404'])
+    this.dynamicEntityService
+      .loadEntityMeta()
+      .subscribe((res: EntityMeta[]) => {
+        if (!res.length) {
+          return
         }
 
-        this.props = this.entity.props.filter(
-          (prop) => !prop.options?.isHiddenInList
-        )
-        this.filtrableProps = this.props.filter((prop) => prop.options?.filter)
+        combineLatest([
+          this.activatedRoute.queryParams,
+          this.activatedRoute.params
+        ]).subscribe(async ([queryParams, params]: Params[]) => {
+          this.queryParams = queryParams
 
-        this.breadcrumbService.breadcrumbLinks.next([
-          {
-            label: this.entity.definition.namePlural
+          this.entityMeta = res.find(
+            (entityMeta: EntityMeta) =>
+              entityMeta.definition.slug === params['entitySlug']
+          )
+
+          if (!this.entityMeta) {
+            this.router.navigate(['/404'])
           }
-        ])
 
-        this.paginator = await this.dynamicEntityService.list(
-          this.entity.definition.slug,
-          queryParams
-        )
+          this.props = this.entityMeta.props.filter(
+            (prop) => !prop.options?.isHiddenInList
+          )
+          this.filtrableProps = this.props.filter(
+            (prop) => prop.options?.filter
+          )
+
+          this.breadcrumbService.breadcrumbLinks.next([
+            {
+              label: this.entityMeta.definition.namePlural
+            }
+          ])
+
+          this.paginator = await this.dynamicEntityService.list(
+            this.entityMeta.definition.slug,
+            queryParams
+          )
+        })
       })
-    })
   }
 
   filter(propName: string, value: string | number): void {
@@ -92,10 +96,10 @@ export class DynamicEntityListComponent implements OnInit {
 
   delete(id: number): void {
     this.dynamicEntityService
-      .delete(this.entity.definition.slug, id)
+      .delete(this.entityMeta.definition.slug, id)
       .then((res) => {
         this.flashMessageService.success(
-          `The ${this.entity.definition.nameSingular} has been deleted.`
+          `The ${this.entityMeta.definition.nameSingular} has been deleted.`
         )
         this.paginator.data = this.paginator.data.filter(
           (item: any) => item.id !== id

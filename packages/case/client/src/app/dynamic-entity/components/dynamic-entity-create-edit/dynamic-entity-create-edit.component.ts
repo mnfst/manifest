@@ -16,8 +16,8 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-create-edit.component.scss']
 })
 export class DynamicEntityCreateEditComponent {
-  entities: EntityMeta[] = []
-  entity: EntityMeta
+  entityMetas: EntityMeta[] = []
+  entityMeta: EntityMeta
 
   item: any
 
@@ -29,47 +29,46 @@ export class DynamicEntityCreateEditComponent {
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private dynamicEntityService: DynamicEntityService,
     private formBuilder: FormBuilder,
     private breadcrumbService: BreadcrumbService,
     private flashMessageService: FlashMessageService,
-    appConfigService: AppConfigService
+    private dynamicEntityService: DynamicEntityService
   ) {
-    appConfigService.loadAppConfig().subscribe((res) => {
-      // this.entities = res.entities
+    dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
+      this.entityMetas = res
     })
   }
 
   async ngOnInit(): Promise<void> {
-    of(this.entities).subscribe((_entities: EntityMeta[]) => {
+    of(this.entityMetas).subscribe((_entities: EntityMeta[]) => {
       combineLatest([
         this.activatedRoute.params,
         this.activatedRoute.data
       ]).subscribe(async ([params, data]: [Params, Data]) => {
         this.edit = data['edit']
 
-        this.entity = this.entities.find(
+        this.entityMeta = this.entityMetas.find(
           (entity) => entity.definition.slug === params['entitySlug']
         )
 
-        if (!this.entity) {
+        if (!this.entityMeta) {
           this.router.navigate(['/404'])
         }
 
         if (this.edit) {
           this.item = await this.dynamicEntityService.show(
-            this.entity.definition.slug,
+            this.entityMeta.definition.slug,
             params['id']
           )
 
           this.breadcrumbService.breadcrumbLinks.next([
             {
-              label: this.entity.definition.namePlural,
-              path: `/dynamic/${this.entity.definition.slug}`
+              label: this.entityMeta.definition.namePlural,
+              path: `/dynamic/${this.entityMeta.definition.slug}`
             },
             {
-              label: this.item[this.entity.definition.propIdentifier],
-              path: `/dynamic/${this.entity.definition.slug}/${this.item.id}`
+              label: this.item[this.entityMeta.definition.propIdentifier],
+              path: `/dynamic/${this.entityMeta.definition.slug}/${this.item.id}`
             },
             {
               label: 'Edit'
@@ -78,16 +77,16 @@ export class DynamicEntityCreateEditComponent {
         } else {
           this.breadcrumbService.breadcrumbLinks.next([
             {
-              label: this.entity.definition.namePlural,
-              path: `/dynamic/${this.entity.definition.slug}`
+              label: this.entityMeta.definition.namePlural,
+              path: `/dynamic/${this.entityMeta.definition.slug}`
             },
             {
-              label: `Create a new ${this.entity.definition.nameSingular}`
+              label: `Create a new ${this.entityMeta.definition.nameSingular}`
             }
           ])
         }
 
-        this.entity.props.forEach((prop) => {
+        this.entityMeta.props.forEach((prop) => {
           this.form.addControl(
             prop.propName,
             new FormControl(this.item ? this.item[prop.propName] : null)
@@ -104,23 +103,23 @@ export class DynamicEntityCreateEditComponent {
   submit(): void {
     if (this.edit) {
       this.dynamicEntityService
-        .update(this.entity.definition.slug, this.item.id, this.form.value)
+        .update(this.entityMeta.definition.slug, this.item.id, this.form.value)
         .then(() => {
           this.flashMessageService.success(
-            `The ${this.entity.definition.nameSingular} has been updated`
+            `The ${this.entityMeta.definition.nameSingular} has been updated`
           )
-          this.router.navigate(['/dynamic', this.entity.definition.slug])
+          this.router.navigate(['/dynamic', this.entityMeta.definition.slug])
         })
     } else {
       this.dynamicEntityService
-        .create(this.entity.definition.slug, this.form.value)
+        .create(this.entityMeta.definition.slug, this.form.value)
         .then((res: { identifiers: { id: number }[] }) => {
           this.flashMessageService.success(
-            `The ${this.entity.definition.nameSingular} has been created`
+            `The ${this.entityMeta.definition.nameSingular} has been created`
           )
           this.router.navigate([
             '/dynamic',
-            this.entity.definition.slug,
+            this.entityMeta.definition.slug,
             res.identifiers[0].id
           ])
         })

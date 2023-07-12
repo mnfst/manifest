@@ -12,14 +12,14 @@ import { environment } from '../../environments/environment'
   providedIn: 'root'
 })
 export class AppConfigService {
-  private readonly ENV_URL = environment.apiBaseUrl + '/config/app'
+  serviceUrl: string = environment.apiBaseUrl + '/config/app'
   private appConfig$: Observable<AppConfig>
 
   constructor(private http: HttpClient) {}
 
   public loadAppConfig(): Observable<AppConfig> {
     if (!this.appConfig$) {
-      this.appConfig$ = this.http.get<any>(this.ENV_URL).pipe(
+      this.appConfig$ = this.http.get<any>(this.serviceUrl).pipe(
         shareReplay(1),
         map((res: { appConfig: AppConfig }) => res.appConfig)
       )

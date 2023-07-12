@@ -10,6 +10,7 @@ import {
 
 import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
+import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 import { AppConfigService } from '../../services/app-config.service'
@@ -40,34 +41,37 @@ export class MultiSelectInputComponent {
   ) {}
 
   ngOnInit(): void {
-    this.appConfigService.loadAppConfig().subscribe(async (res) => {
-      // Note: only works for PropType.Relation at this time.
-      // this.entityMeta = res.entities.find(
-      //   (entity: EntityMeta) =>
-      //     entity.className === (this.prop.options as RelationOptions).entitySlug
-      // )
+    this.dynamicEntityService
+      .loadEntityMeta()
+      .subscribe(async (res: EntityMeta[]) => {
+        // Note: only works for PropType.Relation at this time.
+        this.entityMeta = res.find(
+          (entity: EntityMeta) =>
+            entity.className ===
+            (this.prop.options as RelationOptions).entitySlug
+        )
 
-      // this.options = await this.dynamicEntityService.listSelectOptions(
-      //   this.entityMeta.definition.slug
-      // )
+        this.options = await this.dynamicEntityService.listSelectOptions(
+          this.entityMeta.definition.slug
+        )
 
-      if (this.value) {
-        this.value = this.forceNumberArray(this.value)
+        if (this.value) {
+          this.value = this.forceNumberArray(this.value)
 
-        this.selectedOptions = []
+          this.selectedOptions = []
 
-        this.options
-          .filter((option) =>
-            this.forceNumberArray(this.value).find(
-              (value) => value === option.id
+          this.options
+            .filter((option) =>
+              this.forceNumberArray(this.value).find(
+                (value) => value === option.id
+              )
             )
-          )
-          .forEach((option) => {
-            option.selected = true
-            this.selectedOptions.push(option)
-          })
-      }
-    })
+            .forEach((option) => {
+              option.selected = true
+              this.selectedOptions.push(option)
+            })
+        }
+      })
   }
 
   selectAll(): void {

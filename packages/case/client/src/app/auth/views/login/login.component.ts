@@ -43,8 +43,7 @@ export class LoginComponent {
     private flashMessageService: FlashMessageService,
     appConfigService: AppConfigService
   ) {
-    appConfigService.loadAppConfig().subscribe((res) => {
-      console.log(res)
+    appConfigService.loadAppConfig().subscribe((res: AppConfig) => {
       this.appConfig = res
     })
   }
