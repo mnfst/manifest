@@ -9,14 +9,11 @@ import { SettingsService } from './services/settings.service'
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  settings: any
   isCollapsed = false
   isLogin = true
 
   constructor(private router: Router, settingsService: SettingsService) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.settings = res.settings
-    })
+    settingsService.loadSettings().subscribe((res) => {})
   }
 
   ngOnInit() {
@@ -24,7 +21,7 @@ export class AppComponent {
       if (routeChanged instanceof NavigationEnd) {
         window.scrollTo(0, 0)
 
-        this.isLogin = routeChanged.url === '/auth/login'
+        this.isLogin = routeChanged.url.includes('/auth/login')
       }
     })
   }

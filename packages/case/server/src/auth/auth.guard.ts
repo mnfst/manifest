@@ -12,8 +12,6 @@ export class AuthGuard implements CanActivate {
       req.headers?.authorization
     )
 
-    console.log('user', user, req.headers?.authorization)
-
     return !!user
   }
 }

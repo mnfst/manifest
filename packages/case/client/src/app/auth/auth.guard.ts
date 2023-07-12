@@ -20,12 +20,7 @@ export class AuthGuard {
       return true
     }
 
-    console.log('AuthGuard#canActivate called', next.url)
-
-    this.router.navigate(['/', 'auth', 'login'], {
-      queryParams:
-        next.url && next.url.length ? { redirectTo: next.url[0].path } : {}
-    })
+    this.router.navigate(['/', 'auth', 'login'])
 
     this.flashMessageService.info(
       'You need to be logged in to access this page.'

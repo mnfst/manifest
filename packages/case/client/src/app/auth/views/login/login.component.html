@@ -1,8 +1,14 @@
 <div class="columns">
   <div class="column">
-    <h1 class="title is-1">Login</h1>
+    <h1 class="title is-1">{{ settings.appName }}</h1>
+    <p>{{ settings.description }}</p>
   </div>
   <div class="column">
+    <div class="columns">
+      <div class="column">
+        <h2 class="title is-2">Login</h2>
+      </div>
+    </div>
     <div class="columns" *ngFor="let prop of fields">
       <div class="column">
         <app-input
