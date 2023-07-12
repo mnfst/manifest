@@ -28,6 +28,7 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
     } else {
       // Extend the Column decorator from TypeORM.
       Column({
+        ...definition?.typeORMOptions,
         type: typeCharacteristics.columnType,
         nullable: true // Everything is nullable for now (for simplicity).
       })(target, propertyKey)
@@ -52,11 +53,6 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
     Reflect.defineMetadata(
       `${propertyKey}:options`,
       definition?.options || {},
-      target
-    )
-    Reflect.defineMetadata(
-      `${propertyKey}:filter`,
-      definition?.filter || false,
       target
     )
   }

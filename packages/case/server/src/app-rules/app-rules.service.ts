@@ -47,7 +47,6 @@ export class AppRulesService {
           propName: column.propertyName,
           label: Reflect.getMetadata(`${column.propertyName}:label`, newItem),
           type: Reflect.getMetadata(`${column.propertyName}:type`, newItem),
-          filter: Reflect.getMetadata(`${column.propertyName}:filter`, newItem),
           options: Reflect.getMetadata(
             `${column.propertyName}:options`,
             newItem

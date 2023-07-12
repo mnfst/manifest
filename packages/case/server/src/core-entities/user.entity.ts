@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
+import { Column } from 'typeorm'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { Prop } from '../decorators/case-prop.decorator'
@@ -13,7 +14,7 @@ import { CaseEntity } from './case.entity'
 @Entity({
   nameSingular: 'user',
   namePlural: 'users',
-  slug: 'user',
+  slug: 'users',
   propIdentifier: 'name'
 })
 export class User extends CaseEntity {
@@ -31,11 +32,12 @@ export class User extends CaseEntity {
   // TODO: Hide those 2 props from the client.
   @Prop({
     type: PropType.Password,
-    seed: () => SHA3('case').toString()
+    seed: () => SHA3('case').toString(),
+    typeORMOptions: { select: false }
   })
   password: string
 
-  @Prop()
+  @Column({ nullable: true, select: false })
   token: string
 
   @BeforeInsert()

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
-import { combineLatest, of } from 'rxjs'
+import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 import { Paginator } from '~shared/interfaces/paginator.interface'
@@ -49,8 +49,6 @@ export class DynamicEntityListComponent implements OnInit {
           this.activatedRoute.queryParams,
           this.activatedRoute.params
         ]).subscribe(async ([queryParams, params]: Params[]) => {
-          console.log('here we go')
-
           this.queryParams = queryParams
 
           this.entity = res.entities.find(
@@ -62,7 +60,9 @@ export class DynamicEntityListComponent implements OnInit {
           }
 
           this.props = this.entity.props
-          this.filtrableProps = this.props.filter((prop) => prop.filter)
+          this.filtrableProps = this.props.filter(
+            (prop) => prop.options?.filter
+          )
 
           this.breadcrumbService.breadcrumbLinks.next([
             {

@@ -60,7 +60,7 @@ export class DynamicEntitySeeder {
         const newItem = entityRepository.create()
 
         entity.columns.forEach((column: ColumnMetadata) => {
-          if (column.propertyName === 'id') {
+          if (column.propertyName === 'id' || column.propertyName === 'token') {
             return
           }
 

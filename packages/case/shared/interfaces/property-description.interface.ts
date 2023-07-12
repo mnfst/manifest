@@ -5,6 +5,5 @@ export interface PropertyDescription {
   propName: string
   label: string
   type: PropType
-  filter?: boolean
   options?: RelationOptions
 }

@@ -1,3 +1,5 @@
+import { PropertyOptions } from 'adminjs'
+
 import { PropType } from '../enums/prop-type.enum'
 import { CurrencyOptions } from './property-options/currency-options.interface'
 import { RelationOptions } from './property-options/relation-options.interface'
@@ -14,8 +16,8 @@ export interface PropertyDefinition {
 
   seed?: (index?: number) => any
 
-  /** Allow filtering by this property in lists */
-  filter?: boolean
+  /** Options for the property (related to Type) */
+  options?: PropertyOptions | RelationOptions | CurrencyOptions
 
-  options?: RelationOptions | CurrencyOptions
+  typeORMOptions?: any
 }
