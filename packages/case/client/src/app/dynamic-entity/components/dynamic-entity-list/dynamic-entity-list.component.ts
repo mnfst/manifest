@@ -19,14 +19,13 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityListComponent implements OnInit {
   paginator: Paginator<any>
 
-  entities: EntityDescription[] = []
+  entities: EntityDescription[]
   entity: EntityDescription
 
   props: PropertyDescription[] = []
   filtrableProps: PropertyDescription[] = []
 
   queryParams: Params
-
   PropType = PropType
 
   constructor(
@@ -35,46 +34,48 @@ export class DynamicEntityListComponent implements OnInit {
     private dynamicEntityService: DynamicEntityService,
     private breadcrumbService: BreadcrumbService,
     private flashMessageService: FlashMessageService,
-    settingsService: SettingsService
-  ) {
-    settingsService
-      .loadSettings()
-      .subscribe((res: { entities: EntityDescription[] }) => {
-        this.entities = res.entities
-      })
-  }
+    private settingsService: SettingsService
+  ) {}
 
   ngOnInit(): void {
-    of(this.entities).subscribe((res) => {
-      combineLatest([
-        this.activatedRoute.queryParams,
-        this.activatedRoute.params
-      ]).subscribe(async ([queryParams, params]: Params[]) => {
-        this.queryParams = queryParams
-        this.entity = this.entities.find(
-          (entity) => entity.definition.slug === params['entitySlug']
-        )
-
-        // TODO: At first the this.entity is undefined, so we need to wait for it to be defined.
-        if (!this.entity) {
-          this.router.navigate(['/404'])
+    this.settingsService
+      .loadSettings()
+      .subscribe((res: { entities: EntityDescription[] }) => {
+        if (!res.entities) {
+          return
         }
 
-        this.props = this.entity.props
-        this.filtrableProps = this.props.filter((prop) => prop.filter)
+        combineLatest([
+          this.activatedRoute.queryParams,
+          this.activatedRoute.params
+        ]).subscribe(async ([queryParams, params]: Params[]) => {
+          console.log('here we go')
 
-        this.breadcrumbService.breadcrumbLinks.next([
-          {
-            label: this.entity.definition.namePlural
+          this.queryParams = queryParams
+
+          this.entity = res.entities.find(
+            (entity) => entity.definition.slug === params['entitySlug']
+          )
+
+          if (!this.entity) {
+            this.router.navigate(['/404'])
           }
-        ])
 
-        this.paginator = await this.dynamicEntityService.list(
-          this.entity.definition.slug,
-          queryParams
-        )
+          this.props = this.entity.props
+          this.filtrableProps = this.props.filter((prop) => prop.filter)
+
+          this.breadcrumbService.breadcrumbLinks.next([
+            {
+              label: this.entity.definition.namePlural
+            }
+          ])
+
+          this.paginator = await this.dynamicEntityService.list(
+            this.entity.definition.slug,
+            queryParams
+          )
+        })
       })
-    })
   }
 
   filter(propName: string, value: string | number): void {

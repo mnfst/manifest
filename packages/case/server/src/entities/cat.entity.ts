@@ -9,7 +9,7 @@ import { Owner } from './owner.entity'
 @Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
-  slug: 'cat',
+  slug: 'cats',
   seedCount: 50,
   propIdentifier: 'name'
 })
