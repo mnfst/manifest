@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common'
-import * as CryptoJs from 'crypto-js'
+import { SHA3 } from 'crypto-js'
 import { StatusCodes } from 'http-status-codes'
 import * as jwt from 'jsonwebtoken'
 import { DataSource } from 'typeorm'
@@ -8,7 +8,7 @@ import { User } from '../core-entities/user.entity'
 
 @Injectable()
 export class AuthService {
-  constructor(private dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async createToken(
     email: string,
@@ -26,7 +26,7 @@ export class AuthService {
     const user = await this.dataSource.getRepository(User).findOne({
       where: {
         email,
-        password: CryptoJs.SHA3(password).toString()
+        password: SHA3(password).toString()
       }
     })
     if (!user) {
@@ -39,5 +39,22 @@ export class AuthService {
     return {
       token: jwt.sign({ email }, process.env.TOKEN_SECRET_KEY)
     }
+  }
+
+  async getUserFromToken(token: string): Promise<any> {
+    return jwt.verify(
+      token?.replace('Bearer ', ''),
+      process.env.TOKEN_SECRET_KEY,
+      async (_err, decoded: jwt.JwtPayload) => {
+        if (decoded) {
+          return this.dataSource.getRepository(User).findOne({
+            where: {
+              email: decoded.email
+            }
+          })
+        }
+        return null
+      }
+    )
   }
 }

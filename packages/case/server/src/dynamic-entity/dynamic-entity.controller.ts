@@ -7,13 +7,16 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query
+  Query,
+  UseGuards
 } from '@nestjs/common'
 
 import { Paginator } from '../../../shared/interfaces/paginator.interface'
+import { AuthGuard } from '../auth/auth.guard'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
+// @UseGuards(AuthGuard)
 export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 

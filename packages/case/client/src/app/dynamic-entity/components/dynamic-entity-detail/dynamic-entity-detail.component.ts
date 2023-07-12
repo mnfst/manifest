@@ -27,7 +27,7 @@ export class DynamicEntityDetailComponent {
       this.settingsService.loadSettings().subscribe((res) => {
         this.entityDescription = res.entities.find(
           (entity: EntityDescription) =>
-            entity.definition.slug === params['entityName']
+            entity.definition.slug === params['entitySlug']
         )
 
         this.dynamicEntityService

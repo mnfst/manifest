@@ -56,7 +56,7 @@ export class AppRulesService {
 
         if (propDescription.type === PropType.Relation) {
           // Convert class to string to use in the client.
-          propDescription.options.entityName = (
+          propDescription.options.entitySlug = (
             propDescription.options.entity as any
           )?.name
         }

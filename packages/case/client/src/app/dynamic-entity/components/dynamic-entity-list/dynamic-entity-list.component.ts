@@ -52,9 +52,10 @@ export class DynamicEntityListComponent implements OnInit {
       ]).subscribe(async ([queryParams, params]: Params[]) => {
         this.queryParams = queryParams
         this.entity = this.entities.find(
-          (entity) => entity.definition.slug === params['entityName']
+          (entity) => entity.definition.slug === params['entitySlug']
         )
 
+        // TODO: At first the this.entity is undefined, so we need to wait for it to be defined.
         if (!this.entity) {
           this.router.navigate(['/404'])
         }

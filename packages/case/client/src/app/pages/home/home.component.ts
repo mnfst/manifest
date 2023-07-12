@@ -21,10 +21,6 @@ export class HomeComponent {
       this.settings = res.settings
       this.isAppBlank = res.entities.length === 0
     })
-    breadcrumbService.breadcrumbLinks.next([
-      {
-        label: 'Home'
-      }
-    ])
+    breadcrumbService.breadcrumbLinks.next([])
   }
 }

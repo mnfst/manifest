@@ -49,7 +49,7 @@ export class DynamicEntityCreateEditComponent {
         this.edit = data['edit']
 
         this.entity = this.entities.find(
-          (entity) => entity.definition.slug === params['entityName']
+          (entity) => entity.definition.slug === params['entitySlug']
         )
 
         if (!this.entity) {

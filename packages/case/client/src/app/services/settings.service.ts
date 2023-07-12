@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { Observable, shareReplay } from 'rxjs'
+import { AppSettings } from '~shared/interfaces/app-settings.interface'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
 
 import { environment } from '../../environments/environment'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
-import { AppSettings } from '~shared/interfaces/app-settings.interface'
 
 /*
  * This service allows to fetch all app settings from the server for SSOT (Single Source of Truth).

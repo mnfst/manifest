@@ -11,6 +11,7 @@ import { SettingsService } from './services/settings.service'
 export class AppComponent {
   settings: any
   isCollapsed = false
+  isLogin = true
 
   constructor(private router: Router, settingsService: SettingsService) {
     settingsService.loadSettings().subscribe((res) => {
@@ -22,6 +23,8 @@ export class AppComponent {
     this.router.events.subscribe((routeChanged) => {
       if (routeChanged instanceof NavigationEnd) {
         window.scrollTo(0, 0)
+
+        this.isLogin = routeChanged.url === '/auth/login'
       }
     })
   }

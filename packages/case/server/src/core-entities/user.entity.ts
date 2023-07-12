@@ -9,7 +9,6 @@ import {
 } from '../decorators/entity-events.decorators'
 import { Entity } from '../decorators/entity.decorator'
 import { CaseEntity } from './case.entity'
-import { UpdateEvent } from 'typeorm'
 
 @Entity({
   nameSingular: 'user',
@@ -45,6 +44,8 @@ export class User extends CaseEntity {
   @BeforeUpdate()
   beforeUpdate() {
     // TODO: this always updates the password, even if it's not changed. Try using a subscriber instead to only update the password if it's changed => https://stackoverflow.com/questions/61442055/typeorm-using-transactions-in-listener-methods-beforeupdate
+
+    // We may need to consider User as a special entity and remove it from the "dynamic" entities list.
     if (this.password) {
       this.password = SHA3(this.password).toString()
     } else {
