@@ -29,7 +29,6 @@ export class User extends CaseEntity {
   })
   email: string
 
-  // TODO: Hide those 2 props from the client.
   @Prop({
     type: PropType.Password,
     seed: () => SHA3('case').toString(),
