@@ -33,6 +33,10 @@ export class User extends CaseEntity {
   @Prop({
     type: PropType.Password,
     seed: () => SHA3('case').toString(),
+    options: {
+      isHiddenInList: true,
+      isHiddenInDetail: true
+    },
     typeORMOptions: { select: false }
   })
   password: string

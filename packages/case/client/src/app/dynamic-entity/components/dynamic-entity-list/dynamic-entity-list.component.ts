@@ -59,7 +59,9 @@ export class DynamicEntityListComponent implements OnInit {
             this.router.navigate(['/404'])
           }
 
-          this.props = this.entity.props
+          this.props = this.entity.props.filter(
+            (prop) => !prop.options?.isHiddenInList
+          )
           this.filtrableProps = this.props.filter(
             (prop) => prop.options?.filter
           )

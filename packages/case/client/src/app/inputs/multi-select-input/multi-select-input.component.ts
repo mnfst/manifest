@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -9,10 +10,10 @@ import {
 
 import { EntityDescription } from '../../../../../shared/interfaces/entity-description.interface'
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
+import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
-import { SettingsService } from '../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
-import { CommonModule } from '@angular/common'
+import { SettingsService } from '../../services/settings.service'
 
 @Component({
   selector: 'app-multi-select-input',
@@ -41,9 +42,10 @@ export class MultiSelectInputComponent {
 
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe(async (res) => {
+      // Note: only works for PropType.Relation at this time.
       this.entityDescription = res.entities.find(
         (entity: EntityDescription) =>
-          entity.className === this.prop.options.entitySlug
+          entity.className === (this.prop.options as RelationOptions).entitySlug
       )
 
       this.options = await this.dynamicEntityService.listSelectOptions(

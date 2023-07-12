@@ -1,10 +1,11 @@
 import { Component } from '@angular/core'
-import { ActivatedRoute, Router } from '@angular/router'
+import { ActivatedRoute } from '@angular/router'
 
-import { EntityDescription } from '../../../../../../shared/interfaces/entity-description.interface'
+import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
-import { BreadcrumbService } from '../../../services/breadcrumb.service'
 
 @Component({
   selector: 'app-dynamic-entity-detail',
@@ -13,6 +14,7 @@ import { BreadcrumbService } from '../../../services/breadcrumb.service'
 })
 export class DynamicEntityDetailComponent {
   item: any
+  props: PropertyDescription[]
   entityDescription: EntityDescription
 
   constructor(
@@ -28,6 +30,10 @@ export class DynamicEntityDetailComponent {
         this.entityDescription = res.entities.find(
           (entity: EntityDescription) =>
             entity.definition.slug === params['entitySlug']
+        )
+
+        this.props = this.entityDescription.props.filter(
+          (prop) => !prop.options?.isHiddenInDetail
         )
 
         this.dynamicEntityService

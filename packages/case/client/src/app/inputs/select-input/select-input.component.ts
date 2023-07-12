@@ -5,6 +5,7 @@ import { EntityDescription } from '~shared/interfaces/entity-description.interfa
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
+import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 import { SettingsService } from '../../services/settings.service'
 
@@ -55,9 +56,10 @@ export class SelectInputComponent implements OnInit {
 
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe(async (res) => {
+      // Note: only works for PropType.Relation at this time.
       this.entityDescription = res.entities.find(
         (entity: EntityDescription) =>
-          entity.className === this.prop.options.entitySlug
+          entity.className === (this.prop.options as RelationOptions).entitySlug
       )
 
       this.options = await this.dynamicEntityService.listSelectOptions(

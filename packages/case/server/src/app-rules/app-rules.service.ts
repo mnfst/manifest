@@ -7,6 +7,7 @@ import { PropType } from '../../../shared/enums/prop-type.enum'
 import { AppSettings } from '../../../shared/interfaces/app-settings.interface'
 import { EntityDescription } from '../../../shared/interfaces/entity-description.interface'
 import { PropertyDescription } from '../../../shared/interfaces/property-description.interface'
+import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
 
 @Injectable()
 export class AppRulesService {
@@ -54,10 +55,11 @@ export class AppRulesService {
         }
 
         if (propDescription.type === PropType.Relation) {
+          const relationOptions: RelationOptions =
+            propDescription.options as RelationOptions
+
           // Convert class to string to use in the client.
-          propDescription.options.entitySlug = (
-            propDescription.options.entity as any
-          )?.name
+          relationOptions.entitySlug = relationOptions.entity?.name
         }
 
         return propDescription
