@@ -5,9 +5,9 @@ import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
+import { AppConfigService } from '../../../services/app-config.service'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
-import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
@@ -33,10 +33,10 @@ export class DynamicEntityCreateEditComponent {
     private formBuilder: FormBuilder,
     private breadcrumbService: BreadcrumbService,
     private flashMessageService: FlashMessageService,
-    settingsService: SettingsService
+    appConfigService: AppConfigService
   ) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.entities = res.entities
+    appConfigService.loadAppConfig().subscribe((res) => {
+      // this.entities = res.entities
     })
   }
 

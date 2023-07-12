@@ -1,4 +1,4 @@
-export interface AppSettings {
+export interface AppConfig {
   appName: string
   description: string
 }

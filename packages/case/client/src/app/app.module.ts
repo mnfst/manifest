@@ -17,7 +17,7 @@ import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { FlashMessageComponent } from './partials/flash-message/flash-message.component'
 import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
-import { SettingsService } from './services/settings.service'
+import { AppConfigService } from './services/app-config.service'
 
 @NgModule({
   declarations: [
@@ -48,9 +48,9 @@ import { SettingsService } from './services/settings.service'
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: (settingsService: SettingsService) => () =>
-        firstValueFrom(settingsService.loadSettings()),
-      deps: [SettingsService],
+      useFactory: (appConfigService: AppConfigService) => () =>
+        firstValueFrom(appConfigService.loadAppConfig()),
+      deps: [AppConfigService],
       multi: true
     },
     CapitalizeFirstLetterPipe

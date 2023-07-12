@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from '@angular/forms'
 
 import { FilterComponent } from '../filters/filter.component'
 import { InputComponent } from '../inputs/input.component'
-import { SettingsService } from '../services/settings.service'
 import { YieldComponent } from '../yields/yield.component'
 import { DynamicEntityCreateEditComponent } from './components/dynamic-entity-create-edit/dynamic-entity-create-edit.component'
 import { DynamicEntityDetailComponent } from './components/dynamic-entity-detail/dynamic-entity-detail.component'
@@ -12,6 +11,7 @@ import { DynamicEntityListComponent } from './components/dynamic-entity-list/dyn
 import { DynamicEntityRoutingModule } from './dynamic-entity-routing.module'
 import { ListMetaComponent } from './partials/list-meta/list-meta.component'
 import { PaginationComponent } from './partials/pagination/pagination.component'
+import { AppConfigService } from '../services/app-config.service'
 
 @NgModule({
   declarations: [
@@ -29,6 +29,6 @@ import { PaginationComponent } from './partials/pagination/pagination.component'
     YieldComponent,
     InputComponent
   ],
-  providers: [SettingsService]
+  providers: [AppConfigService]
 })
 export class DynamicEntityModule {}

@@ -1,10 +1,10 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
-
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+
+import { AppConfigService } from '../../../services/app-config.service'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
-import { SettingsService } from '../../../services/settings.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
@@ -20,17 +20,17 @@ export class DynamicEntityDetailComponent {
   constructor(
     private activatedRoute: ActivatedRoute,
     private dynamicEntityService: DynamicEntityService,
-    private settingsService: SettingsService,
+    private appConfigService: AppConfigService,
     private breadcrumbService: BreadcrumbService
   ) {}
 
   ngOnInit(): void {
     this.activatedRoute.params.subscribe((params) => {
-      this.settingsService.loadSettings().subscribe((res) => {
-        this.entityMeta = res.entities.find(
-          (entity: EntityMeta) =>
-            entity.definition.slug === params['entitySlug']
-        )
+      this.appConfigService.loadAppConfig().subscribe((res) => {
+        // this.entityMeta = res.entities.find(
+        //   (entity: EntityMeta) =>
+        //     entity.definition.slug === params['entitySlug']
+        // )
 
         this.props = this.entityMeta.props.filter(
           (prop) => !prop.options?.isHiddenInDetail

@@ -5,9 +5,8 @@ import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
-import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
-import { SettingsService } from '../../services/settings.service'
+import { AppConfigService } from '../../services/app-config.service'
 
 @Component({
   selector: 'app-select-input',
@@ -45,26 +44,26 @@ export class SelectInputComponent implements OnInit {
     select: null
   })
 
-  EntityMeta: EntityMeta
+  entityMeta: EntityMeta
   options: SelectOption[]
 
   constructor(
-    private settingsService: SettingsService,
+    private appConfigService: AppConfigService,
     private dynamicEntityService: DynamicEntityService,
     private formBuilder: FormBuilder
   ) {}
 
   ngOnInit(): void {
-    this.settingsService.loadSettings().subscribe(async (res) => {
+    this.appConfigService.loadAppConfig().subscribe(async (res) => {
       // Note: only works for PropType.Relation at this time.
-      this.EntityMeta = res.entities.find(
-        (entity: EntityMeta) =>
-          entity.className === (this.prop.options as RelationOptions).entitySlug
-      )
+      // this.entityMeta = res.entities.find(
+      //   (entity: EntityMeta) =>
+      //     entity.className === (this.prop.options as RelationOptions).entitySlug
+      // )
 
-      this.options = await this.dynamicEntityService.listSelectOptions(
-        this.EntityMeta.definition.slug
-      )
+      // this.options = await this.dynamicEntityService.listSelectOptions(
+      //   this.entityMeta.definition.slug
+      // )
 
       if (this.value) {
         this.form.patchValue({

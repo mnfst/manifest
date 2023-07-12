@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
-import { SettingsService } from './services/settings.service'
+import { AppConfigService } from './services/app-config.service'
 
 @Component({
   selector: 'app-root',
@@ -12,8 +12,8 @@ export class AppComponent {
   isCollapsed = false
   isLogin = true
 
-  constructor(private router: Router, settingsService: SettingsService) {
-    settingsService.loadSettings().subscribe((res) => {})
+  constructor(private router: Router, appConfigService: AppConfigService) {
+    appConfigService.loadAppConfig().subscribe(() => {})
   }
 
   ngOnInit() {

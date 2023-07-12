@@ -10,10 +10,9 @@ import {
 
 import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
-import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
-import { SettingsService } from '../../services/settings.service'
+import { AppConfigService } from '../../services/app-config.service'
 
 @Component({
   selector: 'app-multi-select-input',
@@ -28,29 +27,29 @@ export class MultiSelectInputComponent {
 
   @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
 
-  EntityMeta: EntityMeta
+  entityMeta: EntityMeta
   options: SelectOption[]
   selectedOptions: SelectOption[] = []
 
   showList: boolean
 
   constructor(
-    private settingsService: SettingsService,
+    private appConfigService: AppConfigService,
     private dynamicEntityService: DynamicEntityService,
     private elementRef: ElementRef
   ) {}
 
   ngOnInit(): void {
-    this.settingsService.loadSettings().subscribe(async (res) => {
+    this.appConfigService.loadAppConfig().subscribe(async (res) => {
       // Note: only works for PropType.Relation at this time.
-      this.EntityMeta = res.entities.find(
-        (entity: EntityMeta) =>
-          entity.className === (this.prop.options as RelationOptions).entitySlug
-      )
+      // this.entityMeta = res.entities.find(
+      //   (entity: EntityMeta) =>
+      //     entity.className === (this.prop.options as RelationOptions).entitySlug
+      // )
 
-      this.options = await this.dynamicEntityService.listSelectOptions(
-        this.EntityMeta.definition.slug
-      )
+      // this.options = await this.dynamicEntityService.listSelectOptions(
+      //   this.entityMeta.definition.slug
+      // )
 
       if (this.value) {
         this.value = this.forceNumberArray(this.value)

@@ -4,9 +4,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms'
 import { Router } from '@angular/router'
 
 import { PropType } from '../../../../../../shared/enums/prop-type.enum'
+import { AppConfig } from '../../../../../../shared/interfaces/app-config.interface'
 import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
+import { AppConfigService } from '../../../services/app-config.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
-import { SettingsService } from '../../../services/settings.service'
 import { AuthService } from '../../auth.service'
 
 @Component({
@@ -34,16 +35,17 @@ export class LoginComponent {
   })
 
   redirectTo: string
-  settings: any
+  appConfig: AppConfig
 
   constructor(
     private readonly authService: AuthService,
     private router: Router,
     private flashMessageService: FlashMessageService,
-    settingsService: SettingsService
+    appConfigService: AppConfigService
   ) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.settings = res.settings
+    appConfigService.loadAppConfig().subscribe((res) => {
+      console.log(res)
+      this.appConfig = res
     })
   }
 

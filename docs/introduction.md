@@ -27,7 +27,7 @@ The full application works in [TypeScript](https://www.typescriptlang.org/).
 ├──── db
 ├──── entities # folder that holds custom entities
 ├──── node_modules
-├ app-settings.ts
+├ app-config.ts
 ├ README.md
 └ package.json
 ```

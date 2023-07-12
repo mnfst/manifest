@@ -5,7 +5,7 @@ import * as cliTable from 'cli-table'
 import { join } from 'path'
 import { DataSource } from 'typeorm'
 
-import { AppRulesModule } from './app-rules/app-rules.module'
+import { AppConfigModule } from './app-config/app-config.module'
 import { AuthModule } from './auth/auth.module'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 
@@ -28,7 +28,7 @@ const entityFolders: string[] = [
       entities: entityFolders,
       synchronize: true
     }),
-    AppRulesModule,
+    AppConfigModule,
     DynamicEntityModule,
     AuthModule
   ]

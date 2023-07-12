@@ -1,7 +1,7 @@
 <div class="columns">
   <div class="column">
-    <h1 class="title is-1">{{ settings.appName }}</h1>
-    <p>{{ settings.description }}</p>
+    <h1 class="title is-1" *ngIf="appConfig">{{ appConfig.appName }}</h1>
+    <p *ngIf="appConfig">{{ appConfig.description }}</p>
   </div>
   <div class="column">
     <div class="columns">

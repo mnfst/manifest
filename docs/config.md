@@ -1,9 +1,9 @@
 # Config
 
-Use the `/app-settings.ts` file to personalize your CASE app:
+Use the `/app-config.ts` file to personalize your CASE app:
 
 ```js
-export const appSettings: AppSettings = {
+export const appConfig: AppConfig = {
   appName: 'My great app with CASE',
   description: 'Just a simple app made with CASE'
 }
