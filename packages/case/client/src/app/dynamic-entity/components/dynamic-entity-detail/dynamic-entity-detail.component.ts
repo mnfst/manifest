@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { SettingsService } from '../../../services/settings.service'
@@ -15,7 +15,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityDetailComponent {
   item: any
   props: PropertyDescription[]
-  entityDescription: EntityDescription
+  entityMeta: EntityMeta
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -27,28 +27,27 @@ export class DynamicEntityDetailComponent {
   ngOnInit(): void {
     this.activatedRoute.params.subscribe((params) => {
       this.settingsService.loadSettings().subscribe((res) => {
-        this.entityDescription = res.entities.find(
-          (entity: EntityDescription) =>
+        this.entityMeta = res.entities.find(
+          (entity: EntityMeta) =>
             entity.definition.slug === params['entitySlug']
         )
 
-        this.props = this.entityDescription.props.filter(
+        this.props = this.entityMeta.props.filter(
           (prop) => !prop.options?.isHiddenInDetail
         )
 
         this.dynamicEntityService
-          .show(this.entityDescription.definition.slug, params['id'])
+          .show(this.entityMeta.definition.slug, params['id'])
           .then((res) => {
             this.item = res
 
             this.breadcrumbService.breadcrumbLinks.next([
               {
-                label: this.entityDescription.definition.namePlural,
-                path: `/dynamic/${this.entityDescription.definition.slug}`
+                label: this.entityMeta.definition.namePlural,
+                path: `/dynamic/${this.entityMeta.definition.slug}`
               },
               {
-                label:
-                  this.item[this.entityDescription.definition.propIdentifier]
+                label: this.item[this.entityMeta.definition.propIdentifier]
               }
             ])
           })

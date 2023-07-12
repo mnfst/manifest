@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core'
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
@@ -45,7 +45,7 @@ export class SelectInputComponent implements OnInit {
     select: null
   })
 
-  entityDescription: EntityDescription
+  EntityMeta: EntityMeta
   options: SelectOption[]
 
   constructor(
@@ -57,13 +57,13 @@ export class SelectInputComponent implements OnInit {
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe(async (res) => {
       // Note: only works for PropType.Relation at this time.
-      this.entityDescription = res.entities.find(
-        (entity: EntityDescription) =>
+      this.EntityMeta = res.entities.find(
+        (entity: EntityMeta) =>
           entity.className === (this.prop.options as RelationOptions).entitySlug
       )
 
       this.options = await this.dynamicEntityService.listSelectOptions(
-        this.entityDescription.definition.slug
+        this.EntityMeta.definition.slug
       )
 
       if (this.value) {

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
 import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { Paginator } from '~shared/interfaces/paginator.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
@@ -19,8 +19,8 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityListComponent implements OnInit {
   paginator: Paginator<any>
 
-  entities: EntityDescription[]
-  entity: EntityDescription
+  entities: EntityMeta[]
+  entity: EntityMeta
 
   props: PropertyDescription[] = []
   filtrableProps: PropertyDescription[] = []
@@ -40,7 +40,7 @@ export class DynamicEntityListComponent implements OnInit {
   ngOnInit(): void {
     this.settingsService
       .loadSettings()
-      .subscribe((res: { entities: EntityDescription[] }) => {
+      .subscribe((res: { entities: EntityMeta[] }) => {
         if (!res.entities) {
           return
         }

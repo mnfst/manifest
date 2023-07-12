@@ -8,7 +8,7 @@ import {
   Output
 } from '@angular/core'
 
-import { EntityDescription } from '../../../../../shared/interfaces/entity-description.interface'
+import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
 import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
@@ -28,7 +28,7 @@ export class MultiSelectInputComponent {
 
   @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
 
-  entityDescription: EntityDescription
+  EntityMeta: EntityMeta
   options: SelectOption[]
   selectedOptions: SelectOption[] = []
 
@@ -43,13 +43,13 @@ export class MultiSelectInputComponent {
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe(async (res) => {
       // Note: only works for PropType.Relation at this time.
-      this.entityDescription = res.entities.find(
-        (entity: EntityDescription) =>
+      this.EntityMeta = res.entities.find(
+        (entity: EntityMeta) =>
           entity.className === (this.prop.options as RelationOptions).entitySlug
       )
 
       this.options = await this.dynamicEntityService.listSelectOptions(
-        this.entityDescription.definition.slug
+        this.EntityMeta.definition.slug
       )
 
       if (this.value) {

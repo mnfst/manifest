@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
 import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
@@ -16,8 +16,8 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-create-edit.component.scss']
 })
 export class DynamicEntityCreateEditComponent {
-  entities: EntityDescription[] = []
-  entity: EntityDescription
+  entities: EntityMeta[] = []
+  entity: EntityMeta
 
   item: any
 
@@ -41,7 +41,7 @@ export class DynamicEntityCreateEditComponent {
   }
 
   async ngOnInit(): Promise<void> {
-    of(this.entities).subscribe((_entities: EntityDescription[]) => {
+    of(this.entities).subscribe((_entities: EntityMeta[]) => {
       combineLatest([
         this.activatedRoute.params,
         this.activatedRoute.data

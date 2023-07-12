@@ -7,12 +7,11 @@
       <ng-container [ngPlural]="selectedOptions.length">
         <ng-template ngPluralCase="=0">{{ prop.label }}</ng-template>
         <ng-template ngPluralCase="=1"
-          >1
-          {{ entityDescription.definition.nameSingular }} selected</ng-template
+          >1 {{ EntityMeta.definition.nameSingular }} selected</ng-template
         >
         <ng-template ngPluralCase="other"
           >{{ selectedOptions.length }}
-          {{ entityDescription.definition.namePlural }} selected
+          {{ EntityMeta.definition.namePlural }} selected
         </ng-template>
       </ng-container>
     </div>

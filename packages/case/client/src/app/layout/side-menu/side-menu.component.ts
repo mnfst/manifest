@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 
-import { EntityDescription } from '../../../../../shared/interfaces/entity-description.interface'
+import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
 import { SettingsService } from '../../services/settings.service'
 
 @Component({
@@ -9,7 +9,7 @@ import { SettingsService } from '../../services/settings.service'
   styleUrls: ['./side-menu.component.scss']
 })
 export class SideMenuComponent {
-  entities: EntityDescription[]
+  entities: EntityMeta[]
 
   constructor(settingsService: SettingsService) {
     settingsService.loadSettings().subscribe((res) => {

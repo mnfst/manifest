@@ -7,10 +7,15 @@ import {
   In,
   Repository
 } from 'typeorm'
+import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
-import { SelectOption } from '../../../shared/interfaces/select-option.interface'
+
+import { PropType } from '../../../shared/enums/prop-type.enum'
+import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
 import { Paginator } from '../../../shared/interfaces/paginator.interface'
-import { find } from 'rxjs'
+import { PropertyDescription } from '../../../shared/interfaces/property-description.interface'
+import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
+import { SelectOption } from '../../../shared/interfaces/select-option.interface'
 
 @Injectable()
 export class DynamicEntityService {
@@ -154,6 +159,46 @@ export class DynamicEntityService {
     }
 
     return entityRepository.delete(id)
+  }
+
+  async getMeta(): Promise<EntityMeta[]> {
+    return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => ({
+      className: entity.name,
+      definition: (entity.inheritanceTree[0] as any).definition,
+      props: this.getPropDescriptions(entity)
+    }))
+  }
+
+  getPropDescriptions(entity: EntityMetadata): PropertyDescription[] {
+    // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
+    const entityRepository: Repository<any> = this.getRepository(
+      entity.tableName
+    )
+    const newItem = entityRepository.create()
+
+    return entity.columns
+      .filter((column: ColumnMetadata) => column.propertyName !== 'id')
+      .map((column: ColumnMetadata) => {
+        const propDescription: PropertyDescription = {
+          propName: column.propertyName,
+          label: Reflect.getMetadata(`${column.propertyName}:label`, newItem),
+          type: Reflect.getMetadata(`${column.propertyName}:type`, newItem),
+          options: Reflect.getMetadata(
+            `${column.propertyName}:options`,
+            newItem
+          )
+        }
+
+        if (propDescription.type === PropType.Relation) {
+          const relationOptions: RelationOptions =
+            propDescription.options as RelationOptions
+
+          // Convert class to string to use in the client.
+          relationOptions.entitySlug = relationOptions.entity?.name
+        }
+
+        return propDescription
+      })
   }
 
   private getRepository(entitySlug: string): Repository<any> {

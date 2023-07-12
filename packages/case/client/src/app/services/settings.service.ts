@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { Observable, shareReplay } from 'rxjs'
 import { AppSettings } from '~shared/interfaces/app-settings.interface'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 import { environment } from '../../environments/environment'
 
@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment'
 export class SettingsService {
   private readonly ENV_URL = environment.apiBaseUrl + '/app-rules/settings'
   private settings$:
-    | Observable<{ entities: EntityDescription; settings: AppSettings }>
+    | Observable<{ entities: EntityMeta; settings: AppSettings }>
     | undefined
 
   constructor(private http: HttpClient) {}

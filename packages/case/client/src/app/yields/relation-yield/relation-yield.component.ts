@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
 import { RouterModule } from '@angular/router'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
 
 import { SettingsService } from '../../services/settings.service'
@@ -11,22 +11,17 @@ import { SettingsService } from '../../services/settings.service'
   standalone: true,
   imports: [RouterModule, CommonModule],
   template: ` <a
-      [routerLink]="[
-        '/',
-        'dynamic',
-        entityDescription.definition.slug,
-        item.id
-      ]"
+      [routerLink]="['/', 'dynamic', EntityMeta.definition.slug, item.id]"
       *ngIf="item"
     >
-      <span>{{ item[entityDescription.definition.propIdentifier] }}</span>
+      <span>{{ item[EntityMeta.definition.propIdentifier] }}</span>
     </a>
 
     <span *ngIf="!item">-</span>`,
   styleUrls: ['./relation-yield.component.scss']
 })
 export class RelationYieldComponent implements OnInit {
-  entityDescription: EntityDescription
+  EntityMeta: EntityMeta
 
   constructor(private settingsService: SettingsService) {}
 
@@ -35,9 +30,8 @@ export class RelationYieldComponent implements OnInit {
 
   ngOnInit(): void {
     this.settingsService.loadSettings().subscribe((res) => {
-      this.entityDescription = res.entities.find(
-        (entity: EntityDescription) =>
-          entity.className === this.options.entitySlug
+      this.EntityMeta = res.entities.find(
+        (entity: EntityMeta) => entity.className === this.options.entitySlug
       )
     })
   }
