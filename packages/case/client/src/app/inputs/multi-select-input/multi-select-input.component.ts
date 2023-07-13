@@ -13,7 +13,6 @@ import { PropertyDescription } from '../../../../../shared/interfaces/property-d
 import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
 import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
-import { AppConfigService } from '../../services/app-config.service'
 
 @Component({
   selector: 'app-multi-select-input',
@@ -35,7 +34,6 @@ export class MultiSelectInputComponent {
   showList: boolean
 
   constructor(
-    private appConfigService: AppConfigService,
     private dynamicEntityService: DynamicEntityService,
     private elementRef: ElementRef
   ) {}

@@ -7,5 +7,6 @@ export enum PropType {
   Email,
   Boolean,
   Relation,
-  Password
+  Password,
+  File
 }

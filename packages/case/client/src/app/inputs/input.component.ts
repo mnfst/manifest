@@ -1,17 +1,19 @@
+import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, Output } from '@angular/core'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+
 import { BooleanInputComponent } from './boolean-input/boolean-input.component'
 import { CurrencyInputComponent } from './currency-input/currency-input.component'
 import { DateInputComponent } from './date-input/date-input.component'
 import { EmailInputComponent } from './email-input/email-input.component'
+import { FileUploadInputComponent } from './file-upload-input/file-upload-input.component'
 import { MultiSelectInputComponent } from './multi-select-input/multi-select-input.component'
 import { NumberInputComponent } from './number-input/number-input.component'
 import { PasswordInputComponent } from './password-input/password-input.component'
-import { TextInputComponent } from './text-input/text-input.component'
-import { TextAreaInputComponent } from './text-area-input/text-area-input.component'
 import { SelectInputComponent } from './select-input/select-input.component'
-import { CommonModule } from '@angular/common'
+import { TextAreaInputComponent } from './text-area-input/text-area-input.component'
+import { TextInputComponent } from './text-input/text-input.component'
 
 @Component({
   selector: 'app-input',
@@ -27,7 +29,8 @@ import { CommonModule } from '@angular/common'
     PasswordInputComponent,
     SelectInputComponent,
     TextAreaInputComponent,
-    TextInputComponent
+    TextInputComponent,
+    FileUploadInputComponent
   ],
   template: `
     <app-number-input
@@ -89,6 +92,11 @@ import { CommonModule } from '@angular/common'
       *ngIf="prop.type === PropType.Password"
     >
     </app-password-input>
+    <app-file-upload-input
+      [prop]="prop"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.File"
+    ></app-file-upload-input>
   `
 })
 export class InputComponent {
