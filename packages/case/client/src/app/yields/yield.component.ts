@@ -11,6 +11,7 @@ import { EmailYieldComponent } from './email-yield/email-yield.component'
 import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { RelationYieldComponent } from './relation-yield/relation-yield.component'
 import { TextYieldComponent } from './text-yield/text-yield.component'
+import { FileYieldComponent } from './file-yield/file-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -23,7 +24,8 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     EmailYieldComponent,
     NumberYieldComponent,
     RelationYieldComponent,
-    TextYieldComponent
+    TextYieldComponent,
+    FileYieldComponent
   ],
   template: `
     <app-text-yield
@@ -56,6 +58,10 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
       *ngIf="type === PropType.Email"
       [value]="value"
     ></app-email-yield>
+    <app-file-yield
+      *ngIf="type === PropType.File"
+      [value]="value"
+    ></app-file-yield>
   `
 })
 export class YieldComponent {
