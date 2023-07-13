@@ -27,8 +27,8 @@ export class FileUploadService {
       new Date().getFullYear()
 
     const storagePath: string = devMode
-      ? join(__dirname, '../../../../public')
-      : join(__dirname, '../../public') + '/storage'
+      ? join(__dirname, '../../../../public/storage')
+      : join(__dirname, '../../public/storage')
 
     console.log(storagePath)
 
