@@ -28,7 +28,6 @@ import { AppConfigService } from './services/app-config.service'
     AvatarComponent,
     HomeComponent,
     FooterComponent,
-    CapitalizeFirstLetterPipe,
     FlashMessageComponent,
     Error404Component
   ],
@@ -43,7 +42,8 @@ import { AppConfigService } from './services/app-config.service'
         // TODO (Ship): This should be an environment variable.
         allowedDomains: ['localhost:3000']
       }
-    })
+    }),
+    CapitalizeFirstLetterPipe
   ],
   providers: [
     {
@@ -52,8 +52,7 @@ import { AppConfigService } from './services/app-config.service'
         combineLatest([appConfigService.loadAppConfig()]),
       deps: [AppConfigService],
       multi: true
-    },
-    CapitalizeFirstLetterPipe
+    }
   ],
   bootstrap: [AppComponent]
 })

@@ -44,10 +44,7 @@ export class Cat extends CaseEntity {
   birthdate: Date
 
   @Prop({
-    type: PropType.TextArea,
-    options: {
-      isHiddenInList: true
-    }
+    type: PropType.TextArea
   })
   description: string
 

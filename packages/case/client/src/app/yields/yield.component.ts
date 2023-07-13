@@ -33,6 +33,7 @@ import { ImageYieldComponent } from './image-yield/image-yield.component'
     <app-text-yield
       *ngIf="type === PropType.Text || type === PropType.TextArea"
       [value]="value"
+      [compact]="compact"
     ></app-text-yield>
     <app-number-yield
       *ngIf="type === PropType.Number"
@@ -67,6 +68,7 @@ import { ImageYieldComponent } from './image-yield/image-yield.component'
     <app-image-yield
       *ngIf="type === PropType.Image"
       [value]="value"
+      [compact]="compact"
     ></app-image-yield>
   `
 })
@@ -74,6 +76,7 @@ export class YieldComponent {
   @Input() value: any
   @Input() type: PropType
   @Input() options?: RelationOptions | CurrencyOptions | any
+  @Input() compact: boolean = false
 
   PropType = PropType
 }

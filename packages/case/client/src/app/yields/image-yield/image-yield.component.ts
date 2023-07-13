@@ -7,13 +7,22 @@ import { environment } from '../../../environments/environment'
   standalone: true,
   imports: [CommonModule],
   template: `
-    <img [src]="storagePath + value + '-thumbnail.jpg'" *ngIf="value" />
-    <span *ngIf="!value">%% Default img</span>
+    <figure class="image">
+      <img
+        [src]="
+          storagePath + value + (compact ? '-thumbnail.jpg' : '-large.jpg')
+        "
+        [ngClass]="{ 'is-rounded': compact }"
+        *ngIf="value"
+      />
+      <span *ngIf="!value">%% Default img</span>
+    </figure>
   `,
   styleUrls: ['./image-yield.component.scss']
 })
 export class ImageYieldComponent {
   @Input() value: string
+  @Input() compact: boolean = false
 
   storagePath: string = environment.storagePath
 }
