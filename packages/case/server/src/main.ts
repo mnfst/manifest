@@ -17,13 +17,13 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
+  // Reload the browser when server files change.
   const liveReloadServer = livereload.createServer()
   liveReloadServer.server.once('connection', () => {
     setTimeout(() => {
       liveReloadServer.refresh('/')
     }, 100)
   })
-
   app.use(connectLiveReload())
 
   const clientFolder: string = devMode
@@ -35,7 +35,7 @@ async function bootstrap() {
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {
-    if (req.url.startsWith('/api')) {
+    if (req.url.startsWith('/api') || req.url.startsWith('/storage')) {
       next()
     } else {
       res.sendFile(join(clientFolder, 'index.html'))

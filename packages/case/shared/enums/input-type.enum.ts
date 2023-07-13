@@ -7,5 +7,6 @@ export enum InputType {
   Boolean,
   TextArea,
   Email,
-  Password
+  Password,
+  FileUpload
 }

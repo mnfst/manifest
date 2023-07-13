@@ -2,6 +2,7 @@ import { PropType } from '../enums/prop-type.enum'
 import { CurrencyOptions } from './property-options/currency-options.interface'
 import { PropertyOptions } from './property-options/property-options.interface'
 import { RelationOptions } from './property-options/relation-options.interface'
+import { FileOptions } from './property-options/file-options.interface'
 
 /**
  * Defines a property of an entity.
@@ -16,7 +17,7 @@ export interface PropertyDefinition {
   seed?: (index?: number) => any
 
   /** Options for the property (related to Type) */
-  options?: PropertyOptions | RelationOptions | CurrencyOptions
+  options?: PropertyOptions | RelationOptions | CurrencyOptions | FileOptions
 
   typeORMOptions?: any
 }

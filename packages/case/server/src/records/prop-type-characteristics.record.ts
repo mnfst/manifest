@@ -54,5 +54,13 @@ export const propTypeCharacteristicsRecord: Record<
         length: 10,
         memorable: true
       })
+  },
+  [PropType.File]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => '/dummy/dummy-document.pdf'
+  },
+  [PropType.Image]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => '/dummy/dummy-image.jpg'
   }
 }

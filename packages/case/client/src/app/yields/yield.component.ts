@@ -11,6 +11,8 @@ import { EmailYieldComponent } from './email-yield/email-yield.component'
 import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { RelationYieldComponent } from './relation-yield/relation-yield.component'
 import { TextYieldComponent } from './text-yield/text-yield.component'
+import { FileYieldComponent } from './file-yield/file-yield.component'
+import { ImageYieldComponent } from './image-yield/image-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -23,12 +25,15 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     EmailYieldComponent,
     NumberYieldComponent,
     RelationYieldComponent,
-    TextYieldComponent
+    TextYieldComponent,
+    FileYieldComponent,
+    ImageYieldComponent
   ],
   template: `
     <app-text-yield
       *ngIf="type === PropType.Text || type === PropType.TextArea"
       [value]="value"
+      [compact]="compact"
     ></app-text-yield>
     <app-number-yield
       *ngIf="type === PropType.Number"
@@ -56,12 +61,22 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
       *ngIf="type === PropType.Email"
       [value]="value"
     ></app-email-yield>
+    <app-file-yield
+      *ngIf="type === PropType.File"
+      [value]="value"
+    ></app-file-yield>
+    <app-image-yield
+      *ngIf="type === PropType.Image"
+      [value]="value"
+      [compact]="compact"
+    ></app-image-yield>
   `
 })
 export class YieldComponent {
   @Input() value: any
   @Input() type: PropType
   @Input() options?: RelationOptions | CurrencyOptions | any
+  @Input() compact: boolean = false
 
   PropType = PropType
 }

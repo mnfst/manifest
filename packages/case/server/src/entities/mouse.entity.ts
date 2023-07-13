@@ -25,6 +25,16 @@ export class Mouse extends CaseEntity {
   familyName: string
 
   @Prop({
+    type: PropType.File
+  })
+  certificate: string
+
+  @Prop({
+    type: PropType.Image
+  })
+  image: string
+
+  @Prop({
     label: 'Predator',
     type: PropType.Relation,
     options: {

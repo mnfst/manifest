@@ -9,7 +9,6 @@ import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
 import { AvatarComponent } from './components/avatar/avatar.component'
 import { constants } from './constants'
-import { DynamicEntityService } from './dynamic-entity/dynamic-entity.service'
 import { FooterComponent } from './layout/footer/footer.component'
 import { SideMenuComponent } from './layout/side-menu/side-menu.component'
 import { TopMenuComponent } from './layout/top-menu/top-menu.component'
@@ -29,7 +28,6 @@ import { AppConfigService } from './services/app-config.service'
     AvatarComponent,
     HomeComponent,
     FooterComponent,
-    CapitalizeFirstLetterPipe,
     FlashMessageComponent,
     Error404Component
   ],
@@ -44,25 +42,17 @@ import { AppConfigService } from './services/app-config.service'
         // TODO (Ship): This should be an environment variable.
         allowedDomains: ['localhost:3000']
       }
-    })
+    }),
+    CapitalizeFirstLetterPipe
   ],
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory:
-        (
-          appConfigService: AppConfigService,
-          dynamicEntityService: DynamicEntityService
-        ) =>
-        () =>
-          combineLatest([
-            appConfigService.loadAppConfig(),
-            dynamicEntityService.loadEntityMeta()
-          ]),
-      deps: [AppConfigService, DynamicEntityService],
+      useFactory: (appConfigService: AppConfigService) => () =>
+        combineLatest([appConfigService.loadAppConfig()]),
+      deps: [AppConfigService],
       multi: true
-    },
-    CapitalizeFirstLetterPipe
+    }
   ],
   bootstrap: [AppComponent]
 })
