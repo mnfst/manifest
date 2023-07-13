@@ -14,6 +14,7 @@ import { PasswordInputComponent } from './password-input/password-input.componen
 import { SelectInputComponent } from './select-input/select-input.component'
 import { TextAreaInputComponent } from './text-area-input/text-area-input.component'
 import { TextInputComponent } from './text-input/text-input.component'
+import { ImageUploadInputComponent } from './image-upload-input/image-upload-input.component'
 
 @Component({
   selector: 'app-input',
@@ -30,7 +31,8 @@ import { TextInputComponent } from './text-input/text-input.component'
     SelectInputComponent,
     TextAreaInputComponent,
     TextInputComponent,
-    FileUploadInputComponent
+    FileUploadInputComponent,
+    ImageUploadInputComponent
   ],
   template: `
     <app-number-input
@@ -97,6 +99,11 @@ import { TextInputComponent } from './text-input/text-input.component'
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.File"
     ></app-file-upload-input>
+    <app-image-upload-input
+      [prop]="prop"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Image"
+    ></app-image-upload-input>
   `
 })
 export class InputComponent {

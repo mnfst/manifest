@@ -8,5 +8,6 @@ export enum PropType {
   Boolean,
   Relation,
   Password,
-  File
+  File,
+  Image
 }

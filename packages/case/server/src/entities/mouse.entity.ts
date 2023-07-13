@@ -30,6 +30,11 @@ export class Mouse extends CaseEntity {
   certificate: string
 
   @Prop({
+    type: PropType.Image
+  })
+  image: string
+
+  @Prop({
     label: 'Predator',
     type: PropType.Relation,
     options: {

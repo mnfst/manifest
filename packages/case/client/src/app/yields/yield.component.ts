@@ -12,6 +12,7 @@ import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { RelationYieldComponent } from './relation-yield/relation-yield.component'
 import { TextYieldComponent } from './text-yield/text-yield.component'
 import { FileYieldComponent } from './file-yield/file-yield.component'
+import { ImageYieldComponent } from './image-yield/image-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -25,7 +26,8 @@ import { FileYieldComponent } from './file-yield/file-yield.component'
     NumberYieldComponent,
     RelationYieldComponent,
     TextYieldComponent,
-    FileYieldComponent
+    FileYieldComponent,
+    ImageYieldComponent
   ],
   template: `
     <app-text-yield
@@ -62,6 +64,10 @@ import { FileYieldComponent } from './file-yield/file-yield.component'
       *ngIf="type === PropType.File"
       [value]="value"
     ></app-file-yield>
+    <app-image-yield
+      *ngIf="type === PropType.Image"
+      [value]="value"
+    ></app-image-yield>
   `
 })
 export class YieldComponent {
