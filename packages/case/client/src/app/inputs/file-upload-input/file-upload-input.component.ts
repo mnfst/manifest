@@ -45,9 +45,6 @@ export class FileUploadInputComponent implements OnInit {
 
   ngOnInit() {
     this.options = this.prop.options as FileOptions
-    // if (this.value !== undefined) {
-    //   this.filePath = this.value
-    // }
   }
 
   // Upload file and update value.

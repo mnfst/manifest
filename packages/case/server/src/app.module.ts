@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm'
 import { AppConfigModule } from './app-config/app-config.module'
 import { AuthModule } from './auth/auth.module'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
+import { FileUploadModule } from './file-upload/file-upload.module'
 
 const devMode: boolean = process.argv[2] === 'dev'
 
@@ -30,7 +31,8 @@ const entityFolders: string[] = [
     }),
     AppConfigModule,
     DynamicEntityModule,
-    AuthModule
+    AuthModule,
+    FileUploadModule
   ]
 })
 export class AppModule {
