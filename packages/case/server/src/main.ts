@@ -26,19 +26,24 @@ async function bootstrap() {
   })
   app.use(connectLiveReload())
 
-  const clientFolder: string = devMode
+  const clientAppFolder: string = devMode
+    ? join(__dirname, '../../../dist/client')
+    : join(__dirname, '../dist/client')
+
+  const publicFolder: string = devMode
     ? join(__dirname, '../../../public')
     : join(__dirname, '../public')
 
-  // Serve static files from the client app.
-  app.use(express.static(clientFolder))
+  // Serve static files
+  app.use(express.static(publicFolder))
+  app.use(express.static(clientAppFolder))
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {
     if (req.url.startsWith('/api') || req.url.startsWith('/storage')) {
       next()
     } else {
-      res.sendFile(join(clientFolder, 'index.html'))
+      res.sendFile(join(clientAppFolder, 'index.html'))
     }
   })
 
