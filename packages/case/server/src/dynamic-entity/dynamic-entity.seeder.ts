@@ -5,12 +5,18 @@ import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
+import { FileUploadService } from '../file-upload/file-upload.service'
+import { ImageUploadService } from '../file-upload/image-upload.service'
 
 @Injectable()
 export class DynamicEntitySeeder {
   defaultSeedCount = 10
 
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private fileUploadService: FileUploadService,
+    private imageUploadService: ImageUploadService
+  ) {}
 
   async seed(tableName?: string) {
     let entities: EntityMetadata[] = this.orderEntities(
@@ -42,6 +48,9 @@ export class DynamicEntitySeeder {
     await queryRunner.query('PRAGMA foreign_keys = ON')
 
     console.log(chalk.blue('[x] Removed all existing data...'))
+
+    let addDummyDocument: boolean = false
+    let addDummyImage: boolean = false
 
     for (const entity of entities) {
       const definition: EntityDefinition = (entity.target as any).definition
@@ -87,10 +96,26 @@ export class DynamicEntitySeeder {
           } else {
             newItem[column.propertyName] = propSeederFn(index)
           }
+
+          if (propType === PropType.File) {
+            addDummyDocument = true
+          }
+
+          if (propType === PropType.Image) {
+            addDummyImage = true
+          }
         })
 
         await entityRepository.save(newItem)
       }
+    }
+
+    if (addDummyDocument) {
+      this.fileUploadService.addDummyDocument()
+    }
+
+    if (addDummyImage) {
+      this.imageUploadService.addDummyImage()
     }
   }
 
@@ -106,6 +131,7 @@ export class DynamicEntitySeeder {
     return this.dataSource.getRepository(entity.target)
   }
 
+  // Order entities so that entities with relations are seeded after entities they depend on.
   private orderEntities(entities: EntityMetadata[]): EntityMetadata[] {
     const orderedEntities: EntityMetadata[] = []
 

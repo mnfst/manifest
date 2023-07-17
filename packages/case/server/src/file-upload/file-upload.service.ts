@@ -6,7 +6,13 @@ import * as uniqid from 'uniqid'
 
 @Injectable()
 export class FileUploadService {
-  constructor(private readonly configService: ConfigService) {}
+  storagePath: string
+  distRoot: string
+
+  constructor(configService: ConfigService) {
+    this.storagePath = configService.get('storageFolder')
+    this.distRoot = configService.get('distRoot')
+  }
 
   /**
    * Stores a file and returns its path.
@@ -26,15 +32,26 @@ export class FileUploadService {
       new Date().toLocaleString('en-us', { month: 'short' }) +
       new Date().getFullYear()
 
-    const storagePath: string = this.configService.get('storageFolder')
-
     const folder = `${kebabCaseEntityName}/${dateString}`
-    mkdirp.sync(`${storagePath}/${folder}`)
+    mkdirp.sync(`${this.storagePath}/${folder}`)
 
     const path: string = `/${folder}/${uniqid()}-${file.originalname}`
 
-    fs.writeFileSync(`${storagePath}${path}`, file.buffer)
+    fs.writeFileSync(`${this.storagePath}${path}`, file.buffer)
 
     return path
+  }
+
+  /**
+   * Adds a dummy document to the storage system.
+   */
+  addDummyDocument(): void {
+    const folder: string = `${this.storagePath}/dummy`
+
+    mkdirp.sync(folder)
+    fs.copyFileSync(
+      this.distRoot + '/assets/seed/dummy-document.xlsx',
+      folder + '/dummy-document.xlsx'
+    )
   }
 }

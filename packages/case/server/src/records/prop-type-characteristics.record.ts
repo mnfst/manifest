@@ -57,10 +57,10 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.File]: {
     columnType: 'varchar',
-    defaultSeedFunction: () => '/dummy/dummy-document.pdf'
+    defaultSeedFunction: () => '/dummy/dummy-document.xlsx'
   },
   [PropType.Image]: {
     columnType: 'varchar',
-    defaultSeedFunction: () => '/dummy/dummy-image.jpg'
+    defaultSeedFunction: () => '/dummy/dummy-image'
   }
 }
