@@ -6,7 +6,6 @@ import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { Paginator } from '~shared/interfaces/paginator.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
-import { AppConfigService } from '../../../services/app-config.service'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -32,8 +31,7 @@ export class DynamicEntityListComponent implements OnInit {
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
     private breadcrumbService: BreadcrumbService,
-    private flashMessageService: FlashMessageService,
-    private appConfigService: AppConfigService
+    private flashMessageService: FlashMessageService
   ) {}
 
   ngOnInit(): void {

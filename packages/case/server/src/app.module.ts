@@ -58,7 +58,9 @@ export class AppModule {
       [
         'entities',
         chalk.green(
-          this.dataSource.entityMetadatas.map((entity) => entity.tableName)
+          this.dataSource.entityMetadatas
+            .map((entity) => entity.tableName)
+            .join(', ')
         )
       ],
       ['contribution mode', chalk.green(contributionMode)]
