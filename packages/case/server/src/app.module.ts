@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import * as chalk from 'chalk'
 import * as cliTable from 'cli-table'
@@ -7,6 +8,7 @@ import { DataSource } from 'typeorm'
 
 import { AppConfigModule } from './app-config/app-config.module'
 import { AuthModule } from './auth/auth.module'
+import configuration from './configuration'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 import { FileUploadModule } from './file-upload/file-upload.module'
 
@@ -23,6 +25,13 @@ const entityFolders: string[] = [
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: contributionMode
+        ? '../_contribution-root/.env.contribution'
+        : `${process.cwd()}/.env`
+    }),
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: databasePath,
@@ -36,20 +45,25 @@ const entityFolders: string[] = [
   ]
 })
 export class AppModule {
-  constructor(private dataSource: DataSource) {
+  constructor(
+    private dataSource: DataSource,
+    private configService: ConfigService
+  ) {
     if (!process.argv[1].includes('seed')) {
       this.logAppInfo()
     }
   }
 
   logAppInfo() {
+    const port: number = this.configService.get('port')
+
     const table = new cliTable({
       head: []
     })
 
     table.push(
-      ['client URL', chalk.green('http://localhost:3000')],
-      ['API URL', chalk.green('http://localhost:3000/api')],
+      ['client URL', chalk.green(`http://localhost:${port}`)],
+      ['API URL', chalk.green(`http://localhost:${port}/api`)],
       ['database path', chalk.green(databasePath)],
       [
         'entities',
@@ -66,7 +80,7 @@ export class AppModule {
     console.log(
       chalk.blue(
         '🎉 CASE app successfully started! See it at',
-        chalk.underline.blue('http://localhost:3000')
+        chalk.underline.blue(`http://localhost:${port}`)
       )
     )
   }

@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import * as connectLiveReload from 'connect-livereload'
 import * as express from 'express'
@@ -47,6 +48,8 @@ async function bootstrap() {
     }
   })
 
-  await app.listen(3000)
+  const configService = app.get(ConfigService)
+
+  await app.listen(configService.get('port'))
 }
 bootstrap()
