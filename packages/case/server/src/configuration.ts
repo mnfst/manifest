@@ -13,8 +13,6 @@ export default () => {
     ? join(__dirname, '../../../dist')
     : join(__dirname, '../dist')
 
-  console.log('appRoot', appRoot)
-
   return {
     port: parseInt(process.env.PORT, 10) || 3000,
     appRoot,

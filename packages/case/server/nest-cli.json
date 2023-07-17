@@ -2,5 +2,14 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
-  "entryFile": "server/src/main"
+  "entryFile": "server/src/main",
+  "compilerOptions": {
+    "assets": [
+      {
+        "include": "../assets/**/*",
+        "outDir": "dist/assets",
+        "watchAssets": true
+      }
+    ]
+  }
 }
