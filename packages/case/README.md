@@ -27,7 +27,7 @@ npm run start:dev
 npm run seed:dev
 ```
 
-You can put your temporary entities in `packages/case/server/entities`
+The folder `packages/case/server/src/_contribution-root` replicates the app root folder of the `CASE Starter` repo.
 
 ## Contribute (work from starter)
 

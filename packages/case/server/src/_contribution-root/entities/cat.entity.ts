@@ -1,3 +1,4 @@
+import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
@@ -12,4 +13,9 @@ import { Prop } from '../../decorators/prop.decorator'
 export class Cat extends CaseEntity {
   @Prop({})
   name: string
+
+  @Prop({
+    type: PropType.Number
+  })
+  age: number
 }

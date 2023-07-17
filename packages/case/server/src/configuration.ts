@@ -26,7 +26,10 @@ export default () => {
       type: 'sqlite',
       database: `${appRoot}/db/case.sqlite`,
       entities: [
-        // `${appRoot}/entities/*.entity.ts`,
+        contributionMode
+          ? 'dist/server/src/_contribution-root/entities/*.entity.js'
+          : `${process.cwd()}/entities/*.entity{.ts,.js}`,
+        ,
         User
       ],
       synchronize: true
