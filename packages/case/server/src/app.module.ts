@@ -10,12 +10,12 @@ import { AuthModule } from './auth/auth.module'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 import { FileUploadModule } from './file-upload/file-upload.module'
 
-const devMode: boolean = process.argv[2] === 'dev'
+const contributionMode: boolean = process.argv[2] === 'contribution'
 
 const databasePath: string = `${process.cwd()}/db/case.sqlite`
 
 const entityFolders: string[] = [
-  devMode
+  contributionMode
     ? 'dist/server/src/entities/*.entity.js'
     : `${process.cwd()}/entities/*.entity{.ts,.js}`,
   join(__dirname, '../src/core-entities/*.entity.js')
@@ -58,7 +58,7 @@ export class AppModule {
         )
       ],
       ['entity folder', chalk.green(entityFolders[0])],
-      ['dev mode', chalk.green(devMode)]
+      ['contribution mode', chalk.green(contributionMode)]
     )
 
     console.log(table.toString())

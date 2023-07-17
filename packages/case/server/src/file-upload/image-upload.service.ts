@@ -23,10 +23,10 @@ export class ImageUploadService {
       .replace(/([a-z])([A-Z])/g, '$1-$2')
       .toLowerCase()
 
-    const devMode: boolean = process.argv[2] === 'dev'
+    const contributionMode: boolean = process.argv[2] === 'contribution'
 
-    const storagePath: string = devMode
-      ? join(__dirname, '../../../../public/storage')
+    const storagePath: string = contributionMode
+      ? join(__dirname, '../../../_contribution-root/public/storage')
       : join(__dirname, '../../public/storage')
 
     // Create custom path. Ex: "posts/Jan19/23/4n5pxq24kp3iob12og9"

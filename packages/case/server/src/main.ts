@@ -7,7 +7,7 @@ import { join } from 'path'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const devMode: boolean = process.argv[2] === 'dev'
+  const contributionMode: boolean = process.argv[2] === 'contribution'
 
   const app = await NestFactory.create(AppModule, {
     cors: true,
@@ -26,12 +26,12 @@ async function bootstrap() {
   })
   app.use(connectLiveReload())
 
-  const clientAppFolder: string = devMode
+  const clientAppFolder: string = contributionMode
     ? join(__dirname, '../../../dist/client')
     : join(__dirname, '../dist/client')
 
-  const publicFolder: string = devMode
-    ? join(__dirname, '../../../public')
+  const publicFolder: string = contributionMode
+    ? join(__dirname, '../../_contribution-root/public')
     : join(__dirname, '../public')
 
   // Serve static files

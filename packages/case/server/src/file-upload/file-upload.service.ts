@@ -14,7 +14,7 @@ export class FileUploadService {
    * @returns The path of the stored file.
    */
   store(file: any, propName: string): string {
-    const devMode: boolean = process.argv[2] === 'dev'
+    const contributionMode: boolean = process.argv[2] === 'contribution'
 
     // CamelCase to kebab-case
     const kebabCaseEntityName = propName
@@ -26,8 +26,8 @@ export class FileUploadService {
       new Date().toLocaleString('en-us', { month: 'short' }) +
       new Date().getFullYear()
 
-    const storagePath: string = devMode
-      ? join(__dirname, '../../../../public/storage')
+    const storagePath: string = contributionMode
+      ? join(__dirname, '../../../_contribution-root/public/storage')
       : join(__dirname, '../../public/storage')
 
     console.log(storagePath)

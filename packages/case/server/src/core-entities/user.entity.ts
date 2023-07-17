@@ -3,7 +3,7 @@ import { SHA3 } from 'crypto-js'
 import { Column } from 'typeorm'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
-import { Prop } from '../decorators/case-prop.decorator'
+import { Prop } from '../decorators/prop.decorator'
 import {
   BeforeInsert,
   BeforeUpdate

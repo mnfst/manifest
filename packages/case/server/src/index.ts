@@ -1,6 +1,6 @@
 // Decorators
 export { Entity } from './decorators/entity.decorator'
-export { Prop } from './decorators/case-prop.decorator'
+export { Prop } from './decorators/prop.decorator'
 export {
   BeforeInsert,
   AfterInsert,
