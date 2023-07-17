@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import * as fs from 'fs'
 import * as mkdirp from 'mkdirp'
-import { join } from 'path'
 import * as uniqid from 'uniqid'
 
 @Injectable()
 export class FileUploadService {
+  constructor(private readonly configService: ConfigService) {}
+
   /**
    * Stores a file and returns its path.
    *
@@ -14,8 +16,6 @@ export class FileUploadService {
    * @returns The path of the stored file.
    */
   store(file: any, propName: string): string {
-    const contributionMode: boolean = process.argv[2] === 'contribution'
-
     // CamelCase to kebab-case
     const kebabCaseEntityName = propName
       .replace(/([a-z])([A-Z])/g, '$1-$2')
@@ -26,11 +26,7 @@ export class FileUploadService {
       new Date().toLocaleString('en-us', { month: 'short' }) +
       new Date().getFullYear()
 
-    const storagePath: string = contributionMode
-      ? join(__dirname, '../../../_contribution-root/public/storage')
-      : join(__dirname, '../../public/storage')
-
-    console.log(storagePath)
+    const storagePath: string = this.configService.get('storageFolder')
 
     const folder = `${kebabCaseEntityName}/${dateString}`
     mkdirp.sync(`${storagePath}/${folder}`)

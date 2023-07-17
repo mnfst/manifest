@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import * as mkdirp from 'mkdirp'
-import { join } from 'path'
 import * as sharp from 'sharp'
 import * as uniqId from 'uniqid'
 
@@ -17,17 +17,15 @@ export class ImageUploadService {
     }
   }
 
+  constructor(private readonly configService: ConfigService) {}
+
   store(file: any, propName: string): string {
     // CamelCase to kebab-case.
     const kebabCaseEntityName = propName
       .replace(/([a-z])([A-Z])/g, '$1-$2')
       .toLowerCase()
 
-    const contributionMode: boolean = process.argv[2] === 'contribution'
-
-    const storagePath: string = contributionMode
-      ? join(__dirname, '../../../_contribution-root/public/storage')
-      : join(__dirname, '../../public/storage')
+    const storagePath: string = this.configService.get('storageFolder')
 
     // Create custom path. Ex: "posts/Jan19/23/4n5pxq24kp3iob12og9"
     const dateString =

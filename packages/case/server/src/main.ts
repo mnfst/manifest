@@ -8,12 +8,12 @@ import { join } from 'path'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const contributionMode: boolean = process.argv[2] === 'contribution'
-
   const app = await NestFactory.create(AppModule, {
     cors: true,
     logger: ['error', 'warn']
   })
+
+  const configService = app.get(ConfigService)
 
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
@@ -27,13 +27,8 @@ async function bootstrap() {
   })
   app.use(connectLiveReload())
 
-  const clientAppFolder: string = contributionMode
-    ? join(__dirname, '../../../dist/client')
-    : join(__dirname, '../dist/client')
-
-  const publicFolder: string = contributionMode
-    ? join(__dirname, '../../_contribution-root/public')
-    : join(__dirname, '../public')
+  const clientAppFolder: string = configService.get('clientAppFolder')
+  const publicFolder: string = configService.get('publicFolder')
 
   // Serve static files
   app.use(express.static(publicFolder))
@@ -47,8 +42,6 @@ async function bootstrap() {
       res.sendFile(join(clientAppFolder, 'index.html'))
     }
   })
-
-  const configService = app.get(ConfigService)
 
   await app.listen(configService.get('port'))
 }

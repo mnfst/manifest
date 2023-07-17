@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import * as chalk from 'chalk'
 import * as cliTable from 'cli-table'
-import { join } from 'path'
 import { DataSource } from 'typeorm'
 
 import { AppConfigModule } from './app-config/app-config.module'
@@ -14,15 +13,6 @@ import { FileUploadModule } from './file-upload/file-upload.module'
 
 const contributionMode: boolean = process.argv[2] === 'contribution'
 
-const databasePath: string = `${process.cwd()}/db/case.sqlite`
-
-const entityFolders: string[] = [
-  contributionMode
-    ? 'dist/server/src/entities/*.entity.js'
-    : `${process.cwd()}/entities/*.entity{.ts,.js}`,
-  join(__dirname, '../src/core-entities/*.entity.js')
-]
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,11 +22,11 @@ const entityFolders: string[] = [
         ? '../_contribution-root/.env.contribution'
         : `${process.cwd()}/.env`
     }),
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: databasePath,
-      entities: entityFolders,
-      synchronize: true
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        configService.get('database'),
+      inject: [ConfigService]
     }),
     AppConfigModule,
     DynamicEntityModule,
@@ -56,6 +46,7 @@ export class AppModule {
 
   logAppInfo() {
     const port: number = this.configService.get('port')
+    const databaseConfig: any = this.configService.get('database')
 
     const table = new cliTable({
       head: []
@@ -63,15 +54,13 @@ export class AppModule {
 
     table.push(
       ['client URL', chalk.green(`http://localhost:${port}`)],
-      ['API URL', chalk.green(`http://localhost:${port}/api`)],
-      ['database path', chalk.green(databasePath)],
+      ['database path', chalk.green(databaseConfig.database)],
       [
         'entities',
         chalk.green(
           this.dataSource.entityMetadatas.map((entity) => entity.tableName)
         )
       ],
-      ['entity folder', chalk.green(entityFolders[0])],
       ['contribution mode', chalk.green(contributionMode)]
     )
 

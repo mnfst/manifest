@@ -3,12 +3,12 @@ import { SHA3 } from 'crypto-js'
 import { Column } from 'typeorm'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
-import { Prop } from '../decorators/prop.decorator'
 import {
   BeforeInsert,
   BeforeUpdate
 } from '../decorators/entity-events.decorators'
 import { Entity } from '../decorators/entity.decorator'
+import { Prop } from '../decorators/prop.decorator'
 import { CaseEntity } from './case.entity'
 
 @Entity({

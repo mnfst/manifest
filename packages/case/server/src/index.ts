@@ -18,3 +18,4 @@ export { AppConfig } from '../../shared/interfaces/app-config.interface'
 
 // Entities
 export { CaseEntity } from './core-entities/case.entity'
+export { User } from './core-entities/user.entity'

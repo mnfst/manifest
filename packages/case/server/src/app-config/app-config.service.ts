@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common'
-import { join } from 'path'
+import { ConfigService } from '@nestjs/config'
 
 import { AppConfig } from '../../../shared/interfaces/app-config.interface'
 
 @Injectable()
 export class AppConfigService {
+  constructor(private readonly configService: ConfigService) {}
+
   getAppConfig(): Promise<AppConfig> {
-    const contributionMode: boolean = process.argv[2] === 'contribution'
+    const configFilePath: string = `${this.configService.get(
+      'distRoot'
+    )}/server/src/_contribution-root/app-config.js`
 
-    const appSettingsPath = contributionMode
-      ? join(__dirname, '../../../_contribution-root/app-config.js')
-      : join(process.cwd(), 'app-config.ts')
-
-    return import(appSettingsPath).then((res: { appConfig: AppConfig }) => {
+    return import(configFilePath).then((res: { appConfig: AppConfig }) => {
       return res.appConfig
     })
   }
