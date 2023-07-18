@@ -96,11 +96,13 @@ import { ImageUploadInputComponent } from './image-upload-input/image-upload-inp
     </app-password-input>
     <app-file-upload-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.File"
     ></app-file-upload-input>
     <app-image-upload-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Image"
     ></app-image-upload-input>
