@@ -34,7 +34,6 @@ export class AuthService {
       }
     })
 
-    console.log('user', user, email, password)
     if (!user) {
       throw new HttpException(
         'Invalid email or password',
