@@ -7,30 +7,33 @@ export default () => {
 
   const appRoot: string = contributionMode
     ? process.cwd() + '/src/_contribution-root'
-    : join(__dirname, '../../../../../../..')
+    : process.cwd()
 
-  const distRoot: string = contributionMode
+  const packageRoot: string = contributionMode
     ? join(__dirname, '../../../dist')
-    : join(__dirname, '../dist')
+    : join(__dirname, '../..')
 
   return {
-    port: parseInt(process.env.PORT, 10) || 3000,
+    port: parseInt(process.env.PORT, 10) || 4000,
     appRoot,
-    distRoot,
+    packageRoot,
     publicFolder: `${appRoot}/public`,
-    clientAppFolder: `${distRoot}/client`,
+    clientAppFolder: `${packageRoot}/client`,
     storageFolder: `${appRoot}/public/storage`,
     database: {
       type: 'sqlite',
       database: `${appRoot}/db/case.sqlite`,
       entities: [
         contributionMode
-          ? 'dist/server/src/_contribution-root/entities/*.entity.js'
-          : `${process.cwd()}/entities/*.entity{.ts,.js}`,
+          ? `${packageRoot}/server/src/_contribution-root/entities/*.entity.js`
+          : `${process.cwd()}/dist/entities/*.entity.js`,
         ,
         User
       ],
       synchronize: true
-    }
+    },
+    appConfigFilePath: contributionMode
+      ? `${packageRoot}/server/src/_contribution-root/app-config.js`
+      : `${appRoot}/dist/app-config.js`
   }
 }

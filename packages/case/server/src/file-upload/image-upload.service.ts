@@ -8,7 +8,7 @@ import * as uniqId from 'uniqid'
 @Injectable()
 export class ImageUploadService {
   storagePath: string
-  distRoot: string
+  packageRoot: string
 
   private readonly imageSizes = {
     thumbnail: {
@@ -23,7 +23,7 @@ export class ImageUploadService {
 
   constructor(configService: ConfigService) {
     this.storagePath = configService.get('storageFolder')
-    this.distRoot = configService.get('distRoot')
+    this.packageRoot = configService.get('packageRoot')
   }
 
   store(file: any, propName: string): string {
@@ -67,11 +67,11 @@ export class ImageUploadService {
 
     mkdirp.sync(folder)
     fs.copyFileSync(
-      this.distRoot + '/assets/seed/dummy-image-thumbnail.jpg',
+      this.packageRoot + '/assets/seed/dummy-image-thumbnail.jpg',
       folder + '/dummy-image-thumbnail.jpg'
     )
     fs.copyFileSync(
-      this.distRoot + '/assets/seed/dummy-image-large.jpg',
+      this.packageRoot + '/assets/seed/dummy-image-large.jpg',
       folder + '/dummy-image-large.jpg'
     )
   }
