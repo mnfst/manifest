@@ -9,5 +9,7 @@ export enum PropType {
   Relation,
   Password,
   File,
-  Image
+  Image,
+  ProgressBar,
+  Enum
 }

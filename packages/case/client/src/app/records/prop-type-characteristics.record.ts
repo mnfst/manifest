@@ -46,5 +46,23 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Password]: {
     input: InputType.Password,
     yield: YieldType.Text
+  },
+  [PropType.Enum]: {
+    input: InputType.Select,
+    yield: YieldType.Enum
+  },
+  [PropType.ProgressBar]: {
+    input: InputType.Select,
+    yield: YieldType.ProgressBar
+  },
+
+  // TODO: Implement these, they are not yet implemented but should be in the record to avoid type error because they are in the enum.
+  [PropType.File]: {
+    input: InputType.FileUpload,
+    yield: YieldType.Link
+  },
+  [PropType.Image]: {
+    input: InputType.FileUpload,
+    yield: YieldType.Link
   }
 }

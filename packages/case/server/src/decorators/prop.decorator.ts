@@ -7,6 +7,7 @@ import {
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
 import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
+import { EnumOptions } from '../../../shared/interfaces/property-options/enum-options.interface'
 
 export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
@@ -14,17 +15,27 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
     const typeCharacteristics: PropTypeCharacteristics =
       propTypeCharacteristicsRecord[definition?.type || defaultType]
 
-    const options: RelationOptions = definition?.options as RelationOptions
+    const relationOptions: RelationOptions =
+      definition?.options as RelationOptions
+    const enumOptions: EnumOptions = definition?.options as EnumOptions
 
     if (definition?.type === PropType.Relation) {
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
-        (_type) => options?.entity,
+        (_type) => relationOptions?.entity,
         (entity) => entity[propertyKey],
         {
           onDelete: 'CASCADE'
         }
       )(target, propertyKey)
+    } else if (definition?.type === PropType.Enum) {
+      // Extend the Column decorator from TypeORM.
+      Column({
+        ...definition?.typeORMOptions,
+        type: 'simple-enum',
+        enum: enumOptions?.enum,
+        nullable: true // Everything is nullable for now (for simplicity).
+      })(target, propertyKey)
     } else {
       // Extend the Column decorator from TypeORM.
       Column({
