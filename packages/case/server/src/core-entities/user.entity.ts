@@ -40,9 +40,6 @@ export class User extends CaseEntity {
   })
   password: string
 
-  @Column({ nullable: true, select: false })
-  token: string
-
   @BeforeInsert()
   beforeInsert() {
     this.password = SHA3(this.password).toString()
