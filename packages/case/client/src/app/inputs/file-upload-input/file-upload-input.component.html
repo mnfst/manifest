@@ -1,6 +1,6 @@
 <div class="control">
   <label for="file-input">
-    {{ prop.label }}<span class="has-text-danger">*</span>
+    {{ prop.label }}
   </label>
 
   <div *ngIf="!filePath">
@@ -35,7 +35,7 @@
     *ngIf="filePath"
     class="has-current-file is-flex is-justify-content-space-between is-align-items-center mt-1 has-background-white-ter pl-1"
   >
-    <a [href]="storagePath + '/' + filePath" target="_blank">
+    <a [href]="storagePath + filePath" target="_blank">
       {{ filePath }}
     </a>
     <span class="file-cta file-remove">

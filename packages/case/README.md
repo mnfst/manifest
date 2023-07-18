@@ -27,13 +27,16 @@ npm run start:dev
 npm run seed:dev
 ```
 
-You can put your temporary entities in `packages/case/server/entities`
+The folder `packages/case/server/src/_contribution-root` replicates the app root folder of the `CASE Starter` repo.
 
 ## Contribute (work from starter)
 
-Using `npm link` you can link your `/node_modules/@casejs/case` to this folder in your project made with CASE starter.
+Using `npm link` you can link your `/node_modules/@casejs/case` to the `dist` folder in your project made with CASE starter.
 
 ```
+cd server/dist
+
+# may require sudo
 npm link
 ```
 
@@ -41,7 +44,7 @@ Then go to your case starter project and run
 
 ```
 npm link @casejs/case
-npm run start
+npm start
 ```
 
 ## Publish

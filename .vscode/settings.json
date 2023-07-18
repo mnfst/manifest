@@ -24,6 +24,7 @@
     "bugsnag",
     "casejs",
     "dasherize",
+    "dasherized",
     "dtos",
     "metadatas",
     "metas",
@@ -33,7 +34,8 @@
   ],
   "material-icon-theme.files.associations": {
     "**.controller.ts": "nest-controller",
-    "**routing.module.ts": "routing"
+    "**routing.module.ts": "routes",
+    "**.contribution": "tune"
   },
   "material-icon-theme.folders.associations": {
     "dtos": "interface",

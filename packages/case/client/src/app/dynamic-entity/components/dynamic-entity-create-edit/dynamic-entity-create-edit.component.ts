@@ -16,10 +16,9 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./dynamic-entity-create-edit.component.scss']
 })
 export class DynamicEntityCreateEditComponent {
-  entityMetas: EntityMeta[] = []
-  entityMeta: EntityMeta
-
   item: any
+
+  entityMeta: EntityMeta
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
@@ -33,67 +32,69 @@ export class DynamicEntityCreateEditComponent {
     private breadcrumbService: BreadcrumbService,
     private flashMessageService: FlashMessageService,
     private dynamicEntityService: DynamicEntityService
-  ) {
-    dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
-      this.entityMetas = res
-    })
-  }
+  ) {}
 
   async ngOnInit(): Promise<void> {
-    of(this.entityMetas).subscribe((_entities: EntityMeta[]) => {
-      combineLatest([
-        this.activatedRoute.params,
-        this.activatedRoute.data
-      ]).subscribe(async ([params, data]: [Params, Data]) => {
-        this.edit = data['edit']
-
-        this.entityMeta = this.entityMetas.find(
-          (entity) => entity.definition.slug === params['entitySlug']
-        )
-
-        if (!this.entityMeta) {
-          this.router.navigate(['/404'])
+    this.dynamicEntityService
+      .loadEntityMeta()
+      .subscribe((res: EntityMeta[]) => {
+        if (!res.length) {
+          return
         }
 
-        if (this.edit) {
-          this.item = await this.dynamicEntityService.show(
-            this.entityMeta.definition.slug,
-            params['id']
+        combineLatest([
+          this.activatedRoute.params,
+          this.activatedRoute.data
+        ]).subscribe(async ([params, data]: [Params, Data]) => {
+          this.edit = data['edit']
+
+          this.entityMeta = res.find(
+            (entity) => entity.definition.slug === params['entitySlug']
           )
 
-          this.breadcrumbService.breadcrumbLinks.next([
-            {
-              label: this.entityMeta.definition.namePlural,
-              path: `/dynamic/${this.entityMeta.definition.slug}`
-            },
-            {
-              label: this.item[this.entityMeta.definition.propIdentifier],
-              path: `/dynamic/${this.entityMeta.definition.slug}/${this.item.id}`
-            },
-            {
-              label: 'Edit'
-            }
-          ])
-        } else {
-          this.breadcrumbService.breadcrumbLinks.next([
-            {
-              label: this.entityMeta.definition.namePlural,
-              path: `/dynamic/${this.entityMeta.definition.slug}`
-            },
-            {
-              label: `Create a new ${this.entityMeta.definition.nameSingular}`
-            }
-          ])
-        }
+          if (!this.entityMeta) {
+            this.router.navigate(['/404'])
+          }
 
-        this.entityMeta.props.forEach((prop) => {
-          this.form.addControl(
-            prop.propName,
-            new FormControl(this.item ? this.item[prop.propName] : null)
-          )
+          if (this.edit) {
+            this.item = await this.dynamicEntityService.show(
+              this.entityMeta.definition.slug,
+              params['id']
+            )
+
+            this.breadcrumbService.breadcrumbLinks.next([
+              {
+                label: this.entityMeta.definition.namePlural,
+                path: `/dynamic/${this.entityMeta.definition.slug}`
+              },
+              {
+                label: this.item[this.entityMeta.definition.propIdentifier],
+                path: `/dynamic/${this.entityMeta.definition.slug}/${this.item.id}`
+              },
+              {
+                label: 'Edit'
+              }
+            ])
+          } else {
+            this.breadcrumbService.breadcrumbLinks.next([
+              {
+                label: this.entityMeta.definition.namePlural,
+                path: `/dynamic/${this.entityMeta.definition.slug}`
+              },
+              {
+                label: `Create a new ${this.entityMeta.definition.nameSingular}`
+              }
+            ])
+          }
+
+          this.entityMeta.props.forEach((prop) => {
+            this.form.addControl(
+              prop.propName,
+              new FormControl(this.item ? this.item[prop.propName] : null)
+            )
+          })
         })
       })
-    })
   }
 
   onChange(params: { newValue: any; propName: string }): void {

@@ -1,14 +1,13 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
-import { Column } from 'typeorm'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
-import { Prop } from '../decorators/case-prop.decorator'
 import {
   BeforeInsert,
   BeforeUpdate
 } from '../decorators/entity-events.decorators'
 import { Entity } from '../decorators/entity.decorator'
+import { Prop } from '../decorators/prop.decorator'
 import { CaseEntity } from './case.entity'
 
 @Entity({
@@ -25,13 +24,12 @@ export class User extends CaseEntity {
 
   @Prop({
     type: PropType.Email,
-    seed: (index) => 'user' + index + '@case.app'
+    seed: (index: number) => 'user' + (index + 1) + '@case.app'
   })
   email: string
 
   @Prop({
     type: PropType.Password,
-    seed: () => SHA3('case').toString(),
     options: {
       isHiddenInList: true,
       isHiddenInDetail: true
@@ -40,9 +38,6 @@ export class User extends CaseEntity {
   })
   password: string
 
-  @Column({ nullable: true, select: false })
-  token: string
-
   @BeforeInsert()
   beforeInsert() {
     this.password = SHA3(this.password).toString()
@@ -50,13 +45,9 @@ export class User extends CaseEntity {
 
   @BeforeUpdate()
   beforeUpdate() {
-    // TODO: this always updates the password, even if it's not changed. Try using a subscriber instead to only update the password if it's changed => https://stackoverflow.com/questions/61442055/typeorm-using-transactions-in-listener-methods-beforeupdate
-
-    // We may need to consider User as a special entity and remove it from the "dynamic" entities list.
     if (this.password) {
       this.password = SHA3(this.password).toString()
     } else {
-      console.log('no password change')
       delete this.password
     }
   }

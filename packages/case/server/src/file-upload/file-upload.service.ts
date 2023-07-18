@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import * as fs from 'fs'
 import * as mkdirp from 'mkdirp'
-import { join } from 'path'
 import * as uniqid from 'uniqid'
 
 @Injectable()
 export class FileUploadService {
+  storagePath: string
+  packageRoot: string
+
+  constructor(configService: ConfigService) {
+    this.storagePath = configService.get('storageFolder')
+    this.packageRoot = configService.get('packageRoot')
+  }
+
   /**
    * Stores a file and returns its path.
    *
@@ -14,8 +22,6 @@ export class FileUploadService {
    * @returns The path of the stored file.
    */
   store(file: any, propName: string): string {
-    const devMode: boolean = process.argv[2] === 'dev'
-
     // CamelCase to kebab-case
     const kebabCaseEntityName = propName
       .replace(/([a-z])([A-Z])/g, '$1-$2')
@@ -26,19 +32,26 @@ export class FileUploadService {
       new Date().toLocaleString('en-us', { month: 'short' }) +
       new Date().getFullYear()
 
-    const storagePath: string = devMode
-      ? join(__dirname, '../../../../public/storage')
-      : join(__dirname, '../../public/storage')
-
-    console.log(storagePath)
-
     const folder = `${kebabCaseEntityName}/${dateString}`
-    mkdirp.sync(`${storagePath}/${folder}`)
+    mkdirp.sync(`${this.storagePath}/${folder}`)
 
     const path: string = `/${folder}/${uniqid()}-${file.originalname}`
 
-    fs.writeFileSync(`${storagePath}${path}`, file.buffer)
+    fs.writeFileSync(`${this.storagePath}${path}`, file.buffer)
 
     return path
+  }
+
+  /**
+   * Adds a dummy document to the storage system.
+   */
+  addDummyDocument(): void {
+    const folder: string = `${this.storagePath}/dummy`
+
+    mkdirp.sync(folder)
+    fs.copyFileSync(
+      this.packageRoot + '/assets/seed/dummy-document.xlsx',
+      folder + '/dummy-document.xlsx'
+    )
   }
 }

@@ -90,7 +90,7 @@
                 ]"
                 ><i class="icon icon-edit"></i
               ></a>
-              <a class="has-text-weight-bold ml-6" (click)="delete(item.id)"
+              <a class="has-text-weight-bold ml-6" (click)="itemToDelete = item"
                 ><i class="icon icon-trash-2"></i
               ></a>
             </td>
@@ -113,3 +113,27 @@
     *ngIf="paginator"
   ></app-pagination>
 </ng-container>
+
+<div class="modal is-active" *ngIf="itemToDelete && entityMeta">
+  <div class="modal-background"></div>
+  <div class="modal-content">
+    <div class="box">
+      <p>
+        Delete
+        <strong>{{
+          itemToDelete[entityMeta.definition.propIdentifier]
+        }}</strong>
+        {{ entityMeta.definition.nameSingular }} ?
+      </p>
+      <p>This action cannot be undone</p>
+    </div>
+
+    <button (click)="delete(itemToDelete.id)">delete</button>
+    <button (click)="itemToDelete = null">cancel</button>
+  </div>
+  <button
+    class="modal-close is-large"
+    aria-label="close"
+    (click)="itemToDelete = null"
+  ></button>
+</div>
