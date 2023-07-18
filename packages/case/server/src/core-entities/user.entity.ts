@@ -25,7 +25,7 @@ export class User extends CaseEntity {
 
   @Prop({
     type: PropType.Email,
-    seed: (index) => 'user' + index + '@case.app'
+    seed: (index: number) => 'user' + (index + 1) + '@case.app'
   })
   email: string
 

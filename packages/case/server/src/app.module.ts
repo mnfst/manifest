@@ -19,7 +19,7 @@ const contributionMode: boolean = process.argv[2] === 'contribution'
       isGlobal: true,
       load: [configuration],
       envFilePath: contributionMode
-        ? '../_contribution-root/.env.contribution'
+        ? `${process.cwd()}/src/_contribution-root/.env.contribution`
         : `${process.cwd()}/.env`
     }),
     TypeOrmModule.forRootAsync({

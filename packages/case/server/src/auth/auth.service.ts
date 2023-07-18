@@ -1,4 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'
 import { StatusCodes } from 'http-status-codes'
 import * as jwt from 'jsonwebtoken'
@@ -8,7 +9,10 @@ import { User } from '../core-entities/user.entity'
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly configService: ConfigService
+  ) {}
 
   async createToken(
     email: string,
@@ -29,6 +33,8 @@ export class AuthService {
         password: SHA3(password).toString()
       }
     })
+
+    console.log('user', user, email, password)
     if (!user) {
       throw new HttpException(
         'Invalid email or password',
@@ -37,14 +43,14 @@ export class AuthService {
     }
 
     return {
-      token: jwt.sign({ email }, 'TODO: use a secret key')
+      token: jwt.sign({ email }, this.configService.get('JWT_SECRET'))
     }
   }
 
   async getUserFromToken(token: string): Promise<any> {
     return jwt.verify(
       token?.replace('Bearer ', ''),
-      'TODO: use a secret key',
+      this.configService.get('JWT_SECRET'),
       async (_err, decoded: jwt.JwtPayload) => {
         if (decoded) {
           return this.dataSource.getRepository(User).findOne({
