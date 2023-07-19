@@ -13,6 +13,8 @@ npm run case:entity cat
 A new `/entities/cat.entity.ts` file was created with the following content:
 
 ```js
+import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+
 @Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
@@ -26,6 +28,9 @@ export class Cat extends CaseEntity {
   name: string
 }
 ```
+
+> [!WARNING]
+> This command will not work on Windows. If you are a Windows user you can just copy paste the following code in `/entities/cat.entity.ts`.
 
 By default the entity has a single property called "name". You can already seed dummy data running this command:
 
@@ -52,6 +57,9 @@ Properties are key-value pairs inside entities. They are usually mapped to datab
 You can add the properties to your entities by adding the CASE `@Prop()` decorator above the property name.
 
 ```js
+import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+
+[...]
 export class Cat extends CaseEntity {
   @Prop()
   nickName: string
@@ -81,28 +89,139 @@ You can pass arguments to the `@Prop()` decorator:
 | **label**   | _same as propName_   | string   | The label of the property      |
 | **type**    | PropType.Text        | PropType | The CASE type of the property  |
 | **seed**    | _type seed function_ | function | Seed function for the property |
-| **options** | {}                   | Object   | Property options based on type |
+| **options** | {}                   | Object   | Property options               |
+
+#### Common options (for all types)
+
+Some types have a specific set of options. Nevertheless, the following options are applicable to all properties in the `options` object parameter.
+
+| Option               | Default | Type    | Description                                                                |
+| -------------------- | ------- | ------- | -------------------------------------------------------------------------- |
+| **filter**           | `false` | boolean | Adds a filter in lists (currently only for [Relation PropType](#relation)) |
+| **isHiddenInList**   | `false` | boolean | Hides the column in the list.                                              |
+| **isHiddenInDetail** | `false` | boolean | Hides this property in the detail view.                                    |
+
+Example:
+
+```js
+  @Prop({
+    type: PropType.Textarea,
+    options: {
+     isHiddenInList: true,
+     isHiddenInDetail: true
+    }
+  })
+  comments: string
+```
 
 ### Property types
 
-CASE works with it's own set of **PropTypes** that corresponds to different types of data often used in CRUD apps.
+CASE works with it's own set of types that corresponds to different types of data often used in CRUD apps.
 
-Under the hood, each **PropType** corresponds to a set a different logic. For example by specifying once that this value is a **Currency**, CASE takes care of displaying it correctly, adding the 2 digits after the comma and choosing the correct database column format. If you do not specify a `seed` param, it will still generate a nice amount when you seed
+Each **PropType** corresponds to a set a different logic, display, format and options.
 
-| Type     | Input    | Seed function         | Comments                       |
-| -------- | -------- | --------------------- | ------------------------------ |
-| Text     | Text     | product name          |                                |
-| Number   | Number   | random integer        |                                |
-| Currency | Number   | random amount         | Only € currency                |
-| Date     | Date     | passed date           |                                |
-| TextArea | Textarea | product description   |                                |
-| Email    | Email    | random email          |                                |
-| Boolean  | Checkbox | random boolean        |                                |
-| Relation | Select   | random related entity | only many-to-one relationships |
+- [Text](#text)
+- [Number](#number)
+- [Currency](#currency)
+- [Date](#date)
+- [Textarea](#textarea)
+- [Email](#email)
+- [Boolean](#boolean)
+- [Relation](#relation)
+- [Password](#password)
+- [File](#file)
+- [Image](#image)
 
-#### Create entity relationships with the "Relation" PropType
+#### <a name="text"></a>Text
 
-It is very easy to create relationships between 2 entities in CASE: You just need to pass the `type: PropType.Relation` and the related entity class to the `options.entity` param like so:
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Text
+  })
+  name: string
+```
+
+#### <a name="number"></a>Number
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Number
+  })
+  iterations: number
+```
+
+#### <a name="currency"></a>Currency
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Currency,
+    options: {
+      currency: 'EUR'
+    }
+  })
+  amount: number
+
+```
+
+| Option       | Default | Type   | Description                                                                                      |
+| ------------ | ------- | ------ | ------------------------------------------------------------------------------------------------ |
+| **currency** | _USD_   | string | [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) |
+
+#### <a name="date"></a>Date
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Date
+  })
+  date: Date
+```
+
+#### <a name="textarea"></a>Textarea
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Textarea
+  })
+  description: string
+```
+
+#### <a name="email"></a>Email
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Email
+  })
+  email: string
+```
+
+#### <a name="boolean"></a>Boolean
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Boolean
+  })
+  isActive: boolean
+```
+
+#### <a name="relation"></a>Relation
+
+%% TODO: Code + input image + yield image
+
+For the Relation type, you just need to pass the related entity class to the `options.entity` param like so:
 
 ```js
 export class Cat extends CaseEntity {
@@ -117,7 +236,52 @@ export class Cat extends CaseEntity {
 }
 ```
 
-Notes:
+> [!NOTE]
+>
+> - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
+> - We use **cascade delete**: if you delete the _Owner_ record, it will also delete all his or her _Cat_ records
 
-- CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
-- We use **cascade delete**: if you delete the _Owner_ on the UI, it will also delete all his or her _Cat_ entities
+| Option     | Default | Type   | Description                    |
+| ---------- | ------- | ------ | ------------------------------ |
+| **entity** | -       | string | The Entity class of the parent |
+
+#### <a name="password"></a>Password
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Password
+  })
+  password: string
+```
+
+> [!ATTENTION]
+> You should never ever store a password on clear text.
+> You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
+
+#### <a name="file"></a>File
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.File
+  })
+  certificate: string
+```
+
+| Option      | Default | Type   | Description                                                                                                                   |
+| ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
+
+#### <a name="image"></a>Image
+
+%% TODO: Code + input image + yield image
+
+```js
+  @Prop({
+    type: PropType.Image
+  })
+  image: string
+```

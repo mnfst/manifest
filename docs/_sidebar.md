@@ -1,6 +1,7 @@
 - [Introduction](introduction.md)
 - [Install](install.md)
 - [Entities](entities.md)
+- [Auth](auth.md)
 - [Custom logic](custom-logic.md)
 - [Dummy data](dummy-data.md)
 - [Going to production](going-to-production.md)
