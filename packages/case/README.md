@@ -53,5 +53,9 @@ Update the version number in `package.json` and run:
 
 ```
 npm run build
+cd server/dist
 npm publish
+
+# For beta versions
+npm publish --tag beta
 ```
