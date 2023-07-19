@@ -24,10 +24,17 @@ The full application works in [TypeScript](https://www.typescriptlang.org/).
 
 ```
 .
-├──── db
+├──── db # SQLite database
+├──── dist # Compiled output
 ├──── entities # folder that holds custom entities
 ├──── node_modules
+├──── public # public folder for storage and assets
+├ .env
+├ .gitignore
 ├ app-config.ts
+├ nodemon.json
 ├ README.md
-└ package.json
+├ package.json
+├ package-lock.json
+└ ts-config.json
 ```

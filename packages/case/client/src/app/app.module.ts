@@ -40,7 +40,7 @@ import { AppConfigService } from './services/app-config.service'
       config: {
         tokenGetter: () => localStorage.getItem(constants.tokenName),
         // TODO (Ship): This should be an environment variable.
-        allowedDomains: ['localhost:3000']
+        allowedDomains: ['localhost:4000']
       }
     }),
     CapitalizeFirstLetterPipe

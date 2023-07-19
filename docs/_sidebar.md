@@ -1,6 +1,5 @@
 - [Introduction](introduction.md)
 - [Install](install.md)
-- [Config](config.md)
 - [Entities](entities.md)
 - [Properties](properties.md)
 - [Custom logic](custom-logic.md)
