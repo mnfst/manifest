@@ -1,6 +1,6 @@
 - [Introduction](introduction.md)
 - [Install](install.md)
 - [Entities](entities.md)
-- [Properties](properties.md)
 - [Custom logic](custom-logic.md)
-- [Deploy](deploy.md)
+- [Dummy data](dummy-data.md)
+- [Going to production](going-to-production.md)

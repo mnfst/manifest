@@ -2,6 +2,12 @@
 
 ![CASE App](../assets/images/cat-list.png ':class=is-bordered shadow')
 
+## What is CASE ?
+
+CASE is a tool that helps developers to create nice data-intensive apps like **dashboards**, **custom web apps**, **admin panels**, **ERPs** very quickly.
+
+CASE follows a clear **frameworkless approach** and forces developers to focus on their data and their business logic.
+
 ## Main features
 
 - Create instantaneously a professional **CRUD app** ⚡
@@ -15,8 +21,6 @@ When you want to develop quickly an app, often the **choice of the framework(s)*
 > _Architecture is about intent, not frameworks_
 >
 > _Uncle Bob_
-
-CASE's purpose is to **allow developers to create quickly CRUD apps without having to deal with frameworks** by developers describe the data and the events.
 
 ## Project structure
 
