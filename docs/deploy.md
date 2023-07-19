@@ -1,3 +1,0 @@
-# Deploy
-
-CASE is made to be quickly deployed to production, the documentation will come soon...
