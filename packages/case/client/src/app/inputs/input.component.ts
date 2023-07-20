@@ -56,8 +56,9 @@ import { ImageUploadInputComponent } from './image-upload-input/image-upload-inp
     <app-select-input
       [prop]="prop"
       [value]="value"
+      [type]="prop.type"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Relation"
+      *ngIf="prop.type === PropType.Relation || prop.type === PropType.Enum"
     >
     </app-select-input>
     <app-currency-input

@@ -2,6 +2,7 @@ import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
+import { Owner } from './owner.entity'
 
 enum dummyEnum {
   one = 'OneBis',
@@ -26,6 +27,16 @@ export class Cat extends CaseEntity {
   age: number
 
   @Prop({
+    label: 'Owner',
+    type: PropType.Relation,
+    options: {
+      entity: Owner
+    }
+  })
+  owner: Owner
+
+  @Prop({
+    label: 'Species',
     type: PropType.Enum,
     options: {
       enum: dummyEnum,
