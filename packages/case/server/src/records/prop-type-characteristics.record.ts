@@ -8,9 +8,9 @@ export type PropTypeCharacteristics = {
   defaultSeedFunction: (index?: number, relationSeedCount?: number) => any
 }
 enum dummyEnum {
-  one = 'one',
-  two = 'two',
-  three = 'three'
+  one = 'One',
+  two = 'Two',
+  three = 'Three'
 }
 export const propTypeCharacteristicsRecord: Record<
   PropType,
@@ -70,8 +70,7 @@ export const propTypeCharacteristicsRecord: Record<
     defaultSeedFunction: () => faker.helpers.arrayElement(['0', '1', '2'])
   },
   [PropType.Enum]: {
-    columnType: 'simple-enum',
-    defaultSeedFunction: () =>
-      faker.helpers.arrayElement(Object.values(dummyEnum))
+    columnType: 'varchar',
+    defaultSeedFunction: () => dummyEnum.one
   }
 }

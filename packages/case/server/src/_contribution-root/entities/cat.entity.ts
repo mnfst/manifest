@@ -3,9 +3,10 @@ import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 
-enum myEnum {
-  a = 1,
-  b = 2
+enum dummyEnum {
+  one = 'OneBis',
+  two = 'TwoBis',
+  three = 'ThreeBis'
 }
 
 @Entity({
@@ -27,9 +28,9 @@ export class Cat extends CaseEntity {
   @Prop({
     type: PropType.Enum,
     options: {
-      enum: myEnum,
-      defaultValue: myEnum.a
+      enum: dummyEnum,
+      defaultValue: dummyEnum.one
     }
   })
-  enum: myEnum
+  specie: string
 }

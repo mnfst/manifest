@@ -18,8 +18,8 @@ npx @casejs/create-case-app@latest my-case-app next
 
 ## Contribute (server app)
 
-```
-# From packages/case/server
+```bash
+cd packages/case/server
 npm i
 npm run start:dev
 

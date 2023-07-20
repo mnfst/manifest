@@ -29,12 +29,13 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
         }
       )(target, propertyKey)
     } else if (definition?.type === PropType.Enum) {
-      // Extend the Column decorator from TypeORM.
       Column({
         ...definition?.typeORMOptions,
-        type: 'simple-enum',
-        enum: enumOptions?.enum,
-        nullable: true // Everything is nullable for now (for simplicity).
+        type: 'varchar',
+        nullable: false,
+        check: `${propertyKey} IN (${Object.values(enumOptions.enum)
+          .map((value) => `'${value.toString()}'`)
+          .join(',')})`
       })(target, propertyKey)
     } else {
       // Extend the Column decorator from TypeORM.
