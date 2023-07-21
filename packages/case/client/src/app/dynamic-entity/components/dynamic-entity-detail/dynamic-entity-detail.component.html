@@ -21,20 +21,25 @@
     </div>
   </div>
   <div class="card p-0 mb-6">
+    <div class="card-content">
+      <div class="properties" *ngFor="let prop of props">
+        <p
+          class="is-property-label is-uppercase has-text-dark has-text-weight-medium"
+        >
+          {{ prop.label }}
+        </p>
+        <p class="is-property-value">
+          <app-yield
+            [value]="item[prop.propName]"
+            [type]="prop.type"
+            [options]="prop.options"
+          ></app-yield>
+        </p>
+      </div>
+    </div>
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">
-        <tbody>
-          <tr *ngFor="let prop of props">
-            <td>{{ prop.label }}</td>
-            <td>
-              <app-yield
-                [value]="item[prop.propName]"
-                [type]="prop.type"
-                [options]="prop.options"
-              ></app-yield>
-            </td>
-          </tr>
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
   </div>
