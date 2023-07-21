@@ -115,7 +115,7 @@
 </ng-container>
 
 <div class="modal is-active" *ngIf="itemToDelete && entityMeta">
-  <div class="modal-background"></div>
+  <div (click)="itemToDelete = null" class="modal-background"></div>
   <div class="modal-card">
     <div class="modal-card-body content">
       <p>
