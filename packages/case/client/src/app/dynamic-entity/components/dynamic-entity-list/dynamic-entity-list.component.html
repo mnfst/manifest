@@ -125,7 +125,10 @@
         }}</strong>
         {{ entityMeta.definition.nameSingular }} ?
       </p>
-      <p>This action will also delete entities related to julien</p>
+      <p>
+        This action will also delete entities related to
+        {{ itemToDelete[entityMeta.definition.propIdentifier] }}
+      </p>
 
       <div
         class="is-flex is-align-items-center is-justify-content-space-between mt-6"
@@ -133,7 +136,7 @@
         <button class="button is-white" (click)="itemToDelete = null">
           cancel
         </button>
-        <button class="button is-link" (click)="delete(itemToDelete.id)">
+        <button class="button is-danger" (click)="delete(itemToDelete.id)">
           delete
         </button>
       </div>
