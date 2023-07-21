@@ -10,12 +10,6 @@ npm install
 ng serve --configuration=contribution
 ```
 
-Then go somewhere and install and start a CASE app to have the server version:
-
-```
-npx @casejs/create-case-app@latest my-case-app next
-```
-
 ## server app
 
 ```
