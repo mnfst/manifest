@@ -4,18 +4,18 @@
   </label>
 
   <div *ngIf="!filePath">
-    <div class="file" [ngClass]="{ 'is-invalid': !filePath }">
+    <div class="file is-fullwidth" [ngClass]="{ 'is-invalid': !filePath }">
       <label class="file-label">
         <input
           id="file-input"
-          class="file-input"
+          class="file-input is-fullwidth"
           type="file"
           [accept]="options.accept"
           #fileInput
           [placeholder]="prop.label"
           (change)="fileInputEvent($event)"
         />
-        <span class="file-cta" *ngIf="!loading">
+        <span class="file-cta is-fullwidth" *ngIf="!loading">
           <span class="file-icon">
             <i class="icon icon-upload-cloud is-size-5"></i>
           </span>

@@ -5,22 +5,22 @@
 
   <div class="image" *ngIf="!imagePath">
     <div
-      class="file"
+      class="file is-fullwidth"
       [ngClass]="{
         'is-invalid': !imagePath
       }"
     >
-      <label class="image-label">
+      <label class="image-label is-fullwidth">
         <input
           id="image-input"
-          class="file-input"
+          class="file-input is-fullwidth"
           type="file"
           accept="image/*"
           #imageInput
           [placeholder]="prop.label"
           (change)="imageInputEvent($event)"
         />
-        <span class="file-cta" *ngIf="!loading">
+        <span class="file-cta is-fullwidth" *ngIf="!loading">
           <span class="file-icon">
             <i class="icon icon-upload-cloud is-size-5"></i>
           </span>
@@ -29,9 +29,12 @@
           </span>
         </span>
 
-        <button class="button is-link is-loading full-width" *ngIf="loading">
+        <span
+          class="button is-loading is-white is-fullwidth has-background-white-bis"
+          *ngIf="loading"
+        >
           Loading
-        </button>
+        </span>
       </label>
     </div>
   </div>
@@ -39,7 +42,7 @@
   <!-- Previously uploaded file -->
   <div
     *ngIf="imagePath"
-    class="has-current-file is-flex is-align-items-center is-justify-content-space-between mt-1 has-background-white-ter pl-1"
+    class="has-current-file is-flex is-align-items-center is-justify-content-space-between mt-1 has-background-white-ter pl-2 py-2"
   >
     <img
       [src]="storagePath + imagePath + '-thumbnail.jpg'"
