@@ -17,7 +17,7 @@
         />
         <span class="file-cta is-fullwidth" *ngIf="!loading">
           <span class="file-icon">
-            <i class="icon icon-upload-cloud is-size-5"></i>
+            <i class="icon icon-file-plus is-size-5"></i>
           </span>
           <span class="file-label">
             {{ prop.label }}
@@ -33,7 +33,7 @@
   <!-- Uploaded file -->
   <div
     *ngIf="filePath"
-    class="has-current-file is-flex is-justify-content-space-between is-align-items-center mt-1 has-background-white-ter pl-1"
+    class="has-current-file is-flex is-justify-content-space-between is-align-items-center has-background-white-ter pl-2"
   >
     <a [href]="storagePath + filePath" target="_blank">
       {{ filePath }}
