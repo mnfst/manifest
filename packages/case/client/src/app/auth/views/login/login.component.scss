@@ -1,0 +1,20 @@
+@import '../../../../styles/variables/all';
+@import '../../../../../node_modules/bulma/sass/utilities/mixins'; 
+
+.card {
+    max-width: 380px;
+    margin: auto;
+}
+.hero.is-fullheight {
+min-height:calc(100vh - 26.6px - #{$gap * 2} - 11px)
+}
+
+.notification {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+    bottom: unset;
+}
