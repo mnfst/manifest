@@ -116,24 +116,32 @@
 
 <div class="modal is-active" *ngIf="itemToDelete && entityMeta">
   <div class="modal-background"></div>
-  <div class="modal-content">
-    <div class="box">
+  <div class="modal-card">
+    <div class="modal-card-body content">
       <p>
-        Delete
+        Do you really want to delete
         <strong>{{
           itemToDelete[entityMeta.definition.propIdentifier]
         }}</strong>
         {{ entityMeta.definition.nameSingular }} ?
       </p>
-      <p>This action cannot be undone</p>
-    </div>
+      <p>This action will also delete entities related to julien</p>
 
-    <button (click)="delete(itemToDelete.id)">delete</button>
-    <button (click)="itemToDelete = null">cancel</button>
+      <div
+        class="is-flex is-align-items-center is-justify-content-space-between mt-6"
+      >
+        <button class="button is-white" (click)="itemToDelete = null">
+          cancel
+        </button>
+        <button class="button is-link" (click)="delete(itemToDelete.id)">
+          delete
+        </button>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        (click)="itemToDelete = null"
+      ></button>
+    </div>
   </div>
-  <button
-    class="modal-close is-large"
-    aria-label="close"
-    (click)="itemToDelete = null"
-  ></button>
 </div>
