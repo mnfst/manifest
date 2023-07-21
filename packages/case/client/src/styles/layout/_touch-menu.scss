@@ -145,7 +145,7 @@
     &:first-child {
       height: calc(100vh - #{$navbar-height} - 2.5rem);
       position: relative;
-      overflow: scroll;
+      overflow: auto;
     }
     li {
       display: inline-block;

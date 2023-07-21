@@ -25,6 +25,10 @@ td {
   }
 }
 
+table {
+  border-radius: $card-radius;
+}
+
 // override
 .table.is-narrow td,
 .table.is-narrow th {
