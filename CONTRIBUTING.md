@@ -1,31 +1,61 @@
-# CASE contribution
+# CASE Contribution
 
-Development of reliable and powerful application and ERP. CASE is fully customizable and open to contributions. You can contribute by adding features, reporting bugs or participating in discussions.
+## client app
 
-> If you are looking for how to install a first project case, go to the [readme](/README.md)
+To run the client app on `http://localhost:4200`:
 
-# Development workflow
-
-### 1. Clone the repository
-
-```sh
-git clone git@github.com:casejs/case.git
+```bash
+cd packages/case/client
+npm install
+ng serve --configuration=contribution
 ```
 
-### 2. Clone the case-starter repository
+Then go somewhere and install and start a CASE app to have the server version:
 
-```sh
-git clone git@github.com:casejs/case-starter.git
+```
+npx @casejs/create-case-app@latest my-case-app next
 ```
 
-### 3. Install the dependencies
+## server app
 
-First, go to your **CASE-STARTER** repository, and folow instructions from the README.md located at the root of your repository.
+```
+# From packages/case/server
+npm i
+npm run start:dev
 
-Then go to your **CASE** repository and follow the next steps:
+# Seed in dev mode
+npm run seed:dev
+```
 
-1. To work on the client files, go to the `/packages/case-client/` folder and follow the [README-DEV](/packages/case-client/README-DEV.md) instructions
+The folder `packages/case/server/src/_contribution-root` replicates the app root folder of the `CASE Starter` repo.
 
-2. To work on schematics, go to the `/packages/schematics/` folder and follow the [README-DEV](/packages/schematics/README-DEV.md) instructions.
+## Contribute working from starter
 
-3. To work on server files, go to the `/packages/case-server/` folder and follow the [README-DEV](/packages/case-server/README-DEV.md) instructions.
+Using `npm link` you can link your `/node_modules/@casejs/case` to the `dist` folder in your project made with CASE starter.
+
+```
+cd server/dist
+
+# may require sudo
+npm link
+```
+
+Then go to your case starter project and run
+
+```
+npm link @casejs/case
+npm start
+```
+
+## Publish
+
+Update the version number in `package.json` and run:
+
+```
+npm run build
+cd server/dist
+npm publish
+
+# For beta versions
+npm publish --tag beta
+```
