@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -8,6 +9,12 @@ enum dummyEnum {
   one = 'OneBis',
   two = 'TwoBis',
   three = 'ThreeBis'
+}
+
+enum colorEnum {
+  two = 'success',
+  one = 'danger',
+  three = 'warning'
 }
 
 @Entity({
@@ -38,9 +45,11 @@ export class Cat extends CaseEntity {
   @Prop({
     label: 'Species',
     type: PropType.Enum,
+    seed: () => faker.helpers.arrayElement(Object.values(dummyEnum)),
     options: {
       enum: dummyEnum,
-      defaultValue: dummyEnum.one
+      defaultValue: dummyEnum.one,
+      color: colorEnum
     }
   })
   specie: string

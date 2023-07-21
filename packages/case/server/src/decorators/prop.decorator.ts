@@ -35,7 +35,8 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
         nullable: false,
         check: `${propertyKey} IN (${Object.values(enumOptions.enum)
           .map((value) => `'${value.toString()}'`)
-          .join(',')})`
+          .join(',')})`,
+        default: enumOptions.defaultValue.toString()
       })(target, propertyKey)
     } else {
       // Extend the Column decorator from TypeORM.
