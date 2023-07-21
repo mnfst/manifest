@@ -23,7 +23,7 @@
   }
 }
 
-.card.has-border {
+.is-bordered, .card.is-bordered  {
   border: $control-border-width solid $border;
 }
 
