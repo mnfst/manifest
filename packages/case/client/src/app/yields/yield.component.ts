@@ -15,6 +15,7 @@ import { LabelYieldComponent } from './label-yield/label-yield.component'
 import { FileYieldComponent } from './file-yield/file-yield.component'
 import { ImageYieldComponent } from './image-yield/image-yield.component'
 import { EnumOptions } from '~shared/interfaces/property-options/enum-options.interface'
+import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -30,7 +31,8 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
     TextYieldComponent,
     FileYieldComponent,
     ImageYieldComponent,
-    LabelYieldComponent
+    LabelYieldComponent,
+    ProgressBarYieldComponent
   ],
   template: `
     <app-text-yield
@@ -74,10 +76,15 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
       [compact]="compact"
     ></app-image-yield>
     <app-label-yield
-      *ngIf="type === PropType.Enum"
+      *ngIf="type === PropType.Enum && options.display === 'label'"
       [value]="value"
       [options]="options"
     ></app-label-yield>
+    <app-progress-bar-yield
+      *ngIf="type === PropType.Enum && options.display === 'progress-bar'"
+      [value]="value"
+      [options]="options"
+    ></app-progress-bar-yield>
   `
 })
 export class YieldComponent {

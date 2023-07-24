@@ -4,4 +4,5 @@ export interface EnumOptions extends PropertyOptions {
   enum: any
   defaultValue?: any
   color?: any
+  display: 'label' | 'progress-bar'
 }

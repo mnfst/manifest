@@ -11,6 +11,13 @@ enum dummyEnum {
   three = 'ThreeBis'
 }
 
+enum statusEnum {
+  identified = 'Identified',
+  vaccinated = 'Vaccinated',
+  sterilized = 'Sterilized',
+  adopted = 'Adopted'
+}
+
 enum colorEnum {
   two = 'success',
   one = 'danger',
@@ -48,9 +55,21 @@ export class Cat extends CaseEntity {
     seed: () => faker.helpers.arrayElement(Object.values(dummyEnum)),
     options: {
       enum: dummyEnum,
+      display: 'label',
       defaultValue: dummyEnum.one,
       color: colorEnum
     }
   })
   specie: string
+
+  @Prop({
+    label: 'Status',
+    type: PropType.Enum,
+    seed: () => faker.helpers.arrayElement(Object.values(statusEnum)),
+    options: {
+      enum: statusEnum,
+      display: 'progress-bar'
+    }
+  })
+  status: string
 }
