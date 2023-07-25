@@ -31,8 +31,8 @@
       <span aria-hidden="true"></span>
     </a>
   </div>
-  <div class="hiding-layer" #hidingLayer></div>
-  <div class="navbar-menu" id="create-dropdown" #menuItemsEl>
+  <div class="hiding-layer" (click)="isOpen = null"></div>
+  <div class="navbar-menu" id="create-dropdown">
     <div class="navbar-end">
       <app-side-menu></app-side-menu>
     </div>
