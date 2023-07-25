@@ -17,7 +17,8 @@ import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { FlashMessageComponent } from './partials/flash-message/flash-message.component'
 import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
-import { AppConfigService } from './services/app-config.service'
+import { AppConfigService } from './services/app-config.service';
+import { UserMenuItemComponent } from './components/user-menu-item/user-menu-item.component'
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { AppConfigService } from './services/app-config.service'
     HomeComponent,
     FooterComponent,
     FlashMessageComponent,
-    Error404Component
+    Error404Component,
+    UserMenuItemComponent
   ],
   imports: [
     BrowserModule,

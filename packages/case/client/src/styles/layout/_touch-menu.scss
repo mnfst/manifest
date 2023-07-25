@@ -98,19 +98,6 @@
     }
   }
 
-  .user-box > a {
-    width: 39px;
-    height: 100%;
-    display: inline-flex;
-    box-sizing: content-box;
-    align-items: center;
-    justify-content: center;
-    margin-right: 32px;
-    @include mobile {
-      margin-right: 30px;
-    }
-  }
-
   .buttons {
     padding-right: 110px;
   }
