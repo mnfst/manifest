@@ -24,7 +24,7 @@
 
 <div class="wrapper" [ngClass]="{ 'is-collapsed': isCollapsed }">
   <div class="columns">
-    <aside #menuList class="column aside menu px-0" *ngIf="!isLogin">
+    <aside class="column aside menu px-0 is-hidden-touch" *ngIf="!isLogin">
       <app-side-menu></app-side-menu>
     </aside>
     <div class="column main">

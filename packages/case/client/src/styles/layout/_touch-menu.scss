@@ -127,16 +127,21 @@
     top: $navbar-height;
     left: -261px;
     z-index: 99999;
+    opacity: 0;
     box-shadow: 1px 0 0 0 rgba($sidenav-background-color, 0.1);
     padding-bottom: 0;
     background-color: $sidenav-background-color;
+    transition: all 0.16s cubic-bezier(.53,.25,.75,.5);
+    
     @include mobile {
       width: 100vw;
       left: -100vw;
     }
-
-    &.is-active {
+    
+    .is-open & {
       left: 0;
+      opacity: 1;
+      transition: all 0.16s cubic-bezier(.25,.53,.42,.71);
     }
   }
   // Sub menu on Touch
@@ -248,13 +253,12 @@
     visibility: hidden;
     height: calc(100vh - #{$navbar-height});
     background: $black;
-  }
-
-  .link-back {
-    height: 100%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding-left: $gap !important;
+    transition: opacity 0.16s ease-in-out, visibility 0.01s linear 0.16s;
+    
+    .is-open & {
+      opacity: 0.2;
+      visibility: visible;
+      transition: opacity 0.16s ease-in-out .01s, visibility 0.01s linear;
+    }
   }
 }

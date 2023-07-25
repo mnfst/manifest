@@ -1,4 +1,9 @@
-<nav class="navbar" role="navigation" aria-label="main navigation" #menu>
+<nav
+  class="navbar"
+  role="navigation"
+  aria-label="main navigation"
+  [ngClass]="{ 'is-open': isOpen }"
+>
   <div
     class="navbar-wrapper is-flex is-align-items-center is-justify-content-space-between is-flex-direction-row-reverse is-fullheight"
   >
@@ -13,10 +18,14 @@
       class="logo is-flex is-align-items-center is-justify-content-center px-0"
       routerLink="/"
     >
-      <img src="/assets/images/logo.svg" width="84" height="32" />
+      <img src="/assets/images/logo.svg" class="logo-image" />
     </a>
 
-    <a role="button" class="navbar-burger burger ml-0">
+    <a
+      role="button"
+      class="navbar-burger burger ml-0"
+      (click)="isOpen = !isOpen"
+    >
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
@@ -25,25 +34,7 @@
   <div class="hiding-layer" #hidingLayer></div>
   <div class="navbar-menu" id="create-dropdown" #menuItemsEl>
     <div class="navbar-end">
-      <ul class="menu-list mt-5 menu-list--top">
-        <ng-container>
-          <li>
-            <!-- Direct link -->
-            <ng-container>
-              <a routerLinkActive="is-active">
-                <i class="icon icon-grid mr-3 is-size-4"></i>
-                <span class="pl-1">Home</span>
-              </a>
-            </ng-container>
-            <ng-container>
-              <a routerLinkActive="is-active">
-                <i class="icon icon-users mr-3 is-size-4"></i>
-                <span class="pl-1">Users</span>
-              </a>
-            </ng-container>
-          </li>
-        </ng-container>
-      </ul>
+      <app-side-menu></app-side-menu>
     </div>
   </div>
 </nav>

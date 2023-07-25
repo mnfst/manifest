@@ -5,4 +5,6 @@ import { Component } from '@angular/core'
   templateUrl: './touch-menu.component.html',
   styleUrls: ['./touch-menu.component.scss']
 })
-export class TouchMenuComponent {}
+export class TouchMenuComponent {
+  isOpen = false
+}
