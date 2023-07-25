@@ -70,6 +70,10 @@ main {
   border: 0;
 }
 
+.is-overflow-hidden {
+  overflow: hidden;
+}
+
 .wrapper--basic {
   height: calc(100vh - 112px);
   width: 100%;

@@ -46,7 +46,9 @@
   </div>
 
   <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
-
+  <div class="is-loading">
+    <span class="list-meta"></span>
+  </div>
   <div class="card p-0 mb-6">
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">
@@ -115,6 +117,22 @@
           </tr>
         </tbody>
       </table>
+    </div>
+    <div class="is-loading p-t-xl">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
     </div>
   </div>
 
