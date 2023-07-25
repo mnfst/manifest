@@ -69,3 +69,16 @@ main {
 .is-borderless {
   border: 0;
 }
+
+.wrapper--basic {
+  height: calc(100vh - 112px);
+  width: 100%;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    margin-bottom: 2rem;
+  }
+}
