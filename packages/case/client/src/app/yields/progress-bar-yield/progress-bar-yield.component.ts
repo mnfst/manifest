@@ -8,19 +8,19 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
   standalone: true,
   imports: [CommonModule, TruncatePipe],
   template: `
-    <div class="progress-bar">
-      <span
-        *ngFor="
-          let option of options.enum | keyvalue;
-          index as i;
-          first as isFirst;
-          count as count
-        "
-        class="is-success"
-      >
-        <span *ngIf="isFirst">o</span>
-        <span *ngIf="!isFirst">{{}}</span>
-      </span>
+    <div
+      class="is-flex is-align-items-center is-white-space-nowrap"
+      [ngClass]="{ 'tooltip has-tooltip-left': value }"
+      [attr.data-tooltip]="value"
+    >
+      <ng-container *ngFor="let enumOption of enumAsArray; let i = index">
+        <span *ngIf="indexValue < i" class="is-size-7 has-text-weight-bold">
+          X
+        </span>
+        <span *ngIf="indexValue >= i" class="is-size-7 has-text-weight-bold">
+          o
+        </span>
+      </ng-container>
     </div>
   `,
   styleUrls: ['./progress-bar-yield.component.scss']
@@ -28,13 +28,12 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
 export class ProgressBarYieldComponent implements OnInit {
   @Input() value: string
   @Input() options: EnumOptions
-  isAchieved: boolean
+
+  enumAsArray: string[] = []
+  indexValue: number
 
   ngOnInit(): void {
-    let enumKey = Object.keys(this.options.enum)[
-      Object.values(this.options.enum).indexOf(this.value)
-    ]
-    console.log(this.value)
-    console.log(enumKey)
+    this.enumAsArray = Object.values(this.options.enum)
+    this.indexValue = this.enumAsArray.indexOf(this.value)
   }
 }
