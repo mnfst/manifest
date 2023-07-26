@@ -46,7 +46,7 @@
   </div>
 
   <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
-  <div class="is-loading">
+  <div class="is-loading" *ngIf="loadingPaginator">
     <span class="list-meta"></span>
   </div>
   <div class="card p-0 mb-6">
@@ -57,7 +57,7 @@
             <th
               *ngFor="let prop of props"
               [ngClass]="{
-                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
+                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
                 }"
             >
               {{ prop.label }}
@@ -70,7 +70,7 @@
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
+            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
             }"
             >
               <app-yield
@@ -118,7 +118,9 @@
         </tbody>
       </table>
     </div>
-    <div class="is-loading p-t-xl">
+
+    <!-- Loader paginator -->
+    <div class="is-loading p-t-xl" *ngIf="loadingPaginator">
       <div></div>
       <div></div>
       <div></div>

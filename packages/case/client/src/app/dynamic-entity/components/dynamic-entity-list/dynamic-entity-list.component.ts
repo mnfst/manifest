@@ -17,6 +17,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class DynamicEntityListComponent implements OnInit {
   paginator: Paginator<any>
+  loadingPaginator = true
   itemToDelete: any
 
   entityMeta: EntityMeta
@@ -39,10 +40,6 @@ export class DynamicEntityListComponent implements OnInit {
     this.dynamicEntityService
       .loadEntityMeta()
       .subscribe((res: EntityMeta[]) => {
-        if (!res.length) {
-          return
-        }
-
         combineLatest([
           this.activatedRoute.queryParams,
           this.activatedRoute.params
@@ -75,6 +72,7 @@ export class DynamicEntityListComponent implements OnInit {
             this.entityMeta.definition.slug,
             queryParams
           )
+          this.loadingPaginator = false
         })
       })
   }
