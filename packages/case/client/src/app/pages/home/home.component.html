@@ -6,7 +6,7 @@
       <img src="/assets/images/welcome.svg" alt="Welcome" width="360" />
       <h1>Welcome to {{ appConfig.appName }}</h1>
       <p class="is-size-5">{{ appConfig.description }}</p>
-      <!-- If mode developer -->
+      <!-- If mode developer or mode contributor -->
       <div class="has-text-left">
         <div class="columns is-multiline">
           <div class="column is-12 pb-0">
@@ -15,7 +15,7 @@
             </p>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -47,7 +47,7 @@
             </a>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -79,7 +79,7 @@
             </a>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -111,7 +111,7 @@
             </a>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -143,7 +143,7 @@
             </a>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -181,7 +181,7 @@
           </div>
 
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -213,7 +213,7 @@
             </a>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -245,7 +245,7 @@
             </a>
           </div>
           <div class="column is-6">
-            <a href="" target="_blank">
+            <a class="card-link" href="" target="_blank">
               <div
                 class="card p-0 is-overflow-hidden is-shadowless is-bordered"
               >
@@ -253,7 +253,7 @@
                   <article class="media is-flex is-align-items-center">
                     <figure class="media-left m-0">
                       <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-07.svg" />
+                        <img src="/assets/images/ext-link-10.svg" />
                       </p>
                     </figure>
                     <div
@@ -274,6 +274,83 @@
               </div>
             </a>
           </div>
+          <div class="column is-6">
+            <a class="card-link" href="" target="_blank">
+              <div
+                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+              >
+                <div class="card-content p-0">
+                  <article class="media is-flex is-align-items-center">
+                    <figure class="media-left m-0">
+                      <p class="image is-64x64">
+                        <img src="/assets/images/ext-link-gh.svg" />
+                      </p>
+                    </figure>
+                    <div
+                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                    >
+                      <div class="content">
+                        <p class="is-size-5 has-text-weight-bold mb-0">
+                          Discussions
+                        </p>
+                        <p>Push your ideas and up</p>
+                      </div>
+                    </div>
+                    <figure
+                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                    >
+                      <i class="icon icon-arrow-right"></i>
+                    </figure>
+                  </article>
+                </div>
+              </div>
+            </a>
+          </div>
+          <!-- If I'm  in user mode -->
+          <div class="column is-6 is-offset-3 pb-0">
+            <hr />
+            <p class="is-uppercase has-text-dark has-text-weight-medium">
+              Start navigating through the app
+            </p>
+          </div>
+          <ng-container *ngIf="entityMetas">
+            <div
+              class="column is-6 is-offset-3"
+              *ngFor="let entity of entityMetas"
+            >
+              <a
+                [routerLink]="['/dynamic', entity.definition.slug]"
+                routerLinkActive="is-active"
+                class="card-link"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            <span>{{
+                              entity.definition.namePlural
+                                | capitalizeFirstLetter
+                            }}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -293,7 +370,10 @@
           </p>
           <p class="is-size-5">
             See the full
-            <a href="https://docs.case.app/entities" target="_blank"
+            <a
+              class="card-link"
+              href="https://docs.case.app/entities"
+              target="_blank"
               >documentation about entities in CASE</a
             >
           </p>
