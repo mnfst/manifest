@@ -81,12 +81,11 @@ export class SelectInputComponent implements OnInit {
           label: enumOptions.enum[key]
         }
       })
-      console.log(this.options)
     }
 
     if (this.value) {
       this.form.patchValue({
-        select: this.value.id
+        select: this.type === PropType.Relation ? this.value.id : this.value
       })
     }
   }
