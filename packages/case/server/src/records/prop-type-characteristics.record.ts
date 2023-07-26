@@ -8,11 +8,7 @@ export type PropTypeCharacteristics = {
   columnType: ColumnType
   defaultSeedFunction: (index?: number, relationSeedCount?: number) => any
 }
-enum dummyEnum {
-  one = 'One',
-  two = 'Two',
-  three = 'Three'
-}
+
 export const propTypeCharacteristicsRecord: Record<
   PropType,
   PropTypeCharacteristics
@@ -62,12 +58,8 @@ export const propTypeCharacteristicsRecord: Record<
     columnType: 'varchar',
     defaultSeedFunction: () => '/dummy/dummy-image'
   },
-  [PropType.ProgressBar]: {
-    columnType: 'simple-enum',
-    defaultSeedFunction: () => faker.helpers.arrayElement(['0', '1', '2'])
-  },
   [PropType.Enum]: {
     columnType: 'varchar',
-    defaultSeedFunction: () => dummyEnum.one
+    defaultSeedFunction: () => faker.helpers.arrayElement(['0', '1', '2'])
   }
 }

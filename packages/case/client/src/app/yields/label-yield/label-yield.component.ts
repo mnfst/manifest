@@ -7,24 +7,16 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
   selector: 'app-label-yield',
   standalone: true,
   imports: [CommonModule, TruncatePipe],
-  template: `
-    <span class="tag is-{{ color ? color : 'light' }}">{{ value }}</span>
-  `,
+  template: ` <span class="tag is-{{ index }}">{{ value }}</span> `,
   styleUrls: ['./label-yield.component.scss']
 })
 export class LabelYieldComponent implements OnInit {
   @Input() value: string
   @Input() options: EnumOptions
-  color: string
+
+  index: number
+
   ngOnInit(): void {
-    if (this.options?.color) {
-      const colorObject = Object.assign({}, this.options.color)
-
-      const colorKey = Object.keys(this.options.enum).find(
-        (key) => this.options.enum[key] === this.value
-      )
-
-      this.color = colorObject[colorKey]
-    }
+    this.index = Object.values(this.options.enum).indexOf(this.value)
   }
 }
