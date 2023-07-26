@@ -5,12 +5,6 @@ import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
 
-enum dummyEnum {
-  one = 'OneBis',
-  two = 'TwoBis',
-  three = 'ThreeBis'
-}
-
 enum statusEnum {
   identified = 'Identified',
   vaccinated = 'Vaccinated',
@@ -18,9 +12,15 @@ enum statusEnum {
   adopted = 'Adopted'
 }
 
+enum myEnum {
+  one = 'OneBis',
+  two = 'TwoBis',
+  three = 'ThreeBis'
+}
+
 enum colorEnum {
-  two = 'success',
   one = 'danger',
+  two = 'success',
   three = 'warning'
 }
 
@@ -52,11 +52,11 @@ export class Cat extends CaseEntity {
   @Prop({
     label: 'Species',
     type: PropType.Enum,
-    seed: () => faker.helpers.arrayElement(Object.values(dummyEnum)),
+    seed: () => faker.helpers.arrayElement(Object.values(myEnum)),
     options: {
-      enum: dummyEnum,
+      enum: myEnum,
       display: 'label',
-      defaultValue: dummyEnum.one,
+      defaultValue: myEnum.one,
       color: colorEnum
     }
   })

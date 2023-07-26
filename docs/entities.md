@@ -131,6 +131,7 @@ Each **PropType** corresponds to a set a different logic, display, format and op
 - [Password](#password)
 - [File](#file)
 - [Image](#image)
+- [Enum](#enum)
 
 #### <a name="text"></a>Text
 
@@ -284,4 +285,74 @@ export class Cat extends CaseEntity {
     type: PropType.Image
   })
   image: string
+```
+
+#### <a name="enum"></a>Enum
+
+%% TODO: Code + input image + yield image
+
+Enum can have to way of display : 'label' and 'progress-bar'.
+
+For the label way of display :
+
+```js
+ @Prop({
+    type: PropType.Enum,
+    options: {
+      enum: myEnum,
+      display: 'label',
+      defaultValue: myEnum.one,
+      color: colorEnum
+    }
+  })
+  enum: string
+```
+
+| Option    | Default | Type | Description                                                                                                                                                                                                                                                                                       |
+| --------- | ------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **enum**  | -       | enum | This property accepts [TypeScript String ENUM](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums)                                                                                                                                                                              |
+| **color** | -       | enum | This property accepts [TypeScript String ENUM](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums). This enum except to have the same keys as the enum in the property **enum**. It's allows you to customize the color of the label by define for each key the color you want. |
+
+Example of the **myEnum** and **colorEnum** :
+
+```ts
+enum myEnum {
+  one = 'OneBis',
+  two = 'TwoBis',
+  three = 'ThreeBis'
+}
+
+enum colorEnum {
+  one = 'danger',
+  two = 'success',
+  three = 'warning'
+}
+```
+
+For the progress bar way of display :
+
+```js
+ @Prop({
+    type: PropType.Enum,
+    options: {
+      enum: statusEnum,
+      display: 'progress-bar'
+    }
+  })
+  status: string
+```
+
+| Option   | Default | Type | Description                                                                                                          |
+| -------- | ------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
+| **enum** | -       | enum | This property accepts [TypeScript String ENUM](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) |
+
+Example of the **statusEnum** :
+
+```ts
+enum statusEnum {
+  identified = 'Identified',
+  vaccinated = 'Vaccinated',
+  sterilized = 'Sterilized',
+  adopted = 'Adopted'
+}
 ```
