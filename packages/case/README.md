@@ -12,9 +12,9 @@ ng serve --configuration=contribution
 
 ## Contribute (server app)
 
-```
-# From packages/case/server
-npm i
+```bash
+cd packages/case/server
+npm install
 npm run start:dev
 
 # Seed in dev mode
