@@ -4,6 +4,7 @@ import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
+import { YieldType } from '../../../../shared/enums/yield-type.enum'
 
 enum statusEnum {
   identified = 'Identified',
@@ -12,16 +13,14 @@ enum statusEnum {
   adopted = 'Adopted'
 }
 
-enum myEnum {
-  one = 'OneBis',
-  two = 'TwoBis',
-  three = 'ThreeBis'
-}
-
-enum colorEnum {
-  one = 'danger',
-  two = 'success',
-  three = 'warning'
+enum breedEnum {
+  siamese = 'Siamese',
+  persian = 'Persian',
+  abyssinian = 'Abyssinian',
+  tiger = 'Tiger',
+  tabby = 'Tabby',
+  calico = 'Calico',
+  tortoiseshell = 'Tortoiseshell'
 }
 
 @Entity({
@@ -52,15 +51,13 @@ export class Cat extends CaseEntity {
   @Prop({
     label: 'Species',
     type: PropType.Enum,
-    seed: () => faker.helpers.arrayElement(Object.values(myEnum)),
+    seed: () => faker.helpers.arrayElement(Object.values(breedEnum)),
     options: {
-      enum: myEnum,
-      display: 'label',
-      defaultValue: myEnum.one,
-      color: colorEnum
+      enum: breedEnum,
+      display: YieldType.Label
     }
   })
-  specie: string
+  breed: string
 
   @Prop({
     label: 'Status',
@@ -68,7 +65,7 @@ export class Cat extends CaseEntity {
     seed: () => faker.helpers.arrayElement(Object.values(statusEnum)),
     options: {
       enum: statusEnum,
-      display: 'progress-bar'
+      display: YieldType.ProgressBar
     }
   })
   status: string

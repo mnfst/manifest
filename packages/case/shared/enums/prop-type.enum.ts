@@ -10,6 +10,5 @@ export enum PropType {
   Password,
   File,
   Image,
-  ProgressBar,
   Enum
 }

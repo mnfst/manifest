@@ -7,5 +7,5 @@ export enum YieldType {
   Boolean,
   Email,
   ProgressBar,
-  Enum
+  Label
 }
