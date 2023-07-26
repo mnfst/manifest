@@ -10,6 +10,8 @@ With CASE custom events, you can call any function you want: you are free to dow
 
 ```js
 // ./entities/cat.entity.ts
+const axios = require('axios')
+
 export class Cat extends CaseEntity {
 
   [...]
@@ -35,11 +37,18 @@ Events works with [TypeORM's entity listeners](https://typeorm.io/listeners-and-
 You can define a method with any name in entity and mark it with @BeforeInsert and CASE will call it before the entity is created.
 
 ```js
-@Entity()
-export class Post {
+import { SHA3 } from 'crypto-js'
+
+[...]
+export class User {
+ @Prop({
+   type: PropType.Password,
+ })
+ password: string
+
   @BeforeInsert()
-  updateDates() {
-    this.createdDate = new Date()
+  beforeInsert() {
+    this.password = SHA3(this.password).toString()
   }
 }
 ```
@@ -49,11 +58,13 @@ export class Post {
 You can define a method with any name in entity and mark it with @AfterInsert and TypeORM will call it after the entity is created.
 
 ```js
+import { sendEmail } from '../scripts/send-email.ts
+
 @Entity()
 export class Post {
   @AfterInsert()
-  resetCounters() {
-    this.counters = 0
+  notify() {
+    sendEmail(`New post published :${this.title}`)
   }
 }
 ```
@@ -66,8 +77,8 @@ You can define a method with any name in the entity and mark it with @BeforeUpda
 @Entity()
 export class Post {
   @BeforeUpdate()
-  updateDates() {
-    this.updatedDate = new Date()
+  beforeUpdate() {
+    this.updatedAt = new Date()
   }
 }
 ```
@@ -78,10 +89,10 @@ You can define a method with any name in the entity and mark it with @AfterUpdat
 
 ```js
 @Entity()
-export class Post {
+export class Cat {
   @AfterUpdate()
-  updateCounters() {
-    this.counter = 0
+  notify() {
+    console.log(`The cat ${this.name} has been updated`)
   }
 }
 ```
@@ -106,10 +117,10 @@ You can define a method with any name in the entity and mark it with @AfterRemov
 
 ```js
 @Entity()
-export class Post {
+export class Cat {
   @AfterRemove()
-  updateStatus() {
-    this.status = 'removed'
+  notify() {
+    console.log(`The cat ${this.name} has been removed`)
   }
 }
 ```

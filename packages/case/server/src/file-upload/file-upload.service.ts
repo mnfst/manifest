@@ -7,11 +7,11 @@ import * as uniqid from 'uniqid'
 @Injectable()
 export class FileUploadService {
   storagePath: string
-  distRoot: string
+  packageRoot: string
 
   constructor(configService: ConfigService) {
     this.storagePath = configService.get('storageFolder')
-    this.distRoot = configService.get('distRoot')
+    this.packageRoot = configService.get('packageRoot')
   }
 
   /**
@@ -50,7 +50,7 @@ export class FileUploadService {
 
     mkdirp.sync(folder)
     fs.copyFileSync(
-      this.distRoot + '/assets/seed/dummy-document.xlsx',
+      this.packageRoot + '/assets/seed/dummy-document.xlsx',
       folder + '/dummy-document.xlsx'
     )
   }

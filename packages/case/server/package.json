@@ -16,6 +16,7 @@
     "seed:dev": "node dist/server/src/dynamic-entity/seed.js contribution"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.0.2",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
@@ -41,7 +42,6 @@
     "uniqid": "^5.4.0"
   },
   "devDependencies": {
-    "@faker-js/faker": "^8.0.2",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",

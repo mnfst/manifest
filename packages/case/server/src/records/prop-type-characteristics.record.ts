@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { SHA3 } from 'crypto-js'
 import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
@@ -51,11 +52,7 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Password]: {
     columnType: 'varchar',
-    defaultSeedFunction: () =>
-      faker.internet.password({
-        length: 10,
-        memorable: true
-      })
+    defaultSeedFunction: () => SHA3('case').toString()
   },
   [PropType.File]: {
     columnType: 'varchar',

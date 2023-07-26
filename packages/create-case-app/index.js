@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import chalk from 'chalk'
 import { execSync } from 'child_process'
+import * as crypto from 'crypto'
+import * as fs from 'fs'
 import ora from 'ora'
 
 const runCommand = (command, stdio) => {
@@ -33,6 +35,11 @@ if (!installed) {
   loader.fail(`Failed to install dependencies for ${repoName}`)
   process.exit(1)
 }
+
+fs.writeFileSync(
+  `${repoName}/.env`,
+  `JWT_SECRET=${crypto.randomBytes(32).toString('hex')}`
+)
 
 loader.succeed(`Successfully installed dependencies for ${repoName}`)
 console.log(`To get started, run: cd ${repoName} && npm start`)

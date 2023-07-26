@@ -31,9 +31,12 @@ The folder `packages/case/server/src/_contribution-root` replicates the app root
 
 ## Contribute (work from starter)
 
-Using `npm link` you can link your `/node_modules/@casejs/case` to this folder in your project made with CASE starter.
+Using `npm link` you can link your `/node_modules/@casejs/case` to the `dist` folder in your project made with CASE starter.
 
 ```
+cd server/dist
+
+# may require sudo
 npm link
 ```
 
@@ -41,7 +44,7 @@ Then go to your case starter project and run
 
 ```
 npm link @casejs/case
-npm run start
+npm start
 ```
 
 ## Publish
@@ -50,5 +53,9 @@ Update the version number in `package.json` and run:
 
 ```
 npm run build
+cd server/dist
 npm publish
+
+# For beta versions
+npm publish --tag beta
 ```

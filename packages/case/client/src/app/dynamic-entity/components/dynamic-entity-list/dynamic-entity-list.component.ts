@@ -17,6 +17,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class DynamicEntityListComponent implements OnInit {
   paginator: Paginator<any>
+  itemToDelete: any
 
   entityMeta: EntityMeta
 
@@ -96,6 +97,7 @@ export class DynamicEntityListComponent implements OnInit {
     this.dynamicEntityService
       .delete(this.entityMeta.definition.slug, id)
       .then((res) => {
+        this.itemToDelete = null
         this.flashMessageService.success(
           `The ${this.entityMeta.definition.nameSingular} has been deleted.`
         )

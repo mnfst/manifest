@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
-import { Column } from 'typeorm'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import {
@@ -25,13 +24,12 @@ export class User extends CaseEntity {
 
   @Prop({
     type: PropType.Email,
-    seed: (index) => 'user' + index + '@case.app'
+    seed: (index: number) => 'user' + (index + 1) + '@case.app'
   })
   email: string
 
   @Prop({
     type: PropType.Password,
-    seed: () => SHA3('case').toString(),
     options: {
       isHiddenInList: true,
       isHiddenInDetail: true

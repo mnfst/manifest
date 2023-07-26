@@ -3,6 +3,7 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnInit,
   Output,
   ViewChild
 } from '@angular/core'
@@ -19,7 +20,7 @@ import { environment } from '../../../environments/environment'
   templateUrl: './image-upload-input.component.html',
   styleUrls: ['./image-upload-input.component.scss']
 })
-export class ImageUploadInputComponent {
+export class ImageUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
 
@@ -38,6 +39,12 @@ export class ImageUploadInputComponent {
     private flashMessageService: FlashMessageService
   ) {}
 
+  ngOnInit(): void {
+    if (this.value) {
+      this.imagePath = this.value
+    }
+  }
+
   // Upload image and update value.
   imageInputEvent(event: any) {
     this.loading = true
@@ -45,8 +52,13 @@ export class ImageUploadInputComponent {
     this.uploadService.uploadImage(this.prop.propName, this.fileContent).then(
       (res: { path: string }) => {
         this.loading = false
-        this.imagePath = res.path
+
         this.valueChanged.emit(this.imagePath)
+
+        // The image is 404ing for some reason if we don't wait a second.
+        setTimeout(() => {
+          this.imagePath = res.path
+        }, 1000)
       },
       (err) => {
         this.loading = false
