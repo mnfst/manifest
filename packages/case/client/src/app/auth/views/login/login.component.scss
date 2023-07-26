@@ -63,7 +63,8 @@ width: 100%;
         min-width: 43%;
       }
       @include mobile {
-        min-width: 86%;
+        min-width: 50%;
+        max-width: 380px;
       }
     }
   }
