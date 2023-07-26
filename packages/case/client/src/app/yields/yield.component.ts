@@ -77,7 +77,7 @@ import { YieldType } from '~shared/enums/yield-type.enum'
       [compact]="compact"
     ></app-image-yield>
     <app-label-yield
-      *ngIf="type === PropType.Enum && options.display === YieldType.Label"
+      *ngIf="type === PropType.Enum && (!options.display || options.display === YieldType.Label)"
       [value]="value"
       [options]="options"
     ></app-label-yield>

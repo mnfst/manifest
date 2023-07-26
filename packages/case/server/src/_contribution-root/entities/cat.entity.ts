@@ -53,8 +53,7 @@ export class Cat extends CaseEntity {
     type: PropType.Enum,
     seed: () => faker.helpers.arrayElement(Object.values(breedEnum)),
     options: {
-      enum: breedEnum,
-      display: YieldType.Label
+      enum: breedEnum
     }
   })
   breed: string

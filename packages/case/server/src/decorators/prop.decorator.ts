@@ -29,6 +29,7 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
         }
       )(target, propertyKey)
     } else if (definition?.type === PropType.Enum) {
+
       Column({
         ...definition?.typeORMOptions,
         type: 'varchar',
@@ -37,6 +38,7 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
           .map((value) => `'${value.toString()}'`)
           .join(',')})`,
         default: enumOptions.enum[0]
+
       })(target, propertyKey)
     } else {
       // Extend the Column decorator from TypeORM.
