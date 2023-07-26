@@ -49,7 +49,7 @@ export class Cat extends CaseEntity {
   owner: Owner
 
   @Prop({
-    label: 'Species',
+    label: 'Breed',
     type: PropType.Enum,
     seed: () => faker.helpers.arrayElement(Object.values(breedEnum)),
     options: {
