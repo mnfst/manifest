@@ -2,34 +2,38 @@
   <div class="hero-body">
     <div class="container has-text-centered">
       <div class="columns">
-        <div
-          class="column is-8-tablet is-offset-2-tablet is-6-desktop is-offset-3-desktop is-4-widescreen is-offset-4-widescreen"
-        >
-          <img src="/assets/images/logo.svg" alt="logo case" class="mb-3" />
+        <div class="column col-login">
+          <div>
+            <img src="/assets/images/logo.svg" alt="logo case" class="mb-3" />
 
-          <div class="card">
-            <div class="card-content">
-              <h2 class="title is-4">Sign in</h2>
+            <h2 class="title is-4">Sign in</h2>
 
-              <form action="" class="has-text-left">
-                <div class="field mb-5" *ngFor="let prop of fields">
-                  <div class="control">
-                    <app-input
-                      [prop]="prop"
-                      (valueChanged)="patchValue(prop.propName, $event)"
-                    ></app-input>
-                  </div>
+            <form action="" class="has-text-left">
+              <div class="field mb-5" *ngFor="let prop of fields">
+                <div class="control">
+                  <app-input
+                    [prop]="prop"
+                    (valueChanged)="patchValue(prop.propName, $event)"
+                  ></app-input>
                 </div>
+              </div>
 
-                <button
-                  class="button is-block is-link is-large is-fullwidth mb-3"
-                  (click)="submit()"
-                  [disabled]="!form.valid"
-                >
-                  Login
-                </button>
-              </form>
-            </div>
+              <button
+                class="button is-block is-link is-fullwidth mb-3"
+                (click)="submit()"
+                [disabled]="!form.valid"
+              >
+                Login
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="column col-decoration">
+          <div class="drawing">
+            <img
+              src="../../../../assets/images/login.svg"
+              alt="login to CASE app"
+            />
           </div>
         </div>
       </div>
