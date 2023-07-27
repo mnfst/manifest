@@ -1,22 +1,20 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input } from '@angular/core'
 import { PropType } from '~shared/enums/prop-type.enum'
-import { CurrencyOptions } from '~shared/interfaces/property-options/currency-options.interface'
-import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
+import { YieldType } from '~shared/enums/yield-type.enum'
 
+import { PropertyOptions } from '../../../../shared/interfaces/property-options/property-options.interface'
 import { BooleanYieldComponent } from './boolean-yield/boolean-yield.component'
 import { CurrencyYieldComponent } from './currency-yield/currency-yield.component'
 import { DateYieldComponent } from './date-yield/date-yield.component'
 import { EmailYieldComponent } from './email-yield/email-yield.component'
-import { NumberYieldComponent } from './number-yield/number-yield.component'
-import { RelationYieldComponent } from './relation-yield/relation-yield.component'
-import { TextYieldComponent } from './text-yield/text-yield.component'
-import { LabelYieldComponent } from './label-yield/label-yield.component'
 import { FileYieldComponent } from './file-yield/file-yield.component'
 import { ImageYieldComponent } from './image-yield/image-yield.component'
-import { EnumOptions } from '~shared/interfaces/property-options/enum-options.interface'
+import { LabelYieldComponent } from './label-yield/label-yield.component'
+import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
-import { YieldType } from '~shared/enums/yield-type.enum'
+import { RelationYieldComponent } from './relation-yield/relation-yield.component'
+import { TextYieldComponent } from './text-yield/text-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -77,7 +75,10 @@ import { YieldType } from '~shared/enums/yield-type.enum'
       [compact]="compact"
     ></app-image-yield>
     <app-label-yield
-      *ngIf="type === PropType.Enum && (!options.display || options.display === YieldType.Label)"
+      *ngIf="
+        type === PropType.Enum &&
+        (!options.display || options.display === YieldType.Label)
+      "
       [value]="value"
       [options]="options"
     ></app-label-yield>
@@ -93,7 +94,7 @@ import { YieldType } from '~shared/enums/yield-type.enum'
 export class YieldComponent {
   @Input() value: any
   @Input() type: PropType
-  @Input() options?: RelationOptions | CurrencyOptions | EnumOptions | any
+  @Input() options?: PropertyOptions | any
   @Input() compact: boolean = false
 
   PropType = PropType

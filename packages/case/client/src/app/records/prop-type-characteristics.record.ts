@@ -51,7 +51,6 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Select,
     yield: YieldType.Label | YieldType.ProgressBar
   },
-  // TODO: Implement these, they are not yet implemented but should be in the record to avoid type error because they are in the enum.
   [PropType.File]: {
     input: InputType.FileUpload,
     yield: YieldType.Link

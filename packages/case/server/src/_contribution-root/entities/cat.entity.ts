@@ -19,7 +19,6 @@ enum breedEnum {
   abyssinian = 'Abyssinian',
   tiger = 'Tiger',
   tabby = 'Tabby',
-  calico = 'Calico',
   tortoiseshell = 'Tortoiseshell'
 }
 
@@ -51,21 +50,21 @@ export class Cat extends CaseEntity {
   @Prop({
     label: 'Breed',
     type: PropType.Enum,
-    seed: () => faker.helpers.arrayElement(Object.values(breedEnum)),
+    // seed: () => faker.helpers.arrayElement(Object.values(breedEnum)),
     options: {
       enum: breedEnum
     }
   })
   breed: string
 
-  @Prop({
-    label: 'Status',
-    type: PropType.Enum,
-    seed: () => faker.helpers.arrayElement(Object.values(statusEnum)),
-    options: {
-      enum: statusEnum,
-      display: YieldType.ProgressBar
-    }
-  })
-  status: string
+  // @Prop({
+  //   label: 'Status',
+  //   type: PropType.Enum,
+  //   seed: () => faker.helpers.arrayElement(Object.values(statusEnum)),
+  //   options: {
+  //     enum: statusEnum,
+  //     display: YieldType.ProgressBar
+  //   }
+  // })
+  // status: string
 }

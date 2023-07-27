@@ -59,7 +59,7 @@ export const propTypeCharacteristicsRecord: Record<
     defaultSeedFunction: () => '/dummy/dummy-image'
   },
   [PropType.Enum]: {
-    columnType: 'varchar',
-    defaultSeedFunction: () => faker.helpers.arrayElement(['0', '1', '2'])
+    columnType: 'simple-enum',
+    defaultSeedFunction: () => null
   }
 }

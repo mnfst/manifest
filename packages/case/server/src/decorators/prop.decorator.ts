@@ -15,11 +15,13 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
     const typeCharacteristics: PropTypeCharacteristics =
       propTypeCharacteristicsRecord[definition?.type || defaultType]
 
-    const relationOptions: RelationOptions =
-      definition?.options as RelationOptions
-    const enumOptions: EnumOptions = definition?.options as EnumOptions
-
+    // Relation (ManyToOne).
     if (definition?.type === PropType.Relation) {
+      const relationOptions: RelationOptions =
+        definition?.options as RelationOptions
+
+      // TODO: Trow error if entity is not provided.
+
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
         (_type) => relationOptions?.entity,
@@ -28,18 +30,21 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
           onDelete: 'CASCADE'
         }
       )(target, propertyKey)
+
+      // Enum.
     } else if (definition?.type === PropType.Enum) {
+      const enumOptions: EnumOptions = definition?.options as EnumOptions
+
+      // TODO: Trow error if enum is not provided.
 
       Column({
         ...definition?.typeORMOptions,
-        type: 'varchar',
-        nullable: false,
-        check: `${propertyKey} IN (${Object.values(enumOptions.enum)
-          .map((value) => `'${value.toString()}'`)
-          .join(',')})`,
-        default: enumOptions.enum[0]
-
+        nullable: true,
+        type: typeCharacteristics.columnType,
+        enum: enumOptions.enum
       })(target, propertyKey)
+
+      // TODO: Add default seed function based on enum.
     } else {
       // Extend the Column decorator from TypeORM.
       Column({

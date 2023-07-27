@@ -7,7 +7,10 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
   selector: 'app-label-yield',
   standalone: true,
   imports: [CommonModule, TruncatePipe],
-  template: ` <span class="tag is-{{ index }}">{{ value }}</span> `,
+  template: ` <span class="tag is-color-{{ index }}" *ngIf="value">{{
+      value
+    }}</span>
+    <span *ngIf="!value">-</span>`,
   styleUrls: ['./label-yield.component.scss']
 })
 export class LabelYieldComponent implements OnInit {
