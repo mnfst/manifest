@@ -7,7 +7,7 @@ import { CurrencyOptions } from '~shared/interfaces/property-options/currency-op
   standalone: true,
   imports: [CommonModule],
   template: `<span class="is-nowrap" *ngIf="value">
-      {{ value | currency: options.currency }}</span
+      {{ value | currency : options.currency }}</span
     >
     <span class="is-nowrap" *ngIf="!value"> - </span>`,
   styleUrls: ['./currency-yield.component.scss']

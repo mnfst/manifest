@@ -23,19 +23,32 @@
   </div>
 
   <!-- Filters -->
-  <div class="columns card p-0 mb-6" *ngIf="filtrableProps?.length">
-    <h2 class="title is-5">Filters</h2>
-    <div class="column is-4" *ngFor="let filtrableProp of filtrableProps">
-      <app-filter
-        [prop]="filtrableProp"
-        (valueChanged)="filter(filtrableProp.propName, $event)"
-        [value]="queryParams[filtrableProp.propName]"
-      ></app-filter>
+  <div class="card p-0 mb-6" *ngIf="filtrableProps?.length">
+    <div class="card-content">
+      <h2 class="title is-5">Filters</h2>
+      <div class="columns is-multiline">
+        <div
+          class="column"
+          *ngFor="let filtrableProp of filtrableProps"
+          [ngClass]="{
+            'is-6-tablet is-4-desktop is-3-fullhd': filtrableProps.length <= 3,
+            'is-6-tablet is-3-desktop': filtrableProps.length > 3,
+          }"
+        >
+          <app-filter
+            [prop]="filtrableProp"
+            (valueChanged)="filter(filtrableProp.propName, $event)"
+            [value]="queryParams[filtrableProp.propName]"
+          ></app-filter>
+        </div>
+      </div>
     </div>
   </div>
 
   <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
-
+  <div class="is-loading" *ngIf="loadingPaginator">
+    <span class="list-meta"></span>
+  </div>
   <div class="card p-0 mb-6">
     <div class="table-container">
       <table class="table is-fullwidth is-hoverable">
@@ -44,7 +57,7 @@
             <th
               *ngFor="let prop of props"
               [ngClass]="{
-                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
+                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
                 }"
             >
               {{ prop.label }}
@@ -57,7 +70,7 @@
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
+            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
             }"
             >
               <app-yield
@@ -105,6 +118,24 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Loader paginator -->
+    <div class="is-loading p-t-xl" *ngIf="loadingPaginator">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+    </div>
   </div>
 
   <app-pagination
@@ -115,25 +146,36 @@
 </ng-container>
 
 <div class="modal is-active" *ngIf="itemToDelete && entityMeta">
-  <div class="modal-background"></div>
-  <div class="modal-content">
-    <div class="box">
+  <div (click)="itemToDelete = null" class="modal-background"></div>
+  <div class="modal-card">
+    <div class="modal-card-body content">
       <p>
-        Delete
+        Do you really want to delete
         <strong>{{
           itemToDelete[entityMeta.definition.propIdentifier]
         }}</strong>
         {{ entityMeta.definition.nameSingular }} ?
       </p>
-      <p>This action cannot be undone</p>
-    </div>
+      <p>
+        This action will also delete entities related to
+        {{ itemToDelete[entityMeta.definition.propIdentifier] }}
+      </p>
 
-    <button (click)="delete(itemToDelete.id)">delete</button>
-    <button (click)="itemToDelete = null">cancel</button>
+      <div
+        class="is-flex is-align-items-center is-justify-content-space-between mt-6"
+      >
+        <button class="button is-white" (click)="itemToDelete = null">
+          cancel
+        </button>
+        <button class="button is-danger" (click)="delete(itemToDelete.id)">
+          delete
+        </button>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        (click)="itemToDelete = null"
+      ></button>
+    </div>
   </div>
-  <button
-    class="modal-close is-large"
-    aria-label="close"
-    (click)="itemToDelete = null"
-  ></button>
 </div>

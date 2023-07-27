@@ -7,8 +7,9 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
   standalone: true,
   imports: [CommonModule, TruncatePipe],
   template: `
-    <span *ngIf="compact">{{ value | truncate: 25 }}</span>
+    <span *ngIf="compact">{{ value | truncate : 25 }}</span>
     <span *ngIf="!compact">{{ value }}</span>
+    <span *ngIf="!value"> - </span>
   `,
   styleUrls: ['./text-yield.component.scss']
 })

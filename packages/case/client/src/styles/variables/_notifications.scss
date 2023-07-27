@@ -1,5 +1,5 @@
 $notification-radius: 4px !default;
-$notification-padding: math.div($gap, 2) $gap math.div($gap, 2)
-  math.div($gap, 2) !default;
+$notification-padding: $column-gap $gap $column-gap
+  $column-gap !default;
 $has-notification-width: 24px !default;
 $notification-dot-width: 9px !default;

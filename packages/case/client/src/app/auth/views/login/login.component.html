@@ -1,32 +1,53 @@
-<div class="columns">
-  <div class="column">
-    <h1 class="title is-1" *ngIf="appConfig">{{ appConfig.appName }}</h1>
-    <p *ngIf="appConfig">{{ appConfig.description }}</p>
+<section class="hero is-fullheight">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <div class="columns">
+        <div class="column col-login">
+          <div>
+            <img src="/assets/images/logo.svg" alt="logo case" class="mb-3" />
+
+            <h2 class="title is-4">Sign in</h2>
+
+            <form action="" class="has-text-left">
+              <div class="field mb-5" *ngFor="let prop of fields">
+                <div class="control">
+                  <app-input
+                    [prop]="prop"
+                    (valueChanged)="patchValue(prop.propName, $event)"
+                  ></app-input>
+                </div>
+              </div>
+
+              <button
+                class="button is-block is-link is-fullwidth mb-3"
+                (click)="submit()"
+                [disabled]="!form.valid"
+              >
+                Login
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="column col-decoration">
+          <div class="drawing">
+            <img
+              src="../../../../assets/images/login.svg"
+              alt="login to CASE app"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="column">
-    <div class="columns">
-      <div class="column">
-        <h2 class="title is-2">Login</h2>
-      </div>
-    </div>
-    <div class="columns" *ngFor="let prop of fields">
-      <div class="column">
-        <app-input
-          [prop]="prop"
-          (valueChanged)="patchValue(prop.propName, $event)"
-        ></app-input>
-      </div>
-    </div>
-    <div class="columns">
-      <div class="column">
-        <button
-          class="button is-primary"
-          (click)="submit()"
-          [disabled]="!form.valid"
-        >
-          Login
-        </button>
-      </div>
-    </div>
-  </div>
+</section>
+
+<div class="notification is-warning is-light is-size-5 has-text-centered">
+  <p>
+    when you seed your data, a default user is created. You can connect with
+    this user.
+  </p>
+  <p>
+    <span>Email: </span><strong class="mr-4 ml-1">user1@case.app</strong>
+    <span>password: </span><strong class="ml-1">case</strong>
+  </p>
 </div>

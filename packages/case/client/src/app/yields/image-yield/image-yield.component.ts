@@ -15,7 +15,11 @@ import { environment } from '../../../environments/environment'
         [ngClass]="{ 'is-rounded': compact }"
         *ngIf="value"
       />
-      <span *ngIf="!value">%% Default img</span>
+      <img
+        *ngIf="!value"
+        src="/assets/images/image-default.svg"
+        [ngClass]="{ 'is-rounded': compact }"
+      />
     </figure>
   `,
   styleUrls: ['./image-yield.component.scss']

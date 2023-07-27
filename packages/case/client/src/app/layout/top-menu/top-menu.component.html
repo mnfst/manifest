@@ -31,27 +31,7 @@
       <div class="navbar-item pr-4">
         <div class="buttons mb-0">
           <!-- UserMenu dropdown -->
-          <div
-            class="dropdown is-right"
-            [ngClass]="{ 'is-active': showUserMenu }"
-          >
-            <div class="dropdown-trigger">
-              <a (click)="showUserMenu = !showUserMenu">
-                <app-avatar></app-avatar>
-              </a>
-            </div>
-            <div class="dropdown-menu is-small" role="menu">
-              <div class="dropdown-content">
-                <a
-                  routerLink="/auth/logout"
-                  class="dropdown-item"
-                  (click)="showUserMenu = false"
-                >
-                  Sign out
-                </a>
-              </div>
-            </div>
-          </div>
+          <app-user-menu-item></app-user-menu-item>
         </div>
       </div>
     </div>
