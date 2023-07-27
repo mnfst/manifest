@@ -27,10 +27,13 @@
   border: $control-border-width solid $border;
   border-radius: $input-radius;
   box-shadow: none;
-  padding: 0 $control-padding-horizontal;
+  padding: 0 #{$control-padding-horizontal * 3} 0 $control-padding-horizontal;
   font-size: $size-normal;
   line-height: $control-height;
   color: $dark;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   cursor: pointer;
 
   &.is-disabled {

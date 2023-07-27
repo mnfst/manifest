@@ -46,59 +46,60 @@
 }
 
 @keyframes loadingAnimation {
-  from {
-    background-position: -100vw 0px;
+  0% {
+    background-color: $white-ter;
   }
 
-  to {
-    background-position: 100vw 0px;
+  66% {
+    background-color: $white;
+  }
+
+  100% {
+    background-color: $white-ter;
   }
 }
 @-webkit-keyframes loadingAnimation {
-  from {
-    background-position: -100vw 0px;
+  0% {
+    background-color: $white-ter;
   }
 
-  to {
-    background-position: 100vw 0px;
+  66% {
+    background-color: $white;
+  }
+
+  100% {
+    background-color: $white-ter;
   }
 }
 
-.is-list-loading {
+.is-loading {
   width: 100%;
   height: auto;
 
-  > div {
-    width: 100%;
-    height: 50px;
-    margin-bottom: 1px;
+  > * {
+    background-color: $white-ter;
     -webkit-animation-name: loadingAnimation;
     animation-name: loadingAnimation;
-    -webkit-animation-duration: 4.6s;
-    animation-duration: 4.6s;
+    -webkit-animation-duration: 1.8s;
+    animation-duration: 1.8s;
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     animation-iteration-count: infinite;
     -webkit-animation-iteration-count: infinite;
     animation-timing-function: linear;
     -webkit-animation-timing-function: linear;
-    background-image: -webkit-linear-gradient(
-      120deg,
-      $white 20%,
-      $grey-lighter 28%,
-      $white 43%
-    );
-    background-image: -moz-linear-gradient(
-      120deg,
-      $white 20%,
-      $grey-lighter 28%,
-      $white 43%
-    );
-    background-image: linear-gradient(
-      120deg,
-      $white 20%,
-      $grey-lighter 28%,
-      $white 43%
-    );
+  }
+  > div {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 1px;
+    border-bottom: $table-cell-border;
+  }
+
+  > .list-meta {
+    display: inline-block;
+    width: 140px;
+    height: 9px;
+    margin-bottom: 7px;
   }
 }

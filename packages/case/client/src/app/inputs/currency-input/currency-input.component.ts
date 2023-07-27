@@ -14,7 +14,12 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
   selector: 'app-currency-input',
   standalone: true,
   template: ` <label [for]="prop.propName">{{ prop.label }}</label>
-    <p class="control has-icons-right">
+    <p class="control has-icons-left">
+      <span class="icon is-small is-left">
+        <span class="is-family-sans-serif	">
+          {{ symbol }}
+        </span>
+      </span>
       <input
         class="input"
         type="number"
@@ -22,9 +27,6 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
         (change)="onChange($event)"
         #input
       />
-      <span class="icon is-small is-right">
-        {{ symbol }}
-      </span>
     </p>`,
   styleUrls: ['./currency-input.component.scss']
 })

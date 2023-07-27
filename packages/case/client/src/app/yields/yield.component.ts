@@ -76,7 +76,7 @@ export class YieldComponent {
   @Input() value: any
   @Input() type: PropType
   @Input() options?: RelationOptions | CurrencyOptions | any
-  @Input() compact: boolean = false
+  @Input() compact: boolean = true
 
   PropType = PropType
 }

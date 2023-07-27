@@ -1,0 +1,170 @@
+
+@import '../../../styles/variables/all';
+@import '../../../../node_modules/bulma/sass/utilities/mixins'; 
+
+    nav.navbar {
+      position: relative;
+      z-index: 9;
+      height: $navbar-height;
+      width: 100vw;
+      background-color: $sidenav-background-color;
+  
+      &:before {
+        position: absolute;
+        content: '';
+        top: 0;
+        z-index: -1;
+        height: 100%;
+        width: 100%;
+        border-bottom: 1px solid rgba($sidenav-item-color, 0.1);
+  
+        @include tablet {
+          left: 0;
+          width: 100%;
+        }
+      }
+      > div:first-child {
+        > a {
+          margin: 0;
+          padding: 0;
+        }
+      }
+  
+      .navbar-burger {
+        height: $navbar-height;
+        width: 76px;
+        color: $sidenav-item-color;
+        @include tablet {
+          width: $navbar-height;
+        }
+  
+        &:hover {
+          background-color: transparent;
+          color: $sidenav-item-color;
+        }
+      }
+  
+      .header-right {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: $navbar-height;
+        width: $navbar-height;
+      }
+    }
+  
+    .logo {
+      display: inline-block;
+      padding: 8px 0 0 $gap;
+    }
+  
+    .dashboard-title {
+      display: inline-block;
+      padding-left: 20px;
+      font-size: 15px;
+      font-family: 'Georgia', 'Times New Roman', sans-serif;
+      color: $black;
+    }
+    .navbar-item img {
+      max-height: unset;
+    }
+  
+    //_ Dropdown
+  
+    .drop--down {
+      left: unset;
+      right: 0;
+      top: 30px;
+      &:after {
+        content: '';
+        position: absolute;
+        top: -1px;
+        right: 30px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 6px 6px 6px;
+        border-color: transparent transparent rgba($sidenav-item-color, 0.1)
+          transparent;
+      }
+      &:before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        right: 30px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 6px 6px 6px;
+        border-color: transparent transparent rgba($sidenav-item-color, 0.1)
+          transparent;
+      }
+    }
+  
+    .buttons {
+      padding-right: 110px;
+    }
+  
+    .dropdown-menu.is-small {
+      border: 1px solid $border-color;
+    }
+  
+    .navbar-menu {
+      display: block;
+      height: calc(100vh - #{$navbar-height});
+      width: 260px;
+      position: absolute;
+      top: $navbar-height;
+      left: -261px;
+      z-index: 99999;
+      opacity: 0;
+      box-shadow: 1px 0 0 0 rgba($sidenav-background-color, 0.1);
+      padding-bottom: 0;
+      background-color: $sidenav-background-color;
+      transition: all 0.16s cubic-bezier(.53,.25,.75,.5);
+      
+      @include mobile {
+        width: 100vw;
+        left: -100vw;
+      }
+      
+      .is-open & {
+        left: 0;
+        opacity: 1;
+        transition: all 0.16s cubic-bezier(.25,.53,.42,.71);
+      }
+    }
+  
+    .navbar-end {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+  
+      .menu-list--bottom {
+        li:last-child {
+          border-top: 1px solid rgba($sidenav-item-color, 0.1);
+        }
+      }
+    }
+  
+    .hiding-layer {
+      display: block;
+      position: absolute;
+      top: $navbar-height;
+      left: 0;
+      width: 100vw;
+      opacity: 0;
+      z-index: 9999;
+      visibility: hidden;
+      height: calc(100vh - #{$navbar-height});
+      background: $black;
+      transition: opacity 0.16s ease-in-out, visibility 0.01s linear 0.16s;
+      
+      .is-open & {
+        opacity: 0.2;
+        visibility: visible;
+        transition: opacity 0.16s ease-in-out .01s, visibility 0.01s linear;
+      }
+    }
+   
