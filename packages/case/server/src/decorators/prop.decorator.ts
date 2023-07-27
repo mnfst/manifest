@@ -1,19 +1,42 @@
-import { Column, ManyToOne, Relation } from 'typeorm'
+import { Column, ManyToOne } from 'typeorm'
+import { faker } from '@faker-js/faker'
+
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { PropertyDefinition } from '../../../shared/interfaces/property-definition.interface'
-
+import { EnumOptions } from '../../../shared/interfaces/property-options/enum-options.interface'
+import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
 import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
-import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
-import { EnumOptions } from '../../../shared/interfaces/property-options/enum-options.interface'
 
 export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     const defaultType: PropType = PropType.Text
     const typeCharacteristics: PropTypeCharacteristics =
       propTypeCharacteristicsRecord[definition?.type || defaultType]
+
+    // Set the property definition on the target.
+    Reflect.defineMetadata(
+      `${propertyKey}:seed`,
+      definition?.seed || typeCharacteristics.defaultSeedFunction,
+      target
+    )
+    Reflect.defineMetadata(
+      `${propertyKey}:type`,
+      definition?.type || defaultType,
+      target
+    )
+    Reflect.defineMetadata(
+      `${propertyKey}:label`,
+      definition?.label || propertyKey,
+      target
+    )
+    Reflect.defineMetadata(
+      `${propertyKey}:options`,
+      definition?.options || {},
+      target
+    )
 
     // Relation (ManyToOne).
     if (definition?.type === PropType.Relation) {
@@ -44,7 +67,13 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
         enum: enumOptions.enum
       })(target, propertyKey)
 
-      // TODO: Add default seed function based on enum.
+      // Override default seed function for enum as we need to return a value from the enum.
+      Reflect.defineMetadata(
+        `${propertyKey}:seed`,
+        definition?.seed ||
+          (() => faker.helpers.arrayElement(Object.values(enumOptions.enum))),
+        target
+      )
     } else {
       // Extend the Column decorator from TypeORM.
       Column({
@@ -53,27 +82,5 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
         nullable: true // Everything is nullable for now (for simplicity).
       })(target, propertyKey)
     }
-
-    // Set the property definition on the target.
-    Reflect.defineMetadata(
-      `${propertyKey}:seed`,
-      definition?.seed || typeCharacteristics.defaultSeedFunction,
-      target
-    )
-    Reflect.defineMetadata(
-      `${propertyKey}:type`,
-      definition?.type || defaultType,
-      target
-    )
-    Reflect.defineMetadata(
-      `${propertyKey}:label`,
-      definition?.label || propertyKey,
-      target
-    )
-    Reflect.defineMetadata(
-      `${propertyKey}:options`,
-      definition?.options || {},
-      target
-    )
   }
 }

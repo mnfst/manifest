@@ -6,14 +6,15 @@ import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
 import { YieldType } from '../../../../shared/enums/yield-type.enum'
 
-enum statusEnum {
+enum Status {
+  unidentifiable = 'Unidentifiable',
   identified = 'Identified',
   vaccinated = 'Vaccinated',
   sterilized = 'Sterilized',
   adopted = 'Adopted'
 }
 
-enum breedEnum {
+enum Breed {
   siamese = 'Siamese',
   persian = 'Persian',
   abyssinian = 'Abyssinian',
@@ -50,21 +51,19 @@ export class Cat extends CaseEntity {
   @Prop({
     label: 'Breed',
     type: PropType.Enum,
-    // seed: () => faker.helpers.arrayElement(Object.values(breedEnum)),
     options: {
-      enum: breedEnum
+      enum: Breed
     }
   })
-  breed: string
+  breed: Breed
 
-  // @Prop({
-  //   label: 'Status',
-  //   type: PropType.Enum,
-  //   seed: () => faker.helpers.arrayElement(Object.values(statusEnum)),
-  //   options: {
-  //     enum: statusEnum,
-  //     display: YieldType.ProgressBar
-  //   }
-  // })
-  // status: string
+  @Prop({
+    label: 'Status',
+    type: PropType.Enum,
+    options: {
+      enum: Status,
+      display: YieldType.ProgressBar
+    }
+  })
+  status: Status
 }
