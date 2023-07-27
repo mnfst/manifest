@@ -5,35 +5,34 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
 
 @Component({
   selector: 'app-progress-bar-yield',
-  standalone: true,
-  imports: [CommonModule, TruncatePipe],
   template: `
     <div
-      class="is-flex is-align-items-center is-white-space-nowrap"
-      [ngClass]="{ 'tooltip has-tooltip-left': value }"
-      [attr.data-tooltip]="value"
+      class="is-flex is-align-items-center is-white-space-nowrap tooltip has-tooltip-left"
+      [attr.data-tooltip]="value || 'Unknown'"
     >
       <ng-container *ngFor="let enumOption of enumAsArray; let i = index">
-        <span *ngIf="indexValue < i" class="is-size-7 has-text-weight-bold">
-          X
+        <span *ngIf="valueIndex >= i" class="is-size-7 has-text-weight-bold">
+          x
         </span>
-        <span *ngIf="indexValue >= i" class="is-size-7 has-text-weight-bold">
-          o
+        <span *ngIf="valueIndex < i" class="is-size-7 has-text-weight-bold">
+          -
         </span>
       </ng-container>
     </div>
   `,
-  styleUrls: ['./progress-bar-yield.component.scss']
+  styleUrls: ['./progress-bar-yield.component.scss'],
+  standalone: true,
+  imports: [CommonModule, TruncatePipe]
 })
 export class ProgressBarYieldComponent implements OnInit {
   @Input() value: string
   @Input() options: EnumOptions
 
   enumAsArray: string[] = []
-  indexValue: number
+  valueIndex: number
 
   ngOnInit(): void {
     this.enumAsArray = Object.values(this.options.enum)
-    this.indexValue = this.enumAsArray.indexOf(this.value)
+    this.valueIndex = this.enumAsArray.indexOf(this.value)
   }
 }

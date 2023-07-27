@@ -43,14 +43,17 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       const relationOptions: RelationOptions =
         definition?.options as RelationOptions
 
-      // TODO: Trow error if entity is not provided.
+      if (!relationOptions?.entity) {
+        throw new Error(`Entity is not provided for "${propertyKey}" property.`)
+      }
 
       // Extend ManyToOne TypeORM decorator.
       ManyToOne(
         (_type) => relationOptions?.entity,
         (entity) => entity[propertyKey],
         {
-          onDelete: 'CASCADE'
+          onDelete: 'CASCADE',
+          nullable: true // Everything is nullable for now (for simplicity).
         }
       )(target, propertyKey)
 
@@ -58,11 +61,13 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
     } else if (definition?.type === PropType.Enum) {
       const enumOptions: EnumOptions = definition?.options as EnumOptions
 
-      // TODO: Trow error if enum is not provided.
+      if (!enumOptions?.enum) {
+        throw new Error(`Enum is not provided for "${propertyKey}" property.`)
+      }
 
       Column({
         ...definition?.typeORMOptions,
-        nullable: true,
+        nullable: true, // Everything is nullable for now (for simplicity).
         type: typeCharacteristics.columnType,
         enum: enumOptions.enum
       })(target, propertyKey)
