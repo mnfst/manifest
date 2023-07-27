@@ -46,5 +46,17 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Password]: {
     input: InputType.Password,
     yield: YieldType.Text
+  },
+  [PropType.Enum]: {
+    input: InputType.Select,
+    yield: YieldType.Label | YieldType.ProgressBar
+  },
+  [PropType.File]: {
+    input: InputType.FileUpload,
+    yield: YieldType.Link
+  },
+  [PropType.Image]: {
+    input: InputType.FileUpload,
+    yield: YieldType.Link
   }
 }

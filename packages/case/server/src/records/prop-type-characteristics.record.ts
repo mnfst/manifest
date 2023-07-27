@@ -26,12 +26,10 @@ export const propTypeCharacteristicsRecord: Record<
     defaultSeedFunction: (_index: number, relationSeedCount: number) =>
       faker.number.int({ min: 1, max: relationSeedCount })
   },
-
   [PropType.TextArea]: {
     columnType: 'text',
     defaultSeedFunction: () => faker.commerce.productDescription()
   },
-
   [PropType.Currency]: {
     columnType: 'decimal',
     defaultSeedFunction: () => faker.finance.amount(1, 500, 2)
@@ -59,5 +57,9 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Image]: {
     columnType: 'varchar',
     defaultSeedFunction: () => '/dummy/dummy-image'
+  },
+  [PropType.Enum]: {
+    columnType: 'simple-enum',
+    defaultSeedFunction: () => null
   }
 }

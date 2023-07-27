@@ -7,6 +7,8 @@ import { SelectOption } from '~shared/interfaces/select-option.interface'
 
 import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
+import { PropType } from '~shared/enums/prop-type.enum'
+import { EnumOptions } from '~shared/interfaces/property-options/enum-options.interface'
 
 @Component({
   selector: 'app-select-input',
@@ -35,6 +37,7 @@ import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.servic
 })
 export class SelectInputComponent implements OnInit {
   @Input() prop: PropertyDescription
+  @Input() type: PropType
   @Input() value: { id: number }
 
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
@@ -53,26 +56,38 @@ export class SelectInputComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.dynamicEntityService
-      .loadEntityMeta()
-      .subscribe(async (res: EntityMeta[]) => {
-        // Note: only works for PropType.Relation at this time.
-        this.entityMeta = res.find(
-          (entity: EntityMeta) =>
-            entity.className ===
-            (this.prop.options as RelationOptions).entitySlug
-        )
+    if (this.type === PropType.Relation) {
+      this.dynamicEntityService
+        .loadEntityMeta()
+        .subscribe(async (res: EntityMeta[]) => {
+          // Note: only works for PropType.Relation at this time.
+          this.entityMeta = res.find(
+            (entity: EntityMeta) =>
+              entity.className ===
+              (this.prop.options as RelationOptions).entitySlug
+          )
 
-        this.options = await this.dynamicEntityService.listSelectOptions(
-          this.entityMeta.definition.slug
-        )
+          this.options = await this.dynamicEntityService.listSelectOptions(
+            this.entityMeta.definition.slug
+          )
+        })
+    }
 
-        if (this.value) {
-          this.form.patchValue({
-            select: this.value.id
-          })
+    if (this.type === PropType.Enum) {
+      let enumOptions: EnumOptions = this.prop.options as EnumOptions
+      this.options = Object.keys(enumOptions.enum).map((key) => {
+        return {
+          id: enumOptions.enum[key],
+          label: enumOptions.enum[key]
         }
       })
+    }
+
+    if (this.value) {
+      this.form.patchValue({
+        select: this.type === PropType.Relation ? this.value.id : this.value
+      })
+    }
   }
 
   onChange(event: any): void {

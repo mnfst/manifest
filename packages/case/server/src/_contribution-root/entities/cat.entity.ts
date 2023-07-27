@@ -1,7 +1,27 @@
+import { faker } from '@faker-js/faker'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
+import { Owner } from './owner.entity'
+import { YieldType } from '../../../../shared/enums/yield-type.enum'
+
+enum Status {
+  unidentifiable = 'Unidentifiable',
+  identified = 'Identified',
+  vaccinated = 'Vaccinated',
+  sterilized = 'Sterilized',
+  adopted = 'Adopted'
+}
+
+enum Breed {
+  siamese = 'Siamese',
+  persian = 'Persian',
+  abyssinian = 'Abyssinian',
+  tiger = 'Tiger',
+  tabby = 'Tabby',
+  tortoiseshell = 'Tortoiseshell'
+}
 
 @Entity({
   nameSingular: 'cat',
@@ -18,4 +38,32 @@ export class Cat extends CaseEntity {
     type: PropType.Number
   })
   age: number
+
+  @Prop({
+    label: 'Owner',
+    type: PropType.Relation,
+    options: {
+      entity: Owner
+    }
+  })
+  owner: Owner
+
+  @Prop({
+    label: 'Breed',
+    type: PropType.Enum,
+    options: {
+      enum: Breed
+    }
+  })
+  breed: Breed
+
+  @Prop({
+    label: 'Status',
+    type: PropType.Enum,
+    options: {
+      enum: Status,
+      display: YieldType.ProgressBar
+    }
+  })
+  status: Status
 }
