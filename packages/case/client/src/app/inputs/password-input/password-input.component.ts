@@ -8,6 +8,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
     <input
       class="input form-control"
       type="password"
+      autocomplete="current-password"
       (change)="onChange($event)"
     />`,
   styleUrls: ['./password-input.component.scss']
