@@ -287,64 +287,36 @@ owner: Owner
 
 #### <a name="enum"></a>Enum
 
+The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
+
 %% TODO: Code + input image + yield image
 
-Enum have two way of display, as Label or as Progress Bar.
-
 ```js
+  import { ProjectStatus } from '../enums/project-status.enum.ts'
+
    @Prop({
-    label: 'Breed',
+    label: 'Status',
     type: PropType.Enum,
     options: {
-      enum: breedEnum,
-      display: YieldType.Label
+      enum: ProjectStatus,
+      display: 'progress-bar'
     }
   })
   breed: string
 ```
 
-| Option      | Default         | Type | Description                                                                                                          |
-| ----------- | --------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
-| **enum**    | -               | enum | This property accepts [TypeScript String ENUM](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) |
-| **display** | YieldType.Label | enum | The display can be either the YieldType.Label or the YieldType.ProgressBar                                           |
-
-Example of the **breedEnum** :
-
-```ts
-enum breedEnum {
-  siamese = 'Siamese',
-  persian = 'Persian',
-  abyssinian = 'Abyssinian',
-  tiger = 'Tiger',
-  tabby = 'Tabby',
-  calico = 'Calico',
-  tortoiseshell = 'Tortoiseshell'
-}
-```
-
 ```js
- @Prop({
-    type: PropType.Enum,
-    options: {
-      enum: statusEnum,
-      display: YieldType.ProgressBar
-    }
-  })
-  status: string
-```
-
-| Option      | Default         | Type | Description                                                                                                          |
-| ----------- | --------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
-| **enum**    | -               | enum | This property accepts [TypeScript String ENUM](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) |
-| **display** | YieldType.Label | enum | The display can be either the YieldType.Label or the YieldType.ProgressBar                                           |
-
-Example of the **statusEnum** :
-
-```ts
-enum statusEnum {
-  identified = 'Identified',
-  vaccinated = 'Vaccinated',
-  sterilized = 'Sterilized',
-  adopted = 'Adopted'
+// enums/project-status.enum.ts
+export enum ProjectStatus {
+  Pending = 'Pending'
+  Signed = 'Signed',
+  WorkInProgress = 'Work in progress'
+  Inactive = 'Inactive',
+  Archived = 'Archived',
 }
 ```
+
+| Option      | Default | Type                      | Description                                                                                                    |
+| ----------- | ------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **enum**    | -       | enum                      | [String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) with the available options |
+| **display** | 'label' | 'label' \| 'progress-bar' | Enum props can be represented either by a label or by a progress bar if the enum follows a logic order.        |

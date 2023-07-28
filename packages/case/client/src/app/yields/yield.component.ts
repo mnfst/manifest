@@ -77,15 +77,13 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     <app-label-yield
       *ngIf="
         type === PropType.Enum &&
-        (!options.display || options.display === YieldType.Label)
+        (!options.display || options.display === 'label')
       "
       [value]="value"
       [options]="options"
     ></app-label-yield>
     <app-progress-bar-yield
-      *ngIf="
-        type === PropType.Enum && options.display === YieldType.ProgressBar
-      "
+      *ngIf="type === PropType.Enum && options.display === 'progress-bar'"
       [value]="value"
       [options]="options"
     ></app-progress-bar-yield>

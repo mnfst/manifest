@@ -1,5 +1,4 @@
 import { PropType } from '../../../../shared/enums/prop-type.enum'
-import { YieldType } from '../../../../shared/enums/yield-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
@@ -66,7 +65,7 @@ export class Cat extends CaseEntity {
     type: PropType.Enum,
     options: {
       enum: Status,
-      display: YieldType.ProgressBar
+      display: 'progress-bar'
     }
   })
   status: Status
