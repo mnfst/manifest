@@ -104,4 +104,8 @@ export class DynamicEntityListComponent implements OnInit {
         )
       })
   }
+
+  goToDetailPage(id: number): void {
+    this.router.navigate(['/', 'dynamic', this.entityMeta.definition.slug, id])
+  }
 }
