@@ -17,7 +17,6 @@ import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { FlashMessageComponent } from './partials/flash-message/flash-message.component'
 import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
-import { AppConfigService } from './services/app-config.service';
 import { UserMenuItemComponent } from './components/user-menu-item/user-menu-item.component'
 
 @NgModule({
@@ -46,15 +45,6 @@ import { UserMenuItemComponent } from './components/user-menu-item/user-menu-ite
       }
     }),
     CapitalizeFirstLetterPipe
-  ],
-  providers: [
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (appConfigService: AppConfigService) => () =>
-        combineLatest([appConfigService.loadAppConfig()]),
-      deps: [AppConfigService],
-      multi: true
-    }
   ],
   bootstrap: [AppComponent]
 })

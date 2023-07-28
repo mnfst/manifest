@@ -24,15 +24,6 @@ And then visit [http://localhost:4000](http://localhost:4000) to see it live.
 
 # Config
 
-Use the `/app-config.ts` file to personalize your CASE app:
-
-```js
-export const appConfig: AppConfig = {
-  appName: 'My great app with CASE',
-  description: 'Just a simple app made with CASE'
-}
-```
-
 Environment variables are managed to a [dotenv](https://www.npmjs.com/package/dotenv) file created at the root level
 
 ```env

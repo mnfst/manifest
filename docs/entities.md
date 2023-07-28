@@ -225,16 +225,14 @@ Each **PropType** corresponds to a set a different logic, display, format and op
 For the Relation type, you just need to pass the related entity class to the `options.entity` param like so:
 
 ```js
-export class Cat extends CaseEntity {
-  @Prop({
-    label: 'Owner of the cat',
-    type: PropType.Relation,
-    options: {
-      entity: Owner
-    }
-  })
-  owner: Owner
-}
+@Prop({
+  label: 'Owner of the cat',
+  type: PropType.Relation,
+  options: {
+    entity: Owner
+  }
+})
+owner: Owner
 ```
 
 > [!NOTE]

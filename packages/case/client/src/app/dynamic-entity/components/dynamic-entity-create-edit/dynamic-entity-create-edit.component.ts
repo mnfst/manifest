@@ -5,7 +5,6 @@ import { combineLatest, of } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
-import { AppConfigService } from '../../../services/app-config.service'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
