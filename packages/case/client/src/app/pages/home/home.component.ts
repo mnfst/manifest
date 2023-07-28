@@ -10,7 +10,6 @@ import { BreadcrumbService } from '../../services/breadcrumb.service'
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-  isAppBlank: boolean
   entityMetas: EntityMeta[]
 
   constructor(
@@ -18,7 +17,6 @@ export class HomeComponent {
     breadcrumbService: BreadcrumbService
   ) {
     dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
-      this.isAppBlank = res.length === 0
       this.entityMetas = res
     })
     breadcrumbService.breadcrumbLinks.next([])
