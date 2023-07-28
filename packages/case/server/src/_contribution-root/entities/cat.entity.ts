@@ -1,10 +1,9 @@
-import { faker } from '@faker-js/faker'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
+import { YieldType } from '../../../../shared/enums/yield-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
-import { YieldType } from '../../../../shared/enums/yield-type.enum'
 
 enum Status {
   unidentifiable = 'Unidentifiable',
@@ -33,6 +32,11 @@ enum Breed {
 export class Cat extends CaseEntity {
   @Prop({})
   name: string
+
+  @Prop({
+    type: PropType.Textarea
+  })
+  description: string
 
   @Prop({
     type: PropType.Number

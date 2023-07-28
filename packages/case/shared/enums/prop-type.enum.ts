@@ -3,7 +3,7 @@ export enum PropType {
   Number,
   Currency,
   Date,
-  TextArea,
+  Textarea,
   Email,
   Boolean,
   Relation,

@@ -8,13 +8,13 @@ import { CurrencyInputComponent } from './currency-input/currency-input.componen
 import { DateInputComponent } from './date-input/date-input.component'
 import { EmailInputComponent } from './email-input/email-input.component'
 import { FileUploadInputComponent } from './file-upload-input/file-upload-input.component'
+import { ImageUploadInputComponent } from './image-upload-input/image-upload-input.component'
 import { MultiSelectInputComponent } from './multi-select-input/multi-select-input.component'
 import { NumberInputComponent } from './number-input/number-input.component'
 import { PasswordInputComponent } from './password-input/password-input.component'
 import { SelectInputComponent } from './select-input/select-input.component'
-import { TextAreaInputComponent } from './text-area-input/text-area-input.component'
 import { TextInputComponent } from './text-input/text-input.component'
-import { ImageUploadInputComponent } from './image-upload-input/image-upload-input.component'
+import { TextareaInputComponent } from './textarea-input/textarea-input.component'
 
 @Component({
   selector: 'app-input',
@@ -29,7 +29,7 @@ import { ImageUploadInputComponent } from './image-upload-input/image-upload-inp
     NumberInputComponent,
     PasswordInputComponent,
     SelectInputComponent,
-    TextAreaInputComponent,
+    TextareaInputComponent,
     TextInputComponent,
     FileUploadInputComponent,
     ImageUploadInputComponent
@@ -47,12 +47,12 @@ import { ImageUploadInputComponent } from './image-upload-input/image-upload-inp
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Text"
     ></app-text-input>
-    <app-text-area-input
+    <app-textarea-input
       [prop]="prop"
       [value]="value"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.TextArea"
-    ></app-text-area-input>
+      *ngIf="prop.type === PropType.Textarea"
+    ></app-textarea-input>
     <app-select-input
       [prop]="prop"
       [value]="value"

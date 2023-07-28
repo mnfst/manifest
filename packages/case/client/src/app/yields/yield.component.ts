@@ -35,7 +35,7 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
   ],
   template: `
     <app-text-yield
-      *ngIf="type === PropType.Text || type === PropType.TextArea"
+      *ngIf="type === PropType.Text || type === PropType.Textarea"
       [value]="value"
       [compact]="compact"
     ></app-text-yield>
