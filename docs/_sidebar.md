@@ -5,10 +5,10 @@
 
 **Your data**
 
-- [Entities](entities.md)
-- Properties
-- Property types
-- [Dummy data](dummy-data.md)
+- [Create an entity](entities.md)
+- [Add properties to an entity](properties.md)
+- [Property types](property-types.md)
+- [Seed dummy data](dummy-data.md)
 
 **Features**
 
