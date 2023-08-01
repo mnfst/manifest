@@ -46,8 +46,12 @@ export class AuthService {
       this.http.get(`${environment.apiBaseUrl}/auth/me`)
     )) as User
 
-    this.currentUser.next(user)
+    if (!user) {
+      this.logout()
+      return Promise.reject('No user found.')
+    }
 
+    this.currentUser.next(user)
     return user
   }
 }

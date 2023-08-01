@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router'
 
 import { AuthService } from './auth/auth.service'
 import { User } from './interfaces/user.interface'
+import { FlashMessageService } from './services/flash-message.service'
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,11 @@ export class AppComponent {
   isCollapsed = false
   isLogin = true
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private flashMessageService: FlashMessageService
+  ) {}
 
   ngOnInit() {
     this.router.events.subscribe((routeChanged) => {
@@ -28,9 +33,17 @@ export class AppComponent {
           this.currentUser = null
         } else {
           if (!this.currentUser) {
-            this.authService.me().then((user) => {
-              this.currentUser = user
-            })
+            this.authService.me().then(
+              (user) => {
+                this.currentUser = user
+              },
+              (err) => {
+                this.router.navigate(['/auth/login'])
+                this.flashMessageService.error(
+                  'You must be logged in to view that page.'
+                )
+              }
+            )
           }
         }
       }
