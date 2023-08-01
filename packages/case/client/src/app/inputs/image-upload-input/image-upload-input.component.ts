@@ -51,13 +51,11 @@ export class ImageUploadInputComponent implements OnInit {
     this.fileContent = this.imageInputEl.nativeElement.files.item(0)
     this.uploadService.uploadImage(this.prop.propName, this.fileContent).then(
       (res: { path: string }) => {
-        this.loading = false
-
-        this.valueChanged.emit(this.imagePath)
-
-        // The image is 404ing for some reason if we don't wait a second.
+        // The image is going 404 for some reason if we don't wait a second.
         setTimeout(() => {
           this.imagePath = res.path
+          this.loading = false
+          this.valueChanged.emit(this.imagePath)
         }, 1000)
       },
       (err) => {

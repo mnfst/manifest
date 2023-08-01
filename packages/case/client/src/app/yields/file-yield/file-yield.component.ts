@@ -10,8 +10,10 @@ import { environment } from '../../../environments/environment'
   template: `
     <a
       [href]="storagePath + value"
+      class="tooltip has-tooltip-left"
       target="_blank"
       download="download"
+      [attr.data-tooltip]="'Download file'"
       *ngIf="value"
     >
       <i class="icon icon-download"></i>
