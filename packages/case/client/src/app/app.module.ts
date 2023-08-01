@@ -6,7 +6,6 @@ import { JwtModule } from '@auth0/angular-jwt'
 
 import { AppRoutingModule } from './app-routing.module'
 import { AppComponent } from './app.component'
-import { AvatarComponent } from './components/avatar/avatar.component'
 import { UserMenuItemComponent } from './components/user-menu-item/user-menu-item.component'
 import { constants } from './constants'
 import { FooterComponent } from './layout/footer/footer.component'
@@ -24,7 +23,6 @@ import { CapitalizeFirstLetterPipe } from './pipes/capitalize-first-letter.pipe'
     SideMenuComponent,
     TouchMenuComponent,
     TopMenuComponent,
-    AvatarComponent,
     HomeComponent,
     FooterComponent,
     FlashMessageComponent,
