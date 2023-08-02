@@ -7,7 +7,7 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
   selector: 'app-label-yield',
   standalone: true,
   imports: [CommonModule, TruncatePipe],
-  template: ` <span class="tag is-color-{{ index }}" *ngIf="value">{{
+  template: ` <span class="tag is-rounded is-color-{{ index }}" *ngIf="value">{{
       value
     }}</span>
     <span *ngIf="!value">-</span>`,
