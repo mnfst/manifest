@@ -119,7 +119,7 @@
             </td>
           </tr>
         </tbody>
-        <tbody *ngIf="paginator?.data && !paginator.data.length">
+        <tbody *ngIf="paginator?.data?.length === 0">
           <tr>
             <td [attr.colspan]="props.length">
               There is no {{ entityMeta.definition.nameSingular }}.
