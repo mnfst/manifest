@@ -1,9 +1,15 @@
 #!/usr/bin/env node
-import chalk from 'chalk'
+
+import { chdir, cwd } from 'node:process';
 import { execSync, exec } from 'child_process'
+
+import chalk from 'chalk'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import ora from 'ora'
+import { execa } from 'execa';
+
+
 import open from 'open'
 
 // ! This file should be in TS for consistency with the rest of the project.
@@ -18,13 +24,13 @@ const runCommand = (command, stdio) => {
   }
 }
 
-const runAsyncCommand = (script, options, output = false) =>
+const runAsyncCommand = (script, options, output) =>
   new Promise((resolve, reject) => {
     const child = exec(script, options)
 
     if(output) {
-    child.stdout.pipe(process.stdout)
-    child.stderr.pipe(process.stderr)
+      child.stdout.pipe(process.stdout)
+      child.stderr.pipe(process.stderr)
     }
 
     child.on('close', resolve)
@@ -36,7 +42,7 @@ const branchName = process.argv[3] || 'master'
 const gitCheckoutCommand = `git clone --depth 1 https://github.com/casejs/case-starter --branch ${branchName} ${repoName}`
 
 console.log()
-console.log(chalk.blue(`Creating new CASE app in ${repoName}...`))
+console.log(chalk.blue(`Creating new CASE app in ${cwd()}/${repoName}...`))
 console.log()
 
 const checkedOut = await runCommand(gitCheckoutCommand, 'pipe')
@@ -61,12 +67,15 @@ fs.writeFileSync(
 console.log()
 console.log(
   chalk.green(
-    `🎉 The "${repoName}" CASE app has been created successfully! To get started:`
+    `🎉 The "${repoName}" CASE app has been created successfully!`
   )
 )
 console.log()
 console.log()
 
-// TODO: Launch and open browser.
-await runAsyncCommand(`cd ${repoName} && npm start`, true)
-await open('http://localhost:4000')
+// Launch the app.
+chdir(repoName)
+setTimeout(() => {
+  open('http://localhost:4000')
+}, 8000)
+execa('npm', ['start'], {  stdio: 'inherit' })
