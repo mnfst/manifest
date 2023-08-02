@@ -28,6 +28,7 @@ The folder `packages/case/server/src/_contribution-root` replicates the app root
 Using `npm link` you can link your `/node_modules/@casejs/case` to the `dist` folder in your project made with CASE starter.
 
 ```
+npm run build
 cd server/dist
 
 # may require sudo

@@ -12,5 +12,5 @@ export class <%= classifiedName %> extends CaseEntity {
   })
   name: string
 
-  // Learn more about CASE Entities and how to add properties here: https://docs.case.app/#/entities
+  // Learn more about CASE Entities and how to add properties here: https://docs.case.app/properites
 }

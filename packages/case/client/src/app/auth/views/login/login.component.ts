@@ -4,9 +4,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms'
 import { Router } from '@angular/router'
 
 import { PropType } from '../../../../../../shared/enums/prop-type.enum'
-import { AppConfig } from '../../../../../../shared/interfaces/app-config.interface'
 import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
-import { AppConfigService } from '../../../services/app-config.service'
+
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { AuthService } from '../../auth.service'
 
@@ -34,19 +33,12 @@ export class LoginComponent {
     password: new FormControl('', [Validators.required])
   })
 
-  redirectTo: string
-  appConfig: AppConfig
-
+  redirectTo: FunctionStringCallback
   constructor(
     private readonly authService: AuthService,
     private router: Router,
-    private flashMessageService: FlashMessageService,
-    appConfigService: AppConfigService
-  ) {
-    appConfigService.loadAppConfig().subscribe((res: AppConfig) => {
-      this.appConfig = res
-    })
-  }
+    private flashMessageService: FlashMessageService
+  ) {}
 
   patchValue(controlName: string, value: string) {
     this.form.get(controlName)?.patchValue(value)

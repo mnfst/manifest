@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom, ReplaySubject } from 'rxjs'
 
 import { environment } from '../../environments/environment'
 import { constants } from '../constants'
+import { User } from '../interfaces/user.interface'
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  apiBaseUrl = environment.apiBaseUrl
+  public currentUser = new ReplaySubject<User>(1)
 
   constructor(private http: HttpClient) {}
 
@@ -19,7 +20,7 @@ export class AuthService {
   }): Promise<string> {
     return (
       firstValueFrom(
-        this.http.post(`${this.apiBaseUrl}/auth/login`, credentials)
+        this.http.post(`${environment.apiBaseUrl}/auth/login`, credentials)
       ) as Promise<{
         token: string
       }>
@@ -34,5 +35,23 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(constants.tokenName)
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem(constants.tokenName)
+  }
+
+  async me(): Promise<User> {
+    const user: User = (await firstValueFrom(
+      this.http.get(`${environment.apiBaseUrl}/auth/me`)
+    )) as User
+
+    if (!user) {
+      this.logout()
+      return Promise.reject('No user found.')
+    }
+
+    this.currentUser.next(user)
+    return user
   }
 }

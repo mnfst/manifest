@@ -1,9 +1,7 @@
 import { Component } from '@angular/core'
-import { AppConfig } from '~shared/interfaces/app-config.interface'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
-import { AppConfigService } from '../../services/app-config.service'
 import { BreadcrumbService } from '../../services/breadcrumb.service'
 
 @Component({
@@ -12,20 +10,13 @@ import { BreadcrumbService } from '../../services/breadcrumb.service'
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-  appConfig: AppConfig
-  isAppBlank: boolean
   entityMetas: EntityMeta[]
 
   constructor(
-    appConfigService: AppConfigService,
     dynamicEntityService: DynamicEntityService,
     breadcrumbService: BreadcrumbService
   ) {
-    appConfigService.loadAppConfig().subscribe((res) => {
-      this.appConfig = res
-    })
     dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
-      this.isAppBlank = res.length === 0
       this.entityMetas = res
     })
     breadcrumbService.breadcrumbLinks.next([])

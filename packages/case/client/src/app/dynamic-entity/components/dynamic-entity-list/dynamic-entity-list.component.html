@@ -70,8 +70,18 @@
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
-            }"
+                'has-text-right':
+                  prop.type === PropType.Currency ||
+                  prop.type === PropType.Number ||
+                  prop.type === PropType.Date,
+                'has-detail-link':
+                  prop.propName === entityMeta.definition.propIdentifier
+              }"
+              (click)="
+                prop.propName === entityMeta.definition.propIdentifier
+                  ? goToDetailPage(item.id)
+                  : null
+              "
             >
               <app-yield
                 [value]="item[prop.propName]"
@@ -154,21 +164,20 @@
         <strong>{{
           itemToDelete[entityMeta.definition.propIdentifier]
         }}</strong>
-        {{ entityMeta.definition.nameSingular }} ?
+        {{ entityMeta.definition.nameSingular }} ? This action cannot be undone.
       </p>
       <p>
-        This action will also delete entities related to
-        {{ itemToDelete[entityMeta.definition.propIdentifier] }}
+        If {{ itemToDelete[entityMeta.definition.propIdentifier] }} has related
+        items, they will be deleted too.
       </p>
-
       <div
         class="is-flex is-align-items-center is-justify-content-space-between mt-6"
       >
         <button class="button is-white" (click)="itemToDelete = null">
-          cancel
+          Cancel
         </button>
         <button class="button is-danger" (click)="delete(itemToDelete.id)">
-          delete
+          Delete
         </button>
       </div>
       <button

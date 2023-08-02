@@ -1,11 +1,19 @@
 <div class="dropdown is-right" [ngClass]="{ 'is-active': showUserMenu }">
   <div class="dropdown-trigger">
     <a (click)="showUserMenu = !showUserMenu">
-      <app-avatar></app-avatar>
+      <img
+        src="/assets/images/avatar-default.svg"
+        title="currentUser.name"
+        alt="currentUser.name"
+        class="avatar"
+      />
     </a>
   </div>
   <div class="dropdown-menu is-small" role="menu">
     <div class="dropdown-content">
+      <span class="dropdown-item" *ngIf="currentUser">
+        <strong>{{ currentUser.name }}</strong>
+      </span>
       <a
         routerLink="/auth/logout"
         class="dropdown-item"

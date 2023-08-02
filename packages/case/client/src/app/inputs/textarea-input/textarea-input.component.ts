@@ -10,7 +10,7 @@ import {
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
-  selector: 'app-text-area-input',
+  selector: 'app-textarea-input',
   standalone: true,
   template: `<label [for]="prop.propName">{{ prop.label }}</label>
     <textarea
@@ -20,9 +20,9 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       [name]="prop.propName"
     >
     </textarea> `,
-  styleUrls: ['./text-area-input.component.scss']
+  styleUrls: ['./textarea-input.component.scss']
 })
-export class TextAreaInputComponent implements OnInit {
+export class TextareaInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
 
