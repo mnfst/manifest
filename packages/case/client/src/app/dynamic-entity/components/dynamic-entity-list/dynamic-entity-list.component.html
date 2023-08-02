@@ -50,7 +50,7 @@
     <span class="list-meta"></span>
   </div>
   <div class="card p-0 mb-6">
-    <div class="table-container">
+    <div class="table-container" [ngClass]="{ 'mb-0': loadingPaginator }">
       <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
@@ -130,9 +130,8 @@
         </tbody>
       </table>
     </div>
-
     <!-- Loader paginator -->
-    <div class="is-loading p-t-xl" *ngIf="loadingPaginator">
+    <div class="is-loading" *ngIf="loadingPaginator">
       <div></div>
       <div></div>
       <div></div>
