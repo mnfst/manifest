@@ -1,4 +1,5 @@
 import { Component } from '@angular/core'
+import { NavigationEnd, Router } from '@angular/router'
 
 @Component({
   selector: 'app-touch-menu',
@@ -7,4 +8,12 @@ import { Component } from '@angular/core'
 })
 export class TouchMenuComponent {
   isOpen = false
+
+  constructor(router: Router) {
+    router.events.subscribe((routeChanged) => {
+      if (routeChanged instanceof NavigationEnd) {
+        this.isOpen = false
+      }
+    })
+  }
 }
