@@ -303,7 +303,7 @@
               </a>
             </div>
           </ng-container>
-          <ng-container *ngIf="entityMetas">
+          <ng-container *ngIf="entityMetas && appConfig?.production === true">
             <div class="column is-6 is-offset-3 pb-0">
               <hr />
               <p class="is-uppercase has-text-dark has-text-weight-medium">
