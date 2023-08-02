@@ -113,7 +113,9 @@
                 ]"
                 ><i class="icon icon-edit"></i
               ></a>
-              <a class="has-text-weight-bold ml-6" (click)="itemToDelete = item"
+              <a
+                class="has-text-weight-bold ml-6"
+                (click)="toggleDeleteModal(item)"
                 ><i class="icon icon-trash-2"></i
               ></a>
             </td>
@@ -156,7 +158,7 @@
 </ng-container>
 
 <div class="modal is-active" *ngIf="itemToDelete && entityMeta">
-  <div (click)="itemToDelete = null" class="modal-background"></div>
+  <div (click)="toggleDeleteModal()" class="modal-background"></div>
   <div class="modal-card">
     <div class="modal-card-body content">
       <p>
@@ -173,7 +175,7 @@
       <div
         class="is-flex is-align-items-center is-justify-content-space-between mt-6"
       >
-        <button class="button is-white" (click)="itemToDelete = null">
+        <button class="button is-white" (click)="toggleDeleteModal()">
           Cancel
         </button>
         <button class="button is-danger" (click)="delete(itemToDelete.id)">
@@ -183,7 +185,7 @@
       <button
         class="modal-close is-large"
         aria-label="close"
-        (click)="itemToDelete = null"
+        (click)="toggleDeleteModal()"
       ></button>
     </div>
   </div>

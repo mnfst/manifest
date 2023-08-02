@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, Renderer2 } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
 @Component({
@@ -9,11 +9,21 @@ import { NavigationEnd, Router } from '@angular/router'
 export class TouchMenuComponent {
   isOpen = false
 
-  constructor(router: Router) {
+  constructor(private renderer: Renderer2, router: Router) {
     router.events.subscribe((routeChanged) => {
       if (routeChanged instanceof NavigationEnd) {
         this.isOpen = false
       }
     })
+  }
+
+  toggleMenu(): void {
+    if (this.isOpen) {
+      this.isOpen = false
+      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+    } else {
+      this.isOpen = true
+      this.renderer.addClass(document.querySelector('html'), 'is-clipped')
+    }
   }
 }
