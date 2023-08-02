@@ -91,6 +91,15 @@ export class SelectInputComponent implements OnInit {
   }
 
   onChange(event: any): void {
+    // Note: we need to emit null if the user selects the default option.
+    if (event.target.value === '') {
+      this.form.patchValue({
+        select: null
+      })
+      this.valueChanged.emit(null)
+      return
+    }
+
     this.valueChanged.emit(event.target.value)
   }
 }
