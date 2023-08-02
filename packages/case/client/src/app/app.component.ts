@@ -1,8 +1,10 @@
 import { Component } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
+import { AppConfig } from '../../../shared/interfaces/app-config.interface'
 import { AuthService } from './auth/auth.service'
 import { User } from './interfaces/user.interface'
+import { AppConfigService } from './services/app-config.service'
 import { FlashMessageService } from './services/flash-message.service'
 
 @Component({
@@ -19,7 +21,8 @@ export class AppComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private flashMessageService: FlashMessageService
+    private flashMessageService: FlashMessageService,
+    private appConfigService: AppConfigService
   ) {}
 
   ngOnInit() {
@@ -47,6 +50,10 @@ export class AppComponent {
           }
         }
       }
+    })
+
+    this.appConfigService.getAppConfig().then((res: AppConfig) => {
+      this.appConfigService.appConfig.next(res)
     })
   }
 }

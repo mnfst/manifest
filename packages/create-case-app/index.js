@@ -42,7 +42,7 @@ const branchName = process.argv[3] || 'master'
 const gitCheckoutCommand = `git clone --depth 1 https://github.com/casejs/case-starter --branch ${branchName} ${repoName}`
 
 console.log()
-console.log(chalk.blue(`Creating new CASE app in ${cwd()}/${repoName}...`))
+console.log(chalk.blue(`Creating new CASE app in ${cwd()}/${repoName}`))
 console.log()
 
 const checkedOut = await runCommand(gitCheckoutCommand, 'pipe')

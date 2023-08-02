@@ -91,6 +91,7 @@ import { TextareaInputComponent } from './textarea-input/textarea-input.componen
     </app-date-input>
     <app-password-input
       [prop]="prop"
+      [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Password"
     >
