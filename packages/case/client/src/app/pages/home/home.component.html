@@ -9,7 +9,7 @@
 
       <div class="has-text-left">
         <div class="columns is-multiline">
-          <ng-container *ngIf="!appConfig?.production === false">
+          <ng-container *ngIf="appConfig?.production === false">
             <div class="column is-12 pb-0">
               <p class="is-uppercase has-text-dark has-text-weight-medium">
                 Documentation
@@ -303,14 +303,13 @@
               </a>
             </div>
           </ng-container>
-
-          <div class="column is-6 is-offset-3 pb-0">
-            <hr />
-            <p class="is-uppercase has-text-dark has-text-weight-medium">
-              Start navigating through the app
-            </p>
-          </div>
           <ng-container *ngIf="entityMetas">
+            <div class="column is-6 is-offset-3 pb-0">
+              <hr />
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Start navigating through the app
+              </p>
+            </div>
             <div
               class="column is-6 is-offset-3"
               *ngFor="let entity of entityMetas"
