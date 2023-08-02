@@ -1,14 +1,15 @@
-import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import * as chalk from 'chalk'
-import * as cliTable from 'cli-table'
-import { DataSource } from 'typeorm'
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as chalk from 'chalk';
+import * as cliTable from 'cli-table';
+import { DataSource } from 'typeorm';
 
-import { AuthModule } from './auth/auth.module'
-import configuration from './configuration'
-import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
-import { FileUploadModule } from './file-upload/file-upload.module'
+import { AppConfigModule } from './app-config/app-config.module';
+import { AuthModule } from './auth/auth.module';
+import configuration from './configuration';
+import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
 const contributionMode: boolean = process.argv[2] === 'contribution'
 
@@ -29,7 +30,8 @@ const contributionMode: boolean = process.argv[2] === 'contribution'
     }),
     DynamicEntityModule,
     AuthModule,
-    FileUploadModule
+    FileUploadModule,
+    AppConfigModule
   ]
 })
 export class AppModule {

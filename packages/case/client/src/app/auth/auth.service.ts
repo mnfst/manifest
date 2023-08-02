@@ -10,7 +10,7 @@ import { User } from '../interfaces/user.interface'
   providedIn: 'root'
 })
 export class AuthService {
-  public currentUser = new ReplaySubject<User>(1)
+  public currentUser: ReplaySubject<User> = new ReplaySubject<User>(1)
 
   constructor(private http: HttpClient) {}
 

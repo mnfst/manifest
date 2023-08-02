@@ -15,17 +15,13 @@
       <img src="/assets/images/logo.svg" class="logo-image" />
     </a>
 
-    <a
-      role="button"
-      class="navbar-burger burger ml-0"
-      (click)="isOpen = !isOpen"
-    >
+    <a role="button" class="navbar-burger burger ml-0" (click)="toggleMenu()">
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
     </a>
   </div>
-  <div class="hiding-layer" (click)="isOpen = null"></div>
+  <div class="hiding-layer" (click)="toggleMenu()"></div>
   <div class="navbar-menu" id="create-dropdown">
     <div class="navbar-end">
       <app-side-menu></app-side-menu>

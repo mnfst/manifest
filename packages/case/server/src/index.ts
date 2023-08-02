@@ -16,3 +16,6 @@ export { PropType } from '../../shared/enums/prop-type.enum'
 // Entities
 export { CaseEntity } from './core-entities/case.entity'
 export { User } from './core-entities/user.entity'
+
+// Interfaces
+export { AppConfig } from '../../shared/interfaces/app-config.interface'
