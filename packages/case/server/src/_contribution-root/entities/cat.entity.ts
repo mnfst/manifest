@@ -1,10 +1,8 @@
-import { faker } from '@faker-js/faker'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
-import { YieldType } from '../../../../shared/enums/yield-type.enum'
 
 enum Status {
   unidentifiable = 'Unidentifiable',
@@ -35,6 +33,11 @@ export class Cat extends CaseEntity {
   name: string
 
   @Prop({
+    type: PropType.Textarea
+  })
+  description: string
+
+  @Prop({
     type: PropType.Number
   })
   age: number
@@ -62,7 +65,7 @@ export class Cat extends CaseEntity {
     type: PropType.Enum,
     options: {
       enum: Status,
-      display: YieldType.ProgressBar
+      display: 'progress-bar'
     }
   })
   status: Status

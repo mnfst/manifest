@@ -4,333 +4,306 @@
   >
     <div class="content has-text-centered">
       <img src="/assets/images/welcome.svg" alt="Welcome" width="360" />
-      <h1>Welcome to {{ appConfig.appName }}</h1>
-      <p class="is-size-5">{{ appConfig.description }}</p>
-      <!-- If mode developer or mode contributor -->
+      <h1>Welcome to CASE</h1>
+      <p class="is-size-5">The best way to build CRUD apps.</p>
+
       <div class="has-text-left">
         <div class="columns is-multiline">
-          <div class="column is-12 pb-0">
-            <p class="is-uppercase has-text-dark has-text-weight-medium">
-              Documentation
-            </p>
-          </div>
-          <div class="column is-6">
-            <a
-              class="card-link"
-              href="https://docs.case.app/#/entities?id=create-an-entity"
-              target="_blank"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+          <ng-container *ngIf="!appConfig?.production === false">
+            <div class="column is-12 pb-0">
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Documentation
+              </p>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://docs.case.app/entities"
+                target="_blank"
               >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-01.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Create a new entity
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-01.svg" />
                         </p>
-                        <p>create an entity & pass parameters</p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Create a new entity
+                          </p>
+                          <p>With a single CLI command</p>
+                        </div>
                       </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a
-              class="card-link"
-              href="https://docs.case.app/#/properties?id=add-a-property-to-an-entity"
-              target="_blank"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://docs.case.app/properties"
+                target="_blank"
               >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-02.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Add properties to an entity
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-02.svg" />
                         </p>
-                        <p>Customize your entities</p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Add properties
+                          </p>
+                          <p>Add properties to an existing entity</p>
+                        </div>
                       </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a
-              class="card-link"
-              href="https://docs.case.app/#/custom-logic"
-              target="_blank"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://docs.case.app/dummy-data"
+                target="_blank"
               >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-06.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Custom logic
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-08.svg" />
                         </p>
-                        <p>How to integrate business logic</p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Seed dummy data
+                          </p>
+                          <p>Simulate the final user experience</p>
+                        </div>
                       </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a class="card-link" href="" target="_blank">
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://docs.case.app/custom-logic"
+                target="_blank"
               >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-08.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Seed dummy data
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-06.svg" />
                         </p>
-                        <p>Simulate user experience</p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Custom logic
+                          </p>
+                          <p>Integrate your own logic and packages</p>
+                        </div>
                       </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a class="card-link" href="" target="_blank">
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+              </a>
+            </div>
+            <div class="column is-12 pb-0">
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Learn and engage
+              </p>
+            </div>
+            <div class="column is-6">
+              <a class="card-link" href="https://case.app/faq" target="_blank">
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-10.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">FAQ</p>
+                          <p>Find answers from the FAQ</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://discord.com/invite/FepAked3W7"
+                target="_blank"
               >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-07.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Deployment
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-dc.svg" />
                         </p>
-                        <p>Deploy your application on production</p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Get help from the community
+                          </p>
+                          <p>Join our discord to discuss</p>
+                        </div>
                       </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-12 pb-0">
-            <p class="is-uppercase has-text-dark has-text-weight-medium">
-              Learn
-            </p>
-          </div>
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://github.com/casejs/case"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-gh.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            See the source
+                          </p>
+                          <p>View the source code and add issues</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://github.com/casejs/case/discussions"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-05.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Discussions
+                          </p>
+                          <p>Push your ideas and upvote others</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </ng-container>
 
-          <div class="column is-6">
-            <a
-              class="card-link"
-              href="https://discord.com/invite/FepAked3W7"
-              target="_blank"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-              >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-dc.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Get help from the community
-                        </p>
-                        <p>Join our discord to discuss</p>
-                      </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
-                </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a
-              class="card-link"
-              href="https://github.com/casejs/case"
-              target="_blank"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-              >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-gh.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Github project
-                        </p>
-                        <p>View the source and add issues</p>
-                      </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
-                </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a class="card-link" href="https://case.app" target="_blank">
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-              >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-10.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">FAQ</p>
-                        <p>Find answers from the FAQ</p>
-                      </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
-                </div>
-              </div>
-            </a>
-          </div>
-          <div class="column is-6">
-            <a
-              class="card-link"
-              href="https://github.com/casejs/case/discussions"
-              target="_blank"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-              >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <figure class="media-left m-0">
-                      <p class="image is-64x64">
-                        <img src="/assets/images/ext-link-05.svg" />
-                      </p>
-                    </figure>
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          Discussions
-                        </p>
-                        <p>push your ideas and upvote others</p>
-                      </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
-                </div>
-              </div>
-            </a>
-          </div>
-          <!-- If I'm  in user mode -->
           <div class="column is-6 is-offset-3 pb-0">
             <hr />
             <p class="is-uppercase has-text-dark has-text-weight-medium">
@@ -375,32 +348,6 @@
               </a>
             </div>
           </ng-container>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="columns" *ngIf="isAppBlank">
-  <div class="column is-6 is-offset-3 is-4-fullhd is-offset-4-fullhd">
-    <div class="card mt-4 is-warning-light">
-      <div class="card-content">
-        <div class="content has-text-centered">
-          <span class="is-size-1">✨</span>
-          <h2>Let's create a new entity !</h2>
-          <code class="is-size-4"> npm run case:entity my-entity</code>
-          <p class="is-size-5 mt-2">
-            Replacing "<strong>my-entity</strong>" by the name of your entity
-            (lowercase, singular)
-          </p>
-          <p class="is-size-5">
-            See the full
-            <a
-              class="card-link"
-              href="https://docs.case.app/entities"
-              target="_blank"
-              >documentation about entities in CASE</a
-            >
-          </p>
         </div>
       </div>
     </div>

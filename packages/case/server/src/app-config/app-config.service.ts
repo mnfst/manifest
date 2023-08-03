@@ -9,9 +9,7 @@ export class AppConfigService {
 
   getAppConfig(): Promise<AppConfig> {
     return import(this.configService.get('appConfigFilePath')).then(
-      (res: { appConfig: AppConfig }) => {
-        return res.appConfig
-      }
+      (res: { appConfig: AppConfig }) => res.appConfig
     )
   }
 }

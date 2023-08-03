@@ -8,11 +8,11 @@ CASE comes with a built-in seeder function, simply run on your terminal:
 npm run seed
 ```
 
-## Custom property seeders
+## <a name="custom-seeder-functions"></a>Custom seeder functions
 
-By default, CASE will try to generate a consistent dummy value by using the **PropType** of your property
+By default, CASE will try to generate a consistent dummy value by using the **PropType** of your property.
 
-In order to personalize even more your dummy data, you can choose the way a property is seeded through the `@Prop()` decorator's `seed` param:
+In order to personalize even more your dummy data, you can **choose the way a property is seeded** through the `@Prop()` decorator's `seed` param:
 
 ```js
   // customer.entity.ts
@@ -36,3 +36,9 @@ In order to personalize even more your dummy data, you can choose the way a prop
 ```
 
 The seed function accepts an `index: number` param that returns the index of the item in the seed process.
+
+In this example we use [Faker](https://fakerjs.dev/) package to generate fake data. To install it, run:
+
+```
+npm i @faker-js/faker
+```

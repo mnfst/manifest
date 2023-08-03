@@ -70,8 +70,18 @@
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
-            }"
+                'has-text-right':
+                  prop.type === PropType.Currency ||
+                  prop.type === PropType.Number ||
+                  prop.type === PropType.Date,
+                'has-detail-link':
+                  prop.propName === entityMeta.definition.propIdentifier
+              }"
+              (click)="
+                prop.propName === entityMeta.definition.propIdentifier
+                  ? goToDetailPage(item.id)
+                  : null
+              "
             >
               <app-yield
                 [value]="item[prop.propName]"
@@ -103,13 +113,15 @@
                 ]"
                 ><i class="icon icon-edit"></i
               ></a>
-              <a class="has-text-weight-bold ml-6" (click)="itemToDelete = item"
+              <a
+                class="has-text-weight-bold ml-6"
+                (click)="toggleDeleteModal(item)"
                 ><i class="icon icon-trash-2"></i
               ></a>
             </td>
           </tr>
         </tbody>
-        <tbody *ngIf="paginator?.data && !paginator.data.length">
+        <tbody *ngIf="paginator?.data?.length === 0">
           <tr>
             <td [attr.colspan]="props.length">
               There is no {{ entityMeta.definition.nameSingular }}.
@@ -146,7 +158,7 @@
 </ng-container>
 
 <div class="modal is-active" *ngIf="itemToDelete && entityMeta">
-  <div (click)="itemToDelete = null" class="modal-background"></div>
+  <div (click)="toggleDeleteModal()" class="modal-background"></div>
   <div class="modal-card">
     <div class="modal-card-body content">
       <p>
@@ -154,27 +166,26 @@
         <strong>{{
           itemToDelete[entityMeta.definition.propIdentifier]
         }}</strong>
-        {{ entityMeta.definition.nameSingular }} ?
+        {{ entityMeta.definition.nameSingular }} ? This action cannot be undone.
       </p>
       <p>
-        This action will also delete entities related to
-        {{ itemToDelete[entityMeta.definition.propIdentifier] }}
+        If {{ itemToDelete[entityMeta.definition.propIdentifier] }} has related
+        items, they will be deleted too.
       </p>
-
       <div
         class="is-flex is-align-items-center is-justify-content-space-between mt-6"
       >
-        <button class="button is-white" (click)="itemToDelete = null">
-          cancel
+        <button class="button is-white" (click)="toggleDeleteModal()">
+          Cancel
         </button>
         <button class="button is-danger" (click)="delete(itemToDelete.id)">
-          delete
+          Delete
         </button>
       </div>
       <button
         class="modal-close is-large"
         aria-label="close"
-        (click)="itemToDelete = null"
+        (click)="toggleDeleteModal()"
       ></button>
     </div>
   </div>

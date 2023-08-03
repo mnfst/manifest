@@ -7,12 +7,8 @@ import { AppConfigService } from './app-config.service'
 export class AppConfigController {
   constructor(private readonly appConfigService: AppConfigService) {}
 
-  @Get('app')
-  async getAppConfig(): Promise<{
-    appConfig: AppConfig
-  }> {
-    return {
-      appConfig: await this.appConfigService.getAppConfig()
-    }
+  @Get()
+  async getAppConfig(): Promise<AppConfig> {
+    return  this.appConfigService.getAppConfig()
   }
 }

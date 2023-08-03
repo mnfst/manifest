@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core'
-import { ActivatedRouteSnapshot, Router } from '@angular/router'
-import { Observable } from 'rxjs'
+import { Router } from '@angular/router'
 
-import { constants } from '../constants'
-import { FlashMessageService } from '../services/flash-message.service'
+import { constants } from '../../constants'
+import { FlashMessageService } from '../../services/flash-message.service'
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +12,7 @@ export class AuthGuard {
     private router: Router,
     private flashMessageService: FlashMessageService
   ) {}
-  canActivate(
-    next: ActivatedRouteSnapshot
-  ): Observable<boolean> | Promise<boolean> | boolean {
+  canActivate(): boolean {
     if (localStorage.getItem(constants.tokenName)) {
       return true
     }

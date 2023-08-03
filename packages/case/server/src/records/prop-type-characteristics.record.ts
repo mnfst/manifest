@@ -26,7 +26,7 @@ export const propTypeCharacteristicsRecord: Record<
     defaultSeedFunction: (_index: number, relationSeedCount: number) =>
       faker.number.int({ min: 1, max: relationSeedCount })
   },
-  [PropType.TextArea]: {
+  [PropType.Textarea]: {
     columnType: 'text',
     defaultSeedFunction: () => faker.commerce.productDescription()
   },

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, Renderer2 } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
 import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
@@ -17,7 +17,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class DynamicEntityListComponent implements OnInit {
   paginator: Paginator<any>
-  loadingPaginator = true
+  loadingPaginator: boolean
   itemToDelete: any
 
   entityMeta: EntityMeta
@@ -33,7 +33,8 @@ export class DynamicEntityListComponent implements OnInit {
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
     private breadcrumbService: BreadcrumbService,
-    private flashMessageService: FlashMessageService
+    private flashMessageService: FlashMessageService,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +46,7 @@ export class DynamicEntityListComponent implements OnInit {
           this.activatedRoute.params
         ]).subscribe(async ([queryParams, params]: Params[]) => {
           this.queryParams = queryParams
+          delete this.paginator
 
           this.entityMeta = res.find(
             (entityMeta: EntityMeta) =>
@@ -68,6 +70,7 @@ export class DynamicEntityListComponent implements OnInit {
             }
           ])
 
+          this.loadingPaginator = true
           this.paginator = await this.dynamicEntityService.list(
             this.entityMeta.definition.slug,
             queryParams
@@ -96,6 +99,7 @@ export class DynamicEntityListComponent implements OnInit {
       .delete(this.entityMeta.definition.slug, id)
       .then((res) => {
         this.itemToDelete = null
+        this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
         this.flashMessageService.success(
           `The ${this.entityMeta.definition.nameSingular} has been deleted.`
         )
@@ -103,5 +107,19 @@ export class DynamicEntityListComponent implements OnInit {
           (item: any) => item.id !== id
         )
       })
+  }
+
+  goToDetailPage(id: number): void {
+    this.router.navigate(['/', 'dynamic', this.entityMeta.definition.slug, id])
+  }
+
+  toggleDeleteModal(itemToDelete?: any): void {
+    if (this.itemToDelete) {
+      this.itemToDelete = null
+      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+    } else {
+      this.itemToDelete = itemToDelete
+      this.renderer.addClass(document.querySelector('html'), 'is-clipped')
+    }
   }
 }

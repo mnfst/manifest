@@ -1,5 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post, Req } from '@nestjs/common'
+import { Request } from 'express'
 
+import { User } from '../core-entities/user.entity'
 import { AuthService } from './auth.service'
 
 @Controller('auth')
@@ -14,5 +16,10 @@ export class AuthController {
     token: string
   }> {
     return this.authService.createToken(email, password)
+  }
+
+  @Get('me')
+  public async getCurrentUser(@Req() req: Request): Promise<User> {
+    return this.authService.getUserFromToken(req.headers?.authorization)
   }
 }

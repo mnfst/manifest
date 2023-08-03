@@ -11,7 +11,6 @@ import { DynamicEntityListComponent } from './components/dynamic-entity-list/dyn
 import { DynamicEntityRoutingModule } from './dynamic-entity-routing.module'
 import { ListMetaComponent } from './partials/list-meta/list-meta.component'
 import { PaginationComponent } from './partials/pagination/pagination.component'
-import { AppConfigService } from '../services/app-config.service'
 
 @NgModule({
   declarations: [
@@ -28,7 +27,6 @@ import { AppConfigService } from '../services/app-config.service'
     FilterComponent,
     YieldComponent,
     InputComponent
-  ],
-  providers: [AppConfigService]
+  ]
 })
 export class DynamicEntityModule {}

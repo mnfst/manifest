@@ -1,6 +1,6 @@
 {
   "name": "create-case-app",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Generate a new CASE app",
   "bin": "index.js",
   "scripts": {
@@ -25,7 +25,9 @@
   "homepage": "https://github.com/casejs/case#readme",
   "dependencies": {
     "chalk": "^4.1.2",
+    "execa": "^7.2.0",
     "fs": "^0.0.1-security",
+    "open": "^9.1.0",
     "ora": "^6.3.1"
   },
   "type": "module"

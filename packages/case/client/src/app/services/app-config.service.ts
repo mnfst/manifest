@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { Observable, map, shareReplay } from 'rxjs'
+import { firstValueFrom, ReplaySubject } from 'rxjs'
 import { AppConfig } from '~shared/interfaces/app-config.interface'
 
 import { environment } from '../../environments/environment'
@@ -12,18 +12,13 @@ import { environment } from '../../environments/environment'
   providedIn: 'root'
 })
 export class AppConfigService {
-  serviceUrl: string = environment.apiBaseUrl + '/config/app'
-  private appConfig$: Observable<AppConfig>
+  appConfig: ReplaySubject<AppConfig> = new ReplaySubject<AppConfig>(1)
+
+  private serviceUrl: string = environment.apiBaseUrl + '/config'
 
   constructor(private http: HttpClient) {}
 
-  public loadAppConfig(): Observable<AppConfig> {
-    if (!this.appConfig$) {
-      this.appConfig$ = this.http.get<any>(this.serviceUrl).pipe(
-        shareReplay(1),
-        map((res: { appConfig: AppConfig }) => res.appConfig)
-      )
-    }
-    return this.appConfig$
+  public getAppConfig(): Promise<AppConfig> {
+    return firstValueFrom(this.http.get<any>(this.serviceUrl))
   }
 }

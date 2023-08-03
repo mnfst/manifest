@@ -1,11 +1,9 @@
-import { Module } from '@nestjs/common'
-
-import { AuthService } from '../auth/auth.service'
-import { AppConfigController } from './app-config.controller'
-import { AppConfigService } from './app-config.service'
+import { Module } from '@nestjs/common';
+import { AppConfigService } from './app-config.service';
+import { AppConfigController } from './app-config.controller';
 
 @Module({
-  controllers: [AppConfigController],
-  providers: [AppConfigService, AuthService]
+  providers: [AppConfigService],
+  controllers: [AppConfigController]
 })
 export class AppConfigModule {}

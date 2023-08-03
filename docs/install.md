@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [NodeJS](https://nodejs.org/en/) (v14 and v16). Other versions of Node.js may not be compatible with the latest release of CASE. The 16.x version is most recommended.
+- [NodeJS](https://nodejs.org/en/) (v16 and v18). Other versions of Node.js may not be compatible with the latest release of CASE. The 18.x version is most recommended.
 - NPM version 7+ (comes with NodeJS)
 
 ## Create your CASE project
@@ -22,20 +22,13 @@ npm start
 
 And then visit [http://localhost:4000](http://localhost:4000) to see it live.
 
-# Config
-
-Use the `/app-config.ts` file to personalize your CASE app:
-
-```js
-export const appConfig: AppConfig = {
-  appName: 'My great app with CASE',
-  description: 'Just a simple app made with CASE'
-}
-```
+## Config
 
 Environment variables are managed to a [dotenv](https://www.npmjs.com/package/dotenv) file created at the root level
 
 ```env
+# .env
+
 PORT=4000
 JWT_SECRET=secret_key
 ```

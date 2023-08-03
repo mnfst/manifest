@@ -14,6 +14,14 @@ Or you can specify a specific branch
 $ npx create-case-app@latest my-case-app BRANCH_NAME
 ```
 
+## Develop
+
+You can run the script locally:
+
+```
+node index.js APP_NAME BRANCH_NAME
+```
+
 ## Publish
 
 Update the `package.json` version number and run:

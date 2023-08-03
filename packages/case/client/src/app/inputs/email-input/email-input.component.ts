@@ -19,6 +19,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
         class="input"
         type="email"
         placeholder="Email"
+        autocomplete="email"
         (change)="onChange($event)"
         #input
       />

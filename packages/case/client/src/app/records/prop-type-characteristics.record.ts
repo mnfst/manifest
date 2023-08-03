@@ -31,8 +31,8 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Date,
     yield: YieldType.Date
   },
-  [PropType.TextArea]: {
-    input: InputType.TextArea,
+  [PropType.Textarea]: {
+    input: InputType.Textarea,
     yield: YieldType.Text
   },
   [PropType.Email]: {
