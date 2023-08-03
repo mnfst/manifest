@@ -1,38 +1,47 @@
-$custom-colors: (
+@import "bulma/sass/utilities/derived-variables";
+
+// 5. Add new color variables to the color map.
+$addColors: (
   'link-light': (
     $link-light,
-    $link,
-    $link-light,
-    $link
+    $link-light-invert,
   ),
   'primary-light': (
     $primary-light,
-    $primary,
-    $white,
-    $primary
+    $primary-light-invert,
   ),
   'warning-light': (
     $warning-light,
-    $warning,
-    $white,
-    $warning
+    $warning-light-invert,
   ),
   'danger-light': (
     $danger-light,
-    $danger,
-    $white,
-    $danger
+    $danger-light-invert,
   ),
   'success-light': (
     $success-light,
-    $success,
-    $white,
-    $success
+    $success-light-invert,
   ),
   'info-light': (
     $info-light,
-    $info,
-    $white,
-    $info
-  )
+    $info-light-invert,
+  ),
+  "color-0":($color-0, $color-0-invert),
+  "color-1":($color-1, $color-1-invert),
+  "color-2": ($color-2, $color-2-invert),
+  "color-3": ($color-3, $color-3-invert),
+  "color-4": ($color-4, $color-4-invert),
+  "color-5": ($color-5, $color-5-invert),
+  "color-6": ($color-6, $color-6-invert),
+  "color-7": ($color-7, $color-7-invert),
+  "color-8": ($color-8, $color-8-invert),
+  "color-9": ($color-9, $color-9-invert),
+  "color-10": ($color-10, $color-10-invert),
+  "color-11": ($color-11, $color-11-invert),
+  "color-12": ($color-12, $color-12-invert),
+  "color-13": ($color-13, $color-13-invert),
+  "color-14": ($color-14, $color-14-invert),
 );
+
+$colors: map-merge($colors, $addColors);
+

@@ -9,13 +9,11 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
     <div
       class="is-flex is-align-items-center is-white-space-nowrap tooltip has-tooltip-left"
       [attr.data-tooltip]="value || 'Unknown'"
+      class="is-color-{{ valueIndex }}"
     >
       <ng-container *ngFor="let enumOption of enumAsArray; let i = index">
-        <span *ngIf="valueIndex >= i" class="is-size-7 has-text-weight-bold">
-          x
-        </span>
-        <span *ngIf="valueIndex < i" class="is-size-7 has-text-weight-bold">
-          -
+        <span *ngIf="valueIndex >= i" class="bullet"> </span>
+        <span class="bullet" *ngIf="valueIndex < i" class="bullet is-grey">
         </span>
       </ng-container>
     </div>
