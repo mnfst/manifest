@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
-import { chdir, cwd } from 'node:process';
+import { chdir, cwd } from 'node:process'
 import { execSync, exec } from 'child_process'
 
 import chalk from 'chalk'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import ora from 'ora'
-import { execa } from 'execa';
-
+import { execa } from 'execa'
 
 import open from 'open'
 
@@ -28,7 +27,7 @@ const runAsyncCommand = (script, options, output) =>
   new Promise((resolve, reject) => {
     const child = exec(script, options)
 
-    if(output) {
+    if (output) {
       child.stdout.pipe(process.stdout)
       child.stderr.pipe(process.stderr)
     }
@@ -66,9 +65,7 @@ fs.writeFileSync(
 
 console.log()
 console.log(
-  chalk.green(
-    `🎉 The "${repoName}" CASE app has been created successfully!`
-  )
+  chalk.green(`🎉 The "${repoName}" CASE app has been created successfully!`)
 )
 console.log()
 console.log()
@@ -76,6 +73,6 @@ console.log()
 // Launch the app.
 chdir(repoName)
 setTimeout(() => {
-  open('http://localhost:4000')
+  open('http://localhost:4000/auth/login')
 }, 8000)
-execa('npm', ['start'], {  stdio: 'inherit' })
+execa('npm', ['start'], { stdio: 'inherit' })
