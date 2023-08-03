@@ -6,21 +6,41 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Put
+  Put,
+  Query,
+  UseGuards
 } from '@nestjs/common'
+
+import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
+import { Paginator } from '../../../shared/interfaces/paginator.interface'
+import { SelectOption } from '../../../shared/interfaces/select-option.interface'
+import { AuthGuard } from '../auth/auth.guard'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
+@UseGuards(AuthGuard)
 export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 
+  @Get('meta')
+  getMeta(): Promise<EntityMeta[]> {
+    return this.dynamicEntityService.getMeta()
+  }
+
   @Get(':entity')
-  findAll(@Param('entity') entity: string): Promise<any> {
-    return this.dynamicEntityService.findAll(entity)
+  findAll(
+    @Param('entity') entity: string,
+    @Query() queryParams: { [key: string]: string | string[] }
+  ): Promise<Paginator<any>> {
+    return this.dynamicEntityService.findAll({
+      entitySlug: entity,
+      queryParams,
+      options: { paginated: true }
+    }) as Promise<Paginator<any>>
   }
 
   @Get(':entity/select-options')
-  findSelectOptions(@Param('entity') entity: string): Promise<any> {
+  findSelectOptions(@Param('entity') entity: string): Promise<SelectOption[]> {
     return this.dynamicEntityService.findSelectOptions(entity)
   }
 

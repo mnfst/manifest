@@ -1,31 +1,55 @@
-# CASE contribution
+# CASE Contribution
 
-Development of reliable and powerful application and ERP. CASE is fully customizable and open to contributions. You can contribute by adding features, reporting bugs or participating in discussions.
+## client app
 
-> If you are looking for how to install a first project case, go to the [readme](/README.md)
+To run the client app on `http://localhost:4200`:
 
-# Development workflow
-
-### 1. Clone the repository
-
-```sh
-git clone git@github.com:casejs/case.git
+```bash
+cd packages/case/client
+npm install
+ng serve --configuration=contribution
 ```
 
-### 2. Clone the case-starter repository
+## server app
 
-```sh
-git clone git@github.com:casejs/case-starter.git
+```
+# From packages/case/server
+npm i
+npm run start:dev
+
+# Seed in dev mode
+npm run seed:dev
 ```
 
-### 3. Install the dependencies
+The folder `packages/case/server/src/_contribution-root` replicates the app root folder of the `CASE Starter` repo.
 
-First, go to your **CASE-STARTER** repository, and folow instructions from the README.md located at the root of your repository.
+## Contribute working from starter
 
-Then go to your **CASE** repository and follow the next steps:
+Using `npm link` you can link your `/node_modules/@casejs/case` to the `dist` folder in your project made with CASE starter.
 
-1. To work on the client files, go to the `/packages/case-client/` folder and follow the [README-DEV](/packages/case-client/README-DEV.md) instructions
+```
+cd server/dist
 
-2. To work on schematics, go to the `/packages/schematics/` folder and follow the [README-DEV](/packages/schematics/README-DEV.md) instructions.
+# may require sudo
+npm link
+```
 
-3. To work on server files, go to the `/packages/case-server/` folder and follow the [README-DEV](/packages/case-server/README-DEV.md) instructions.
+Then go to your case starter project and run
+
+```
+npm link @casejs/case
+npm start
+```
+
+## Publish
+
+Update the version number in `package.json` and run:
+
+```
+npm run build
+cd server/dist
+npm publish
+
+# For beta versions
+npm publish --tag beta
+```

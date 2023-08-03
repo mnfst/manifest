@@ -5,6 +5,8 @@ export enum InputType {
   Currency,
   Date,
   Boolean,
-  TextArea,
-  Email
+  Textarea,
+  Email,
+  Password,
+  FileUpload
 }

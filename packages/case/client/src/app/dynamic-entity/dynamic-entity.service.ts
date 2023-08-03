@@ -1,51 +1,66 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { firstValueFrom } from 'rxjs'
+import { Observable, firstValueFrom, map, shareReplay } from 'rxjs'
 
 import { environment } from '../../environments/environment'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
+import { Paginator } from '~shared/interfaces/paginator.interface'
+import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
 
 @Injectable({
   providedIn: 'root'
 })
 export class DynamicEntityService {
-  apiBaseUrl = environment.apiBaseUrl
+  serviceUrl = environment.apiBaseUrl + '/dynamic'
+  private entityMetas$: Observable<EntityMeta[]>
 
   constructor(private http: HttpClient) {}
 
-  list(entityName: string): Promise<any[]> {
-    return firstValueFrom(
-      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}`)
-    ) as Promise<any[]>
+  loadEntityMeta(): Observable<EntityMeta[]> {
+    if (!this.entityMetas$) {
+      this.entityMetas$ = this.http.get<any>(`${this.serviceUrl}/meta`).pipe(
+        shareReplay(1),
+        map((res: EntityMeta[]) => res)
+      )
+    }
+    return this.entityMetas$
   }
 
-  listSelectOptions(entityName: string): Promise<SelectOption[]> {
+  list(entitySlug: string, params?: any): Promise<Paginator<any>> {
     return firstValueFrom(
-      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}/select-options`)
+      this.http.get(`${this.serviceUrl}/${entitySlug}`, {
+        params
+      })
+    ) as Promise<Paginator<any>>
+  }
+
+  listSelectOptions(entitySlug: string): Promise<SelectOption[]> {
+    return firstValueFrom(
+      this.http.get(`${this.serviceUrl}/${entitySlug}/select-options`)
     ) as Promise<SelectOption[]>
   }
 
-  show(entityName: string, id: number): Promise<any> {
+  show(entitySlug: string, id: number): Promise<any> {
     return firstValueFrom(
-      this.http.get(`${this.apiBaseUrl}/dynamic/${entityName}/${id}`)
+      this.http.get(`${this.serviceUrl}/${entitySlug}/${id}`)
     )
   }
 
-  create(entityName: string, data: any): Promise<any> {
+  create(entitySlug: string, data: any): Promise<any> {
     return firstValueFrom(
-      this.http.post(`${this.apiBaseUrl}/dynamic/${entityName}`, data)
+      this.http.post(`${this.serviceUrl}/${entitySlug}`, data)
     )
   }
 
-  update(entityName: string, id: number, data: any): Promise<any> {
+  update(entitySlug: string, id: number, data: any): Promise<any> {
     return firstValueFrom(
-      this.http.put(`${this.apiBaseUrl}/dynamic/${entityName}/${id}`, data)
+      this.http.put(`${this.serviceUrl}/${entitySlug}/${id}`, data)
     )
   }
 
-  delete(entityName: string, id: number): Promise<any> {
+  delete(entitySlug: string, id: number): Promise<any> {
     return firstValueFrom(
-      this.http.delete(`${this.apiBaseUrl}/dynamic/${entityName}/${id}`)
+      this.http.delete(`${this.serviceUrl}/${entitySlug}/${id}`)
     )
   }
 }

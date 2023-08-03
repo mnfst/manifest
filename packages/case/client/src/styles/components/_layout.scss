@@ -32,7 +32,7 @@ body {
   overflow: hidden;
   background: $main-background;
   color: $black;
-  font-size: $size-8;
+  font-size: $size-7;
 }
 
 .wrapper {
@@ -57,7 +57,7 @@ aside {
 
 main {
   transition: all $transition-duration $transition-timing;
-  min-height: calc(100vh - #{$column-gap} - #{$navbar-height} - 36.5px);
+  min-height: calc(100vh - #{$gap} - #{$navbar-height} - #{$footer-height});
   margin-top: $gap;
   padding-bottom: $gap;
 }
@@ -68,4 +68,21 @@ main {
 
 .is-borderless {
   border: 0;
+}
+
+.is-overflow-hidden {
+  overflow: hidden;
+}
+
+.wrapper--basic {
+  height: calc(100vh - 112px);
+  width: 100%;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    margin-bottom: 2rem;
+  }
 }

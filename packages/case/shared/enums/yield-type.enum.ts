@@ -5,5 +5,7 @@ export enum YieldType {
   Currency,
   Date,
   Boolean,
-  Email
+  Email,
+  ProgressBar,
+  Label
 }

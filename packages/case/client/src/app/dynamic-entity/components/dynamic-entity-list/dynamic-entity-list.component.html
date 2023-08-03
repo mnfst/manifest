@@ -1,36 +1,63 @@
-<ng-container *ngIf="entity">
+<ng-container *ngIf="entityMeta">
   <div
     class="is-flex flex-mobile is-justify-content-space-between is-align-items-center mb-2"
   >
     <div class="left-part">
       <h1 class="title is-2 has-text-weight-light">
-        List of {{ entity.definition.namePlural }}
+        List of {{ entityMeta.definition.namePlural }}
       </h1>
     </div>
     <div class="right-part">
       <a
         class="button is-link ml-5 is-hidden-touch"
-        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
-        >Create a new {{ entity.definition.nameSingular }}</a
+        [routerLink]="['/', 'dynamic', entityMeta.definition.slug, 'create']"
+        >Create a new {{ entityMeta.definition.nameSingular }}</a
       >
 
       <a
         class="button is-circle is-link ml-5 is-hidden-desktop"
-        [routerLink]="['/', 'dynamic', entity.definition.slug, 'create']"
+        [routerLink]="['/', 'dynamic', entityMeta.definition.slug, 'create']"
         ><i class="icon icon-plus"></i
       ></a>
     </div>
   </div>
 
+  <!-- Filters -->
+  <div class="card p-0 mb-6" *ngIf="filtrableProps?.length">
+    <div class="card-content">
+      <h2 class="title is-5">Filters</h2>
+      <div class="columns is-multiline">
+        <div
+          class="column"
+          *ngFor="let filtrableProp of filtrableProps"
+          [ngClass]="{
+            'is-6-tablet is-4-desktop is-3-fullhd': filtrableProps.length <= 3,
+            'is-6-tablet is-3-desktop': filtrableProps.length > 3,
+          }"
+        >
+          <app-filter
+            [prop]="filtrableProp"
+            (valueChanged)="filter(filtrableProp.propName, $event)"
+            [value]="queryParams[filtrableProp.propName]"
+          ></app-filter>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
+  <div class="is-loading" *ngIf="loadingPaginator">
+    <span class="list-meta"></span>
+  </div>
   <div class="card p-0 mb-6">
-    <div class="table-container">
+    <div class="table-container" [ngClass]="{ 'mb-0': loadingPaginator }">
       <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
             <th
               *ngFor="let prop of props"
               [ngClass]="{
-                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
+                'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,
                 }"
             >
               {{ prop.label }}
@@ -38,24 +65,40 @@
             <th></th>
           </tr>
         </thead>
-        <tbody *ngIf="items?.length">
-          <tr *ngFor="let item of items">
+        <tbody *ngIf="paginator?.data?.length">
+          <tr *ngFor="let item of paginator.data">
             <td
               *ngFor="let prop of props"
               [ngClass]="{
-            'has-text-right':prop.type === PropType.Currency || prop.type === PropType.Number || prop.type === PropType.Date,  
-            }"
+                'has-text-right':
+                  prop.type === PropType.Currency ||
+                  prop.type === PropType.Number ||
+                  prop.type === PropType.Date,
+                'has-detail-link':
+                  prop.propName === entityMeta.definition.propIdentifier
+              }"
+              (click)="
+                prop.propName === entityMeta.definition.propIdentifier
+                  ? goToDetailPage(item.id)
+                  : null
+              "
             >
               <app-yield
                 [value]="item[prop.propName]"
                 [type]="prop.type"
                 [options]="prop.options"
+                [compact]="true"
               ></app-yield>
             </td>
             <td class="has-text-right is-nowrap">
               <a
                 class="has-text-weight-bold has-text-link"
-                [routerLink]="['/', 'dynamic', entity.definition.slug, item.id]"
+                [routerLink]="[
+                  '/',
+                  'dynamic',
+                  entityMeta.definition.slug,
+                  item.id
+                ]"
                 ><i class="icon icon-eye"></i
               ></a>
 
@@ -64,26 +107,85 @@
                 [routerLink]="[
                   '/',
                   'dynamic',
-                  entity.definition.slug,
+                  entityMeta.definition.slug,
                   item.id,
                   'edit'
                 ]"
                 ><i class="icon icon-edit"></i
               ></a>
-              <a class="has-text-weight-bold ml-6" (click)="delete(item.id)"
+              <a
+                class="has-text-weight-bold ml-6"
+                (click)="toggleDeleteModal(item)"
                 ><i class="icon icon-trash-2"></i
               ></a>
             </td>
           </tr>
         </tbody>
-        <tbody *ngIf="items && !items.length">
+        <tbody *ngIf="paginator?.data?.length === 0">
           <tr>
             <td [attr.colspan]="props.length">
-              There is no {{ entity.definition.nameSingular }} yet.
+              There is no {{ entityMeta.definition.nameSingular }}.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+    <!-- Loader paginator -->
+    <div class="is-loading" *ngIf="loadingPaginator">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+    </div>
   </div>
+
+  <app-pagination
+    [paginator]="paginator"
+    (pageChanged)="filter('page', $event)"
+    *ngIf="paginator"
+  ></app-pagination>
 </ng-container>
+
+<div class="modal is-active" *ngIf="itemToDelete && entityMeta">
+  <div (click)="toggleDeleteModal()" class="modal-background"></div>
+  <div class="modal-card">
+    <div class="modal-card-body content">
+      <p>
+        Do you really want to delete
+        <strong>{{
+          itemToDelete[entityMeta.definition.propIdentifier]
+        }}</strong>
+        {{ entityMeta.definition.nameSingular }} ? This action cannot be undone.
+      </p>
+      <p>
+        If {{ itemToDelete[entityMeta.definition.propIdentifier] }} has related
+        items, they will be deleted too.
+      </p>
+      <div
+        class="is-flex is-align-items-center is-justify-content-space-between mt-6"
+      >
+        <button class="button is-white" (click)="toggleDeleteModal()">
+          Cancel
+        </button>
+        <button class="button is-danger" (click)="delete(itemToDelete.id)">
+          Delete
+        </button>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        (click)="toggleDeleteModal()"
+      ></button>
+    </div>
+  </div>
+</div>

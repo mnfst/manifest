@@ -8,11 +8,11 @@
       >
         <span>Home</span>
       </a>
-      <ng-container *ngIf="entities">
+      <ng-container *ngIf="entityMetas">
         <a
           [routerLink]="['/dynamic', entity.definition.slug]"
           routerLinkActive="is-active"
-          *ngFor="let entity of entities"
+          *ngFor="let entity of entityMetas"
         >
           <span>{{
             entity.definition.namePlural | capitalizeFirstLetter

@@ -1,4 +1,4 @@
-import { CaseEntity, Entity, Prop } from '@casejs/case'
+import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
 
 @Entity({
   nameSingular: '<%= name %>',
@@ -8,8 +8,9 @@ import { CaseEntity, Entity, Prop } from '@casejs/case'
 })
 export class <%= classifiedName %> extends CaseEntity {
   @Prop({
-    label: 'Name of the <%= name %>',
-    seed: (index) => `<%= name %> ${index}`
+    type: PropType.Text
   })
   name: string
+
+  // Learn more about CASE Entities and how to add properties here: https://docs.case.app/properites
 }

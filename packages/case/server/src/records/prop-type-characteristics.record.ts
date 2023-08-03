@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker'
+import { SHA3 } from 'crypto-js'
 import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
+
 import { PropType } from '../../../shared/enums/prop-type.enum'
 
 export type PropTypeCharacteristics = {
@@ -17,22 +19,20 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Number]: {
     columnType: 'decimal',
-    defaultSeedFunction: (index: number) => faker.number.int({ max: 50 })
+    defaultSeedFunction: () => faker.number.int({ max: 50 })
   },
   [PropType.Relation]: {
     columnType: 'int',
     defaultSeedFunction: (_index: number, relationSeedCount: number) =>
       faker.number.int({ min: 1, max: relationSeedCount })
   },
-
-  [PropType.TextArea]: {
+  [PropType.Textarea]: {
     columnType: 'text',
     defaultSeedFunction: () => faker.commerce.productDescription()
   },
-
   [PropType.Currency]: {
     columnType: 'decimal',
-    defaultSeedFunction: (index: number) => faker.finance.amount(index, 500, 2)
+    defaultSeedFunction: () => faker.finance.amount(1, 500, 2)
   },
   [PropType.Date]: {
     columnType: 'date',
@@ -40,10 +40,26 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Email]: {
     columnType: 'varchar',
-    defaultSeedFunction: (index: number) => faker.internet.email()
+    defaultSeedFunction: () => faker.internet.email()
   },
   [PropType.Boolean]: {
     columnType: 'boolean',
-    defaultSeedFunction: (index: number) => faker.datatype.boolean()
+    defaultSeedFunction: () => faker.datatype.boolean()
+  },
+  [PropType.Password]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => SHA3('case').toString()
+  },
+  [PropType.File]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => '/dummy/dummy-document.xlsx'
+  },
+  [PropType.Image]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => '/dummy/dummy-image'
+  },
+  [PropType.Enum]: {
+    columnType: 'simple-enum',
+    defaultSeedFunction: () => null
   }
 }

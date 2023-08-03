@@ -31,18 +31,32 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Date,
     yield: YieldType.Date
   },
-  [PropType.TextArea]: {
-    input: InputType.TextArea,
+  [PropType.Textarea]: {
+    input: InputType.Textarea,
     yield: YieldType.Text
   },
-
   [PropType.Email]: {
     input: InputType.Email,
     yield: YieldType.Email
   },
-
   [PropType.Boolean]: {
     input: InputType.Boolean,
     yield: YieldType.Boolean
+  },
+  [PropType.Password]: {
+    input: InputType.Password,
+    yield: YieldType.Text
+  },
+  [PropType.Enum]: {
+    input: InputType.Select,
+    yield: YieldType.Label | YieldType.ProgressBar
+  },
+  [PropType.File]: {
+    input: InputType.FileUpload,
+    yield: YieldType.Link
+  },
+  [PropType.Image]: {
+    input: InputType.FileUpload,
+    yield: YieldType.Link
   }
 }

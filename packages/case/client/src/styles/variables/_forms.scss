@@ -1,6 +1,6 @@
 //controls
 $control-padding-vertical: 0.375em !default;
-$control-padding-horizontal: math.div($gap, 2) !default;
+$control-padding-horizontal: $column-gap !default;
 $input-background-color: $white-ter !default;
 $input-placeholder-color: rgba($black-ter, 0.5) !default;
 $input-color: $black !default;

@@ -1,12 +1,15 @@
-# Properties
+# Add properties to an entity
 
 Properties are key-value pairs inside entities. They are usually mapped to database columns.
 
-## Add a property to an entity
+## Syntax
 
-You can add the properties to your entities by adding the CASE `@Prop()` decorator above the property name.
+You can add the properties to your entities by adding the CASE `@Prop()` decorator above the property name and type.
 
 ```js
+import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+
+[...]
 export class Cat extends CaseEntity {
   @Prop()
   nickName: string
@@ -27,66 +30,38 @@ export class Cat extends CaseEntity {
 }
 ```
 
-### Property params
+By default the **PropType** is `Text`, a classic string, but you have [plenty of other available types](property-types.md).
+
+## Property params
 
 You can pass arguments to the `@Prop()` decorator:
 
-| Option      | Default              | Type     | Description                    |
-| ----------- | -------------------- | -------- | ------------------------------ |
-| **label**   | _same as propName_   | string   | The label of the property      |
-| **type**    | PropType.Text        | PropType | The CASE type of the property  |
-| **seed**    | _type seed function_ | function | Seed function for the property |
-| **options** | {}                   | Object   | Property options based on type |
+| Option      | Default              | Type     | Description                                                         |
+| ----------- | -------------------- | -------- | ------------------------------------------------------------------- |
+| **label**   | _same as propName_   | string   | The label of the property                                           |
+| **type**    | PropType.Text        | PropType | The [CASE type](property-types.md) of the property                  |
+| **seed**    | _type seed function_ | function | The [custom seeder function](dummy-data.md#custom-seeder-functions) |
+| **options** | {}                   | Object   | [Property options](#options)                                        |
 
-### Property types
+## <a name="options"></a>Options
 
-CASE works with it's own set of **PropTypes** that corresponds to different types of data often used in CRUD apps.
+Some types have a specific set of options. Nevertheless, the following options are applicable to all properties in the `options` object parameter.
 
-Under the hood, each **PropType** corresponds to a set a different logic. For example by specifying once that this value is a **Currency**, CASE takes care of displaying it correctly, adding the 2 digits after the comma and choosing the correct database column format. If you do not specify a `seed` param, it will still generate a nice amount when you seed
+| Option               | Default | Type    | Description                                                                                 |
+| -------------------- | ------- | ------- | ------------------------------------------------------------------------------------------- |
+| **filter**           | `false` | boolean | Adds a filter in lists (currently only for [Relation PropType](property-types.md#relation)) |
+| **isHiddenInList**   | `false` | boolean | Hides the column in the list.                                                               |
+| **isHiddenInDetail** | `false` | boolean | Hides this property in the detail view.                                                     |
 
-| Type     | Input    | Seed function         | Comments                       |
-| -------- | -------- | --------------------- | ------------------------------ |
-| Text     | Text     | product name          |                                |
-| Number   | Number   | random integer        |                                |
-| Currency | Number   | random amount         | Only € currency                |
-| Date     | Date     | passed date           |                                |
-| TextArea | Textarea | product description   |                                |
-| Email    | Email    | random email          |                                |
-| Boolean  | Checkbox | random boolean        |                                |
-| Relation | Select   | random related entity | only many-to-one relationships |
-
-#### Create entity relationships with the "Relation" PropType
-
-It is very easy to create relationships between 2 entities in CASE: You just need to pass the `type: PropType.Relation` and the related entity class to the `options.entity` param like so:
+Example:
 
 ```js
-export class Cat extends CaseEntity {
   @Prop({
-    label: 'Owner of the cat',
-    type: PropType.Relation,
+    type: PropType.Textarea,
     options: {
-      entity: Owner
+     isHiddenInList: true,
+     isHiddenInDetail: true
     }
   })
-  owner: Owner
-}
+  comments: string
 ```
-
-Notes:
-
-- CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
-- We use **cascade delete**: if you delete the _Owner_ on the UI, it will also delete all his or her _Cat_ entities
-
-### Custom property seeders
-
-To generate high quality dummy data, you can choose the way a property is seeded through the `@Prop()` decorator's `seed` param:
-
-```js
-@Prop({
-    label: 'Full name',
-    seed: () => `${faker.person.firstName()} ${faker.person.familyName()}`
-  })
-  fullName: string
-```
-
-The seed function accepts an `index: number` param that returns the index of the item in the seed process.

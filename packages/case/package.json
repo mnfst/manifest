@@ -1,12 +1,12 @@
 {
   "name": "@casejs/case",
-  "version": "2.0.19",
+  "version": "2.0.21",
   "description": "Instant CRUD Apps with CASE",
-  "main": "server/dist/index.js",
-  "types": "server/dist/index.d.ts",
+  "main": "server/src/index.js",
+  "types": "server/src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cd client && npm i && npm run build"
+    "build": "cd server && npm i && npm run build && cd .. && cp package.json server/dist/package.json && cd client && npm i && npm run build"
   },
   "repository": {
     "type": "git",
@@ -25,5 +25,33 @@
   "bugs": {
     "url": "https://github.com/casejs/case/issues"
   },
-  "homepage": "https://github.com/casejs/case#readme"
+  "homepage": "https://github.com/casejs/case#readme",
+  "peerDependencies": {
+    "@angular-devkit/schematics-cli": "^16.1.4",
+    "@casejs/schematics": "^2.0.4",
+    "@faker-js/faker": "^8.0.2",
+    "@nestjs/common": "^9.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/core": "^9.0.0",
+    "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/typeorm": "^9.0.1",
+    "@types/jsonwebtoken": "^9.0.2",
+    "bluebird": "^3.7.2",
+    "chalk": "^4.1.2",
+    "cli-table": "^0.3.11",
+    "connect-livereload": "^0.6.1",
+    "crypto-js": "^4.1.1",
+    "fs": "^0.0.1-security",
+    "http-status-codes": "^2.2.0",
+    "jsonwebtoken": "^9.0.1",
+    "livereload": "^0.9.3",
+    "mkdirp": "^3.0.1",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.2.0",
+    "sharp": "^0.32.3",
+    "sqlite3": "^5.1.6",
+    "typeorm": "^0.3.16",
+    "uniqid": "^5.4.0"
+  }
 }

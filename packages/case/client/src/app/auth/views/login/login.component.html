@@ -1,0 +1,57 @@
+<section class="hero is-fullheight">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <div class="columns">
+        <div class="column col-login">
+          <div>
+            <img src="/assets/images/logo.svg" alt="logo case" class="mb-3" />
+
+            <h2 class="title is-4">Sign in</h2>
+
+            <div class="has-text-left" *ngIf="appConfig">
+              <div class="field mb-5" *ngFor="let prop of fields">
+                <div class="control">
+                  <app-input
+                    [prop]="prop"
+                    [value]="
+                      appConfig?.production === false
+                        ? defaultUser[prop.propName]
+                        : ''
+                    "
+                    (valueChanged)="patchValue(prop.propName, $event)"
+                  ></app-input>
+                </div>
+              </div>
+
+              <button
+                class="button is-block is-link is-fullwidth mb-3"
+                (click)="submit()"
+                [disabled]="!form.valid"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="column col-decoration">
+          <div class="drawing">
+            <img src="/assets/images/login.svg" alt="login to CASE app" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div
+  class="notification is-warning is-light is-size-5 has-text-centered"
+  *ngIf="appConfig?.production === false"
+>
+  <p>You can use the following credentials to login:</p>
+  <p>
+    <span>Email: </span
+    ><strong class="mr-4 ml-1">{{ defaultUser.email }}</strong>
+    <span>password: </span
+    ><strong class="ml-1">{{ defaultUser.password }}</strong>
+  </p>
+</div>

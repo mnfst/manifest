@@ -1,56 +1,69 @@
-import { Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import * as chalk from 'chalk'
-import * as cliTable from 'cli-table'
-import { join } from 'path'
-import { DataSource } from 'typeorm'
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as chalk from 'chalk';
+import * as cliTable from 'cli-table';
+import { DataSource } from 'typeorm';
 
-import { AppRulesModule } from './app-rules/app-rules.module'
-import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
+import { AppConfigModule } from './app-config/app-config.module';
+import { AuthModule } from './auth/auth.module';
+import configuration from './configuration';
+import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
-const devMode: boolean = process.argv[2] === 'dev'
-
-const databasePath: string = `${process.cwd()}/db/case.sqlite`
-const entityFolder: string = devMode
-  ? 'dist/server/src/entities/*.entity.js'
-  : `${process.cwd()}/entities/*.entity{.ts,.js}`
+const contributionMode: boolean = process.argv[2] === 'contribution'
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: databasePath,
-      entities: [entityFolder],
-      synchronize: true
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: contributionMode
+        ? `${process.cwd()}/src/_contribution-root/.env.contribution`
+        : `${process.cwd()}/.env`
     }),
-    AppRulesModule,
-    DynamicEntityModule
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) =>
+        configService.get('database'),
+      inject: [ConfigService]
+    }),
+    DynamicEntityModule,
+    AuthModule,
+    FileUploadModule,
+    AppConfigModule
   ]
 })
 export class AppModule {
-  constructor(private dataSource: DataSource) {
+  constructor(
+    private dataSource: DataSource,
+    private configService: ConfigService
+  ) {
     if (!process.argv[1].includes('seed')) {
       this.logAppInfo()
     }
   }
 
   logAppInfo() {
+    const port: number = this.configService.get('port')
+    const databaseConfig: any = this.configService.get('database')
+
     const table = new cliTable({
       head: []
     })
 
     table.push(
-      ['client URL', chalk.green('http://localhost:3000')],
-      ['API URL', chalk.green('http://localhost:3000/api')],
-      ['database path', chalk.green(databasePath)],
+      ['client URL', chalk.green(`http://localhost:${port}`)],
+      ['database path', chalk.green(databaseConfig.database)],
       [
         'entities',
         chalk.green(
-          this.dataSource.entityMetadatas.map((entity) => entity.tableName)
+          this.dataSource.entityMetadatas
+            .map((entity) => entity.tableName)
+            .join(', ')
         )
       ],
-      ['entity folder', chalk.green(entityFolder)],
-      ['dev mode', chalk.green(devMode)]
+      ['contribution mode', chalk.green(contributionMode)]
     )
 
     console.log(table.toString())
@@ -58,7 +71,7 @@ export class AppModule {
     console.log(
       chalk.blue(
         '🎉 CASE app successfully started! See it at',
-        chalk.underline.blue('http://localhost:3000')
+        chalk.underline.blue(`http://localhost:${port}`)
       )
     )
   }

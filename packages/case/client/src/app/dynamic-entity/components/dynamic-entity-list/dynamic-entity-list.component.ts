@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, Renderer2 } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
-import { of } from 'rxjs'
+import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
+import { Paginator } from '~shared/interfaces/paginator.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
-import { SettingsService } from '../../../services/settings.service'
-import { DynamicEntityService } from '../../dynamic-entity.service'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
-import { EntityDescription } from '~shared/interfaces/entity-description.interface'
+import { FlashMessageService } from '../../../services/flash-message.service'
+import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
   selector: 'app-dynamic-entity-list',
@@ -15,13 +16,16 @@ import { EntityDescription } from '~shared/interfaces/entity-description.interfa
   styleUrls: ['./dynamic-entity-list.component.scss']
 })
 export class DynamicEntityListComponent implements OnInit {
-  items: any[] = []
+  paginator: Paginator<any>
+  loadingPaginator: boolean
+  itemToDelete: any
 
-  entities: EntityDescription[] = []
-  entity: EntityDescription
+  entityMeta: EntityMeta
 
   props: PropertyDescription[] = []
+  filtrableProps: PropertyDescription[] = []
 
+  queryParams: Params
   PropType = PropType
 
   constructor(
@@ -29,46 +33,93 @@ export class DynamicEntityListComponent implements OnInit {
     private router: Router,
     private dynamicEntityService: DynamicEntityService,
     private breadcrumbService: BreadcrumbService,
-    settingsService: SettingsService
-  ) {
-    settingsService
-      .loadSettings()
-      .subscribe((res: { entities: EntityDescription[] }) => {
-        this.entities = res.entities
+    private flashMessageService: FlashMessageService,
+    private renderer: Renderer2
+  ) {}
+
+  ngOnInit(): void {
+    this.dynamicEntityService
+      .loadEntityMeta()
+      .subscribe((res: EntityMeta[]) => {
+        combineLatest([
+          this.activatedRoute.queryParams,
+          this.activatedRoute.params
+        ]).subscribe(async ([queryParams, params]: Params[]) => {
+          this.queryParams = queryParams
+          delete this.paginator
+
+          this.entityMeta = res.find(
+            (entityMeta: EntityMeta) =>
+              entityMeta.definition.slug === params['entitySlug']
+          )
+
+          if (!this.entityMeta) {
+            this.router.navigate(['/404'])
+          }
+
+          this.props = this.entityMeta.props.filter(
+            (prop) => !prop.options?.isHiddenInList
+          )
+          this.filtrableProps = this.props.filter(
+            (prop) => prop.options?.filter
+          )
+
+          this.breadcrumbService.breadcrumbLinks.next([
+            {
+              label: this.entityMeta.definition.namePlural
+            }
+          ])
+
+          this.loadingPaginator = true
+          this.paginator = await this.dynamicEntityService.list(
+            this.entityMeta.definition.slug,
+            queryParams
+          )
+          this.loadingPaginator = false
+        })
       })
   }
 
-  ngOnInit(): void {
-    of(this.entities).subscribe((res) => {
-      this.activatedRoute.params.subscribe(async (params: Params) => {
-        this.entity = this.entities.find(
-          (entity) => entity.definition.slug === params['entityName']
-        )
+  filter(propName: string, value: string | number): void {
+    const queryParams: Params = { [propName]: value }
 
-        if (!this.entity) {
-          this.router.navigate(['/404'])
-        }
+    if (propName !== 'page') {
+      queryParams['page'] = 1
+    }
 
-        this.props = this.entity.props
-
-        this.breadcrumbService.breadcrumbLinks.next([
-          {
-            label: this.entity.definition.namePlural
-          }
-        ])
-
-        this.items = await this.dynamicEntityService.list(
-          this.entity.definition.slug
-        )
-      })
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+      queryParamsHandling: 'merge'
     })
   }
 
   delete(id: number): void {
     this.dynamicEntityService
-      .delete(this.entity.definition.slug, id)
+      .delete(this.entityMeta.definition.slug, id)
       .then((res) => {
-        this.items = this.items.filter((item: any) => item.id !== id)
+        this.itemToDelete = null
+        this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+        this.flashMessageService.success(
+          `The ${this.entityMeta.definition.nameSingular} has been deleted.`
+        )
+        this.paginator.data = this.paginator.data.filter(
+          (item: any) => item.id !== id
+        )
       })
+  }
+
+  goToDetailPage(id: number): void {
+    this.router.navigate(['/', 'dynamic', this.entityMeta.definition.slug, id])
+  }
+
+  toggleDeleteModal(itemToDelete?: any): void {
+    if (this.itemToDelete) {
+      this.itemToDelete = null
+      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+    } else {
+      this.itemToDelete = itemToDelete
+      this.renderer.addClass(document.querySelector('html'), 'is-clipped')
+    }
   }
 }

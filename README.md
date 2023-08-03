@@ -32,9 +32,7 @@
    npm start
    ```
 
-   Voilà ! Your application is accessible at http://localhost:3000.
-
-   The API is accessible at http://localhost:3000/api.
+   Voilà ! Your application is accessible at http://localhost:4000.
 
 ## Learn more
 

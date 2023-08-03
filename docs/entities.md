@@ -1,8 +1,8 @@
-# Entities
+# Create an entity
 
 An entity is an object often linked to a real world concept like users, customers, videos etc. Entities are the heart of any application, they encapsulate the critical business rules.
 
-## Create an entity
+## Command line
 
 In our example, we will create an app that lists cats. To do that, simply run on the terminal the following command:
 
@@ -13,6 +13,8 @@ npm run case:entity cat
 A new `/entities/cat.entity.ts` file was created with the following content:
 
 ```js
+import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+
 @Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
@@ -21,12 +23,14 @@ A new `/entities/cat.entity.ts` file was created with the following content:
 })
 export class Cat extends CaseEntity {
   @Prop({
-    label: 'Name of the cat',
-    seed: (index) => `cat ${index}`
+    type: PropType.Text
   })
   name: string
 }
 ```
+
+> [!WARNING]
+> This command will not work on Windows. If you are a Windows user you can just copy paste the following code in `/entities/cat.entity.ts`.
 
 By default the entity has a single property called "name". You can already seed dummy data running this command:
 
@@ -34,7 +38,7 @@ By default the entity has a single property called "name". You can already seed 
 npm run seed
 ```
 
-## Entity definition params
+## Entity params
 
 You can pass different arguments to the `@Entity()` decorator to configure your entities.
 

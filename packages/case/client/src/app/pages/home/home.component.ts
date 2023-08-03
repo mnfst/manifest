@@ -1,7 +1,9 @@
-import { Component } from '@angular/core'
-import { SettingsService } from 'src/app/services/settings.service'
+import { Component, OnInit } from '@angular/core'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
-import { AppSettings } from '../../../../../shared/interfaces/app-settings.interface'
+import { AppConfig } from '../../../../../shared/interfaces/app-config.interface'
+import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
+import { AppConfigService } from '../../services/app-config.service'
 import { BreadcrumbService } from '../../services/breadcrumb.service'
 
 @Component({
@@ -9,22 +11,24 @@ import { BreadcrumbService } from '../../services/breadcrumb.service'
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
-  settings: AppSettings
-  isAppBlank: boolean
+export class HomeComponent implements OnInit {
+  entityMetas: EntityMeta[]
+  appConfig: AppConfig
 
   constructor(
-    settingsService: SettingsService,
+    private appConfigService: AppConfigService,
+    dynamicEntityService: DynamicEntityService,
     breadcrumbService: BreadcrumbService
   ) {
-    settingsService.loadSettings().subscribe((res) => {
-      this.settings = res.settings
-      this.isAppBlank = res.entities.length === 0
+    dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
+      this.entityMetas = res
     })
-    breadcrumbService.breadcrumbLinks.next([
-      {
-        label: 'Home'
-      }
-    ])
+    breadcrumbService.breadcrumbLinks.next([])
+  }
+
+  ngOnInit(): void {
+    this.appConfigService.appConfig.subscribe((res: AppConfig) => {
+      this.appConfig = res
+    })
   }
 }

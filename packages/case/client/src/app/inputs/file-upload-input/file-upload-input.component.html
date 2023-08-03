@@ -1,0 +1,47 @@
+<div class="control">
+  <label for="file-input">
+    {{ prop.label }}
+  </label>
+
+  <div *ngIf="!filePath">
+    <div class="file is-fullwidth" [ngClass]="{ 'is-invalid': !filePath }">
+      <label class="file-label">
+        <input
+          id="file-input"
+          class="file-input is-fullwidth"
+          type="file"
+          [accept]="options.accept"
+          #fileInput
+          [placeholder]="prop.label"
+          (change)="fileInputEvent($event)"
+        />
+        <span class="file-cta is-fullwidth" *ngIf="!loading">
+          <span class="file-icon">
+            <i class="icon icon-file-plus is-size-5"></i>
+          </span>
+          <span class="file-label">
+            Click to upload a file for {{ prop.label }}...
+          </span>
+        </span>
+        <button class="button is-link is-loading" *ngIf="loading">
+          Loading
+        </button>
+      </label>
+    </div>
+  </div>
+
+  <!-- Uploaded file -->
+  <div
+    *ngIf="filePath"
+    class="has-current-file is-flex is-justify-content-space-between is-align-items-center has-background-white-ter pl-2"
+  >
+    <a [href]="storagePath + filePath" target="_blank">
+      {{ filePath }}
+    </a>
+    <span class="file-cta file-remove">
+      <a (click)="removeFile()">
+        <i class="icon icon-x is-size-5"></i>
+      </a>
+    </span>
+  </div>
+</div>

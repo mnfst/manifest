@@ -1,8 +1,9 @@
 import { Component } from '@angular/core'
-import { BreadcrumbLink } from '../../interfaces/breadcrumb-link.interface'
-import { BreadcrumbService } from '../../services/breadcrumb.service'
 import { Title } from '@angular/platform-browser'
+
+import { BreadcrumbLink } from '../../interfaces/breadcrumb-link.interface'
 import { CapitalizeFirstLetterPipe } from '../../pipes/capitalize-first-letter.pipe'
+import { BreadcrumbService } from '../../services/breadcrumb.service'
 
 @Component({
   selector: 'app-top-menu',
@@ -11,10 +12,10 @@ import { CapitalizeFirstLetterPipe } from '../../pipes/capitalize-first-letter.p
 })
 export class TopMenuComponent {
   breadcrumbLinks: BreadcrumbLink[]
+  showUserMenu = false
 
   constructor(
     private breadcrumbService: BreadcrumbService,
-    private capitalizeFirstLetterPipe: CapitalizeFirstLetterPipe,
     private title: Title
   ) {}
 
@@ -29,7 +30,7 @@ export class TopMenuComponent {
               this.breadcrumbLinks[this.breadcrumbLinks.length - 1]
 
             this.title.setTitle(
-              this.capitalizeFirstLetterPipe.transform(currentLink.label)
+              new CapitalizeFirstLetterPipe().transform(currentLink.label)
             )
           }
         }, 0)
