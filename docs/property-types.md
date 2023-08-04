@@ -21,14 +21,31 @@ Each **PropType** corresponds to a set a different logic, display, format and op
 
 A simple text field.
 
-%% TODO: Code + input image + yield image
-
 ```js
   @Prop({
     type: PropType.Text
   })
   name: string
 ```
+
+<div class="is-hidden-tablet">
+  <div class="is-flex is-justify-content-center is-align-items-center">
+    <div class="field">
+      <h5>Generated field</h5>
+    </div>
+    <div class="yield">
+      <h5>Generated yield</h5>
+    </div>
+  </div>
+  <img src="../assets/images/prop-text.png">
+</div>
+
+<div class="is-hidden-desktop"> 
+    <h5>Generated field</h5>
+    <img src="../assets/images/field-text.png">
+    <h5>Generated yield</h5>
+    <img src="../assets/images/yield-text.png">
+</div>
 
 #### <a name="number"></a>Number
 
