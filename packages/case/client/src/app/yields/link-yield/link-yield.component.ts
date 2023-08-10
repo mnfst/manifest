@@ -6,7 +6,11 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
   selector: 'app-link-yield',
   standalone: true,
   imports: [NgIf, TruncatePipe],
-  template: ` <a [href]="value" target="_blank">
+  template: ` <a
+      [href]="value"
+      target="_blank"
+      class="is-inline-flex is-align-items-center"
+    >
       <i class="icon icon-external-link mr-1"></i>
       <span *ngIf="compact">{{ value | truncate : 44 }}</span>
       <span *ngIf="!compact">{{ value }}</span>

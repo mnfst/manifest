@@ -68,6 +68,8 @@ Choose from any currency.
   </div>
 </div>
 
+##### Parameters
+
 | Option       | Default | Type   | Description                                                                                      |
 | ------------ | ------- | ------ | ------------------------------------------------------------------------------------------------ |
 | **currency** | _USD_   | string | [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) |
@@ -304,7 +306,7 @@ export enum ProjectStatus {
   </div>
 </div>
 
-| Option      | Default | Type                      | Description                                                                                                    |
-| ----------- | ------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **enum**    | -       | enum                      | [String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) with the available options |
-| **display** | 'label' | 'label' \| 'progress-bar' | Enum props can be represented either by a label or by a progress bar if the enum follows a logic order.        |
+| Option      | Default | Type                          | Description                                                                                                    |
+| ----------- | ------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **enum**    | -       | enum                          | [String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) with the available options |
+| **display** | 'label' | 'label' &#124; 'progress-bar' | Enum props can be represented either by a label or by a progress bar if the enum follows a logic order.        |
