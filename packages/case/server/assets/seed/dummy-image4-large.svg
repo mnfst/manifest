@@ -1,0 +1,20 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_906_711)">
+<mask id="mask0_906_711" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="400">
+<path d="M400 0H0V400H400V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_906_711)">
+<path d="M400 0H0V400H400V0Z" fill="#F9F54B"/>
+<path d="M161.545 290.968C185.437 336.089 233.631 313.412 241.119 284.449" stroke="#39393C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M179.124 237.843C164.968 210.531 135.813 223.939 131.148 241.348" stroke="#39393C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M264.369 237.843C250.214 210.531 221.058 223.939 216.393 241.348" stroke="#39393C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M331.147 327.869C349.255 327.869 363.934 313.19 363.934 295.082C363.934 276.974 349.255 262.295 331.147 262.295C313.04 262.295 298.361 276.974 298.361 295.082C298.361 313.19 313.04 327.869 331.147 327.869Z" fill="#A084E8"/>
+<path d="M68.8524 331.147C86.9601 331.147 101.639 316.468 101.639 298.361C101.639 280.253 86.9601 265.574 68.8524 265.574C50.7447 265.574 36.0656 280.253 36.0656 298.361C36.0656 316.468 50.7447 331.147 68.8524 331.147Z" fill="#A084E8"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_906_711">
+<rect width="400" height="400" fill="white"/>
+</clipPath>
+</defs>
+</svg>

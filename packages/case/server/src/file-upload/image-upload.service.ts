@@ -67,12 +67,12 @@ export class ImageUploadService {
 
     mkdirp.sync(folder)
     fs.copyFileSync(
-      this.packageRoot + '/assets/seed/dummy-image-thumbnail.jpg',
-      folder + '/dummy-image-thumbnail.jpg'
+      this.packageRoot + '/assets/seed/dummy-image-thumbnail.svg',
+      folder + '/dummy-image-thumbnail.svg'
     )
     fs.copyFileSync(
-      this.packageRoot + '/assets/seed/dummy-image-large.jpg',
-      folder + '/dummy-image-large.jpg'
+      this.packageRoot + '/assets/seed/dummy-image-large.svg',
+      folder + '/dummy-image-large.svg'
     )
   }
 }
