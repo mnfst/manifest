@@ -75,6 +75,7 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     <app-file-yield
       *ngIf="type === PropType.File"
       [value]="value"
+      [compact]="compact"
     ></app-file-yield>
     <app-image-yield
       *ngIf="type === PropType.Image"
