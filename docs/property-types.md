@@ -4,6 +4,8 @@ CASE works with it's own set of types that corresponds to different types of dat
 
 Each **PropType** corresponds to a set a different logic, display, format and options.
 
+---
+
 #### Text
 
 A simple text field.
@@ -23,6 +25,8 @@ A simple text field.
       <img src="../assets/images/display-text.svg">
   </div>
 </div>
+
+---
 
 #### Number
 
@@ -44,6 +48,8 @@ A numerical value.
   </div>
 </div>
 
+---
+
 #### Link
 
 An URL that links to an external page.
@@ -54,6 +60,17 @@ An URL that links to an external page.
   })
   website: string
 ```
+
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-link.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-link.svg">
+      <img src="../assets/images/display-link.svg">
+  </div>
+</div>
+
+---
 
 #### Currency
 
@@ -85,6 +102,8 @@ Choose from any currency.
 | ------------ | ------- | ------ | ------------------------------------------------------------------------------------------------ |
 | **currency** | _USD_   | string | [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) |
 
+---
+
 #### Date
 
 Basic date field.
@@ -104,6 +123,8 @@ Basic date field.
       <img src="../assets/images/display-date.svg">
   </div>
 </div>
+
+---
 
 #### Textarea
 
@@ -125,6 +146,8 @@ Textarea field for medium size texts.
   </div>
 </div>
 
+---
+
 #### Email
 
 Classic email input.
@@ -144,6 +167,8 @@ Classic email input.
       <img src="../assets/images/display-email.svg">
   </div>
 </div>
+
+---
 
 #### Boolean
 
@@ -165,6 +190,8 @@ For any field with a "true or false" value.
       <img src="../assets/images/display-boolean.svg">
   </div>
 </div>
+
+---
 
 #### Relation
 
@@ -205,6 +232,8 @@ owner: Owner
 | ---------- | ------- | ------ | ------------------------------ |
 | **entity** | -       | string | The Entity class of the parent |
 
+---
+
 #### Password
 
 Hidden password field.
@@ -221,6 +250,8 @@ Hidden password field.
 > [!ATTENTION]
 > You should never ever store a password on clear text.
 > You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
+
+---
 
 #### File
 
@@ -246,6 +277,8 @@ File upload input.
 | ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
 
+---
+
 #### Image
 
 Same as file but for images.
@@ -265,6 +298,8 @@ Same as file but for images.
       <img src="../assets/images/display-image.svg">
   </div>
 </div>
+
+---
 
 #### Enum
 
@@ -295,7 +330,7 @@ export enum ProjectStatus {
 }
 ```
 
-##### display: 'label'
+##### Display: 'label'
 
 <div class="show-result">
   <img class="is-hidden-tablet" src="../assets/images/prop-enum-label.svg">
@@ -306,7 +341,7 @@ export enum ProjectStatus {
   </div>
 </div>
 
-##### display: 'progress-bar'
+##### Display: 'progress-bar'
 
 <div class="show-result">
   <img class="is-hidden-tablet" src="../assets/images/prop-enum-pb.svg">
@@ -316,6 +351,8 @@ export enum ProjectStatus {
       <img src="../assets/images/display-enum-pb.svg">
   </div>
 </div>
+
+##### Parameters
 
 | Option      | Default | Type                          | Description                                                                                                    |
 | ----------- | ------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
