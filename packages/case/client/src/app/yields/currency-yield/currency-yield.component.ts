@@ -1,11 +1,11 @@
-import { CommonModule } from '@angular/common'
+import { CurrencyPipe, NgIf } from '@angular/common'
 import { Component, Input } from '@angular/core'
 import { CurrencyOptions } from '~shared/interfaces/property-options/currency-options.interface'
 
 @Component({
   selector: 'app-currency-yield',
   standalone: true,
-  imports: [CommonModule],
+  imports: [NgIf, CurrencyPipe],
   template: `<span class="is-nowrap" *ngIf="value">
       {{ value | currency : options.currency }}</span
     >

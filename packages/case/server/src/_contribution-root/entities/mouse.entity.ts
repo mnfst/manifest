@@ -35,11 +35,21 @@ export class Mouse extends CaseEntity {
   image: string
 
   @Prop({
-    label: 'Predator',
+    label: 'Choose a Predator',
     type: PropType.Relation,
     options: {
       entity: Cat
     }
   })
   predator: Cat
+
+  @Prop({
+    type: PropType.Password
+  })
+  password: string
+
+  @Prop({
+    type: PropType.Textarea
+  })
+  description: string
 }

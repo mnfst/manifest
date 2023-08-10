@@ -1,3 +1,4 @@
+import { type } from 'os'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -17,8 +18,14 @@ export class Owner extends CaseEntity {
   @Prop({
     type: PropType.Currency,
     options: {
-      currency: 'TBH'
+      currency: 'EUR'
     }
   })
   wealth: number
+
+  @Prop({
+    label: 'Is the user active ?',
+    type: PropType.Boolean
+  })
+  isActive: boolean
 }

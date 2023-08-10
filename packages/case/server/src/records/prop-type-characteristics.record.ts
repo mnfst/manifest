@@ -21,6 +21,10 @@ export const propTypeCharacteristicsRecord: Record<
     columnType: 'decimal',
     defaultSeedFunction: () => faker.number.int({ max: 50 })
   },
+  [PropType.Link]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => 'https://case.app'
+  },
   [PropType.Relation]: {
     columnType: 'int',
     defaultSeedFunction: (_index: number, relationSeedCount: number) =>
@@ -56,7 +60,8 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Image]: {
     columnType: 'varchar',
-    defaultSeedFunction: () => '/dummy/dummy-image'
+    defaultSeedFunction: () =>
+      `/dummy/dummy-image${faker.number.int({ min: 1, max: 5 })}`
   },
   [PropType.Enum]: {
     columnType: 'simple-enum',

@@ -9,6 +9,7 @@ enum Status {
   identified = 'Identified',
   vaccinated = 'Vaccinated',
   sterilized = 'Sterilized',
+  fifth = 'Fifth',
   adopted = 'Adopted'
 }
 
@@ -69,4 +70,9 @@ export class Cat extends CaseEntity {
     }
   })
   status: Status
+
+  @Prop({
+    type: PropType.Link
+  })
+  link: string
 }

@@ -43,15 +43,16 @@ You can pass arguments to the `@Prop()` decorator:
 | **seed**    | _type seed function_ | function | The [custom seeder function](dummy-data.md#custom-seeder-functions) |
 | **options** | {}                   | Object   | [Property options](#options)                                        |
 
-## <a name="options"></a>Options
+## Options
 
 Some types have a specific set of options. Nevertheless, the following options are applicable to all properties in the `options` object parameter.
 
-| Option               | Default | Type    | Description                                                                                 |
-| -------------------- | ------- | ------- | ------------------------------------------------------------------------------------------- |
-| **filter**           | `false` | boolean | Adds a filter in lists (currently only for [Relation PropType](property-types.md#relation)) |
-| **isHiddenInList**   | `false` | boolean | Hides the column in the list.                                                               |
-| **isHiddenInDetail** | `false` | boolean | Hides this property in the detail view.                                                     |
+| Option                   | Default | Type    | Description                                                                                 |
+| ------------------------ | ------- | ------- | ------------------------------------------------------------------------------------------- |
+| **filter**               | `false` | boolean | Adds a filter in lists (currently only for [Relation PropType](property-types.md#relation)) |
+| **isHiddenInList**       | `false` | boolean | Hides the column in the list                                                                |
+| **isHiddenInDetail**     | `false` | boolean | Hides this property in the detail view                                                      |
+| **isHiddenInCreateEdit** | `false` | boolean | Hides this property input in create and edit views                                          |
 
 Example:
 

@@ -16,4 +16,9 @@ export interface PropertyOptions {
    * Hides this property in the detail view.
    */
   isHiddenInDetail?: boolean
+
+  /**
+   * Hides this property in the create and edit views.
+   */
+  isHiddenInCreateEdit?: boolean
 }
