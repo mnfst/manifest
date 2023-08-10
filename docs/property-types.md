@@ -44,6 +44,17 @@ A numerical value.
   </div>
 </div>
 
+#### Link
+
+An URL that links to an external page.
+
+```js
+  @Prop({
+    type: PropType.Link
+  })
+  website: string
+```
+
 #### Currency
 
 Choose from any currency.
