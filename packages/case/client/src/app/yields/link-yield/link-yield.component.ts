@@ -10,6 +10,7 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
       [href]="value"
       target="_blank"
       class="is-inline-flex is-align-items-center"
+      *ngIf="value"
     >
       <i class="icon icon-external-link mr-1"></i>
       <span *ngIf="compact">{{ value | truncate : 44 }}</span>
