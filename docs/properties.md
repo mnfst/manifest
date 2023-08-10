@@ -43,7 +43,7 @@ You can pass arguments to the `@Prop()` decorator:
 | **seed**    | _type seed function_ | function | The [custom seeder function](dummy-data.md#custom-seeder-functions) |
 | **options** | {}                   | Object   | [Property options](#options)                                        |
 
-## <a name="options"></a>Options
+## Options
 
 Some types have a specific set of options. Nevertheless, the following options are applicable to all properties in the `options` object parameter.
 

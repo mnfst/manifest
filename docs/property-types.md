@@ -4,20 +4,7 @@ CASE works with it's own set of types that corresponds to different types of dat
 
 Each **PropType** corresponds to a set a different logic, display, format and options.
 
-- [Text](#text)
-- [Number](#number)
-- [Currency](#currency)
-- [Date](#date)
-- [Textarea](#textarea)
-- [Email](#email)
-- [Boolean](#boolean)
-- [Relation](#relation)
-- [Password](#password)
-- [File](#file)
-- [Image](#image)
-- [Enum](#enum)
-
-#### <a name="text"></a>Text
+#### Text
 
 A simple text field.
 
@@ -37,7 +24,7 @@ A simple text field.
   </div>
 </div>
 
-#### <a name="number"></a>Number
+#### Number
 
 A numerical value.
 
@@ -57,7 +44,7 @@ A numerical value.
   </div>
 </div>
 
-#### <a name="currency"></a>Currency
+#### Currency
 
 Choose from any currency.
 
@@ -85,7 +72,7 @@ Choose from any currency.
 | ------------ | ------- | ------ | ------------------------------------------------------------------------------------------------ |
 | **currency** | _USD_   | string | [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) |
 
-#### <a name="date"></a>Date
+#### Date
 
 Basic date field.
 
@@ -105,7 +92,7 @@ Basic date field.
   </div>
 </div>
 
-#### <a name="textarea"></a>Textarea
+#### Textarea
 
 Textarea field for medium size texts.
 
@@ -125,7 +112,7 @@ Textarea field for medium size texts.
   </div>
 </div>
 
-#### <a name="email"></a>Email
+#### Email
 
 Classic email input.
 
@@ -145,7 +132,7 @@ Classic email input.
   </div>
 </div>
 
-#### <a name="boolean"></a>Boolean
+#### Boolean
 
 For any field with a "true or false" value.
 
@@ -166,7 +153,7 @@ For any field with a "true or false" value.
   </div>
 </div>
 
-#### <a name="relation"></a>Relation
+#### Relation
 
 A relationship with another entity.
 
@@ -205,7 +192,7 @@ owner: Owner
 | ---------- | ------- | ------ | ------------------------------ |
 | **entity** | -       | string | The Entity class of the parent |
 
-#### <a name="password"></a>Password
+#### Password
 
 Hidden password field.
 
@@ -222,7 +209,7 @@ Hidden password field.
 > You should never ever store a password on clear text.
 > You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
 
-#### <a name="file"></a>File
+#### File
 
 File upload input.
 
@@ -246,7 +233,7 @@ File upload input.
 | ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
 
-#### <a name="image"></a>Image
+#### Image
 
 Same as file but for images.
 
@@ -266,7 +253,7 @@ Same as file but for images.
   </div>
 </div>
 
-#### <a name="enum"></a>Enum
+#### Enum
 
 The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
 

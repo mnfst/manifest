@@ -29,6 +29,11 @@ export class User extends CaseEntity {
   email: string
 
   @Prop({
+    type: PropType.Image
+  })
+  image: string
+
+  @Prop({
     type: PropType.Password,
     options: {
       isHiddenInList: true,
