@@ -295,7 +295,7 @@ export enum ProjectStatus {
 }
 ```
 
-`display: 'label'`
+##### display: 'label'
 
 <div class="show-result">
   <img class="is-hidden-tablet" src="../assets/images/prop-enum-label.svg">
@@ -306,7 +306,7 @@ export enum ProjectStatus {
   </div>
 </div>
 
-`display: 'progress-bar'`
+##### display: 'progress-bar'
 
 <div class="show-result">
   <img class="is-hidden-tablet" src="../assets/images/prop-enum-pb.svg">
