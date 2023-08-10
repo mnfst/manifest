@@ -6,7 +6,7 @@ Each **PropType** corresponds to a set a different logic, display, format and op
 
 ---
 
-#### Text
+### Text
 
 A simple text field.
 
@@ -28,7 +28,7 @@ A simple text field.
 
 ---
 
-#### Number
+### Number
 
 A numerical value.
 
@@ -50,7 +50,7 @@ A numerical value.
 
 ---
 
-#### Link
+### Link
 
 An URL that links to an external page.
 
@@ -72,7 +72,7 @@ An URL that links to an external page.
 
 ---
 
-#### Currency
+### Currency
 
 Choose from any currency.
 
@@ -104,7 +104,7 @@ Choose from any currency.
 
 ---
 
-#### Date
+### Date
 
 Basic date field.
 
@@ -126,7 +126,7 @@ Basic date field.
 
 ---
 
-#### Textarea
+### Textarea
 
 Textarea field for medium size texts.
 
@@ -148,7 +148,7 @@ Textarea field for medium size texts.
 
 ---
 
-#### Email
+### Email
 
 Classic email input.
 
@@ -170,7 +170,7 @@ Classic email input.
 
 ---
 
-#### Boolean
+### Boolean
 
 For any field with a "true or false" value.
 
@@ -193,7 +193,7 @@ For any field with a "true or false" value.
 
 ---
 
-#### Relation
+### Relation
 
 A relationship with another entity.
 
@@ -234,7 +234,7 @@ owner: Owner
 
 ---
 
-#### Password
+### Password
 
 Hidden password field.
 
@@ -253,7 +253,7 @@ Hidden password field.
 
 ---
 
-#### File
+### File
 
 File upload input.
 
@@ -279,7 +279,7 @@ File upload input.
 
 ---
 
-#### Image
+### Image
 
 Same as file but for images.
 
@@ -301,7 +301,7 @@ Same as file but for images.
 
 ---
 
-#### Enum
+### Enum
 
 The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
 
