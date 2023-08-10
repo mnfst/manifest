@@ -12,13 +12,13 @@ import { environment } from '../../../environments/environment'
         [src]="
           storagePath + value + (compact ? '-thumbnail.jpg' : '-large.jpg')
         "
-        [ngClass]="{ 'is-rounded': compact }"
+        [ngClass]="{ 'is-rounded': compact, 'is-large': !compact }"
         *ngIf="value"
       />
       <img
         *ngIf="!value"
         src="/assets/images/image-default.svg"
-        [ngClass]="{ 'is-rounded': compact }"
+        [ngClass]="{ 'is-rounded': compact, 'is-large': !compact }"
       />
     </figure>
   `,

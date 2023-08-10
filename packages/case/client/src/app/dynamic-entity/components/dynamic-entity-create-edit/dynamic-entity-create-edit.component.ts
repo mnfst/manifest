@@ -5,6 +5,7 @@ import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
+import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -17,6 +18,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 export class DynamicEntityCreateEditComponent {
   item: any
   entityMeta: EntityMeta
+  props: PropertyDescription[]
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
@@ -53,6 +55,10 @@ export class DynamicEntityCreateEditComponent {
           if (!this.entityMeta) {
             this.router.navigate(['/404'])
           }
+
+          this.props = this.entityMeta.props.filter(
+            (prop) => !prop.options.isHiddenInCreateEdit
+          )
 
           if (this.edit) {
             this.item = await this.dynamicEntityService.show(

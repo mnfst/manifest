@@ -115,7 +115,7 @@ export class DynamicEntitySeeder {
     }
 
     if (addDummyImage) {
-      this.imageUploadService.addDummyImage()
+      this.imageUploadService.addDummyImages()
     }
   }
 

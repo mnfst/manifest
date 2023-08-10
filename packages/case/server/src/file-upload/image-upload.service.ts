@@ -62,17 +62,20 @@ export class ImageUploadService {
   /**
    * Adds a dummy image to the storage system.
    */
-  addDummyImage(): void {
+  addDummyImages(): void {
     const folder: string = `${this.storagePath}/dummy`
 
     mkdirp.sync(folder)
-    fs.copyFileSync(
-      this.packageRoot + '/assets/seed/dummy-image-thumbnail.jpg',
-      folder + '/dummy-image-thumbnail.jpg'
-    )
-    fs.copyFileSync(
-      this.packageRoot + '/assets/seed/dummy-image-large.jpg',
-      folder + '/dummy-image-large.jpg'
-    )
+
+    for (let i = 1; i <= 5; i++) {
+      fs.copyFileSync(
+        this.packageRoot + `/assets/seed/dummy-image${i}-thumbnail.jpg`,
+        folder + `/dummy-image${i}-thumbnail.jpg`
+      )
+      fs.copyFileSync(
+        this.packageRoot + `/assets/seed/dummy-image${i}-large.jpg`,
+        folder + `/dummy-image${i}-large.jpg`
+      )
+    }
   }
 }

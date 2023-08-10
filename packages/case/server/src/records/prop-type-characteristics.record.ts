@@ -60,7 +60,8 @@ export const propTypeCharacteristicsRecord: Record<
   },
   [PropType.Image]: {
     columnType: 'varchar',
-    defaultSeedFunction: () => '/dummy/dummy-image'
+    defaultSeedFunction: () =>
+      `/dummy/dummy-image${faker.number.int({ min: 1, max: 5 })}`
   },
   [PropType.Enum]: {
     columnType: 'simple-enum',
