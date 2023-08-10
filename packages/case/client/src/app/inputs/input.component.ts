@@ -15,6 +15,7 @@ import { PasswordInputComponent } from './password-input/password-input.componen
 import { SelectInputComponent } from './select-input/select-input.component'
 import { TextInputComponent } from './text-input/text-input.component'
 import { TextareaInputComponent } from './textarea-input/textarea-input.component'
+import { UrlInputComponent } from './url-input/url-input.component'
 
 @Component({
   selector: 'app-input',
@@ -25,6 +26,7 @@ import { TextareaInputComponent } from './textarea-input/textarea-input.componen
     CurrencyInputComponent,
     DateInputComponent,
     EmailInputComponent,
+    UrlInputComponent,
     MultiSelectInputComponent,
     NumberInputComponent,
     PasswordInputComponent,
@@ -47,6 +49,12 @@ import { TextareaInputComponent } from './textarea-input/textarea-input.componen
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Text"
     ></app-text-input>
+    <app-url-input
+      [prop]="prop"
+      [value]="value"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Link"
+    ></app-url-input>
     <app-textarea-input
       [prop]="prop"
       [value]="value"

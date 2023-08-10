@@ -12,6 +12,7 @@
       <div class="right-part">
         <button
           class="button is-link is-hidden-touch"
+          [ngClass]="{ 'is-loading': loading }"
           type="submit"
           (click)="submit()"
         >
@@ -19,6 +20,7 @@
         </button>
         <button
           class="button is-link is-hidden-desktop is-circle"
+          [ngClass]="{ 'is-loading': loading }"
           type="submit"
           (click)="submit()"
         >
@@ -34,10 +36,7 @@
             class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
           >
             <div class="form-group">
-              <div
-                class="field mt-2 mb-4"
-                *ngFor="let prop of entityMeta.props"
-              >
+              <div class="field mt-2 mb-4" *ngFor="let prop of props">
                 <div class="control">
                   <app-input
                     [prop]="prop"

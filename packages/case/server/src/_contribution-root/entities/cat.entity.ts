@@ -70,4 +70,9 @@ export class Cat extends CaseEntity {
     }
   })
   status: Status
+
+  @Prop({
+    type: PropType.Link
+  })
+  link: string
 }

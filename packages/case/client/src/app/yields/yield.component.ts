@@ -11,6 +11,7 @@ import { EmailYieldComponent } from './email-yield/email-yield.component'
 import { FileYieldComponent } from './file-yield/file-yield.component'
 import { ImageYieldComponent } from './image-yield/image-yield.component'
 import { LabelYieldComponent } from './label-yield/label-yield.component'
+import { LinkYieldComponent } from './link-yield/link-yield.component'
 import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
 import { RelationYieldComponent } from './relation-yield/relation-yield.component'
@@ -26,6 +27,7 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     DateYieldComponent,
     EmailYieldComponent,
     NumberYieldComponent,
+    LinkYieldComponent,
     RelationYieldComponent,
     TextYieldComponent,
     FileYieldComponent,
@@ -43,6 +45,11 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
       *ngIf="type === PropType.Number"
       [value]="value"
     ></app-number-yield>
+    <app-link-yield
+      *ngIf="type === PropType.Link"
+      [value]="value"
+      [compact]="compact"
+    ></app-link-yield>
     <app-relation-yield
       *ngIf="type === PropType.Relation"
       [item]="value"
@@ -68,6 +75,7 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     <app-file-yield
       *ngIf="type === PropType.File"
       [value]="value"
+      [compact]="compact"
     ></app-file-yield>
     <app-image-yield
       *ngIf="type === PropType.Image"
