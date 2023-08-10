@@ -21,6 +21,10 @@ export const propTypeCharacteristicsRecord: Record<
     columnType: 'decimal',
     defaultSeedFunction: () => faker.number.int({ max: 50 })
   },
+  [PropType.Link]: {
+    columnType: 'varchar',
+    defaultSeedFunction: () => 'https://case.app'
+  },
   [PropType.Relation]: {
     columnType: 'int',
     defaultSeedFunction: (_index: number, relationSeedCount: number) =>

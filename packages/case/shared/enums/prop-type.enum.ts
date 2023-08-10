@@ -1,6 +1,7 @@
 export enum PropType {
   Text,
   Number,
+  Link,
   Currency,
   Date,
   Textarea,
