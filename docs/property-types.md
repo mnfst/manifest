@@ -4,24 +4,9 @@ CASE works with it's own set of types that corresponds to different types of dat
 
 Each **PropType** corresponds to a set a different logic, display, format and options.
 
-- [Text](#text)
-- [Number](#number)
-- [Currency](#currency)
-- [Date](#date)
-- [Textarea](#textarea)
-- [Email](#email)
-- [Boolean](#boolean)
-- [Relation](#relation)
-- [Password](#password)
-- [File](#file)
-- [Image](#image)
-- [Enum](#enum)
-
-#### <a name="text"></a>Text
+#### Text
 
 A simple text field.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -30,11 +15,18 @@ A simple text field.
   name: string
 ```
 
-#### <a name="number"></a>Number
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-text.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-text.svg">
+      <img src="../assets/images/display-text.svg">
+  </div>
+</div>
+
+#### Number
 
 A numerical value.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -43,11 +35,18 @@ A numerical value.
   memberCount: number
 ```
 
-#### <a name="currency"></a>Currency
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-number.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-number.svg">
+      <img src="../assets/images/display-number.svg">
+  </div>
+</div>
+
+#### Currency
 
 Choose from any currency.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -60,15 +59,22 @@ Choose from any currency.
 
 ```
 
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-currency.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-currency.svg">
+      <img src="../assets/images/display-currency.svg">
+  </div>
+</div>
+
 | Option       | Default | Type   | Description                                                                                      |
 | ------------ | ------- | ------ | ------------------------------------------------------------------------------------------------ |
 | **currency** | _USD_   | string | [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) |
 
-#### <a name="date"></a>Date
+#### Date
 
 Basic date field.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -77,11 +83,18 @@ Basic date field.
   date: Date
 ```
 
-#### <a name="textarea"></a>Textarea
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-date.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-date.svg">
+      <img src="../assets/images/display-date.svg">
+  </div>
+</div>
+
+#### Textarea
 
 Textarea field for medium size texts.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -90,11 +103,18 @@ Textarea field for medium size texts.
   description: string
 ```
 
-#### <a name="email"></a>Email
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-textarea.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-textarea.svg">
+      <img src="../assets/images/display-textarea.svg">
+  </div>
+</div>
+
+#### Email
 
 Classic email input.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -103,25 +123,39 @@ Classic email input.
   email: string
 ```
 
-#### <a name="boolean"></a>Boolean
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-email.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-email.svg">
+      <img src="../assets/images/display-email.svg">
+  </div>
+</div>
+
+#### Boolean
 
 For any field with a "true or false" value.
 
-%% TODO: Code + input image + yield image
-
 ```js
   @Prop({
-    label: 'Is the user active ?'
+    label: 'Is the user active ?',
     type: PropType.Boolean,
   })
   isActive: boolean
 ```
 
-#### <a name="relation"></a>Relation
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-boolean.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-boolean.svg">
+      <img src="../assets/images/display-boolean.svg">
+  </div>
+</div>
+
+#### Relation
 
 A relationship with another entity.
-
-%% TODO: Code + input image + yield image
 
 For the Relation type, you just need to pass the related entity class to the `options.entity` param like so:
 
@@ -136,20 +170,31 @@ For the Relation type, you just need to pass the related entity class to the `op
 owner: Owner
 ```
 
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-relation.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-relation.svg">
+      <img src="../assets/images/display-relation.svg">
+  </div>
+</div>
+
+<br>
+
 > [!NOTE]
 >
 > - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
 > - We use **cascade delete**: if you delete the _Owner_ record, it will also delete all his or her _Cat_ records
 
+<br>
+
 | Option     | Default | Type   | Description                    |
 | ---------- | ------- | ------ | ------------------------------ |
 | **entity** | -       | string | The Entity class of the parent |
 
-#### <a name="password"></a>Password
+#### Password
 
 Hidden password field.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -158,15 +203,15 @@ Hidden password field.
   password: string
 ```
 
+<img  src="../assets/images/prop-pw.svg">
+
 > [!ATTENTION]
 > You should never ever store a password on clear text.
 > You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
 
-#### <a name="file"></a>File
+#### File
 
 File upload input.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -175,15 +220,22 @@ File upload input.
   certificate: string
 ```
 
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-file.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-file.svg">
+      <img src="../assets/images/display-file.svg">
+  </div>
+</div>
+
 | Option      | Default | Type   | Description                                                                                                                   |
 | ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
 
-#### <a name="image"></a>Image
+#### Image
 
 Same as file but for images.
-
-%% TODO: Code + input image + yield image
 
 ```js
   @Prop({
@@ -192,11 +244,18 @@ Same as file but for images.
   image: string
 ```
 
-#### <a name="enum"></a>Enum
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-image.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-image.svg">
+      <img src="../assets/images/display-image.svg">
+  </div>
+</div>
+
+#### Enum
 
 The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
-
-%% TODO: Code + input image + yield image
 
 ```js
   import { ProjectStatus } from '../enums/project-status.enum.ts'
@@ -222,6 +281,28 @@ export enum ProjectStatus {
   Archived = 'Archived',
 }
 ```
+
+`display: 'label'`
+
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-enum-label.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-enum-label.svg">
+      <img src="../assets/images/display-enum-label.svg">
+  </div>
+</div>
+
+`display: 'progress-bar'`
+
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-enum-pb.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-enum-pb.svg">
+      <img src="../assets/images/display-enum-pb.svg">
+  </div>
+</div>
 
 | Option      | Default | Type                      | Description                                                                                                    |
 | ----------- | ------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |

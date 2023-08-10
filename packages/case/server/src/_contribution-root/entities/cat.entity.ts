@@ -9,6 +9,7 @@ enum Status {
   identified = 'Identified',
   vaccinated = 'Vaccinated',
   sterilized = 'Sterilized',
+  fifth = 'Fifth',
   adopted = 'Adopted'
 }
 

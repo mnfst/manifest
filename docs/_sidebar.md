@@ -1,20 +1,16 @@
-**Getting started**
-
+- **Getting started**
 - [Introduction](introduction.md)
 - [Install](install.md)
 
-**Your data**
-
+- **Your data**
 - [Create an entity](entities.md)
 - [Add properties to an entity](properties.md)
 - [Property types](property-types.md)
 - [Seed dummy data](dummy-data.md)
 
-**Features**
-
+- **Features**
 - [Auth](auth.md)
 - [Custom logic](custom-logic.md)
 
-**Deploy**
-
+- **Deploy**
 - [Going to production](going-to-production.md)

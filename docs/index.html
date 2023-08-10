@@ -18,6 +18,12 @@
   <body>
     <div id="app"></div>
     <style>
+      .is-ib {
+        display: inline-block;
+      }
+      .is-ib img {
+        display: block;
+      }
       .markdown-section {
         max-width: 80%;
         font-size: 17px;
@@ -64,6 +70,34 @@
           0px 5px 11px rgba(59, 59, 59, 0.1), 0px 0px 0px rgba(59, 59, 59, 0.1);
         width: calc(100% - 6rem);
       }
+
+      .is-flex {
+        display: flex;
+      }
+      .is-align-items-center {
+        align-items: center;
+      }
+      .is-justify-content-center {
+        justify-content: center;
+      }
+      .yield,
+      .field {
+        height: 100%;
+        width: 50%;
+      }
+      .is-hidden-tablet {
+        @media screen and (max-width: 768px) {
+          display: none;
+        }
+      }
+      .is-hidden-desktop {
+        @media screen and (min-width: 769px) {
+          display: none;
+        }
+      }
+      .show-result img {
+        width: 100%;
+      }
     </style>
     <script>
       window.$docsify = {
@@ -73,6 +107,7 @@
         subMaxLevel: 4,
         auto2top: true,
         name: 'CASE Documentation',
+        relativePath: true,
         repo: '',
         copyCode: {
           buttonText: 'Copy to clipboard',
@@ -93,5 +128,8 @@
 
     <!-- Latest v2.1.1 -->
     <script src="https://unpkg.com/docsify-copy-code@2"></script>
+
+    <!--  Plugin -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
   </body>
 </html>

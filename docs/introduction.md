@@ -1,6 +1,8 @@
 # CASE Documentation 👋
 
-![CASE App](../assets/images/cat-list.png ':class=is-bordered shadow')
+<span class="is-ib is-bordered">
+![CASE App](../assets/images/cat-list.png ':class=is-bordered')
+</span>
 
 ## What is CASE ?
 
