@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
-import { combineLatest, of } from 'rxjs'
+import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
@@ -16,12 +16,11 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class DynamicEntityCreateEditComponent {
   item: any
-
   entityMeta: EntityMeta
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
-
+  loading: boolean
   PropType = PropType
 
   constructor(
@@ -101,27 +100,42 @@ export class DynamicEntityCreateEditComponent {
   }
 
   submit(): void {
+    this.loading = true
     if (this.edit) {
       this.dynamicEntityService
         .update(this.entityMeta.definition.slug, this.item.id, this.form.value)
         .then(() => {
+          this.loading = false
           this.flashMessageService.success(
             `The ${this.entityMeta.definition.nameSingular} has been updated`
           )
           this.router.navigate(['/dynamic', this.entityMeta.definition.slug])
         })
+        .catch(() => {
+          this.loading = false
+          this.flashMessageService.error(
+            `The ${this.entityMeta.definition.nameSingular} could not be updated`
+          )
+        })
     } else {
       this.dynamicEntityService
         .create(this.entityMeta.definition.slug, this.form.value)
         .then((res: { identifiers: { id: number }[] }) => {
+          this.loading = false
           this.flashMessageService.success(
-            `The ${this.entityMeta.definition.nameSingular} has been created`
+            `Error: the ${this.entityMeta.definition.nameSingular} has been created`
           )
           this.router.navigate([
             '/dynamic',
             this.entityMeta.definition.slug,
             res.identifiers[0].id
           ])
+        })
+        .catch(() => {
+          this.loading = false
+          this.flashMessageService.error(
+            `Error: the ${this.entityMeta.definition.nameSingular} could not be created`
+          )
         })
     }
   }

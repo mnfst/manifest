@@ -12,6 +12,7 @@
       <div class="right-part">
         <button
           class="button is-link is-hidden-touch"
+          [ngClass]="{ 'is-loading': loading }"
           type="submit"
           (click)="submit()"
         >
@@ -19,6 +20,7 @@
         </button>
         <button
           class="button is-link is-hidden-desktop is-circle"
+          [ngClass]="{ 'is-loading': loading }"
           type="submit"
           (click)="submit()"
         >
