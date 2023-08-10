@@ -48,6 +48,7 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     <app-link-yield
       *ngIf="type === PropType.Link"
       [value]="value"
+      [compact]="compact"
     ></app-link-yield>
     <app-relation-yield
       *ngIf="type === PropType.Relation"
