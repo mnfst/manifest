@@ -129,7 +129,7 @@ export class DynamicEntityCreateEditComponent {
         .then((res: { identifiers: { id: number }[] }) => {
           this.loading = false
           this.flashMessageService.success(
-            `Error: the ${this.entityMeta.definition.nameSingular} has been created`
+            `The ${this.entityMeta.definition.nameSingular} has been created successfully`
           )
           this.router.navigate([
             '/dynamic',
