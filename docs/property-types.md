@@ -316,7 +316,7 @@ The Enum type allows users to choose for a set of constants that you define, lik
       display: 'progress-bar'
     }
   })
-  breed: string
+  status: string
 ```
 
 ```js
