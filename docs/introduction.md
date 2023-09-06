@@ -1,4 +1,5 @@
 # CASE Documentation 👋
+## [Github](https://github.com/casejs/CASE) <!-- {docsify-ignore} -->
 
 <span class="is-ib is-bordered">
 ![CASE App](../assets/images/cat-list.png ':class=is-bordered')
