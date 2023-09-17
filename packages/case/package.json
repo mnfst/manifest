@@ -1,6 +1,6 @@
 {
   "name": "@casejs/case",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Instant CRUD Apps with CASE",
   "main": "server/src/index.js",
   "types": "server/src/index.d.ts",
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/casejs/case#readme",
   "peerDependencies": {
     "@angular-devkit/schematics-cli": "^16.1.4",
-    "@casejs/schematics": "^2.0.4",
+    "@casejs/schematics": "^2.0.5",
     "@faker-js/faker": "^8.0.2",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
