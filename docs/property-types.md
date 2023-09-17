@@ -4,7 +4,9 @@ CASE works with it's own set of types that corresponds to different types of dat
 
 Each **PropType** corresponds to a set a different logic, display, format and options.
 
-#### Text
+---
+
+### Text
 
 A simple text field.
 
@@ -24,7 +26,9 @@ A simple text field.
   </div>
 </div>
 
-#### Number
+---
+
+### Number
 
 A numerical value.
 
@@ -44,7 +48,9 @@ A numerical value.
   </div>
 </div>
 
-#### Link
+---
+
+### Link
 
 An URL that links to an external page.
 
@@ -55,7 +61,18 @@ An URL that links to an external page.
   website: string
 ```
 
-#### Currency
+<div class="show-result">
+  <img class="is-hidden-tablet" src="../assets/images/prop-link.svg">
+
+  <div class="is-hidden-desktop"> 
+      <img src="../assets/images/input-link.svg">
+      <img src="../assets/images/display-link.svg">
+  </div>
+</div>
+
+---
+
+### Currency
 
 Choose from any currency.
 
@@ -85,7 +102,9 @@ Choose from any currency.
 | ------------ | ------- | ------ | ------------------------------------------------------------------------------------------------ |
 | **currency** | _USD_   | string | [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) |
 
-#### Date
+---
+
+### Date
 
 Basic date field.
 
@@ -105,7 +124,9 @@ Basic date field.
   </div>
 </div>
 
-#### Textarea
+---
+
+### Textarea
 
 Textarea field for medium size texts.
 
@@ -125,7 +146,9 @@ Textarea field for medium size texts.
   </div>
 </div>
 
-#### Email
+---
+
+### Email
 
 Classic email input.
 
@@ -145,7 +168,9 @@ Classic email input.
   </div>
 </div>
 
-#### Boolean
+---
+
+### Boolean
 
 For any field with a "true or false" value.
 
@@ -166,7 +191,9 @@ For any field with a "true or false" value.
   </div>
 </div>
 
-#### Relation
+---
+
+### Relation
 
 A relationship with another entity.
 
@@ -205,7 +232,9 @@ owner: Owner
 | ---------- | ------- | ------ | ------------------------------ |
 | **entity** | -       | string | The Entity class of the parent |
 
-#### Password
+---
+
+### Password
 
 Hidden password field.
 
@@ -222,7 +251,9 @@ Hidden password field.
 > You should never ever store a password on clear text.
 > You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
 
-#### File
+---
+
+### File
 
 File upload input.
 
@@ -246,7 +277,9 @@ File upload input.
 | ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
 
-#### Image
+---
+
+### Image
 
 Same as file but for images.
 
@@ -266,7 +299,9 @@ Same as file but for images.
   </div>
 </div>
 
-#### Enum
+---
+
+### Enum
 
 The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
 
@@ -281,7 +316,7 @@ The Enum type allows users to choose for a set of constants that you define, lik
       display: 'progress-bar'
     }
   })
-  breed: string
+  status: string
 ```
 
 ```js
@@ -295,7 +330,7 @@ export enum ProjectStatus {
 }
 ```
 
-##### display: 'label'
+##### Display: 'label'
 
 <div class="show-result">
   <img class="is-hidden-tablet" src="../assets/images/prop-enum-label.svg">
@@ -306,7 +341,7 @@ export enum ProjectStatus {
   </div>
 </div>
 
-##### display: 'progress-bar'
+##### Display: 'progress-bar'
 
 <div class="show-result">
   <img class="is-hidden-tablet" src="../assets/images/prop-enum-pb.svg">
@@ -316,6 +351,8 @@ export enum ProjectStatus {
       <img src="../assets/images/display-enum-pb.svg">
   </div>
 </div>
+
+##### Parameters
 
 | Option      | Default | Type                          | Description                                                                                                    |
 | ----------- | ------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
