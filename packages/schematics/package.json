@@ -1,7 +1,7 @@
 {
   "name": "@casejs/schematics",
   "private": false,
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Set of schematics for CASE Framework",
   "author": "CASE",
   "homepage": "https://case.app",
