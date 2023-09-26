@@ -43,3 +43,13 @@
 - [Discord](https://discord.gg/FepAked3W7) - Come chat with the CASE community
 - [Dev.to](https://dev.to/casejs) - Stay tuned to CASE developments
 - [Github](https://github.com/casejs/case/issues) - Report bugs and share ideas to improve the product.
+
+## Contributors
+
+Thanks to our first wonderful contributors !
+
+<a href="https://github.com/casejs/CASE/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=casejs/CASE" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
