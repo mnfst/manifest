@@ -1,6 +1,6 @@
 # CASE Contribution
 
-First off all, thanks you very much for contributing and Happy Hacktoberfest ! 🎉 🧙‍♂️
+Thanks you very much for contributing and Happy Hacktoberfest ! 🎉 🧙‍♂️
 
 [CASE](https://case.app/) is an Open-Source CRUD app generator that helps developers to build CRUD web applications in 15 minutes by focusing only on the data.
 
@@ -17,21 +17,21 @@ First off all, thanks you very much for contributing and Happy Hacktoberfest ! �
 
 ### Pre-requisites
 
-Because [CASE](https://case.app/) is made with [Angular](https://github.com/angular/angular.js), the angular/cli is a pre-requisite.
+[CASE](https://case.app/) is made with [Angular](https://github.com/angular/angular.js), the angular/cli is a pre-requisite.
 
 ```bash
 npm install -g @angular/cli
 ```
 
-You may also meet the [TypeORM](https://github.com/typeorm/typeorm) syntax for concepts like entities, relations or repositories. You can familiarize yourself with [their docs here](https://typeorm.io/).
+You may also meet [TypeORM](https://github.com/typeorm/typeorm) concept's like entities, relations or repositories. You can familiarize yourself with [their docs here](https://typeorm.io/).
 
-Also [CASE](https://case.app/) use the concepts of guards, module and controller from [Nest.js](https://github.com/nestjs/nest). You can have a look to those concepts by checking [their docs here](https://docs.nestjs.com/).
+Also [CASE](https://case.app/) use the concepts of guards, module and controller from [Nest.js](https://github.com/nestjs/nest). You can have a better understanding of those concepts by checking [their docs here](https://docs.nestjs.com/).
 
-**_You don't need to be an expert in those dependencies to contribute, your great ideas, logic, good will & common sense are always welcome to the project ! 🧠🌈_**
+**_You don't need to be an expert in those dependencies to contribute - your great ideas, logic, good will & common sense are always welcome to the project ! 🧠🌈_**
 
 ### Code contributions
 
-If you are looking for an easy way to help you can start by the issues labelled [good first issue](https://github.com/casejs/CASE/labels/good%20first%20issue) or [documentation](https://github.com/casejs/CASE/labels/documentation). 💪
+If you are looking for an easy way to help, start by the issues labelled [good first issue](https://github.com/casejs/CASE/labels/good%20first%20issue) or [documentation](https://github.com/casejs/CASE/labels/documentation) ! 💪
 
 ##### Serve CASE in Contribution mode
 
@@ -55,11 +55,13 @@ npm install
 npm run start:dev
 
 # You have to generate users credentials by seeding data to be able to auth with.
-# Seed in dev mode
+# Seed in dev mode.
 npm run seed:dev
 ```
 
 The server is now running on contributor mode ! 🌼
+
+⚠️ Times to times you may need to restart your server to see the modifications you brings to the client.
 
 > 💡 To simulate the `app` root folder of a new CASE repo, you can use the folder `packages/case/server/src/_contribution-root`.
 
