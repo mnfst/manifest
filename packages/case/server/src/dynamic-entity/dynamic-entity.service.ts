@@ -17,10 +17,25 @@ import { PropertyDescription } from '../../../shared/interfaces/property-descrip
 import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
 import { SelectOption } from '../../../shared/interfaces/select-option.interface'
 
+/**
+ * Service for handling dynamic entities
+ * @class DynamicEntityService 
+ * @property {DataSource} dataSource - The TypeORM data source
+ * 
+ */
 @Injectable()
 export class DynamicEntityService {
-  constructor(private dataSource: DataSource) {}
-
+  constructor(private dataSource: DataSource) { }
+  /**
+   * Finds all instances of a specific entity
+   * @async
+   * @param {Object} params - The parameters for the request
+   * @param {string} params.entitySlug - The slug of the entity to fetch
+   * @param {Object} [params.queryParams] - The query parameters for the request
+   * @param {Object} [params.options] - Additional options for the request
+   * @param {boolean} [params.options.paginated] - Whether to paginate the results
+   * @returns {Promise<Paginator<any> | any[]>} A promise that resolves to a paginator of the entity instances or an array of instances if not paginated
+   */
   async findAll({
     entitySlug,
     queryParams,
@@ -90,6 +105,12 @@ export class DynamicEntityService {
     return paginator
   }
 
+  /**
+ * Finds select options for a specific entity
+ * @async
+ * @param {string} entitySlug - The slug of the entity to fetch select options for
+ * @returns {Promise<SelectOption[]>} A promise that resolves to an array of SelectOption objects
+ */
   async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
     const items: any[] = (await this.findAll({
       entitySlug
@@ -106,7 +127,13 @@ export class DynamicEntityService {
       label: item[(entity.target as any).definition.propIdentifier]
     }))
   }
-
+  /**
+   * Finds a specific instance of an entity by its ID
+   * @async
+   * @param {string} entitySlug - The slug of the entity to fetch an instance of
+   * @param {number} id - The ID of the instance to fetch
+   * @returns {Promise<any>} A promise that resolves to the instance of the entity
+   */
   async findOne(entitySlug: string, id: number) {
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
       (entity: EntityMetadata) =>
@@ -126,12 +153,27 @@ export class DynamicEntityService {
     return item
   }
 
+  /**
+ * Stores a new instance of an entity and returns it
+ * @async
+ * @param {string} entitySlug - The slug of the entity to create an instance of
+ * @param {any} entityDto - The data transfer object containing the data for the new instance
+ * @returns {Promise<any>} A promise that resolves to the created instance of the entity
+ */
   async store(entitySlug: string, entityDto: any) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     return entityRepository.insert(entityRepository.create(entityDto))
   }
 
+  /**
+ * Updates an existing instance of an entity by its ID
+ * @async
+ * @param {string} entitySlug - The slug of the entity whose instance is to be updated
+ * @param {number} id - The ID of the instance to update
+ * @param {any} entityDto - The data transfer object containing the new data for the instance
+ * @returns {Promise<any>} A promise that resolves to the updated instance of the entity
+ */
   async update(entitySlug: string, id: number, entityDto: any) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
@@ -148,7 +190,13 @@ export class DynamicEntityService {
 
     return entityRepository.save(entityToSave)
   }
-
+  /**
+   * Deletes an existing instance of an entity by its ID
+   * @async
+   * @param {string} entitySlug - The slug of the entity whose instance is to be deleted
+   * @param {number} id - The ID of the instance to delete
+   * @returns {Promise<any>} A promise that resolves when the deletion is complete
+   */
   async delete(entitySlug: string, id: number) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
@@ -160,7 +208,11 @@ export class DynamicEntityService {
 
     return entityRepository.delete(id)
   }
-
+  /**
+   * Gets metadata for all entities
+   * @async
+   * @returns {Promise<EntityMeta[]>} A promise that resolves to an array of EntityMeta objects
+   */
   async getMeta(): Promise<EntityMeta[]> {
     return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => ({
       className: entity.name,
@@ -169,6 +221,11 @@ export class DynamicEntityService {
     }))
   }
 
+  /**
+ * Gets descriptions of the properties of an entity
+ * @param {EntityMetadata} entity - The metadata of the entity to get property descriptions for
+ * @returns {PropertyDescription[]} An array of property descriptions
+ */
   getPropDescriptions(entity: EntityMetadata): PropertyDescription[] {
     // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
     const entityRepository: Repository<any> = this.getRepository(
@@ -200,6 +257,12 @@ export class DynamicEntityService {
         return propDescription
       })
   }
+  /**
+   * Gets the repository for a specific entity
+   * @private
+   * @param {string} entitySlug - The slug of the entity to get the repository for
+   * @returns {Repository<any>} The repository for the entity
+   */
 
   private getRepository(entitySlug: string): Repository<any> {
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(

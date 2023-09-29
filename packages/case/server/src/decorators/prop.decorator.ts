@@ -10,6 +10,12 @@ import {
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
 
+
+/**
+ * Decorator for defining a property on an entity.
+ * @param {PropertyDefinition} [definition] - The property definition
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     const defaultType: PropType = PropType.Text
@@ -76,7 +82,7 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       Reflect.defineMetadata(
         `${propertyKey}:seed`,
         definition?.seed ||
-          (() => faker.helpers.arrayElement(Object.values(enumOptions.enum))),
+        (() => faker.helpers.arrayElement(Object.values(enumOptions.enum))),
         target
       )
     } else {

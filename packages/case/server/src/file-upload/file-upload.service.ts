@@ -4,11 +4,19 @@ import * as fs from 'fs'
 import * as mkdirp from 'mkdirp'
 import * as uniqid from 'uniqid'
 
+/**
+ * Service for handling file uploads
+ * @class FileUploadService
+ */
 @Injectable()
 export class FileUploadService {
   storagePath: string
   packageRoot: string
 
+  /**
+   * Constructor for the FileUploadService class
+   * @param {ConfigService} configService - The configuration service
+   */
   constructor(configService: ConfigService) {
     this.storagePath = configService.get('storageFolder')
     this.packageRoot = configService.get('packageRoot')
@@ -17,9 +25,9 @@ export class FileUploadService {
   /**
    * Stores a file and returns its path.
    *
-   * @param file - The file to store.
-   * @param propName - The slug of the entity to associate the file with.
-   * @returns The path of the stored file.
+   * @param {any} file - The file to store.
+   * @param {string} propName - The slug of the entity to associate the file with.
+   * @returns {string} The path of the stored file.
    */
   store(file: any, propName: string): string {
     // CamelCase to kebab-case

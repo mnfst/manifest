@@ -8,6 +8,14 @@ import { EntityDefinition } from '../../../shared/interfaces/entity-definition.i
 import { FileUploadService } from '../file-upload/file-upload.service'
 import { ImageUploadService } from '../file-upload/image-upload.service'
 
+/**
+ * Service for seeding dynamic entities
+ * @class DynamicEntitySeeder
+ * @property {DataSource} dataSource - The TypeORM data source
+ * @property {FileUploadService} fileUploadService - The file upload service
+ * @property {ImageUploadService} imageUploadService - The image upload service
+ * 
+ */
 @Injectable()
 export class DynamicEntitySeeder {
   defaultSeedCount = 10
@@ -16,8 +24,14 @@ export class DynamicEntitySeeder {
     private dataSource: DataSource,
     private fileUploadService: FileUploadService,
     private imageUploadService: ImageUploadService
-  ) {}
-
+  ) { }
+  
+  /**
+   * Seeds the database with dummy data
+   * @async
+   * @param {string} [tableName] - The name of the table to seed
+   * @returns {Promise<void>} A promise that resolves when the database has been seeded
+   */
   async seed(tableName?: string) {
     let entities: EntityMetadata[] = this.orderEntities(
       this.dataSource.entityMetadatas
@@ -119,6 +133,11 @@ export class DynamicEntitySeeder {
     }
   }
 
+  /**
+   * Gets a repository for a given entity table name
+   * @param {string} entityTableName - The name of the entity table
+   * @returns {Repository<any>} The repository for the entity
+   */
   private getRepository(entityTableName: string): Repository<any> {
     const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
       (entity: EntityMetadata) => entity.tableName === entityTableName
@@ -131,7 +150,12 @@ export class DynamicEntitySeeder {
     return this.dataSource.getRepository(entity.target)
   }
 
-  // Order entities so that entities with relations are seeded after entities they depend on.
+  /**
+   * Orders entities by their relations
+   * @param {EntityMetadata[]} entities - The entities to order
+   * @returns {EntityMetadata[]} The ordered entities
+   * 
+   */
   private orderEntities(entities: EntityMetadata[]): EntityMetadata[] {
     const orderedEntities: EntityMetadata[] = []
 

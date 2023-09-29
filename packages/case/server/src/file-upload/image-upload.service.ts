@@ -5,6 +5,10 @@ import * as mkdirp from 'mkdirp'
 import * as sharp from 'sharp'
 import * as uniqId from 'uniqid'
 
+/**
+ * Service for handling image uploads
+ * @class ImageUploadService
+ */
 @Injectable()
 export class ImageUploadService {
   storagePath: string
@@ -21,11 +25,22 @@ export class ImageUploadService {
     }
   }
 
+  /**
+   * Constructor for the ImageUploadService class
+   * @param {ConfigService} configService - The configuration service
+   */
   constructor(configService: ConfigService) {
     this.storagePath = configService.get('storageFolder')
     this.packageRoot = configService.get('packageRoot')
   }
 
+  /**
+   * Stores an image and returns its path.
+   *
+   * @param {any} file - The image to store.
+   * @param {string} propName - The slug of the entity to associate the image with.
+   * @returns {string} The path of the stored image.
+   */
   store(file: any, propName: string): string {
     // CamelCase to kebab-case.
     const kebabCaseEntityName = propName

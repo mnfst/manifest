@@ -4,6 +4,9 @@ import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
 
+/**
+ * Status of the cat.
+ */
 enum Status {
   unidentifiable = 'Unidentifiable',
   identified = 'Identified',
@@ -13,6 +16,9 @@ enum Status {
   adopted = 'Adopted'
 }
 
+/**
+ * Breed of the cat.
+ */
 enum Breed {
   siamese = 'Siamese',
   persian = 'Persian',
@@ -22,6 +28,9 @@ enum Breed {
   tortoiseshell = 'Tortoiseshell'
 }
 
+/**
+ * Cat entity that extends CaseEntity.
+ */
 @Entity({
   nameSingular: 'cat',
   namePlural: 'cats',
@@ -30,19 +39,32 @@ enum Breed {
   propIdentifier: 'name'
 })
 export class Cat extends CaseEntity {
+  
+  /**
+   * Name of the cat.
+   */
   @Prop({})
   name: string
 
+  /**
+   * Description of the cat.
+   */
   @Prop({
     type: PropType.Textarea
   })
   description: string
 
+  /**
+   * Age of the cat.
+   */
   @Prop({
     type: PropType.Number
   })
   age: number
 
+  /**
+   * Owner of the cat.
+   */
   @Prop({
     label: 'Owner',
     type: PropType.Relation,
@@ -52,6 +74,9 @@ export class Cat extends CaseEntity {
   })
   owner: Owner
 
+  /**
+   * Breed of the cat.
+   */
   @Prop({
     label: 'Breed',
     type: PropType.Enum,
@@ -61,6 +86,9 @@ export class Cat extends CaseEntity {
   })
   breed: Breed
 
+  /**
+   * Status of the cat.
+   */
   @Prop({
     label: 'Status',
     type: PropType.Enum,
@@ -71,6 +99,10 @@ export class Cat extends CaseEntity {
   })
   status: Status
 
+  
+  /**
+   * Link related to the cat.
+   */
   @Prop({
     type: PropType.Link
   })

@@ -1,6 +1,11 @@
 import { join } from 'path'
 import { User } from './core-entities/user.entity'
 
+/**
+ * Default function to configure the application.
+ * @function default
+ * @returns The configuration object for the application.
+ */
 export default () => {
   // Contribution mode is used when running the app from the "server" folder with "npm run start:dev" script.
   const contributionMode: boolean = process.argv[2] === 'contribution'

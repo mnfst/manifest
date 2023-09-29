@@ -7,6 +7,10 @@ import { DynamicEntityController } from './dynamic-entity.controller'
 import { DynamicEntitySeeder } from './dynamic-entity.seeder'
 import { DynamicEntityService } from './dynamic-entity.service'
 
+/**
+ * Module for handling dynamic entities
+ * @module DynamicEntityModule
+ */
 @Module({
   controllers: [DynamicEntityController],
   providers: [

@@ -13,6 +13,10 @@ import { FileUploadModule } from './file-upload/file-upload.module'
 
 const contributionMode: boolean = process.argv[2] === 'contribution'
 
+/**
+ * Main App module
+ * @module AppModule
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -35,6 +39,11 @@ const contributionMode: boolean = process.argv[2] === 'contribution'
   ]
 })
 export class AppModule {
+  /**
+   * AppModule constructor
+   * @param {DataSource} dataSource - The data source
+   * @param {ConfigService} configService - The configuration service
+   */
   constructor(
     private dataSource: DataSource,
     private configService: ConfigService
@@ -43,7 +52,10 @@ export class AppModule {
       this.logAppInfo()
     }
   }
-
+  
+  /**
+   * Logs application info to the console
+   */
   logAppInfo() {
     const port: number = this.configService.get('port')
     const databaseConfig: any = this.configService.get('database')
