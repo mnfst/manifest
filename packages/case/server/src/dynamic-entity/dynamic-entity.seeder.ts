@@ -106,7 +106,8 @@ export class DynamicEntitySeeder {
           }
         })
 
-        await entityRepository.save(newItem)
+        // Save without listeners to avoid triggering the beforeInsert hook.
+        await entityRepository.save(newItem, { listeners: false })
       }
     }
 
