@@ -1,3 +1,5 @@
+import { BeforeInsert } from 'typeorm'
+
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -52,4 +54,9 @@ export class Mouse extends CaseEntity {
     type: PropType.Textarea
   })
   description: string
+
+  @BeforeInsert()
+  beforeInsert() {
+    this.description = `${this.nickName} is the mouse hunted by ${this._relations.predator.name}`
+  }
 }

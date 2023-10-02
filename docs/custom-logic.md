@@ -34,24 +34,40 @@ Events works with [TypeORM's entity listeners](https://typeorm.io/listeners-and-
 
 ### @BeforeInsert
 
-You can define a method with any name in entity and mark it with @BeforeInsert and CASE will call it before the entity is created.
+This hook will be called **before the entity is inserted to the DB**.
+
+It is useful for situations where you have to generate a field based on other values or from an external service. Here are some examples:
+
+- Call an API to get a value and store it
+- Generate a PDF a store its path
+- Generate a new field by mixing several fields
+- Stamp the current date
 
 ```js
 import { SHA3 } from 'crypto-js'
+import * as moment from "moment";
 
-[...]
 export class User {
- @Prop({
-   type: PropType.Password,
- })
- password: string
-
   @BeforeInsert()
   beforeInsert() {
+    // Hashes the password before storing it.
     this.password = SHA3(this.password).toString()
+
+    // Reference based on name and the first letters of a relation.
+    this.reference = `P-${this._relations.customer.name substring(0, 3)}-${this.name.substring(0, 3)}`
   }
 }
 ```
+
+#### Available data
+
+Some extra data is attached to the `this` object.
+
+| Option          | Type   | Description                                                   |
+| --------------- | ------ | ------------------------------------------------------------- |
+| **\_relations** | object | Contains the relation objects of the entity you are creating. |
+
+---
 
 ### @AfterInsert
 
