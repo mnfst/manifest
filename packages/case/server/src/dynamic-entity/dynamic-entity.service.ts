@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import {
   DataSource,
+  DeepPartial,
   EntityMetadata,
   FindManyOptions,
   FindOptionsWhere,
@@ -33,14 +34,9 @@ export class DynamicEntityService {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     // Get entity relations
-    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) =>
-        (entity.target as any).definition.slug === entitySlug
-    )
-
-    const relations: string[] = entity.relations.map(
-      (relation: RelationMetadata) => relation.propertyName
-    )
+    const relations: string[] = this.getEntityMetadata(
+      entitySlug
+    ).relations.map((relation: RelationMetadata) => relation.propertyName)
 
     // Dynamic filtering.
     const where: FindOptionsWhere<any> = {}
@@ -95,27 +91,20 @@ export class DynamicEntityService {
       entitySlug
     })) as any[]
 
-    // Get entity propIdentifier.
-    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) =>
-        (entity.target as any).definition.slug === entitySlug
-    )
-
     return items.map((item: any) => ({
       id: item.id,
-      label: item[(entity.target as any).definition.propIdentifier]
+      label:
+        item[
+          (this.getEntityMetadata(entitySlug).target as any).definition
+            .propIdentifier
+        ]
     }))
   }
 
   async findOne(entitySlug: string, id: number) {
-    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) =>
-        (entity.target as any).definition.slug === entitySlug
-    )
-
     const item = await this.getRepository(entitySlug).findOne({
       where: { id },
-      relations: entity.relations.map(
+      relations: this.getEntityMetadata(entitySlug).relations.map(
         (relation: RelationMetadata) => relation.propertyName
       )
     })
@@ -129,7 +118,17 @@ export class DynamicEntityService {
   async store(entitySlug: string, entityDto: any) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
-    return entityRepository.insert(entityRepository.create(entityDto))
+    const newEntity = entityRepository.create(entityDto)
+
+    const relations: RelationMetadata[] =
+      this.getEntityMetadata(entitySlug).relations
+
+    // If we have relations, we load them to be available in the @BeforeInsert() hook.
+    if (relations.length) {
+      newEntity._relations = await this.loadRelations(newEntity, relations)
+    }
+
+    return entityRepository.insert(newEntity)
   }
 
   async update(entitySlug: string, id: number, entityDto: any) {
@@ -162,21 +161,23 @@ export class DynamicEntityService {
   }
 
   async getMeta(): Promise<EntityMeta[]> {
-    return this.dataSource.entityMetadatas.map((entity: EntityMetadata) => ({
-      className: entity.name,
-      definition: (entity.inheritanceTree[0] as any).definition,
-      props: this.getPropDescriptions(entity)
-    }))
+    return this.dataSource.entityMetadatas.map(
+      (entityMetadata: EntityMetadata) => ({
+        className: entityMetadata.name,
+        definition: (entityMetadata.inheritanceTree[0] as any).definition,
+        props: this.getPropDescriptions(entityMetadata)
+      })
+    )
   }
 
-  getPropDescriptions(entity: EntityMetadata): PropertyDescription[] {
+  getPropDescriptions(entityMetadata: EntityMetadata): PropertyDescription[] {
     // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
     const entityRepository: Repository<any> = this.getRepository(
-      (entity.inheritanceTree[0] as any).definition.slug
+      (entityMetadata.inheritanceTree[0] as any).definition.slug
     )
     const newItem = entityRepository.create()
 
-    return entity.columns
+    return entityMetadata.columns
       .filter((column: ColumnMetadata) => column.propertyName !== 'id')
       .map((column: ColumnMetadata) => {
         const propDescription: PropertyDescription = {
@@ -202,15 +203,43 @@ export class DynamicEntityService {
   }
 
   private getRepository(entitySlug: string): Repository<any> {
-    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
+    return this.dataSource.getRepository(
+      this.getEntityMetadata(entitySlug).target
+    )
+  }
+
+  private getEntityMetadata(entitySlug): EntityMetadata {
+    const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
       (entity: EntityMetadata) =>
         (entity.target as any).definition.slug === entitySlug
     )
 
-    if (!entity) {
+    if (!entityMetadata) {
       throw new NotFoundException('Entity not found')
     }
 
-    return this.dataSource.getRepository(entity.target)
+    return entityMetadata
+  }
+
+  private async loadRelations(
+    entity: DeepPartial<any>,
+    relationMetadatas: RelationMetadata[]
+  ): Promise<any> {
+    const relations = {}
+
+    await Promise.all(
+      relationMetadatas.map(async (relation: RelationMetadata) => {
+        const relationRepository: Repository<any> = this.getRepository(
+          (relation.inverseEntityMetadata.target as any).definition.slug
+        )
+
+        // Create a property with the relation name and assign the related object to it.
+        relations[relation.propertyName] = await relationRepository.findOne({
+          where: { id: entity[relation.propertyName] }
+        })
+      })
+    )
+
+    return relations
   }
 }
