@@ -5,7 +5,7 @@ import { Observable, firstValueFrom, map, shareReplay } from 'rxjs'
 import { environment } from '../../environments/environment'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 import { Paginator } from '~shared/interfaces/paginator.interface'
-import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 @Injectable({
   providedIn: 'root'

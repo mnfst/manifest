@@ -8,7 +8,7 @@ import {
   ViewChild
 } from '@angular/core'
 
-import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
   selector: 'app-url-input',

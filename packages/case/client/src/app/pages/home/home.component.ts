@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
-import { AppConfig } from '../../../../../shared/interfaces/app-config.interface'
+import { AppConfig } from '~shared/interfaces/app-config.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 import { AppConfigService } from '../../services/app-config.service'
 import { BreadcrumbService } from '../../services/breadcrumb.service'

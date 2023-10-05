@@ -8,7 +8,7 @@ import {
   ViewChild
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { environment } from '../../../environments/environment'

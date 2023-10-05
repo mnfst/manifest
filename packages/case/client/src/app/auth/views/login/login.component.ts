@@ -3,13 +3,13 @@ import { Component, OnInit } from '@angular/core'
 import { FormControl, FormGroup, Validators } from '@angular/forms'
 import { Router } from '@angular/router'
 
-import { PropType } from '../../../../../../shared/enums/prop-type.enum'
-import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
+import { PropType } from '~shared/enums/prop-type.enum'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { AuthService } from '../../auth.service'
 import { AppConfigService } from '../../../services/app-config.service'
-import { AppConfig } from '../../../../../../shared/interfaces/app-config.interface'
+import { AppConfig } from '~shared/interfaces/app-config.interface'
 
 @Component({
   selector: 'app-login',

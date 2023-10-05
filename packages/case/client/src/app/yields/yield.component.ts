@@ -3,7 +3,7 @@ import { Component, Input } from '@angular/core'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { YieldType } from '~shared/enums/yield-type.enum'
 
-import { PropertyOptions } from '../../../../shared/interfaces/property-options/property-options.interface'
+import { PropertyOptions } from '~shared/interfaces/property-options/property-options.interface'
 import { BooleanYieldComponent } from './boolean-yield/boolean-yield.component'
 import { CurrencyYieldComponent } from './currency-yield/currency-yield.component'
 import { DateYieldComponent } from './date-yield/date-yield.component'

@@ -9,8 +9,8 @@ import {
   ViewChild
 } from '@angular/core'
 
-import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
-import { FileOptions } from '../../../../../shared/interfaces/property-options/file-options.interface'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+import { FileOptions } from '~shared/interfaces/property-options/file-options.interface'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { UploadService } from '../../services/upload.service'
 import { environment } from '../../../environments/environment'

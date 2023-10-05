@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
-import { AppConfig } from '../../../shared/interfaces/app-config.interface'
+import { AppConfig } from '~shared/interfaces/app-config.interface'
 import { AuthService } from './auth/auth.service'
 import { User } from './interfaces/user.interface'
 import { AppConfigService } from './services/app-config.service'

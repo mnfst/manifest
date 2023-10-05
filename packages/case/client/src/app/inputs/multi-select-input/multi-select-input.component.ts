@@ -8,10 +8,10 @@ import {
   Output
 } from '@angular/core'
 
-import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
-import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
-import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
-import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
+import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
+import { SelectOption } from '~shared/interfaces/select-option.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
 @Component({

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 
-import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
+import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
 @Component({
