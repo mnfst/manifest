@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://docs.case.app</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://docs.case.app/auth</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/custom-logic</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/dummy-data</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/entities</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/going-to-production</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/install</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/introduction</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/properties</loc>
+    </url>
+    <url>
+        <loc>https://docs.case.app/property-types</loc>
+    </url>
+</urlset>

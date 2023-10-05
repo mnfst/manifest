@@ -1,3 +1,23 @@
+---
+<!-- Primary Meta Tags -->
+meta-title: CASE Documentation - A Tool for Data-Intensive Apps
+meta-description: CASE helps developers create data-intensive apps like dashboards, custom web apps, admin panels, and ERPs quickly. It offers a frameworkless approach, focusing on data and business logic.
+
+<!-- Open Graph -->
+meta-og-type: website
+meta-og-url: https://docs.case.app/introduction
+meta-og-title: CASE Documentation - Revolutionizing Data-Intensive App Development
+meta-og-description: Discover CASE, the tool that streamlines the development of data-intensive applications. Dive into its features, philosophy, and structure.
+meta-og-image: https://docs.case.app/assets/images/cat-list.png
+
+<!-- Twitter -->
+meta-twitter-card: summary_large_image
+meta-twitter-url: https://docs.case.app/introduction
+meta-twitter-title: CASE Documentation - A New Era of Data-Intensive App Development
+meta-twitter-description: Introducing CASE - the developer's choice for creating dashboards, web apps, admin panels, and more without the framework hassle.
+meta-twitter-image: https://docs.case.app/assets/images/cat-list.png
+---
+
 # CASE Documentation 👋
 
 <span class="is-ib is-bordered">
