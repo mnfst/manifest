@@ -1,12 +1,12 @@
 # Custom logic
 
-Each application describes an unique business logic. Sooner or later we should face the need to implement something specific.
+Each application has an unique business logic. Sooner or later, we will face the need to implement something specific.
 
-As CASE follows a **data-first** approach, the custom logic can be hooked to **entity events**:
+As CASE follows a **data-first** approach, the custom logic can be hooked to **entity events**.
 
 ## Attach a script to an entity event
 
-With CASE custom events, you can call any function you want: you are free to download your own packages (like an email provider for example) and call execute those functions on create, update or delete an item.
+With CASE custom events, you can call any function you want. You are free to download your own packages (like an email provider for example) and call those functions to create, update or delete an item.
 
 ```js
 // ./entities/cat.entity.ts
@@ -39,7 +39,7 @@ This hook will be called **before the entity is inserted to the DB**.
 It is useful for situations where you have to generate a field based on other values or from an external service. Here are some examples:
 
 - Call an API to get a value and store it
-- Generate a PDF a store its path
+- Generate a PDF and store its path
 - Generate a new field by mixing several fields
 - Stamp the current date
 
@@ -71,7 +71,7 @@ Some extra data is attached to the `this` object.
 
 ### @AfterInsert
 
-You can define a method with any name in entity and mark it with @AfterInsert and TypeORM will call it after the entity is created.
+You can define a method with any name in entity and mark it with @AfterInsert. CASE will call it after the entity is created.
 
 ```js
 import { sendEmail } from '../scripts/send-email.ts
@@ -87,7 +87,7 @@ export class Post {
 
 ### @BeforeUpdate
 
-You can define a method with any name in the entity and mark it with @BeforeUpdate and CASE will call it before the entity is uploaded.
+You can define a method with any name in the entity and mark it with @BeforeUpdate. CASE will call it before the entity is uploaded.
 
 ```js
 @Entity()
@@ -101,7 +101,7 @@ export class Post {
 
 ### @AfterUpdate
 
-You can define a method with any name in the entity and mark it with @AfterUpdate and CASE will call it after the entity is uploaded.
+You can define a method with any name in the entity and mark it with @AfterUpdate. CASE will call it after the entity is uploaded.
 
 ```js
 @Entity()
@@ -115,7 +115,7 @@ export class Cat {
 
 ### @BeforeRemove
 
-You can define a method with any name in the entity and mark it with @BeforeRemove and CASE will call it before the entity is removed.
+You can define a method with any name in the entity and mark it with @BeforeRemove. CASE will call it before the entity is removed.
 
 ```js
 @Entity()
@@ -129,7 +129,7 @@ export class Post {
 
 ### @AfterRemove
 
-You can define a method with any name in the entity and mark it with @AfterRemove and CASE will call it after the entity is removed.
+You can define a method with any name in the entity and mark it with @AfterRemove. CASE will call it after the entity is removed.
 
 ```js
 @Entity()

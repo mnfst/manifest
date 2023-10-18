@@ -15,24 +15,27 @@
 
 ## Getting started
 
-1. **Requirements**
+### Requirements
 
-   [NodeJS](https://nodejs.org/en) (v14 or ulterior).
+- [NodeJS](https://nodejs.org/en/) (v16.14.0 or higher). The recommended version is `18.x`.
+- NPM version 6.11.0+ (comes with NodeJS).
 
-2. **Install CASE**
+### Create your CASE project
 
-   ```sh
-   npx create-case-app my-case-app
-   ```
+Run the following on your terminal replacing `my-case-app` with your app's name:
 
-3. **Start the application**
+```sh
+npx create-case-app my-case-app
+```
+
+### Start the application
 
    ```sh
    cd my-case-app
    npm start
    ```
 
-   Voilà ! Your application is accessible at http://localhost:4000.
+Voilà ! Your application is accessible at http://localhost:4000.
 
 ## Learn more
 
