@@ -8,7 +8,7 @@ export class AppConfigController {
   constructor(private readonly appConfigService: AppConfigService) {}
 
   @Get()
-  async getAppConfig(): Promise<AppConfig> {
-    return  this.appConfigService.getAppConfig()
+  getAppConfig(): AppConfig {
+    return this.appConfigService.getAppConfig()
   }
 }

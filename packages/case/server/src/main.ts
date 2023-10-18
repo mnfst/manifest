@@ -18,14 +18,18 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
+  const production: boolean = configService.get('nodeEnv') === 'production'
+
   // Reload the browser when server files change.
-  const liveReloadServer = livereload.createServer()
-  liveReloadServer.server.once('connection', () => {
-    setTimeout(() => {
-      liveReloadServer.refresh('/')
-    }, 100)
-  })
-  app.use(connectLiveReload())
+  if (!production) {
+    const liveReloadServer = livereload.createServer()
+    liveReloadServer.server.once('connection', () => {
+      setTimeout(() => {
+        liveReloadServer.refresh('/')
+      }, 100)
+    })
+    app.use(connectLiveReload())
+  }
 
   const clientAppFolder: string = configService.get('clientAppFolder')
   const publicFolder: string = configService.get('publicFolder')
