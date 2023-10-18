@@ -14,6 +14,7 @@ Make sure to create a `.env` file at root level:
 ```.env
 PORT=4000
 JWT_SECRET=your_secret_key
+NODE_ENV=production
 ```
 
 And then launch the following task with a task manager like [pm2](https://pm2.keymetrics.io/) or [systemd](https://systemd.io/):
