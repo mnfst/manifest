@@ -47,6 +47,8 @@ export class AppModule {
   logAppInfo() {
     const port: number = this.configService.get('port')
     const databaseConfig: any = this.configService.get('database')
+    const nodeEnv: string = this.configService.get('nodeEnv')
+    const appRoot: string = this.configService.get('appRoot')
 
     const table = new cliTable({
       head: []
@@ -57,7 +59,10 @@ export class AppModule {
     }
 
     table.push(
-      ['database path', chalk.green(databaseConfig.database)],
+      [
+        'database path',
+        chalk.green(databaseConfig.database.replace(appRoot, ''))
+      ],
       [
         'entities',
         chalk.green(
@@ -66,6 +71,7 @@ export class AppModule {
             .join(', ')
         )
       ],
+      ['node env', chalk.green(nodeEnv)],
       ['contribution mode', chalk.green(contributionMode)]
     )
 
@@ -82,7 +88,8 @@ export class AppModule {
     } else {
       console.log(
         chalk.blue(
-          '🛠️  CASE server app successfully started in contributor mode! Do not forget to launch the client app too.'
+          '🛠️  CASE server app successfully started in contributor mode! Do not forget to launch the client app too',
+          chalk.underline.blue(`http://localhost:${port}`)
         )
       )
     }
