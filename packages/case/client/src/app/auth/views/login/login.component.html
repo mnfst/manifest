@@ -8,18 +8,31 @@
 
             <h2 class="title is-4">Sign in</h2>
 
-            <div class="has-text-left" *ngIf="appConfig">
-              <div class="field mb-5" *ngFor="let prop of fields">
+            <div class="has-text-left">
+              <div class="field mb-5">
                 <div class="control">
                   <app-input
-                    [prop]="prop"
-                    [value]="
-                      appConfig?.production === false
-                        ? defaultUser[prop.propName]
-                        : ''
-                    "
-                    (valueChanged)="patchValue(prop.propName, $event)"
+                    [prop]="{
+                      propName: 'email',
+                      label: 'Email',
+                      type: PropType.Email
+                    }"
+                    [value]="suggestedEmail"
+                    (valueChanged)="patchValue('email', $event)"
                   ></app-input>
+                </div>
+                <div class="field mb-5">
+                  <div class="control">
+                    <app-input
+                      [prop]="{
+                        propName: 'password',
+                        label: 'Password',
+                        type: PropType.Password
+                      }"
+                      [value]="suggestedPassword"
+                      (valueChanged)="patchValue('password', $event)"
+                    ></app-input>
+                  </div>
                 </div>
               </div>
 

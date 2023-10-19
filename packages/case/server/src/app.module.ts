@@ -79,12 +79,20 @@ export class AppModule {
     console.log()
 
     if (!contributionMode) {
-      console.log(
-        chalk.blue(
-          '🎉 CASE app successfully started! See it at',
-          chalk.underline.blue(`http://localhost:${port}`)
+      if (nodeEnv === 'production') {
+        console.log(
+          chalk.blue(
+            `🎉 CASE app successfully started on production mode on port ${port}`
+          )
         )
-      )
+      } else {
+        console.log(
+          chalk.blue(
+            '🎉 CASE app successfully started! See it at',
+            chalk.underline.blue(`http://localhost:${port}`)
+          )
+        )
+      }
     } else {
       console.log(
         chalk.blue(
