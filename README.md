@@ -1,3 +1,4 @@
+<br>
 <p align="center">
   <a href="https://www.case.app">
     <img alt="CASE" src="https://case.app/assets/images/logo-black.svg" height="40px" />
@@ -26,7 +27,7 @@
   <a href="https://opencollective.com/casejs"  target="_blank">
     <img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us">
   </a>
-  <a >
+  <a href=https://github.com/casejs/CASE/blob/develop/LICENSE" target="_blank">
     <img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-green">
   </a>
   <br>
