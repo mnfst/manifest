@@ -108,10 +108,22 @@ export class Cat extends CaseEntity {
    npx create-case-app my-case-app
    ```
 
-2. **Start the application**
+2. **Create some entities (and read the docs)**
 
    ```sh
    cd my-case-app
+   npm run case:entity cat
+   ```
+
+4. **(Optional) Seed some test data***
+
+   ```sh
+   npm run seed
+   ```
+
+5. **Start the application**
+
+   ```sh
    npm start
    ```
 
