@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
 
+import { IsEmail, IsNotEmpty } from 'class-validator'
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import {
   BeforeInsert,
@@ -18,12 +19,14 @@ import { CaseEntity } from './case.entity'
 })
 export class User extends CaseEntity {
   @Prop({
+    validators: [IsNotEmpty()],
     seed: () => faker.person.firstName()
   })
   name: string
 
   @Prop({
     type: PropType.Email,
+    validators: [IsNotEmpty(), IsEmail()],
     seed: (index: number) => 'user' + (index + 1) + '@case.app'
   })
   email: string
