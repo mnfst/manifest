@@ -115,13 +115,13 @@ export class Cat extends CaseEntity {
    npm run case:entity cat
    ```
 
-4. **(Optional) Seed some test data***
+3. **(Optional) Seed some test data***
 
    ```sh
    npm run seed
    ```
 
-5. **Start the application**
+4. **Start the application**
 
    ```sh
    npm start
