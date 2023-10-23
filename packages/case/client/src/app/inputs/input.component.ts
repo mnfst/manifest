@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common'
-import { Component, EventEmitter, Input, Output } from '@angular/core'
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges
+} from '@angular/core'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
@@ -37,18 +44,19 @@ import { UrlInputComponent } from './url-input/url-input.component'
     ImageUploadInputComponent
   ],
   template: `
+    <app-text-input
+      [prop]="prop"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Text"
+    ></app-text-input>
     <app-number-input
       [prop]="prop"
       [value]="value"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Number"
     ></app-number-input>
-    <app-text-input
-      [prop]="prop"
-      [value]="value"
-      (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Text"
-    ></app-text-input>
     <app-url-input
       [prop]="prop"
       [value]="value"
@@ -116,16 +124,27 @@ import { UrlInputComponent } from './url-input/url-input.component'
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Image"
     ></app-image-upload-input>
+
+    <!-- Error messages -->
+    <ul *ngIf="errors?.length">
+      <li *ngFor="let error of errors" class="has-text-danger">{{ error }}</li>
+    </ul>
   `
 })
-export class InputComponent {
+export class InputComponent implements OnChanges {
   @Input() prop: PropertyDescription
   @Input() value: any
+  @Input() errors: string[]
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()
 
+  isError: boolean
   PropType = PropType
 
   onChange(event: any) {
     this.valueChanged.emit(event)
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.isError = !!this.errors?.length
   }
 }

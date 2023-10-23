@@ -1,3 +1,5 @@
+import { Contains, IsNotEmpty } from 'class-validator'
+
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -30,7 +32,9 @@ enum Breed {
   propIdentifier: 'name'
 })
 export class Cat extends CaseEntity {
-  @Prop({})
+  @Prop({
+    validators: [IsNotEmpty(), Contains('cat')]
+  })
   name: string
 
   @Prop({
