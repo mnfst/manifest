@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import {
   DataSource,
   DeepPartial,
+  DeleteResult,
   EntityMetadata,
   FindManyOptions,
   FindOptionsWhere,
@@ -148,7 +149,7 @@ export class DynamicEntityService {
     return entityRepository.save(entityToSave)
   }
 
-  async delete(entitySlug: string, id: number) {
+  async delete(entitySlug: string, id: number): Promise<DeleteResult> {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     const item = await entityRepository.findOne({ where: { id } })

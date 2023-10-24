@@ -11,6 +11,8 @@ import {
   UseGuards
 } from '@nestjs/common'
 
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
+import { DeleteResult } from 'typeorm'
 import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
 import { Paginator } from '../../../shared/interfaces/paginator.interface'
 import { SelectOption } from '../../../shared/interfaces/select-option.interface'
@@ -18,16 +20,29 @@ import { AuthGuard } from '../auth/auth.guard'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
+@ApiBearerAuth('JWT')
+@ApiTags('Dynamic entities')
 @UseGuards(AuthGuard)
 export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 
   @Get('meta')
+  @ApiOperation({
+    summary: 'Get metadata of all entities of the app'
+  })
   getMeta(): Promise<EntityMeta[]> {
     return this.dynamicEntityService.getMeta()
   }
 
   @Get(':entity')
+  @ApiOperation({
+    summary: 'Find all items of an entity'
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity slug',
+    example: 'cats, posts, corporation-groups...'
+  })
   findAll(
     @Param('entity') entity: string,
     @Query() queryParams: { [key: string]: string | string[] }
@@ -40,11 +55,32 @@ export class DynamicEntityController {
   }
 
   @Get(':entity/select-options')
+  @ApiOperation({
+    summary: 'Get a lite version of all items of an entity (identifier + id)'
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity slug',
+    example: 'cats, posts, corporation-groups...'
+  })
   findSelectOptions(@Param('entity') entity: string): Promise<SelectOption[]> {
     return this.dynamicEntityService.findSelectOptions(entity)
   }
 
   @Get(':entity/:id')
+  @ApiOperation({
+    summary: 'Find one item of an entity'
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity slug',
+    example: 'cats, posts, corporation-groups...'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the item',
+    example: '15, 25, 36...'
+  })
   findOne(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
@@ -53,11 +89,32 @@ export class DynamicEntityController {
   }
 
   @Post(':entity')
+  @ApiOperation({
+    summary: 'Create a new item of an entity'
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity slug',
+    example: 'cats, posts, corporation-groups...'
+  })
   store(@Param('entity') entity: string, @Body() entityDto: any): Promise<any> {
     return this.dynamicEntityService.store(entity, entityDto)
   }
 
   @Put(':entity/:id')
+  @ApiOperation({
+    summary: 'Update an item of an entity'
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity slug',
+    example: 'cats, posts, corporation-groups...'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the item',
+    example: '15, 25, 36...'
+  })
   update(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number,
@@ -67,10 +124,23 @@ export class DynamicEntityController {
   }
 
   @Delete(':entity/:id')
+  @ApiOperation({
+    summary: 'Delete an item of an entity'
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity slug',
+    example: 'cats, posts, corporation-groups...'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the item',
+    example: '15, 25, 36...'
+  })
   delete(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
-  ): Promise<any> {
+  ): Promise<DeleteResult> {
     return this.dynamicEntityService.delete(entity, id)
   }
 }

@@ -21,6 +21,7 @@
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/swagger": "^7.1.14",
     "@nestjs/typeorm": "^9.0.1",
     "@types/jsonwebtoken": "^9.0.2",
     "bluebird": "^3.7.2",
