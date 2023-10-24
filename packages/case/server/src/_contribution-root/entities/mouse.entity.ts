@@ -1,17 +1,13 @@
 import { BeforeInsert } from 'typeorm'
 
 import { PropType } from '../../../../shared/enums/prop-type.enum'
+
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Cat } from './cat.entity'
 
-@Entity({
-  nameSingular: 'mouse',
-  namePlural: 'mouses',
-  slug: 'mouses',
-  propIdentifier: 'nickName'
-})
+@Entity()
 export class Mouse extends CaseEntity {
   @Prop({
     label: 'Nickname',

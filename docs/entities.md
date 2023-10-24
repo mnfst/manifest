@@ -42,10 +42,10 @@ npm run seed
 
 You can pass different arguments to the `@Entity()` decorator to configure your entities.
 
-| Option              | Default | Type   | Description                                                                  |
-| ------------------- | ------- | ------ | ---------------------------------------------------------------------------- |
-| **nameSingular\***  | -       | string | The singular lowercase name of your entity. It will be used widely on the UI |
-| **namePlural\***    | -       | string | The plural lowercase name of your entity. It will be used widely on the UI   |
-| **slug\***          | -       | string | The kebbab-case slug of the entity that will define URLs                     |
-| **propIdentifer\*** | -       | string | The main property of the entity name, will be used to identify the item      |
-| **seedCount**       | 20      | number | Defines how many items of this entity should be seeded                       |
+| Option            | Default                             | Type   | Description                                                                |
+| ----------------- | ----------------------------------- | ------ | -------------------------------------------------------------------------- |
+| **nameSingular**  | singular lower case name from class | string | The singular lowercase name of your entity. Used widely on the admin panel |
+| **namePlural**    | plural lower case name from class   | string | The plural lowercase name of your entity. Used widely on the admin panel   |
+| **slug**          | plural dasherized name from class   | string | The kebbab-case slug of the entity that will define API endpoints          |
+| **propIdentifer** | first column in entity              | string | Identifier prop. Used widely on the admin panel                            |
+| **seedCount**     | 50                                  | number | Defines how many items of this entity should be seeded                     |

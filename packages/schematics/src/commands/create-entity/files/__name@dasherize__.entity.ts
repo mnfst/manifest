@@ -1,11 +1,6 @@
 import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
 
-@Entity({
-  nameSingular: '<%= name %>',
-  namePlural: '<%= pluralizedName %>',
-  propIdentifier: 'name',
-  slug: '<%= dasherizedName %>s',
-})
+@Entity()
 export class <%= classifiedName %> extends CaseEntity {
   @Prop({
     type: PropType.Text

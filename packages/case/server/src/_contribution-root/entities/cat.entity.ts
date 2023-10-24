@@ -22,13 +22,7 @@ enum Breed {
   tortoiseshell = 'Tortoiseshell'
 }
 
-@Entity({
-  nameSingular: 'cat',
-  namePlural: 'cats',
-  slug: 'cats',
-  seedCount: 50,
-  propIdentifier: 'name'
-})
+@Entity()
 export class Cat extends CaseEntity {
   @Prop({})
   name: string

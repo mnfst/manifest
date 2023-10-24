@@ -10,7 +10,7 @@ import { ImageUploadService } from '../file-upload/image-upload.service'
 
 @Injectable()
 export class DynamicEntitySeeder {
-  defaultSeedCount = 10
+  defaultSeedCount = 50
 
   constructor(
     private dataSource: DataSource,

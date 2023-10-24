@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import * as dasherize from 'dasherize'
 import {
   DataSource,
   DeepPartial,
@@ -12,7 +13,9 @@ import {
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 
+import * as pluralize from 'pluralize'
 import { PropType } from '../../../shared/enums/prop-type.enum'
+import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
 import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
 import { Paginator } from '../../../shared/interfaces/paginator.interface'
 import { PropertyDescription } from '../../../shared/interfaces/property-description.interface'
@@ -165,7 +168,7 @@ export class DynamicEntityService {
     return this.dataSource.entityMetadatas.map(
       (entityMetadata: EntityMetadata) => ({
         className: entityMetadata.name,
-        definition: (entityMetadata.inheritanceTree[0] as any).definition,
+        definition: this.getEntityDefinition(entityMetadata),
         props: this.getPropDescriptions(entityMetadata)
       })
     )
@@ -174,7 +177,7 @@ export class DynamicEntityService {
   getPropDescriptions(entityMetadata: EntityMetadata): PropertyDescription[] {
     // Get metadata from entity (based on decorators). We are basically creating a new entity instance to get the metadata (there is probably a better way to do this).
     const entityRepository: Repository<any> = this.getRepository(
-      (entityMetadata.inheritanceTree[0] as any).definition.slug
+      this.getEntityDefinition(entityMetadata).slug
     )
     const newItem = entityRepository.create()
 
@@ -212,7 +215,7 @@ export class DynamicEntityService {
   private getEntityMetadata(entitySlug): EntityMetadata {
     const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
       (entity: EntityMetadata) =>
-        (entity.target as any).definition.slug === entitySlug
+        this.getEntityDefinition(entity).slug === entitySlug
     )
 
     if (!entityMetadata) {
@@ -220,6 +223,27 @@ export class DynamicEntityService {
     }
 
     return entityMetadata
+  }
+
+  getEntityDefinition(entityMetadata: EntityMetadata): EntityDefinition {
+    const partialDefinition: Partial<EntityDefinition> = (
+      entityMetadata.inheritanceTree[0] as any
+    ).definition
+
+    return {
+      nameSingular:
+        partialDefinition.nameSingular ||
+        pluralize.singular(entityMetadata.name).toLowerCase(),
+      namePlural:
+        partialDefinition.namePlural ||
+        pluralize.plural(entityMetadata.name).toLowerCase(),
+      slug:
+        partialDefinition.slug ||
+        dasherize(pluralize.plural(entityMetadata.name)).toLowerCase(),
+      propIdentifier:
+        partialDefinition.propIdentifier ||
+        entityMetadata.columns[1].propertyName // The 2nd column is usually the name.
+    }
   }
 
   private async loadRelations(
@@ -231,7 +255,7 @@ export class DynamicEntityService {
     await Promise.all(
       relationMetadatas.map(async (relation: RelationMetadata) => {
         const relationRepository: Repository<any> = this.getRepository(
-          (relation.inverseEntityMetadata.target as any).definition.slug
+          this.getEntityDefinition(relation.inverseEntityMetadata).slug
         )
 
         // Create a property with the relation name and assign the related object to it.
