@@ -232,16 +232,16 @@ export class DynamicEntityService {
 
     return {
       nameSingular:
-        partialDefinition.nameSingular ||
+        partialDefinition?.nameSingular ||
         pluralize.singular(entityMetadata.name).toLowerCase(),
       namePlural:
-        partialDefinition.namePlural ||
+        partialDefinition?.namePlural ||
         pluralize.plural(entityMetadata.name).toLowerCase(),
       slug:
-        partialDefinition.slug ||
+        partialDefinition?.slug ||
         dasherize(pluralize.plural(entityMetadata.name)).toLowerCase(),
       propIdentifier:
-        partialDefinition.propIdentifier ||
+        partialDefinition?.propIdentifier ||
         entityMetadata.columns[1].propertyName // The 2nd column is usually the name.
     }
   }

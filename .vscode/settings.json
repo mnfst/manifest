@@ -30,7 +30,8 @@
     "metas",
     "nestjs",
     "typeorm",
-    "uniqid"
+    "uniqid",
+    "authenticable"
   ],
   "material-icon-theme.files.associations": {
     "**.controller.ts": "nest-controller",

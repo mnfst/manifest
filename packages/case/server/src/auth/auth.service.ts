@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import * as jwt from 'jsonwebtoken'
 import { DataSource } from 'typeorm'
 
-import { User } from '../core-entities/user.entity'
+import { User } from '../_contribution-root/entities/user.entity'
 
 @Injectable()
 export class AuthService {

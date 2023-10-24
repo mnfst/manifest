@@ -1,13 +1,14 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
-import { BaseEntity } from 'typeorm'
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import {
   BeforeInsert,
   BeforeUpdate
 } from '../decorators/entity-events.decorators'
 import { Prop } from '../decorators/prop.decorator'
+import { BaseEntity } from './base-entity'
 
+// The AuthenticatableEntity class is a BaseEntity with a name, an email and a password (used for admins, users and everyone that needs to be authenticated).
 export class AuthenticatableEntity extends BaseEntity {
   @Prop({
     seed: () => faker.person.firstName()

@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { User } from './core-entities/user.entity'
+import { Admin } from './core-entities/admin.entity'
 
 export default () => {
   // Contribution mode is used when running the app from the "server" folder with "npm run start:dev" script.
@@ -29,7 +29,7 @@ export default () => {
           ? `${packageRoot}/server/src/_contribution-root/entities/*.entity.js`
           : `${process.cwd()}/dist/entities/*.entity.js`,
         ,
-        User
+        Admin
       ],
       synchronize: true
     }

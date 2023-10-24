@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Req } from '@nestjs/common'
 import { Request } from 'express'
 
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
-import { User } from '../core-entities/user.entity'
+import { User } from '../_contribution-root/entities/user.entity'
 import { AuthService } from './auth.service'
 
 @Controller('auth')

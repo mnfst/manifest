@@ -14,8 +14,8 @@ export { Prop } from './decorators/prop.decorator'
 export { PropType } from '../../shared/enums/prop-type.enum'
 
 // Entities
+export { AuthenticatableEntity } from './core-entities/authenticable-entity'
 export { BaseEntity } from './core-entities/base-entity'
-export { User } from './core-entities/user.entity'
 
 // Interfaces
 export { AppConfig } from '../../shared/interfaces/app-config.interface'
