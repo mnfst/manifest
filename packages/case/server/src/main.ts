@@ -7,6 +7,7 @@ import * as livereload from 'livereload'
 import { join } from 'path'
 
 import { AppModule } from './app.module'
+import { AuthModule } from './auth/auth.module'
 import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
 
 async function bootstrap() {
@@ -62,7 +63,7 @@ async function bootstrap() {
     .build()
 
   const document = SwaggerModule.createDocument(app, config, {
-    include: [DynamicEntityModule]
+    include: [DynamicEntityModule, AuthModule]
   })
   SwaggerModule.setup('api', app, document, {
     customCss: '.swagger-ui .topbar { display: none }',
