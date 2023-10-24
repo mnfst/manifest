@@ -1,22 +1,14 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
-
+import { BaseEntity } from 'typeorm'
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import {
   BeforeInsert,
   BeforeUpdate
 } from '../decorators/entity-events.decorators'
-import { Entity } from '../decorators/entity.decorator'
 import { Prop } from '../decorators/prop.decorator'
-import { BaseEntity } from './base-entity'
 
-@Entity({
-  nameSingular: 'user',
-  namePlural: 'users',
-  slug: 'users',
-  propIdentifier: 'name'
-})
-export class User extends BaseEntity {
+export class AuthenticatableEntity extends BaseEntity {
   @Prop({
     seed: () => faker.person.firstName()
   })

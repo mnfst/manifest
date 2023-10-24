@@ -2,13 +2,13 @@ import { BeforeInsert } from 'typeorm'
 
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 
-import { CaseEntity } from '../../core-entities/case.entity'
+import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Cat } from './cat.entity'
 
 @Entity()
-export class Mouse extends CaseEntity {
+export class Mouse extends BaseEntity {
   @Prop({
     label: 'Nickname',
     type: PropType.Text,

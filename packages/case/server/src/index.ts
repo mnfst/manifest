@@ -1,20 +1,20 @@
 // Decorators
+export {
+  AfterInsert,
+  AfterRemove,
+  AfterUpdate,
+  BeforeInsert,
+  BeforeRemove,
+  BeforeUpdate
+} from './decorators/entity-events.decorators'
 export { Entity } from './decorators/entity.decorator'
 export { Prop } from './decorators/prop.decorator'
-export {
-  BeforeInsert,
-  AfterInsert,
-  BeforeUpdate,
-  AfterUpdate,
-  BeforeRemove,
-  AfterRemove
-} from './decorators/entity-events.decorators'
 
 // Enums
 export { PropType } from '../../shared/enums/prop-type.enum'
 
 // Entities
-export { CaseEntity } from './core-entities/case.entity'
+export { BaseEntity } from './core-entities/base-entity'
 export { User } from './core-entities/user.entity'
 
 // Interfaces

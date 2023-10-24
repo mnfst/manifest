@@ -1,5 +1,5 @@
 import { PropType } from '../../../../shared/enums/prop-type.enum'
-import { CaseEntity } from '../../core-entities/case.entity'
+import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Owner } from './owner.entity'
@@ -23,7 +23,7 @@ enum Breed {
 }
 
 @Entity()
-export class Cat extends CaseEntity {
+export class Cat extends BaseEntity {
   @Prop({})
   name: string
 

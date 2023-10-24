@@ -1,5 +1,5 @@
 import { PropType } from '../../../../shared/enums/prop-type.enum'
-import { CaseEntity } from '../../core-entities/case.entity'
+import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 
@@ -10,7 +10,7 @@ import { Prop } from '../../decorators/prop.decorator'
   slug: 'owners',
   seedCount: 5
 })
-export class Owner extends CaseEntity {
+export class Owner extends BaseEntity {
   @Prop({})
   name: string
 
