@@ -41,6 +41,7 @@
                   <app-input
                     [prop]="prop"
                     [value]="edit ? item[prop.propName] : null"
+                    [errors]="errors[prop.propName]"
                     (valueChanged)="
                       onChange({
                         propName: prop.propName,

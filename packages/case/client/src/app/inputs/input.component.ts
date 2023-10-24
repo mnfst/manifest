@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common'
-import { Component, EventEmitter, Input, Output } from '@angular/core'
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges
+} from '@angular/core'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
@@ -37,33 +44,38 @@ import { UrlInputComponent } from './url-input/url-input.component'
     ImageUploadInputComponent
   ],
   template: `
-    <app-number-input
-      [prop]="prop"
-      [value]="value"
-      (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Number"
-    ></app-number-input>
     <app-text-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Text"
     ></app-text-input>
+    <app-number-input
+      [prop]="prop"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Number"
+    ></app-number-input>
     <app-url-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Link"
     ></app-url-input>
     <app-textarea-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Textarea"
     ></app-textarea-input>
     <app-select-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       [type]="prop.type"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Relation || prop.type === PropType.Enum"
@@ -72,6 +84,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-currency-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Currency"
     >
@@ -79,6 +92,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-boolean-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Boolean"
     >
@@ -86,6 +100,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-email-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Email"
     >
@@ -93,6 +108,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-date-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Date"
     >
@@ -100,6 +116,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-password-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Password"
     >
@@ -107,25 +124,38 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-file-upload-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.File"
     ></app-file-upload-input>
     <app-image-upload-input
       [prop]="prop"
       [value]="value"
+      [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Image"
     ></app-image-upload-input>
+
+    <!-- Error messages -->
+    <ul *ngIf="errors?.length">
+      <li *ngFor="let error of errors" class="has-text-danger">{{ error }}</li>
+    </ul>
   `
 })
-export class InputComponent {
+export class InputComponent implements OnChanges {
   @Input() prop: PropertyDescription
   @Input() value: any
+  @Input() errors: string[]
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()
 
+  isError: boolean
   PropType = PropType
 
   onChange(event: any) {
     this.valueChanged.emit(event)
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.isError = !!this.errors?.length
   }
 }

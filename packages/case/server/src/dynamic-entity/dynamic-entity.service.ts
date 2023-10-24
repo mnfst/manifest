@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common'
+import { validate } from 'class-validator'
 import {
   DataSource,
   DeepPartial,
@@ -115,23 +121,28 @@ export class DynamicEntityService {
     return item
   }
 
-  async store(entitySlug: string, entityDto: any) {
+  async store(entitySlug: string, itemDto: any) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
-    const newEntity = entityRepository.create(entityDto)
+    const newItem: any = entityRepository.create(itemDto)
 
     const relations: RelationMetadata[] =
       this.getEntityMetadata(entitySlug).relations
 
     // If we have relations, we load them to be available in the @BeforeInsert() hook.
     if (relations.length) {
-      newEntity._relations = await this.loadRelations(newEntity, relations)
+      newItem._relations = await this.loadRelations(newItem, relations)
     }
 
-    return entityRepository.insert(newEntity)
+    const errors = await validate(newItem)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
+
+    return entityRepository.insert(newItem)
   }
 
-  async update(entitySlug: string, id: number, entityDto: any) {
+  async update(entitySlug: string, id: number, itemDto: any) {
     const entityRepository: Repository<any> = this.getRepository(entitySlug)
 
     const item = await entityRepository.findOne({ where: { id } })
@@ -140,12 +151,17 @@ export class DynamicEntityService {
       throw new NotFoundException('Item not found')
     }
 
-    const entityToSave = entityRepository.create({
+    const itemToSave = entityRepository.create({
       ...item,
-      ...entityDto
+      ...itemDto
     })
 
-    return entityRepository.save(entityToSave)
+    const errors = await validate(itemToSave)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
+
+    return entityRepository.save(itemToSave)
   }
 
   async delete(entitySlug: string, id: number) {
