@@ -19,6 +19,11 @@ describe('AuthService', () => {
         get: jest.fn().mockReturnValue('test-jwt-secret')
     }
 
+    const mockUser = {
+        email: "testEmail",
+        password: "testHashedPassword"
+    }
+
     beforeEach( async () => {
         const module = await Test.createTestingModule({
             providers: [
@@ -38,4 +43,19 @@ describe('AuthService', () => {
         authService = module.get<AuthService>(AuthService);
         configService = module.get<ConfigService>(ConfigService);
     })
+
+    describe('getUserFromToken', () => {
+
+        it('should return a valid jwt token if a user is found', async () => {
+            mockDataSource.getRepository().findOne.mockReturnValue(mockUser)
+    
+            const result = await authService.createToken('testEmail', 'testPlainPassword')
+            expect(result).toHaveProperty('token')
+    
+            const decodedPayload: any = jwt.decode(result.token);
+            expect(decodedPayload).toHaveProperty('email', 'testEmail');
+        })
+        
+    })
+    
 })
