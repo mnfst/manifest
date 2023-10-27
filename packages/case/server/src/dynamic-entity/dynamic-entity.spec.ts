@@ -3,7 +3,7 @@ import { DynamicEntityController } from './dynamic-entity.controller'
 import { DynamicEntityService } from './dynamic-entity.service'
 import { AuthGuard } from '../auth/auth.guard'
 import { AuthService } from '../auth/auth.service'
-import { DataSource, EntityMetadata } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 describe('DynamicEntityController', () => {
   let dynamicEntityController: DynamicEntityController
