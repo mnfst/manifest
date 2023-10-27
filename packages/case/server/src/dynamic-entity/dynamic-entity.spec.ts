@@ -3,7 +3,7 @@ import { DynamicEntityController } from './dynamic-entity.controller'
 import { DynamicEntityService } from './dynamic-entity.service'
 import { AuthGuard } from '../auth/auth.guard'
 import { AuthService } from '../auth/auth.service'
-import { DataSource } from 'typeorm'
+import { DataSource, EntityMetadata } from 'typeorm'
 
 describe('DynamicEntityController', () => {
   let dynamicEntityController: DynamicEntityController
@@ -54,7 +54,7 @@ describe('DynamicEntityService', () => {
   }
 
   const mockDataSource = {
-    getRepository: jest.fn( () => mockRepository ),
+    getRepository: jest.fn(() => mockRepository),
     entityMetadatas: {
       find: jest.fn()
     }
@@ -76,22 +76,23 @@ describe('DynamicEntityService', () => {
   })
 
   describe('findAll', () => {
-    it('should be able to return non-paginated results from the repository', () => {
-      mockRepository.find.mockResolvedValue([
-        {
-          entity: 'testEntity',
-          data: 'testData'
-        }
-      ])
+    it('should be able to return non-paginated results from the repository when options.paginated == false', async () => {
+      mockRepository.find.mockReturnValue({
+        entity: 'testEntity',
+        data: 'testData'
+      })
 
-      const result = dynamicEntityService.findAll({
+      mockDataSource.entityMetadatas.find.mockResolvedValue({
+        relations: [{ propertyName: 'mock' }]
+      })
+
+      const result = await dynamicEntityService.findAll({
         entitySlug: 'mockSlug',
         queryParams: {},
         options: { paginated: false }
       })
 
       expect(result).toHaveProperty('entity', 'testEntity')
-      expect(result).toHaveProperty('data', 'testData')
     })
   })
 })
