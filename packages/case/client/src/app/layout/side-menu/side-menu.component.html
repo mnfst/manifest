@@ -1,24 +1,25 @@
 <ul class="menu-list mt-5">
-  <ng-container>
-    <li>
-      <a
-        routerLink="/"
-        routerLinkActive="is-active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <span>Home</span>
-      </a>
-      <ng-container *ngIf="entityMetas">
+  <li *ngIf="entityMetas">
+    <a (click)="isCollectionsOpen = !isCollectionsOpen">Collections ▼</a>
+    <ul *ngIf="isCollectionsOpen">
+      <li *ngFor="let entity of entityMetas">
         <a
           [routerLink]="['/dynamic', entity.definition.slug]"
           routerLinkActive="is-active"
-          *ngFor="let entity of entityMetas"
         >
           <span>{{
             entity.definition.namePlural | capitalizeFirstLetter
           }}</span>
         </a>
-      </ng-container>
-    </li>
-  </ng-container>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <a (click)="isSettingsOpen = !isSettingsOpen">Settings ▼</a>
+    <ul *ngIf="isSettingsOpen">
+      <li>
+        <a routerLink="/dynamic/admins">Admins</a>
+      </li>
+    </ul>
+  </li>
 </ul>
