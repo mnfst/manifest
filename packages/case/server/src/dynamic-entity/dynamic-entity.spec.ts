@@ -82,7 +82,7 @@ describe('DynamicEntityService', () => {
         data: 'testData'
       })
 
-      mockDataSource.entityMetadatas.find.mockResolvedValue({
+      mockDataSource.entityMetadatas.find.mockReturnValue({
         relations: [{ propertyName: 'mock' }]
       })
 
