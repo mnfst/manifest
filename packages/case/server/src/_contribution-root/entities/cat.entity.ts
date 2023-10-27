@@ -1,3 +1,4 @@
+import { ApiRestriction } from '../../../../shared/enums/api-restriction.enum'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -22,7 +23,11 @@ enum Breed {
   tortoiseshell = 'Tortoiseshell'
 }
 
-@Entity()
+@Entity({
+  apiRestrictions: {
+    create: ApiRestriction.User
+  }
+})
 export class Cat extends BaseEntity {
   @Prop({})
   name: string

@@ -11,6 +11,7 @@ export { Entity } from './decorators/entity.decorator'
 export { Prop } from './decorators/prop.decorator'
 
 // Enums
+export { ApiRestriction } from '../../shared/enums/api-restriction.enum'
 export { PropType } from '../../shared/enums/prop-type.enum'
 
 // Entities

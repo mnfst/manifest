@@ -16,13 +16,14 @@ import { DeleteResult } from 'typeorm'
 import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
 import { Paginator } from '../../../shared/interfaces/paginator.interface'
 import { SelectOption } from '../../../shared/interfaces/select-option.interface'
-import { AuthGuard } from '../auth/auth.guard'
+import { ApiRestrictionGuard } from '../auth/api-restriction.guard'
+import { EndpointRestrictionRule } from '../decorators/endpoint-restriction-rule.decorator'
 import { DynamicEntityService } from './dynamic-entity.service'
 
 @Controller('dynamic')
+@UseGuards(ApiRestrictionGuard)
 @ApiBearerAuth('JWT')
 @ApiTags('Dynamic entities')
-@UseGuards(AuthGuard)
 export class DynamicEntityController {
   constructor(private readonly dynamicEntityService: DynamicEntityService) {}
 
@@ -35,6 +36,7 @@ export class DynamicEntityController {
   }
 
   @Get(':entity')
+  @EndpointRestrictionRule('read')
   @ApiOperation({
     summary: 'Find all items of an entity'
   })
@@ -68,6 +70,7 @@ export class DynamicEntityController {
   }
 
   @Get(':entity/:id')
+  @EndpointRestrictionRule('read')
   @ApiOperation({
     summary: 'Find one item of an entity'
   })
@@ -89,6 +92,7 @@ export class DynamicEntityController {
   }
 
   @Post(':entity')
+  @EndpointRestrictionRule('create')
   @ApiOperation({
     summary: 'Create a new item of an entity'
   })
@@ -102,6 +106,7 @@ export class DynamicEntityController {
   }
 
   @Put(':entity/:id')
+  @EndpointRestrictionRule('update')
   @ApiOperation({
     summary: 'Update an item of an entity'
   })
@@ -124,6 +129,7 @@ export class DynamicEntityController {
   }
 
   @Delete(':entity/:id')
+  @EndpointRestrictionRule('delete')
   @ApiOperation({
     summary: 'Delete an item of an entity'
   })
