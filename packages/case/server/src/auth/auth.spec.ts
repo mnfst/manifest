@@ -13,7 +13,7 @@ describe('AuthService', () => {
     email: 'testEmail',
     password: 'testHashedPassword'
   }
-  
+
   const mockDataSource = {
     getRepository: jest.fn().mockReturnValue({
       findOne: jest.fn()
@@ -45,7 +45,6 @@ describe('AuthService', () => {
   })
 
   describe('createToken', () => {
-
     it('should return a valid jwt token if a user is found', async () => {
       mockDataSource.getRepository().findOne.mockReturnValue(mockUser)
 
@@ -69,9 +68,8 @@ describe('AuthService', () => {
   })
 
   describe('getUserFromToken', () => {
-
     it('should return a user when the token decodes to a valid email', async () => {
-      const jwtToken = jwt.sign(mockUser.email, configService.get('JWT_SECRET') )
+      const jwtToken = jwt.sign(mockUser.email, configService.get('JWT_SECRET'))
       mockDataSource.getRepository().findOne.mockReturnValue(mockUser)
 
       const result = await authService.getUserFromToken(jwtToken)
@@ -79,7 +77,10 @@ describe('AuthService', () => {
     })
 
     it('should return null when the token does not decode to a valid email', async () => {
-      const jwtToken = jwt.sign('nonexistent@email.com', configService.get('JWT_SECRET') )
+      const jwtToken = jwt.sign(
+        'nonexistent@email.com',
+        configService.get('JWT_SECRET')
+      )
       mockDataSource.getRepository().findOne.mockReturnValue(null)
 
       const result = await authService.getUserFromToken(jwtToken)
