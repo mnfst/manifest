@@ -11,7 +11,7 @@ import { Prop } from '../../crud/decorators/prop.decorator'
   seedCount: 5
 })
 export class Owner extends BaseEntity {
-  @Prop({})
+  @Prop()
   name: string
 
   @Prop({

@@ -1,5 +1,3 @@
-import { ApiRestriction } from '../enums/api-restriction.enum'
-
 export interface EntityDefinition {
   nameSingular: string
   namePlural: string
@@ -7,10 +5,10 @@ export interface EntityDefinition {
   propIdentifier: string
 
   seedCount?: number
-  apiRestrictions?: {
-    create?: ApiRestriction
-    read?: ApiRestriction
-    update?: ApiRestriction
-    delete?: ApiRestriction
+  apiPolicies?: {
+    create?: () => Promise<boolean>
+    read?: () => Promise<boolean>
+    update?: () => Promise<boolean>
+    delete?: () => Promise<boolean>
   }
 }

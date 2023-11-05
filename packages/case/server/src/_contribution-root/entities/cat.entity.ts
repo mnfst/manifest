@@ -1,5 +1,5 @@
-import { ApiRestriction } from '../../../../shared/enums/api-restriction.enum'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
+import { Policies } from '../../api/policies'
 import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../crud/decorators/entity.decorator'
 import { Prop } from '../../crud/decorators/prop.decorator'
@@ -23,15 +23,14 @@ enum Breed {
   tortoiseshell = 'Tortoiseshell'
 }
 
-// TODO: We can replace this prop values by a custom function (or even predefined functions).
 @Entity({
-  apiRestrictions: {
-    create: ApiRestriction.User,
-    read: ApiRestriction.User
+  apiPolicies: {
+    create: Policies.noRestriction,
+    read: Policies.loggedInOnly
   }
 })
 export class Cat extends BaseEntity {
-  @Prop({})
+  @Prop()
   name: string
 
   @Prop({

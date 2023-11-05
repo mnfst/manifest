@@ -9,13 +9,14 @@ import { EntityDefinition } from '../../../../shared/interfaces/entity-definitio
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
 import { RelationOptions } from '../../../../shared/interfaces/property-options/relation-options.interface'
+import { Policies } from '../../api/policies'
 
 @Injectable()
 export class EntityMetaService {
   constructor(private dataSource: DataSource) {}
 
   /**
-   * Returns the full list of entities.
+   * Returns the full list of entities with their definition and properties.
    *
    * @returns the full list of entities
    */
@@ -62,21 +63,20 @@ export class EntityMetaService {
   }
 
   /**
- * Returns the TypeORM repository of an entity.
- *
-
- * @param entitySlug - The slug of the entity
- * @returns the TypeORM repository of an entity
- *
- * @beta
- */
+   * Returns the TypeORM repository of an entity.
+   *
+   * @param entitySlug - The slug of the entity
+   * @returns the TypeORM repository of an entity
+   *
+   * @beta
+   */
   getRepository(entitySlug: string): Repository<any> {
     return this.dataSource.getRepository(
       this.getEntityMetadata(entitySlug).target
     )
   }
 
-  getEntityMetadata(entitySlug): EntityMetadata {
+  getEntityMetadata(entitySlug: string): EntityMetadata {
     const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
       (entity: EntityMetadata) =>
         this.getEntityDefinition(entity).slug === entitySlug
@@ -89,7 +89,18 @@ export class EntityMetaService {
     return entityMetadata
   }
 
-  getEntityDefinition(entityMetadata: EntityMetadata): EntityDefinition {
+  /**
+   * Returns the full definition of an entity.
+   *
+   * @param entity - The entity
+   * @returns the definition of an entity
+   */
+  getEntityDefinition(entity: EntityMetadata | string): EntityDefinition {
+    if (typeof entity === 'string') {
+      entity = this.getEntityMetadata(entity)
+    }
+    const entityMetadata: EntityMetadata = entity as EntityMetadata
+
     const partialDefinition: Partial<EntityDefinition> = (
       entityMetadata.inheritanceTree[0] as any
     ).definition
@@ -106,7 +117,15 @@ export class EntityMetaService {
         dasherize(pluralize.plural(entityMetadata.name)).toLowerCase(),
       propIdentifier:
         partialDefinition?.propIdentifier ||
-        entityMetadata.columns[1].propertyName // The 2nd column is usually the name.
+        entityMetadata.columns[1].propertyName, // The 2nd column is usually the name.,
+      apiPolicies: {
+        create:
+          partialDefinition?.apiPolicies?.create || Policies.noRestriction,
+        read: partialDefinition?.apiPolicies?.read || Policies.noRestriction,
+        update:
+          partialDefinition?.apiPolicies?.update || Policies.noRestriction,
+        delete: partialDefinition?.apiPolicies?.delete || Policies.noRestriction
+      }
     }
   }
 

@@ -7,3 +7,5 @@ By running the seed script, you will generate 10 users with the following creden
 ```
 npm run seed
 ```
+
+// TODO: Authenticable entities

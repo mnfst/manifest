@@ -1,4 +1,4 @@
-// Decorators
+// Decorators.
 export {
   AfterInsert,
   AfterRemove,
@@ -10,13 +10,15 @@ export {
 export { Entity } from './crud/decorators/entity.decorator'
 export { Prop } from './crud/decorators/prop.decorator'
 
-// Enums
-export { ApiRestriction } from '../../shared/enums/api-restriction.enum'
+// Enums.
 export { PropType } from '../../shared/enums/prop-type.enum'
 
-// Entities
+// Entities.
 export { AuthenticatableEntity } from './core-entities/authenticable-entity'
 export { BaseEntity } from './core-entities/base-entity'
 
-// Interfaces
+// Interfaces.
 export { AppConfig } from '../../shared/interfaces/app-config.interface'
+
+// Classes.
+export { Policies } from './api/policies'
