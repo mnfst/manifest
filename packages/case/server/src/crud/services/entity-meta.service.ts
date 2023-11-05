@@ -78,12 +78,12 @@ export class EntityMetaService {
   /**
    * Returns the TypeORM repository of an entity from its slug.
    *
-   * @param entitySlug - The slug of the entity
+   * @param entitySlugOrClassName - The slug or class name of the entity
    * @returns the TypeORM repository of an entity
    */
-  getRepository(entitySlug: string): Repository<any> {
+  getRepository(entitySlugOrClassName: string): Repository<any> {
     return this.dataSource.getRepository(
-      this.getEntityMetadata(entitySlug).target
+      this.getEntityMetadata(entitySlugOrClassName).target
     )
   }
 

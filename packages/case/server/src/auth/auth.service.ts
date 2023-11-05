@@ -3,10 +3,8 @@ import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'
 import { StatusCodes } from 'http-status-codes'
 import * as jwt from 'jsonwebtoken'
-import { DataSource } from 'typeorm'
+import { DataSource, EntityMetadata, Repository } from 'typeorm'
 
-import { User } from '../_contribution-root/entities/user.entity'
-import { Admin } from '../core-entities/admin.entity'
 import { AuthenticableEntity } from '../core-entities/authenticable-entity'
 import { EntityMetaService } from '../crud/services/entity-meta.service'
 
@@ -19,6 +17,7 @@ export class AuthService {
   ) {}
 
   async createToken(
+    entitySlug: string,
     email: string,
     password: string
   ): Promise<{
@@ -31,7 +30,10 @@ export class AuthService {
       )
     }
 
-    const user = await this.dataSource.getRepository(User).findOne({
+    const entityRepository: Repository<AuthenticableEntity> =
+      this.entityMetaService.getRepository(entitySlug)
+
+    const user = await entityRepository.findOne({
       where: {
         email,
         password: SHA3(password).toString()
@@ -50,43 +52,57 @@ export class AuthService {
     }
   }
 
-  getUserFromToken(
-    token: string,
-    entity?: typeof AuthenticableEntity
-  ): Promise<any> {
-    const authenticableEntities =
-      this.entityMetaService.getAuthenticableEntities()
+  /**
+   * Returns the user from a JWT token. This user can be of any entity that extends AuthenticableEntity.
+   *
+   * @param token JWT token
+   * @param entitySlug Entity slug. If provided, the user will be searched only in this entity. If not provided, the user will be searched in all entities that extend AuthenticableEntity.
+   *
+   * @returns The user item from the JWT token
+   *
+   */
+  async getUserFromToken(token: string, entitySlug?: string): Promise<any> {
+    let decoded: jwt.JwtPayload
 
-    // TODO: if no entity provided, search into all authenticable entities.
-
-    console.log(
-      'authenticableEntities',
-      authenticableEntities.map((e) => e.name)
-    )
-
-    if (!token) {
+    try {
+      decoded = jwt.verify(
+        token?.replace('Bearer ', ''),
+        this.configService.get('JWT_SECRET')
+      ) as jwt.JwtPayload
+    } catch (e) {
       return null
     }
-
-    const decoded: jwt.JwtPayload = jwt.verify(
-      token?.replace('Bearer ', ''),
-      this.configService.get('JWT_SECRET')
-    ) as jwt.JwtPayload
-
-    console.log('decoded', decoded)
 
     if (!decoded) {
       return null
     }
 
-    return this.dataSource.getRepository(Admin).findOne({
-      where: {
-        email: decoded.email
-      }
-    })
-  }
+    if (entitySlug) {
+      const entityRepository: Repository<AuthenticableEntity> =
+        this.entityMetaService.getRepository(entitySlug)
 
-  async getAdminFromToken(token: string): Promise<Admin> {
-    return this.getUserFromToken(token, Admin) as Promise<Admin>
+      return entityRepository.findOne({
+        where: {
+          email: decoded.email
+        }
+      })
+    } else {
+      const authenticableEntities: EntityMetadata[] =
+        this.entityMetaService.getAuthenticableEntities()
+
+      for (const entity of authenticableEntities) {
+        const user: AuthenticableEntity = await this.entityMetaService
+          .getRepository(entity.targetName)
+          .findOne({
+            where: {
+              email: decoded.email
+            }
+          })
+
+        if (user) {
+          return Promise.resolve(user)
+        }
+      }
+    }
   }
 }

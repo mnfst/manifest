@@ -20,7 +20,10 @@ export class AuthService {
   }): Promise<string> {
     return (
       firstValueFrom(
-        this.http.post(`${environment.apiBaseUrl}/auth/login`, credentials)
+        this.http.post(
+          `${environment.apiBaseUrl}/auth/admins/login`,
+          credentials
+        )
       ) as Promise<{
         token: string
       }>
@@ -43,7 +46,7 @@ export class AuthService {
 
   async me(): Promise<User> {
     const user: User = (await firstValueFrom(
-      this.http.get(`${environment.apiBaseUrl}/auth/me`)
+      this.http.get(`${environment.apiBaseUrl}/auth/admins/me`)
     )) as User
 
     if (!user) {

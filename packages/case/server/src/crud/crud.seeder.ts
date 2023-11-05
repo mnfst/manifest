@@ -101,7 +101,15 @@ export class CrudSeeder {
               relatedEntityDefinition.seedCount
             )
           } else {
-            newItem[column.propertyName] = propSeederFn(index)
+            // Special case for the admin user that has a custom email.
+            if (
+              column.propertyName === 'email' &&
+              entity.tableName === 'admin'
+            ) {
+              newItem[column.propertyName] = 'admin@case.app'
+            } else {
+              newItem[column.propertyName] = propSeederFn(index)
+            }
           }
 
           if (propType === PropType.File) {

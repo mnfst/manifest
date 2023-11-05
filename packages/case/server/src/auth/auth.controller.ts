@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common'
 import { Request } from 'express'
 
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
@@ -10,7 +10,7 @@ import { AuthService } from './auth.service'
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
+  @Post(':authenticableEntity/login')
   @ApiOperation({
     summary: 'Login',
     description: 'Get a JWT token to connect to the API.'
@@ -26,20 +26,27 @@ export class AuthController {
     example: 'case'
   })
   public async getToken(
+    @Param('authenticableEntity') authenticableEntity: string,
     @Body('email') email: string,
     @Body('password') password: string
   ): Promise<{
     token: string
   }> {
-    return this.authService.createToken(email, password)
+    return this.authService.createToken(authenticableEntity, email, password)
   }
 
-  @Get('me')
+  @Get(':authenticableEntity/me')
   @ApiOperation({
     summary: 'Get the current user'
   })
   @ApiBearerAuth('JWT')
-  public async getCurrentUser(@Req() req: Request): Promise<User> {
-    return this.authService.getAdminFromToken(req.headers?.authorization)
+  public async getCurrentUser(
+    @Param('authenticableEntity') authenticableEntity: string,
+    @Req() req: Request
+  ): Promise<User> {
+    return this.authService.getUserFromToken(
+      req.headers?.authorization,
+      authenticableEntity
+    )
   }
 }
