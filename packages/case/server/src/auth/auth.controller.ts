@@ -18,7 +18,7 @@ export class AuthController {
   @ApiQuery({
     name: 'email',
     description: 'User email',
-    example: 'user1@case.app'
+    example: 'admin@case.app'
   })
   @ApiQuery({
     name: 'password',

@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit {
   appConfig: AppConfig
 
   defaultUser: any = {
-    email: 'user1@case.app',
+    email: 'admin@case.app',
     password: 'case'
   }
   suggestedEmail: string

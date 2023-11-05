@@ -6,7 +6,9 @@ export interface EntityDefinition {
   slug: string
   propIdentifier: string
 
-  seedCount?: number
+  /** The number of entities to seed in the database. */
+  seedCount: number
+
   apiPolicies?: {
     create?: (user: AuthenticableEntity) => boolean
     read?: (user: AuthenticableEntity) => boolean

@@ -105,23 +105,30 @@ export class EntityMetaService {
     return this.dataSource.getRepository(entity.target)
   }
 
-  getEntityMetadata(entitySlug: string): EntityMetadata {
+  /**
+   * Returns the TypeORM entity metadata from an entity slug or class name.
+   *
+   * @param entitySlugOrClassName - The slug or class name of the entity
+   * @returns the TypeORM entity metadata
+   */
+  getEntityMetadata(entitySlugOrClassName: string): EntityMetadata {
     const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) =>
-        this.getEntityDefinition(entity).slug === entitySlug
+      (entityMetadata: EntityMetadata) =>
+        this.getEntityDefinition(entityMetadata).slug ===
+          entitySlugOrClassName ||
+        entityMetadata.target['name'] === entitySlugOrClassName
     )
 
     if (!entityMetadata) {
       throw new NotFoundException('Entity not found')
     }
-
     return entityMetadata
   }
 
   /**
    * Returns the full definition of an entity.
    *
-   * @param entity - The entity
+   * @param entity - The entity metadata or slug
    * @returns the definition of an entity
    */
   getEntityDefinition(entity: EntityMetadata | string): EntityDefinition {
@@ -133,6 +140,8 @@ export class EntityMetaService {
     const partialDefinition: Partial<EntityDefinition> = (
       entityMetadata.inheritanceTree[0] as any
     ).definition
+
+    const defaultSeedCount: number = 50
 
     return {
       nameSingular:
@@ -146,7 +155,8 @@ export class EntityMetaService {
         dasherize(pluralize.plural(entityMetadata.name)).toLowerCase(),
       propIdentifier:
         partialDefinition?.propIdentifier ||
-        entityMetadata.columns[1].propertyName, // The 2nd column is usually the name.,
+        entityMetadata.columns[1].propertyName, // The 2nd column is usually the name.
+      seedCount: partialDefinition?.seedCount || defaultSeedCount,
       apiPolicies: {
         create:
           partialDefinition?.apiPolicies?.create || Policies.noRestriction,

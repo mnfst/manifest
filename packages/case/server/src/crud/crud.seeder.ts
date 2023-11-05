@@ -11,8 +11,6 @@ import { EntityMetaService } from './services/entity-meta.service'
 
 @Injectable()
 export class CrudSeeder {
-  defaultSeedCount = 50
-
   constructor(
     private dataSource: DataSource,
     private entityMetaService: EntityMetaService,
@@ -61,13 +59,17 @@ export class CrudSeeder {
       const entityRepository: Repository<any> =
         this.entityMetaService.getRepositoryFromTableName(entity.tableName)
 
-      const seedCount: number = definition.seedCount || this.defaultSeedCount
-
       console.log(
-        chalk.blue(`[x] Seeding ${seedCount} ${definition.namePlural}...`)
+        chalk.blue(
+          `[x] Seeding ${definition.seedCount} ${
+            definition.seedCount > 1
+              ? definition.namePlural
+              : definition.nameSingular
+          }...`
+        )
       )
 
-      for (const index of Array(seedCount).keys()) {
+      for (const index of Array(definition.seedCount).keys()) {
         const newItem = entityRepository.create()
 
         entity.columns.forEach((column: ColumnMetadata) => {
@@ -91,9 +93,12 @@ export class CrudSeeder {
               newItem
             )?.entity
 
+            const relatedEntityDefinition: EntityDefinition =
+              this.entityMetaService.getEntityDefinition(relatedEntity.name)
+
             newItem[`${column.propertyName}`] = propSeederFn(
               index,
-              relatedEntity.definition.seedCount || this.defaultSeedCount
+              relatedEntityDefinition.seedCount
             )
           } else {
             newItem[column.propertyName] = propSeederFn(index)
