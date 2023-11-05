@@ -1,5 +1,5 @@
 import { Entity } from '../crud/decorators/entity.decorator'
-import { AuthenticatableEntity } from './authenticable-entity'
+import { AuthenticableEntity } from './authenticable-entity'
 
 @Entity()
-export class Admin extends AuthenticatableEntity {}
+export class Admin extends AuthenticableEntity {}

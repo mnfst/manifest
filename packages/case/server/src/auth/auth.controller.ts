@@ -40,6 +40,6 @@ export class AuthController {
   })
   @ApiBearerAuth('JWT')
   public async getCurrentUser(@Req() req: Request): Promise<User> {
-    return this.authService.getUserFromToken(req.headers?.authorization)
+    return this.authService.getAdminFromToken(req.headers?.authorization)
   }
 }

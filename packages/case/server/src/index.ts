@@ -14,7 +14,7 @@ export { Prop } from './crud/decorators/prop.decorator'
 export { PropType } from '../../shared/enums/prop-type.enum'
 
 // Entities.
-export { AuthenticatableEntity } from './core-entities/authenticable-entity'
+export { AuthenticableEntity } from './core-entities/authenticable-entity'
 export { BaseEntity } from './core-entities/base-entity'
 
 // Interfaces.

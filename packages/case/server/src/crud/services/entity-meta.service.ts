@@ -10,6 +10,7 @@ import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
 import { RelationOptions } from '../../../../shared/interfaces/property-options/relation-options.interface'
 import { Policies } from '../../api/policies'
+import { AuthenticableEntity } from '../../core-entities/authenticable-entity'
 
 @Injectable()
 export class EntityMetaService {
@@ -20,13 +21,25 @@ export class EntityMetaService {
    *
    * @returns the full list of entities
    */
-  async getMeta(): Promise<EntityMeta[]> {
+  getMeta(): EntityMeta[] {
     return this.dataSource.entityMetadatas.map(
       (entityMetadata: EntityMetadata) => ({
         className: entityMetadata.name,
         definition: this.getEntityDefinition(entityMetadata),
         props: this.getPropDescriptions(entityMetadata)
       })
+    )
+  }
+
+  /**
+   * Returns an array of all entities that extend AuthenticableEntity, in other words, all entities that can be used for authentication.
+   *
+   * @returns An array of all entity metadata that extend AuthenticableEntity.
+   */
+  getAuthenticableEntities(): EntityMetadata[] {
+    return this.dataSource.entityMetadatas.filter(
+      (entity: EntityMetadata) =>
+        (entity.target as Function).prototype instanceof AuthenticableEntity
     )
   }
 
@@ -63,17 +76,33 @@ export class EntityMetaService {
   }
 
   /**
-   * Returns the TypeORM repository of an entity.
+   * Returns the TypeORM repository of an entity from its slug.
    *
    * @param entitySlug - The slug of the entity
    * @returns the TypeORM repository of an entity
-   *
-   * @beta
    */
   getRepository(entitySlug: string): Repository<any> {
     return this.dataSource.getRepository(
       this.getEntityMetadata(entitySlug).target
     )
+  }
+
+  /**
+   * Returns the TypeORM repository of an entity from its table name.
+   *
+   * @param entitySlug - The DB table name of the entity
+   * @returns the TypeORM repository of an entity
+   */
+  getRepositoryFromTableName(entityTableName: string): Repository<any> {
+    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
+      (entity: EntityMetadata) => entity.tableName === entityTableName
+    )
+
+    if (!entity) {
+      throw new Error('Entity not found')
+    }
+
+    return this.dataSource.getRepository(entity.target)
   }
 
   getEntityMetadata(entitySlug: string): EntityMetadata {
@@ -129,6 +158,13 @@ export class EntityMetaService {
     }
   }
 
+  /**
+   * Loads the relations of an entity.
+   *
+   * @param entity - The entity
+   * @param relationMetadatas - The relations to load
+   * @returns an object with the relation items
+   */
   async loadRelations(
     entity: DeepPartial<any>,
     relationMetadatas: RelationMetadata[]

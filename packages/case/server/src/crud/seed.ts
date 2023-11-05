@@ -15,7 +15,7 @@ async function bootstrap() {
         .then(() => {
           console.log(
             chalk.green(
-              '🌱 Seed complete ! Please refresh your browser to see the new dsata.'
+              '🌱 Seed complete ! Please refresh your browser to see your new data.'
             )
           )
         })

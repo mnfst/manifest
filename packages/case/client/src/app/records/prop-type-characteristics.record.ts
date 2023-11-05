@@ -19,6 +19,10 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Number,
     yield: YieldType.Number
   },
+  [PropType.Link]: {
+    input: InputType.Text,
+    yield: YieldType.Link
+  },
   [PropType.Relation]: {
     input: InputType.Select,
     yield: YieldType.Link

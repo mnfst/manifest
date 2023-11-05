@@ -7,6 +7,7 @@ import { PropType } from '../../../shared/enums/prop-type.enum'
 import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
 import { FileUploadService } from '../file-upload/file-upload.service'
 import { ImageUploadService } from '../file-upload/image-upload.service'
+import { EntityMetaService } from './services/entity-meta.service'
 
 @Injectable()
 export class CrudSeeder {
@@ -14,19 +15,20 @@ export class CrudSeeder {
 
   constructor(
     private dataSource: DataSource,
+    private entityMetaService: EntityMetaService,
     private fileUploadService: FileUploadService,
     private imageUploadService: ImageUploadService
   ) {}
 
   async seed(tableName?: string) {
-    let entities: EntityMetadata[] = this.orderEntities(
-      this.dataSource.entityMetadatas
-    )
+    let entities: EntityMetadata[]
 
     if (tableName) {
       entities = entities.filter(
         (entity: EntityMetadata) => entity.tableName === tableName
       )
+    } else {
+      entities = this.sortEntitiesByHierarchy(this.dataSource.entityMetadatas)
     }
 
     const queryRunner = this.dataSource.createQueryRunner()
@@ -53,11 +55,11 @@ export class CrudSeeder {
     let addDummyImage: boolean = false
 
     for (const entity of entities) {
-      const definition: EntityDefinition = (entity.target as any).definition
+      const definition: EntityDefinition =
+        this.entityMetaService.getEntityDefinition(entity)
 
-      const entityRepository: Repository<any> = this.getRepository(
-        entity.tableName
-      )
+      const entityRepository: Repository<any> =
+        this.entityMetaService.getRepositoryFromTableName(entity.tableName)
 
       const seedCount: number = definition.seedCount || this.defaultSeedCount
 
@@ -120,20 +122,10 @@ export class CrudSeeder {
     }
   }
 
-  private getRepository(entityTableName: string): Repository<any> {
-    const entity: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entity: EntityMetadata) => entity.tableName === entityTableName
-    )
-
-    if (!entity) {
-      throw new Error('Entity not found')
-    }
-
-    return this.dataSource.getRepository(entity.target)
-  }
-
-  // Order entities so that entities with relations are seeded after entities they depend on.
-  private orderEntities(entities: EntityMetadata[]): EntityMetadata[] {
+  // Sort entities so that entities with relations are seeded after entities they depend on.
+  private sortEntitiesByHierarchy(
+    entities: EntityMetadata[]
+  ): EntityMetadata[] {
     const orderedEntities: EntityMetadata[] = []
 
     entities.forEach((entity: EntityMetadata) => {

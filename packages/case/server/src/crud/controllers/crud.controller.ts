@@ -35,7 +35,7 @@ export class CrudController {
   @ApiOperation({
     summary: 'Get metadata of all entities of the app'
   })
-  getMeta(): Promise<EntityMeta[]> {
+  getMeta(): EntityMeta[] {
     return this.entityMetaService.getMeta()
   }
 

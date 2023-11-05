@@ -12,8 +12,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "node dist/server/src/dynamic-entity/seed.js",
-    "seed:dev": "node dist/server/src/dynamic-entity/seed.js contribution"
+    "seed": "node dist/server/src/crud/seed.js",
+    "seed:dev": "node dist/server/src/crud/seed.js contribution"
   },
   "dependencies": {
     "@faker-js/faker": "^8.0.2",

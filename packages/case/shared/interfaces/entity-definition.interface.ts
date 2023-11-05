@@ -1,3 +1,5 @@
+import { AuthenticableEntity } from './authenticable-entity.interface'
+
 export interface EntityDefinition {
   nameSingular: string
   namePlural: string
@@ -6,9 +8,9 @@ export interface EntityDefinition {
 
   seedCount?: number
   apiPolicies?: {
-    create?: () => Promise<boolean>
-    read?: () => Promise<boolean>
-    update?: () => Promise<boolean>
-    delete?: () => Promise<boolean>
+    create?: (user: AuthenticableEntity) => boolean
+    read?: (user: AuthenticableEntity) => boolean
+    update?: (user: AuthenticableEntity) => boolean
+    delete?: (user: AuthenticableEntity) => boolean
   }
 }

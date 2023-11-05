@@ -1,28 +1,31 @@
+import { Admin } from '../core-entities/admin.entity'
+import { AuthenticableEntity } from '../core-entities/authenticable-entity'
+
 export class Policies {
   /**
    * No restriction. Anyone can pass this policy.
    *
-   * @returns {Promise<boolean>}
+   * @returns {boolean}
    */
-  static noRestriction(): Promise<boolean> {
-    return Promise.resolve(true)
+  static noRestriction(): boolean {
+    return true
   }
 
   /**
-   * Only logged in app users can pass this policy. The user can be from any AuthenticatableEntity subclass.
+   * Only logged in app users can pass this policy. The user can be from any AuthenticableEntity subclass.
    *
-   * @returns {Promise<boolean>}
+   * @returns {boolean}
    */
-  static loggedInOnly(): Promise<boolean> {
-    return Promise.resolve(true)
+  static loggedInOnly(user: AuthenticableEntity): boolean {
+    return !!user
   }
 
   /**
    * Only logged in admins can pass this policy.
    *
-   * @returns {Promise<boolean>}
+   * @returns {boolean}
    */
-  static adminOnly(): Promise<boolean> {
-    return Promise.resolve(true)
+  static adminOnly(user: AuthenticableEntity): boolean {
+    return user && user instanceof Admin
   }
 }
