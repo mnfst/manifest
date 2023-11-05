@@ -1,4 +1,4 @@
-import { Entity } from '../decorators/entity.decorator'
+import { Entity } from '../crud/decorators/entity.decorator'
 import { AuthenticatableEntity } from './authenticable-entity'
 
 @Entity()

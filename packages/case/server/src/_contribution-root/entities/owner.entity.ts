@@ -1,7 +1,7 @@
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { BaseEntity } from '../../core-entities/base-entity'
-import { Entity } from '../../decorators/entity.decorator'
-import { Prop } from '../../decorators/prop.decorator'
+import { Entity } from '../../crud/decorators/entity.decorator'
+import { Prop } from '../../crud/decorators/prop.decorator'
 
 @Entity({
   nameSingular: 'owner',

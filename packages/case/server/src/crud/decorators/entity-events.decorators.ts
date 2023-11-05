@@ -1,12 +1,13 @@
 import {
-  BeforeInsert as TypeORMBeforeInsert,
   AfterInsert as TypeORMAfterInsert,
-  BeforeUpdate as TypeORMBeforeUpdate,
+  AfterRemove as TypeORMAfterRemove,
   AfterUpdate as TypeORMAfterUpdate,
+  BeforeInsert as TypeORMBeforeInsert,
   BeforeRemove as TypeORMBeforeRemove,
-  AfterRemove as TypeORMAfterRemove
+  BeforeUpdate as TypeORMBeforeUpdate
 } from 'typeorm'
 
+// Hooks are not executed when seeding the database.
 const isSeeder = process.argv[1].includes('seed')
 
 export const BeforeInsert = (): PropertyDecorator => {

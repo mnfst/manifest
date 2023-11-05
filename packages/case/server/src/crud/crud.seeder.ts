@@ -9,7 +9,7 @@ import { FileUploadService } from '../file-upload/file-upload.service'
 import { ImageUploadService } from '../file-upload/image-upload.service'
 
 @Injectable()
-export class DynamicEntitySeeder {
+export class CrudSeeder {
   defaultSeedCount = 50
 
   constructor(

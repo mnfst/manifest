@@ -13,26 +13,30 @@ import {
 
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { DeleteResult } from 'typeorm'
-import { EntityMeta } from '../../../shared/interfaces/entity-meta.interface'
-import { Paginator } from '../../../shared/interfaces/paginator.interface'
-import { SelectOption } from '../../../shared/interfaces/select-option.interface'
-import { ApiRestrictionGuard } from '../auth/api-restriction.guard'
+import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
+import { Paginator } from '../../../../shared/interfaces/paginator.interface'
+import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
+import { ApiRestrictionGuard } from '../../auth/api-restriction.guard'
 import { EndpointRestrictionRule } from '../decorators/endpoint-restriction-rule.decorator'
-import { DynamicEntityService } from './dynamic-entity.service'
+import { CrudService } from '../services/crud.service'
+import { EntityMetaService } from '../services/entity-meta.service'
 
 @Controller('dynamic')
 @UseGuards(ApiRestrictionGuard)
 @ApiBearerAuth('JWT')
 @ApiTags('Dynamic entities')
-export class DynamicEntityController {
-  constructor(private readonly dynamicEntityService: DynamicEntityService) {}
+export class CrudController {
+  constructor(
+    private readonly crudService: CrudService,
+    private readonly entityMetaService: EntityMetaService
+  ) {}
 
   @Get('meta')
   @ApiOperation({
     summary: 'Get metadata of all entities of the app'
   })
   getMeta(): Promise<EntityMeta[]> {
-    return this.dynamicEntityService.getMeta()
+    return this.entityMetaService.getMeta()
   }
 
   @Get(':entity')
@@ -49,7 +53,7 @@ export class DynamicEntityController {
     @Param('entity') entity: string,
     @Query() queryParams: { [key: string]: string | string[] }
   ): Promise<Paginator<any>> {
-    return this.dynamicEntityService.findAll({
+    return this.crudService.findAll({
       entitySlug: entity,
       queryParams,
       options: { paginated: true }
@@ -66,7 +70,7 @@ export class DynamicEntityController {
     example: 'cats, posts, corporation-groups...'
   })
   findSelectOptions(@Param('entity') entity: string): Promise<SelectOption[]> {
-    return this.dynamicEntityService.findSelectOptions(entity)
+    return this.crudService.findSelectOptions(entity)
   }
 
   @Get(':entity/:id')
@@ -88,7 +92,7 @@ export class DynamicEntityController {
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
   ): Promise<any> {
-    return this.dynamicEntityService.findOne(entity, id)
+    return this.crudService.findOne(entity, id)
   }
 
   @Post(':entity')
@@ -102,7 +106,7 @@ export class DynamicEntityController {
     example: 'cats, posts, corporation-groups...'
   })
   store(@Param('entity') entity: string, @Body() entityDto: any): Promise<any> {
-    return this.dynamicEntityService.store(entity, entityDto)
+    return this.crudService.store(entity, entityDto)
   }
 
   @Put(':entity/:id')
@@ -125,7 +129,7 @@ export class DynamicEntityController {
     @Param('id', ParseIntPipe) id: number,
     @Body() entityDto: any
   ): Promise<any> {
-    return this.dynamicEntityService.update(entity, id, entityDto)
+    return this.crudService.update(entity, id, entityDto)
   }
 
   @Delete(':entity/:id')
@@ -147,6 +151,6 @@ export class DynamicEntityController {
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
   ): Promise<DeleteResult> {
-    return this.dynamicEntityService.delete(entity, id)
+    return this.crudService.delete(entity, id)
   }
 }

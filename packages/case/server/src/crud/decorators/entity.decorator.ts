@@ -1,5 +1,5 @@
 import { Entity as TypeORMEntity } from 'typeorm'
-import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
+import { EntityDefinition } from '../../../../shared/interfaces/entity-definition.interface'
 
 export const Entity = (
   entityDefinition?: Partial<EntityDefinition>

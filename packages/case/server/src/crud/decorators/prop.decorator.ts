@@ -1,10 +1,10 @@
-import { Column, ManyToOne } from 'typeorm'
 import { faker } from '@faker-js/faker'
+import { Column, ManyToOne } from 'typeorm'
 
-import { PropType } from '../../../shared/enums/prop-type.enum'
-import { PropertyDefinition } from '../../../shared/interfaces/property-definition.interface'
-import { EnumOptions } from '../../../shared/interfaces/property-options/enum-options.interface'
-import { RelationOptions } from '../../../shared/interfaces/property-options/relation-options.interface'
+import { PropType } from '../../../../shared/enums/prop-type.enum'
+import { PropertyDefinition } from '../../../../shared/interfaces/property-definition.interface'
+import { EnumOptions } from '../../../../shared/interfaces/property-options/enum-options.interface'
+import { RelationOptions } from '../../../../shared/interfaces/property-options/relation-options.interface'
 import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord

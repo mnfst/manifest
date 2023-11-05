@@ -4,8 +4,8 @@ import { PropType } from '../../../shared/enums/prop-type.enum'
 import {
   BeforeInsert,
   BeforeUpdate
-} from '../decorators/entity-events.decorators'
-import { Prop } from '../decorators/prop.decorator'
+} from '../crud/decorators/entity-events.decorators'
+import { Prop } from '../crud/decorators/prop.decorator'
 import { BaseEntity } from './base-entity'
 
 // The AuthenticatableEntity class is a BaseEntity with a name, an email and a password (used for admins, users and everyone that needs to be authenticated).

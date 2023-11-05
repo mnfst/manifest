@@ -8,7 +8,7 @@ import { join } from 'path'
 
 import { AppModule } from './app.module'
 import { AuthModule } from './auth/auth.module'
-import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
+import { CrudModule } from './crud/crud.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -63,7 +63,7 @@ async function bootstrap() {
     .build()
 
   const document = SwaggerModule.createDocument(app, config, {
-    include: [DynamicEntityModule, AuthModule]
+    include: [CrudModule, AuthModule]
   })
   SwaggerModule.setup('api', app, document, {
     customCss: '.swagger-ui .topbar { display: none }',

@@ -8,7 +8,7 @@ import { DataSource } from 'typeorm'
 import { AppConfigModule } from './app-config/app-config.module'
 import { AuthModule } from './auth/auth.module'
 import configuration from './configuration'
-import { DynamicEntityModule } from './dynamic-entity/dynamic-entity.module'
+import { CrudModule } from './crud/crud.module'
 import { FileUploadModule } from './file-upload/file-upload.module'
 
 const contributionMode: boolean = process.argv[2] === 'contribution'
@@ -28,7 +28,7 @@ const contributionMode: boolean = process.argv[2] === 'contribution'
         configService.get('database'),
       inject: [ConfigService]
     }),
-    DynamicEntityModule,
+    CrudModule,
     AuthModule,
     FileUploadModule,
     AppConfigModule

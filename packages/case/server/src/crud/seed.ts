@@ -2,20 +2,20 @@ import { NestFactory } from '@nestjs/core'
 import * as chalk from 'chalk'
 
 import { AppModule } from '../app.module'
-import { DynamicEntitySeeder } from './dynamic-entity.seeder'
+import { CrudSeeder } from './crud.seeder'
 
 async function bootstrap() {
   NestFactory.createApplicationContext(AppModule, {
     logger: ['error', 'warn']
   })
     .then((appContext) => {
-      const seeder = appContext.get(DynamicEntitySeeder)
+      const seeder = appContext.get(CrudSeeder)
       seeder
         .seed()
         .then(() => {
           console.log(
             chalk.green(
-              '🌱 Seed complete ! Please refresh your browser to see the new data.'
+              '🌱 Seed complete ! Please refresh your browser to see the new dsata.'
             )
           )
         })

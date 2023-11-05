@@ -6,9 +6,9 @@ export {
   BeforeInsert,
   BeforeRemove,
   BeforeUpdate
-} from './decorators/entity-events.decorators'
-export { Entity } from './decorators/entity.decorator'
-export { Prop } from './decorators/prop.decorator'
+} from './crud/decorators/entity-events.decorators'
+export { Entity } from './crud/decorators/entity.decorator'
+export { Prop } from './crud/decorators/prop.decorator'
 
 // Enums
 export { ApiRestriction } from '../../shared/enums/api-restriction.enum'

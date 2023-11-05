@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
 import { ColumnType } from 'typeorm/driver/types/ColumnTypes'
 
-import { PropType } from '../../../shared/enums/prop-type.enum'
+import { PropType } from '../../../../shared/enums/prop-type.enum'
 
 export type PropTypeCharacteristics = {
   columnType: ColumnType
