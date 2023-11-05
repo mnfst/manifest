@@ -1,5 +1,5 @@
-import { Column, ManyToOne } from 'typeorm'
 import { faker } from '@faker-js/faker'
+import { Column, ManyToOne } from 'typeorm'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { PropertyDefinition } from '../../../shared/interfaces/property-definition.interface'
@@ -37,6 +37,13 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       definition?.options || {},
       target
     )
+
+    // Validators.
+    if (definition?.validators) {
+      definition?.validators.forEach((validator: PropertyDecorator) => {
+        validator(target, propertyKey)
+      })
+    }
 
     // Relation (ManyToOne).
     if (definition?.type === PropType.Relation) {

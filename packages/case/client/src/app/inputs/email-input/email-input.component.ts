@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -12,24 +13,25 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 @Component({
   selector: 'app-email-input',
   standalone: true,
+  imports: [NgClass],
   template: `
     <label [for]="prop.propName">{{ prop.label }}</label>
-    <div class="control">
-      <input
-        class="input"
-        type="email"
-        placeholder="Email"
-        autocomplete="email"
-        (change)="onChange($event)"
-        #input
-      />
-    </div>
+    <input
+      class="input"
+      [ngClass]="{ 'is-danger': isError }"
+      type="email"
+      placeholder="Email"
+      autocomplete="email"
+      (change)="onChange($event)"
+      #input
+    />
   `,
   styleUrls: ['./email-input.component.scss']
 })
 export class EmailInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 

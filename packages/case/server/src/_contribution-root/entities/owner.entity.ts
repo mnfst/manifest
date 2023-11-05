@@ -1,4 +1,4 @@
-import { type } from 'os'
+import { IsBoolean, IsEmail, IsNotEmpty, Min } from 'class-validator'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -16,7 +16,14 @@ export class Owner extends CaseEntity {
   name: string
 
   @Prop({
+    type: PropType.Email,
+    validators: [IsNotEmpty(), IsEmail()]
+  })
+  email: string
+
+  @Prop({
     type: PropType.Currency,
+    validators: [IsNotEmpty(), Min(1000)],
     options: {
       currency: 'EUR'
     }
@@ -25,6 +32,7 @@ export class Owner extends CaseEntity {
 
   @Prop({
     label: 'Is the user active ?',
+    validators: [IsBoolean()],
     type: PropType.Boolean
   })
   isActive: boolean
