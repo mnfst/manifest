@@ -56,13 +56,9 @@ The few lines below generate a whole app (see screenshot above):
 ```js
 // cat.entity.ts
 
-@Entity({
-  nameSingular: 'cat',
-  namePlural: 'cats',
-  slug: 'cats'
-})
-export class Cat extends CaseEntity {
-  @Prop({})
+@Entity()
+export class Cat extends BaseEntity {
+  @Prop()
   name: string
 
   @Prop({

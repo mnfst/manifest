@@ -13,7 +13,7 @@ npm run case:entity cat
 A new `/entities/cat.entity.ts` file was created with the following content:
 
 ```js
-import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+import { BaseEntity, Entity, Prop, PropType } from '@casejs/case'
 
 @Entity({
   nameSingular: 'cat',
@@ -21,7 +21,7 @@ import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
   propIdentifier: 'name',
   slug: 'cats'
 })
-export class Cat extends CaseEntity {
+export class Cat extends BaseEntity {
   @Prop({
     type: PropType.Text
   })

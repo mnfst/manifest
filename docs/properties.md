@@ -7,10 +7,10 @@ Properties are key-value pairs inside entities. They are usually mapped to datab
 You can add the properties to your entities by adding the CASE `@Prop()` decorator above the property name and type.
 
 ```js
-import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+import { BaseEntity, Entity, Prop, PropType } from '@casejs/case'
 
 [...]
-export class Cat extends CaseEntity {
+export class Cat extends BaseEntity {
   @Prop()
   nickName: string
 

@@ -12,7 +12,7 @@ With CASE custom events, you can call any function you want: you are free to dow
 // ./entities/cat.entity.ts
 const axios = require('axios')
 
-export class Cat extends CaseEntity {
+export class Cat extends BaseEntity {
 
   [...]
 

@@ -1,7 +1,7 @@
-import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
+import { BaseEntity, Entity, Prop, PropType } from '@casejs/case'
 
 @Entity()
-export class <%= classifiedName %> extends CaseEntity {
+export class <%= classifiedName %> extends BaseEntity {
   @Prop({
     type: PropType.Text
   })
