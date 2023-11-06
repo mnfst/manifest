@@ -26,6 +26,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.2",
+    "class-validator": "^0.14.0",
     "cli-table": "^0.3.11",
     "connect-livereload": "^0.6.1",
     "crypto-js": "^4.1.1",

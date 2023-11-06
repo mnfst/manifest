@@ -1,3 +1,4 @@
+import { IsBoolean, IsEmail, IsNotEmpty, Min } from 'class-validator'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../crud/decorators/entity.decorator'
@@ -15,7 +16,14 @@ export class Owner extends BaseEntity {
   name: string
 
   @Prop({
+    type: PropType.Email,
+    validators: [IsNotEmpty(), IsEmail()]
+  })
+  email: string
+
+  @Prop({
     type: PropType.Currency,
+    validators: [IsNotEmpty(), Min(1000)],
     options: {
       currency: 'EUR'
     }
@@ -24,6 +32,7 @@ export class Owner extends BaseEntity {
 
   @Prop({
     label: 'Is the user active ?',
+    validators: [IsBoolean()],
     type: PropType.Boolean
   })
   isActive: boolean

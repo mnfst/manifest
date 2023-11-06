@@ -1,20 +1,23 @@
+import { NgClass } from '@angular/common'
 import {
   Component,
   ElementRef,
   EventEmitter,
   Input,
+  OnInit,
   Output,
-  ViewChild,
-  OnInit
+  ViewChild
 } from '@angular/core'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 @Component({
   selector: 'app-textarea-input',
   standalone: true,
+  imports: [NgClass],
   template: `<label [for]="prop.propName">{{ prop.label }}</label>
     <textarea
       class="textarea"
+      [ngClass]="{ 'is-danger': isError }"
       (change)="onChange($event)"
       #input
       [name]="prop.propName"
@@ -25,6 +28,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 export class TextareaInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
 

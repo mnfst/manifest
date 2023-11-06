@@ -38,6 +38,13 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       target
     )
 
+    // Validators.
+    if (definition?.validators) {
+      definition?.validators.forEach((validator: PropertyDecorator) => {
+        validator(target, propertyKey)
+      })
+    }
+
     // Relation (ManyToOne).
     if (definition?.type === PropType.Relation) {
       const relationOptions: RelationOptions =

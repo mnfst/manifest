@@ -1,3 +1,5 @@
+import { IsEnum, IsNotEmpty } from 'class-validator'
+
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { Policies } from '../../api/policies'
 import { BaseEntity } from '../../core-entities/base-entity'
@@ -34,7 +36,8 @@ export class Cat extends BaseEntity {
   name: string
 
   @Prop({
-    type: PropType.Textarea
+    type: PropType.Textarea,
+    validators: [IsNotEmpty()]
   })
   description: string
 
@@ -44,7 +47,19 @@ export class Cat extends BaseEntity {
   age: number
 
   @Prop({
+    type: PropType.Link
+  })
+  website: string
+
+  @Prop({
+    type: PropType.Date,
+    validators: [IsNotEmpty()]
+  })
+  birthDate: string
+
+  @Prop({
     label: 'Owner',
+    validators: [IsNotEmpty()],
     type: PropType.Relation,
     options: {
       entity: Owner
@@ -54,6 +69,7 @@ export class Cat extends BaseEntity {
 
   @Prop({
     label: 'Breed',
+    validators: [IsNotEmpty(), IsEnum(Breed)],
     type: PropType.Enum,
     options: {
       enum: Breed

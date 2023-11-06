@@ -1,5 +1,6 @@
 import { BeforeInsert } from 'typeorm'
 
+import { IsNotEmpty } from 'class-validator'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 
 import { BaseEntity } from '../../core-entities/base-entity'
@@ -18,17 +19,20 @@ export class Mouse extends BaseEntity {
 
   @Prop({
     label: 'Family name',
-    type: PropType.Text
+    type: PropType.Text,
+    validators: [IsNotEmpty()]
   })
   familyName: string
 
   @Prop({
-    type: PropType.File
+    type: PropType.File,
+    validators: [IsNotEmpty()]
   })
   certificate: string
 
   @Prop({
-    type: PropType.Image
+    type: PropType.Image,
+    validators: [IsNotEmpty()]
   })
   image: string
 
