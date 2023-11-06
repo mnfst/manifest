@@ -46,11 +46,6 @@ export class Mouse extends BaseEntity {
   predator: Cat
 
   @Prop({
-    type: PropType.Password
-  })
-  password: string
-
-  @Prop({
     type: PropType.Textarea
   })
   description: string

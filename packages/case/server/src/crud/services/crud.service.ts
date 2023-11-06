@@ -127,17 +127,17 @@ export class CrudService {
     const relations: RelationMetadata[] =
       this.entityMetaService.getEntityMetadata(entitySlug).relations
 
+    const errors = await validate(newItem)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
+
     // If we have relations, we load them to be available in the @BeforeInsert() hook.
     if (relations.length) {
       newItem._relations = await this.entityMetaService.loadRelations(
         newItem,
         relations
       )
-    }
-
-    const errors = await validate(newItem)
-    if (errors.length) {
-      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
     return entityRepository.insert(newItem)
