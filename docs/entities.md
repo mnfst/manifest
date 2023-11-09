@@ -10,7 +10,7 @@ In our example, we will create an app that lists cats. To do that, simply run on
 npm run case:entity cat
 ```
 
-A new `/entities/cat.entity.ts` file was created with the following content:
+A new `/entities/cat.entity.ts` file will be created with the following content:
 
 ```js
 import { CaseEntity, Entity, Prop, PropType } from '@casejs/case'
@@ -46,6 +46,6 @@ You can pass different arguments to the `@Entity()` decorator to configure your 
 | ------------------- | ------- | ------ | ---------------------------------------------------------------------------- |
 | **nameSingular\***  | -       | string | The singular lowercase name of your entity. It will be used widely on the UI |
 | **namePlural\***    | -       | string | The plural lowercase name of your entity. It will be used widely on the UI   |
-| **slug\***          | -       | string | The kebbab-case slug of the entity that will define URLs                     |
-| **propIdentifer\*** | -       | string | The main property of the entity name, will be used to identify the item      |
+| **slug\***          | -       | string | The kebab-case slug of the entity that will define URLs                     |
+| **propIdentifier\*** | -       | string | The main property of the entity name, will be used to identify the item      |
 | **seedCount**       | 20      | number | Defines how many items of this entity should be seeded                       |

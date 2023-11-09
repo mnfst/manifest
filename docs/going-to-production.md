@@ -25,7 +25,7 @@ npm start:prod
 
 ## NGINX Config
 
-This in an example config in you are using **NGINX** and serving the app on the port **4000**:
+This in an example config if you are using **NGINX** and serving the app on the port **4000**:
 
 ```nginx
     location / {
