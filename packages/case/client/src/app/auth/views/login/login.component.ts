@@ -1,15 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { Component, OnInit } from '@angular/core'
 import { FormControl, FormGroup, Validators } from '@angular/forms'
-import { Router } from '@angular/router'
+import { ActivatedRoute, Params, Router } from '@angular/router'
 
 import { PropType } from '~shared/enums/prop-type.enum'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
+import { combineLatest } from 'rxjs'
+import { AppConfig } from '../../../../../../shared/interfaces/app-config.interface'
+import { AppConfigService } from '../../../services/app-config.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { AuthService } from '../../auth.service'
-import { AppConfigService } from '../../../services/app-config.service'
-import { AppConfig } from '~shared/interfaces/app-config.interface'
 
 @Component({
   selector: 'app-login',
@@ -18,22 +19,15 @@ import { AppConfig } from '~shared/interfaces/app-config.interface'
 })
 export class LoginComponent implements OnInit {
   appConfig: AppConfig
-  fields: PropertyDescription[] = [
-    {
-      propName: 'email',
-      label: 'Email',
-      type: PropType.Email
-    },
-    {
-      propName: 'password',
-      label: 'Password',
-      type: PropType.Password
-    }
-  ]
+
   defaultUser: any = {
     email: 'user1@case.app',
     password: 'case'
   }
+  suggestedEmail: string
+  suggestedPassword: string
+
+  PropType = PropType
 
   form: FormGroup = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -43,17 +37,36 @@ export class LoginComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private flashMessageService: FlashMessageService,
     private appConfigService: AppConfigService
   ) {}
 
   ngOnInit(): void {
-    this.appConfigService.appConfig.subscribe((res: AppConfig) => {
-      this.appConfig = res
+    combineLatest([
+      this.appConfigService.appConfig,
+      this.activatedRoute.queryParams
+    ]).subscribe(([appConfig, queryParams]: [AppConfig, Params]) => {
+      this.appConfig = appConfig
 
-      if (!this.appConfig.production) {
-        this.patchValue('email', this.defaultUser.email)
-        this.patchValue('password', this.defaultUser.password)
+      if (queryParams['email']) {
+        this.suggestedEmail = queryParams['email']
+      } else if (!this.appConfig.production) {
+        this.suggestedEmail = this.defaultUser.email
+      }
+
+      if (queryParams['password']) {
+        this.suggestedPassword = queryParams['password']
+      } else if (!this.appConfig.production) {
+        this.suggestedPassword = this.defaultUser.password
+      }
+
+      if (this.suggestedEmail) {
+        this.patchValue('email', this.suggestedEmail)
+      }
+
+      if (this.suggestedPassword) {
+        this.patchValue('password', this.suggestedPassword)
       }
     })
   }

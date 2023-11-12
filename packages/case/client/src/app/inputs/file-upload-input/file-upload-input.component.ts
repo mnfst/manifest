@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common'
+import { NgClass, NgIf } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -11,20 +11,21 @@ import {
 
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { FileOptions } from '~shared/interfaces/property-options/file-options.interface'
+import { environment } from '../../../environments/environment'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { UploadService } from '../../services/upload.service'
-import { environment } from '../../../environments/environment'
 
 @Component({
   selector: 'app-file-upload-input',
   standalone: true,
-  imports: [CommonModule],
+  imports: [NgClass, NgIf],
   templateUrl: './file-upload-input.component.html',
   styleUrls: ['./file-upload-input.component.scss']
 })
 export class FileUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 

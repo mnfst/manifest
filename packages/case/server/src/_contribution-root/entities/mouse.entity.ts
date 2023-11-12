@@ -1,5 +1,6 @@
 import { BeforeInsert } from 'typeorm'
 
+import { IsNotEmpty } from 'class-validator'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { CaseEntity } from '../../core-entities/case.entity'
 import { Entity } from '../../decorators/entity.decorator'
@@ -22,17 +23,20 @@ export class Mouse extends CaseEntity {
 
   @Prop({
     label: 'Family name',
-    type: PropType.Text
+    type: PropType.Text,
+    validators: [IsNotEmpty()]
   })
   familyName: string
 
   @Prop({
-    type: PropType.File
+    type: PropType.File,
+    validators: [IsNotEmpty()]
   })
   certificate: string
 
   @Prop({
-    type: PropType.Image
+    type: PropType.Image,
+    validators: [IsNotEmpty()]
   })
   image: string
 

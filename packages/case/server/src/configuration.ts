@@ -14,6 +14,7 @@ export default () => {
     : join(__dirname, '../..')
 
   return {
+    nodeEnv: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT, 10) || 4000,
     appRoot,
     packageRoot,
@@ -31,9 +32,6 @@ export default () => {
         User
       ],
       synchronize: true
-    },
-    appConfigFilePath: contributionMode
-      ? `${packageRoot}/server/src/_contribution-root/app-config.js`
-      : `${appRoot}/dist/app-config.js`
+    }
   }
 }

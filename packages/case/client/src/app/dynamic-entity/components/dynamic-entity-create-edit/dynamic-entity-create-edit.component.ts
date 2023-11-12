@@ -5,7 +5,9 @@ import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
+import { HttpErrorResponse } from '@angular/common/http'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
+import { ValidationError } from '../../../interfaces/validation-error.interface'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -19,6 +21,7 @@ export class DynamicEntityCreateEditComponent {
   item: any
   entityMeta: EntityMeta
   props: PropertyDescription[]
+  errors: { [propName: string]: string[] } = {}
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
@@ -117,7 +120,11 @@ export class DynamicEntityCreateEditComponent {
           )
           this.router.navigate(['/dynamic', this.entityMeta.definition.slug])
         })
-        .catch(() => {
+        .catch((err: HttpErrorResponse) => {
+          if (err.status === 400) {
+            this.errors = this.getErrorMessages(err.error)
+          }
+
           this.loading = false
           this.flashMessageService.error(
             `The ${this.entityMeta.definition.nameSingular} could not be updated`
@@ -137,12 +144,30 @@ export class DynamicEntityCreateEditComponent {
             res.identifiers[0].id
           ])
         })
-        .catch(() => {
+        .catch((err: HttpErrorResponse) => {
+          if (err.status === 400) {
+            this.errors = this.getErrorMessages(err.error)
+          }
+
           this.loading = false
           this.flashMessageService.error(
             `Error: the ${this.entityMeta.definition.nameSingular} could not be created`
           )
         })
     }
+  }
+
+  getErrorMessages(validationErrors: ValidationError[]): {
+    [propName: string]: string[]
+  } {
+    const errorMessages: { [propName: string]: string[] } = {}
+
+    validationErrors.forEach((validationError: ValidationError) => {
+      errorMessages[validationError.property] = Object.values(
+        validationError.constraints
+      )
+    })
+
+    return errorMessages
   }
 }

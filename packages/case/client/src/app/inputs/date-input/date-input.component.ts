@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -12,9 +13,11 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 @Component({
   selector: 'app-date-input',
   standalone: true,
+  imports: [NgClass],
   template: `<label [for]="prop.propName">{{ prop.label }}</label>
     <input
       class="input"
+      [ngClass]="{ 'is-danger': isError }"
       type="date"
       [value]="value ? value : today"
       (change)="onChange($event)"
@@ -25,6 +28,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 export class DateInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
 

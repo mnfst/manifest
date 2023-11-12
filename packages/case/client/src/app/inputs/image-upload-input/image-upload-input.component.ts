@@ -1,3 +1,4 @@
+import { NgClass, NgIf } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -7,22 +8,22 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { CommonModule } from '@angular/common'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
-import { UploadService } from '../../services/upload.service'
-import { FlashMessageService } from '../../services/flash-message.service'
 import { environment } from '../../../environments/environment'
+import { FlashMessageService } from '../../services/flash-message.service'
+import { UploadService } from '../../services/upload.service'
 
 @Component({
   selector: 'app-image-upload-input',
   standalone: true,
-  imports: [CommonModule],
+  imports: [NgClass, NgIf],
   templateUrl: './image-upload-input.component.html',
   styleUrls: ['./image-upload-input.component.scss']
 })
 export class ImageUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() value: string
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 
