@@ -39,7 +39,8 @@
     "sharp": "^0.32.3",
     "sqlite3": "^5.1.6",
     "typeorm": "^0.3.16",
-    "uniqid": "^5.4.0"
+    "uniqid": "^5.4.0",
+    "webpack": "^5.89.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
