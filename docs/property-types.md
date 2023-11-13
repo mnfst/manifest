@@ -2,7 +2,7 @@
 
 CASE works with it's own set of types that corresponds to different types of data often used in CRUD apps.
 
-Each **PropType** corresponds to a set a different logic, display, format and options.
+Each **PropType** corresponds to a set of different logic, display, format and options.
 
 ---
 
@@ -197,7 +197,7 @@ For any field with a "true or false" value.
 
 A relationship with another entity.
 
-For the Relation type, you just need to pass the related entity class to the `options.entity` param like so:
+For the Relation type, you just need to pass the related entity class to the `options.entity` param like:
 
 ```js
 @Prop({
@@ -222,9 +222,8 @@ owner: Owner
 <br>
 
 > [!NOTE]
->
-> - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
-> - We use **cascade delete**: if you delete the _Owner_ record, it will also delete all his or her _Cat_ records
+> - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships.
+> - When you use **cascade delete** and delete the _Owner_ record, it will also delete all his or her _Cat_ records
 
 <br>
 
@@ -249,7 +248,7 @@ Hidden password field.
 
 > [!ATTENTION]
 > You should never ever store a password on clear text.
-> You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
+> You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it.
 
 ---
 
@@ -303,7 +302,7 @@ Same as file but for images.
 
 ### Enum
 
-The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
+The Enum type allows users to choose from a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
 
 ```js
   import { ProjectStatus } from '../enums/project-status.enum.ts'
