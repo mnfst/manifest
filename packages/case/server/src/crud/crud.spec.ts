@@ -1,13 +1,13 @@
 import { Test } from '@nestjs/testing'
-import { DynamicEntityController } from './dynamic-entity.controller'
-import { DynamicEntityService } from './dynamic-entity.service'
-import { AuthGuard } from '../auth/auth.guard'
-import { AuthService } from '../auth/auth.service'
-import { DataSource } from 'typeorm'
 
-describe('DynamicEntityController', () => {
-  let dynamicEntityController: DynamicEntityController
-  let dynamicEntityService: DynamicEntityService
+import { DataSource } from 'typeorm'
+import { AuthService } from '../auth/auth.service'
+import { CrudController } from './controllers/crud.controller'
+import { CrudService } from './services/crud.service'
+
+describe('CrudController', () => {
+  let crudController: CrudController
+  let crudService: CrudService
 
   const mockDataSource = {
     entityMetadatas: {
@@ -19,14 +19,13 @@ describe('DynamicEntityController', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      controllers: [DynamicEntityController],
+      controllers: [CrudController],
       providers: [
-        DynamicEntityService,
+        CrudService,
         {
           provide: DataSource,
           useValue: mockDataSource
         },
-        AuthGuard,
         {
           provide: AuthService,
           useValue: mockAuthService
@@ -34,11 +33,8 @@ describe('DynamicEntityController', () => {
       ]
     }).compile()
 
-    dynamicEntityController = module.get<DynamicEntityController>(
-      DynamicEntityController
-    )
-    dynamicEntityService =
-      module.get<DynamicEntityService>(DynamicEntityService)
+    crudController = module.get<CrudController>(CrudController)
+    crudService = module.get<CrudService>(CrudService)
   })
 
   it('placeholder', () => {
@@ -46,8 +42,8 @@ describe('DynamicEntityController', () => {
   })
 })
 
-describe('DynamicEntityService', () => {
-  let dynamicEntityService: DynamicEntityService
+describe('CrudService', () => {
+  let crudService: CrudService
 
   const mockRepository = {
     find: jest.fn()
@@ -63,7 +59,7 @@ describe('DynamicEntityService', () => {
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        DynamicEntityService,
+        CrudService,
         {
           provide: DataSource,
           useValue: mockDataSource
@@ -71,8 +67,7 @@ describe('DynamicEntityService', () => {
       ]
     }).compile()
 
-    dynamicEntityService =
-      module.get<DynamicEntityService>(DynamicEntityService)
+    crudService = module.get<CrudService>(CrudService)
   })
 
   describe('findAll', () => {
@@ -86,7 +81,7 @@ describe('DynamicEntityService', () => {
         relations: [{ propertyName: 'mock' }]
       })
 
-      const result = await dynamicEntityService.findAll({
+      const result = await crudService.findAll({
         entitySlug: 'mockSlug',
         queryParams: {},
         options: { paginated: false }

@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { Observable, firstValueFrom, map, shareReplay } from 'rxjs'
 
-import { environment } from '../../environments/environment'
-import { SelectOption } from '~shared/interfaces/select-option.interface'
+import { Params } from '@angular/router'
 import { Paginator } from '~shared/interfaces/paginator.interface'
+import { SelectOption } from '~shared/interfaces/select-option.interface'
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
+import { environment } from '../../environments/environment'
 
 @Injectable({
   providedIn: 'root'
@@ -26,10 +27,15 @@ export class DynamicEntityService {
     return this.entityMetas$
   }
 
-  list(entitySlug: string, params?: any): Promise<Paginator<any>> {
+  list(entitySlug: string, params?: Params): Promise<Paginator<any>> {
+    const queryParams: { [key: string]: any } = Object.assign({}, params) || {}
+
+    queryParams['page'] = queryParams['page'] || 1
+    queryParams['perPage'] = 20
+
     return firstValueFrom(
       this.http.get(`${this.serviceUrl}/${entitySlug}`, {
-        params
+        params: queryParams
       })
     ) as Promise<Paginator<any>>
   }

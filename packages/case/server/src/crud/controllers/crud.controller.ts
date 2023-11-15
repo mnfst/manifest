@@ -52,11 +52,10 @@ export class CrudController {
   findAll(
     @Param('entity') entity: string,
     @Query() queryParams: { [key: string]: string | string[] }
-  ): Promise<Paginator<any>> {
+  ): Promise<Paginator<any> | any[]> {
     return this.crudService.findAll({
       entitySlug: entity,
-      queryParams,
-      options: { paginated: true }
+      queryParams
     }) as Promise<Paginator<any>>
   }
 

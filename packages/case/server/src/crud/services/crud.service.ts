@@ -24,12 +24,10 @@ export class CrudService {
 
   async findAll({
     entitySlug,
-    queryParams,
-    options
+    queryParams
   }: {
     entitySlug: string
     queryParams?: { [key: string]: string | string[] }
-    options?: { paginated?: boolean }
   }): Promise<Paginator<any> | any[]> {
     const entityRepository: Repository<any> =
       this.entityMetaService.getRepository(entitySlug)
@@ -61,15 +59,16 @@ export class CrudService {
     }
 
     // Non paginated results.
-    if (!options?.paginated) {
+    if (!queryParams?.page && !queryParams.perPage) {
       return await entityRepository.find(findManyOptions)
     }
 
     // Paginated results.
     const currentPage: number = parseInt(queryParams.page as string, 10) || 1
+    const perPage: number = parseInt(queryParams.perPage as string, 10) || 10
 
-    findManyOptions.take = 10
-    findManyOptions.skip = (currentPage - 1) * findManyOptions.take
+    findManyOptions.skip = (currentPage - 1) * perPage
+    findManyOptions.take = perPage
 
     const total: number = await entityRepository.count(findManyOptions)
     const results: any[] = await entityRepository.find(findManyOptions)
@@ -77,11 +76,11 @@ export class CrudService {
     const paginator: Paginator<any> = {
       data: results,
       currentPage,
-      lastPage: Math.ceil(total / findManyOptions.take),
+      lastPage: Math.ceil(total / perPage),
       from: findManyOptions.skip + 1,
-      to: findManyOptions.skip + findManyOptions.take,
+      to: findManyOptions.skip + perPage,
       total,
-      perPage: findManyOptions.take
+      perPage: perPage
     }
 
     return paginator

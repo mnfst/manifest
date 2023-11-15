@@ -3,7 +3,9 @@
  */
 export interface PropertyOptions {
   /**
-   * Whether or not this property will be use as a filter in list.
+   * Whether or not this property will be used as a filter in list.
+   *
+   * @default true
    */
   filter?: boolean
 
@@ -16,9 +18,4 @@ export interface PropertyOptions {
    * Hides this property in the detail view.
    */
   isHiddenInDetail?: boolean
-
-  /**
-   * Hides this property in the create and edit views.
-   */
-  isHiddenInCreateEdit?: boolean
 }
