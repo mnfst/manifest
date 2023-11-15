@@ -3,40 +3,42 @@ import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'
 import { StatusCodes } from 'http-status-codes'
 import * as jwt from 'jsonwebtoken'
-import { DataSource, EntityMetadata, Repository } from 'typeorm'
+import { EntityMetadata, Repository } from 'typeorm'
 
+import { Admin } from '../core-entities/admin.entity'
 import { AuthenticableEntity } from '../core-entities/authenticable-entity'
 import { EntityMetaService } from '../crud/services/entity-meta.service'
+import { SignupUserDto } from './dto/signup-user.dto'
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
     private readonly entityMetaService: EntityMetaService
   ) {}
 
+  /**
+   * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.
+   *
+   * @param entitySlug The slug of the AuthenticableEntity where the user is going to be searched
+   * @param email The email of the user
+   * @param password The password of the user
+   *
+   * @returns A JWT token
+   */
   async createToken(
     entitySlug: string,
-    email: string,
-    password: string
+    signupUserDto: SignupUserDto
   ): Promise<{
     token: string
   }> {
-    if (!email || !password) {
-      throw new HttpException(
-        'Email and password are required',
-        StatusCodes.UNPROCESSABLE_ENTITY
-      )
-    }
-
     const entityRepository: Repository<AuthenticableEntity> =
       this.entityMetaService.getRepository(entitySlug)
 
     const user = await entityRepository.findOne({
       where: {
-        email,
-        password: SHA3(password).toString()
+        email: signupUserDto.email,
+        password: SHA3(signupUserDto.password).toString()
       }
     })
 
@@ -48,8 +50,55 @@ export class AuthService {
     }
 
     return {
-      token: jwt.sign({ email }, this.configService.get('JWT_SECRET'))
+      token: jwt.sign(
+        { email: signupUserDto.email },
+        this.configService.get('JWT_SECRET')
+      )
     }
+  }
+
+  /**
+   *
+   * Sign up a user. This user can be of any entity that extends AuthenticableEntity but Admin.
+   *
+   * @param entitySlug The slug of the AuthenticableEntity where the user is going to be created
+   * @param email The email of the user
+   * @param password The password of the user
+   *
+   * @returns A JWT token of the created user
+   *
+   */
+  async signUp(
+    entitySlug: string,
+    signupUserDto: SignupUserDto
+  ): Promise<{ token: string }> {
+    const repository: Repository<AuthenticableEntity> =
+      this.entityMetaService.getRepository(entitySlug)
+
+    if (
+      !this.entityMetaService
+        .getAuthenticableEntities()
+        .filter((entity) => entity.targetName !== Admin.name)
+        .find(
+          (entity) =>
+            entity.targetName ===
+            this.entityMetaService.getEntityMetadata(entitySlug).targetName
+        )
+    ) {
+      throw new HttpException(
+        'You cannot sign up in this entity',
+        StatusCodes.UNAUTHORIZED
+      )
+    }
+
+    const user: AuthenticableEntity = await repository.save(
+      repository.create(signupUserDto)
+    )
+
+    return this.createToken(entitySlug, {
+      email: user.email,
+      password: signupUserDto.password
+    })
   }
 
   /**

@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common'
 import { Request } from 'express'
 
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { User } from '../_contribution-root/entities/user.entity'
 import { AuthService } from './auth.service'
+import { SignupUserDto } from './dto/signup-user.dto'
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -15,24 +16,35 @@ export class AuthController {
     summary: 'Login',
     description: 'Get a JWT token to connect to the API.'
   })
-  @ApiQuery({
-    name: 'email',
-    description: 'User email',
-    example: 'admin@case.app'
-  })
-  @ApiQuery({
-    name: 'password',
-    description: 'User password',
-    example: 'case'
+  @ApiBody({
+    type: SignupUserDto,
+    description: 'User credentials'
   })
   public async getToken(
     @Param('authenticableEntity') authenticableEntity: string,
-    @Body('email') email: string,
-    @Body('password') password: string
+    @Body() signupUserDto: SignupUserDto
   ): Promise<{
     token: string
   }> {
-    return this.authService.createToken(authenticableEntity, email, password)
+    return this.authService.createToken(authenticableEntity, signupUserDto)
+  }
+
+  @Post(':authenticableEntity/signup')
+  @ApiOperation({
+    summary: 'Sign up',
+    description: 'Create a new user.'
+  })
+  @ApiBody({
+    type: SignupUserDto,
+    description: 'User credentials'
+  })
+  public async signUp(
+    @Param('authenticableEntity') authenticableEntity: string,
+    @Body() signupUserDto: SignupUserDto
+  ): Promise<{
+    token: string
+  }> {
+    return this.authService.signUp(authenticableEntity, signupUserDto)
   }
 
   @Get(':authenticableEntity/me')

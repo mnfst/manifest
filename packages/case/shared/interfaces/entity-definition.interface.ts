@@ -1,4 +1,4 @@
-import { AuthenticableEntity } from './authenticable-entity.interface'
+import { AuthenticableEntity } from '../../server/src'
 
 export interface EntityDefinition {
   nameSingular: string

@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
 
 import { IsEmail, IsNotEmpty } from 'class-validator'
@@ -12,12 +11,6 @@ import { BaseEntity } from './base-entity'
 
 // The AuthenticableEntity class is a BaseEntity with a name, an email and a password (used for admins, users and everyone that needs to be authenticated).
 export class AuthenticableEntity extends BaseEntity {
-  @Prop({
-    validators: [IsNotEmpty()],
-    seed: () => faker.person.firstName()
-  })
-  name: string
-
   @Prop({
     type: PropType.Email,
     validators: [IsNotEmpty(), IsEmail()],

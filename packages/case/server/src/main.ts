@@ -6,6 +6,7 @@ import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 
+import { ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
 import { AuthModule } from './auth/auth.module'
 import { CrudModule } from './crud/crud.module'
@@ -20,6 +21,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
+  app.useGlobalPipes(new ValidationPipe())
 
   const production: boolean = configService.get('nodeEnv') === 'production'
 
