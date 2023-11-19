@@ -59,7 +59,7 @@ export class CrudService {
     }
 
     // Non paginated results.
-    if (!queryParams?.page && !queryParams.perPage) {
+    if (!queryParams?.page && !queryParams?.perPage) {
       return await entityRepository.find(findManyOptions)
     }
 
@@ -95,8 +95,7 @@ export class CrudService {
       id: item.id,
       label:
         item[
-          (this.entityMetaService.getEntityMetadata(entitySlug).target as any)
-            .definition.propIdentifier
+          this.entityMetaService.getEntityDefinition(entitySlug).propIdentifier
         ]
     }))
   }

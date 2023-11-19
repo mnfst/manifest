@@ -16,6 +16,7 @@ import { DateInputComponent } from './date-input/date-input.component'
 import { EmailInputComponent } from './email-input/email-input.component'
 import { FileUploadInputComponent } from './file-upload-input/file-upload-input.component'
 import { ImageUploadInputComponent } from './image-upload-input/image-upload-input.component'
+import { LocationInputComponent } from './location-input/location-input.component'
 import { MultiSelectInputComponent } from './multi-select-input/multi-select-input.component'
 import { NumberInputComponent } from './number-input/number-input.component'
 import { PasswordInputComponent } from './password-input/password-input.component'
@@ -41,7 +42,8 @@ import { UrlInputComponent } from './url-input/url-input.component'
     TextareaInputComponent,
     TextInputComponent,
     FileUploadInputComponent,
-    ImageUploadInputComponent
+    ImageUploadInputComponent,
+    LocationInputComponent
   ],
   template: `
     <app-text-input
@@ -135,6 +137,13 @@ import { UrlInputComponent } from './url-input/url-input.component'
       (valueChanged)="onChange($event)"
       *ngIf="prop.type === PropType.Image"
     ></app-image-upload-input>
+    <app-location-input
+      [prop]="prop"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop.type === PropType.Location"
+    ></app-location-input>
 
     <!-- Error messages -->
     <ul *ngIf="errors?.length">

@@ -52,7 +52,8 @@ export class Cat extends BaseEntity {
   website: string
 
   @Prop({
-    type: PropType.Location
+    type: PropType.Location,
+    validators: [IsNotEmpty()]
   })
   location: string
 
