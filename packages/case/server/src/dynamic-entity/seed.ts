@@ -4,6 +4,9 @@ import * as chalk from 'chalk'
 import { AppModule } from '../app.module'
 import { DynamicEntitySeeder } from './dynamic-entity.seeder'
 
+/**
+ * Bootstrap function to initialize the application
+ */
 async function bootstrap() {
   NestFactory.createApplicationContext(AppModule, {
     logger: ['error', 'warn']

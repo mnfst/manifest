@@ -18,19 +18,26 @@ import { CaseEntity } from './case.entity'
   propIdentifier: 'name'
 })
 export class User extends CaseEntity {
+  /**
+ * User's name
+ */
   @Prop({
     validators: [IsNotEmpty()],
     seed: () => faker.person.firstName()
   })
   name: string
-
+  /**
+    * User's email
+    */
   @Prop({
     type: PropType.Email,
     validators: [IsNotEmpty(), IsEmail()],
     seed: (index: number) => 'user' + (index + 1) + '@case.app'
   })
   email: string
-
+  /**
+    * User's password
+    */
   @Prop({
     type: PropType.Password,
     options: {
@@ -41,11 +48,17 @@ export class User extends CaseEntity {
   })
   password: string
 
+  /**
+   * Method to be executed before a user entity is inserted
+   */
   @BeforeInsert()
   beforeInsert() {
     this.password = SHA3(this.password).toString()
   }
 
+  /**
+ * Method to be executed before a user entity is updated
+ */
   @BeforeUpdate()
   beforeUpdate() {
     if (this.password) {

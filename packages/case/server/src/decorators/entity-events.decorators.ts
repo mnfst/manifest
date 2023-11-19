@@ -9,6 +9,10 @@ import {
 
 const isSeeder = process.argv[1].includes('seed')
 
+/**
+ * Property decorator for defining a method to be executed before an entity is inserted
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const BeforeInsert = (): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     if (!isSeeder) {
@@ -17,6 +21,10 @@ export const BeforeInsert = (): PropertyDecorator => {
   }
 }
 
+/**
+ * Property decorator for defining a method to be executed after an entity is inserted
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const AfterInsert = (): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     if (!isSeeder) {
@@ -24,7 +32,10 @@ export const AfterInsert = (): PropertyDecorator => {
     }
   }
 }
-
+/**
+ * Property decorator for defining a method to be executed before an entity is updated
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const BeforeUpdate = (): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     if (!isSeeder) {
@@ -32,7 +43,10 @@ export const BeforeUpdate = (): PropertyDecorator => {
     }
   }
 }
-
+/**
+ * Property decorator for defining a method to be executed after an entity is updated
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const AfterUpdate = (): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     if (!isSeeder) {
@@ -40,7 +54,10 @@ export const AfterUpdate = (): PropertyDecorator => {
     }
   }
 }
-
+/**
+ * Property decorator for defining a method to be executed before an entity is removed
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const BeforeRemove = (): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     if (!isSeeder) {
@@ -48,7 +65,10 @@ export const BeforeRemove = (): PropertyDecorator => {
     }
   }
 }
-
+/**
+ * Property decorator for defining a method to be executed after an entity is removed
+ * @returns {PropertyDecorator} The property decorator
+ */
 export const AfterRemove = (): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     if (!isSeeder) {

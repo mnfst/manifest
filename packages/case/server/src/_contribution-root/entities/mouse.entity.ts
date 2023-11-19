@@ -7,6 +7,9 @@ import { Entity } from '../../decorators/entity.decorator'
 import { Prop } from '../../decorators/prop.decorator'
 import { Cat } from './cat.entity'
 
+/**
+ * Mouse entity that extends CaseEntity.
+ */
 @Entity({
   nameSingular: 'mouse',
   namePlural: 'mouses',
@@ -14,6 +17,9 @@ import { Cat } from './cat.entity'
   propIdentifier: 'nickName'
 })
 export class Mouse extends CaseEntity {
+  /**
+   * Nickname of the mouse.
+   */
   @Prop({
     label: 'Nickname',
     type: PropType.Text,
@@ -21,6 +27,9 @@ export class Mouse extends CaseEntity {
   })
   nickName: string
 
+  /**
+ * Family name of the mouse.
+ */
   @Prop({
     label: 'Family name',
     type: PropType.Text,
@@ -28,18 +37,27 @@ export class Mouse extends CaseEntity {
   })
   familyName: string
 
+  /**
+   * Birth Certificate of the mouse.
+   */
   @Prop({
     type: PropType.File,
     validators: [IsNotEmpty()]
   })
   certificate: string
 
+  /**
+  * Image of the mouse.
+  */
   @Prop({
     type: PropType.Image,
     validators: [IsNotEmpty()]
   })
   image: string
 
+  /**
+  * Predator of the mouse.
+  */
   @Prop({
     label: 'Choose a Predator',
     type: PropType.Relation,
@@ -49,15 +67,22 @@ export class Mouse extends CaseEntity {
   })
   predator: Cat
 
+  /**
+   * Password of the mouse.
+   */
   @Prop({
     type: PropType.Password
   })
   password: string
 
+  /**
+   * Description of the mouse.
+   */
   @Prop({
     type: PropType.Textarea
   })
   description: string
+
 
   @BeforeInsert()
   beforeInsert() {
