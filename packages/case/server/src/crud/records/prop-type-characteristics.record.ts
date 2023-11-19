@@ -66,5 +66,12 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Enum]: {
     columnType: 'simple-enum',
     defaultSeedFunction: () => null
+  },
+  [PropType.Location]: {
+    columnType: 'json',
+    defaultSeedFunction: () => ({
+      lat: faker.location.latitude(),
+      lng: faker.location.longitude()
+    })
   }
 }

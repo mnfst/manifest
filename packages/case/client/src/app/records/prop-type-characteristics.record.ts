@@ -62,5 +62,10 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Image]: {
     input: InputType.FileUpload,
     yield: YieldType.Link
+  },
+  // TODO: Implement location input and yield types.
+  [PropType.Location]: {
+    input: InputType.Location,
+    yield: YieldType.Location
   }
 }

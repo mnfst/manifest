@@ -10,45 +10,44 @@ import {
   propTypeCharacteristicsRecord
 } from '../records/prop-type-characteristics.record'
 
-export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
+export const Prop = (prop?: PropertyDefinition): PropertyDecorator => {
   return (target: Object, propertyKey: string) => {
     const defaultType: PropType = PropType.Text
     const typeCharacteristics: PropTypeCharacteristics =
-      propTypeCharacteristicsRecord[definition?.type || defaultType]
+      propTypeCharacteristicsRecord[prop?.type || defaultType]
 
-    // Set the property definition on the target.
+    // Set the property prop on the target.
     Reflect.defineMetadata(
       `${propertyKey}:seed`,
-      definition?.seed || typeCharacteristics.defaultSeedFunction,
+      prop?.seed || typeCharacteristics.defaultSeedFunction,
       target
     )
     Reflect.defineMetadata(
       `${propertyKey}:type`,
-      definition?.type || defaultType,
+      prop?.type || defaultType,
       target
     )
     Reflect.defineMetadata(
       `${propertyKey}:label`,
-      definition?.label || propertyKey,
+      prop?.label || propertyKey,
       target
     )
     Reflect.defineMetadata(
       `${propertyKey}:options`,
-      definition?.options || {},
+      prop?.options || {},
       target
     )
 
     // Validators.
-    if (definition?.validators) {
-      definition?.validators.forEach((validator: PropertyDecorator) => {
+    if (prop?.validators) {
+      prop?.validators.forEach((validator: PropertyDecorator) => {
         validator(target, propertyKey)
       })
     }
 
     // Relation (ManyToOne).
-    if (definition?.type === PropType.Relation) {
-      const relationOptions: RelationOptions =
-        definition?.options as RelationOptions
+    if (prop?.type === PropType.Relation) {
+      const relationOptions: RelationOptions = prop?.options as RelationOptions
 
       if (!relationOptions?.entity) {
         throw new Error(`Entity is not provided for "${propertyKey}" property.`)
@@ -65,16 +64,16 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       )(target, propertyKey)
 
       // Enum.
-    } else if (definition?.type === PropType.Enum) {
-      const enumOptions: EnumOptions = definition?.options as EnumOptions
+    } else if (prop?.type === PropType.Enum) {
+      const enumOptions: EnumOptions = prop?.options as EnumOptions
 
       if (!enumOptions?.enum) {
         throw new Error(`Enum is not provided for "${propertyKey}" property.`)
       }
 
       Column({
-        ...definition?.typeORMOptions,
-        nullable: true, // Everything is nullable for now (for simplicity).
+        ...prop?.typeORMOptions,
+        nullable: true, // Enums are nullable for now at DB level (for simplicity).
         type: typeCharacteristics.columnType,
         enum: enumOptions.enum
       })(target, propertyKey)
@@ -82,16 +81,16 @@ export const Prop = (definition?: PropertyDefinition): PropertyDecorator => {
       // Override default seed function for enum as we need to return a value from the enum.
       Reflect.defineMetadata(
         `${propertyKey}:seed`,
-        definition?.seed ||
+        prop?.seed ||
           (() => faker.helpers.arrayElement(Object.values(enumOptions.enum))),
         target
       )
     } else {
       // Extend the Column decorator from TypeORM.
       Column({
-        ...definition?.typeORMOptions,
+        ...prop?.typeORMOptions,
         type: typeCharacteristics.columnType,
-        nullable: true // Everything is nullable for now (for simplicity).
+        nullable: true // Everything is nullable for now at DB level (for simplicity).
       })(target, propertyKey)
     }
   }
