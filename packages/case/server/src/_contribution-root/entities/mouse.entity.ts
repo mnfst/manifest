@@ -32,7 +32,16 @@ export class Mouse extends BaseEntity {
 
   @Prop({
     type: PropType.Image,
-    validators: [IsNotEmpty()]
+    validators: [IsNotEmpty()],
+    options: {
+      sizes: [
+        {
+          name: 'small',
+          height: 100,
+          width: 100
+        }
+      ]
+    }
   })
   image: string
 

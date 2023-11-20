@@ -4,6 +4,7 @@ import { PropType } from '../enums/prop-type.enum'
 import { CurrencyOptions } from './property-options/currency-options.interface'
 import { EnumOptions } from './property-options/enum-options.interface'
 import { FileOptions } from './property-options/file-options.interface'
+import { ImageOptions } from './property-options/image-options.interface'
 import { PropertyOptions } from './property-options/property-options.interface'
 import { RelationOptions } from './property-options/relation-options.interface'
 
@@ -28,6 +29,7 @@ export interface PropertyDefinition {
     | CurrencyOptions
     | FileOptions
     | EnumOptions
+    | ImageOptions
 
   /** TypeORM options for the property */
   typeORMOptions?: ColumnOptions

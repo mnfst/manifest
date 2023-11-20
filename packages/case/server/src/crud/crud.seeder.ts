@@ -49,7 +49,7 @@ export class CrudSeeder {
 
     console.log(chalk.blue('[x] Removed all existing data...'))
 
-    let addDummyDocument: boolean = false
+    let addDummyFile: boolean = false
     let addDummyImage: boolean = false
 
     for (const entity of entities) {
@@ -113,7 +113,7 @@ export class CrudSeeder {
           }
 
           if (propType === PropType.File) {
-            addDummyDocument = true
+            addDummyFile = true
           }
 
           if (propType === PropType.Image) {
@@ -126,8 +126,8 @@ export class CrudSeeder {
       }
     }
 
-    if (addDummyDocument) {
-      this.fileUploadService.addDummyDocument()
+    if (addDummyFile) {
+      this.fileUploadService.addDummyFile()
     }
 
     if (addDummyImage) {
