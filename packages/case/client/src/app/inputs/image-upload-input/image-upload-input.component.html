@@ -45,10 +45,7 @@
     *ngIf="imagePath"
     class="has-current-file is-flex is-align-items-center is-justify-content-space-between has-background-white-ter pl-2 py-2"
   >
-    <img
-      [src]="storagePath + imagePath + '-thumbnail.jpg'"
-      alt="uploaded image"
-    />
+    <img [src]="storagePath + imagePath" alt="uploaded image" />
     <span class="file-cta file-remove">
       <a (click)="removeFile()">
         <i class="icon icon-x is-size-5"></i>

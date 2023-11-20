@@ -125,6 +125,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     </app-password-input>
     <app-file-upload-input
       [prop]="prop"
+      [entitySlug]="entitySlug"
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
@@ -132,6 +133,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     ></app-file-upload-input>
     <app-image-upload-input
       [prop]="prop"
+      [entitySlug]="entitySlug"
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
@@ -153,6 +155,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
 })
 export class InputComponent implements OnChanges {
   @Input() prop: PropertyDescription
+  @Input() entitySlug: string
   @Input() value: any
   @Input() errors: string[]
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()

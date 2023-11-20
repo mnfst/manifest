@@ -24,6 +24,7 @@ import { UploadService } from '../../services/upload.service'
 })
 export class FileUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
+  @Input() entitySlug: string
   @Input() value: string
   @Input() isError: boolean
 
@@ -56,7 +57,7 @@ export class FileUploadInputComponent implements OnInit {
   fileInputEvent(event: any) {
     this.loading = true
     this.fileContent = this.fileInputEl.nativeElement.files.item(0)
-    this.uploadService.uploadFile(this.prop.propName, this.fileContent).then(
+    this.uploadService.uploadFile(this.entitySlug, this.fileContent).then(
       (res: { path: string }) => {
         this.loading = false
         this.filePath = res.path

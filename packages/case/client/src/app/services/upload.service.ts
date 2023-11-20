@@ -13,22 +13,34 @@ export class UploadService {
 
   constructor(private http: HttpClient) {}
 
-  uploadImage(resourceName: string, fileContent: any): Promise<any> {
-    return this.upload('image', resourceName, fileContent)
-  }
-
-  uploadFile(resourceName: string, fileContent: any): Promise<any> {
-    return this.upload('file', resourceName, fileContent)
-  }
-
-  upload(uploadType: string, propName: string, fileContent: any): Promise<any> {
+  uploadImage(
+    entitySlug: string,
+    propName: string,
+    fileContent: any
+  ): Promise<{ [key: string]: string }> {
     const formData = new FormData()
 
-    formData.append('file', fileContent)
+    formData.append('image', fileContent)
+    formData.append('entitySlug', entitySlug)
     formData.append('propName', propName)
 
     return firstValueFrom(
-      this.http.post(`${this.uploadEndpointUrl}/${uploadType}`, formData).pipe(
+      this.http.post(`${this.uploadEndpointUrl}/image`, formData).pipe(
+        map((response: any) => {
+          return response
+        })
+      )
+    )
+  }
+
+  uploadFile(entitySlug: string, fileContent: any): Promise<any> {
+    const formData = new FormData()
+
+    formData.append('file', fileContent)
+    formData.append('entitySlug', entitySlug)
+
+    return firstValueFrom(
+      this.http.post(`${this.uploadEndpointUrl}/file`, formData).pipe(
         map((response: any) => {
           return response
         })

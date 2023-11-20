@@ -22,6 +22,7 @@ import { UploadService } from '../../services/upload.service'
 })
 export class ImageUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
+  @Input() entitySlug: string
   @Input() value: string
   @Input() isError: boolean
 
@@ -50,22 +51,24 @@ export class ImageUploadInputComponent implements OnInit {
   imageInputEvent(event: any) {
     this.loading = true
     this.fileContent = this.imageInputEl.nativeElement.files.item(0)
-    this.uploadService.uploadImage(this.prop.propName, this.fileContent).then(
-      (res: { path: string }) => {
-        // The image is going 404 for some reason if we don't wait a second.
-        setTimeout(() => {
-          this.imagePath = res.path
+    this.uploadService
+      .uploadImage(this.entitySlug, this.prop.propName, this.fileContent)
+      .then(
+        (res: { [key: string]: string }) => {
+          // The image is going 404 for some reason if we don't wait a second.
+          setTimeout(() => {
+            this.imagePath = res[Object.keys(res)[0]]
+            this.loading = false
+            this.valueChanged.emit(JSON.stringify(res))
+          }, 1000)
+        },
+        (err) => {
           this.loading = false
-          this.valueChanged.emit(this.imagePath)
-        }, 1000)
-      },
-      (err) => {
-        this.loading = false
-        this.flashMessageService.error(
-          'There was an error uploading your image.'
-        )
-      }
-    )
+          this.flashMessageService.error(
+            'There was an error uploading your image.'
+          )
+        }
+      )
   }
 
   removeFile() {

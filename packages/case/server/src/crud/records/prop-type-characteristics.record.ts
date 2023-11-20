@@ -59,9 +59,14 @@ export const propTypeCharacteristicsRecord: Record<
     defaultSeedFunction: () => '/dummy/dummy-document.xlsx'
   },
   [PropType.Image]: {
-    columnType: 'varchar',
-    defaultSeedFunction: () =>
-      `/dummy/dummy-image${faker.number.int({ min: 1, max: 5 })}`
+    columnType: 'json',
+    defaultSeedFunction: () => {
+      const imageNumber: number = faker.number.int({ min: 1, max: 5 })
+      return {
+        thumbnail: `/dummy/dummy-image${imageNumber}-thumbnail.jpg`,
+        large: `/dummy/dummy-image${imageNumber}-large.jpg`
+      }
+    }
   },
   [PropType.Enum]: {
     columnType: 'simple-enum',
