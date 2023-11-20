@@ -12,11 +12,12 @@ import {
 } from '@nestjs/common'
 
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
-import { DeleteResult } from 'typeorm'
+import { DeleteResult, InsertResult } from 'typeorm'
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
 import { Paginator } from '../../../../shared/interfaces/paginator.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
 import { ApiRestrictionGuard } from '../../api/api-restriction.guard'
+import { BaseEntity } from '../../core-entities/base-entity'
 import { EndpointRestrictionRule } from '../decorators/endpoint-restriction-rule.decorator'
 import { CrudService } from '../services/crud.service'
 import { EntityMetaService } from '../services/entity-meta.service'
@@ -52,11 +53,11 @@ export class CrudController {
   findAll(
     @Param('entity') entity: string,
     @Query() queryParams: { [key: string]: string | string[] }
-  ): Promise<Paginator<any> | any[]> {
+  ): Promise<Paginator<BaseEntity> | BaseEntity[] | string> {
     return this.crudService.findAll({
       entitySlug: entity,
       queryParams
-    }) as Promise<Paginator<any>>
+    }) as Promise<Paginator<BaseEntity>>
   }
 
   @Get(':entity/select-options')
@@ -90,7 +91,7 @@ export class CrudController {
   findOne(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
-  ): Promise<any> {
+  ): Promise<BaseEntity> {
     return this.crudService.findOne(entity, id)
   }
 
@@ -104,7 +105,10 @@ export class CrudController {
     description: 'Entity slug',
     example: 'cats, posts, corporation-groups...'
   })
-  store(@Param('entity') entity: string, @Body() entityDto: any): Promise<any> {
+  store(
+    @Param('entity') entity: string,
+    @Body() entityDto: any
+  ): Promise<InsertResult> {
     return this.crudService.store(entity, entityDto)
   }
 
@@ -127,7 +131,7 @@ export class CrudController {
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number,
     @Body() entityDto: any
-  ): Promise<any> {
+  ): Promise<BaseEntity> {
     return this.crudService.update(entity, id, entityDto)
   }
 

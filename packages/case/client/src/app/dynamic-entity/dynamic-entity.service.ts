@@ -40,6 +40,25 @@ export class DynamicEntityService {
     ) as Promise<Paginator<any>>
   }
 
+  async download(entitySlug: string, params?: Params): Promise<void> {
+    const queryParams: { [key: string]: any } = Object.assign({}, params) || {}
+
+    queryParams['export'] = true
+
+    const res: { filePath: string } = (await firstValueFrom(
+      this.http.get(`${this.serviceUrl}/${entitySlug}`, {
+        params: queryParams
+      })
+    )) as { filePath: string }
+
+    const filePath: string = environment.storagePath + res.filePath
+
+    const link = document.createElement('a')
+    link.href = filePath
+    link.download = filePath.split('/').pop()
+    link.dispatchEvent(new MouseEvent('click'))
+  }
+
   listSelectOptions(entitySlug: string): Promise<SelectOption[]> {
     return firstValueFrom(
       this.http.get(`${this.serviceUrl}/${entitySlug}/select-options`)

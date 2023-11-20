@@ -10,17 +10,24 @@ import {
   FindManyOptions,
   FindOptionsWhere,
   In,
+  InsertResult,
   Repository
 } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 
 import { Paginator } from '../../../../shared/interfaces/paginator.interface'
+import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
+import { BaseEntity } from '../../core-entities/base-entity'
+import { ExcelService } from '../../utils/excel.service'
 import { EntityMetaService } from './entity-meta.service'
 
 @Injectable()
 export class CrudService {
-  constructor(private entityMetaService: EntityMetaService) {}
+  constructor(
+    private entityMetaService: EntityMetaService,
+    private excelService: ExcelService
+  ) {}
 
   async findAll({
     entitySlug,
@@ -28,8 +35,8 @@ export class CrudService {
   }: {
     entitySlug: string
     queryParams?: { [key: string]: string | string[] }
-  }): Promise<Paginator<any> | any[]> {
-    const entityRepository: Repository<any> =
+  }): Promise<Paginator<BaseEntity> | BaseEntity[] | string> {
+    const entityRepository: Repository<BaseEntity> =
       this.entityMetaService.getRepository(entitySlug)
 
     // Get entity relations.
@@ -38,7 +45,7 @@ export class CrudService {
       .relations.map((relation: RelationMetadata) => relation.propertyName)
 
     // Dynamic filtering.
-    const where: FindOptionsWhere<any> = {}
+    const where: FindOptionsWhere<BaseEntity> = {}
 
     Object.keys(queryParams || {}).forEach((key: string) => {
       // Check if key is a relation.
@@ -52,10 +59,16 @@ export class CrudService {
       }
     })
 
-    const findManyOptions: FindManyOptions<any> = {
+    const findManyOptions: FindManyOptions<BaseEntity> = {
       order: { id: 'DESC' },
       relations,
       where
+    }
+
+    // Export results.
+    if (queryParams?.export) {
+      const items: BaseEntity[] = await entityRepository.find(findManyOptions)
+      return this.export(entitySlug, items)
     }
 
     // Non paginated results.
@@ -86,12 +99,30 @@ export class CrudService {
     return paginator
   }
 
-  async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
-    const items: any[] = (await this.findAll({
-      entitySlug
-    })) as any[]
+  async export(entitySlug: string, items: BaseEntity[]): Promise<string> {
+    const props: PropertyDescription[] =
+      this.entityMetaService.getPropDescriptions(
+        this.entityMetaService.getEntityMetadata(entitySlug)
+      )
 
-    return items.map((item: any) => ({
+    const headers: string[] = props.map((prop: any) => prop.label)
+
+    return this.excelService.export(
+      headers,
+      items.map((item: BaseEntity) =>
+        props.map((prop: PropertyDescription) => item[prop.propName])
+      ),
+      entitySlug,
+      true
+    )
+  }
+
+  async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
+    const items: BaseEntity[] = (await this.findAll({
+      entitySlug
+    })) as BaseEntity[]
+
+    return items.map((item: BaseEntity) => ({
       id: item.id,
       label:
         item[
@@ -116,11 +147,11 @@ export class CrudService {
     return item
   }
 
-  async store(entitySlug: string, itemDto: any) {
+  async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
     const entityRepository: Repository<any> =
       this.entityMetaService.getRepository(entitySlug)
 
-    const newItem: any = entityRepository.create(itemDto)
+    const newItem: BaseEntity = entityRepository.create(itemDto)
 
     const errors = await validate(newItem)
     if (errors.length) {
@@ -140,11 +171,15 @@ export class CrudService {
     return entityRepository.insert(newItem)
   }
 
-  async update(entitySlug: string, id: number, itemDto: any) {
+  async update(
+    entitySlug: string,
+    id: number,
+    itemDto: any
+  ): Promise<BaseEntity> {
     const entityRepository: Repository<any> =
       this.entityMetaService.getRepository(entitySlug)
 
-    const item = await entityRepository.findOne({ where: { id } })
+    const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
     if (!item) {
       throw new NotFoundException('Item not found')
@@ -164,7 +199,7 @@ export class CrudService {
   }
 
   async delete(entitySlug: string, id: number): Promise<DeleteResult> {
-    const entityRepository: Repository<any> =
+    const entityRepository: Repository<BaseEntity> =
       this.entityMetaService.getRepository(entitySlug)
 
     const item = await entityRepository.findOne({ where: { id } })

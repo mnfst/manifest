@@ -94,6 +94,13 @@ export class DynamicEntityListComponent implements OnInit {
     })
   }
 
+  async download(): Promise<void> {
+    await this.dynamicEntityService.download(
+      this.entityMeta.definition.slug,
+      this.queryParams
+    )
+  }
+
   delete(id: number): void {
     this.dynamicEntityService
       .delete(this.entityMeta.definition.slug, id)

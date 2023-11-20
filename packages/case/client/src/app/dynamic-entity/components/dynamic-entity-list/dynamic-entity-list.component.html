@@ -13,11 +13,19 @@
         [routerLink]="['/', 'dynamic', entityMeta.definition.slug, 'create']"
         >Create a new {{ entityMeta.definition.nameSingular }}</a
       >
-
       <a
         class="button is-circle is-link ml-5 is-hidden-desktop"
         [routerLink]="['/', 'dynamic', entityMeta.definition.slug, 'create']"
         ><i class="icon icon-plus"></i
+      ></a>
+
+      <a class="button is-link ml-5 is-hidden-touch" (click)="download()"
+        >Download CSV</a
+      >
+      <a
+        class="button is-circle is-link ml-5 is-hidden-desktop"
+        (click)="download()"
+        ><i class="icon icon-download"></i
       ></a>
     </div>
   </div>
