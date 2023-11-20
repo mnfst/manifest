@@ -56,6 +56,9 @@ export class CrudService {
         }
         // Add relation where clause: { relation: In([1, 2, 3])  }
         where[key] = In(queryParams[key] as string[])
+      } else {
+        // Add where clause: { key: value }
+        where[key] = queryParams[key]
       }
     })
 

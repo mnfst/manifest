@@ -61,7 +61,8 @@ export class DynamicEntityListComponent implements OnInit {
             (prop) => !prop.options?.isHiddenInList
           )
           this.filtrableProps = this.props.filter(
-            (prop) => prop.options?.filter
+            (prop) =>
+              prop.type === PropType.Enum || prop.type === PropType.Relation
           )
 
           this.breadcrumbService.breadcrumbLinks.next([
