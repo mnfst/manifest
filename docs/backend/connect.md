@@ -1,3 +1,0 @@
-# Connect to your backend
-
-Comming soon...

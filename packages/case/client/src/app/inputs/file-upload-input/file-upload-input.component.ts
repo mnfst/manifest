@@ -10,7 +10,6 @@ import {
 } from '@angular/core'
 
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
-import { FileOptions } from '../../../../../shared/interfaces/property-options/file-options.interface'
 import { environment } from '../../../environments/environment'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { UploadService } from '../../services/upload.service'
@@ -38,16 +37,12 @@ export class FileUploadInputComponent implements OnInit {
   fileContent: any
   loading: boolean
 
-  options: FileOptions
-
   constructor(
     private uploadService: UploadService,
     private flashMessageService: FlashMessageService
   ) {}
 
   ngOnInit() {
-    this.options = this.prop.options as FileOptions
-
     if (this.value) {
       this.filePath = this.value
     }

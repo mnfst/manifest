@@ -1,3 +1,0 @@
-# API Rules
-
-Comming soon...

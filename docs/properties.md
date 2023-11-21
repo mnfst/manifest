@@ -30,51 +30,21 @@ export class Cat extends BaseEntity {
 }
 ```
 
-By default the **PropType** is `Text`, a classic string, but you have [plenty of other available types](property-types.md).
+## Property types
+
+CASE adds real-world property types to make your work easier. By default the **PropType** is [Text](property-types.md?id=text), a classic string, but you have [plenty of other available types](property-types.md).
 
 ## Property params
 
 You can pass arguments to the `@Prop()` decorator:
 
-| Option         | Default              | Type                | Description                                                         |
-| -------------- | -------------------- | ------------------- | ------------------------------------------------------------------- |
-| **label**      | _same as propName_   | string              | The label of the property                                           |
-| **type**       | PropType.Text        | PropType            | The [CASE type](property-types.md) of the property                  |
-| **seed**       | _type seed function_ | function            | The [custom seeder function](dummy-data.md#custom-seeder-functions) |
-| **options**    | {}                   | Object              | [Property options](properties.md?id=options)                        |
-| **validators** | []                   | PropertyDecorator[] | [Validation functions](properties.md?id=validation)                 |
-
-## Validation
-
-Validation is done with (class-validator)[https://github.com/typestack/class-validator]. To use it, install the package first:
-
-```
-npm install class-validator
-```
-
-And then you can add an array of validators to each property:
-
-```js
-import { IsEmail, IsNotEmpty, Min } from 'class-validator'
-
-[...]
-
-@Prop({
-  type: PropType.Email,
-  validators: [IsNotEmpty(), IsEmail()]
-})
-email: string
-
-@Prop({
-  type: PropType.Currency,
-  validators: [IsNotEmpty(), Min(1000)],
-  options: {
-    currency: 'EUR'
-  }
-})
-wealth: number
-
-```
+| Option         | Default              | Type                | Description                                                            |
+| -------------- | -------------------- | ------------------- | ---------------------------------------------------------------------- |
+| **label**      | _same as propName_   | string              | The label of the property                                              |
+| **type**       | `PropType.Text`      | PropType            | The [Property type](property-types.md)                                 |
+| **seed**       | _type seed function_ | function            | The [custom seeder function](dummy-data.md?id=custom-seeder-functions) |
+| **options**    | {}                   | Object              | [Property options](properties.md?id=options)                           |
+| **validators** | []                   | PropertyDecorator[] | [Validation functions](validation.md)                                  |
 
 ## Options
 

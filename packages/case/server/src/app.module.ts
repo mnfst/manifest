@@ -55,14 +55,12 @@ export class AppModule {
     })
 
     if (!contributionMode) {
-      table.push(['client URL', chalk.green(`http://localhost:${port}`)])
+      table.push(['Admin panel', chalk.green(`http://localhost:${port}`)])
     }
 
     table.push(
-      [
-        'database path',
-        chalk.green(databaseConfig.database.replace(appRoot, ''))
-      ],
+      ['REST API', chalk.green(`http://localhost:${port}/api`)],
+      ['DB path', chalk.green(databaseConfig.database.replace(appRoot, ''))],
       [
         'entities',
         chalk.green(
@@ -71,9 +69,12 @@ export class AppModule {
             .join(', ')
         )
       ],
-      ['node env', chalk.green(nodeEnv)],
-      ['contribution mode', chalk.green(contributionMode)]
+      ['node env', chalk.green(nodeEnv)]
     )
+
+    if (contributionMode) {
+      table.push(['contribution mode', chalk.green('true')])
+    }
 
     console.log(table.toString())
     console.log()
@@ -92,6 +93,15 @@ export class AppModule {
             chalk.underline.blue(`http://localhost:${port}`)
           )
         )
+        if (this.dataSource.entityMetadatas.length <= 1) {
+          console.log()
+          console.log(
+            chalk.blue(
+              '✨ You can now add your own entities: ',
+              chalk.underline.blue(`https://docs.case.app/entities`)
+            )
+          )
+        }
       }
     } else {
       console.log(
@@ -101,5 +111,6 @@ export class AppModule {
         )
       )
     }
+    console.log()
   }
 }

@@ -1,10 +1,10 @@
 # Create an entity
 
-An entity is an object often linked to a real world concept like users, customers, videos etc. Entities are the heart of any application, they encapsulate the critical business rules.
+An entity is an object often linked to a real world concept like users, customers, videos etc.
 
 ## Command line
 
-In our example, we will create an app that lists cats. To do that, simply run on the terminal the following command:
+In our example, we will create an app that lists cats. To do that, run:
 
 ```
 npm run case:entity cat
@@ -25,7 +25,7 @@ export class Cat extends BaseEntity {
 > [!WARNING]
 > This command will not work on Windows. If you are a Windows user you can just copy paste the following code in `/entities/cat.entity.ts`.
 
-By default the entity has a single property called "name". You can already seed dummy data running this command:
+By default the entity has a single property called `name`. You can already seed dummy data running this command:
 
 ```
 npm run seed
@@ -35,10 +35,11 @@ npm run seed
 
 You can pass different arguments to the `@Entity()` decorator to configure your entities.
 
-| Option            | Default                             | Type   | Description                                                                |
-| ----------------- | ----------------------------------- | ------ | -------------------------------------------------------------------------- |
-| **nameSingular**  | singular lower case name from class | string | The singular lowercase name of your entity. Used widely on the admin panel |
-| **namePlural**    | plural lower case name from class   | string | The plural lowercase name of your entity. Used widely on the admin panel   |
-| **slug**          | plural dasherized name from class   | string | The kebab-case slug of the entity that will define API endpoints          |
-| **propIdentifer** | first column in entity              | string | Identifier prop. Used widely on the admin panel                            |
-| **seedCount**     | 50                                  | number | Defines how many items of this entity should be seeded                     |
+| Option            | Default                    | Type   | Description                                                                |
+| ----------------- | -------------------------- | ------ | -------------------------------------------------------------------------- |
+| **nameSingular**  | _singular lower case name_ | string | The singular lowercase name of your entity. Used widely on the admin panel |
+| **namePlural**    | _plural lower case name_   | string | The plural lowercase name of your entity. Used widely on the admin panel   |
+| **slug**          | _plural dasherized name_   | string | The kebab-case slug of the entity that will define API endpoints           |
+| **propIdentifer** | _first column in entity_   | string | Identifier prop. Used widely on the admin panel                            |
+| **seedCount**     | `50`                       | number | Defines how many items of this entity should be seeded                     |
+| **apiPolicies**   | _no restriction_           | object | [API policies](api-policies.md) for CRUD operations                        |

@@ -8,15 +8,16 @@
   - [Create an entity](entities.md)
   - [Add properties to an entity](properties.md)
   - [Property types](property-types.md)
+  - [Validation](validation.md)
   - [Seed dummy data](dummy-data.md)
 
 - Use your backend
 
-  - [Connect to your backend](backend/connect.md)
-  - [API Rules](backend/api-rules.md)
+  - [Connect with the JS SDK](connect.md)
+  - [Storage](storage.md)
+  - [Hooks](hooks.md)
   - [Auth](auth.md)
-
-  - [Custom logic](custom-logic.md)
+  - [API policies](api-policies.md)
 
 - Deploy
   - [Going to production](going-to-production.md)

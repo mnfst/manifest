@@ -222,6 +222,7 @@ owner: Owner
 <br>
 
 > [!NOTE]
+>
 > - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships.
 > - When you use **cascade delete** and delete the _Owner_ record, it will also delete all his or her _Cat_ records
 
@@ -239,7 +240,11 @@ Hidden password field.
 
 ```js
   @Prop({
-    type: PropType.Password
+    type: PropType.Password,
+    options: {
+     isHiddenInList: true,
+     isHiddenInDetail: true
+    }
   })
   password: string
 ```
@@ -249,6 +254,7 @@ Hidden password field.
 > [!ATTENTION]
 > You should never ever store a password on clear text.
 > You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it.
+> To prevent selecting it, use [property options](properties.md?id=options) as above
 
 ---
 
@@ -272,10 +278,6 @@ File upload input.
   </div>
 </div>
 
-| Option      | Default | Type   | Description                                                                                                                   |
-| ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
-
 ---
 
 ### Image
@@ -297,6 +299,10 @@ Same as file but for images.
       <img src="../assets/images/display-image.svg">
   </div>
 </div>
+
+| Option    | Default             | Type   | Description                                                                 |
+| --------- | ------------------- | ------ | --------------------------------------------------------------------------- |
+| **sizes** | _80x80 and 800x800_ | object | File sizes generated [when uploading an image](storage.md?id=Upload images) |
 
 ---
 
@@ -357,3 +363,14 @@ export enum ProjectStatus {
 | ----------- | ------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | **enum**    | -       | enum                          | [String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) with the available options |
 | **display** | 'label' | 'label' &#124; 'progress-bar' | Enum props can be represented either by a label or by a progress bar if the enum follows a logic order.        |
+
+### Location
+
+The location type consists in a object with `lat` and `lng` coordinates.
+
+```js
+  @Prop({
+    type: PropType.Location,
+  })
+  location: string
+```
