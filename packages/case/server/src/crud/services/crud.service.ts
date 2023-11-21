@@ -7,23 +7,33 @@ import {
 import { validate } from 'class-validator'
 import {
   DeleteResult,
+  EntityMetadata,
   FindManyOptions,
   FindOptionsWhere,
-  In,
   InsertResult,
   Repository
 } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 
-import { Paginator } from '../../../../shared/interfaces/paginator.interface'
+import {
+  Paginator,
+  WhereKeySuffix,
+  WhereOperator,
+  whereOperatorKeySuffix
+} from '@casejs/types'
 import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
 import { BaseEntity } from '../../core-entities/base-entity'
 import { ExcelService } from '../../utils/excel.service'
+import { HelperService } from '../../utils/helper.service'
+import { whereOperatorFunctionsRecord } from '../records/where-operator-functions.record'
 import { EntityMetaService } from './entity-meta.service'
 
 @Injectable()
 export class CrudService {
+  // Query params that should not be treated as a filter.
+  specialQueryParams: string[] = ['page', 'perPage', 'export']
+
   constructor(
     private entityMetaService: EntityMetaService,
     private excelService: ExcelService
@@ -39,28 +49,65 @@ export class CrudService {
     const entityRepository: Repository<BaseEntity> =
       this.entityMetaService.getRepository(entitySlug)
 
+    const entityMetadata: EntityMetadata =
+      this.entityMetaService.getEntityMetadata(entitySlug)
+
     // Get entity relations.
-    const relations: string[] = this.entityMetaService
-      .getEntityMetadata(entitySlug)
-      .relations.map((relation: RelationMetadata) => relation.propertyName)
+    const relations: string[] = entityMetadata.relations.map(
+      (relation: RelationMetadata) => relation.propertyName
+    )
+
+    // Get entity props.
+    const props: PropertyDescription[] =
+      this.entityMetaService.getPropDescriptions(entityMetadata)
 
     // Dynamic filtering.
     const where: FindOptionsWhere<BaseEntity> = {}
 
-    Object.keys(queryParams || {}).forEach((key: string) => {
-      // Check if key is a relation.
-      if (relations.includes(key)) {
-        // Force array.
-        if (typeof queryParams[key] === 'string') {
-          queryParams[key] = [queryParams[key] as string]
+    Object.entries(queryParams || {})
+      .filter(
+        ([key, _value]: [string, string | string[]]) =>
+          !this.specialQueryParams.includes(key)
+      )
+      .forEach(([key, value]: [string, string]) => {
+        // Check if the key includes one of the available operator suffixes. We reverse array as some suffixes are substrings of others (ex: _gt and _gte).
+        const suffix: WhereKeySuffix = Object.values(WhereKeySuffix)
+          .reverse()
+          .find((suffix) => key.includes(suffix))
+
+        if (!suffix) {
+          throw new HttpException(
+            'Query param key should include an operator suffix',
+            HttpStatus.BAD_REQUEST
+          )
         }
-        // Add relation where clause: { relation: In([1, 2, 3])  }
-        where[key] = In(queryParams[key] as string[])
-      } else {
-        // Add where clause: { key: value }
-        where[key] = queryParams[key]
-      }
-    })
+
+        const operator: WhereOperator = HelperService.getRecordKeyByValue(
+          whereOperatorKeySuffix,
+          suffix
+        ) as WhereOperator
+
+        const queryBuilderOperator: Function =
+          whereOperatorFunctionsRecord[operator]
+
+        const propName: string = key.replace(suffix, '')
+
+        if (!props.find((prop) => prop.propName === propName)) {
+          throw new HttpException(
+            `Property ${propName} does not exist in ${entitySlug}`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+
+        // In operator expects an array so we have to parse it.
+        let parsedValue: string[]
+        if (operator === WhereOperator.In) {
+          parsedValue = JSON.parse(value)
+        }
+
+        // Finally and the where query.
+        where[propName] = queryBuilderOperator(parsedValue || value)
+      })
 
     const findManyOptions: FindManyOptions<BaseEntity> = {
       order: { id: 'DESC' },

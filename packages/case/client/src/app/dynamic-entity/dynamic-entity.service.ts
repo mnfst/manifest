@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core'
 import { Observable, firstValueFrom, map, shareReplay } from 'rxjs'
 
 import { Params } from '@angular/router'
-import { Paginator } from '~shared/interfaces/paginator.interface'
+import { Paginator } from '@casejs/types'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
 import { environment } from '../../environments/environment'
