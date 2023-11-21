@@ -16,6 +16,7 @@
     "seed:dev": "node dist/server/src/crud/seed.js contribution"
   },
   "dependencies": {
+    "@casejs/types": "^0.0.5",
     "@faker-js/faker": "^8.0.2",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",

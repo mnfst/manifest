@@ -11,10 +11,10 @@ import {
   UseGuards
 } from '@nestjs/common'
 
+import { Paginator } from '@casejs/types'
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { DeleteResult, InsertResult } from 'typeorm'
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
-import { Paginator } from '../../../../shared/interfaces/paginator.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
 import { ApiRestrictionGuard } from '../../api/api-restriction.guard'
 import { BaseEntity } from '../../core-entities/base-entity'
