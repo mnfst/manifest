@@ -1,18 +1,23 @@
 .aside {
   background: $sidenav-background-color;
   flex: none;
+
   @include tablet {
     width: $aside-width-tablet;
   }
+
   @include desktop {
     width: $aside-width-desktop;
   }
+
   @include widescreen {
     width: $aside-width-widescreen;
   }
+
   @include fullhd {
     width: $aside-width-fullhd;
   }
+
   .is-collapsed & {
     width: 78px !important;
   }
@@ -25,12 +30,14 @@
 
 .navbar {
   position: relative;
+
   &:before {
     position: absolute;
     content: '';
     top: 0;
     height: 100%;
     border-bottom: 1px solid $border-color;
+
     @include mobile {
       width: 100%;
     }
@@ -39,14 +46,17 @@
       left: calc(#{$aside-width-tablet} + #{$aside-border-width});
       width: calc(100% - #{$aside-width-tablet} - #{$aside-border-width});
     }
+
     @include desktop {
       left: calc(#{$aside-width-desktop} + #{$aside-border-width});
       width: calc(100% - #{$aside-width-desktop} - #{$aside-border-width});
     }
+
     @include widescreen {
       left: calc(#{$aside-width-widescreen} + #{$aside-border-width});
       width: calc(100% - #{$aside-width-widescreen} - #{$aside-border-width});
     }
+
     @include fullhd {
       left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
       width: calc(100% - #{$aside-width-fullhd} - #{$aside-border-width});
@@ -57,6 +67,7 @@
       width: calc(100% - #{$aside-width-collapsed});
     }
   }
+
   > div:first-child {
     display: flex;
     justify-content: center;
@@ -83,9 +94,11 @@
   @include desktop {
     left: calc(#{$aside-width-desktop} + #{$aside-border-width});
   }
+
   @include widescreen {
     left: calc(#{$aside-width-widescreen} + #{$aside-border-width});
   }
+
   @include fullhd {
     left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
   }
@@ -97,11 +110,13 @@
 }
 
 li a {
+
   i + span,
   span + i {
     opacity: 1;
     visibility: visible;
     transition: opacity $transition-duration $transition-timing .18s, visibility 0.01s linear;
+
     .is-collapsed & {
       opacity: 0;
       visibility: hidden;
@@ -121,6 +136,12 @@ aside .has-submenu + ul {
 
     li a {
       padding-left: $gap !important;
+    }
+  }
+
+  .wrapper:not(.is-collapsed) & {
+    li a {
+      padding-left: 5.8rem !important;
     }
   }
 }
