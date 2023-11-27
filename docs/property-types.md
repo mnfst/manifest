@@ -372,5 +372,5 @@ The location type consists in a object with `lat` and `lng` coordinates.
   @Prop({
     type: PropType.Location,
   })
-  location: string
+  location: JSON
 ```

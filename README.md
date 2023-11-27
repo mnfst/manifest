@@ -86,7 +86,7 @@ And allow the following code in your JS client built with your favorite stack:
 ```js
 // Any file in your own client app.
 
-import { CaseClient } from '@casejs/case-client'
+import CaseClient from '@casejs/case-client'
 
 const cs = new CaseClient()
 

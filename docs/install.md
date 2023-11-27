@@ -25,6 +25,13 @@ npm start
 <br> - See your **Admin panel** at http://localhost:4000
 <br> - Use your **REST API** at http://localhost:4000/api
 
+> [!Tip]
+>
+> You have several ways install your CASE backend:
+>
+> - **Multi-repo**: In its own folder / repository to keep it independent
+> - **Monorepo**: Next to your client to share code
+
 ## Config
 
 Environment variables are managed to a [dotenv](https://www.npmjs.com/package/dotenv) file created at the root level.

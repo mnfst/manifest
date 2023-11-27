@@ -89,7 +89,7 @@ export class AppModule {
       } else {
         console.log(
           chalk.blue(
-            '🎉 CASE app successfully started! See it at',
+            '🎉 CASE app successfully started! See your admin panel: ',
             chalk.underline.blue(`http://localhost:${port}`)
           )
         )
