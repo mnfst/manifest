@@ -15,7 +15,7 @@ npm i @casejs/case-client
 Use the SDK directly in your favorite frontend:
 
 ```js
-import { CaseClient } from '@casejs/case-client'
+import CaseClient from '@casejs/case-client'
 
 // Initialize client in default port (localhost:4000).
 const cs = new CaseClient()

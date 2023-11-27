@@ -9,7 +9,7 @@ Admins are the only users that have access to the **Admin panel**. They have ful
 You can also log as an admin with the [JS SDK](connect.md):
 
 ```js
-import { CaseClient } from '@casejs/case-client'
+import CaseClient from '@casejs/case-client'
 
 const cs = new Client()
 
@@ -39,7 +39,7 @@ export class User extends AuthenticableEntity {}
 Once created, you can then **sign up** and **login** with the [JS SDK](connect.md)
 
 ```js
-import { CaseClient } from '@casejs/case-client'
+import CaseClient from '@casejs/case-client'
 
 const cs = new Client()
 
