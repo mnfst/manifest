@@ -16,9 +16,14 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
   imports: [NgClass],
   template: `
     <label for="">{{ prop.label }}</label>
-    <div class="columns">
+    <div class="columns is-mobile">
       <div class="column">
+      <div class="field">
         <label for="lat-input">Latitude</label>
+        <p class="control has-icons-left ">
+        <span class="icon is-small is-left">
+      <i class="icon icon-map-pin"></i>
+    </span>
         <input
           class="input form-control"
           [ngClass]="{ 'is-danger': isError }"
@@ -29,9 +34,16 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
           max="90"
           #latInput
         />
+      </p>
+      </div>
       </div>
       <div class="column">
+      <div class="field">
         <label for="lng-input">Longitude</label>
+      <p class="control has-icons-left ">
+      <span class="icon is-small is-left">
+      <i class="icon icon-map-pin"></i>
+    </span>
         <input
           class="input form-control"
           [ngClass]="{ 'is-danger': isError }"
@@ -42,6 +54,8 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
           max="180"
           #lngInput
         />
+      </p>
+      </div>
       </div>
     </div>
   `,
