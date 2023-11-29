@@ -288,7 +288,7 @@ Same as file but for images.
   @Prop({
     type: PropType.Image
   })
-  image: string
+  image: JSON
 ```
 
 <div class="show-result">

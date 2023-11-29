@@ -27,8 +27,8 @@ enum Breed {
 
 @Entity({
   apiPolicies: {
-    create: Policies.noRestriction,
-    read: Policies.loggedInOnly
+    create: Policies.noRestriction
+    // read: Policies.loggedInOnly
   }
 })
 export class Cat extends BaseEntity {

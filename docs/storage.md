@@ -39,7 +39,7 @@ options: {
         ]
     }
 })
-image: string
+image: JSON
 ```
 
 Then when using the SDK we just need to specify the entity and the property name to it:

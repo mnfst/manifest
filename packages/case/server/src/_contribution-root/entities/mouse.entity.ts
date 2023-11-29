@@ -43,7 +43,7 @@ export class Mouse extends BaseEntity {
       ]
     }
   })
-  image: string
+  image: JSON
 
   @Prop({
     label: 'Choose a Predator',

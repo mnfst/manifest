@@ -17,7 +17,7 @@ export class Cat extends BaseEntity {
   [...]
 
   @Prop()
-  image: string
+  imageUrl: string
 
   @BeforeInsert()
   async beforeInsert() {
