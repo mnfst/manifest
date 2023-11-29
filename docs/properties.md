@@ -30,6 +30,10 @@ export class Cat extends BaseEntity {
 }
 ```
 
+> [!Tip]
+>
+> By default, all properties all mandatory (nullable). You can make them required using [validators](validation.md)
+
 ## Property types
 
 CASE adds real-world property types to make your work easier. By default the **PropType** is [Text](property-types.md?id=text), a classic string, but you have [plenty of other available types](property-types.md).

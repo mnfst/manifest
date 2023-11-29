@@ -32,6 +32,12 @@ npm start
 > - **Multi-repo**: In its own folder / repository to keep it independent
 > - **Monorepo**: Next to your client to share code
 
+&nbsp;
+
+> [!Warning]
+>
+> When working on monorepo, if you have a **root tsconfig.json file**, make sure that your CASE tsconfig [extends](https://www.typescriptlang.org/tsconfig#extends) it.
+
 ## Config
 
 Environment variables are managed to a [dotenv](https://www.npmjs.com/package/dotenv) file created at the root level.

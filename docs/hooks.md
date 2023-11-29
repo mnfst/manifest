@@ -4,9 +4,9 @@ Hooks are the ideal place for your custom logic. You can trigger your own action
 
 ## How it works
 
-You are free to download your own packages and call external APIs. Do as you do in a standard NodeJS environment.
+To hook your function into an entity event, simply use one of our [provided decorators](hooks.md?id=entity-events). This setup ensures that your function activates precisely when the event occurs. Inside your function, you'll have access to the relevant item through the `this` keyword, allowing you to easily reference properties like `this.id`, `this.name`, and more.
 
-As CASE follows a **data-first** approach, the custom logic can be hooked to **entity events**.
+And don't forget: you're not just limited to what's inside CASE. Feel free to download your preferred packages and reach out to external APIs, just as you would in a typical NodeJS environment.
 
 ```js
 // /entities/cat.entity.ts
