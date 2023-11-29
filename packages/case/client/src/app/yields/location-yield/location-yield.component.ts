@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common'
-import { Component, Input } from '@angular/core'
+import { NgIf } from '@angular/common';
+import { Component, Input } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -10,7 +10,9 @@ import { Component, Input } from '@angular/core'
       }}"
       target="_blank"
       *ngIf="value?.lat && value?.lng"
-      >View on map</a
+      >
+      <i class="icon icon-map-pin mr-1"></i>
+      <span>View on map</span></a
     >
     <span *ngIf="!value?.lat || !value?.lng">-</span> `,
   imports: [NgIf],
