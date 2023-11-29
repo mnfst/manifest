@@ -23,10 +23,11 @@ import { UploadService } from '../../services/upload.service'
 export class ImageUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() entitySlug: string
-  @Input() value: string
+  @Input() value: { [key: string]: string }
   @Input() isError: boolean
 
-  @Output() valueChanged: EventEmitter<string> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<{ [key: string]: string }> =
+    new EventEmitter()
 
   @ViewChild('imageInput', { static: false }) imageInputEl: ElementRef
 
@@ -43,7 +44,7 @@ export class ImageUploadInputComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.value) {
-      this.imagePath = this.value
+      this.imagePath = Object.values(this.value)[0]
     }
   }
 
@@ -59,7 +60,7 @@ export class ImageUploadInputComponent implements OnInit {
           setTimeout(() => {
             this.imagePath = res[Object.keys(res)[0]]
             this.loading = false
-            this.valueChanged.emit(JSON.stringify(res))
+            this.valueChanged.emit(res)
           }, 1000)
         },
         (err) => {
