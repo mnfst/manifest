@@ -8,7 +8,6 @@ import { validate } from 'class-validator'
 import {
   DeleteResult,
   EntityMetadata,
-  FindOptionsSelect,
   InsertResult,
   Repository,
   SelectQueryBuilder
@@ -113,15 +112,7 @@ export class CrudService {
         })
       })
 
-    // Select only visible props (relations are treated separately).
-    query.select(
-      props
-        .filter(
-          (prop: PropertyDescription) =>
-            prop.type !== PropType.Relation && !prop.options.isHidden
-        )
-        .map((prop: PropertyDescription) => `entity.${prop.propName}`)
-    )
+    query.select(this.getVisibleProps({ props }))
 
     query = this.loadRelations({
       query,
@@ -211,7 +202,6 @@ export class CrudService {
     }))
   }
 
-  // TODO: Do as in findAll() and use query builder to match constraints.
   async findOne(entitySlug: string, id: number) {
     const entityMetadata: EntityMetadata =
       this.entityMetaService.getEntityMetadata(entitySlug)
@@ -223,13 +213,21 @@ export class CrudService {
     const props: PropertyDescription[] =
       this.entityMetaService.getPropDescriptions(entityMetadata)
 
-    const item = await this.entityMetaService
+    const query: SelectQueryBuilder<BaseEntity> = this.entityMetaService
       .getRepository(entitySlug)
-      .findOne({
-        where: { id },
-        select: this.getVisiblePropsSelect(props),
-        relations
-      })
+      .createQueryBuilder('entity')
+
+    this.loadRelations({
+      query,
+      entityMetadata,
+      props,
+      requestedRelations: relations
+    })
+
+    const item: BaseEntity = await query
+      .select(this.getVisibleProps({ props }))
+      .where('entity.id = :id', { id })
+      .getOne()
 
     if (!item) {
       throw new NotFoundException('Item not found')
@@ -302,24 +300,31 @@ export class CrudService {
   }
 
   /**
-   * Returns a select object with all the visible props (non relation).
+   * Returns a list of visible props to be used in a select query.
    *
    * @param props the props of the entity.
-   * @returns a select object with all the visible props.
+   * @returns the list of visible props.
    */
-  // TODO: Delete this method and use query builder one.
-  private getVisiblePropsSelect(
+  private getVisibleProps({
+    props,
+    alias = 'entity'
+  }: {
     props: PropertyDescription[]
-  ): FindOptionsSelect<BaseEntity> {
-    return props.reduce(
-      (acc: FindOptionsSelect<BaseEntity>, prop: PropertyDescription) => {
-        if (prop.type !== PropType.Relation && !prop.options.isHidden) {
-          acc[prop.propName] = true
-        }
-        return acc
-      },
-      { id: true }
-    )
+    alias?: string
+  }): string[] {
+    // Id is always visible.
+    const visibleProps: string[] = [`${alias}.id`]
+
+    props
+      .filter(
+        (prop: PropertyDescription) =>
+          prop.type !== PropType.Relation && !prop.options.isHidden
+      )
+      .forEach((prop: PropertyDescription) =>
+        visibleProps.push(`${alias}.${prop.propName}`)
+      )
+
+    return visibleProps
   }
 
   /**
@@ -366,15 +371,10 @@ export class CrudService {
         )
 
       query.addSelect(
-        relationProps
-          .filter(
-            (prop: PropertyDescription) =>
-              prop.type !== PropType.Relation && !prop.options.isHidden
-          )
-          .map(
-            (prop: PropertyDescription) =>
-              `${relation.propertyName}.${prop.propName}`
-          )
+        this.getVisibleProps({
+          props: relationProps,
+          alias: relation.propertyName
+        })
       )
 
       // Load relations of relations.
