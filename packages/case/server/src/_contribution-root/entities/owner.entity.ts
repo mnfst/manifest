@@ -1,15 +1,11 @@
 import { IsBoolean, IsEmail, IsNotEmpty, Min } from 'class-validator'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
-import { Policies } from '../../api/policies'
 import { BaseEntity } from '../../core-entities/base-entity'
 import { Entity } from '../../crud/decorators/entity.decorator'
 import { Prop } from '../../crud/decorators/prop.decorator'
+import { Team } from './team.entity'
 
-@Entity({
-  apiPolicies: {
-    read: Policies.loggedInOnly
-  }
-})
+@Entity()
 export class Owner extends BaseEntity {
   @Prop()
   name: string
@@ -40,4 +36,13 @@ export class Owner extends BaseEntity {
     type: PropType.Boolean
   })
   isActive: boolean
+
+  @Prop({
+    label: 'Choose a team',
+    type: PropType.Relation,
+    options: {
+      entity: Team
+    }
+  })
+  team: Team
 }

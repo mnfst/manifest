@@ -23,6 +23,7 @@ import {
 } from '@casejs/types'
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
+import { RelationPropertyOptions } from '../../../../shared/interfaces/property-options/relation-property-options.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
 import { BaseEntity } from '../../core-entities/base-entity'
 import { ExcelService } from '../../utils/excel.service'
@@ -124,13 +125,20 @@ export class CrudService {
 
     // Get item relations and select only their visible props.
     entityMetadata.relations.forEach((relation: RelationMetadata) => {
+      const relationDescription: PropertyDescription = props.find(
+        (prop: PropertyDescription) => prop.propName === relation.propertyName
+      )
+      // Only eager relations are loaded.
+      if (!(relationDescription.options as RelationPropertyOptions).eager) {
+        return
+      }
+
       query.leftJoin(`entity.${relation.propertyName}`, relation.propertyName)
 
       const relationProps: PropertyDescription[] =
         this.entityMetaService.getPropDescriptions(
           relation.inverseEntityMetadata
         )
-
       query.addSelect(
         relationProps
           .filter(
@@ -145,7 +153,7 @@ export class CrudService {
     })
 
     // Add order by.
-    if (queryParams.orderBy) {
+    if (queryParams?.orderBy) {
       if (!props.find((prop) => prop.propName === queryParams.orderBy)) {
         throw new HttpException(
           `Property ${queryParams.orderBy} does not exist in ${entitySlug} and thus cannot be used for ordering`,
