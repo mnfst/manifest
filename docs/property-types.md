@@ -219,18 +219,18 @@ owner: Owner
   </div>
 </div>
 
-<br>
+| Option                                        | Default | Type    | Description                                                                                                                                               |
+| --------------------------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **entity<span style="color: red;">\*</span>** | -       | string  | The Entity class of the parent                                                                                                                            |
+| **eager**                                     | false   | boolean | If true, the relation will be loaded automatically. Otherwise you need to [explicitly request the relation](connect.md?id=crud-operations) in the client. |
 
+<br>
 > [!NOTE]
 >
 > - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships.
 > - When you use **cascade delete** and delete the _Owner_ record, it will also delete all his or her _Cat_ records
 
 <br>
-
-| Option     | Default | Type   | Description                    |
-| ---------- | ------- | ------ | ------------------------------ |
-| **entity** | -       | string | The Entity class of the parent |
 
 ---
 

@@ -46,8 +46,13 @@ const cats = await cs
 const cats = await cs
   .from('cats')
   .orderBy('age', { desc: true })
-  .find();
+  .find()
 
+// Load relations (eager relations are loaded automatically).
+const cats = await cs
+  .from('cats')
+  .with(['owner', 'owner.team', 'owner.team.manager'])
+  .find()
 
 // Filter by relations.
 const cats = await cs
