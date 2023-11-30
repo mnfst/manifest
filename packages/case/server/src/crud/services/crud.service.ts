@@ -9,6 +9,7 @@ import {
   DeleteResult,
   EntityMetadata,
   FindManyOptions,
+  FindOptionsSelect,
   FindOptionsWhere,
   InsertResult,
   Repository
@@ -21,6 +22,7 @@ import {
   WhereOperator,
   whereOperatorKeySuffix
 } from '@casejs/types'
+import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
 import { BaseEntity } from '../../core-entities/base-entity'
@@ -109,8 +111,20 @@ export class CrudService {
         where[propName] = queryBuilderOperator(parsedValue || value)
       })
 
+    // Select only non hidden props.
+    const select: FindOptionsSelect<BaseEntity> = props.reduce(
+      (acc: FindOptionsSelect<BaseEntity>, prop: PropertyDescription) => {
+        if (prop.type !== PropType.Relation && !prop.options.isHidden) {
+          acc[prop.propName] = true
+        }
+        return acc
+      },
+      { id: true }
+    )
+
     const findManyOptions: FindManyOptions<BaseEntity> = {
       order: { id: 'DESC' },
+      select,
       relations,
       where
     }

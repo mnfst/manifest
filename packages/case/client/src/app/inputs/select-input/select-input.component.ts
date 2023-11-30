@@ -6,8 +6,8 @@ import { SelectOption } from '~shared/interfaces/select-option.interface'
 
 import { NgClass, NgFor } from '@angular/common'
 import { PropType } from '~shared/enums/prop-type.enum'
-import { EnumOptions } from '~shared/interfaces/property-options/enum-options.interface'
-import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
+import { EnumPropertyOptions } from '../../../../../shared/interfaces/property-options/enum-property-options.interface'
+import { RelationPropertyOptions } from '../../../../../shared/interfaces/property-options/relation-property-options.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
 @Component({
@@ -65,7 +65,7 @@ export class SelectInputComponent implements OnInit {
           this.entityMeta = res.find(
             (entity: EntityMeta) =>
               entity.className ===
-              (this.prop.options as RelationOptions).entitySlug
+              (this.prop.options as RelationPropertyOptions).entitySlug
           )
 
           this.options = await this.dynamicEntityService.listSelectOptions(
@@ -75,7 +75,8 @@ export class SelectInputComponent implements OnInit {
     }
 
     if (this.type === PropType.Enum) {
-      let enumOptions: EnumOptions = this.prop.options as EnumOptions
+      let enumOptions: EnumPropertyOptions = this.prop
+        .options as EnumPropertyOptions
       this.options = Object.keys(enumOptions.enum).map((key) => {
         return {
           id: enumOptions.enum[key],

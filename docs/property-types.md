@@ -242,8 +242,7 @@ Hidden password field.
   @Prop({
     type: PropType.Password,
     options: {
-     isHiddenInList: true,
-     isHiddenInDetail: true
+     isHiddenInAdminList: true,
     }
   })
   password: string

@@ -1,6 +1,6 @@
 import { PropertyOptions } from './property-options.interface'
 
-export interface RelationOptions extends PropertyOptions {
+export interface RelationPropertyOptions extends PropertyOptions {
   entity: any
   entitySlug?: string
 }

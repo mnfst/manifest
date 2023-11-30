@@ -54,10 +54,11 @@ You can pass arguments to the `@Prop()` decorator:
 
 Some types have a specific set of options. Nevertheless, the following options are applicable to all properties in the `options` object parameter.
 
-| Option               | Default | Type    | Description                            |
-| -------------------- | ------- | ------- | -------------------------------------- |
-| **isHiddenInList**   | `false` | boolean | Hides the column in the list           |
-| **isHiddenInDetail** | `false` | boolean | Hides this property in the detail view |
+| Option                   | Default | Type    | Description                                                     |
+| ------------------------ | ------- | ------- | --------------------------------------------------------------- |
+| **isHidden**             | `false` | boolean | Hides the column in all API responses                           |
+| **isHiddenInAdminList**  | `false` | boolean | Hides the column in the list of the Admin panel                 |
+| **isHiddenInCreateEdit** | `false` | boolean | Hides this property in create and edit views of the Admin panel |
 
 Example:
 
@@ -65,8 +66,8 @@ Example:
   @Prop({
     type: PropType.Textarea,
     options: {
-     isHiddenInList: true,
-     isHiddenInDetail: true
+     isHiddenInAdminList: true,
+     isHiddenInCreateEdit: true
     }
   })
   comments: string

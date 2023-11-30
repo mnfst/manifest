@@ -26,8 +26,8 @@ export class AuthenticableEntity extends BaseEntity {
   @Prop({
     type: PropType.Password,
     options: {
-      isHiddenInList: true,
-      isHiddenInDetail: true
+      isHiddenInAdminList: true,
+      isHidden: true
     },
     typeORMOptions: { select: false }
   })

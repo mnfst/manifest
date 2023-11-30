@@ -8,7 +8,7 @@ import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { EntityDefinition } from '../../../../shared/interfaces/entity-definition.interface'
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../shared/interfaces/property-description.interface'
-import { RelationOptions } from '../../../../shared/interfaces/property-options/relation-options.interface'
+import { RelationPropertyOptions } from '../../../../shared/interfaces/property-options/relation-property-options.interface'
 import { Policies } from '../../api/policies'
 import { AuthenticableEntity } from '../../core-entities/authenticable-entity'
 
@@ -64,8 +64,8 @@ export class EntityMetaService {
         }
 
         if (propDescription.type === PropType.Relation) {
-          const relationOptions: RelationOptions =
-            propDescription.options as RelationOptions
+          const relationOptions: RelationPropertyOptions =
+            propDescription.options as RelationPropertyOptions
 
           // Convert class to string to use in the client.
           relationOptions.entitySlug = relationOptions.entity?.name

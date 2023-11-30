@@ -60,7 +60,7 @@ export class DynamicEntityCreateEditComponent {
           }
 
           this.props = this.entityMeta.props.filter(
-            (prop) => !prop.options.isHiddenInCreateEdit
+            (prop) => !prop.options.isHiddenInAdminCreateEdit
           )
 
           if (this.edit) {
@@ -151,7 +151,11 @@ export class DynamicEntityCreateEditComponent {
 
           this.loading = false
           this.flashMessageService.error(
-            `Error: the ${this.entityMeta.definition.nameSingular} could not be created`
+            `Error: the ${
+              this.entityMeta.definition.nameSingular
+            } could not be created:
+              ${Object.values(this.errors).join(', ')}
+            `
           )
         })
     }

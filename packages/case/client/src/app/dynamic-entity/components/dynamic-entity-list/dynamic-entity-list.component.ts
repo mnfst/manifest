@@ -58,7 +58,7 @@ export class DynamicEntityListComponent implements OnInit {
           }
 
           this.props = this.entityMeta.props.filter(
-            (prop) => !prop.options?.isHiddenInList
+            (prop) => !prop.options?.isHiddenInAdminList
           )
           this.filtrableProps = this.props.filter(
             (prop) =>

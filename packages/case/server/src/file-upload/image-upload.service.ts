@@ -7,6 +7,7 @@ import { EntityMetadata } from 'typeorm'
 import * as uniqId from 'uniqid'
 import { ImageSize } from '../../../shared/interfaces/image-size.interface'
 import { PropertyDescription } from '../../../shared/interfaces/property-description.interface'
+import { ImagePropertyOptions } from '../../../shared/interfaces/property-options/image-property-options.interface'
 import { EntityMetaService } from '../crud/services/entity-meta.service'
 
 @Injectable()
@@ -59,7 +60,8 @@ export class ImageUploadService {
     const prop = props.find(
       (prop: PropertyDescription) => prop.propName === propName
     )
-    const sizes: ImageSize[] = prop.options.sizes || this.defaultSizes
+    const sizes: ImageSize[] =
+      (prop.options as ImagePropertyOptions).sizes || this.defaultSizes
 
     // CamelCase to kebab-case.
     const kebabCaseEntityName = entitySlug

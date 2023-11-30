@@ -20,7 +20,10 @@ export class Mouse extends BaseEntity {
   @Prop({
     label: 'Family name',
     type: PropType.Text,
-    validators: [IsNotEmpty()]
+    validators: [IsNotEmpty()],
+    options: {
+      isHidden: true
+    }
   })
   familyName: string
 

@@ -3,8 +3,8 @@ import { Column, ManyToOne } from 'typeorm'
 
 import { PropType } from '../../../../shared/enums/prop-type.enum'
 import { PropertyDefinition } from '../../../../shared/interfaces/property-definition.interface'
-import { EnumOptions } from '../../../../shared/interfaces/property-options/enum-options.interface'
-import { RelationOptions } from '../../../../shared/interfaces/property-options/relation-options.interface'
+import { EnumPropertyOptions } from '../../../../shared/interfaces/property-options/enum-property-options.interface'
+import { RelationPropertyOptions } from '../../../../shared/interfaces/property-options/relation-property-options.interface'
 import {
   PropTypeCharacteristics,
   propTypeCharacteristicsRecord
@@ -47,7 +47,8 @@ export const Prop = (prop?: PropertyDefinition): PropertyDecorator => {
 
     // Relation (ManyToOne).
     if (prop?.type === PropType.Relation) {
-      const relationOptions: RelationOptions = prop?.options as RelationOptions
+      const relationOptions: RelationPropertyOptions =
+        prop?.options as RelationPropertyOptions
 
       if (!relationOptions?.entity) {
         throw new Error(`Entity is not provided for "${propertyKey}" property.`)
@@ -65,7 +66,8 @@ export const Prop = (prop?: PropertyDefinition): PropertyDecorator => {
 
       // Enum.
     } else if (prop?.type === PropType.Enum) {
-      const enumOptions: EnumOptions = prop?.options as EnumOptions
+      const enumOptions: EnumPropertyOptions =
+        prop?.options as EnumPropertyOptions
 
       if (!enumOptions?.enum) {
         throw new Error(`Enum is not provided for "${propertyKey}" property.`)
