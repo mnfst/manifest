@@ -76,8 +76,7 @@ export class Cat extends BaseEntity {
     validators: [IsNotEmpty()],
     type: PropType.Relation,
     options: {
-      entity: Owner,
-      eager: true
+      entity: Owner
     }
   })
   owner: Owner

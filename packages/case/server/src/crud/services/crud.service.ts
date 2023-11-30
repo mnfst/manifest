@@ -38,7 +38,8 @@ export class CrudService {
     'perPage',
     'export',
     'order',
-    'orderBy'
+    'orderBy',
+    'relations'
   ]
 
   constructor(
@@ -64,7 +65,6 @@ export class CrudService {
       this.entityMetaService.getPropDescriptions(entityMetadata)
 
     // Init query builder.
-    // TODO: Use query builder for *WHERE, *ORDER *SELECT and finally *RELATIONS and *SELECT IN RELATIONS and RELATIONS OF RELATIONS.
     let query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
 
@@ -127,7 +127,7 @@ export class CrudService {
       query,
       entityMetadata,
       props,
-      queryParams
+      requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
     // Add order by.
@@ -336,13 +336,13 @@ export class CrudService {
     query,
     entityMetadata,
     props,
-    queryParams,
+    requestedRelations,
     alias = 'entity'
   }: {
     query: SelectQueryBuilder<BaseEntity>
     entityMetadata: EntityMetadata
     props: PropertyDescription[]
-    queryParams?: { [key: string]: string | string[] }
+    requestedRelations?: string[]
     alias?: string
   }): SelectQueryBuilder<BaseEntity> {
     // Get item relations and select only their visible props.
@@ -351,7 +351,10 @@ export class CrudService {
         (prop: PropertyDescription) => prop.propName === relation.propertyName
       )
       // Only eager relations are loaded.
-      if (!(relationDescription.options as RelationPropertyOptions).eager) {
+      if (
+        !(relationDescription.options as RelationPropertyOptions).eager &&
+        !requestedRelations?.includes(relation.propertyName)
+      ) {
         return
       }
 
@@ -388,7 +391,10 @@ export class CrudService {
           query,
           entityMetadata: relationEntityMetadata,
           props: relationProps,
-          queryParams,
+          requestedRelations: requestedRelations?.map(
+            (requestedRelation: string) =>
+              requestedRelation.replace(`${relation.propertyName}.`, '')
+          ),
           alias: relation.propertyName
         })
       }

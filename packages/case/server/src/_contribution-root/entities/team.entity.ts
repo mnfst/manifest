@@ -28,8 +28,7 @@ export class Team extends BaseEntity {
     label: 'Manager',
     type: PropType.Relation,
     options: {
-      entity: User,
-      eager: true
+      entity: User
     }
   })
   manager: User
