@@ -28,6 +28,45 @@ export class Cat extends BaseEntity {
 }
 ```
 
+## Using CASE SDK to fetch or manipulate your data in hooks
+
+Do you know that the [CASE JS SDK](connect.md) on the server ?
+
+If you need to query or create other items on an event you can import the SDK in your CASE backend:
+
+```bash
+npm i @casejs/case-client
+```
+
+Then you can use it as you do in your client:
+
+```js
+// /entities/cat.entity.ts
+import CaseClient from '@casejs/case-client'
+
+export class Cat extends BaseEntity {
+
+  [...]
+
+  @AfterInsert()
+  async afterInsert() {
+    // Init CASE SDK.
+    const cs = new CaseClient()
+
+    // Get all users.
+    const users: User[] = await cs.from('users').find<User>()
+
+    // Notify each user with your custom function.
+    users.forEach((user: User) => {
+      sendEmail({
+        to: user.email,
+        subject: `A new cat has been created: ${this.name}`,
+      })
+    })
+  }
+}
+```
+
 ## Entity events
 
 ### @BeforeInsert
