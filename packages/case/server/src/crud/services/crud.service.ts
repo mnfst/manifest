@@ -111,20 +111,9 @@ export class CrudService {
         where[propName] = queryBuilderOperator(parsedValue || value)
       })
 
-    // Select only non hidden props.
-    const select: FindOptionsSelect<BaseEntity> = props.reduce(
-      (acc: FindOptionsSelect<BaseEntity>, prop: PropertyDescription) => {
-        if (prop.type !== PropType.Relation && !prop.options.isHidden) {
-          acc[prop.propName] = true
-        }
-        return acc
-      },
-      { id: true }
-    )
-
     const findManyOptions: FindManyOptions<BaseEntity> = {
       order: { id: 'DESC' },
-      select,
+      select: this.getVisiblePropsSelect(props),
       relations,
       where
     }
@@ -196,13 +185,22 @@ export class CrudService {
   }
 
   async findOne(entitySlug: string, id: number) {
+    const entityMetadata: EntityMetadata =
+      this.entityMetaService.getEntityMetadata(entitySlug)
+
+    const relations: string[] = entityMetadata.relations.map(
+      (relation: RelationMetadata) => relation.propertyName
+    )
+
+    const props: PropertyDescription[] =
+      this.entityMetaService.getPropDescriptions(entityMetadata)
+
     const item = await this.entityMetaService
       .getRepository(entitySlug)
       .findOne({
         where: { id },
-        relations: this.entityMetaService
-          .getEntityMetadata(entitySlug)
-          .relations.map((relation: RelationMetadata) => relation.propertyName)
+        select: this.getVisiblePropsSelect(props),
+        relations
       })
 
     if (!item) {
@@ -273,5 +271,26 @@ export class CrudService {
     }
 
     return entityRepository.delete(id)
+  }
+
+  /**
+   * Returns a select object with all the visible props (non relation).
+   *
+   * @param props the props of the entity.
+   * @returns a select object with all the visible props.
+   */
+
+  private getVisiblePropsSelect(
+    props: PropertyDescription[]
+  ): FindOptionsSelect<BaseEntity> {
+    return props.reduce(
+      (acc: FindOptionsSelect<BaseEntity>, prop: PropertyDescription) => {
+        if (prop.type !== PropType.Relation && !prop.options.isHidden) {
+          acc[prop.propName] = true
+        }
+        return acc
+      },
+      { id: true }
+    )
   }
 }
