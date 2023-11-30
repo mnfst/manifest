@@ -37,28 +37,35 @@ const cats: Cat[] = await cs.from('cats').find<Cat>()
 
 // Get a filtered the list of cats.
 const cats = await cs
-.from('cats')
-.where('breed = siamese')
-.andWhere('birthDate > 2020-01-01')
-.find()
+  .from('cats')
+  .where('breed = siamese')
+  .andWhere('birthDate > 2020-01-01')
+  .find()
+
+// Order cats.
+const cats = await cs
+  .from('cats')
+  .orderBy('age', { desc: true })
+  .find();
+
 
 // Filter by relations.
 const cats = await cs
-.from('cats')
-.where(`owner in ${ownerIds}`)
-.andWhere(`store = ${storeId}`)
-.find()
+  .from('cats')
+  .where(`owner in ${ownerIds}`)
+  .andWhere(`store = ${storeId}`)
+  .find()
 
 // Create a cat.
 const newCat = await cs.from('cats').create({
-    name: 'Milo',
-    age: 2
+  name: 'Milo',
+  age: 2
 })
 
 // Update a cat.
 const updatedCat = await cs.from('cats').update(1, {
-    name: 'updated name',
-    age: 2
+  name: 'updated name',
+  age: 2
 })
 
 // Delete a cat.

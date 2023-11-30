@@ -34,7 +34,13 @@ import { EntityMetaService } from './entity-meta.service'
 @Injectable()
 export class CrudService {
   // Query params that should not be treated as a filter.
-  specialQueryParams: string[] = ['page', 'perPage', 'export']
+  specialQueryParams: string[] = [
+    'page',
+    'perPage',
+    'export',
+    'order',
+    'orderBy'
+  ]
 
   constructor(
     private entityMetaService: EntityMetaService,
@@ -112,7 +118,9 @@ export class CrudService {
       })
 
     const findManyOptions: FindManyOptions<BaseEntity> = {
-      order: { id: 'DESC' },
+      order: queryParams?.orderBy
+        ? { [queryParams.orderBy as string]: queryParams.order }
+        : { id: 'DESC' },
       select: this.getVisiblePropsSelect(props),
       relations,
       where
