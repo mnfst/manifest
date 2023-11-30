@@ -41,7 +41,8 @@ export class Owner extends BaseEntity {
     label: 'Choose a team',
     type: PropType.Relation,
     options: {
-      entity: Team
+      entity: Team,
+      eager: true
     }
   })
   team: Team

@@ -65,7 +65,7 @@ export class CrudService {
 
     // Init query builder.
     // TODO: Use query builder for *WHERE, *ORDER *SELECT and finally *RELATIONS and *SELECT IN RELATIONS and RELATIONS OF RELATIONS.
-    const query: SelectQueryBuilder<BaseEntity> =
+    let query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
 
     // Dynamic filtering.
@@ -123,33 +123,11 @@ export class CrudService {
         .map((prop: PropertyDescription) => `entity.${prop.propName}`)
     )
 
-    // Get item relations and select only their visible props.
-    entityMetadata.relations.forEach((relation: RelationMetadata) => {
-      const relationDescription: PropertyDescription = props.find(
-        (prop: PropertyDescription) => prop.propName === relation.propertyName
-      )
-      // Only eager relations are loaded.
-      if (!(relationDescription.options as RelationPropertyOptions).eager) {
-        return
-      }
-
-      query.leftJoin(`entity.${relation.propertyName}`, relation.propertyName)
-
-      const relationProps: PropertyDescription[] =
-        this.entityMetaService.getPropDescriptions(
-          relation.inverseEntityMetadata
-        )
-      query.addSelect(
-        relationProps
-          .filter(
-            (prop: PropertyDescription) =>
-              prop.type !== PropType.Relation && !prop.options.isHidden
-          )
-          .map(
-            (prop: PropertyDescription) =>
-              `${relation.propertyName}.${prop.propName}`
-          )
-      )
+    query = this.loadRelations({
+      query,
+      entityMetadata,
+      props,
+      queryParams
     })
 
     // Add order by.
@@ -329,7 +307,7 @@ export class CrudService {
    * @param props the props of the entity.
    * @returns a select object with all the visible props.
    */
-
+  // TODO: Delete this method and use query builder one.
   private getVisiblePropsSelect(
     props: PropertyDescription[]
   ): FindOptionsSelect<BaseEntity> {
@@ -342,5 +320,80 @@ export class CrudService {
       },
       { id: true }
     )
+  }
+
+  /**
+   * Recursively loads relations and their visible props.
+   *
+   * @param query the query builder.
+   * @param entityMetadata the entity metadata.
+   * @param props the entity props.
+   * @param queryParams the query params.
+   *
+   * @returns the query builder with the relations loaded.
+   */
+  private loadRelations({
+    query,
+    entityMetadata,
+    props,
+    queryParams,
+    alias = 'entity'
+  }: {
+    query: SelectQueryBuilder<BaseEntity>
+    entityMetadata: EntityMetadata
+    props: PropertyDescription[]
+    queryParams?: { [key: string]: string | string[] }
+    alias?: string
+  }): SelectQueryBuilder<BaseEntity> {
+    // Get item relations and select only their visible props.
+    entityMetadata.relations.forEach((relation: RelationMetadata) => {
+      const relationDescription: PropertyDescription = props.find(
+        (prop: PropertyDescription) => prop.propName === relation.propertyName
+      )
+      // Only eager relations are loaded.
+      if (!(relationDescription.options as RelationPropertyOptions).eager) {
+        return
+      }
+
+      query.leftJoin(`${alias}.${relation.propertyName}`, relation.propertyName)
+
+      const relationProps: PropertyDescription[] =
+        this.entityMetaService.getPropDescriptions(
+          relation.inverseEntityMetadata
+        )
+
+      query.addSelect(
+        relationProps
+          .filter(
+            (prop: PropertyDescription) =>
+              prop.type !== PropType.Relation && !prop.options.isHidden
+          )
+          .map(
+            (prop: PropertyDescription) =>
+              `${relation.propertyName}.${prop.propName}`
+          )
+      )
+
+      // Load relations of relations.
+      const relationEntityMetadata: EntityMetadata =
+        this.entityMetaService.getEntityMetadata(
+          relation.inverseEntityMetadata.name
+        )
+
+      const relationRelations: RelationMetadata[] =
+        relationEntityMetadata.relations
+
+      if (relationRelations.length) {
+        query = this.loadRelations({
+          query,
+          entityMetadata: relationEntityMetadata,
+          props: relationProps,
+          queryParams,
+          alias: relation.propertyName
+        })
+      }
+    })
+
+    return query
   }
 }
