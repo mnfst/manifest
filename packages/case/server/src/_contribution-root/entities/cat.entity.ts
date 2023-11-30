@@ -47,6 +47,14 @@ export class Cat extends BaseEntity {
   age: number
 
   @Prop({
+    type: PropType.Number,
+    options: {
+      isHidden: true
+    }
+  })
+  hiddenProp: number
+
+  @Prop({
     type: PropType.Link
   })
   website: string

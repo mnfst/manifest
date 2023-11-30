@@ -8,11 +8,11 @@ import { validate } from 'class-validator'
 import {
   DeleteResult,
   EntityMetadata,
-  FindManyOptions,
   FindOptionsSelect,
   FindOptionsWhere,
   InsertResult,
-  Repository
+  Repository,
+  SelectQueryBuilder
 } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 
@@ -28,7 +28,6 @@ import { SelectOption } from '../../../../shared/interfaces/select-option.interf
 import { BaseEntity } from '../../core-entities/base-entity'
 import { ExcelService } from '../../utils/excel.service'
 import { HelperService } from '../../utils/helper.service'
-import { whereOperatorFunctionsRecord } from '../records/where-operator-functions.record'
 import { EntityMetaService } from './entity-meta.service'
 
 @Injectable()
@@ -65,13 +64,17 @@ export class CrudService {
       (relation: RelationMetadata) => relation.propertyName
     )
 
+    // Init query builder.
+    // TODO: Use query builder for *WHERE, *ORDER and finally RELATIONS and SELECT.
+    const query: SelectQueryBuilder<BaseEntity> =
+      entityRepository.createQueryBuilder('entity')
+
     // Get entity props.
     const props: PropertyDescription[] =
       this.entityMetaService.getPropDescriptions(entityMetadata)
 
     // Dynamic filtering.
     const where: FindOptionsWhere<BaseEntity> = {}
-
     Object.entries(queryParams || {})
       .filter(
         ([key, _value]: [string, string | string[]]) =>
@@ -95,9 +98,6 @@ export class CrudService {
           suffix
         ) as WhereOperator
 
-        const queryBuilderOperator: Function =
-          whereOperatorFunctionsRecord[operator]
-
         const propName: string = key.replace(suffix, '')
 
         if (!props.find((prop) => prop.propName === propName)) {
@@ -114,45 +114,57 @@ export class CrudService {
         }
 
         // Finally and the where query.
-        where[propName] = queryBuilderOperator(parsedValue || value)
+        query.where(`entity.${propName} ${operator} :value`, {
+          value: parsedValue || value
+        })
       })
 
-    const findManyOptions: FindManyOptions<BaseEntity> = {
-      order: queryParams?.orderBy
-        ? { [queryParams.orderBy as string]: queryParams.order }
-        : { id: 'DESC' },
-      select: this.getVisiblePropsSelect(props),
-      relations,
-      where
+    relations.forEach((relation: string) => {
+      // TODO: Replace by LeftJoin once select is fixed.
+      query.leftJoinAndSelect(`entity.${relation}`, relation)
+    })
+
+    if (queryParams.orderBy) {
+      if (!props.find((prop) => prop.propName === queryParams.orderBy)) {
+        throw new HttpException(
+          `Property ${queryParams.orderBy} does not exist in ${entitySlug} and thus cannot be used for ordering`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
+
+      query.orderBy(
+        `entity.${queryParams.orderBy}`,
+        queryParams.order === 'DESC' ? 'DESC' : 'ASC'
+      )
     }
 
     // Export results.
     if (queryParams?.export) {
-      const items: BaseEntity[] = await entityRepository.find(findManyOptions)
+      const items: BaseEntity[] = await query.getMany()
       return this.export(entitySlug, items)
     }
 
     // Non paginated results.
     if (!queryParams?.page && !queryParams?.perPage) {
-      return await entityRepository.find(findManyOptions)
+      return query.getMany()
     }
 
     // Paginated results.
     const currentPage: number = parseInt(queryParams.page as string, 10) || 1
     const perPage: number = parseInt(queryParams.perPage as string, 10) || 10
 
-    findManyOptions.skip = (currentPage - 1) * perPage
-    findManyOptions.take = perPage
+    const skip: number = (currentPage - 1) * perPage
+    const take: number = perPage
 
-    const total: number = await entityRepository.count(findManyOptions)
-    const results: any[] = await entityRepository.find(findManyOptions)
+    const total: number = await query.getCount()
+    const results: any[] = await query.skip(skip).take(take).getMany()
 
     const paginator: Paginator<any> = {
       data: results,
       currentPage,
       lastPage: Math.ceil(total / perPage),
-      from: findManyOptions.skip + 1,
-      to: findManyOptions.skip + perPage,
+      from: skip + 1,
+      to: skip + perPage,
       total,
       perPage: perPage
     }
