@@ -93,11 +93,24 @@ export class CrudService {
 
         const propName: string = key.replace(suffix, '')
 
-        if (!props.find((prop) => prop.propName === propName)) {
+        const prop: PropertyDescription = props.find(
+          (prop: PropertyDescription) => prop.propName === propName
+        )
+
+        if (!prop) {
           throw new HttpException(
             `Property ${propName} does not exist in ${entitySlug}`,
             HttpStatus.BAD_REQUEST
           )
+        }
+
+        // Allow "true" and "false" to be used for boolean props for convenience.
+        if (prop.type === PropType.Boolean) {
+          if (value === 'true') {
+            value = '1'
+          } else if (value === 'false') {
+            value = '0'
+          }
         }
 
         // In operator expects an array so we have to parse it.
