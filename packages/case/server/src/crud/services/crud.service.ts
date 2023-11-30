@@ -9,7 +9,6 @@ import {
   DeleteResult,
   EntityMetadata,
   FindOptionsSelect,
-  FindOptionsWhere,
   InsertResult,
   Repository,
   SelectQueryBuilder
@@ -59,22 +58,16 @@ export class CrudService {
     const entityMetadata: EntityMetadata =
       this.entityMetaService.getEntityMetadata(entitySlug)
 
-    // Get entity relations.
-    const relations: string[] = entityMetadata.relations.map(
-      (relation: RelationMetadata) => relation.propertyName
-    )
-
-    // Init query builder.
-    // TODO: Use query builder for *WHERE, *ORDER and finally RELATIONS and SELECT.
-    const query: SelectQueryBuilder<BaseEntity> =
-      entityRepository.createQueryBuilder('entity')
-
     // Get entity props.
     const props: PropertyDescription[] =
       this.entityMetaService.getPropDescriptions(entityMetadata)
 
+    // Init query builder.
+    // TODO: Use query builder for *WHERE, *ORDER *SELECT and finally *RELATIONS and *SELECT IN RELATIONS and RELATIONS OF RELATIONS.
+    const query: SelectQueryBuilder<BaseEntity> =
+      entityRepository.createQueryBuilder('entity')
+
     // Dynamic filtering.
-    const where: FindOptionsWhere<BaseEntity> = {}
     Object.entries(queryParams || {})
       .filter(
         ([key, _value]: [string, string | string[]]) =>
@@ -119,11 +112,39 @@ export class CrudService {
         })
       })
 
-    relations.forEach((relation: string) => {
-      // TODO: Replace by LeftJoin once select is fixed.
-      query.leftJoinAndSelect(`entity.${relation}`, relation)
+    // Select only visible props (relations are treated separately).
+    query.select(
+      props
+        .filter(
+          (prop: PropertyDescription) =>
+            prop.type !== PropType.Relation && !prop.options.isHidden
+        )
+        .map((prop: PropertyDescription) => `entity.${prop.propName}`)
+    )
+
+    // Get item relations and select only their visible props.
+    entityMetadata.relations.forEach((relation: RelationMetadata) => {
+      query.leftJoin(`entity.${relation.propertyName}`, relation.propertyName)
+
+      const relationProps: PropertyDescription[] =
+        this.entityMetaService.getPropDescriptions(
+          relation.inverseEntityMetadata
+        )
+
+      query.addSelect(
+        relationProps
+          .filter(
+            (prop: PropertyDescription) =>
+              prop.type !== PropType.Relation && !prop.options.isHidden
+          )
+          .map(
+            (prop: PropertyDescription) =>
+              `${relation.propertyName}.${prop.propName}`
+          )
+      )
     })
 
+    // Add order by.
     if (queryParams.orderBy) {
       if (!props.find((prop) => prop.propName === queryParams.orderBy)) {
         throw new HttpException(
@@ -204,6 +225,7 @@ export class CrudService {
     }))
   }
 
+  // TODO: Do as in findAll() and use query builder to match constraints.
   async findOne(entitySlug: string, id: number) {
     const entityMetadata: EntityMetadata =
       this.entityMetaService.getEntityMetadata(entitySlug)

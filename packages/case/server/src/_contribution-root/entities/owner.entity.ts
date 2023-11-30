@@ -15,6 +15,11 @@ export class Owner extends BaseEntity {
   name: string
 
   @Prop({
+    options: { isHidden: true }
+  })
+  hiddenOwnerProp: string
+
+  @Prop({
     type: PropType.Email,
     validators: [IsNotEmpty(), IsEmail()]
   })
