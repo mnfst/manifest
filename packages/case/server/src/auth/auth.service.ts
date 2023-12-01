@@ -5,7 +5,6 @@ import { StatusCodes } from 'http-status-codes'
 import * as jwt from 'jsonwebtoken'
 import { EntityMetadata, Repository } from 'typeorm'
 
-import { Admin } from '../core-entities/admin.entity'
 import { AuthenticableEntity } from '../core-entities/authenticable-entity'
 import { EntityMetaService } from '../crud/services/entity-meta.service'
 import { SignupUserDto } from './dto/signup-user.dto'
@@ -78,7 +77,7 @@ export class AuthService {
     if (
       !this.entityMetaService
         .getAuthenticableEntities()
-        .filter((entity) => entity.targetName !== Admin.name)
+        .filter((entity) => entity.targetName !== 'Admin')
         .find(
           (entity) =>
             entity.targetName ===

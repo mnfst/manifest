@@ -2,6 +2,10 @@
 
 An entity is an object often linked to a real world concept like users, customers, videos etc.
 
+In CASE, all entities are located in the `/entities` folder. If you check it, you have the `Admin` entity in `admin.entity.ts`. This is the entity that you use to access the Admin panel, you should not delete it !
+
+Let's start structuring our data and add more of those.
+
 ## Command line
 
 In our example, we will create an app that lists cats. To do that, run:

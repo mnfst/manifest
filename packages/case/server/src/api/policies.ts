@@ -1,4 +1,3 @@
-import { Admin } from '../core-entities/admin.entity'
 import { AuthenticableEntity } from '../core-entities/authenticable-entity'
 
 export class Policies {
@@ -26,6 +25,6 @@ export class Policies {
    * @returns {boolean}
    */
   static adminOnly(user: AuthenticableEntity): boolean {
-    return user && user instanceof Admin
+    return user?.constructor.name === 'Admin'
   }
 }

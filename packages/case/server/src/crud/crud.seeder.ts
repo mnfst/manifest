@@ -101,8 +101,9 @@ export class CrudSeeder {
               relatedEntityDefinition.seedCount
             )
           } else {
-            // Special case for the admin user that has a custom email.
+            // Special case for the first admin user that has a custom email.
             if (
+              index === 0 &&
               column.propertyName === 'email' &&
               entity.tableName === 'admin'
             ) {
