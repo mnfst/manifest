@@ -9,8 +9,8 @@
         <input
           id="file-input"
           class="file-input is-fullwidth"
+          [ngClass]="{ 'is-danger': isError }"
           type="file"
-          [accept]="options.accept"
           #fileInput
           [placeholder]="prop.label"
           (change)="fileInputEvent($event)"

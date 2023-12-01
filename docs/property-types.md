@@ -2,7 +2,7 @@
 
 CASE works with it's own set of types that corresponds to different types of data often used in CRUD apps.
 
-Each **PropType** corresponds to a set a different logic, display, format and options.
+Each **PropType** corresponds to a set of different logic, display, format and options.
 
 ---
 
@@ -197,7 +197,7 @@ For any field with a "true or false" value.
 
 A relationship with another entity.
 
-For the Relation type, you just need to pass the related entity class to the `options.entity` param like so:
+For the Relation type, you just need to pass the related entity class to the `options.entity` param like:
 
 ```js
 @Prop({
@@ -219,18 +219,18 @@ owner: Owner
   </div>
 </div>
 
-<br>
+| Option                                        | Default | Type    | Description                                                                                                                                               |
+| --------------------------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **entity<span style="color: red;">\*</span>** | -       | string  | The Entity class of the parent                                                                                                                            |
+| **eager**                                     | false   | boolean | If true, the relation will be loaded automatically. Otherwise you need to [explicitly request the relation](connect.md?id=crud-operations) in the client. |
 
+<br>
 > [!NOTE]
 >
-> - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships
-> - We use **cascade delete**: if you delete the _Owner_ record, it will also delete all his or her _Cat_ records
+> - CASE Relations only work in the **Children => Parent** direction on many-to-one relationships.
+> - When you use **cascade delete** and delete the _Owner_ record, it will also delete all his or her _Cat_ records
 
 <br>
-
-| Option     | Default | Type   | Description                    |
-| ---------- | ------- | ------ | ------------------------------ |
-| **entity** | -       | string | The Entity class of the parent |
 
 ---
 
@@ -240,7 +240,10 @@ Hidden password field.
 
 ```js
   @Prop({
-    type: PropType.Password
+    type: PropType.Password,
+    options: {
+     isHiddenInAdminList: true,
+    }
   })
   password: string
 ```
@@ -249,7 +252,8 @@ Hidden password field.
 
 > [!ATTENTION]
 > You should never ever store a password on clear text.
-> You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it
+> You can use the [@BeforeInsert hook](custom-logic.md#beforeinsert) to encrypt it.
+> To prevent selecting it, use [property options](properties.md?id=options) as above
 
 ---
 
@@ -273,10 +277,6 @@ File upload input.
   </div>
 </div>
 
-| Option      | Default | Type   | Description                                                                                                                   |
-| ----------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **accepts** | `*`     | string | File types accepted as in [HTML attribute specification](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept) |
-
 ---
 
 ### Image
@@ -287,7 +287,7 @@ Same as file but for images.
   @Prop({
     type: PropType.Image
   })
-  image: string
+  image: JSON
 ```
 
 <div class="show-result">
@@ -299,11 +299,15 @@ Same as file but for images.
   </div>
 </div>
 
+| Option    | Default             | Type   | Description                                                                 |
+| --------- | ------------------- | ------ | --------------------------------------------------------------------------- |
+| **sizes** | _80x80 and 800x800_ | object | File sizes generated [when uploading an image](storage.md?id=Upload images) |
+
 ---
 
 ### Enum
 
-The Enum type allows users to choose for a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
+The Enum type allows users to choose from a set of constants that you define, like a multiple choice question. It takes a [TS String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) as option.
 
 ```js
   import { ProjectStatus } from '../enums/project-status.enum.ts'
@@ -358,3 +362,14 @@ export enum ProjectStatus {
 | ----------- | ------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | **enum**    | -       | enum                          | [String enum](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums) with the available options |
 | **display** | 'label' | 'label' &#124; 'progress-bar' | Enum props can be represented either by a label or by a progress bar if the enum follows a logic order.        |
+
+### Location
+
+The location type consists in a object with `lat` and `lng` coordinates.
+
+```js
+  @Prop({
+    type: PropType.Location,
+  })
+  location: JSON
+```

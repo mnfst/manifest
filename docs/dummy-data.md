@@ -12,7 +12,7 @@ npm run seed
 
 By default, CASE will try to generate a consistent dummy value by using the **PropType** of your property.
 
-In order to personalize even more your dummy data, you can **choose the way a property is seeded** through the `@Prop()` decorator's `seed` param:
+In order to personalize your dummy data even more, you can **choose the way a property is seeded** through the `@Prop()` decorator's `seed` param:
 
 ```js
   // customer.entity.ts
@@ -20,7 +20,7 @@ In order to personalize even more your dummy data, you can **choose the way a pr
 
   [...]
 
-  export class Customer extends CaseEntity {
+  export class Customer extends BaseEntity {
     @Prop({
         label: 'Full name',
         seed: () => `${faker.person.firstName()} ${faker.person.lastName()}`
@@ -28,7 +28,6 @@ In order to personalize even more your dummy data, you can **choose the way a pr
     fullName: string
 
     @Prop({
-        label: 'Email',
         seed: (index: number) => `user${index}@case.app`
     })
     email: string

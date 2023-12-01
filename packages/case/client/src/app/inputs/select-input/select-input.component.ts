@@ -1,24 +1,24 @@
-import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core'
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
-import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
-import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
+import { NgClass, NgFor } from '@angular/common'
 import { PropType } from '~shared/enums/prop-type.enum'
-import { EnumOptions } from '~shared/interfaces/property-options/enum-options.interface'
+import { EnumPropertyOptions } from '../../../../../shared/interfaces/property-options/enum-property-options.interface'
+import { RelationPropertyOptions } from '../../../../../shared/interfaces/property-options/relation-property-options.interface'
+import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
 @Component({
   selector: 'app-select-input',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, NgClass, NgFor],
   template: `
     <div [formGroup]="form">
       <label [for]="prop.propName">{{ prop.label }}</label>
       <div class="control">
-        <div class="select">
+        <div class="select" [ngClass]="{ 'is-danger': isError }">
           <select
             class="is-fullwidth"
             (change)="onChange($event)"
@@ -39,6 +39,7 @@ export class SelectInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Input() type: PropType
   @Input() value: { id: number }
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
 
@@ -64,7 +65,7 @@ export class SelectInputComponent implements OnInit {
           this.entityMeta = res.find(
             (entity: EntityMeta) =>
               entity.className ===
-              (this.prop.options as RelationOptions).entitySlug
+              (this.prop.options as RelationPropertyOptions).entitySlug
           )
 
           this.options = await this.dynamicEntityService.listSelectOptions(
@@ -74,7 +75,8 @@ export class SelectInputComponent implements OnInit {
     }
 
     if (this.type === PropType.Enum) {
-      let enumOptions: EnumOptions = this.prop.options as EnumOptions
+      let enumOptions: EnumPropertyOptions = this.prop
+        .options as EnumPropertyOptions
       this.options = Object.keys(enumOptions.enum).map((key) => {
         return {
           id: enumOptions.enum[key],

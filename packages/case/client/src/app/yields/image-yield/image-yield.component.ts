@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core'
 import { CommonModule } from '@angular/common'
+import { Component, Input } from '@angular/core'
 import { environment } from '../../../environments/environment'
 
 @Component({
@@ -9,15 +9,7 @@ import { environment } from '../../../environments/environment'
   template: `
     <figure class="image">
       <img
-        [src]="
-          storagePath + value + (compact ? '-thumbnail.jpg' : '-large.jpg')
-        "
-        [ngClass]="{ 'is-rounded': compact, 'is-large': !compact }"
-        *ngIf="value"
-      />
-      <img
-        *ngIf="!value"
-        src="/assets/images/image-default.svg"
+        [src]="imagePath || '/assets/images/image-default.svg'"
         [ngClass]="{ 'is-rounded': compact, 'is-large': !compact }"
       />
     </figure>
@@ -25,8 +17,15 @@ import { environment } from '../../../environments/environment'
   styleUrls: ['./image-yield.component.scss']
 })
 export class ImageYieldComponent {
-  @Input() value: string
+  @Input() value: { [key: string]: string }
   @Input() compact: boolean = false
 
-  storagePath: string = environment.storagePath
+  imagePath: string
+
+  ngOnInit(): void {
+    if (this.value) {
+      this.imagePath =
+        environment.storagePath + this.value[Object.keys(this.value)[0]]
+    }
+  }
 }

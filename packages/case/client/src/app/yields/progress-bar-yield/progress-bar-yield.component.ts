@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
+import { EnumPropertyOptions } from '~shared/interfaces/property-options/enum-property-options.interface'
 import { TruncatePipe } from '../../pipes/truncate.pipe'
-import { EnumOptions } from '~shared/interfaces/property-options/enum-options.interface'
 
 @Component({
   selector: 'app-progress-bar-yield',
@@ -24,7 +24,7 @@ import { EnumOptions } from '~shared/interfaces/property-options/enum-options.in
 })
 export class ProgressBarYieldComponent implements OnInit {
   @Input() value: string
-  @Input() options: EnumOptions
+  @Input() options: EnumPropertyOptions
 
   enumAsArray: string[] = []
   valueIndex: number

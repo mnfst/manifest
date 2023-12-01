@@ -11,9 +11,14 @@ import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.servic
 export class SideMenuComponent {
   entityMetas: EntityMeta[]
 
+  isCollectionsOpen = false
+  isSettingsOpen = false
+
   constructor(dynamicEntityService: DynamicEntityService) {
     dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
-      this.entityMetas = res
+      this.entityMetas = res.filter(
+        (entityMeta) => entityMeta.className !== 'Admin'
+      )
     })
   }
 }

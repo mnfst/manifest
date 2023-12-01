@@ -5,7 +5,9 @@ import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
+import { HttpErrorResponse } from '@angular/common/http'
 import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
+import { ValidationError } from '../../../interfaces/validation-error.interface'
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { FlashMessageService } from '../../../services/flash-message.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -19,6 +21,7 @@ export class DynamicEntityCreateEditComponent {
   item: any
   entityMeta: EntityMeta
   props: PropertyDescription[]
+  errors: { [propName: string]: string[] } = {}
 
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
@@ -57,7 +60,7 @@ export class DynamicEntityCreateEditComponent {
           }
 
           this.props = this.entityMeta.props.filter(
-            (prop) => !prop.options.isHiddenInCreateEdit
+            (prop) => !prop.options.isHiddenInAdminCreateEdit
           )
 
           if (this.edit) {
@@ -92,10 +95,16 @@ export class DynamicEntityCreateEditComponent {
           }
 
           this.entityMeta.props.forEach((prop) => {
-            this.form.addControl(
-              prop.propName,
-              new FormControl(this.item ? this.item[prop.propName] : null)
-            )
+            let value: any = null
+
+            if (this.item) {
+              value = this.item[prop.propName]
+              // Special case for boolean props: we need to set the value to false if it's not set.
+            } else if (prop.type === PropType.Boolean) {
+              value = false
+            }
+
+            this.form.addControl(prop.propName, new FormControl(value))
           })
         })
       })
@@ -117,7 +126,11 @@ export class DynamicEntityCreateEditComponent {
           )
           this.router.navigate(['/dynamic', this.entityMeta.definition.slug])
         })
-        .catch(() => {
+        .catch((err: HttpErrorResponse) => {
+          if (err.status === 400) {
+            this.errors = this.getErrorMessages(err.error)
+          }
+
           this.loading = false
           this.flashMessageService.error(
             `The ${this.entityMeta.definition.nameSingular} could not be updated`
@@ -137,12 +150,34 @@ export class DynamicEntityCreateEditComponent {
             res.identifiers[0].id
           ])
         })
-        .catch(() => {
+        .catch((err: HttpErrorResponse) => {
+          if (err.status === 400) {
+            this.errors = this.getErrorMessages(err.error)
+          }
+
           this.loading = false
           this.flashMessageService.error(
-            `Error: the ${this.entityMeta.definition.nameSingular} could not be created`
+            `Error: the ${
+              this.entityMeta.definition.nameSingular
+            } could not be created:
+              ${Object.values(this.errors).join(', ')}
+            `
           )
         })
     }
+  }
+
+  getErrorMessages(validationErrors: ValidationError[]): {
+    [propName: string]: string[]
+  } {
+    const errorMessages: { [propName: string]: string[] } = {}
+
+    validationErrors.forEach((validationError: ValidationError) => {
+      errorMessages[validationError.property] = Object.values(
+        validationError.constraints
+      )
+    })
+
+    return errorMessages
   }
 }

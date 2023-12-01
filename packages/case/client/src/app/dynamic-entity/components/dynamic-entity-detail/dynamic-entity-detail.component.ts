@@ -1,7 +1,6 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
-import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
 import { DynamicEntityService } from '../../dynamic-entity.service'
@@ -13,7 +12,6 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class DynamicEntityDetailComponent {
   item: any
-  props: PropertyDescription[]
   entityMeta: EntityMeta
 
   constructor(
@@ -30,10 +28,6 @@ export class DynamicEntityDetailComponent {
           this.entityMeta = res.find(
             (entityMeta: EntityMeta) =>
               entityMeta.definition.slug === params['entitySlug']
-          )
-
-          this.props = this.entityMeta.props.filter(
-            (prop) => !prop.options?.isHiddenInDetail
           )
 
           this.dynamicEntityService

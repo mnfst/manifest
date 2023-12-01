@@ -1,9 +1,9 @@
 import { Component, OnInit, Renderer2 } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
+import { Paginator } from '@casejs/types'
 import { combineLatest } from 'rxjs'
 import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
-import { Paginator } from '~shared/interfaces/paginator.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
 import { BreadcrumbService } from '../../../services/breadcrumb.service'
@@ -58,10 +58,11 @@ export class DynamicEntityListComponent implements OnInit {
           }
 
           this.props = this.entityMeta.props.filter(
-            (prop) => !prop.options?.isHiddenInList
+            (prop) => !prop.options?.isHiddenInAdminList
           )
           this.filtrableProps = this.props.filter(
-            (prop) => prop.options?.filter
+            (prop) =>
+              prop.type === PropType.Enum || prop.type === PropType.Relation
           )
 
           this.breadcrumbService.breadcrumbLinks.next([
@@ -92,6 +93,13 @@ export class DynamicEntityListComponent implements OnInit {
       queryParams,
       queryParamsHandling: 'merge'
     })
+  }
+
+  async download(): Promise<void> {
+    await this.dynamicEntityService.download(
+      this.entityMeta.definition.slug,
+      this.queryParams
+    )
   }
 
   delete(id: number): void {

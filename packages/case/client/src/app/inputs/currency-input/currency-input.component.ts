@@ -1,4 +1,4 @@
-import { getCurrencySymbol } from '@angular/common'
+import { NgClass, getCurrencySymbol } from '@angular/common'
 import {
   Component,
   ElementRef,
@@ -13,6 +13,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 @Component({
   selector: 'app-currency-input',
   standalone: true,
+  imports: [NgClass],
   template: ` <label [for]="prop.propName">{{ prop.label }}</label>
     <p class="control has-icons-left">
       <span class="icon is-small is-left">
@@ -22,6 +23,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
       </span>
       <input
         class="input"
+        [ngClass]="{ 'is-danger': isError }"
         type="number"
         step="0.01"
         (change)="onChange($event)"
@@ -34,6 +36,7 @@ export class CurrencyInputComponent implements OnInit {
   @Input() prop: PropertyDescription
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
   @Input() value: string
+  @Input() isError: boolean
 
   @ViewChild('input', { static: true }) input: ElementRef
 
@@ -51,6 +54,6 @@ export class CurrencyInputComponent implements OnInit {
   }
 
   onChange(event: any) {
-    this.valueChanged.emit(event.target.value)
+    this.valueChanged.emit(Number(event.target.value))
   }
 }

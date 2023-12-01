@@ -1,6 +1,6 @@
 # CASE Contribution
 
-Thanks you very much for contributing and Happy Hacktoberfest ! 🎉 🧙‍♂️
+Thank you very much for contributing to [CASE](https://case.app/) and Happy Hacktoberfest ! 🎉 🧙‍♂️
 
 [CASE](https://case.app/) is an Open-Source CRUD app generator that helps developers to build CRUD web applications in 15 minutes by focusing only on the data.
 
@@ -23,19 +23,19 @@ Thanks you very much for contributing and Happy Hacktoberfest ! 🎉 🧙‍♂�
 npm install -g @angular/cli
 ```
 
-You may also meet [TypeORM](https://github.com/typeorm/typeorm) concept's like entities, relations or repositories. You can familiarize yourself with [their docs here](https://typeorm.io/).
+[CASE](https://case.app/) uses the concepts like entities, relations and repositories from [TypeORM](https://github.com/typeorm/typeorm). You can have a better understanding of these concepts by checking [their docs here](https://typeorm.io/).
 
-Also [CASE](https://case.app/) use the concepts of guards, module and controller from [Nest.js](https://github.com/nestjs/nest). You can have a better understanding of those concepts by checking [their docs here](https://docs.nestjs.com/).
+Also, [CASE](https://case.app/) uses the concepts of guards, module and controller from [Nest.js](https://github.com/nestjs/nest). You can have a better understanding of these concepts by checking [their docs here](https://docs.nestjs.com/).
 
-**_You don't need to be an expert in those dependencies to contribute - your great ideas, logic, good will & common sense are always welcome to the project ! 🧠🌈_**
+**_You don't need to be an expert in the above mentioned dependencies to contribute - your great ideas, logic, good will & common sense are always welcome to the project ! 🧠🌈_**
 
 ### Code contributions
 
-If you are looking for an easy way to help, start by the issues labelled [good first issue](https://github.com/casejs/CASE/labels/good%20first%20issue) or [documentation](https://github.com/casejs/CASE/labels/documentation) ! 💪
+If you are looking for an easy way to help, you can start with the issues labelled [good first issue](https://github.com/casejs/CASE/labels/good%20first%20issue) or [documentation](https://github.com/casejs/CASE/labels/documentation) ! 💪
 
 ##### Serve CASE in Contribution mode
 
-Open a first terminal :
+Open a terminal and run the following:
 
 ```bash
 # From root of the repo.
@@ -44,7 +44,7 @@ npm install
 ng serve --configuration=contribution
 ```
 
-The client is now running on `http://localhost:4200` ! 🌸
+The client will be running on http://localhost:4200 ! 🌸
 
 Open a second terminal simultaneously :
 
@@ -61,7 +61,7 @@ npm run seed:dev
 
 The server is now running on contributor mode ! 🌼
 
-⚠️ Times to times you may need to restart your server to see the modifications you brings to the client.
+⚠️ You may need to restart your server from time to time to see the modifications you bring to the client.
 
 > 💡 To simulate the `app` root folder of a new CASE repo, you can use the folder `packages/case/server/src/_contribution-root`.
 
@@ -81,8 +81,8 @@ Please follow these steps to have your contribution considered by our maintainer
 
 While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional design work, tests, or other changes before your pull request can be ultimately accepted.
 
-> 🧙‍♂️ During Hacktoberfest don't forget to add `hacktoberfest` label to your PR. If it's accepted we will merge it with the `hacktoberfest-accepted` label.
-> If we judge it is, we will not hesitate to labelled your PR as `spammy` which can make you disqualified of the Hacktoberfest. 😱
+> 🧙‍♂️ During Hacktoberfest, don't forget to add `hacktoberfest` label to your PR. If it's accepted, we will merge it with the `hacktoberfest-accepted` label.
+> If we judge it is not acceptable, we will not hesitate to label your PR as `spammy` which can make you disqualified in Hacktoberfest. 😱
 
 ### Reporting Bugs
 

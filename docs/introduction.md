@@ -6,27 +6,25 @@
 
 ## What is CASE ?
 
-CASE is a tool that helps developers to create nice data-intensive apps like **dashboards**, **custom web apps**, **admin panels**, **ERPs** very quickly.
+CASE is a Typescript lightweight **BaaS (Backend As A Service)** requiring minimal coding.
 
-CASE follows a clear **frameworkless approach** and forces developers to focus on their data and their business logic.
+It provides a complete backend to your client app without the hassle that comes with it.
 
 ## Main features
 
-- Create instantaneously a professional **CRUD app** ⚡
-- **No need for learning** new stuff 🧠
-- Nice and clear **UI** ✨
+- ⚡ **Instant backend with DB, REST API and Admin panel** without any configuration
+- 🧠 **Smart SDK** to import in your favorite JS front-end
+- 🛠️ **Essential features** like Auth, Storage, Validation and Hooks
 
-## Forget about the framework, focus on your data
+## A complete backend without leaving your IDE
 
-When you want to develop quickly an app, often the **choice of the framework(s)** quickly takes up all the space in the discussions. That's why CASE took the approach to remove it so you can focus on your data.
+**You know how to code, so go ahead and do it**. You don't need to be coddled with drag-and-drop options and visual builders.
 
-> _Architecture is about intent, not frameworks_
->
-> _Uncle Bob_
+With CASE, you can quickly add a backend to your app while **staying within your development environment**. This allows you to work in your language, maintain consistent versioning, and moreover have a coherent development experience.
 
-## Project structure
+## The anatomy of a CASE backend
 
-The full application works in [TypeScript](https://www.typescriptlang.org/).
+The entire backend fits into the following folder structure:
 
 ```
 .
@@ -37,10 +35,8 @@ The full application works in [TypeScript](https://www.typescriptlang.org/).
 ├──── public # public folder for storage and assets
 ├ .env
 ├ .gitignore
-├ app-config.ts
 ├ nodemon.json
 ├ README.md
 ├ package.json
-├ package-lock.json
 └ ts-config.json
 ```

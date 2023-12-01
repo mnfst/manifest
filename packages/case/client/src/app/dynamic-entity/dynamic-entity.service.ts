@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { Observable, firstValueFrom, map, shareReplay } from 'rxjs'
 
-import { environment } from '../../environments/environment'
+import { Params } from '@angular/router'
+import { Paginator } from '@casejs/types'
 import { SelectOption } from '~shared/interfaces/select-option.interface'
-import { Paginator } from '~shared/interfaces/paginator.interface'
 import { EntityMeta } from '../../../../shared/interfaces/entity-meta.interface'
+import { environment } from '../../environments/environment'
 
 @Injectable({
   providedIn: 'root'
@@ -26,12 +27,45 @@ export class DynamicEntityService {
     return this.entityMetas$
   }
 
-  list(entitySlug: string, params?: any): Promise<Paginator<any>> {
+  list(entitySlug: string, params?: Params): Promise<Paginator<any>> {
+    const queryParams: {
+      [key: string]: any
+    } = {
+      page: params?.['page'] || 1,
+      perPage: 20
+    }
+
+    // Add filters with _eq suffix.
+    Object.keys(params || {}).forEach((key: string) => {
+      if (key !== 'page') {
+        queryParams[`${key}_eq`] = params[key]
+      }
+    })
+
     return firstValueFrom(
       this.http.get(`${this.serviceUrl}/${entitySlug}`, {
-        params
+        params: queryParams
       })
     ) as Promise<Paginator<any>>
+  }
+
+  async download(entitySlug: string, params?: Params): Promise<void> {
+    const queryParams: { [key: string]: any } = Object.assign({}, params) || {}
+
+    queryParams['export'] = true
+
+    const res: { filePath: string } = (await firstValueFrom(
+      this.http.get(`${this.serviceUrl}/${entitySlug}`, {
+        params: queryParams
+      })
+    )) as { filePath: string }
+
+    const filePath: string = environment.storagePath + res.filePath
+
+    const link = document.createElement('a')
+    link.href = filePath
+    link.download = filePath.split('/').pop()
+    link.dispatchEvent(new MouseEvent('click'))
   }
 
   listSelectOptions(entitySlug: string): Promise<SelectOption[]> {

@@ -1,6 +1,6 @@
 import { CurrencyPipe, NgIf } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { CurrencyOptions } from '~shared/interfaces/property-options/currency-options.interface'
+import { CurrencyPropertyOptions } from '~shared/interfaces/property-options/currency-property-options.interface'
 
 @Component({
   selector: 'app-currency-yield',
@@ -14,5 +14,5 @@ import { CurrencyOptions } from '~shared/interfaces/property-options/currency-op
 })
 export class CurrencyYieldComponent {
   @Input() value: number
-  @Input() options: CurrencyOptions
+  @Input() options: CurrencyPropertyOptions
 }

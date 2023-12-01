@@ -3,22 +3,17 @@
  */
 export interface PropertyOptions {
   /**
-   * Whether or not this property will be use as a filter in list.
+   * Hides this property in the API response.
    */
-  filter?: boolean
+  isHidden?: boolean
 
   /**
-   * Hides this property in the list.
+   * Hides this property in the list of the Admin panel.
    */
-  isHiddenInList?: boolean
+  isHiddenInAdminList?: boolean
 
   /**
-   * Hides this property in the detail view.
+   * Hides this property in create and edit views of the Admin panel.
    */
-  isHiddenInDetail?: boolean
-
-  /**
-   * Hides this property in the create and edit views.
-   */
-  isHiddenInCreateEdit?: boolean
+  isHiddenInAdminCreateEdit?: boolean
 }
