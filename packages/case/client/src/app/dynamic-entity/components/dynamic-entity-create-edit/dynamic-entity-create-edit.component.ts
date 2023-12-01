@@ -95,10 +95,16 @@ export class DynamicEntityCreateEditComponent {
           }
 
           this.entityMeta.props.forEach((prop) => {
-            this.form.addControl(
-              prop.propName,
-              new FormControl(this.item ? this.item[prop.propName] : null)
-            )
+            let value: any = null
+
+            if (this.item) {
+              value = this.item[prop.propName]
+              // Special case for boolean props: we need to set the value to false if it's not set.
+            } else if (prop.type === PropType.Boolean) {
+              value = false
+            }
+
+            this.form.addControl(prop.propName, new FormControl(value))
           })
         })
       })
