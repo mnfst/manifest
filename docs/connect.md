@@ -39,6 +39,7 @@ const cats: Cat[] = await cs.from('cats').find<Cat>()
 const cats = await cs
   .from('cats')
   .where('breed = siamese')
+  .andWhere('active = true')
   .andWhere('birthDate > 2020-01-01')
   .find()
 

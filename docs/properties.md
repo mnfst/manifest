@@ -32,7 +32,7 @@ export class Cat extends BaseEntity {
 
 > [!Tip]
 >
-> By default, all properties all mandatory (nullable). You can make them required using [validators](validation.md)
+> By default, all properties are optional (nullable). You can make them required using [validators](validation.md).
 
 ## Property types
 
