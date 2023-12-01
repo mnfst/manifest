@@ -13,8 +13,8 @@ import { CrudModule } from './crud/crud.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: true
-    // logger: ['error', 'warn']
+    cors: true,
+    logger: ['error', 'warn']
   })
 
   const configService = app.get(ConfigService)
