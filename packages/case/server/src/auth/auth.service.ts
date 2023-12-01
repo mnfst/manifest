@@ -109,7 +109,10 @@ export class AuthService {
    * @returns The user item from the JWT token
    *
    */
-  async getUserFromToken(token: string, entitySlug?: string): Promise<any> {
+  async getUserFromToken(
+    token: string,
+    entitySlug?: string
+  ): Promise<AuthenticableEntity> {
     let decoded: jwt.JwtPayload
 
     try {

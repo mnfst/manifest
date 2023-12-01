@@ -2,7 +2,8 @@ import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common'
 import { Request } from 'express'
 
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { User } from '../_contribution-root/entities/user.entity'
+
+import { AuthenticableEntity } from '../core-entities/authenticable-entity'
 import { AuthService } from './auth.service'
 import { SignupUserDto } from './dto/signup-user.dto'
 
@@ -55,7 +56,7 @@ export class AuthController {
   public async getCurrentUser(
     @Param('authenticableEntity') authenticableEntity: string,
     @Req() req: Request
-  ): Promise<User> {
+  ): Promise<AuthenticableEntity> {
     return this.authService.getUserFromToken(
       req.headers?.authorization,
       authenticableEntity
