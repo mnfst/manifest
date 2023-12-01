@@ -1,6 +1,6 @@
 {
   "name": "@casejs/case",
-  "version": "3.0.0-beta.3",
+  "version": "3.0.0",
   "description": "Backend as a service for developers.",
   "main": "server/src/index.js",
   "types": "server/src/index.d.ts",
@@ -14,6 +14,7 @@
   },
   "keywords": [
     "baas",
+    "backend as a service",
     "backend",
     "admin panel",
     "db",
@@ -21,7 +22,8 @@
     "api",
     "database",
     "server",
-    "typescript"
+    "typescript",
+    "sdk"
   ],
   "author": "CASE",
   "license": "MIT",
