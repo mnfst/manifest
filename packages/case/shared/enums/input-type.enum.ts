@@ -8,5 +8,6 @@ export enum InputType {
   Textarea,
   Email,
   Password,
-  FileUpload
+  FileUpload,
+  Location
 }

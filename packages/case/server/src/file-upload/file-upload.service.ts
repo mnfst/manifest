@@ -18,12 +18,12 @@ export class FileUploadService {
    * Stores a file and returns its path.
    *
    * @param file - The file to store.
-   * @param propName - The slug of the entity to associate the file with.
+   * @param entitySlug - The slug of the entity to associate the file with.
    * @returns The path of the stored file.
    */
-  store(file: any, propName: string): string {
+  store(file: any, entitySlug: string): string {
     // CamelCase to kebab-case
-    const kebabCaseEntityName = propName
+    const kebabCaseEntityName = entitySlug
       .replace(/([a-z])([A-Z])/g, '$1-$2')
       .toLowerCase()
 
@@ -45,7 +45,7 @@ export class FileUploadService {
   /**
    * Adds a dummy document to the storage system.
    */
-  addDummyDocument(): void {
+  addDummyFile(): void {
     const folder: string = `${this.storagePath}/dummy`
 
     mkdirp.sync(folder)

@@ -10,7 +10,7 @@ import {
 
 import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
-import { RelationOptions } from '../../../../../shared/interfaces/property-options/relation-options.interface'
+import { RelationPropertyOptions } from '../../../../../shared/interfaces/property-options/relation-property-options.interface'
 import { SelectOption } from '../../../../../shared/interfaces/select-option.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
@@ -46,7 +46,7 @@ export class MultiSelectInputComponent {
         this.entityMeta = res.find(
           (entity: EntityMeta) =>
             entity.className ===
-            (this.prop.options as RelationOptions).entitySlug
+            (this.prop.options as RelationPropertyOptions).entitySlug
         )
 
         this.options = await this.dynamicEntityService.listSelectOptions(

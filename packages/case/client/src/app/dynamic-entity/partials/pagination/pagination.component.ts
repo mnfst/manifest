@@ -1,12 +1,11 @@
 import {
   Component,
-  OnChanges,
-  Input,
   EventEmitter,
+  Input,
+  OnChanges,
   Output
 } from '@angular/core'
-
-import { Paginator } from '~shared/interfaces/paginator.interface'
+import { Paginator } from '@casejs/types'
 
 @Component({
   selector: 'app-pagination',

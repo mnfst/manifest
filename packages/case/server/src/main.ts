@@ -1,22 +1,27 @@
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as connectLiveReload from 'connect-livereload'
 import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 
+import { ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
+import { AuthModule } from './auth/auth.module'
+import { CrudModule } from './crud/crud.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: true,
-    logger: ['error', 'warn']
+    cors: true
+    // logger: ['error', 'warn']
   })
 
   const configService = app.get(ConfigService)
 
   app.setGlobalPrefix('api')
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
+  app.useGlobalPipes(new ValidationPipe())
 
   const production: boolean = configService.get('nodeEnv') === 'production'
 
@@ -45,6 +50,27 @@ async function bootstrap() {
     } else {
       res.sendFile(join(clientAppFolder, 'index.html'))
     }
+  })
+
+  // Build the swagger doc.
+  const config = new DocumentBuilder()
+    .setTitle('CASE API Doc')
+    .setDescription(
+      '<p>Use the "Authorize" button to get a JWT token.</p><p>Replace {entity} with the entity slug.</p'
+    )
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'JWT'
+    )
+    .build()
+
+  const document = SwaggerModule.createDocument(app, config, {
+    include: [CrudModule, AuthModule]
+  })
+  SwaggerModule.setup('api', app, document, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customfavIcon: 'assets/images/favicon.png',
+    customSiteTitle: 'CASE API Doc'
   })
 
   await app.listen(configService.get('port'))

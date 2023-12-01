@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
 import { RouterModule } from '@angular/router'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
-import { RelationOptions } from '~shared/interfaces/property-options/relation-options.interface'
+import { RelationPropertyOptions } from '~shared/interfaces/property-options/relation-property-options.interface'
 
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'
 
@@ -26,7 +26,7 @@ export class RelationYieldComponent implements OnInit {
   constructor(private dynamicEntityService: DynamicEntityService) {}
 
   @Input() item: any
-  @Input() options: RelationOptions
+  @Input() options: RelationPropertyOptions
 
   ngOnInit(): void {
     this.dynamicEntityService

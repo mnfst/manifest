@@ -21,17 +21,18 @@ export class FileUploadController {
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(
     @UploadedFile() file: any,
-    @Body('propName') propName: string
+    @Body('entitySlug') entitySlug: string
   ): { path: string } {
-    return { path: this.fileUploadService.store(file, propName) }
+    return { path: this.fileUploadService.store(file, entitySlug) }
   }
 
   @Post('/image')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image'))
   uploadImage(
     @UploadedFile() file: any,
+    @Body('entitySlug') entitySlug: string,
     @Body('propName') propName: string
-  ): { path: string } {
-    return { path: this.imageUploadService.store(file, propName) }
+  ): { [key: string]: string } {
+    return this.imageUploadService.store(file, entitySlug, propName)
   }
 }

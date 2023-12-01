@@ -11,5 +11,6 @@ export enum PropType {
   Password,
   File,
   Image,
-  Enum
+  Enum,
+  Location
 }

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
+import { exec, execSync } from 'child_process'
 import { chdir, cwd } from 'node:process'
-import { execSync, exec } from 'child_process'
 
 import chalk from 'chalk'
 import * as crypto from 'crypto'
+import { execa } from 'execa'
 import * as fs from 'fs'
 import ora from 'ora'
-import { execa } from 'execa'
 
 import open from 'open'
 
@@ -60,7 +60,9 @@ loaderSeed.succeed(`Successfully seeded default users for ${repoName}`)
 
 fs.writeFileSync(
   `${repoName}/.env`,
-  `JWT_SECRET=${crypto.randomBytes(32).toString('hex')}`
+  `JWT_SECRET=${crypto.randomBytes(32).toString('hex')}
+NODE_ENV=development
+PORT=4000`
 )
 
 console.log()

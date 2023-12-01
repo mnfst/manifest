@@ -12,6 +12,7 @@ import { FileYieldComponent } from './file-yield/file-yield.component'
 import { ImageYieldComponent } from './image-yield/image-yield.component'
 import { LabelYieldComponent } from './label-yield/label-yield.component'
 import { LinkYieldComponent } from './link-yield/link-yield.component'
+import { LocationYieldComponent } from './location-yield/location-yield.component'
 import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
 import { RelationYieldComponent } from './relation-yield/relation-yield.component'
@@ -33,7 +34,8 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     FileYieldComponent,
     ImageYieldComponent,
     LabelYieldComponent,
-    ProgressBarYieldComponent
+    ProgressBarYieldComponent,
+    LocationYieldComponent
   ],
   template: `
     <app-text-yield
@@ -95,6 +97,10 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
       [value]="value"
       [options]="options"
     ></app-progress-bar-yield>
+    <app-location-yield
+      *ngIf="type === PropType.Location"
+      [value]="value"
+    ></app-location-yield>
   `
 })
 export class YieldComponent {

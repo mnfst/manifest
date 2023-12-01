@@ -10,7 +10,6 @@ import {
 } from '@angular/core'
 
 import { PropertyDescription } from '../../../../../shared/interfaces/property-description.interface'
-import { FileOptions } from '../../../../../shared/interfaces/property-options/file-options.interface'
 import { environment } from '../../../environments/environment'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { UploadService } from '../../services/upload.service'
@@ -24,6 +23,7 @@ import { UploadService } from '../../services/upload.service'
 })
 export class FileUploadInputComponent implements OnInit {
   @Input() prop: PropertyDescription
+  @Input() entitySlug: string
   @Input() value: string
   @Input() isError: boolean
 
@@ -37,16 +37,12 @@ export class FileUploadInputComponent implements OnInit {
   fileContent: any
   loading: boolean
 
-  options: FileOptions
-
   constructor(
     private uploadService: UploadService,
     private flashMessageService: FlashMessageService
   ) {}
 
   ngOnInit() {
-    this.options = this.prop.options as FileOptions
-
     if (this.value) {
       this.filePath = this.value
     }
@@ -56,7 +52,7 @@ export class FileUploadInputComponent implements OnInit {
   fileInputEvent(event: any) {
     this.loading = true
     this.fileContent = this.fileInputEl.nativeElement.files.item(0)
-    this.uploadService.uploadFile(this.prop.propName, this.fileContent).then(
+    this.uploadService.uploadFile(this.entitySlug, this.fileContent).then(
       (res: { path: string }) => {
         this.loading = false
         this.filePath = res.path

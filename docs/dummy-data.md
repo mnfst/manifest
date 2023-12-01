@@ -20,7 +20,7 @@ In order to personalize your dummy data even more, you can **choose the way a pr
 
   [...]
 
-  export class Customer extends CaseEntity {
+  export class Customer extends BaseEntity {
     @Prop({
         label: 'Full name',
         seed: () => `${faker.person.firstName()} ${faker.person.lastName()}`
@@ -28,7 +28,6 @@ In order to personalize your dummy data even more, you can **choose the way a pr
     fullName: string
 
     @Prop({
-        label: 'Email',
         seed: (index: number) => `user${index}@case.app`
     })
     email: string

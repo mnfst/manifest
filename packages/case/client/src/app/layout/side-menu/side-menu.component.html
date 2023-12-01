@@ -1,24 +1,51 @@
 <ul class="menu-list mt-5">
-  <ng-container>
-    <li>
-      <a
-        routerLink="/"
-        routerLinkActive="is-active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <span>Home</span>
-      </a>
-      <ng-container *ngIf="entityMetas">
+  <li *ngIf="entityMetas">
+    <a (click)="isCollectionsOpen = !isCollectionsOpen" class="has-submenu is-flex is-justify-content-space-between">
+      <span class="is-inline-flex is-align-items-center is-justify-content-space-between">
+        <i class="icon mr-2 icon-database is-size-4"></i>
+        <span class="pl-1">Collections</span>
+      </span>
+      <i
+        class="icon icon-chevron-down"
+        *ngIf="!isCollectionsOpen"
+      ></i>
+      <i
+        class="icon icon-chevron-up"
+        *ngIf="isCollectionsOpen"
+      ></i>
+    </a>
+    <ul *ngIf="isCollectionsOpen">
+      <li *ngFor="let entity of entityMetas">
         <a
           [routerLink]="['/dynamic', entity.definition.slug]"
           routerLinkActive="is-active"
-          *ngFor="let entity of entityMetas"
         >
           <span>{{
             entity.definition.namePlural | capitalizeFirstLetter
           }}</span>
         </a>
-      </ng-container>
-    </li>
-  </ng-container>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <a (click)="isSettingsOpen = !isSettingsOpen" class="has-submenu is-flex is-justify-content-space-between">
+      <span class="is-inline-flex is-align-items-center is-justify-content-space-between">
+        <i class="icon mr-2 icon-sliders is-size-4"></i>
+        <span class="pl-1">Settings</span>
+      </span>
+    <i
+    class="icon icon-chevron-down"
+    *ngIf="!isSettingsOpen"
+  ></i>
+  <i
+    class="icon icon-chevron-up"
+    *ngIf="isSettingsOpen"
+  ></i>
+</a>
+    <ul *ngIf="isSettingsOpen">
+      <li>
+        <a routerLink="/dynamic/admins">Admins</a>
+      </li>
+    </ul>
+  </li>
 </ul>

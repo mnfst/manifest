@@ -1,0 +1,26 @@
+{
+  "name": "@casejs/types",
+  "version": "0.0.5",
+  "description": "Utility types used by CASE",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/casejs/case.git"
+  },
+  "keywords": [
+    "case",
+    "backend",
+    "baas",
+    "types"
+  ],
+  "author": "CASE",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/casejs/case/issues"
+  },
+  "homepage": "https://github.com/casejs/case#readme"
+}

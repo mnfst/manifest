@@ -6,12 +6,8 @@
 </p>
 
 <p align='center'>
-<strong>The fastest way to develop CRUD apps</strong>
-<br>
-  <a target=_blank" href="https://demo2.case.app/auth/login?email=user1@case.app&password=case">Invoicing App Demo</a> •
-  <a target=_blank" href="https://demo3.case.app/auth/login?email=user1@case.app&password=case">Project Management App Demo</a> •
-  <a target=_blank" href="https://demo1.case.app/auth/login?email=user1@case.app&password=case">HR Dashboard Demo</a>
-  <br><br>
+<strong>A complete backend without leaving your IDE</strong>
+<br><br>
   <a href="https://www.npmjs.com/package/@casejs/case" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/%40casejs%2Fcase">
   </a>
@@ -20,9 +16,6 @@
   </a>
   <a href="https://discord.com/invite/FepAked3W7" target="_blank">
     <img alt="Discord" src="https://img.shields.io/discord/1089907785178812499?label=discord">
-  </a>
-  <a href="https://github.com/casejs/CASE/issues" target="_blank">
-    <img alt="Hacktoberfest" src="https://img.shields.io/github/hacktoberfest/2023/casejs/case">
   </a>
   <a href="https://opencollective.com/casejs"  target="_blank">
     <img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us">
@@ -37,32 +30,26 @@
 
 ## What is CASE ?
 
-CASE is an **exceptionally fast app builder** for Typescript developers. ⚡
+CASE is a Typescript lightweight **BaaS (Backend As A Service)** requiring minimal coding.
 
-It is focused on **CRUD apps**: custom web apps like internal tools, ERPs, CRMs, admin panels and dashboards.
+It provides a complete backend to your client app without the hassle that comes with it.
 
-## "It's like an ORM on steroids"
+## Key features
 
-CASE is based on [TypeORM](https://typeorm.io/) and **pushes further the concept of ORMs**. Not only you can describe your app entities to generate their database storage, you can **generate the app itself** from it:
+- ⚡ **Instant backend with DB, REST API and Admin panel** without any configuration
+- 🧠 **Smart SDK** to import in your favorite JS front-end
+- 🛠️ **Essential features** like Auth, Storage, Validation and Hooks
 
-- The list of the items
-- A create / edit view to add and update items
-- A detailed view of an item
+## Data-first
 
-## Entity files
-
-The few lines below generate a whole app (see screenshot above):
+CASE follows a data-first approach: you describe your data using Typescript and the backend builds itself around it. Adding the few lines below generate the app in the screenshot above.
 
 ```js
 // cat.entity.ts
 
-@Entity({
-  nameSingular: 'cat',
-  namePlural: 'cats',
-  slug: 'cats'
-})
-export class Cat extends CaseEntity {
-  @Prop({})
+@Entity()
+export class Cat extends BaseEntity {
+  @Prop()
   name: string
 
   @Prop({
@@ -94,35 +81,63 @@ export class Cat extends CaseEntity {
 }
 ```
 
-## Advantages
+And allow the following code in your JS client built with your favorite stack:
 
-- 🧠 **Focus on your data, not on the framework**. Data-oriented approach, no need to learn new stuff
-- ⚡ **Ultra-fast development**. 1 command install, simple and effective codebase
-- ✨ **Beautiful and clear UI**. Professional quality interface, designed with end-users
+```js
+// Any file in your own client app.
+
+import CaseClient from '@casejs/case-client'
+
+const cs = new CaseClient()
+
+await cs.login('users', 'user1@case.app', 'case')
+
+const cats = await cs.from('cats').find()
+
+const cats = await cs
+  .from('cats')
+  .where('breed = siamese')
+  .andWhere('birthDate > 2020-01-01')
+  .find()
+
+const newCat = await cs.from('cats').create({
+  name: 'Milo',
+  age: 2
+})
+
+const fileUrl: string = await cs.from('cats').addFile(file)
+
+await client.logout()
+```
 
 ## Getting started
 
-### Requirements
+### Prerequisites
 
-- [NodeJS](https://nodejs.org/en/) (v16.14.0 or higher). The recommended version is `18.x`.
-- NPM version 6.11.0+ (comes with NodeJS).
+- [NodeJS](https://nodejs.org/en/) (**v16.14.0** or higher). The recommended version is **18.x**.
 
 ### Create your CASE project
 
 Run the following on your terminal replacing `my-case-app` with your app's name:
 
-```sh
+```
 npx create-case-app my-case-app
 ```
 
-### Start the application
+Then serve the app locally:
 
-   ```sh
-   cd my-case-app
-   npm start
-   ```
+```
+cd my-case-app
+npm start
+```
 
-Voilà ! Your application is accessible at http://localhost:4000.
+🎉 **Your backend is ready !**
+<br>
+<br>You can now:
+<br> - See your **Admin panel** at http://localhost:4000
+<br> - Use your **REST API** at http://localhost:4000/api
+
+You can now go through the [docs](https://docs.case.app/) to build your next block.
 
 ## Community & Resources
 

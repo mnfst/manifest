@@ -19,6 +19,10 @@ export const propTypeCharacteristicsRecord: Record<
     input: InputType.Number,
     yield: YieldType.Number
   },
+  [PropType.Link]: {
+    input: InputType.Text,
+    yield: YieldType.Link
+  },
   [PropType.Relation]: {
     input: InputType.Select,
     yield: YieldType.Link
@@ -58,5 +62,10 @@ export const propTypeCharacteristicsRecord: Record<
   [PropType.Image]: {
     input: InputType.FileUpload,
     yield: YieldType.Link
+  },
+  // TODO: Implement location input and yield types.
+  [PropType.Location]: {
+    input: InputType.Location,
+    yield: YieldType.Location
   }
 }
