@@ -57,7 +57,7 @@ const cats = await cs
 // Filter by relations.
 const cats = await cs
   .from('cats')
-  .where(`owner in ${ownerIds}`)
+  .where(`owner in 1,2,3`)
   .andWhere(`store = ${storeId}`)
   .find()
 

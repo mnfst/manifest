@@ -50,29 +50,24 @@ export class EntityMetaService {
     )
     const newItem = entityRepository.create()
 
-    return entityMetadata.columns
-      .filter((column: ColumnMetadata) => column.propertyName !== 'id')
-      .map((column: ColumnMetadata) => {
-        const propDescription: PropertyDescription = {
-          propName: column.propertyName,
-          label: Reflect.getMetadata(`${column.propertyName}:label`, newItem),
-          type: Reflect.getMetadata(`${column.propertyName}:type`, newItem),
-          options: Reflect.getMetadata(
-            `${column.propertyName}:options`,
-            newItem
-          )
-        }
+    return entityMetadata.columns.map((column: ColumnMetadata) => {
+      const propDescription: PropertyDescription = {
+        propName: column.propertyName,
+        label: Reflect.getMetadata(`${column.propertyName}:label`, newItem),
+        type: Reflect.getMetadata(`${column.propertyName}:type`, newItem),
+        options: Reflect.getMetadata(`${column.propertyName}:options`, newItem)
+      }
 
-        if (propDescription.type === PropType.Relation) {
-          const relationOptions: RelationPropertyOptions =
-            propDescription.options as RelationPropertyOptions
+      if (propDescription.type === PropType.Relation) {
+        const relationOptions: RelationPropertyOptions =
+          propDescription.options as RelationPropertyOptions
 
-          // Convert class to string to use in the client.
-          relationOptions.entitySlug = relationOptions.entity?.name
-        }
+        // Convert class to string to use in the client.
+        relationOptions.entitySlug = relationOptions.entity?.name
+      }
 
-        return propDescription
-      })
+      return propDescription
+    })
   }
 
   /**

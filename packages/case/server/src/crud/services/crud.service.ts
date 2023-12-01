@@ -113,16 +113,16 @@ export class CrudService {
           }
         }
 
-        // In operator expects an array so we have to parse it.
-        let parsedValue: string[]
+        // Finally and the where query. In is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          parsedValue = JSON.parse(value)
+          query.where(`entity.${propName} ${operator} (:...value)`, {
+            value: JSON.parse(`[${value}]`)
+          })
+        } else {
+          query.where(`entity.${propName} ${operator} :value`, {
+            value
+          })
         }
-
-        // Finally and the where query.
-        query.where(`entity.${propName} ${operator} :value`, {
-          value: parsedValue || value
-        })
       })
 
     query.select(this.getVisibleProps({ props }))
