@@ -28,10 +28,19 @@ export class DynamicEntityService {
   }
 
   list(entitySlug: string, params?: Params): Promise<Paginator<any>> {
-    const queryParams: { [key: string]: any } = Object.assign({}, params) || {}
+    const queryParams: {
+      [key: string]: any
+    } = {
+      page: params?.['page'] || 1,
+      perPage: 20
+    }
 
-    queryParams['page'] = queryParams['page'] || 1
-    queryParams['perPage'] = 20
+    // Add filters with _eq suffix.
+    Object.keys(params || {}).forEach((key: string) => {
+      if (key !== 'page') {
+        queryParams[`${key}_eq`] = params[key]
+      }
+    })
 
     return firstValueFrom(
       this.http.get(`${this.serviceUrl}/${entitySlug}`, {
