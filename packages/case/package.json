@@ -1,6 +1,6 @@
 {
   "name": "@casejs/case",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "description": "Backend as a service for developers.",
   "main": "server/src/index.js",
   "types": "server/src/index.d.ts",
