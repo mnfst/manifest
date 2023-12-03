@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/casejs/case#readme",
   "dependencies": {
+    "axios": "^1.6.2",
     "chalk": "^4.1.2",
     "execa": "^7.2.0",
     "fs": "^0.0.1-security",

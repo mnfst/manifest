@@ -10,6 +10,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
 import { AuthModule } from './auth/auth.module'
 import { CrudModule } from './crud/crud.module'
+import { HealthModule } from './health/health.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -65,7 +66,7 @@ async function bootstrap() {
     .build()
 
   const document = SwaggerModule.createDocument(app, config, {
-    include: [CrudModule, AuthModule]
+    include: [CrudModule, AuthModule, HealthModule]
   })
   SwaggerModule.setup('api', app, document, {
     customCss: '.swagger-ui .topbar { display: none }',
