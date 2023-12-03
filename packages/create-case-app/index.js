@@ -25,8 +25,7 @@ async function waitForServerToBeReady() {
   while (!serverReady) {
     serverReady = await isServerReady()
     if (!serverReady) {
-      console.log('Waiting for server to be ready...')
-      await new Promise((resolve) => setTimeout(resolve, 5000)) // Wait for 5 seconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s before retrying
     }
   }
 }
