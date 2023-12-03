@@ -1,6 +1,6 @@
 {
   "name": "create-case-app",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Generate a new CASE app",
   "bin": "index.js",
   "scripts": {
