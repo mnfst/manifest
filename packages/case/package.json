@@ -1,12 +1,12 @@
 {
   "name": "@casejs/case",
-  "version": "3.0.2",
+  "version": "3.0.5",
   "description": "Backend as a service for developers.",
   "main": "server/src/index.js",
   "types": "server/src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cd server && npm i && npm run build && cd .. && cp package.json server/dist/package.json && cd client && npm i && npm run build"
+    "build": "cd server && npm i && npm run build && cd .. && cp package.json server/dist/package.json && cp ../../README.md server/dist/README.md && cd client && npm i && npm run build "
   },
   "repository": {
     "type": "git",
