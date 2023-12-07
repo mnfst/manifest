@@ -40,36 +40,21 @@ It provides a complete backend to your client app without the hassle that comes 
 - 🧠 **Smart SDK** to import in your favorite JS front-end
 - 🛠️ **Essential features** like Auth, Storage, Validation and Hooks
 
-## Data-first
+## Forget about drag-and-drop visual builders
 
-CASE follows a data-first approach: you describe your data using Typescript and the backend builds itself around it. Adding the few lines below generate the app in the screenshot above.
+With CASE, you structure your data using TypeScript classes straight from your coding environment.
 
 ```js
-// cat.entity.ts
-
+// entities/cat.entity.ts
 @Entity()
 export class Cat extends BaseEntity {
   @Prop()
   name: string
 
   @Prop({
-    type: PropType.Enum,
-    options: {
-      enum: Breed
-    }
-  })
-  breed: Breed
-
-  @Prop({
-    type: PropType.Number
-  })
-  age: number
-
-  @Prop({
     type: PropType.Date
-    label: 'Arriving date'
   })
-  arrivingDate: Date
+  birthDate: Date
 
   @Prop({
     type: PropType.Relation,
@@ -81,33 +66,37 @@ export class Cat extends BaseEntity {
 }
 ```
 
-And allow the following code in your JS client built with your favorite stack:
+## Effortless integration in your client app
+
+And allow the following code in your JS client built with your favorite stack: [React](https://docs.case.app/connect/react), [Svelte](https://docs.case.app/connect/svelte), [Angular](https://docs.case.app/connect/angular), [Vue](https://docs.case.app/connect/vue) or any front-end. You can even use it in NodeJS.
 
 ```js
-// Any file in your own client app.
-
 import CaseClient from '@casejs/case-client'
 
+// Init SDK
 const cs = new CaseClient()
 
-await cs.login('users', 'user1@case.app', 'case')
+// Get all cats with their owner
+const cats = await cs.from('cats').with(['owner']).find()
 
-const cats = await cs.from('cats').find()
-
+// Filter cats.
 const cats = await cs
   .from('cats')
   .where('breed = siamese')
   .andWhere('birthDate > 2020-01-01')
   .find()
 
+// Create a new cat.
 const newCat = await cs.from('cats').create({
   name: 'Milo',
   age: 2
 })
 
+// Upload.
 const fileUrl: string = await cs.from('cats').addFile(file)
 
-await client.logout()
+// Login.
+await cs.login('users', 'user1@case.app', 'case')
 ```
 
 ## Getting started

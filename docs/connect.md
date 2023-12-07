@@ -109,3 +109,12 @@ await cs.signup('authors', 'william@shakespeare.com', 'hamlet')
 // Logout
 await client.logout()
 ```
+
+## Get started with your favorite front-end framework
+
+See the following quick start guides to integrate CASE with popular front-end frameworks:
+
+- [Get started with React](connect/react.md)
+- [Get started with Svelte](connect/svelte.md)
+- [Get started with Angular](connect/angular.md)
+- [Get started with Vue](connect/vue.md)
