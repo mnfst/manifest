@@ -18,10 +18,10 @@
   - [Hooks](hooks.md)
   - [Auth](auth.md)
   - [API policies](api-policies.md)
-  - [Start with React](connect/react.md)
-  - [Start with Svelte](connect/svelte.md)
-  - [Start with Angular](connect/angular.md)
-  - [Start with Vue](connect/vue.md)
+  - [Start with React](react.md)
+  - [Start with Svelte](svelte.md)
+  - [Start with Angular](angular.md)
+  - [Start with Vue](vue.md)
 
 - Deploy
   - [Going to production](going-to-production.md)
