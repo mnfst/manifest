@@ -114,7 +114,7 @@ await client.logout()
 
 See the following quick start guides to integrate CASE with popular front-end frameworks:
 
-- [Get started with React](connect/react.md)
-- [Get started with Svelte](connect/svelte.md)
-- [Get started with Angular](connect/angular.md)
-- [Get started with Vue](connect/vue.md)
+- [Get started with React](react.md)
+- [Get started with Svelte](svelte.md)
+- [Get started with Angular](angular.md)
+- [Get started with Vue](vue.md)
