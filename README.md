@@ -113,13 +113,6 @@ Run the following on your terminal replacing `my-case-app` with your app's name:
 npx create-case-app my-case-app
 ```
 
-Then serve the app locally:
-
-```
-cd my-case-app
-npm start
-```
-
 🎉 **Your backend is ready !**
 <br>
 <br>You can now:

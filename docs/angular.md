@@ -65,6 +65,8 @@ And in the template:
 </ul>
 ```
 
+Checkout the [SDK doc](connect.md) to see more usages of the SDK: CRUD operations, file upload, authentication,
+
 > [!Tip]
 
 > Otherwise you can start from our [Angular + CASE example repository](https://github.com/casejs/front-end-starters)
