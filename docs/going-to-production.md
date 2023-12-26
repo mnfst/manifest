@@ -20,7 +20,7 @@ NODE_ENV=production
 And then launch the following task with a task manager like [pm2](https://pm2.keymetrics.io/) or [systemd](https://systemd.io/):
 
 ```
-npm start:prod
+npm run start:prod
 ```
 
 ## NGINX Config
