@@ -326,9 +326,9 @@ The Enum type allows users to choose from a set of constants that you define, li
 ```js
 // enums/project-status.enum.ts
 export enum ProjectStatus {
-  Pending = 'Pending'
+  Pending = 'Pending',
   Signed = 'Signed',
-  WorkInProgress = 'Work in progress'
+  WorkInProgress = 'Work in progress',
   Inactive = 'Inactive',
   Archived = 'Archived',
 }
