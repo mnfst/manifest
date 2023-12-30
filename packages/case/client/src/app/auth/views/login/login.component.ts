@@ -48,13 +48,13 @@ export class LoginComponent implements OnInit {
     ]).subscribe(([appConfig, queryParams]: [AppConfig, Params]) => {
       this.appConfig = appConfig
 
-      if (queryParams['email']) {
+      if (queryParams['email'].length>0) {
         this.suggestedEmail = queryParams['email']
       } else if (!this.appConfig.production) {
         this.suggestedEmail = this.defaultUser.email
       }
 
-      if (queryParams['password']) {
+      if (queryParams['password'].length>0) {
         this.suggestedPassword = queryParams['password']
       } else if (!this.appConfig.production) {
         this.suggestedPassword = this.defaultUser.password
