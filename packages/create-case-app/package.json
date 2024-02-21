@@ -9,7 +9,8 @@
     "@oclif/plugin-plugins": "^4",
     "chalk": "^5.3.0",
     "fs": "^0.0.1-security",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "url": "^0.11.3"
   },
   "description": "oclif example Hello World CLI (ESM)",
   "devDependencies": {
@@ -42,9 +43,10 @@
   "main": "",
   "name": "create-case-app",
   "oclif": {
+    "default": ".",
     "bin": "create-case-app",
     "dirname": "create-case-app",
-    "commands": "./dist/commands",
+    "commands": "./dist",
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"
