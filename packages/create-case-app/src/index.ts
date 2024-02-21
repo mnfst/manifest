@@ -3,12 +3,16 @@ import chalk from 'chalk'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { updatePackageJsonFile } from './utils/UpdatePackageJsonFile.js'
 
 export class MyCommand extends Command {
   static description = 'description of this example command'
 
   async run(): Promise<void> {
     const folderName = 'case'
+    const initialFileName = 'case.yml'
+    const __dirname = path.dirname(fileURLToPath(import.meta.url))
+    const assetFolderPath = path.join(__dirname, '..', 'assets')
 
     try {
       // Construct the folder path. This example creates the folder in the current working directory.
@@ -27,29 +31,49 @@ export class MyCommand extends Command {
             `The ${folderName} folder already exists in the current directory. Please remove it and try again.`
           )
         )
+        process.exit(1)
       }
 
-      // Create a file in the folder.
-
-      // Path to the asset file you want to copy
-
-      const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-      const assetFilePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'assets',
-        'case.yml'
-      )
       // Path where the new file should be created
-      const newFilePath = path.join(folderPath, 'newFile.txt')
+      const newFilePath = path.join(folderPath, initialFileName)
 
       // Read the content from the asset file
-      const content = fs.readFileSync(assetFilePath, 'utf8')
+      const content = fs.readFileSync(
+        path.join(assetFolderPath, initialFileName),
+        'utf8'
+      )
 
       // Write the content to the new file
       fs.writeFileSync(newFilePath, content)
+
+      // Update package.json file.
+      const packagePath = path.join(process.cwd(), 'package.json')
+      let packageJson
+
+      if (fs.existsSync(packagePath)) {
+        packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'))
+      } else {
+        packageJson = JSON.parse(
+          fs.readFileSync(
+            path.join(assetFolderPath, 'default-package.json'),
+            'utf8'
+          )
+        )
+      }
+
+      // TODO: Replace the packages and scripts by the real ones.
+      fs.writeFileSync(
+        packagePath,
+        updatePackageJsonFile({
+          fileContent: packageJson,
+          newPackages: {
+            '@casejs/case': 'latest'
+          },
+          newScripts: {
+            case: 'case'
+          }
+        })
+      )
     } catch (error) {
       this.error(`Error creating folder: ${error}`)
     }
