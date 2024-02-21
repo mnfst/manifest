@@ -3,11 +3,25 @@ import chalk from 'chalk'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { updateExtensionJsonFile } from './utils/UpdateExtensionJsonFile.js'
 import { updatePackageJsonFile } from './utils/UpdatePackageJsonFile.js'
+import { updateSettingsJsonFile } from './utils/UpdateSettingsJsonFile.js'
 
 export class MyCommand extends Command {
   static description = 'description of this example command'
 
+  /**
+   * The run method is called when the command is run.
+   * Steps:
+   * 1. Create a folder with the name `case`.
+   * 2. Create a file inside the folder with the name `case.yml`.
+   * 3. Update the `package.json` file with the new packages and scripts.
+   * 4. Update the .vscode/extensions.json file with the recommended extensions.
+   * 5. Update the .vscode/settings.json file with the recommended settings.
+   * 6. Update the .gitignore file with the recommended settings.
+   * 7. Install the new packages.
+   * 8. Serve the new app.
+   */
   async run(): Promise<void> {
     const folderName = 'case'
     const initialFileName = 'case.yml'
@@ -74,8 +88,62 @@ export class MyCommand extends Command {
           }
         })
       )
+
+      // Update .vscode/extensions.json file.
+      const vscodeDirPath = path.join(process.cwd(), '.vscode')
+      const extensionsFilePath = path.join(vscodeDirPath, 'extensions.json')
+      let extensionsJson
+
+      //  Ensure the `.vscode` Directory Exists
+      if (!fs.existsSync(vscodeDirPath)) {
+        fs.mkdirSync(vscodeDirPath)
+      }
+
+      // Read or Initialize `extensions.json`
+      if (fs.existsSync(extensionsFilePath)) {
+        extensionsJson = JSON.parse(fs.readFileSync(extensionsFilePath, 'utf8'))
+      } else {
+        extensionsJson = { recommendations: [] }
+      }
+
+      fs.writeFileSync(
+        extensionsFilePath,
+        updateExtensionJsonFile({
+          fileContent: extensionsJson,
+          newExtensions: ['redhat.vscode-yaml']
+        })
+      )
+
+      // Update .vscode/extensions.json file.
+      const settingsFilePath = path.join(vscodeDirPath, 'settings.json')
+      let settingsJson
+
+      // Read or Initialize `settings.json`
+      if (fs.existsSync(settingsFilePath)) {
+        settingsJson = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'))
+      } else {
+        settingsJson = {}
+      }
+
+      fs.writeFileSync(
+        settingsFilePath,
+        updateSettingsJsonFile({
+          fileContent: settingsJson,
+          newSettings: {
+            'yaml.schemas': {
+              'schema.json': ['case/*.yml', 'case/*.yaml']
+            }
+          }
+        })
+      )
+
+      // TODO: Update the .gitignore file with the recommended settings.
+
+      // TODO: Install the new packages.
+
+      // TODO: Serve the new app.
     } catch (error) {
-      this.error(`Error creating folder: ${error}`)
+      this.error(`Error running the command: ${error}`)
     }
   }
 }
