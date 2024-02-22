@@ -1,14 +1,18 @@
-import { Command } from '@oclif/core'
+import { Command, ux } from '@oclif/core'
 import chalk from 'chalk'
+import { exec as execCp } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import { updateExtensionJsonFile } from './utils/UpdateExtensionJsonFile.js'
-import { updatePackageJsonFile } from './utils/UpdatePackageJsonFile.js'
-import { updateSettingsJsonFile } from './utils/UpdateSettingsJsonFile.js'
+import { promisify } from 'util'
+import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
+import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
+import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
+
+const exec = promisify(execCp)
 
 export class MyCommand extends Command {
-  static description = 'description of this example command'
+  static description = 'Adds CASE to your project.'
 
   /**
    * The run method is called when the command is run.
@@ -29,6 +33,8 @@ export class MyCommand extends Command {
     const assetFolderPath = path.join(__dirname, '..', 'assets')
 
     try {
+      ux.action.start('Adding CASE to your project...')
+
       // Construct the folder path. This example creates the folder in the current working directory.
       const folderPath = path.join(process.cwd(), folderName)
 
@@ -60,6 +66,9 @@ export class MyCommand extends Command {
       // Write the content to the new file
       fs.writeFileSync(newFilePath, content)
 
+      ux.action.stop()
+      ux.action.start('Updating package.json file...')
+
       // Update package.json file.
       const packagePath = path.join(process.cwd(), 'package.json')
       let packageJson
@@ -81,13 +90,16 @@ export class MyCommand extends Command {
         updatePackageJsonFile({
           fileContent: packageJson,
           newPackages: {
-            '@casejs/case': 'latest'
+            '@casejs/types': 'latest' // Random package.
           },
           newScripts: {
-            case: 'case'
+            case: 'node case.js'
           }
         })
       )
+
+      ux.action.stop()
+      ux.action.start('Adding settings...')
 
       // Update .vscode/extensions.json file.
       const vscodeDirPath = path.join(process.cwd(), '.vscode')
@@ -137,13 +149,54 @@ export class MyCommand extends Command {
         })
       )
 
-      // TODO: Update the .gitignore file with the recommended settings.
+      // Update the .gitignore file with the recommended settings.
+      const gitignorePath = path.join(process.cwd(), '.gitignore')
+      let gitignoreContent = ''
 
-      // TODO: Install the new packages.
+      if (fs.existsSync(gitignorePath)) {
+        gitignoreContent = fs.readFileSync(gitignorePath, 'utf8')
+      }
 
-      // TODO: Serve the new app.
+      if (!gitignoreContent.includes('node_modules')) {
+        gitignoreContent += '\nnode_modules'
+      }
+
+      if (!gitignoreContent.includes('.vscode')) {
+        gitignoreContent += '\n.vscode'
+      }
+
+      fs.writeFileSync(gitignorePath, gitignoreContent)
+
+      ux.action.stop()
+      ux.action.start('Installing dependencies...')
+
+      // Install deps.
+      try {
+        const { stdout, stderr } = await exec('npm install')
+        if (stderr) {
+          this.log(`stderr: ${stderr}`)
+        }
+        this.log(`stdout: ${stdout}`)
+        this.log('npm install completed successfully!')
+      } catch (error) {
+        this.error(`Execution error: ${error}`)
+      }
+
+      //  Serve the new app.
+      ux.action.stop()
+
+      try {
+        const { stdout, stderr } = await exec('npm run case')
+        if (stderr) {
+          this.log(`stderr: ${stderr}`)
+        }
+        this.log(`stdout: ${stdout}`)
+        this.log('npm install completed successfully!')
+      } catch (error) {
+        this.error(`Execution error: ${error}`)
+      }
     } catch (error) {
-      this.error(`Error running the command: ${error}`)
+      this.error(`Error: ${error}`)
     }
   }
 }

@@ -43,10 +43,9 @@
   "main": "",
   "name": "create-case-app",
   "oclif": {
-    "default": ".",
     "bin": "create-case-app",
     "dirname": "create-case-app",
-    "commands": "./dist",
+    "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"
