@@ -52,8 +52,8 @@
     ],
     "topicSeparator": " ",
     "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
+      "create": {
+        "description": "Add CASE to your app"
       }
     }
   },

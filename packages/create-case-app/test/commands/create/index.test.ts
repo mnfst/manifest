@@ -1,5 +1,7 @@
 import { expect, test } from '@oclif/test'
 
+// FIXME: This test is not working as the command "create" is not found.
+
 describe('MyCommand', () => {
   test
     .stdout()
