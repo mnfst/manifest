@@ -1,5 +1,5 @@
 {
-  "author": "Bruno @brunobuddy",
+  "author": "CASE",
   "bin": {
     "create-case-app": "./bin/run.js"
   },
@@ -12,7 +12,7 @@
     "path": "^0.12.7",
     "url": "^0.11.3"
   },
-  "description": "oclif example Hello World CLI (ESM)",
+  "description": "Create CASE app",
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
@@ -68,7 +68,7 @@
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "bugs": "https://github.com/brunobuddy/create-case-app/issues",
   "keywords": [
     "oclif"
