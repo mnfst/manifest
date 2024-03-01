@@ -1,35 +1,79 @@
 {
-  "name": "create-case-app",
-  "version": "0.0.12",
-  "description": "Generate a new CASE app",
-  "bin": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/casejs/case.git"
-  },
-  "keywords": [
-    "case",
-    "starter",
-    "generate",
-    "case",
-    "app"
-  ],
   "author": "CASE",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/casejs/case/issues"
+  "bin": {
+    "create-case-app": "./bin/run.js"
   },
-  "homepage": "https://github.com/casejs/case#readme",
   "dependencies": {
-    "axios": "^1.6.2",
-    "chalk": "^4.1.2",
-    "execa": "^7.2.0",
+    "@oclif/core": "^3",
+    "@oclif/plugin-help": "^6",
+    "@oclif/plugin-plugins": "^4",
+    "chalk": "^5.3.0",
     "fs": "^0.0.1-security",
-    "open": "^9.1.0",
-    "ora": "^6.3.1"
+    "path": "^0.12.7",
+    "url": "^0.11.3"
   },
+  "description": "Create CASE app",
+  "devDependencies": {
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^3",
+    "@types/chai": "^4",
+    "@types/mocha": "^10",
+    "@types/node": "^18",
+    "chai": "^4",
+    "eslint": "^8",
+    "eslint-config-oclif": "^5",
+    "eslint-config-oclif-typescript": "^3",
+    "eslint-config-prettier": "^9.1.0",
+    "mocha": "^10",
+    "oclif": "^4.4.12",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "/bin",
+    "/dist",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/brunobuddy/create-case-app",
+  "license": "MIT",
+  "main": "",
+  "name": "create-case-app",
+  "oclif": {
+    "bin": "create-case-app",
+    "dirname": "create-case-app",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "create": {
+        "description": "Add CASE to your app"
+      }
+    }
+  },
+  "repository": "brunobuddy/create-case-app",
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "lint": "eslint . --ext .ts",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "npm run lint",
+    "prepack": "npm run build && oclif manifest && oclif readme",
+    "prepare": "npm run build",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "version": "0.1.0",
+  "bugs": "https://github.com/brunobuddy/create-case-app/issues",
+  "keywords": [
+    "oclif"
+  ],
+  "types": "dist/index.d.ts",
+  "exports": "./lib/index.js",
   "type": "module"
 }

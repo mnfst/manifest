@@ -1,0 +1,13 @@
+**/.DS_Store
+*-debug.log
+*-error.log
+/.idea
+/.nyc_output
+/dist
+/lib
+/package-lock.json
+/tmp
+/yarn.lock
+node_modules
+oclif.lock
+oclif.manifest.json
