@@ -1,4 +1,8 @@
 {
+  "yaml.schemas": {
+    "./packages/case-schema/app-schema.json": "packages/case-schema/**/*.yml"
+  },
+
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#fde56f",
     "activityBar.activeBorder": "#699675",
@@ -44,6 +48,7 @@
     "search": "utils",
     "schematics": "batch",
     "case-client": "angular",
+    "case-schema": "class",
     "case": "src",
     "case-types": "typescript",
     "create-case-app": "scripts"

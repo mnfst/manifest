@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://case.app/schemas/app.json",
+  "title": "App",
+  "description": "A CASE app",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The name of your app",
+      "type": "string"
+    }
+  },
+  "required": ["name"]
+}
