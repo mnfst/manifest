@@ -31,6 +31,20 @@
       "additionalProperties": {
         "$ref": "property-schema.json"
       }
+    },
+    "hasMany": {
+      "description": "The hasMany relationships of the entity. Doc: https://docs.case.app/relationships",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "relationship-schema.json"
+      }
+    },
+    "belongsTo": {
+      "description": "The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "relationship-schema.json"
+      }
     }
   }
 }

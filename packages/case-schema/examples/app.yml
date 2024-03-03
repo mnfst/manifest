@@ -16,6 +16,13 @@ entities:
       price:
         type: money
         currency: USD
+    hasMany:
+      comments: { type: Comment, eager: true }
 
   Comment:
     seedCount: 100
+    belongsTo:
+      post: { type: Post }
+    properties:
+      body: { type: text }
+      price: { type: money, currency: JPY }
