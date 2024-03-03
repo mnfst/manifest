@@ -26,6 +26,14 @@
     "faker": {
       "description": "The faker function to generate the property value. Doc: https://docs.case.app/property-types?id=faker",
       "type": "string"
+    },
+    "validation": {
+      "description": "The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][^\\s]*\\(.*\\)$"
+      }
     }
   },
   "allOf": [

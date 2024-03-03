@@ -7,6 +7,12 @@ entities:
     properties:
       title:
         type: text
+        faker: lorem.sentence
+        fakerArgs:
+          wordCount: 4
+        validation:
+          - IsString()
+          - IsNotEmpty()
       status:
         type: choice
         choices:
@@ -16,6 +22,7 @@ entities:
       price:
         type: money
         currency: USD
+        faker: finance.amount
     hasMany:
       comments: { type: Comment, eager: true }
 
@@ -24,5 +31,5 @@ entities:
     belongsTo:
       post: { type: Post }
     properties:
-      body: { type: text }
+      body: { type: text, validation: [IsNotEmpty(), MinLength(10)] }
       price: { type: money, currency: JPY }
