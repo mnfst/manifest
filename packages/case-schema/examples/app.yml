@@ -1,0 +1,35 @@
+name: my CASE app
+
+entities:
+  Post:
+    nameSingular: post
+    namePlural: post
+    properties:
+      title:
+        type: text
+        faker: lorem.sentence
+        fakerArgs:
+          wordCount: 4
+        validation:
+          - IsString()
+          - IsNotEmpty()
+      status:
+        type: choice
+        choices:
+          - draft
+          - published
+        sequential: true
+      price:
+        type: money
+        currency: USD
+        faker: finance.amount
+    hasMany:
+      comments: { type: Comment, eager: true }
+
+  Comment:
+    seedCount: 100
+    belongsTo:
+      post: { type: Post }
+    properties:
+      body: { type: text, validation: [IsNotEmpty(), MinLength(10)] }
+      price: { type: money, currency: JPY }

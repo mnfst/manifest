@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://case.app/schemas/entity-schema.json",
+  "title": "Entity",
+  "description": "An entity in the system",
+  "type": "object",
+  "properties": {
+    "nameSingular": {
+      "description": "The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase class name.",
+      "type": "string"
+    },
+    "namePlural": {
+      "description": "The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase class name.",
+      "type": "string"
+    },
+    "slug": {
+      "description": "The kebab-case slug of the entity that will define API endpoints. Default: plural dasherized name.",
+      "type": "string"
+    },
+    "mainProp": {
+      "description": "The main prop of the entity. Used widely on the admin panel. Default: first string field.",
+      "type": "string"
+    },
+    "seedCount": {
+      "description": "The number of entities to seed when running the seed command. Default: 50.",
+      "type": "integer"
+    },
+    "properties": {
+      "description": "The properties of the entity. Doc: https://docs.case.app/properties",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "property-schema.json"
+      }
+    },
+    "hasMany": {
+      "description": "The hasMany relationships of the entity. Doc: https://docs.case.app/relationships",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "relationship-schema.json"
+      }
+    },
+    "belongsTo": {
+      "description": "The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "relationship-schema.json"
+      }
+    }
+  }
+}
