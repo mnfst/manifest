@@ -1,9 +1,21 @@
 name: my CASE app
 
 entities:
-  User:
-    name: test
-    description: users
+  Post:
+    nameSingular: post
+    namePlural: post
+    properties:
+      title:
+        type: text
+      status:
+        type: choice
+        choices:
+          - draft
+          - published
+        sequential: true
+      price:
+        type: money
+        currency: USD
 
-  Role:
-    name: test
+  Comment:
+    seedCount: 100

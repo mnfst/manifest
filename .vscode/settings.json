@@ -1,6 +1,6 @@
 {
   "yaml.schemas": {
-    "./packages/case-schema/app-schema.json": "packages/case-schema/**/*.yml"
+    "./packages/case-schema/schema/app-schema.json": "packages/case-schema/**/*.yml"
   },
 
   "workbench.colorCustomizations": {

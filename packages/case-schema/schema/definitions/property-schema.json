@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://case.app/schemas/property-schema.json",
+  "title": "Property",
+  "description": "A property in your entity. Doc: https://docs.case.app/properties",
+  "type": "object",
+  "properties": {
+    "type": {
+      "description": "The type of the property: text, number, link, currency... Doc: https://docs.case.app/property-types",
+      "type": "string",
+      "enum": [
+        "text",
+        "number",
+        "link",
+        "money",
+        "date",
+        "textarea",
+        "email",
+        "boolean",
+        "relation",
+        "password",
+        "choice",
+        "location"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "choice"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "choices": {
+            "description": "The list of choices for the property. Doc: https://docs.case.app/property-types?id=choice",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sequential": {
+            "description": "## Sequential\n If the choices should be sequential or not (each item in the list follows the previous one).\n Used for admin panel display.\n . \n Doc: https://docs.case.app/property-types?id=choice",
+            "type": "boolean"
+          }
+        },
+        "required": ["choices"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "money"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "currency": {
+            "description": "The currency in ISO 4217 format. Ex: EUR, INR, USD, CNY...\n Default USD. \n Doc: https://docs.case.app/property-types?id=money",
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}
