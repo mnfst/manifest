@@ -1,1 +1,9 @@
-name: tes
+name: my CASE app
+
+entities:
+  User:
+    name: test
+    description: users
+
+  Role:
+    name: test

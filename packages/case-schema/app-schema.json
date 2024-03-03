@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://case.app/schemas/app.json",
+  "$id": "https://case.app/schemas/app-schema.json",
   "title": "App",
   "description": "A CASE app",
   "type": "object",
@@ -8,6 +8,13 @@
     "name": {
       "description": "The name of your app",
       "type": "string"
+    },
+    "entities": {
+      "description": "The entities in your app. Doc: https://docs.case.app/entities",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "definitions/entity-schema.json"
+      }
     }
   },
   "required": ["name"]
