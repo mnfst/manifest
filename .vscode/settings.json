@@ -1,8 +1,7 @@
 {
   "yaml.schemas": {
-    "./packages/core/schema/app-schema.json": "examples/**/*.yml"
+    "./packages/core/schema/schema/app-schema.json": "examples/**/**/*.yml"
   },
-
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#fde56f",
     "activityBar.activeBorder": "#699675",

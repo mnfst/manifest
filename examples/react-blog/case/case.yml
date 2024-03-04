@@ -1,1 +1,6 @@
 name: React-blog backend with CASE
+
+entities:
+  Post:
+    properties:
+      title: { type: text }
