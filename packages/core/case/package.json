@@ -10,6 +10,9 @@
   },
   "author": "",
   "license": "ISC",
+  "files": [
+    "dist/"
+  ],
   "dependencies": {
     "@types/js-yaml": "^4.0.9",
     "fs": "^0.0.1-security",
