@@ -14,12 +14,17 @@
     "dist/"
   ],
   "dependencies": {
-    "@types/js-yaml": "^4.0.9",
+    "@casejs/json-schema": "^0.0.1",
+    "ajv": "^8.12.0",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
     "nodemon": "^3.1.0",
     "path": "^0.12.7",
     "typescript": "^5.3.3",
     "url": "^0.11.3"
+  },
+  "devDependencies": {
+    "@types/ajv": "^1.0.0",
+    "@types/js-yaml": "^4.0.9"
   }
 }

@@ -1,0 +1,20 @@
+{
+  "name": "@casejs/json-schema",
+  "version": "0.0.1",
+  "description": "JSON Schema for CASE YAML files.",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "json",
+    "schema"
+  ],
+  "author": "CASE",
+  "license": "MIT",
+  "files": [
+    "schema/"
+  ]
+}
