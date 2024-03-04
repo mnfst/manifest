@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "start": "ts-node --compilerOptions '{\"resolveJsonModule\":true}' index.ts",
-    "watch": "nodemon",
     "build": "tsc",
+    "watch": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
