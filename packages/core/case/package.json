@@ -1,0 +1,22 @@
+{
+  "name": "@casejs/case",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "start": "ts-node --compilerOptions '{\"resolveJsonModule\":true}' index.ts",
+    "watch": "nodemon",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "fs": "^0.0.1-security",
+    "js-yaml": "^4.1.0",
+    "nodemon": "^3.1.0",
+    "path": "^0.12.7",
+    "typescript": "^5.3.3",
+    "url": "^0.11.3"
+  }
+}
