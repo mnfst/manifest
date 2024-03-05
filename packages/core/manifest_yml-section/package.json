@@ -1,0 +1,31 @@
+{
+  "name": "@manifest-yml/manifest",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "start": "ts-node --compilerOptions '{\"resolveJsonModule\":true}' index.ts",
+    "build": "tsc && npm run copy-schemas",
+    "copy-schemas": "cp -R src/json-schema dist/",
+    "watch": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "files": [
+    "dist/"
+  ],
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "fs": "^0.0.1-security",
+    "js-yaml": "^4.1.0",
+    "nodemon": "^3.1.0",
+    "path": "^0.12.7",
+    "typescript": "^5.3.3",
+    "url": "^0.11.3"
+  },
+  "devDependencies": {
+    "@types/ajv": "^1.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "copyfiles": "^2.4.1"
+  }
+}
