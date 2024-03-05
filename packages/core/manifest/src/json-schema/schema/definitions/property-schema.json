@@ -83,6 +83,7 @@
       "if": {
         "properties": {
           "faker": {
+            "type": "string",
             "minLength": 1
           }
         }

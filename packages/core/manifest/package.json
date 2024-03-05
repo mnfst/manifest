@@ -15,7 +15,6 @@
     "dist/"
   ],
   "dependencies": {
-    "@casejs/json-schema": "^0.0.1",
     "ajv": "^8.12.0",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
