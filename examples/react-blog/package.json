@@ -18,7 +18,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "manifest": "node node_modules/@manifest-yml/manifest/dist/index.js"
+    "manifest": "node node_modules/@manifest-yml/manifest/dist/main.js"
   },
   "eslintConfig": {
     "extends": [
