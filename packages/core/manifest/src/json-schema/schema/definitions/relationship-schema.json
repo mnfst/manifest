@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://case.app/schemas/relationship-schema.json",
+  "$id": "https://manifest.build/schemas/definitions/relationship-schema.json",
   "title": "Relationship",
   "description": "A relationship between two entities",
   "type": "object",

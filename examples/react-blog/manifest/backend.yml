@@ -1,0 +1,11 @@
+name: React-blog backend with MANIFEST
+
+entities:
+  Post:
+    properties:
+      title: { type: text }
+      content:
+        type: text
+        validation:
+          - IsNotEmpty()
+          - MinLength(10)

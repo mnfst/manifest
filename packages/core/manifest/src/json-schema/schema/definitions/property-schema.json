@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://case.app/schemas/property-schema.json",
+  "$id": "https://manifest.build/schemas/definitions/property-schema.json",
   "title": "Property",
   "description": "A property in your entity. Doc: https://docs.case.app/properties",
   "type": "object",
