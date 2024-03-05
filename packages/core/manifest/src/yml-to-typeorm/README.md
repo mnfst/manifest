@@ -1,6 +1,6 @@
-# YML folder
+# YML to TypeORM
 
-This folder includes everything related to YML and the conversion of YML to TS/JS.
+This folder includes everything related to the conversion from YML to TypeORM entities. It includes validation.
 
 ## Index.ts
 

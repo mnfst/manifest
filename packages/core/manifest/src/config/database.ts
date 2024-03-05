@@ -1,14 +1,12 @@
-import { getEntities } from '../yml'
-
 export default () => {
   // TODO: Join the YML section here.
 
-  const entities = getEntities()
+  // const entities = getEntities()
 
   return {
     database: {
       type: 'sqlite',
-      database: `${process.cwd()}/manifest/db/case.sqlite`,
+      database: `${process.cwd()}/manifest/manifest.db`,
       synchronize: true,
       entities: []
     }
