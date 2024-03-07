@@ -9,7 +9,6 @@ import { AppConfigModule } from './app-config/app-config.module'
 import { AuthModule } from './auth/auth.module'
 import configuration from './configuration'
 import { CrudModule } from './crud/crud.module'
-import { FileUploadModule } from './file-upload/file-upload.module'
 import { HealthModule } from './health/health.module'
 
 const contributionMode: boolean = process.argv[2] === 'contribution'
@@ -31,7 +30,6 @@ const contributionMode: boolean = process.argv[2] === 'contribution'
     }),
     CrudModule,
     AuthModule,
-    FileUploadModule,
     AppConfigModule,
     HealthModule
   ]
