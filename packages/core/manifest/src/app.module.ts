@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { EntitySchema } from 'typeorm'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import databaseConfig from './config/database'
 import yamlConfig from './config/yaml'
@@ -25,11 +26,9 @@ import { ManifestModule } from './manifest/manifest.module'
         const databaseConfig: SqliteConnectionOptions =
           configService.get('database')
 
-        const entities = entityLoaderService.loadEntities()
+        const entities: EntitySchema[] = entityLoaderService.loadEntities()
 
-        console.log(entities)
-
-        return databaseConfig
+        return Object.assign(databaseConfig, { entities })
       },
       inject: [ConfigService, EntityLoaderService]
     }),

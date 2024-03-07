@@ -21,7 +21,7 @@ export class ManifestService {
     return manifest
   }
 
-  loadEntities(): any[] {
+  loadEntities() {
     const manifest = this.load()
 
     return manifest['entities']

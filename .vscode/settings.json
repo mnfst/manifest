@@ -1,6 +1,6 @@
 {
   "yaml.schemas": {
-    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "examples/**/**/*.yml"
+    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "**/manifest/**/*.yml"
   },
 
   "workbench.colorCustomizations": {

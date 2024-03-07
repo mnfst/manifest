@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common'
+import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
+import { baseEntity } from '../../entities/base-entity'
 
 @Injectable()
 export class EntityLoaderService {
@@ -12,16 +14,35 @@ export class EntityLoaderService {
    *
    **/
   loadEntities() {
-    const appManifest = this.manifestService.loadEntities()
+    const manifestEntities: {
+      [key: string]: {
+        properties: {
+          [key: string]: string
+        }
+      }
+    } = this.manifestService.loadEntities()
 
-    // Load entities from YML file
+    const entities: EntitySchema[] = Object.entries(manifestEntities).map(
+      ([name, description]) => {
+        const entity = new EntitySchema({
+          name,
+          columns: Object.entries(description.properties).reduce(
+            (acc: any, [propName, propDescription]) => {
+              acc[propName] = {
+                name: propName,
+                type: String
+              } as EntitySchemaColumnOptions
 
-    // Validate entities against schema
+              return acc
+            },
+            baseEntity
+          )
+        })
 
-    // Convert into TypeORM entities
+        return entity
+      }
+    )
 
-    // Return entities
-
-    return appManifest
+    return entities
   }
 }

@@ -24,12 +24,12 @@ entities:
         currency: USD
         faker: finance.amount
     hasMany:
-      comments: { type: Comment, eager: true }
+      comments: { entity: Comment, eager: true }
 
   Comment:
     seedCount: 100
     belongsTo:
-      post: { type: Post }
+      post: { entity: Post }
     properties:
       body: { type: text, validation: [IsNotEmpty(), MinLength(10)] }
       price: { type: money, currency: JPY }

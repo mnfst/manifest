@@ -7,8 +7,6 @@ import schemas from '../../json-schema'
 @Injectable()
 export class SchemaService {
   validate(manifest: any): boolean {
-    console.log('manifest', manifest)
-
     const manifestSchema = schemas[0]
 
     let validate: any = new Ajv({

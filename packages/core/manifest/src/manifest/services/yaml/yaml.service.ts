@@ -13,7 +13,6 @@ export class YamlService {
 
   load(): Object {
     this.yamlConfig = this.configService.get('yaml')
-    console.log('Loading Yaml file from: ', this.yamlConfig['filePath'])
 
     const fileContent: string = fs.readFileSync(
       `${process.cwd()}/manifest/backend.yml`,
