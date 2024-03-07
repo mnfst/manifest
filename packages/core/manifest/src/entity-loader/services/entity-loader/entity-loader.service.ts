@@ -35,7 +35,7 @@ export class EntityLoaderService {
 
               return acc
             },
-            baseEntity
+            { ...baseEntity }
           )
         })
 
