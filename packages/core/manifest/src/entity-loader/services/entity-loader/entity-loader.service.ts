@@ -1,7 +1,9 @@
+import { PropType } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
 import { baseEntity } from '../../entities/base-entity'
+import { propTypeCharacteristicsRecord } from '../../records/prop-type-characteristics.record'
 
 @Injectable()
 export class EntityLoaderService {
@@ -17,7 +19,7 @@ export class EntityLoaderService {
     const manifestEntities: {
       [key: string]: {
         properties: {
-          [key: string]: string
+          [key: string]: { type: PropType }
         }
       }
     } = this.manifestService.loadEntities()
@@ -27,10 +29,14 @@ export class EntityLoaderService {
         const entity = new EntitySchema({
           name,
           columns: Object.entries(description.properties).reduce(
-            (acc: any, [propName, propDescription]) => {
+            (
+              acc: any,
+              [propName, propDescription]: [string, { type: PropType }]
+            ) => {
               acc[propName] = {
                 name: propName,
-                type: String
+                type: propTypeCharacteristicsRecord[propDescription.type]
+                  .columnType
               } as EntitySchemaColumnOptions
 
               return acc

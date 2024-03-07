@@ -9,12 +9,12 @@
       "description": "The type of the property: text, number, link, currency... Doc: https://docs.case.app/property-types",
       "type": "string",
       "enum": [
+        "string",
         "text",
         "number",
         "link",
         "money",
         "date",
-        "textarea",
         "email",
         "boolean",
         "relation",
