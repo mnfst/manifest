@@ -1,7 +1,8 @@
 {
   "yaml.schemas": {
-    "./packages/core/manifest/src/json-schema/schema/manifest-schema.json": "examples/**/**/*.yml"
+    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "examples/**/**/*.yml"
   },
+
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#fde56f",
     "activityBar.activeBorder": "#699675",

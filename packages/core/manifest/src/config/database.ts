@@ -1,14 +1,11 @@
-export default () => {
-  // TODO: Join the YML section here.
+import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 
-  // const entities = getEntities()
-
+export default (): { database: SqliteConnectionOptions } => {
   return {
     database: {
       type: 'sqlite',
-      database: `${process.cwd()}/manifest/manifest.db`,
-      synchronize: true,
-      entities: []
+      database: `${process.cwd()}/manifest/backend.db`,
+      synchronize: true
     }
   }
 }
