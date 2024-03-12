@@ -9,6 +9,7 @@ import yamlConfig from './config/yaml'
 import { EntityLoaderModule } from './entity-loader/entity-loader.module'
 import { EntityLoaderService } from './entity-loader/services/entity-loader/entity-loader.service'
 import { ManifestModule } from './manifest/manifest.module'
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { ManifestModule } from './manifest/manifest.module'
       inject: [ConfigService, EntityLoaderService]
     }),
     ManifestModule,
-    EntityLoaderModule
+    EntityLoaderModule,
+    SeedModule
   ]
 })
 export class AppModule {}

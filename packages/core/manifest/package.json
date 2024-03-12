@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed": "node dist/seed/seed.js"
   },
   "dependencies": {
     "@casejs/types": "^0.0.5",
@@ -28,6 +29,7 @@
     "@nestjs/platform-express": "^10.3.3",
     "@nestjs/typeorm": "^10.0.2",
     "ajv": "^8.12.0",
+    "chalk": "^5.3.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "crypto-js": "^4.2.0",
