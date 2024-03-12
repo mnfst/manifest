@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
 import { ConfigService } from '@nestjs/config'
+import { ManifestYML } from '../../typescript/manifest-types'
 
 @Injectable()
 export class YamlService {
@@ -11,7 +12,7 @@ export class YamlService {
 
   constructor(private configService: ConfigService) {}
 
-  load(): Object {
+  load(): ManifestYML {
     this.yamlConfig = this.configService.get('yaml')
 
     const fileContent: string = fs.readFileSync(
@@ -19,8 +20,6 @@ export class YamlService {
       'utf8'
     )
 
-    const manifest: any = yaml.load(fileContent)
-
-    return manifest
+    return yaml.load(fileContent) as ManifestYML
   }
 }

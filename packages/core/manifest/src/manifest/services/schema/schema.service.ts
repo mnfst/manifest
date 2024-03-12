@@ -3,23 +3,43 @@ import { Injectable } from '@nestjs/common'
 import Ajv from 'ajv'
 // import manifestSchema from '../../json-schema/manifest-schema.json'
 import schemas from '../../json-schema'
+import {
+  Entity,
+  ManifestYML,
+  Relationship
+} from '../../typescript/manifest-types'
 
 @Injectable()
 export class SchemaService {
-  validate(manifest: any): boolean {
+  /**
+   *
+   * Validate the manifest against the JSON schema and custom logic.
+   *
+   * @param manifest the manifest to validate
+   *
+   * @returns true if the manifest is valid, otherwise throws an error.
+   */
+  validate(manifest: ManifestYML): boolean {
     this.validateAgainstSchema(manifest, schemas[0])
-    this.conditionalValidation(manifest)
+    this.validateCustomLogic(manifest)
 
     return true
   }
 
-  private validateAgainstSchema(manifest: any, schema: any): boolean {
-    const manifestSchema = schemas[0]
-
+  /**
+   *
+   * Validate the manifest against the JSON schema.
+   *
+   * @param manifest the manifest to validate
+   * @param schema the schema to validate against
+   *
+   * @returns true if the manifest is valid, otherwise throws an error.
+   */
+  validateAgainstSchema(manifest: ManifestYML, schema: any): boolean {
     let validate: any = new Ajv({
       schemas
     })
-    validate = validate.getSchema(manifestSchema.$id)
+    validate = validate.getSchema(schema.$id)
 
     const valid = validate(manifest)
 
@@ -29,21 +49,28 @@ export class SchemaService {
       process.exit(1)
     }
 
-    return valid
+    return true
   }
 
-  private conditionalValidation(manifest: any): boolean {
-    // Validate that entities in relationships exist.
+  /**
+   *
+   * Validate custom logic that cannot be expressed in the JSON schema.
+   *
+   * @param manifest the manifest to validate
+   *
+   * @returns true if the manifest is valid, otherwise throws an error.
+   */
+  validateCustomLogic(manifest: ManifestYML): boolean {
+    // 1.Validate that all entities in relationships exist.
+    const entityNames: string[] = Object.keys(manifest.entities)
 
-    const entities = Object.keys(manifest.entities)
+    Object.values(manifest.entities).forEach((entity: Entity) => {
+      const relationshipNames = Object.values(entity.hasMany || [])
+        .concat(Object.values(entity.belongsTo || []))
+        .map((relationship: Relationship) => relationship.entity)
 
-    Object.values(manifest.entities).forEach((entity: any) => {
-      const relationships = Object.values(entity.hasMany || {})
-        .concat(Object.values(entity.belongsTo || {}))
-        .map((relationship: any) => relationship.entity)
-
-      relationships.forEach((relationship: any) => {
-        if (!entities.includes(relationship)) {
+      relationshipNames.forEach((relationship: any) => {
+        if (!entityNames.includes(relationship)) {
           console.error(`Entity ${relationship} does not exist in the manifest`)
           process.exit(1)
         }

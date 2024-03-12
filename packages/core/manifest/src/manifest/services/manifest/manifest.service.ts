@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Entity, ManifestYML } from '../../typescript/manifest-types'
 import { SchemaService } from '../schema/schema.service'
 import { YamlService } from '../yaml/yaml.service'
 
@@ -9,21 +10,16 @@ export class ManifestService {
     private schemaService: SchemaService
   ) {}
 
-  load(): Object {
-    const manifest = this.yamlService.load()
+  loadManifest(): ManifestYML {
+    const manifest: ManifestYML = this.yamlService.load()
 
-    const valid = this.schemaService.validate(manifest)
-
-    if (!valid) {
-      throw new Error('Manifest file is invalid')
-    }
+    this.schemaService.validate(manifest)
 
     return manifest
   }
 
-  loadEntities() {
-    const manifest = this.load()
-
-    return manifest['entities']
+  loadEntities(): { [key: string]: Entity } {
+    const manifest: ManifestYML = this.loadManifest()
+    return manifest.entities
   }
 }

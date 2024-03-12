@@ -2,6 +2,7 @@ import { PropType } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
+import { Entity } from '../../../manifest/typescript/manifest-types'
 import { baseEntity } from '../../entities/base-entity'
 import { propTypeCharacteristicsRecord } from '../../records/prop-type-characteristics.record'
 
@@ -12,16 +13,12 @@ export class EntityLoaderService {
   /**
    * Load entities from YML file and convert into TypeORM entities.
    *
-   * @returns Entity[] - Array of entities
+   * @returns EntitySchema[] the entities
    *
    **/
-  loadEntities() {
+  loadEntities(): EntitySchema[] {
     const manifestEntities: {
-      [key: string]: {
-        properties: {
-          [key: string]: { type: PropType }
-        }
-      }
+      [key: string]: Entity
     } = this.manifestService.loadEntities()
 
     const entities: EntitySchema[] = Object.entries(manifestEntities).map(
