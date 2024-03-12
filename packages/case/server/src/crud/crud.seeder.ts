@@ -5,17 +5,13 @@ import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 
 import { PropType } from '../../../shared/enums/prop-type.enum'
 import { EntityDefinition } from '../../../shared/interfaces/entity-definition.interface'
-import { FileUploadService } from '../file-upload/file-upload.service'
-import { ImageUploadService } from '../file-upload/image-upload.service'
 import { EntityMetaService } from './services/entity-meta.service'
 
 @Injectable()
 export class CrudSeeder {
   constructor(
     private dataSource: DataSource,
-    private entityMetaService: EntityMetaService,
-    private fileUploadService: FileUploadService,
-    private imageUploadService: ImageUploadService
+    private entityMetaService: EntityMetaService
   ) {}
 
   async seed(tableName?: string) {
@@ -48,9 +44,6 @@ export class CrudSeeder {
     await queryRunner.query('PRAGMA foreign_keys = ON')
 
     console.log(chalk.blue('[x] Removed all existing data...'))
-
-    let addDummyFile: boolean = false
-    let addDummyImage: boolean = false
 
     for (const entity of entities) {
       const definition: EntityDefinition =
@@ -112,27 +105,11 @@ export class CrudSeeder {
               newItem[column.propertyName] = propSeederFn(index)
             }
           }
-
-          if (propType === PropType.File) {
-            addDummyFile = true
-          }
-
-          if (propType === PropType.Image) {
-            addDummyImage = true
-          }
         })
 
         // Save without listeners to avoid triggering the beforeInsert hook.
         await entityRepository.save(newItem, { listeners: false })
       }
-    }
-
-    if (addDummyFile) {
-      this.fileUploadService.addDummyFile()
-    }
-
-    if (addDummyImage) {
-      this.imageUploadService.addDummyImages()
     }
   }
 

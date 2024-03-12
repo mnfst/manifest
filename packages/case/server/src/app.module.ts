@@ -5,7 +5,6 @@ import * as chalk from 'chalk'
 import * as cliTable from 'cli-table'
 import { DataSource } from 'typeorm'
 
-import { AppConfigModule } from './app-config/app-config.module'
 import { AuthModule } from './auth/auth.module'
 import configuration from './configuration'
 import { CrudModule } from './crud/crud.module'
@@ -30,7 +29,6 @@ const contributionMode: boolean = process.argv[2] === 'contribution'
     }),
     CrudModule,
     AuthModule,
-    AppConfigModule,
     HealthModule
   ]
 })
