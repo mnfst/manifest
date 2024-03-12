@@ -1,8 +1,15 @@
-import { PropType } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
-import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
+import {
+  EntitySchema,
+  EntitySchemaColumnOptions,
+  EntitySchemaRelationOptions
+} from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import { Entity } from '../../../manifest/typescript/manifest-types'
+import {
+  Entity,
+  Property,
+  Relationship
+} from '../../../manifest/typescript/manifest-types'
 import { baseEntity } from '../../entities/base-entity'
 import { propTypeCharacteristicsRecord } from '../../records/prop-type-characteristics.record'
 
@@ -21,31 +28,51 @@ export class EntityLoaderService {
       [key: string]: Entity
     } = this.manifestService.loadEntities()
 
-    const entities: EntitySchema[] = Object.entries(manifestEntities).map(
-      ([name, description]) => {
-        const entity = new EntitySchema({
+    const entitySchemas: EntitySchema[] = Object.entries(manifestEntities).map(
+      ([name, entity]: [string, Entity]) => {
+        const entitySchema: EntitySchema = new EntitySchema({
           name,
-          columns: Object.entries(description.properties).reduce(
+
+          // Convert properties to columns.
+          columns: Object.entries(entity.properties).reduce(
             (
-              acc: any,
-              [propName, propDescription]: [string, { type: PropType }]
+              acc: { [key: string]: EntitySchemaColumnOptions },
+              [propName, propDescription]: [string, Property]
             ) => {
               acc[propName] = {
                 name: propName,
                 type: propTypeCharacteristicsRecord[propDescription.type]
                   .columnType
-              } as EntitySchemaColumnOptions
+              }
 
               return acc
             },
+            // Merge with baseEntity for base columns like id, createdAt, updatedAt.
             { ...baseEntity }
+          ),
+
+          // Convert belongsTo relationships to many-to-one relations.
+          relations: Object.entries(entity.belongsTo || []).reduce(
+            (
+              acc: { [key: string]: EntitySchemaRelationOptions },
+              [belongsToName, belongsToRelationShip]: [string, Relationship]
+            ) => {
+              acc[belongsToName] = {
+                target: belongsToRelationShip.entity,
+                type: 'many-to-one',
+                eager: !!belongsToRelationShip.eager
+              }
+
+              return acc
+            },
+            {}
           )
         })
 
-        return entity
+        return entitySchema
       }
     )
 
-    return entities
+    return entitySchemas
   }
 }

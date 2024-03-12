@@ -12,6 +12,13 @@ export class YamlService {
 
   constructor(private configService: ConfigService) {}
 
+  /**
+   *
+   * Load the manifest from the YML file and transform it into a ManifestYML object.
+   *
+   * @returns ManifestYML the manifest
+   *
+   **/
   load(): ManifestYML {
     this.yamlConfig = this.configService.get('yaml')
 
