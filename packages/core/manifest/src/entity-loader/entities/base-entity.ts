@@ -7,12 +7,12 @@ export const baseEntity: { [key: string]: EntitySchemaColumnOptions } = {
     generated: true
   },
   createdAt: {
-    name: 'created_at',
+    name: 'createdAt',
     type: 'date',
     createDate: true
   },
   updatedAt: {
-    name: 'updated_at',
+    name: 'updatedAt',
     type: 'date',
     updateDate: true
   }
