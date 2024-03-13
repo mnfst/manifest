@@ -29,24 +29,24 @@ export class EntityService {
     const orderedEntities: EntityMetadata[] = []
 
     entities.forEach((entity: EntityMetadata) => {
-      const relationColumns: ColumnMetadata[] = entity.columns.filter(
-        (column: ColumnMetadata) => column.relationMetadata
+      const parentRelationColumns: ColumnMetadata[] = entity.columns.filter(
+        (column: ColumnMetadata) =>
+          column.relationMetadata?.relationType === 'many-to-one'
       )
 
-      if (!relationColumns.length) {
+      if (!parentRelationColumns.length && !orderedEntities.includes(entity)) {
         orderedEntities.push(entity)
       } else {
-        relationColumns.forEach((relationColumn: ColumnMetadata) => {
-          const relatedEntity: EntityMetadata =
-            relationColumn.relationMetadata.entityMetadata
+        parentRelationColumns.forEach((relationColumn: ColumnMetadata) => {
+          const parentEntity: EntityMetadata =
+            relationColumn.relationMetadata.inverseEntityMetadata
 
-          if (orderedEntities.includes(relatedEntity)) {
-            orderedEntities.splice(
-              orderedEntities.indexOf(relatedEntity),
-              0,
-              entity
-            )
-          } else {
+          if (!orderedEntities.includes(parentEntity)) {
+            const entityIndex: number = orderedEntities.indexOf(entity) || 0
+            orderedEntities.splice(entityIndex, 0, parentEntity)
+          }
+
+          if (!orderedEntities.includes(entity)) {
             orderedEntities.push(entity)
           }
         })

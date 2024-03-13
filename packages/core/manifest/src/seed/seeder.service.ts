@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'
 import { PropertyService } from '../entity/services/property/property.service'
+import { RelationshipService } from '../entity/services/relationship/relationship.service'
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
 import {
   EntityManifest,
-  PropertyManifest
+  PropertyManifest,
+  RelationshipManifest
 } from '../manifest/typescript/manifest-types'
 
 @Injectable()
@@ -13,6 +15,7 @@ export class SeederService {
   constructor(
     private entityService: EntityService,
     private propertyService: PropertyService,
+    private relationshipService: RelationshipService,
     private manifestService: ManifestService,
     private dataSource: DataSource
   ) {}
@@ -78,9 +81,17 @@ export class SeederService {
           }
         )
 
-        // TODO: For each property get the seedFunction if exists or the default one.
+        Object.entries(entityManifest.belongsTo || []).forEach(
+          ([relationName, relationManifest]: [
+            string,
+            RelationshipManifest
+          ]) => {
+            newRecord[relationName] =
+              this.relationshipService.getSeedValue(relationManifest)
+          }
+        )
 
-        // TODO: For the relations get the definition of related entity to know seed count and randomize.
+        console.log(entityManifest.name, newRecord)
 
         await repository.save(newRecord)
       }
