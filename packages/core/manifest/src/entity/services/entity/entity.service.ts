@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, EntityMetadata } from 'typeorm'
+import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
+import { BaseEntity } from '../../types/base-entity.interface'
 
 @Injectable()
 export class EntityService {
@@ -64,7 +65,7 @@ export class EntityService {
    * @returns The repository for the entity.
    *
    * */
-  getEntityRepository(entity: EntityMetadata) {
+  getEntityRepository(entity: EntityMetadata): Repository<BaseEntity> {
     return this.dataSource.getRepository(entity.target)
   }
 }

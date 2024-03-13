@@ -3,6 +3,7 @@ import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'
 import { PropertyService } from '../entity/services/property/property.service'
 import { RelationshipService } from '../entity/services/relationship/relationship.service'
+import { BaseEntity } from '../entity/types/base-entity.interface'
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
 import {
   EntityManifest,
@@ -40,7 +41,6 @@ export class SeederService {
     }
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
-    // TODO: if we reverse the array we do not need to disable foreign keys.
     await queryRunner.query('PRAGMA foreign_keys = OFF')
     await Promise.all(
       entityMetadatas.map(async (entity: EntityMetadata) =>
@@ -58,7 +58,7 @@ export class SeederService {
     console.log('[x] Removed all existing data...')
 
     for (const entityMetadata of entityMetadatas) {
-      const repository: Repository<any> =
+      const repository: Repository<BaseEntity> =
         this.entityService.getEntityRepository(entityMetadata)
 
       const entityManifest: EntityManifest =
@@ -71,8 +71,8 @@ export class SeederService {
         `[x] Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
       )
 
-      for (const index of Array(entityManifest.seedCount).keys()) {
-        const newRecord = repository.create()
+      for (const _index of Array(entityManifest.seedCount).keys()) {
+        const newRecord: BaseEntity = repository.create()
 
         Object.entries(entityManifest.properties).forEach(
           ([propertyName, propertyManifest]: [string, PropertyManifest]) => {
@@ -90,8 +90,6 @@ export class SeederService {
               this.relationshipService.getSeedValue(relationManifest)
           }
         )
-
-        console.log(entityManifest.name, newRecord)
 
         await repository.save(newRecord)
       }
