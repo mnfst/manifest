@@ -1,15 +1,17 @@
+import { INestApplicationContext } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from '../app.module'
-import { Seeder } from './seeder'
+import { SeederService } from './seeder.service'
 
 async function bootstrap() {
   NestFactory.createApplicationContext(AppModule, {
     logger: ['error', 'warn']
   })
-    .then((appContext) => {
+    .then((appContext: INestApplicationContext) => {
       console.log('🌱 Seeding database...')
-      const seeder = appContext.get(Seeder)
-      seeder
+
+      appContext
+        .get(SeederService)
         .seed()
         .then(() => {
           console.log(

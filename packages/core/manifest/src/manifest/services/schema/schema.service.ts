@@ -4,9 +4,9 @@ import Ajv from 'ajv'
 // import manifestSchema from '../../json-schema/manifest-schema.json'
 import schemas from '../../json-schema'
 import {
-  Entity,
-  ManifestYML,
-  Relationship
+  AppManifest,
+  EntityManifest,
+  RelationshipManifest
 } from '../../typescript/manifest-types'
 
 @Injectable()
@@ -19,7 +19,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validate(manifest: ManifestYML): boolean {
+  validate(manifest: AppManifest): boolean {
     this.validateAgainstSchema(manifest, schemas[0])
     this.validateCustomLogic(manifest)
 
@@ -35,7 +35,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateAgainstSchema(manifest: ManifestYML, schema: any): boolean {
+  validateAgainstSchema(manifest: AppManifest, schema: any): boolean {
     let validate: any = new Ajv({
       schemas
     })
@@ -60,14 +60,14 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateCustomLogic(manifest: ManifestYML): boolean {
+  validateCustomLogic(manifest: AppManifest): boolean {
     // 1.Validate that all entities in relationships exist.
     const entityNames: string[] = Object.keys(manifest.entities)
 
-    Object.values(manifest.entities).forEach((entity: Entity) => {
+    Object.values(manifest.entities).forEach((entity: EntityManifest) => {
       const relationshipNames = Object.values(entity.hasMany || [])
         .concat(Object.values(entity.belongsTo || []))
-        .map((relationship: Relationship) => relationship.entity)
+        .map((relationship: RelationshipManifest) => relationship.entity)
 
       relationshipNames.forEach((relationship: any) => {
         if (!entityNames.includes(relationship)) {

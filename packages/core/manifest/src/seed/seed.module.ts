@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
 import { EntityModule } from '../entity/entity.module'
-import { Seeder } from './seeder'
+import { SeederService } from './seeder.service'
 
 @Module({
   imports: [EntityModule],
-  providers: [Seeder]
+  providers: [SeederService]
 })
 export class SeedModule {}

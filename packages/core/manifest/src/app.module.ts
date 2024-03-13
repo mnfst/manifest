@@ -22,12 +22,12 @@ import { SeedModule } from './seed/seed.module'
       imports: [ConfigModule, EntityModule],
       useFactory: (
         configService: ConfigService,
-        EntityLoaderService: EntityLoaderService
+        entityLoaderService: EntityLoaderService
       ) => {
         const databaseConfig: SqliteConnectionOptions =
           configService.get('database')
 
-        const entities: EntitySchema[] = EntityLoaderService.loadEntities()
+        const entities: EntitySchema[] = entityLoaderService.loadEntities()
 
         return Object.assign(databaseConfig, { entities })
       },

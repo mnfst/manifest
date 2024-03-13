@@ -8,15 +8,15 @@
 /**
  * A property in your entity. Doc: https://docs.case.app/properties
  */
-export type Property = Property1 & Property2;
-export type Property1 = {
+export type PropertyManifest = PropertyManifest1 & PropertyManifest2;
+export type PropertyManifest1 = {
   [k: string]: unknown;
 };
 
 /**
  * A complete backend in a single file.
  */
-export interface ManifestYML {
+export interface AppManifest {
   /**
    * The name of your app
    */
@@ -25,20 +25,23 @@ export interface ManifestYML {
    * The entities in your app. Doc: https://docs.case.app/entities
    */
   entities?: {
-    [k: string]: Entity;
+    [k: string]: EntityManifest;
   };
-  [k: string]: unknown;
 }
 /**
  * An entity in the system
  */
-export interface Entity {
+export interface EntityManifest {
   /**
-   * The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase class name.
+   * The class name. Used widely on the admin panel. Default: class name.
+   */
+  name?: string;
+  /**
+   * The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase name.
    */
   nameSingular?: string;
   /**
-   * The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase class name.
+   * The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase name.
    */
   namePlural?: string;
   /**
@@ -57,23 +60,22 @@ export interface Entity {
    * The properties of the entity. Doc: https://docs.case.app/properties
    */
   properties?: {
-    [k: string]: Property;
+    [k: string]: PropertyManifest;
   };
   /**
    * The hasMany relationships of the entity. Doc: https://docs.case.app/relationships
    */
   hasMany?: {
-    [k: string]: Relationship;
+    [k: string]: RelationshipManifest;
   };
   /**
    * The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships
    */
   belongsTo?: {
-    [k: string]: Relationship;
+    [k: string]: RelationshipManifest;
   };
-  [k: string]: unknown;
 }
-export interface Property2 {
+export interface PropertyManifest2 {
   /**
    * The type of the property: text, number, link, currency... Doc: https://docs.case.app/property-types
    */
@@ -98,12 +100,11 @@ export interface Property2 {
    * The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation
    */
   validation?: string[];
-  [k: string]: unknown;
 }
 /**
  * A relationship between two entities
  */
-export interface Relationship {
+export interface RelationshipManifest {
   /**
    * The entity that the relationship is with
    */
@@ -113,5 +114,4 @@ export interface Relationship {
    * Defaults to false.
    */
   eager?: boolean;
-  [k: string]: unknown;
 }

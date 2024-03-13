@@ -1,16 +1,20 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://manifest.build/schemas/definitions/entity-schema.json",
-  "title": "Entity",
+  "title": "Entity Manifest",
   "description": "An entity in the system",
   "type": "object",
   "properties": {
+    "name": {
+      "description": "The class name. Used widely on the admin panel. Default: class name.",
+      "type": "string"
+    },
     "nameSingular": {
-      "description": "The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase class name.",
+      "description": "The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase name.",
       "type": "string"
     },
     "namePlural": {
-      "description": "The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase class name.",
+      "description": "The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase name.",
       "type": "string"
     },
     "slug": {

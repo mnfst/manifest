@@ -1,26 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import {
-  DataSource,
-  EntityMetadata,
   EntitySchema,
   EntitySchemaColumnOptions,
   EntitySchemaRelationOptions
 } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
 import {
-  Entity,
-  Property,
-  Relationship
+  EntityManifest,
+  PropertyManifest,
+  RelationshipManifest
 } from '../../../manifest/typescript/manifest-types'
-import { baseEntity } from '../../entities/base-entity'
+import { baseEntity } from '../../core-entities/base-entity'
 import { propTypeCharacteristicsRecord } from '../../records/prop-type-column-definition.record'
 
 @Injectable()
 export class EntityLoaderService {
-  constructor(
-    private manifestService: ManifestService,
-    private dataSource: DataSource
-  ) {}
+  constructor(private manifestService: ManifestService) {}
 
   /**
    * Load entities from YML file and convert into TypeORM entities.
@@ -30,11 +25,11 @@ export class EntityLoaderService {
    **/
   loadEntities(): EntitySchema[] {
     const manifestEntities: {
-      [key: string]: Entity
-    } = this.manifestService.loadEntities()
+      [key: string]: EntityManifest
+    } = this.manifestService.getEntityManifests()
 
     const entitySchemas: EntitySchema[] = Object.entries(manifestEntities).map(
-      ([name, entity]: [string, Entity]) => {
+      ([name, entity]: [string, EntityManifest]) => {
         const entitySchema: EntitySchema = new EntitySchema({
           name,
 
@@ -42,7 +37,7 @@ export class EntityLoaderService {
           columns: Object.entries(entity.properties).reduce(
             (
               acc: { [key: string]: EntitySchemaColumnOptions },
-              [propName, propDescription]: [string, Property]
+              [propName, propDescription]: [string, PropertyManifest]
             ) => {
               acc[propName] = {
                 name: propName,
@@ -60,7 +55,10 @@ export class EntityLoaderService {
           relations: Object.entries(entity.belongsTo || []).reduce(
             (
               acc: { [key: string]: EntitySchemaRelationOptions },
-              [belongsToName, belongsToRelationShip]: [string, Relationship]
+              [belongsToName, belongsToRelationShip]: [
+                string,
+                RelationshipManifest
+              ]
             ) => {
               acc[belongsToName] = {
                 target: belongsToRelationShip.entity,
@@ -79,23 +77,5 @@ export class EntityLoaderService {
     )
 
     return entitySchemas
-  }
-
-  /**
-   * Returns the TypeORM EntityMetadata from an entity class name.
-   *
-   * @param entityName - The class name of the entity
-   * @returns the TypeORM entity metadata
-   */
-  getEntityMetadata(entityName: string): EntityMetadata {
-    const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
-      (entityMetadata: EntityMetadata) =>
-        entityMetadata.target['name'] === entityName
-    )
-
-    if (!entityMetadata) {
-      throw new NotFoundException('Entity not found')
-    }
-    return entityMetadata
   }
 }
