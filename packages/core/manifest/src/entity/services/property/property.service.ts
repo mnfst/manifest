@@ -13,7 +13,6 @@ export class PropertyService {
    *
    */
   getSeedValue(propertyManifest: PropertyManifest): any {
-    // TODO: Add support for faker functions.
     return propTypeSeedFunctions[propertyManifest.type]()
   }
 }

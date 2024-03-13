@@ -23,10 +23,6 @@
         "location"
       ]
     },
-    "faker": {
-      "description": "The faker function to generate the property value. Doc: https://docs.case.app/property-types?id=faker",
-      "type": "string"
-    },
     "validation": {
       "description": "The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation",
       "type": "array",
@@ -75,24 +71,6 @@
           "currency": {
             "description": "The currency in ISO 4217 format. Ex: EUR, INR, USD, CNY...\n Default USD. \n Doc: https://docs.case.app/property-types?id=money",
             "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "faker": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "fakerArgs": {
-            "description": "The arguments for the faker function. Doc: https://docs.case.app/property-types?id=faker",
-            "type": "object"
           }
         }
       }

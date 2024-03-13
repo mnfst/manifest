@@ -93,10 +93,6 @@ export interface PropertyManifest2 {
     | "choice"
     | "location";
   /**
-   * The faker function to generate the property value. Doc: https://docs.case.app/property-types?id=faker
-   */
-  faker?: string;
-  /**
    * The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation
    */
   validation?: string[];
