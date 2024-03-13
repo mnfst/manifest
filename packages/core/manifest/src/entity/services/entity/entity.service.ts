@@ -3,7 +3,7 @@ import { DataSource, EntityMetadata } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 
 @Injectable()
-export class EntityMetaService {
+export class EntityService {
   constructor(private dataSource: DataSource) {}
 
   /**
@@ -56,6 +56,14 @@ export class EntityMetaService {
     return orderedEntities
   }
 
+  /**
+   * Get the TypeORM repository for an entity.
+   *
+   * @param entity The entity to get the repository for.
+   *
+   * @returns The repository for the entity.
+   *
+   * */
   getEntityRepository(entity: EntityMetadata) {
     return this.dataSource.getRepository(entity.target)
   }

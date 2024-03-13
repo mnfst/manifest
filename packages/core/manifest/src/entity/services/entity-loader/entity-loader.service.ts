@@ -11,7 +11,7 @@ import {
   RelationshipManifest
 } from '../../../manifest/typescript/manifest-types'
 import { baseEntity } from '../../core-entities/base-entity'
-import { propTypeCharacteristicsRecord } from '../../records/prop-type-column-definition.record'
+import { propTypeColumnTypes } from '../../records/prop-type-column-types'
 
 @Injectable()
 export class EntityLoaderService {
@@ -37,12 +37,11 @@ export class EntityLoaderService {
           columns: Object.entries(entity.properties).reduce(
             (
               acc: { [key: string]: EntitySchemaColumnOptions },
-              [propName, propDescription]: [string, PropertyManifest]
+              [propName, propManifest]: [string, PropertyManifest]
             ) => {
               acc[propName] = {
                 name: propName,
-                type: propTypeCharacteristicsRecord[propDescription.type]
-                  .columnType
+                type: propTypeColumnTypes[propManifest.type]
               }
 
               return acc

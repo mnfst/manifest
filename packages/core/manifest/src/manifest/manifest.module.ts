@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ManifestService } from './services/manifest/manifest.service'
 import { SchemaService } from './services/schema/schema.service'
 import { YamlService } from './services/yaml/yaml.service'
@@ -9,7 +9,7 @@ import { YamlService } from './services/yaml/yaml.service'
  * The module exports the ManifestService, which is used to load the manifest file(s).
  *
  */
-@Global()
+
 @Module({
   providers: [ManifestService, YamlService, SchemaService],
   exports: [ManifestService]

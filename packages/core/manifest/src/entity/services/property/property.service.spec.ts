@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EntityMetaService } from './entity-meta.service';
+import { PropertyService } from './property.service';
 
-describe('EntityMetaService', () => {
-  let service: EntityMetaService;
+describe('PropertyService', () => {
+  let service: PropertyService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EntityMetaService],
+      providers: [PropertyService],
     }).compile();
 
-    service = module.get<EntityMetaService>(EntityMetaService);
+    service = module.get<PropertyService>(PropertyService);
   });
 
   it('should be defined', () => {

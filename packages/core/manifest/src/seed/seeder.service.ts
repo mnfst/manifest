@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, EntityMetadata, QueryRunner } from 'typeorm'
-import { EntityMetaService } from '../entity/services/entity-meta/entity-meta.service'
+import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
+import { EntityService } from '../entity/services/entity/entity.service'
+import { PropertyService } from '../entity/services/property/property.service'
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
-import { EntityManifest } from '../manifest/typescript/manifest-types'
+import {
+  EntityManifest,
+  PropertyManifest
+} from '../manifest/typescript/manifest-types'
 
 @Injectable()
 export class SeederService {
   constructor(
-    private entityMetaService: EntityMetaService,
+    private entityService: EntityService,
+    private propertyService: PropertyService,
     private manifestService: ManifestService,
     private dataSource: DataSource
   ) {}
@@ -28,7 +33,7 @@ export class SeederService {
         (entity: EntityMetadata) => entity.tableName === tableName
       )
     } else {
-      entityMetadatas = this.entityMetaService.getEntityMetadata()
+      entityMetadatas = this.entityService.getEntityMetadata()
     }
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
@@ -50,6 +55,9 @@ export class SeederService {
     console.log('[x] Removed all existing data...')
 
     for (const entityMetadata of entityMetadatas) {
+      const repository: Repository<any> =
+        this.entityService.getEntityRepository(entityMetadata)
+
       const entityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
           className: entityMetadata.name,
@@ -61,9 +69,20 @@ export class SeederService {
       )
 
       for (const index of Array(entityManifest.seedCount).keys()) {
-        // TODO: Create a new record.
+        const newRecord = repository.create()
+
+        Object.entries(entityManifest.properties).forEach(
+          ([propertyName, propertyManifest]: [string, PropertyManifest]) => {
+            newRecord[propertyName] =
+              this.propertyService.getSeedValue(propertyManifest)
+          }
+        )
+
         // TODO: For each property get the seedFunction if exists or the default one.
+
         // TODO: For the relations get the definition of related entity to know seed count and randomize.
+
+        await repository.save(newRecord)
       }
     }
 
