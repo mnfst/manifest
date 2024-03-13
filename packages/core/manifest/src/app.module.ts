@@ -6,10 +6,10 @@ import { EntitySchema } from 'typeorm'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import databaseConfig from './config/database'
 import yamlConfig from './config/yaml'
-import { EntityLoaderModule } from './entity-loader/entity-loader.module'
-import { EntityLoaderService } from './entity-loader/services/entity-loader/entity-loader.service'
+import { EntityModule } from './entity/entity.module'
+import { EntityService } from './entity/services/entity-loader/entity-loader.service'
 import { ManifestModule } from './manifest/manifest.module'
-import { SeedModule } from './seed/seed.module';
+import { SeedModule } from './seed/seed.module'
 
 @Module({
   imports: [
@@ -19,22 +19,22 @@ import { SeedModule } from './seed/seed.module';
     }),
 
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, EntityLoaderModule],
+      imports: [ConfigModule, EntityModule],
       useFactory: (
         configService: ConfigService,
-        entityLoaderService: EntityLoaderService
+        EntityService: EntityService
       ) => {
         const databaseConfig: SqliteConnectionOptions =
           configService.get('database')
 
-        const entities: EntitySchema[] = entityLoaderService.loadEntities()
+        const entities: EntitySchema[] = EntityService.loadEntities()
 
         return Object.assign(databaseConfig, { entities })
       },
-      inject: [ConfigService, EntityLoaderService]
+      inject: [ConfigService, EntityService]
     }),
     ManifestModule,
-    EntityLoaderModule,
+    EntityModule,
     SeedModule
   ]
 })

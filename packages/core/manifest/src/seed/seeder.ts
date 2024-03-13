@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
+import { EntityService } from '../entity/services/entity-loader/entity-loader.service'
 
 @Injectable()
 export class Seeder {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private EntityService: EntityService
+  ) {}
 
   /**
    * Seed the database with dummy data.
@@ -45,6 +49,8 @@ export class Seeder {
 
     for (const entity of entities) {
       console.log(`[x] Seeding ${entity.name}...`)
+
+      console.log(this.EntityService.getEntityMetadata(entity.name))
     }
 
     return Promise.resolve()

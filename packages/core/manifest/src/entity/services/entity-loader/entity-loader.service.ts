@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import {
+  DataSource,
+  EntityMetadata,
   EntitySchema,
   EntitySchemaColumnOptions,
   EntitySchemaRelationOptions
@@ -11,11 +13,14 @@ import {
   Relationship
 } from '../../../manifest/typescript/manifest-types'
 import { baseEntity } from '../../entities/base-entity'
-import { propTypeCharacteristicsRecord } from '../../records/prop-type-characteristics.record'
+import { propTypeCharacteristicsRecord } from '../../records/prop-type-column-definition.record'
 
 @Injectable()
-export class EntityLoaderService {
-  constructor(private manifestService: ManifestService) {}
+export class EntityService {
+  constructor(
+    private manifestService: ManifestService,
+    private dataSource: DataSource
+  ) {}
 
   /**
    * Load entities from YML file and convert into TypeORM entities.
@@ -74,5 +79,23 @@ export class EntityLoaderService {
     )
 
     return entitySchemas
+  }
+
+  /**
+   * Returns the TypeORM EntityMetadata from an entity class name.
+   *
+   * @param entityName - The class name of the entity
+   * @returns the TypeORM entity metadata
+   */
+  getEntityMetadata(entityName: string): EntityMetadata {
+    const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
+      (entityMetadata: EntityMetadata) =>
+        entityMetadata.target['name'] === entityName
+    )
+
+    if (!entityMetadata) {
+      throw new NotFoundException('Entity not found')
+    }
+    return entityMetadata
   }
 }
