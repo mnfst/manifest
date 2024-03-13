@@ -46,5 +46,6 @@
         "$ref": "relationship-schema.json"
       }
     }
-  }
+  },
+  "additionalProperties": false
 }

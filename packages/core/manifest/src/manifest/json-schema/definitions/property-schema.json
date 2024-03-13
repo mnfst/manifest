@@ -97,5 +97,6 @@
         }
       }
     }
-  ]
+  ],
+  "additionalProperties": false
 }

@@ -14,5 +14,6 @@
       "description": "Whether the relationship should be eager loaded. Otherwise you need to explicitly request the relation in the client SDK or API. \nDefaults to false."
     }
   },
-  "required": ["entity"]
+  "required": ["entity"],
+  "additionalProperties": false
 }

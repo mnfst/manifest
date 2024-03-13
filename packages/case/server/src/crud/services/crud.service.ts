@@ -25,7 +25,6 @@ import { PropertyDescription } from '../../../../shared/interfaces/property-desc
 import { RelationPropertyOptions } from '../../../../shared/interfaces/property-options/relation-property-options.interface'
 import { SelectOption } from '../../../../shared/interfaces/select-option.interface'
 import { BaseEntity } from '../../core-entities/base-entity'
-import { ExcelService } from '../../utils/excel.service'
 import { HelperService } from '../../utils/helper.service'
 import { EntityMetaService } from './entity-meta.service'
 
@@ -257,16 +256,6 @@ export class CrudService {
     const errors = await validate(newItem)
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
-    }
-
-    // If we have relations, we load them to be available in the @BeforeInsert() hook.
-    const relations: RelationMetadata[] =
-      this.entityMetaService.getEntityMetadata(entitySlug).relations
-    if (relations.length) {
-      newItem._relations = await this.entityMetaService.loadRelations(
-        newItem,
-        relations
-      )
     }
 
     return entityRepository.insert(newItem)

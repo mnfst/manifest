@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
-import { EntityService } from '../entity/services/entity-loader/entity-loader.service'
+import { EntityLoaderService } from '../entity/services/entity-loader/entity-loader.service'
 
 @Injectable()
 export class Seeder {
   constructor(
     private dataSource: DataSource,
-    private EntityService: EntityService
+    private EntityService: EntityLoaderService
   ) {}
 
   /**
@@ -31,7 +31,6 @@ export class Seeder {
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
     await queryRunner.query('PRAGMA foreign_keys = OFF')
-
     await Promise.all(
       entities.map(async (entity: EntityMetadata) =>
         queryRunner

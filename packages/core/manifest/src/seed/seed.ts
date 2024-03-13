@@ -7,6 +7,7 @@ async function bootstrap() {
     logger: ['error', 'warn']
   })
     .then((appContext) => {
+      console.log('🌱 Seeding database...')
       const seeder = appContext.get(Seeder)
       seeder
         .seed()

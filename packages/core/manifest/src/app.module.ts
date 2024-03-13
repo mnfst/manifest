@@ -7,7 +7,7 @@ import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionO
 import databaseConfig from './config/database'
 import yamlConfig from './config/yaml'
 import { EntityModule } from './entity/entity.module'
-import { EntityService } from './entity/services/entity-loader/entity-loader.service'
+import { EntityLoaderService } from './entity/services/entity-loader/entity-loader.service'
 import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
 
@@ -22,16 +22,16 @@ import { SeedModule } from './seed/seed.module'
       imports: [ConfigModule, EntityModule],
       useFactory: (
         configService: ConfigService,
-        EntityService: EntityService
+        EntityLoaderService: EntityLoaderService
       ) => {
         const databaseConfig: SqliteConnectionOptions =
           configService.get('database')
 
-        const entities: EntitySchema[] = EntityService.loadEntities()
+        const entities: EntitySchema[] = EntityLoaderService.loadEntities()
 
         return Object.assign(databaseConfig, { entities })
       },
-      inject: [ConfigService, EntityService]
+      inject: [ConfigService, EntityLoaderService]
     }),
     ManifestModule,
     EntityModule,

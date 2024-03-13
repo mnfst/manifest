@@ -16,7 +16,7 @@ import { baseEntity } from '../../entities/base-entity'
 import { propTypeCharacteristicsRecord } from '../../records/prop-type-column-definition.record'
 
 @Injectable()
-export class EntityService {
+export class EntityLoaderService {
   constructor(
     private manifestService: ManifestService,
     private dataSource: DataSource
