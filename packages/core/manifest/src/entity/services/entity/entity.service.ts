@@ -13,8 +13,27 @@ export class EntityService {
    * @returns The metadata for all entities.
    *
    * */
-  getEntityMetadata(): EntityMetadata[] {
+  getEntityMetadatas(): EntityMetadata[] {
     return this.sortEntitiesByHierarchy(this.dataSource.entityMetadatas)
+  }
+
+  /**
+   * Get the metadata for an entity.
+   *
+   * @param className The class name of the entity to get the metadata for.
+   *
+   * @returns The metadata for the entity.
+   */
+  getEntityMetadata(className: string): EntityMetadata {
+    const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
+      (entity: EntityMetadata) => entity.targetName === className
+    )
+
+    if (!entityMetadata) {
+      throw new Error(`Entity ${className} not found`)
+    }
+
+    return entityMetadata
   }
 
   /**
@@ -60,12 +79,12 @@ export class EntityService {
   /**
    * Get the TypeORM repository for an entity.
    *
-   * @param entity The entity to get the repository for.
+   * @param entityMetadata The entity to get the repository for.
    *
    * @returns The repository for the entity.
    *
    * */
-  getEntityRepository(entity: EntityMetadata): Repository<BaseEntity> {
-    return this.dataSource.getRepository(entity.target)
+  getEntityRepository(entityMetadata: EntityMetadata): Repository<BaseEntity> {
+    return this.dataSource.getRepository(entityMetadata.target)
   }
 }

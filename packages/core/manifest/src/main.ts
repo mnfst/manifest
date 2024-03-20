@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import * as express from 'express'
+import { DEFAULT_PORT } from '../constants'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -15,6 +16,6 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
   app.useGlobalPipes(new ValidationPipe())
 
-  await app.listen(configService.get('PORT'))
+  await app.listen(configService.get('PORT') || DEFAULT_PORT)
 }
 bootstrap()

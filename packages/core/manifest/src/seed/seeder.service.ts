@@ -37,7 +37,7 @@ export class SeederService {
         (entity: EntityMetadata) => entity.tableName === tableName
       )
     } else {
-      entityMetadatas = this.entityService.getEntityMetadata()
+      entityMetadatas = this.entityService.getEntityMetadatas()
     }
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()

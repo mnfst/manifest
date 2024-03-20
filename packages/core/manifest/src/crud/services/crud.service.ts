@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common'
 
+import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
 import { EntityService } from '../../entity/services/entity/entity.service'
+import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
 import { EntityManifest } from '../../manifest/typescript/manifest-types'
+import { PaginationService } from './pagination.service'
 
 @Injectable()
 export class CrudService {
@@ -19,7 +22,8 @@ export class CrudService {
 
   constructor(
     private readonly entityService: EntityService,
-    private readonly manifestService: ManifestService
+    private readonly manifestService: ManifestService,
+    private readonly paginationService: PaginationService
   ) {}
 
   /**
@@ -43,6 +47,21 @@ export class CrudService {
       })
 
     console.log(entityManifest)
+
+    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
+      entityManifest.className
+    )
+
+    const entityRepository: Repository<BaseEntity> =
+      this.entityService.getEntityRepository(entityMetadata)
+
+    const query: SelectQueryBuilder<BaseEntity> =
+      entityRepository.createQueryBuilder('entity')
+
+    return this.paginationService.paginate({
+      query,
+      currentPage: parseInt(queryParams.page as string, 10) || 1
+    })
 
     // const entityRepository: Repository<BaseEntity> =
     //   this.entityMetaService.getRepository(entitySlug)
