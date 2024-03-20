@@ -6,6 +6,7 @@ import { EntitySchema } from 'typeorm'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import databaseConfig from './config/database'
 import yamlConfig from './config/yaml'
+import { CrudModule } from './crud/crud.module'
 import { EntityModule } from './entity/entity.module'
 import { EntityLoaderService } from './entity/services/entity-loader/entity-loader.service'
 import { ManifestModule } from './manifest/manifest.module'
@@ -35,7 +36,8 @@ import { SeedModule } from './seed/seed.module'
     }),
     ManifestModule,
     EntityModule,
-    SeedModule
+    SeedModule,
+    CrudModule
   ]
 })
 export class AppModule {}

@@ -24,17 +24,16 @@ export class EntityLoaderService {
    *
    **/
   loadEntities(): EntitySchema[] {
-    const manifestEntities: {
-      [key: string]: EntityManifest
-    } = this.manifestService.getEntityManifests()
+    const entityManifests: EntityManifest[] =
+      this.manifestService.getEntityManifests()
 
-    const entitySchemas: EntitySchema[] = Object.entries(manifestEntities).map(
-      ([name, entity]: [string, EntityManifest]) => {
+    const entitySchemas: EntitySchema[] = entityManifests.map(
+      (entityManifest: EntityManifest) => {
         const entitySchema: EntitySchema = new EntitySchema({
-          name,
+          name: entityManifest.className,
 
           // Convert properties to columns.
-          columns: Object.entries(entity.properties).reduce(
+          columns: Object.entries(entityManifest.properties).reduce(
             (
               acc: { [key: string]: EntitySchemaColumnOptions },
               [propName, propManifest]: [string, PropertyManifest]
@@ -51,7 +50,7 @@ export class EntityLoaderService {
           ),
 
           // Convert belongsTo relationships to many-to-one relations.
-          relations: Object.entries(entity.belongsTo || []).reduce(
+          relations: Object.entries(entityManifest.belongsTo || []).reduce(
             (
               acc: { [key: string]: EntitySchemaRelationOptions },
               [belongsToName, belongsToRelationShip]: [

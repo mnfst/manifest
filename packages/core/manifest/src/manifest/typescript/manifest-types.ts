@@ -35,7 +35,7 @@ export interface EntityManifest {
   /**
    * The class name. Used widely on the admin panel. Default: class name.
    */
-  name?: string;
+  className?: string;
   /**
    * The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase name.
    */

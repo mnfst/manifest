@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import {
   AppManifest,
   EntityManifest,
@@ -34,52 +34,66 @@ export class ManifestService {
   }
 
   /**
-   * Load the entities from the manifest.
+   * Load the entities from the manifest and fill in the defaults.
    *
    * @returns The entities.
    *
    * */
-  getEntityManifests(): { [className: string]: EntityManifest } {
+  getEntityManifests(): EntityManifest[] {
     const manifest: AppManifest = this.getAppManifest()
-    return manifest.entities
+
+    return Object.entries(manifest.entities).map(
+      ([className, entity]: [string, EntityManifest]) =>
+        this.fillInEntityManifestDefaults(className, entity)
+    )
   }
 
   /**
-   * Load an entity from the manifests.
+   * Load an entity from the manifest and fill in the defaults.
    *
    * @param className The class name of the entity to load.
-   * @param fillDefaults Whether to fill in the defaults for the entity.
+   * @param slug The slug of the entity to load.
    *
    * @returns The entity manifest.
    *
    * */
   getEntityManifest({
     className,
-    fillDefaults
+    slug
   }: {
-    className: string
-    fillDefaults?: boolean
+    className?: string
+    slug?: string
   }): EntityManifest {
-    const entities: { [className: string]: EntityManifest } =
-      this.getEntityManifests()
-
-    if (!entities[className]) {
-      throw new Error(`Entity ${className} not found in manifest`)
+    if (!className && !slug) {
+      throw new Error(`Either className or slug must be provided`)
     }
 
-    if (!fillDefaults) {
-      return entities[className]
+    const entities: EntityManifest[] = this.getEntityManifests()
+
+    let entityManifest: EntityManifest
+
+    if (className) {
+      entityManifest = entities.find((entity) => entity.className === className)
+    } else {
+      entityManifest = entities.find((entity) => entity.slug === slug)
     }
-    return this.fillInEntityManifestDefaults(className, entities[className])
+
+    if (!entityManifest) {
+      throw new HttpException(
+        `Entity ${className} not found in manifest`,
+        HttpStatus.NOT_FOUND
+      )
+    }
+
+    return entityManifest
   }
 
   /**
    * Fill in the defaults for an entity.
    *
-   * @param className The class name of the entity.
-   * @param entity The entity to fill in the defaults for.
+   * @param entityManifest The entity to fill in the defaults for.
    *
-   * @returns The entity with defaults filled in.
+   * @returns The entity manifest with defaults filled in.
    *
    * */
   fillInEntityManifestDefaults(
@@ -87,18 +101,18 @@ export class ManifestService {
     entityManifest: EntityManifest
   ): EntityManifest {
     return {
-      name: entityManifest.name || className,
+      className: entityManifest.className || className,
       nameSingular:
         entityManifest.nameSingular ||
-        pluralize.singular(entityManifest.name || className).toLowerCase(),
+        pluralize.singular(entityManifest.className || className).toLowerCase(),
       namePlural:
         entityManifest.namePlural ||
-        pluralize.plural(entityManifest.name || className).toLowerCase(),
+        pluralize.plural(entityManifest.className || className).toLowerCase(),
       slug:
         entityManifest.slug ||
         slugify(
           dasherize(
-            pluralize.plural(entityManifest.name || className)
+            pluralize.plural(entityManifest.className || className)
           ).toLowerCase()
         ),
       // First "string" property found in the entity if exists, otherwise "id".

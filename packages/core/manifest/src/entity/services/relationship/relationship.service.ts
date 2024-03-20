@@ -21,8 +21,7 @@ export class RelationshipService {
   getSeedValue(relationshipManifest: RelationshipManifest): number {
     const relatedEntity: EntityManifest =
       this.manifestService.getEntityManifest({
-        className: relationshipManifest.entity,
-        fillDefaults: true
+        className: relationshipManifest.entity
       })
 
     return faker.number.int({

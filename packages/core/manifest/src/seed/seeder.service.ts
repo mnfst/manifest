@@ -63,8 +63,7 @@ export class SeederService {
 
       const entityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
-          className: entityMetadata.name,
-          fillDefaults: true
+          className: entityMetadata.name
         })
 
       console.log(

@@ -5,7 +5,7 @@
   "description": "An entity in the system",
   "type": "object",
   "properties": {
-    "name": {
+    "className": {
       "description": "The class name. Used widely on the admin panel. Default: class name.",
       "type": "string"
     },

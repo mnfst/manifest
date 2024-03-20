@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { EntityService } from './entity-loader.service'
+import { EntityLoaderService } from './entity-loader.service'
 
-describe('EntityService', () => {
-  let service: EntityService
+describe('EntityLoaderService', () => {
+  let service: EntityLoaderService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EntityService]
+      providers: [EntityLoaderService]
     }).compile()
 
-    service = module.get<EntityService>(EntityService)
+    service = module.get<EntityLoaderService>(EntityLoaderService)
   })
 
   it('should be defined', () => {

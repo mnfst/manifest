@@ -15,6 +15,6 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
   app.useGlobalPipes(new ValidationPipe())
 
-  await app.listen(configService.get('port'))
+  await app.listen(configService.get('PORT'))
 }
 bootstrap()
