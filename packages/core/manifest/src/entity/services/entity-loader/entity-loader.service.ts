@@ -7,9 +7,9 @@ import {
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
 import {
   EntityManifest,
-  PropertyManifest,
-  RelationshipManifest
+  PropertyManifest
 } from '../../../manifest/typescript/manifest-types'
+import { DetailedRelationshipManifest } from '../../../manifest/typescript/other/detailed-relationship-manifest.type'
 import { baseEntity } from '../../core-entities/base-entity'
 import { propTypeColumnTypes } from '../../records/prop-type-column-types'
 
@@ -55,7 +55,7 @@ export class EntityLoaderService {
               acc: { [key: string]: EntitySchemaRelationOptions },
               [belongsToName, belongsToRelationShip]: [
                 string,
-                RelationshipManifest
+                DetailedRelationshipManifest
               ]
             ) => {
               acc[belongsToName] = {

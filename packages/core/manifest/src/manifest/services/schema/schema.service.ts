@@ -3,11 +3,8 @@ import { Injectable } from '@nestjs/common'
 import Ajv from 'ajv'
 // import manifestSchema from '../../json-schema/manifest-schema.json'
 import schemas from '../../json-schema'
-import {
-  AppManifest,
-  EntityManifest,
-  RelationshipManifest
-} from '../../typescript/manifest-types'
+import { AppManifest, EntityManifest } from '../../typescript/manifest-types'
+import { DetailedRelationshipManifest } from '../../typescript/other/detailed-relationship-manifest.type'
 
 @Injectable()
 export class SchemaService {
@@ -67,7 +64,9 @@ export class SchemaService {
     Object.values(manifest.entities).forEach((entity: EntityManifest) => {
       const relationshipNames = Object.values(entity.hasMany || [])
         .concat(Object.values(entity.belongsTo || []))
-        .map((relationship: RelationshipManifest) => relationship.entity)
+        .map(
+          (relationship: DetailedRelationshipManifest) => relationship.entity
+        )
 
       relationshipNames.forEach((relationship: any) => {
         if (!entityNames.includes(relationship)) {

@@ -1,5 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
 
+import { Paginator } from '@casejs/types'
+import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { CrudService } from '../services/crud.service'
 
 @Controller('dynamic')
@@ -15,9 +17,7 @@ export class CrudController {
   findAll(
     @Param('entity') entity: string,
     @Query() queryParams: { [key: string]: string | string[] }
-  ) {
-    console.log('entity', entity)
-
+  ): Promise<Paginator<BaseEntity>> {
     return this.crudService.findAll({
       entitySlug: entity,
       queryParams

@@ -63,16 +63,6 @@ export class CrudService {
       currentPage: parseInt(queryParams.page as string, 10) || 1
     })
 
-    // const entityRepository: Repository<BaseEntity> =
-    //   this.entityMetaService.getRepository(entitySlug)
-    // const entityMetadata: EntityMetadata =
-    //   this.entityMetaService.getEntityMetadata(entitySlug)
-    // // Get entity props.
-    // const props: PropertyDescription[] =
-    //   this.entityMetaService.getPropDescriptions(entityMetadata)
-    // // Init query builder.
-    // let query: SelectQueryBuilder<BaseEntity> =
-    //   entityRepository.createQueryBuilder('entity')
     // // Dynamic filtering.
     // Object.entries(queryParams || {})
     //   .filter(
@@ -143,23 +133,6 @@ export class CrudService {
     //     queryParams.order === 'DESC' ? 'DESC' : 'ASC'
     //   )
     // }
-    // // Paginated results.
-    // const currentPage: number = parseInt(queryParams.page as string, 10) || 1
-    // const perPage: number = parseInt(queryParams.perPage as string, 10) || 10
-    // const skip: number = (currentPage - 1) * perPage
-    // const take: number = perPage
-    // const total: number = await query.getCount()
-    // const results: any[] = await query.skip(skip).take(take).getMany()
-    // const paginator: Paginator<any> = {
-    //   data: results,
-    //   currentPage,
-    //   lastPage: Math.ceil(total / perPage),
-    //   from: skip + 1,
-    //   to: skip + perPage,
-    //   total,
-    //   perPage: perPage
-    // }
-    // return paginator
   }
 
   // async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {

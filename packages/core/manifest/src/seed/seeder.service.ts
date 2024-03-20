@@ -7,9 +7,9 @@ import { BaseEntity } from '../entity/types/base-entity.interface'
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
 import {
   EntityManifest,
-  PropertyManifest,
-  RelationshipManifest
+  PropertyManifest
 } from '../manifest/typescript/manifest-types'
+import { DetailedRelationshipManifest } from '../manifest/typescript/other/detailed-relationship-manifest.type'
 
 @Injectable()
 export class SeederService {
@@ -83,7 +83,7 @@ export class SeederService {
         Object.entries(entityManifest.belongsTo || []).forEach(
           ([relationName, relationManifest]: [
             string,
-            RelationshipManifest
+            DetailedRelationshipManifest
           ]) => {
             newRecord[relationName] =
               this.relationshipService.getSeedValue(relationManifest)

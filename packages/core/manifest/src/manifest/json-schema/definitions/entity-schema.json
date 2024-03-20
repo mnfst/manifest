@@ -45,8 +45,8 @@
     },
     "belongsTo": {
       "description": "The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships",
-      "type": "object",
-      "additionalProperties": {
+      "type": "array",
+      "items": {
         "$ref": "relationship-schema.json"
       }
     }
