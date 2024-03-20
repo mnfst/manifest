@@ -1,15 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import {
-  AppManifest,
-  EntityManifest,
-  PropertyManifest
-} from '../../typescript/manifest-types'
+import { AppManifest, EntityManifest } from '../../typescript/manifest-types'
 import { SchemaService } from '../schema/schema.service'
 import { YamlService } from '../yaml/yaml.service'
 
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
+import { DetailedPropertyManifest } from '../../typescript/other/detailed-property-manifest.type'
 import { entityManifestDefaults } from './manifest.defaults'
 
 @Injectable()
@@ -119,7 +116,7 @@ export class ManifestService {
       mainProp:
         entityManifest.mainProp ||
         Object.entries(entityManifest.properties).find(
-          ([_propName, propManifest]: [string, PropertyManifest]) =>
+          ([_propName, propManifest]: [string, DetailedPropertyManifest]) =>
             propManifest.type === 'string'
         )?.[0] ||
         'id',

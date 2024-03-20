@@ -1,7 +1,7 @@
 import { Paginator } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { SelectQueryBuilder } from 'typeorm'
-import { DEFAULT_RESULTS_PER_PAGE } from '../../../constants'
+import { DEFAULT_RESULTS_PER_PAGE } from '../../constants'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 
 @Injectable()

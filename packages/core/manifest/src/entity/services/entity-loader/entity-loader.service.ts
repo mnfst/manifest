@@ -5,10 +5,8 @@ import {
   EntitySchemaRelationOptions
 } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import {
-  EntityManifest,
-  PropertyManifest
-} from '../../../manifest/typescript/manifest-types'
+import { EntityManifest } from '../../../manifest/typescript/manifest-types'
+import { DetailedPropertyManifest } from '../../../manifest/typescript/other/detailed-property-manifest.type'
 import { DetailedRelationshipManifest } from '../../../manifest/typescript/other/detailed-relationship-manifest.type'
 import { baseEntity } from '../../core-entities/base-entity'
 import { propTypeColumnTypes } from '../../records/prop-type-column-types'
@@ -36,7 +34,7 @@ export class EntityLoaderService {
           columns: Object.entries(entityManifest.properties).reduce(
             (
               acc: { [key: string]: EntitySchemaColumnOptions },
-              [propName, propManifest]: [string, PropertyManifest]
+              [propName, propManifest]: [string, DetailedPropertyManifest]
             ) => {
               acc[propName] = {
                 name: propName,

@@ -1,6 +1,7 @@
 import { PropType } from '@casejs/types'
+import { ColumnType } from 'typeorm'
 
-export const propTypeColumnTypes: Record<PropType, string> = {
+export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.String]: 'varchar',
   [PropType.Number]: 'decimal',
   [PropType.Link]: 'varchar',

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { PropertyManifest } from '../../../manifest/typescript/manifest-types'
+import { DetailedPropertyManifest } from '../../../manifest/typescript/other/detailed-property-manifest.type'
 import { propTypeSeedFunctions } from '../../records/prop-type-seed-functions'
 
 @Injectable()
@@ -12,7 +12,7 @@ export class PropertyService {
    * @returns The seed value.
    *
    */
-  getSeedValue(propertyManifest: PropertyManifest): any {
+  getSeedValue(propertyManifest: DetailedPropertyManifest): any {
     return propTypeSeedFunctions[propertyManifest.type]()
   }
 }

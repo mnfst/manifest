@@ -2,8 +2,8 @@ import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import * as express from 'express'
-import { DEFAULT_PORT } from '../constants'
 import { AppModule } from './app.module'
+import { DEFAULT_PORT } from './constants'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

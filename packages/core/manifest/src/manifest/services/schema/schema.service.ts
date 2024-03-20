@@ -62,11 +62,9 @@ export class SchemaService {
     const entityNames: string[] = Object.keys(manifest.entities)
 
     Object.values(manifest.entities).forEach((entity: EntityManifest) => {
-      const relationshipNames = Object.values(entity.hasMany || [])
-        .concat(Object.values(entity.belongsTo || []))
-        .map(
-          (relationship: DetailedRelationshipManifest) => relationship.entity
-        )
+      const relationshipNames = Object.values(entity.belongsTo || []).map(
+        (relationship: DetailedRelationshipManifest) => relationship.entity
+      )
 
       relationshipNames.forEach((relationship: any) => {
         if (!entityNames.includes(relationship)) {

@@ -8,10 +8,13 @@
 /**
  * A property in your entity. Doc: https://docs.case.app/properties
  */
-export type PropertyManifest = PropertyManifest1 & PropertyManifest2
-export type PropertyManifest1 = {
-  [k: string]: unknown
-}
+export type PropertyManifest =
+  | ({
+      [k: string]: unknown
+    } & {
+      [k: string]: unknown
+    })
+  | string
 /**
  * A relationship between two entities
  */
@@ -79,39 +82,9 @@ export interface EntityManifest {
   /**
    * The properties of the entity. Doc: https://docs.case.app/properties
    */
-  properties?: {
-    [k: string]: PropertyManifest
-  }
-  /**
-   * The hasMany relationships of the entity. Doc: https://docs.case.app/relationships
-   */
-  hasMany?: {
-    [k: string]: RelationshipManifest
-  }
+  properties?: PropertyManifest[]
   /**
    * The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships
    */
   belongsTo?: RelationshipManifest[]
-}
-export interface PropertyManifest2 {
-  /**
-   * The type of the property: text, number, link, currency... Doc: https://docs.case.app/property-types
-   */
-  type?:
-    | 'string'
-    | 'text'
-    | 'number'
-    | 'link'
-    | 'money'
-    | 'date'
-    | 'email'
-    | 'boolean'
-    | 'relation'
-    | 'password'
-    | 'choice'
-    | 'location'
-  /**
-   * The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation
-   */
-  validation?: string[]
 }

@@ -3,11 +3,13 @@ import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
+import { PropType } from '@casejs/types'
 import { ConfigService } from '@nestjs/config'
-import { MANIFEST_FILE_NAME, MANIFEST_FOLDER_NAME } from '../../../../constants'
+import { MANIFEST_FILE_NAME, MANIFEST_FOLDER_NAME } from '../../../constants'
 import {
   AppManifest,
   EntityManifest,
+  PropertyManifest,
   RelationshipManifest
 } from '../../typescript/manifest-types'
 
@@ -49,7 +51,19 @@ export class YamlService {
    */
   transform(manifest: AppManifest): AppManifest {
     Object.values(manifest.entities).forEach((entity: EntityManifest) => {
-      // 1 Relationships.
+      // 1. Properties.
+      if (entity.properties?.length > 0) {
+        entity.properties.forEach((propManifest: PropertyManifest) => {
+          if (typeof propManifest === 'string') {
+            entity.properties[entity.properties.indexOf(propManifest)] = {
+              name: propManifest.toLowerCase(),
+              type: PropType.String
+            }
+          }
+        })
+      }
+
+      // 2. Relationships.
       if (entity.belongsTo?.length > 0) {
         entity.belongsTo.forEach((relationship: RelationshipManifest) => {
           if (typeof relationship === 'string') {
