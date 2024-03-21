@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
 
-import { Paginator } from '@casejs/types'
+import { Paginator, SelectOption } from '@casejs/types'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { CrudService } from '../services/crud.service'
 
@@ -15,21 +15,25 @@ export class CrudController {
 
   @Get(':entity')
   findAll(
-    @Param('entity') entity: string,
+    @Param('entity') entitySlug: string,
     @Query() queryParams: { [key: string]: string | string[] }
   ): Promise<Paginator<BaseEntity>> {
     return this.crudService.findAll({
-      entitySlug: entity,
+      entitySlug,
       queryParams
     })
   }
 
-  // @Get(':entity/select-options')
-  // findSelectOptions(
-  //   @Param('entity') entity: string
-  // ): Promise<{ label: string; id: number }[]> {
-  //   return this.crudService.findSelectOptions(entity)
-  // }
+  @Get(':entity/select-options')
+  findSelectOptions(
+    @Param('entity') entitySlug: string,
+    @Query() queryParams: { [key: string]: string | string[] }
+  ): Promise<SelectOption[]> {
+    return this.crudService.findSelectOptions({
+      entitySlug,
+      queryParams
+    })
+  }
 
   // @Get(':entity/:id')
   // findOne(

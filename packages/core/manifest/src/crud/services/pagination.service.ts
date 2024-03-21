@@ -1,7 +1,6 @@
 import { Paginator } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { SelectQueryBuilder } from 'typeorm'
-import { DEFAULT_RESULTS_PER_PAGE } from '../../constants'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 
 @Injectable()
@@ -31,10 +30,6 @@ export class PaginationService {
     transformResult?: (result: BaseEntity) => BaseEntity
     asyncTransformResult?: (result: BaseEntity) => Promise<BaseEntity>
   }): Promise<Paginator<BaseEntity>> {
-    if (!resultsPerPage) {
-      resultsPerPage = DEFAULT_RESULTS_PER_PAGE
-    }
-
     const offset: number = (currentPage - 1) * resultsPerPage
     let total: number
     let results: BaseEntity[]

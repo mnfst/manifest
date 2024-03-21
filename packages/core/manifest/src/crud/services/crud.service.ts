@@ -6,12 +6,15 @@ import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
 
 import {
+  Paginator,
   PropType,
+  SelectOption,
   WhereKeySuffix,
   WhereOperator,
   whereOperatorKeySuffix
 } from '@casejs/types'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
+import { DEFAULT_RESULTS_PER_PAGE } from '../../constants'
 import { EntityManifest } from '../../manifest/typescript/other/entity-manifest.interface'
 import { PropertyManifest } from '../../manifest/typescript/other/property-manifest.type'
 import { RelationshipManifest } from '../../manifest/typescript/other/relationship-manifest.type'
@@ -113,23 +116,34 @@ export class CrudService {
     // Paginate.
     return this.paginationService.paginate({
       query,
-      currentPage: parseInt(queryParams.page as string, 10) || 1
+      currentPage: parseInt(queryParams.page as string, 10) || 1,
+      resultsPerPage:
+        parseInt(queryParams.perPage as string, 10) || DEFAULT_RESULTS_PER_PAGE
     })
   }
 
-  // async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
-  //   const items: BaseEntity[] = (await this.findAll({
-  //     entitySlug
-  //   })) as BaseEntity[]
+  async findSelectOptions({
+    entitySlug,
+    queryParams
+  }: {
+    entitySlug: string
+    queryParams?: { [key: string]: string | string[] }
+  }): Promise<SelectOption[]> {
+    const items: Paginator<BaseEntity> = await this.findAll({
+      entitySlug,
+      queryParams: Object.assign({}, queryParams, { perPage: -1 })
+    })
 
-  //   return items.map((item: BaseEntity) => ({
-  //     id: item.id,
-  //     label:
-  //       item[
-  //         this.entityMetaService.getEntityDefinition(entitySlug).propIdentifier
-  //       ]
-  //   }))
-  // }
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
+
+    return items.data.map((item: BaseEntity) => ({
+      id: item.id,
+      label: item[entityManifest.mainProp]
+    }))
+  }
 
   // async findOne(entitySlug: string, id: number) {
   //   const entityMetadata: EntityMetadata =
