@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common'
 
 import Ajv from 'ajv'
-// import manifestSchema from '../../json-schema/manifest-schema.json'
 import schemas from '../../json-schema'
-import { AppManifest, EntityManifest } from '../../typescript/manifest-types'
-import { DetailedRelationshipManifest } from '../../typescript/other/detailed-relationship-manifest.type'
+import {
+  AppManifestSchema,
+  EntityManifestSchema,
+  RelationshipManifestSchema
+} from '../../typescript/manifest-types'
 
 @Injectable()
 export class SchemaService {
@@ -16,7 +18,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validate(manifest: AppManifest): boolean {
+  validate(manifest: AppManifestSchema): boolean {
     this.validateAgainstSchema(manifest, schemas[0])
     this.validateCustomLogic(manifest)
 
@@ -32,7 +34,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateAgainstSchema(manifest: AppManifest, schema: any): boolean {
+  validateAgainstSchema(manifest: AppManifestSchema, schema: any): boolean {
     let validate: any = new Ajv({
       schemas
     })
@@ -57,13 +59,18 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateCustomLogic(manifest: AppManifest): boolean {
+  validateCustomLogic(manifest: AppManifestSchema): boolean {
     // 1.Validate that all entities in relationships exist.
     const entityNames: string[] = Object.keys(manifest.entities)
 
-    Object.values(manifest.entities).forEach((entity: EntityManifest) => {
+    Object.values(manifest.entities).forEach((entity: EntityManifestSchema) => {
       const relationshipNames = Object.values(entity.belongsTo || []).map(
-        (relationship: DetailedRelationshipManifest) => relationship.entity
+        (relationship: RelationshipManifestSchema) => {
+          if (typeof relationship === 'string') {
+            return relationship
+          }
+          return relationship.entity
+        }
       )
 
       relationshipNames.forEach((relationship: any) => {

@@ -4,7 +4,9 @@ import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
 import { EntityService } from '../../entity/services/entity/entity.service'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
-import { EntityManifest } from '../../manifest/typescript/manifest-types'
+
+import { EntityManifest } from '../../manifest/typescript/other/entity-manifest.interface'
+import { PropertyManifest } from '../../manifest/typescript/other/property-manifest.type'
 import { PaginationService } from './pagination.service'
 
 @Injectable()
@@ -46,8 +48,6 @@ export class CrudService {
         slug: entitySlug
       })
 
-    console.log(entityManifest)
-
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
       entityManifest.className
     )
@@ -57,6 +57,13 @@ export class CrudService {
 
     const query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
+
+    // Select only visible props.
+    query.select(
+      this.getVisibleProps({
+        props: entityManifest.properties
+      })
+    )
 
     return this.paginationService.paginate({
       query,
@@ -236,33 +243,28 @@ export class CrudService {
   //   return entityRepository.delete(id)
   // }
 
-  // /**
-  //  * Returns a list of visible props to be used in a select query.
-  //  *
-  //  * @param props the props of the entity.
-  //  * @returns the list of visible props.
-  //  */
-  // private getVisibleProps({
-  //   props,
-  //   alias = 'entity'
-  // }: {
-  //   props: PropertyDescription[]
-  //   alias?: string
-  // }): string[] {
-  //   // Id is always visible.
-  //   const visibleProps: string[] = [`${alias}.id`]
+  /**
+   * Returns a list of visible props to be used in a select query.
+   *
+   * @param props the props of the entity.
+   * @returns the list of visible props.
+   */
+  private getVisibleProps({
+    props,
+    alias = 'entity'
+  }: {
+    props: PropertyManifest[]
+    alias?: string
+  }): string[] {
+    // Id is always visible.
+    const visibleProps: string[] = [`${alias}.id`]
 
-  //   props
-  //     .filter(
-  //       (prop: PropertyDescription) =>
-  //         prop.type !== PropType.Relation && !prop.options.isHidden
-  //     )
-  //     .forEach((prop: PropertyDescription) =>
-  //       visibleProps.push(`${alias}.${prop.propName}`)
-  //     )
+    props
+      .filter((prop) => !prop.hidden)
+      .forEach((prop) => visibleProps.push(`${alias}.${prop.name}`))
 
-  //   return visibleProps
-  // }
+    return visibleProps
+  }
 
   // /**
   //  * Recursively loads relations and their visible props.

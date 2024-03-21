@@ -1,12 +1,21 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { AppManifest, EntityManifest } from '../../typescript/manifest-types'
 import { SchemaService } from '../schema/schema.service'
 import { YamlService } from '../yaml/yaml.service'
 
+import { PropType } from '@casejs/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
-import { DetailedPropertyManifest } from '../../typescript/other/detailed-property-manifest.type'
+import {
+  AppManifestSchema,
+  EntityManifestSchema,
+  PropertyManifestSchema,
+  RelationshipManifestSchema
+} from '../../typescript/manifest-types'
+import { AppManifest } from '../../typescript/other/app-manifest.interface'
+import { EntityManifest } from '../../typescript/other/entity-manifest.interface'
+import { PropertyManifest } from '../../typescript/other/property-manifest.type'
+import { RelationshipManifest } from '../../typescript/other/relationship-manifest.type'
 import { entityManifestDefaults } from './manifest.defaults'
 
 @Injectable()
@@ -17,36 +26,36 @@ export class ManifestService {
   ) {}
 
   /**
-   * Load the manifest from the manifest.yml file and validate it.
+   * Load the manifest from the file, validate it and transform it.
    *
    * @returns The manifest.
    *
    * */
   getAppManifest(): AppManifest {
-    const manifest: AppManifest = this.yamlService.load()
+    const manifestSchema: AppManifestSchema = this.yamlService.load()
 
-    this.schemaService.validate(manifest)
+    this.schemaService.validate(manifestSchema)
 
-    return manifest
+    return this.transformAppManifest(manifestSchema)
   }
 
   /**
    * Load the entities from the manifest and fill in the defaults.
    *
-   * @returns The entities.
+   * @returns The entity manifests.
    *
    * */
   getEntityManifests(): EntityManifest[] {
-    const manifest: AppManifest = this.getAppManifest()
+    const manifestSchema: AppManifestSchema = this.yamlService.load()
 
-    return Object.entries(manifest.entities).map(
-      ([className, entity]: [string, EntityManifest]) =>
-        this.fillInEntityManifestDefaults(className, entity)
+    return Object.entries(manifestSchema.entities).map(
+      ([className, entity]: [string, EntityManifestSchema]) =>
+        this.transformEntity(className, entity)
     )
   }
 
   /**
-   * Load an entity from the manifest and fill in the defaults.
+   * Load a single entity from the manifest and fill in the defaults.
    *
    * @param className The class name of the entity to load.
    * @param slug The slug of the entity to load.
@@ -86,44 +95,129 @@ export class ManifestService {
   }
 
   /**
-   * Fill in the defaults for an entity.
+   * Transform an AppManifestSchema into an AppManifest.
    *
-   * @param entityManifest The entity to fill in the defaults for.
-   *
-   * @returns The entity manifest with defaults filled in.
-   *
-   * */
-  fillInEntityManifestDefaults(
-    className: string,
-    entityManifest: EntityManifest
-  ): EntityManifest {
+   * @param manifestSchema the manifest schema to transform.
+   * @returns the manifest with defaults filled in and short form properties transformed into long form.
+   */
+  transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
     return {
-      className: entityManifest.className || className,
+      entities: Object.entries(manifestSchema.entities).reduce(
+        (
+          acc: { [k: string]: EntityManifest },
+          [className, entityManifestSchema]: [string, EntityManifestSchema]
+        ) => {
+          acc[className] = this.transformEntity(className, entityManifestSchema)
+          return acc
+        },
+        {}
+      ),
+      ...manifestSchema
+    } as AppManifest
+  }
+
+  /**
+   *
+   * Transform an EntityManifestSchema into an EntityManifest ensuring that undefined properties are filled in with defaults
+   * and short form properties are transformed into long form.
+   *
+   * @param className the class name of the entity.
+   * @param entityManifest the entity manifest to transform.
+   *
+   * @returns the entity manifest with defaults filled in and short form properties transformed into long form.
+   */
+  transformEntity(
+    className: string,
+    entityManifestSchema: EntityManifestSchema
+  ): EntityManifest {
+    const properties: PropertyManifest[] = (
+      entityManifestSchema.properties || []
+    ).map((propManifest: PropertyManifestSchema) =>
+      this.transformProperty(propManifest)
+    )
+
+    const entityManifest: EntityManifest = {
+      className: entityManifestSchema.className || className,
       nameSingular:
-        entityManifest.nameSingular ||
-        pluralize.singular(entityManifest.className || className).toLowerCase(),
+        entityManifestSchema.nameSingular ||
+        pluralize
+          .singular(entityManifestSchema.className || className)
+          .toLowerCase(),
       namePlural:
-        entityManifest.namePlural ||
-        pluralize.plural(entityManifest.className || className).toLowerCase(),
+        entityManifestSchema.namePlural ||
+        pluralize
+          .plural(entityManifestSchema.className || className)
+          .toLowerCase(),
       slug:
-        entityManifest.slug ||
+        entityManifestSchema.slug ||
         slugify(
           dasherize(
-            pluralize.plural(entityManifest.className || className)
+            pluralize.plural(entityManifestSchema.className || className)
           ).toLowerCase()
         ),
       // First "string" property found in the entity if exists, otherwise "id".
       mainProp:
-        entityManifest.mainProp ||
-        Object.entries(entityManifest.properties).find(
-          ([_propName, propManifest]: [string, DetailedPropertyManifest]) =>
-            propManifest.type === 'string'
-        )?.[0] ||
+        entityManifestSchema.mainProp ||
+        properties.find((prop) => prop.type === PropType.String)?.name ||
         'id',
-      seedCount: entityManifest.seedCount || entityManifestDefaults.seedCount,
-      properties: entityManifest.properties || [],
-      belongsTo: entityManifest.belongsTo || [],
-      ...entityManifest
+      seedCount:
+        entityManifestSchema.seedCount || entityManifestDefaults.seedCount,
+      belongsTo: (entityManifestSchema.belongsTo || []).map(
+        (relationship: RelationshipManifestSchema) =>
+          this.transformRelationship(relationship)
+      ),
+      properties
+    }
+
+    return entityManifest
+  }
+
+  /**
+   *
+   * Transform the short form of the relationship into the long form.
+   *
+   * @param relationship the relationship that can include short form properties.
+   * @returns the relationship with the short form properties transformed into long form.
+   */
+  transformRelationship(
+    relationship: RelationshipManifestSchema
+  ): RelationshipManifest {
+    if (typeof relationship === 'string') {
+      return {
+        name: relationship.toLowerCase(),
+        entity: relationship,
+        eager: false
+      }
+    }
+    return {
+      name: relationship.name || relationship.entity.toLowerCase(),
+      entity: relationship.entity,
+      eager: relationship.eager || false
+    }
+  }
+
+  /**
+   *
+   * Transform the short form of the property into the long form.
+   *
+   * @param propManifest the property that can be in short form.
+   * @returns the property with the short form properties transformed into long form.
+   *
+   */
+  transformProperty(
+    propManifestSchema: PropertyManifestSchema
+  ): PropertyManifest {
+    if (typeof propManifestSchema === 'string') {
+      return {
+        name: propManifestSchema.toLowerCase(),
+        type: PropType.String,
+        hidden: false
+      }
+    }
+    return {
+      name: propManifestSchema.name,
+      type: (propManifestSchema.type as PropType) || PropType.String,
+      hidden: propManifestSchema.hidden || false
     }
   }
 }

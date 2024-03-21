@@ -1,6 +1,6 @@
 import { PropType } from '@casejs/types'
 
-export type DetailedPropertyManifest = {
+export type PropertyManifest = {
   /**
    * The name of the property.
    */
@@ -10,4 +10,11 @@ export type DetailedPropertyManifest = {
    * The property type.
    */
   type: PropType
+
+  /**
+   * The property is hidden.
+   *
+   * @default false
+   */
+  hidden?: boolean
 }

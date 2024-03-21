@@ -1,7 +1,7 @@
 /**
  * A relationship between two entities
  */
-export type DetailedRelationshipManifest = {
+export type RelationshipManifest = {
   /**
    * The name of the relation
    */

@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker'
 import { Injectable } from '@nestjs/common'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import { EntityManifest } from '../../../manifest/typescript/manifest-types'
-import { DetailedRelationshipManifest } from '../../../manifest/typescript/other/detailed-relationship-manifest.type'
+import { EntityManifest } from '../../../manifest/typescript/other/entity-manifest.interface'
+import { RelationshipManifest } from '../../../manifest/typescript/other/relationship-manifest.type'
 
 @Injectable()
 export class RelationshipService {
@@ -16,7 +16,7 @@ export class RelationshipService {
    * @returns The seed value (id).
    *
    **/
-  getSeedValue(relationshipManifest: DetailedRelationshipManifest): number {
+  getSeedValue(relationshipManifest: RelationshipManifest): number {
     const relatedEntity: EntityManifest =
       this.manifestService.getEntityManifest({
         className: relationshipManifest.entity

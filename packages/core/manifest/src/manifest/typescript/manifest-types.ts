@@ -8,17 +8,42 @@
 /**
  * A property in your entity. Doc: https://docs.case.app/properties
  */
-export type PropertyManifest =
-  | ({
-      [k: string]: unknown
-    } & {
-      [k: string]: unknown
-    })
+export type PropertyManifestSchema =
+  | {
+      /**
+       * The name of the property. Doc: https://docs.case.app/properties
+       */
+      name: string
+      /**
+       * The type of the property: text, number, link, currency... Default "string". Doc: https://docs.case.app/property-types
+       */
+      type?:
+        | 'string'
+        | 'text'
+        | 'number'
+        | 'link'
+        | 'money'
+        | 'date'
+        | 'email'
+        | 'boolean'
+        | 'relation'
+        | 'password'
+        | 'choice'
+        | 'location'
+      /**
+       * If the property should be hidden in the API response. Default false. Doc: https://docs.case.app/property-types?id=hidden
+       */
+      hidden?: boolean
+      /**
+       * The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation
+       */
+      validation?: string[]
+    }
   | string
 /**
  * A relationship between two entities
  */
-export type RelationshipManifest =
+export type RelationshipManifestSchema =
   | {
       /**
        * The name of the relation
@@ -39,7 +64,7 @@ export type RelationshipManifest =
 /**
  * A complete backend in a single file.
  */
-export interface AppManifest {
+export interface AppManifestSchema {
   /**
    * The name of your app
    */
@@ -48,13 +73,13 @@ export interface AppManifest {
    * The entities in your app. Doc: https://docs.case.app/entities
    */
   entities?: {
-    [k: string]: EntityManifest
+    [k: string]: EntityManifestSchema
   }
 }
 /**
  * An entity in the system
  */
-export interface EntityManifest {
+export interface EntityManifestSchema {
   /**
    * The class name. Used widely on the admin panel. Default: class name.
    */
@@ -82,9 +107,9 @@ export interface EntityManifest {
   /**
    * The properties of the entity. Doc: https://docs.case.app/properties
    */
-  properties?: PropertyManifest[]
+  properties?: PropertyManifestSchema[]
   /**
    * The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships
    */
-  belongsTo?: RelationshipManifest[]
+  belongsTo?: RelationshipManifestSchema[]
 }

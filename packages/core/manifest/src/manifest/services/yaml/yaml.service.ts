@@ -3,15 +3,9 @@ import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
-import { PropType } from '@casejs/types'
 import { ConfigService } from '@nestjs/config'
 import { MANIFEST_FILE_NAME, MANIFEST_FOLDER_NAME } from '../../../constants'
-import {
-  AppManifest,
-  EntityManifest,
-  PropertyManifest,
-  RelationshipManifest
-} from '../../typescript/manifest-types'
+import { AppManifestSchema } from '../../typescript/manifest-types'
 
 @Injectable()
 export class YamlService {
@@ -26,7 +20,7 @@ export class YamlService {
    * @returns AppManifest the manifest
    *
    **/
-  load(): AppManifest {
+  load(): AppManifestSchema {
     this.yamlConfig = this.configService.get('yaml')
 
     const fileContent: string = fs.readFileSync(
@@ -34,48 +28,6 @@ export class YamlService {
       'utf8'
     )
 
-    const manifest: AppManifest = this.transform(
-      yaml.load(fileContent) as AppManifest
-    )
-
-    return manifest
-  }
-
-  /**
-   *
-   *  Transform the short form of the manifest into the long form.
-   *
-   * @param manifest the manifest that can include short form properties.
-   *
-   * @returns the manifest with the short form properties transformed into long form.
-   */
-  transform(manifest: AppManifest): AppManifest {
-    Object.values(manifest.entities).forEach((entity: EntityManifest) => {
-      // 1. Properties.
-      if (entity.properties?.length > 0) {
-        entity.properties.forEach((propManifest: PropertyManifest) => {
-          if (typeof propManifest === 'string') {
-            entity.properties[entity.properties.indexOf(propManifest)] = {
-              name: propManifest.toLowerCase(),
-              type: PropType.String
-            }
-          }
-        })
-      }
-
-      // 2. Relationships.
-      if (entity.belongsTo?.length > 0) {
-        entity.belongsTo.forEach((relationship: RelationshipManifest) => {
-          if (typeof relationship === 'string') {
-            entity.belongsTo[entity.belongsTo.indexOf(relationship)] = {
-              name: relationship.toLowerCase(),
-              entity: relationship
-            }
-          }
-        })
-      }
-    })
-
-    return manifest
+    return yaml.load(fileContent) as AppManifestSchema
   }
 }

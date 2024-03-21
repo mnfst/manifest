@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://manifest.build/schemas/definitions/property-schema.json",
-  "title": "Property Manifest",
+  "title": "Property Manifest Schema",
   "description": "A property in your entity. Doc: https://docs.case.app/properties",
   "anyOf": [
     {
@@ -12,7 +12,7 @@
           "type": "string"
         },
         "type": {
-          "description": "The type of the property: text, number, link, currency... Doc: https://docs.case.app/property-types",
+          "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://docs.case.app/property-types",
           "type": "string",
           "enum": [
             "string",
@@ -29,6 +29,10 @@
             "location"
           ]
         },
+        "hidden": {
+          "description": "If the property should be hidden in the API response. Default false. Doc: https://docs.case.app/property-types?id=hidden",
+          "type": "boolean"
+        },
         "validation": {
           "description": "The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation",
           "type": "array",
@@ -38,50 +42,7 @@
           }
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "choice"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "choices": {
-                "description": "The list of choices for the property. Doc: https://docs.case.app/property-types?id=choice",
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "sequential": {
-                "description": "## Sequential\n If the choices should be sequential or not (each item in the list follows the previous one).\n Used for admin panel display.\n . \n Doc: https://docs.case.app/property-types?id=choice",
-                "type": "boolean"
-              }
-            },
-            "required": ["choices"]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "money"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "currency": {
-                "description": "The currency in ISO 4217 format. Ex: EUR, INR, USD, CNY...\n Default USD. \n Doc: https://docs.case.app/property-types?id=money",
-                "type": "string"
-              }
-            }
-          }
-        }
-      ],
+      "required": ["name"],
       "additionalProperties": false
     },
     {

@@ -5,9 +5,9 @@ import { PropertyService } from '../entity/services/property/property.service'
 import { RelationshipService } from '../entity/services/relationship/relationship.service'
 import { BaseEntity } from '../entity/types/base-entity.interface'
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
-import { EntityManifest } from '../manifest/typescript/manifest-types'
-import { DetailedPropertyManifest } from '../manifest/typescript/other/detailed-property-manifest.type'
-import { DetailedRelationshipManifest } from '../manifest/typescript/other/detailed-relationship-manifest.type'
+import { EntityManifest } from '../manifest/typescript/other/entity-manifest.interface'
+import { PropertyManifest } from '../manifest/typescript/other/property-manifest.type'
+import { RelationshipManifest } from '../manifest/typescript/other/relationship-manifest.type'
 
 @Injectable()
 export class SeederService {
@@ -72,14 +72,14 @@ export class SeederService {
         const newRecord: BaseEntity = repository.create()
 
         entityManifest.properties.forEach(
-          (propertyManifest: DetailedPropertyManifest) => {
+          (propertyManifest: PropertyManifest) => {
             newRecord[propertyManifest.name] =
               this.propertyService.getSeedValue(propertyManifest)
           }
         )
 
         entityManifest.belongsTo.forEach(
-          (relationManifest: DetailedRelationshipManifest) => {
+          (relationManifest: RelationshipManifest) => {
             newRecord[relationManifest.name] =
               this.relationshipService.getSeedValue(relationManifest)
           }
