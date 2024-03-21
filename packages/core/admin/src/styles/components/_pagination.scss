@@ -1,0 +1,15 @@
+a {
+  transition: color 0.35s ease, background-color 0.05s ease-out;
+  -webkit-transition: color 0.35s ease, background-color 0.05s ease-out;
+  -moz-transition: color 0.35s ease, background-color 0.05s ease-out;
+  -ms-transition: color 0.35s ease, background-color 0.05s ease-out;
+  -o-transition: color 0.35s ease, background-color 0.05s ease-out;
+
+  &:hover {
+    transition: color 0.35s ease, background-color 0.05s ease-in;
+    -webkit-transition: color 0.35s ease, background-color 0.05s ease-in;
+    -moz-transition: color 0.35s ease, background-color 0.05s ease-in;
+    -ms-transition: color 0.35s ease, background-color 0.05s ease-in;
+    -o-transition: color 0.35s ease, background-color 0.05s ease-in;
+  }
+}
