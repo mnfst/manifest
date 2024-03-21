@@ -5,7 +5,7 @@ import { PropertyDescription } from '~shared/interfaces/property-description.int
 import { SelectOption } from '~shared/interfaces/select-option.interface'
 
 import { NgClass, NgFor } from '@angular/common'
-import { PropType } from '~shared/enums/prop-type.enum'
+import { PropType } from '@casejs/types'
 import { EnumPropertyOptions } from '../../../../../shared/interfaces/property-options/enum-property-options.interface'
 import { RelationPropertyOptions } from '../../../../../shared/interfaces/property-options/relation-property-options.interface'
 import { DynamicEntityService } from '../../dynamic-entity/dynamic-entity.service'

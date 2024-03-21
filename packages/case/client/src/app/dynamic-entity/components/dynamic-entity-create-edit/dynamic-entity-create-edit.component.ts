@@ -1,8 +1,8 @@
 import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
+import { PropType } from '@casejs/types'
 import { combineLatest } from 'rxjs'
-import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 import { HttpErrorResponse } from '@angular/common/http'

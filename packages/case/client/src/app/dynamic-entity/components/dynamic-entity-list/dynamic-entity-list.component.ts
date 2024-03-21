@@ -1,8 +1,7 @@
 import { Component, OnInit, Renderer2 } from '@angular/core'
 import { ActivatedRoute, Params, Router } from '@angular/router'
-import { Paginator } from '@casejs/types'
+import { Paginator, PropType } from '@casejs/types'
 import { combineLatest } from 'rxjs'
-import { PropType } from '~shared/enums/prop-type.enum'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { PropType } from '~shared/enums/prop-type.enum'
+import { PropType } from '@casejs/types'
 import { YieldType } from '~shared/enums/yield-type.enum'
 
 import { PropertyOptions } from '../../../../shared/interfaces/property-options/property-options.interface'

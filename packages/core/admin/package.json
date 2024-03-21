@@ -1,7 +1,6 @@
 {
-  "name": "@casejs/client",
+  "name": "admin",
   "version": "0.0.0",
-  "description": "Client for CASE",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -9,26 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
-  "author": "CASE",
-  "homepage": "https://case.app",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/casejs/case",
-    "directory": "packages/case-cli"
-  },
-  "license": "MIT",
-  "keywords": [
-    "case",
-    "cli",
-    "nodejs",
-    "node",
-    "admin panel",
-    "crud",
-    "resource",
-    "property",
-    "web application development",
-    "schematics"
-  ],
+  "private": true,
   "dependencies": {
     "@angular/animations": "^15.0.0",
     "@angular/common": "^15.0.0",
@@ -38,10 +18,6 @@
     "@angular/platform-browser": "^15.0.0",
     "@angular/platform-browser-dynamic": "^15.0.0",
     "@angular/router": "^15.0.0",
-    "@auth0/angular-jwt": "^5.1.2",
-    "@casejs/types": "^0.0.5",
-    "bulma": "^0.9.4",
-    "bulma-tooltip": "^3.0.2",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.12.0"
