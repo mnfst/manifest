@@ -1,6 +1,6 @@
 import { PropType } from '@casejs/types'
-import { InputType } from '../types/enums/input-type.enum'
-import { YieldType } from '../types/enums/yield-type.enum'
+import { InputType } from '../enums/input-type.enum'
+import { YieldType } from '../enums/yield-type.enum'
 
 export type PropTypeCharacteristics = {
   input: InputType
