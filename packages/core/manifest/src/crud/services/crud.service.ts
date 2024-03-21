@@ -5,10 +5,17 @@ import { EntityService } from '../../entity/services/entity/entity.service'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
 
+import {
+  PropType,
+  WhereKeySuffix,
+  WhereOperator,
+  whereOperatorKeySuffix
+} from '@casejs/types'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import { EntityManifest } from '../../manifest/typescript/other/entity-manifest.interface'
 import { PropertyManifest } from '../../manifest/typescript/other/property-manifest.type'
 import { RelationshipManifest } from '../../manifest/typescript/other/relationship-manifest.type'
+import { HelperService } from './helper.service'
 import { PaginationService } from './pagination.service'
 
 @Injectable()
@@ -60,6 +67,13 @@ export class CrudService {
     let query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
 
+    // Apply filters.
+    this.filterQuery({
+      query,
+      queryParams,
+      entityManifest
+    })
+
     // Select only visible props.
     query.select(
       this.getVisibleProps({
@@ -67,6 +81,7 @@ export class CrudService {
       })
     )
 
+    // Apply ordering.
     if (queryParams?.orderBy) {
       if (
         !entityManifest.properties.find(
@@ -87,6 +102,7 @@ export class CrudService {
       query.orderBy('entity.id', 'DESC')
     }
 
+    // Load relations.
     this.loadRelations({
       query,
       entityMetadata,
@@ -94,68 +110,11 @@ export class CrudService {
       requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
+    // Paginate.
     return this.paginationService.paginate({
       query,
       currentPage: parseInt(queryParams.page as string, 10) || 1
     })
-
-    // // Dynamic filtering.
-    // Object.entries(queryParams || {})
-    //   .filter(
-    //     ([key, _value]: [string, string | string[]]) =>
-    //       !this.specialQueryParams.includes(key)
-    //   )
-    //   .forEach(([key, value]: [string, string]) => {
-    //     // Check if the key includes one of the available operator suffixes. We reverse array as some suffixes are substrings of others (ex: _gt and _gte).
-    //     const suffix: WhereKeySuffix = Object.values(WhereKeySuffix)
-    //       .reverse()
-    //       .find((suffix) => key.includes(suffix))
-    //     if (!suffix) {
-    //       throw new HttpException(
-    //         'Query param key should include an operator suffix',
-    //         HttpStatus.BAD_REQUEST
-    //       )
-    //     }
-    //     const operator: WhereOperator = HelperService.getRecordKeyByValue(
-    //       whereOperatorKeySuffix,
-    //       suffix
-    //     ) as WhereOperator
-    //     const propName: string = key.replace(suffix, '')
-    //     const prop: PropertyDescription = props.find(
-    //       (prop: PropertyDescription) => prop.propName === propName
-    //     )
-    //     if (!prop) {
-    //       throw new HttpException(
-    //         `Property ${propName} does not exist in ${entitySlug}`,
-    //         HttpStatus.BAD_REQUEST
-    //       )
-    //     }
-    //     // Allow "true" and "false" to be used for boolean props for convenience.
-    //     if (prop.type === PropType.Boolean) {
-    //       if (value === 'true') {
-    //         value = '1'
-    //       } else if (value === 'false') {
-    //         value = '0'
-    //       }
-    //     }
-    //     // Finally and the where query. In is a bit special as it expects an array of values.
-    //     if (operator === WhereOperator.In) {
-    //       query.where(`entity.${propName} ${operator} (:...value)`, {
-    //         value: JSON.parse(`[${value}]`)
-    //       })
-    //     } else {
-    //       query.where(`entity.${propName} ${operator} :value`, {
-    //         value
-    //       })
-    //     }
-    //   })
-    // query.select(this.getVisibleProps({ props }))
-    // query = this.loadRelations({
-    //   query,
-    //   entityMetadata,
-    //   props,
-    //   requestedRelations: queryParams?.relations?.toString().split(',')
-    // })
   }
 
   // async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
@@ -354,6 +313,80 @@ export class CrudService {
         })
       }
     })
+
+    return query
+  }
+
+  /**
+   * Filters the query.
+   *
+   * @param query the query builder.
+   * @param queryParams the filter and pagination query params.
+   * @param entityManifest the entity manifest.
+   * @param entityMetadata the entity metadata.
+   *
+   * @returns the query builder with the filters applied.
+   */
+  private filterQuery({
+    query,
+    queryParams,
+    entityManifest
+  }: {
+    query: SelectQueryBuilder<BaseEntity>
+    queryParams?: { [key: string]: string | string[] }
+    entityManifest: EntityManifest
+  }): SelectQueryBuilder<BaseEntity> {
+    Object.entries(queryParams || {})
+      .filter(
+        ([key, _value]: [string, string | string[]]) =>
+          !this.specialQueryParams.includes(key)
+      )
+      .forEach(([key, value]: [string, string]) => {
+        // Check if the key includes one of the available operator suffixes. We reverse array as some suffixes are substrings of others (ex: _gt and _gte).
+        const suffix: WhereKeySuffix = Object.values(WhereKeySuffix)
+          .reverse()
+          .find((suffix) => key.includes(suffix))
+        if (!suffix) {
+          throw new HttpException(
+            'Query param key should include an operator suffix',
+            HttpStatus.BAD_REQUEST
+          )
+        }
+        const operator: WhereOperator = HelperService.getRecordKeyByValue(
+          whereOperatorKeySuffix,
+          suffix
+        ) as WhereOperator
+        const propName: string = key.replace(suffix, '')
+
+        const prop: PropertyManifest = entityManifest.properties.find(
+          (prop: PropertyManifest) => prop.name === propName && !prop.hidden
+        )
+
+        if (!prop) {
+          throw new HttpException(
+            `Property ${propName} does not exist in ${entityManifest.className}`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+        // Allow "true" and "false" to be used for boolean props for convenience.
+        if (prop.type === PropType.Boolean) {
+          if (value === 'true') {
+            value = '1'
+          } else if (value === 'false') {
+            value = '0'
+          }
+        }
+        // Finally and the where query. "In" is a bit special as it expects an array of values.
+        if (operator === WhereOperator.In) {
+          query.where(`entity.${propName} ${operator} (:...value)`, {
+            value: JSON.parse(`[${value}]`)
+          })
+        } else {
+          query.where(`entity.${propName} ${operator} :value`, {
+            value
+          })
+        }
+      })
 
     return query
   }
