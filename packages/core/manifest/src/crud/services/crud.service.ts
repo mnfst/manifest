@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 
 import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
 import { EntityService } from '../../entity/services/entity/entity.service'
@@ -64,6 +64,26 @@ export class CrudService {
         props: entityManifest.properties
       })
     )
+
+    if (queryParams?.orderBy) {
+      if (
+        !entityManifest.properties.find(
+          (prop: PropertyManifest) =>
+            prop.name === queryParams.orderBy && !prop.hidden
+        )
+      ) {
+        throw new HttpException(
+          `Property ${queryParams.orderBy} does not exist in ${entitySlug} and thus cannot be used for ordering`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
+      query.orderBy(
+        `entity.${queryParams.orderBy}`,
+        queryParams.order === 'DESC' ? 'DESC' : 'ASC'
+      )
+    } else {
+      query.orderBy('entity.id', 'DESC')
+    }
 
     return this.paginationService.paginate({
       query,
