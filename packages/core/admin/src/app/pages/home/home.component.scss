@@ -1,0 +1,27 @@
+@import '../../../styles/variables/all';
+@import '../../../../node_modules/bulma/sass/utilities/mixins'; 
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Roboto&display=swap');
+
+code {
+    display: inline-block;
+    padding: 1em 2em 1em;
+    background-color: #303032;
+    color: #f5f7f9;
+    font-family: 'Fira Code', monospace;
+
+}
+
+.is-entity-link {
+    height: 64px;
+    display: flex;
+    align-items: center;
+}
+
+.card-link {
+    transition: all $transition-duration $transition-timing;
+    &:hover .card{
+        background-color: #f5f7f9;
+        background-color: $sidenav-item-hover-color;
+    color: $link;
+    }
+}

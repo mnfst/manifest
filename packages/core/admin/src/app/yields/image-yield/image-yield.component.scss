@@ -1,0 +1,9 @@
+img {
+  &:not(.is-large) {
+    height: 36px;
+    width: 36px;
+  }
+  &.is-large {
+    width: 800px;
+  }
+}
