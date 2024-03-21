@@ -75,6 +75,7 @@ export class SchemaService {
 
       relationshipNames.forEach((relationship: any) => {
         if (!entityNames.includes(relationship)) {
+          console.error('#### JSON Schema Validation failed ####')
           console.error(`Entity ${relationship} does not exist in the manifest`)
           process.exit(1)
         }

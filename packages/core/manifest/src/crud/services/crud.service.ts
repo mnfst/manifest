@@ -5,8 +5,10 @@ import { EntityService } from '../../entity/services/entity/entity.service'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
 
+import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import { EntityManifest } from '../../manifest/typescript/other/entity-manifest.interface'
 import { PropertyManifest } from '../../manifest/typescript/other/property-manifest.type'
+import { RelationshipManifest } from '../../manifest/typescript/other/relationship-manifest.type'
 import { PaginationService } from './pagination.service'
 
 @Injectable()
@@ -55,7 +57,7 @@ export class CrudService {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository(entityMetadata)
 
-    const query: SelectQueryBuilder<BaseEntity> =
+    let query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
 
     // Select only visible props.
@@ -84,6 +86,13 @@ export class CrudService {
     } else {
       query.orderBy('entity.id', 'DESC')
     }
+
+    this.loadRelations({
+      query,
+      entityMetadata,
+      belongsTo: entityManifest.belongsTo,
+      requestedRelations: queryParams?.relations?.toString().split(',')
+    })
 
     return this.paginationService.paginate({
       query,
@@ -147,19 +156,6 @@ export class CrudService {
     //   props,
     //   requestedRelations: queryParams?.relations?.toString().split(',')
     // })
-    // // Add order by.
-    // if (queryParams?.orderBy) {
-    //   if (!props.find((prop) => prop.propName === queryParams.orderBy)) {
-    //     throw new HttpException(
-    //       `Property ${queryParams.orderBy} does not exist in ${entitySlug} and thus cannot be used for ordering`,
-    //       HttpStatus.BAD_REQUEST
-    //     )
-    //   }
-    //   query.orderBy(
-    //     `entity.${queryParams.orderBy}`,
-    //     queryParams.order === 'DESC' ? 'DESC' : 'ASC'
-    //   )
-    // }
   }
 
   // async findSelectOptions(entitySlug: string): Promise<SelectOption[]> {
@@ -286,79 +282,79 @@ export class CrudService {
     return visibleProps
   }
 
-  // /**
-  //  * Recursively loads relations and their visible props.
-  //  *
-  //  * @param query the query builder.
-  //  * @param entityMetadata the entity metadata.
-  //  * @param props the entity props.
-  //  * @param queryParams the query params.
-  //  *
-  //  * @returns the query builder with the relations loaded.
-  //  */
-  // private loadRelations({
-  //   query,
-  //   entityMetadata,
-  //   props,
-  //   requestedRelations,
-  //   alias = 'entity'
-  // }: {
-  //   query: SelectQueryBuilder<BaseEntity>
-  //   entityMetadata: EntityMetadata
-  //   props: PropertyDescription[]
-  //   requestedRelations?: string[]
-  //   alias?: string
-  // }): SelectQueryBuilder<BaseEntity> {
-  //   // Get item relations and select only their visible props.
-  //   entityMetadata.relations.forEach((relation: RelationMetadata) => {
-  //     const relationDescription: PropertyDescription = props.find(
-  //       (prop: PropertyDescription) => prop.propName === relation.propertyName
-  //     )
-  //     // Only eager relations are loaded.
-  //     if (
-  //       !(relationDescription.options as RelationPropertyOptions).eager &&
-  //       !requestedRelations?.includes(relation.propertyName)
-  //     ) {
-  //       return
-  //     }
+  /**
+   * Recursively loads relations and their visible props.
+   *
+   * @param query the query builder.
+   * @param entityMetadata the entity metadata.
+   * @param belongsTo the belongsTo relationships.
+   * @param requestedRelations the requested relations.
+   * @param alias the alias of the entity.
+   *
+   * @returns the query builder with the relations loaded.
+   */
+  private loadRelations({
+    query,
+    entityMetadata,
+    belongsTo,
+    requestedRelations,
+    alias = 'entity'
+  }: {
+    query: SelectQueryBuilder<BaseEntity>
+    entityMetadata: EntityMetadata
+    belongsTo: RelationshipManifest[]
+    requestedRelations?: string[]
+    alias?: string
+  }): SelectQueryBuilder<BaseEntity> {
+    // Get item relations and select only their visible props.
+    entityMetadata.relations.forEach((relation: RelationMetadata) => {
+      const relationshipManifest: RelationshipManifest = belongsTo.find(
+        (belongsTo: RelationshipManifest) =>
+          belongsTo.name === relation.propertyName
+      )
 
-  //     query.leftJoin(`${alias}.${relation.propertyName}`, relation.propertyName)
+      // Only eager relations are loaded.
+      if (
+        !relationshipManifest.eager &&
+        !requestedRelations?.includes(relation.propertyName)
+      ) {
+        return
+      }
 
-  //     const relationProps: PropertyDescription[] =
-  //       this.entityMetaService.getPropDescriptions(
-  //         relation.inverseEntityMetadata
-  //       )
+      query.leftJoin(`${alias}.${relation.propertyName}`, relation.propertyName)
 
-  //     query.addSelect(
-  //       this.getVisibleProps({
-  //         props: relationProps,
-  //         alias: relation.propertyName
-  //       })
-  //     )
+      const relationEntityManifest: EntityManifest =
+        this.manifestService.getEntityManifest({
+          className: relation.inverseEntityMetadata.targetName
+        })
 
-  //     // Load relations of relations.
-  //     const relationEntityMetadata: EntityMetadata =
-  //       this.entityMetaService.getEntityMetadata(
-  //         relation.inverseEntityMetadata.name
-  //       )
+      query.addSelect(
+        this.getVisibleProps({
+          props: relationEntityManifest.properties,
+          alias: relation.propertyName
+        })
+      )
 
-  //     const relationRelations: RelationMetadata[] =
-  //       relationEntityMetadata.relations
+      // Load relations of relations.
+      const relationEntityMetadata: EntityMetadata =
+        this.entityService.getEntityMetadata(
+          relation.inverseEntityMetadata.targetName
+        )
 
-  //     if (relationRelations.length) {
-  //       query = this.loadRelations({
-  //         query,
-  //         entityMetadata: relationEntityMetadata,
-  //         props: relationProps,
-  //         requestedRelations: requestedRelations?.map(
-  //           (requestedRelation: string) =>
-  //             requestedRelation.replace(`${relation.propertyName}.`, '')
-  //         ),
-  //         alias: relation.propertyName
-  //       })
-  //     }
-  //   })
+      if (relationEntityMetadata.relations.length) {
+        query = this.loadRelations({
+          query,
+          entityMetadata: relationEntityMetadata,
+          belongsTo: relationEntityManifest.belongsTo,
+          requestedRelations: requestedRelations?.map(
+            (requestedRelation: string) =>
+              requestedRelation.replace(`${relation.propertyName}.`, '')
+          ),
+          alias: relation.propertyName
+        })
+      }
+    })
 
-  //   return query
-  // }
+    return query
+  }
 }
