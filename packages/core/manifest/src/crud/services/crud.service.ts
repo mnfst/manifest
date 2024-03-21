@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common'
 
 import {
+  DeleteResult,
   EntityMetadata,
   InsertResult,
   Repository,
@@ -26,7 +27,10 @@ import {
   whereOperatorKeySuffix
 } from '@casejs/types'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
-import { DEFAULT_RESULTS_PER_PAGE } from '../../constants'
+import {
+  DEFAULT_RESULTS_PER_PAGE,
+  QUERY_PARAMS_RESERVED_WORDS
+} from '../../constants'
 import { EntityManifest } from '../../manifest/typescript/other/entity-manifest.interface'
 import { PropertyManifest } from '../../manifest/typescript/other/property-manifest.type'
 import { RelationshipManifest } from '../../manifest/typescript/other/relationship-manifest.type'
@@ -35,17 +39,6 @@ import { PaginationService } from './pagination.service'
 
 @Injectable()
 export class CrudService {
-  /**
-   * The special query params that are not used for filtering.
-   */
-  specialQueryParams: string[] = [
-    'page',
-    'perPage',
-    'order',
-    'orderBy',
-    'relations'
-  ]
-
   constructor(
     private readonly entityService: EntityService,
     private readonly manifestService: ManifestService,
@@ -73,7 +66,9 @@ export class CrudService {
       })
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      entityManifest.className
+      {
+        className: entityManifest.className
+      }
     )
 
     const entityRepository: Repository<BaseEntity> =
@@ -172,7 +167,9 @@ export class CrudService {
       })
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      entityManifest.className
+      {
+        className: entityManifest.className
+      }
     )
 
     const query: SelectQueryBuilder<BaseEntity> = this.entityService
@@ -197,13 +194,10 @@ export class CrudService {
   }
 
   async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
-    const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
-        slug: entitySlug
-      })
-
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      entityManifest.className
+      {
+        slug: entitySlug
+      }
     )
 
     const entityRepository: Repository<any> =
@@ -219,45 +213,57 @@ export class CrudService {
     return entityRepository.insert(newItem)
   }
 
-  // async update(
-  //   entitySlug: string,
-  //   id: number,
-  //   itemDto: any
-  // ): Promise<BaseEntity> {
-  //   const entityRepository: Repository<any> =
-  //     this.entityMetaService.getRepository(entitySlug)
+  async update(
+    entitySlug: string,
+    id: number,
+    itemDto: any
+  ): Promise<BaseEntity> {
+    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
+      {
+        slug: entitySlug
+      }
+    )
 
-  //   const item: BaseEntity = await entityRepository.findOne({ where: { id } })
+    const entityRepository: Repository<BaseEntity> =
+      this.entityService.getEntityRepository(entityMetadata)
 
-  //   if (!item) {
-  //     throw new NotFoundException('Item not found')
-  //   }
+    const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
-  //   const itemToSave = entityRepository.create({
-  //     ...item,
-  //     ...itemDto
-  //   })
+    if (!item) {
+      throw new NotFoundException('Item not found')
+    }
 
-  //   const errors = await validate(itemToSave)
-  //   if (errors.length) {
-  //     throw new HttpException(errors, HttpStatus.BAD_REQUEST)
-  //   }
+    const itemToSave: BaseEntity = entityRepository.create({
+      ...item,
+      ...itemDto
+    } as BaseEntity)
 
-  //   return entityRepository.save(itemToSave)
-  // }
+    const errors = await validate(itemToSave)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
 
-  // async delete(entitySlug: string, id: number): Promise<DeleteResult> {
-  //   const entityRepository: Repository<BaseEntity> =
-  //     this.entityMetaService.getRepository(entitySlug)
+    return entityRepository.save(itemToSave)
+  }
 
-  //   const item = await entityRepository.findOne({ where: { id } })
+  async delete(entitySlug: string, id: number): Promise<DeleteResult> {
+    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
+      {
+        slug: entitySlug
+      }
+    )
 
-  //   if (!item) {
-  //     throw new NotFoundException('Item not found')
-  //   }
+    const entityRepository: Repository<BaseEntity> =
+      this.entityService.getEntityRepository(entityMetadata)
 
-  //   return entityRepository.delete(id)
-  // }
+    const item = await entityRepository.findOne({ where: { id } })
+
+    if (!item) {
+      throw new NotFoundException('Item not found')
+    }
+
+    return entityRepository.delete(id)
+  }
 
   /**
    * Returns a list of visible props to be used in a select query.
@@ -337,9 +343,9 @@ export class CrudService {
 
       // Load relations of relations.
       const relationEntityMetadata: EntityMetadata =
-        this.entityService.getEntityMetadata(
-          relation.inverseEntityMetadata.targetName
-        )
+        this.entityService.getEntityMetadata({
+          className: relation.inverseEntityMetadata.targetName
+        })
 
       if (relationEntityMetadata.relations.length) {
         query = this.loadRelations({
@@ -380,7 +386,7 @@ export class CrudService {
     Object.entries(queryParams || {})
       .filter(
         ([key, _value]: [string, string | string[]]) =>
-          !this.specialQueryParams.includes(key)
+          !QUERY_PARAMS_RESERVED_WORDS.includes(key)
       )
       .forEach(([key, value]: [string, string]) => {
         // Check if the key includes one of the available operator suffixes. We reverse array as some suffixes are substrings of others (ex: _gt and _gte).

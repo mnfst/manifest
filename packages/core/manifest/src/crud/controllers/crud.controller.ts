@@ -1,6 +1,17 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query
+} from '@nestjs/common'
 
 import { Paginator, SelectOption } from '@casejs/types'
+import { DeleteResult, InsertResult } from 'typeorm'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { CrudService } from '../services/crud.service'
 
@@ -48,28 +59,28 @@ export class CrudController {
     })
   }
 
-  // @Post(':entity')
-  // store(
-  //   @Param('entity') entity: string,
-  //   @Body() entityDto: any
-  // ): Promise<InsertResult> {
-  //   return this.crudService.store(entity, entityDto)
-  // }
+  @Post(':entity')
+  store(
+    @Param('entity') entity: string,
+    @Body() entityDto: any
+  ): Promise<InsertResult> {
+    return this.crudService.store(entity, entityDto)
+  }
 
-  // @Put(':entity/:id')
-  // update(
-  //   @Param('entity') entity: string,
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() entityDto: any
-  // ): Promise<BaseEntity> {
-  //   return this.crudService.update(entity, id, entityDto)
-  // }
+  @Put(':entity/:id')
+  update(
+    @Param('entity') entity: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() entityDto: any
+  ): Promise<BaseEntity> {
+    return this.crudService.update(entity, id, entityDto)
+  }
 
-  // @Delete(':entity/:id')
-  // delete(
-  //   @Param('entity') entity: string,
-  //   @Param('id', ParseIntPipe) id: number
-  // ): Promise<DeleteResult> {
-  //   return this.crudService.delete(entity, id)
-  // }
+  @Delete(':entity/:id')
+  delete(
+    @Param('entity') entity: string,
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<DeleteResult> {
+    return this.crudService.delete(entity, id)
+  }
 }

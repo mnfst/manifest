@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
+import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
 import { BaseEntity } from '../../types/base-entity.interface'
 
 @Injectable()
 export class EntityService {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private manifestService: ManifestService
+  ) {}
 
   /**
    * Get the metadata for all entities.
@@ -21,10 +25,25 @@ export class EntityService {
    * Get the metadata for an entity.
    *
    * @param className The class name of the entity to get the metadata for.
+   * @param slug The slug of the entity to get the metadata for.
    *
    * @returns The metadata for the entity.
    */
-  getEntityMetadata(className: string): EntityMetadata {
+  getEntityMetadata({
+    className,
+    slug
+  }: {
+    className?: string
+    slug?: string
+  }): EntityMetadata {
+    if (!className && !slug) {
+      throw new Error('Either className or slug must be provided')
+    }
+
+    if (slug) {
+      className = this.manifestService.getEntityManifest({ slug }).className
+    }
+
     const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
       (entity: EntityMetadata) => entity.targetName === className
     )

@@ -86,7 +86,7 @@ export class ManifestService {
 
     if (!entityManifest) {
       throw new HttpException(
-        `Entity ${className} not found in manifest`,
+        `Entity ${className || slug} not found in manifest`,
         HttpStatus.NOT_FOUND
       )
     }

@@ -38,7 +38,8 @@ export class EntityLoaderService {
             ) => {
               acc[propManifest.name] = {
                 name: propManifest.name,
-                type: propTypeColumnTypes[propManifest.type]
+                type: propTypeColumnTypes[propManifest.type],
+                nullable: true // Everything is nullable yet.
               }
 
               return acc
