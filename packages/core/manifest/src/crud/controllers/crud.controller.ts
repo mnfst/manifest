@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common'
 
 import { Paginator, SelectOption } from '@casejs/types'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
@@ -35,13 +35,18 @@ export class CrudController {
     })
   }
 
-  // @Get(':entity/:id')
-  // findOne(
-  //   @Param('entity') entity: string,
-  //   @Param('id', ParseIntPipe) id: number
-  // ): Promise<BaseEntity> {
-  //   return this.crudService.findOne(entity, id)
-  // }
+  @Get(':entity/:id')
+  findOne(
+    @Param('entity') entitySlug: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Query() queryParams: { [key: string]: string | string[] }
+  ): Promise<BaseEntity> {
+    return this.crudService.findOne({
+      entitySlug,
+      id,
+      queryParams
+    })
+  }
 
   // @Post(':entity')
   // store(

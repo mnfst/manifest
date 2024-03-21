@@ -1,6 +1,18 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common'
 
-import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
+import {
+  EntityMetadata,
+  InsertResult,
+  Repository,
+  SelectQueryBuilder
+} from 'typeorm'
+
+import { validate } from 'class-validator'
 import { EntityService } from '../../entity/services/entity/entity.service'
 import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
@@ -145,52 +157,67 @@ export class CrudService {
     }))
   }
 
-  // async findOne(entitySlug: string, id: number) {
-  //   const entityMetadata: EntityMetadata =
-  //     this.entityMetaService.getEntityMetadata(entitySlug)
+  async findOne({
+    entitySlug,
+    id,
+    queryParams
+  }: {
+    entitySlug: string
+    id: number
+    queryParams?: { [key: string]: string | string[] }
+  }) {
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
 
-  //   const relations: string[] = entityMetadata.relations.map(
-  //     (relation: RelationMetadata) => relation.propertyName
-  //   )
+    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
+      entityManifest.className
+    )
 
-  //   const props: PropertyDescription[] =
-  //     this.entityMetaService.getPropDescriptions(entityMetadata)
+    const query: SelectQueryBuilder<BaseEntity> = this.entityService
+      .getEntityRepository(entityMetadata)
+      .createQueryBuilder('entity')
+      .select(this.getVisibleProps({ props: entityManifest.properties }))
+      .where('entity.id = :id', { id })
 
-  //   const query: SelectQueryBuilder<BaseEntity> = this.entityMetaService
-  //     .getRepository(entitySlug)
-  //     .createQueryBuilder('entity')
+    this.loadRelations({
+      query,
+      entityMetadata,
+      belongsTo: entityManifest.belongsTo,
+      requestedRelations: queryParams?.relations?.toString().split(',')
+    })
 
-  //   this.loadRelations({
-  //     query,
-  //     entityMetadata,
-  //     props,
-  //     requestedRelations: relations
-  //   })
+    const item: BaseEntity = await query.getOne()
 
-  //   const item: BaseEntity = await query
-  //     .select(this.getVisibleProps({ props }))
-  //     .where('entity.id = :id', { id })
-  //     .getOne()
+    if (!item) {
+      throw new NotFoundException('Item not found')
+    }
+    return item
+  }
 
-  //   if (!item) {
-  //     throw new NotFoundException('Item not found')
-  //   }
-  //   return item
-  // }
+  async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
 
-  // async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
-  //   const entityRepository: Repository<any> =
-  //     this.entityMetaService.getRepository(entitySlug)
+    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
+      entityManifest.className
+    )
 
-  //   const newItem: BaseEntity = entityRepository.create(itemDto)
+    const entityRepository: Repository<any> =
+      this.entityService.getEntityRepository(entityMetadata)
 
-  //   const errors = await validate(newItem)
-  //   if (errors.length) {
-  //     throw new HttpException(errors, HttpStatus.BAD_REQUEST)
-  //   }
+    const newItem: BaseEntity = entityRepository.create(itemDto)
 
-  //   return entityRepository.insert(newItem)
-  // }
+    const errors = await validate(newItem)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
+
+    return entityRepository.insert(newItem)
+  }
 
   // async update(
   //   entitySlug: string,
