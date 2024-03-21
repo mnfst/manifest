@@ -121,6 +121,8 @@ export class ManifestService {
         )?.[0] ||
         'id',
       seedCount: entityManifest.seedCount || entityManifestDefaults.seedCount,
+      properties: entityManifest.properties || [],
+      belongsTo: entityManifest.belongsTo || [],
       ...entityManifest
     }
   }

@@ -31,13 +31,13 @@ export class EntityLoaderService {
           name: entityManifest.className,
 
           // Convert properties to columns.
-          columns: Object.entries(entityManifest.properties).reduce(
+          columns: entityManifest.properties.reduce(
             (
               acc: { [key: string]: EntitySchemaColumnOptions },
-              [propName, propManifest]: [string, DetailedPropertyManifest]
+              propManifest: DetailedPropertyManifest
             ) => {
-              acc[propName] = {
-                name: propName,
+              acc[propManifest.name] = {
+                name: propManifest.name,
                 type: propTypeColumnTypes[propManifest.type]
               }
 
@@ -45,18 +45,15 @@ export class EntityLoaderService {
             },
             // Merge with baseEntity for base columns like id, createdAt, updatedAt.
             { ...baseEntity }
-          ),
+          ) as { [key: string]: EntitySchemaColumnOptions },
 
           // Convert belongsTo relationships to many-to-one relations.
-          relations: Object.entries(entityManifest.belongsTo || []).reduce(
+          relations: entityManifest.belongsTo.reduce(
             (
               acc: { [key: string]: EntitySchemaRelationOptions },
-              [belongsToName, belongsToRelationShip]: [
-                string,
-                DetailedRelationshipManifest
-              ]
+              belongsToRelationShip: DetailedRelationshipManifest
             ) => {
-              acc[belongsToName] = {
+              acc[belongsToRelationShip.name] = {
                 target: belongsToRelationShip.entity,
                 type: 'many-to-one',
                 eager: !!belongsToRelationShip.eager

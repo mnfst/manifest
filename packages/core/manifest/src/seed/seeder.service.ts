@@ -71,22 +71,16 @@ export class SeederService {
       for (const _index of Array(entityManifest.seedCount).keys()) {
         const newRecord: BaseEntity = repository.create()
 
-        Object.entries(entityManifest.properties).forEach(
-          ([propertyName, propertyManifest]: [
-            string,
-            DetailedPropertyManifest
-          ]) => {
-            newRecord[propertyName] =
+        entityManifest.properties.forEach(
+          (propertyManifest: DetailedPropertyManifest) => {
+            newRecord[propertyManifest.name] =
               this.propertyService.getSeedValue(propertyManifest)
           }
         )
 
-        Object.entries(entityManifest.belongsTo || []).forEach(
-          ([relationName, relationManifest]: [
-            string,
-            DetailedRelationshipManifest
-          ]) => {
-            newRecord[relationName] =
+        entityManifest.belongsTo.forEach(
+          (relationManifest: DetailedRelationshipManifest) => {
+            newRecord[relationManifest.name] =
               this.relationshipService.getSeedValue(relationManifest)
           }
         )

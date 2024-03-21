@@ -5,7 +5,7 @@ export type DetailedRelationshipManifest = {
   /**
    * The name of the relation
    */
-  name?: string
+  name: string
   /**
    * The entity that the relationship is with
    */
