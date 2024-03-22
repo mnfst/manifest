@@ -19,16 +19,16 @@ import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
 
 import {
+  EntityManifest,
   Paginator,
   PropType,
+  PropertyManifest,
+  RelationshipManifest,
   SelectOption,
   WhereKeySuffix,
   WhereOperator,
   whereOperatorKeySuffix
 } from '@casejs/types'
-import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
-import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
-import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import {
   DEFAULT_RESULTS_PER_PAGE,

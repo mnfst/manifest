@@ -17,7 +17,17 @@ compileFromFile(path.join(__dirname, 'manifest-schema.json'), {
   }
 }).then((ts) =>
   fs.writeFileSync(
-    path.join(__dirname, '..', 'typescript', 'manifest-types.ts'),
+    path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      '..',
+      'types',
+      'src',
+      'manifests',
+      'ManifestSchema.ts'
+    ),
     ts
   )
 )

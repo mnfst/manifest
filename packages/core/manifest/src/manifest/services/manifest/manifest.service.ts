@@ -2,17 +2,17 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { SchemaService } from '../schema/schema.service'
 import { YamlService } from '../yaml/yaml.service'
 
-import { PropType } from '@casejs/types'
-import { AppManifest } from '@casejs/types/src/manifests/app-manifest.interface'
-import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
 import {
+  AppManifest,
   AppManifestSchema,
+  EntityManifest,
   EntityManifestSchema,
+  PropType,
+  PropertyManifest,
   PropertyManifestSchema,
+  RelationshipManifest,
   RelationshipManifestSchema
-} from '@casejs/types/src/manifests/manifest-types'
-import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
-import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
+} from '@casejs/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'

@@ -1,5 +1,4 @@
-import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
-import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
+import { EntityManifest, RelationshipManifest } from '@casejs/types'
 import { faker } from '@faker-js/faker'
 import { Injectable } from '@nestjs/common'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'

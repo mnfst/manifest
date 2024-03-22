@@ -1,6 +1,8 @@
-import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
-import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
-import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
+import {
+  EntityManifest,
+  PropertyManifest,
+  RelationshipManifest
+} from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import {
   EntitySchema,

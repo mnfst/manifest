@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
-import { AppManifestSchema } from '@casejs/types/src/manifests/manifest-types'
+import { AppManifestSchema } from '@casejs/types'
 import { ConfigService } from '@nestjs/config'
 import { MANIFEST_FILE_NAME, MANIFEST_FOLDER_NAME } from '../../../constants'
 

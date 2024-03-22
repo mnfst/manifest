@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "node dist/seed/seed.js",
-    "prebuild": "ts-node src/manifest/json-schema/GenerateTypes.ts"
+    "generate-types": "ts-node src/manifest/json-schema/GenerateTypes.ts",
+    "prebuild": "npm run generate-types"
   },
   "dependencies": {
     "@casejs/types": "^0.0.5",

@@ -1,4 +1,4 @@
-import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
+import { PropertyManifest } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { propTypeSeedFunctions } from '../../records/prop-type-seed-functions'
 
