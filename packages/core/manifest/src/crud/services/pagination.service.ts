@@ -1,7 +1,6 @@
-import { Paginator } from '@casejs/types'
+import { BaseEntity, Paginator } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { SelectQueryBuilder } from 'typeorm'
-import { BaseEntity } from '../../entity/types/base-entity.interface'
 
 @Injectable()
 export class PaginationService {

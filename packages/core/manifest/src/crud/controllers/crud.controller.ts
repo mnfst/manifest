@@ -10,9 +10,8 @@ import {
   Query
 } from '@nestjs/common'
 
-import { Paginator, SelectOption } from '@casejs/types'
+import { BaseEntity, Paginator, SelectOption } from '@casejs/types'
 import { DeleteResult, InsertResult } from 'typeorm'
-import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { CrudService } from '../services/crud.service'
 
 @Controller('dynamic')

@@ -51,6 +51,8 @@
     "case-schema": "class",
     "case": "src",
     "case-types": "typescript",
-    "create-case-app": "scripts"
+    "create-case-app": "scripts",
+    "manifest": "server",
+    "core/manifest": "meta"
   }
 }

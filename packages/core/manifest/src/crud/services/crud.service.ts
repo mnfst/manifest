@@ -13,9 +13,9 @@ import {
   SelectQueryBuilder
 } from 'typeorm'
 
+import { BaseEntity } from '@casejs/types'
 import { validate } from 'class-validator'
 import { EntityService } from '../../entity/services/entity/entity.service'
-import { BaseEntity } from '../../entity/types/base-entity.interface'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
 
 import {

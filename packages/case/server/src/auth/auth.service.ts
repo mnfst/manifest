@@ -6,15 +6,15 @@ import * as jwt from 'jsonwebtoken'
 import { EntityMetadata, Repository } from 'typeorm'
 
 import { AuthenticableEntity } from '../core-entities/authenticable-entity'
-import { EntityMetaService } from '../crud/services/entity-meta.service'
+// import { EntityMetaService } from '../crud/services/entity-meta.service'
 import { SignupUserDto } from './dto/signup-user.dto'
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly configService: ConfigService,
-    private readonly entityMetaService: EntityMetaService
-  ) {}
+    private readonly configService: ConfigService
+  ) // private readonly entityMetaService: EntityMetaService
+  {}
 
   /**
    * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.

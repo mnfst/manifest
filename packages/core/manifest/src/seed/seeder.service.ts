@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   EntityManifest,
   PropertyManifest,
   RelationshipManifest
@@ -8,7 +9,7 @@ import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'
 import { PropertyService } from '../entity/services/property/property.service'
 import { RelationshipService } from '../entity/services/relationship/relationship.service'
-import { BaseEntity } from '../entity/types/base-entity.interface'
+
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
 
 @Injectable()

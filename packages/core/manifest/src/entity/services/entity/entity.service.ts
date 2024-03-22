@@ -1,8 +1,8 @@
+import { BaseEntity } from '@casejs/types'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import { BaseEntity } from '../../types/base-entity.interface'
 
 @Injectable()
 export class EntityService {

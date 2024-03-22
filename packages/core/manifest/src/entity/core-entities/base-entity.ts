@@ -1,5 +1,5 @@
+import { BaseEntity } from '@casejs/types'
 import { EntitySchemaColumnOptions } from 'typeorm'
-import { BaseEntity } from '../types/base-entity.interface'
 
 export const baseEntity: {
   [key in keyof BaseEntity]: EntitySchemaColumnOptions

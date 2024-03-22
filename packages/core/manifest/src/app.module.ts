@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { EntitySchema } from 'typeorm'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
+import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
 import yamlConfig from './config/yaml'
 import { CrudModule } from './crud/crud.module'
@@ -37,7 +38,8 @@ import { SeedModule } from './seed/seed.module'
     ManifestModule,
     EntityModule,
     SeedModule,
-    CrudModule
+    CrudModule,
+    AuthModule
   ]
 })
 export class AppModule {}
