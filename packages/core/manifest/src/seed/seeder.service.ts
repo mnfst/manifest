@@ -1,4 +1,5 @@
 import {
+  AuthenticableEntity,
   BaseEntity,
   EntityManifest,
   PropertyManifest,
@@ -10,6 +11,7 @@ import { EntityService } from '../entity/services/entity/entity.service'
 import { PropertyService } from '../entity/services/property/property.service'
 import { RelationshipService } from '../entity/services/relationship/relationship.service'
 
+import { DEFAULT_ADMIN_CREDENTIALS } from '../constants'
 import { ManifestService } from '../manifest/services/manifest/manifest.service'
 
 @Injectable()
@@ -62,6 +64,11 @@ export class SeederService {
       const repository: Repository<BaseEntity> =
         this.entityService.getEntityRepository(entityMetadata)
 
+      if (entityMetadata.name === 'Admin') {
+        this.seedAdmin(repository)
+        continue
+      }
+
       const entityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
           className: entityMetadata.name
@@ -93,5 +100,19 @@ export class SeederService {
     }
 
     return Promise.resolve()
+  }
+
+  /**
+   * Seed the Admin table with default credentials. Only one admin user is created.
+   *
+   * @param repository The repository for the Admin entity.
+   */
+  private async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
+    const admin: AuthenticableEntity =
+      repository.create() as AuthenticableEntity
+    admin.email = DEFAULT_ADMIN_CREDENTIALS.email
+    admin.password = DEFAULT_ADMIN_CREDENTIALS.password
+
+    await repository.save(admin)
   }
 }
