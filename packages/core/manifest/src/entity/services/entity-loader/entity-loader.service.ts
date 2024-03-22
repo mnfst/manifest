@@ -1,3 +1,6 @@
+import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
+import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
+import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
 import { Injectable } from '@nestjs/common'
 import {
   EntitySchema,
@@ -5,9 +8,6 @@ import {
   EntitySchemaRelationOptions
 } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import { EntityManifest } from '../../../manifest/typescript/other/entity-manifest.interface'
-import { PropertyManifest } from '../../../manifest/typescript/other/property-manifest.type'
-import { RelationshipManifest } from '../../../manifest/typescript/other/relationship-manifest.type'
 import { baseEntity } from '../../core-entities/base-entity'
 import { propTypeColumnTypes } from '../../records/prop-type-column-types'
 

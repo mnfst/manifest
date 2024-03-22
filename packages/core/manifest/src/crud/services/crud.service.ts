@@ -26,14 +26,14 @@ import {
   WhereOperator,
   whereOperatorKeySuffix
 } from '@casejs/types'
+import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
+import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
+import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import {
   DEFAULT_RESULTS_PER_PAGE,
   QUERY_PARAMS_RESERVED_WORDS
 } from '../../constants'
-import { EntityManifest } from '../../manifest/typescript/other/entity-manifest.interface'
-import { PropertyManifest } from '../../manifest/typescript/other/property-manifest.type'
-import { RelationshipManifest } from '../../manifest/typescript/other/relationship-manifest.type'
 import { HelperService } from './helper.service'
 import { PaginationService } from './pagination.service'
 

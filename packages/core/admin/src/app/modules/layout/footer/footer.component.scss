@@ -1,0 +1,6 @@
+@import '../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
+footer {
+  height: $footer-height;
+}

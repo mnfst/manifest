@@ -3,19 +3,19 @@ import { SchemaService } from '../schema/schema.service'
 import { YamlService } from '../yaml/yaml.service'
 
 import { PropType } from '@casejs/types'
-import dasherize from 'dasherize'
-import pluralize from 'pluralize'
-import slugify from 'slugify'
+import { AppManifest } from '@casejs/types/src/manifests/app-manifest.interface'
+import { EntityManifest } from '@casejs/types/src/manifests/entity-manifest.interface'
 import {
   AppManifestSchema,
   EntityManifestSchema,
   PropertyManifestSchema,
   RelationshipManifestSchema
-} from '../../typescript/manifest-types'
-import { AppManifest } from '../../typescript/other/app-manifest.interface'
-import { EntityManifest } from '../../typescript/other/entity-manifest.interface'
-import { PropertyManifest } from '../../typescript/other/property-manifest.type'
-import { RelationshipManifest } from '../../typescript/other/relationship-manifest.type'
+} from '@casejs/types/src/manifests/manifest-types'
+import { PropertyManifest } from '@casejs/types/src/manifests/property-manifest.type'
+import { RelationshipManifest } from '@casejs/types/src/manifests/relationship-manifest.type'
+import dasherize from 'dasherize'
+import pluralize from 'pluralize'
+import slugify from 'slugify'
 import { entityManifestDefaults } from './manifest.defaults'
 
 @Injectable()

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 
-import Ajv from 'ajv'
-import schemas from '../../json-schema'
 import {
   AppManifestSchema,
   EntityManifestSchema,
   RelationshipManifestSchema
-} from '../../typescript/manifest-types'
+} from '@casejs/types/src/manifests/manifest-types'
+import Ajv from 'ajv'
+import schemas from '../../json-schema'
 
 @Injectable()
 export class SchemaService {

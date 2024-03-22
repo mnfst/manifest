@@ -1,0 +1,4 @@
+label[for="lat-input"]:not(.file-label):not(.checkbox):not(.image-label):not(.is-boxed),
+label[for="lng-input"]:not(.file-label):not(.checkbox):not(.image-label):not(.is-boxed) {
+    text-transform: unset;
+}
