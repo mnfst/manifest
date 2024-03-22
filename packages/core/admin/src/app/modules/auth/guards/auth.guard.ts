@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core'
 import { Router } from '@angular/router'
-import { TOKEN_KEY } from '../../../constants'
-import { FlashMessageService } from '../../modules/shared/services/flash-message.service'
+import { TOKEN_KEY } from '../../../../constants'
+import { FlashMessageService } from '../../shared/services/flash-message.service'
 
 @Injectable({
   providedIn: 'root'

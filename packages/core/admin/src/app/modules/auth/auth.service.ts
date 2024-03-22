@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { firstValueFrom, ReplaySubject } from 'rxjs'
-import { TOKEN_KEY } from '../../constants'
-import { environment } from '../../environments/environment'
-import { Admin } from '../typescript/interfaces/admin.interface'
+import { TOKEN_KEY } from '../../../constants'
+import { environment } from '../../../environments/environment'
+import { Admin } from '../../typescript/interfaces/admin.interface'
 
 @Injectable({
   providedIn: 'root'

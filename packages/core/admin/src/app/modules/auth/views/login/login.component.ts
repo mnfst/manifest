@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router'
 
 import { PropType } from '@casejs/types'
 
-import { FlashMessageService } from '../../../modules/shared/services/flash-message.service'
+import { FlashMessageService } from '../../../shared/services/flash-message.service'
 import { AuthService } from '../../auth.service'
 
 @Component({
@@ -34,9 +34,8 @@ export class LoginComponent implements OnInit {
     private readonly authService: AuthService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private flashMessageService: FlashMessageService
-  ) // private appConfigService: AppConfigService
-  {}
+    private flashMessageService: FlashMessageService // private appConfigService: AppConfigService
+  ) {}
 
   ngOnInit(): void {
     //   combineLatest([

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { Router } from '@angular/router'
-import { TOKEN_KEY } from '../../../constants'
+import { TOKEN_KEY } from '../../../../constants'
 
 @Injectable({
   providedIn: 'root'
