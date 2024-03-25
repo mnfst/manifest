@@ -41,7 +41,12 @@ export class EntityService {
     }
 
     if (slug) {
-      className = this.manifestService.getEntityManifest({ slug }).className
+      // Admins are not in the manifest.
+      if (slug === 'admins') {
+        className = 'Admin'
+      } else {
+        className = this.manifestService.getEntityManifest({ slug }).className
+      }
     }
 
     const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
