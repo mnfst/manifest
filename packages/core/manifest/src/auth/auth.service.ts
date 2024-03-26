@@ -5,7 +5,7 @@ import { SHA3 } from 'crypto-js'
 import * as jwt from 'jsonwebtoken'
 import { EntityMetadata, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'
-import { SignupUserDto } from './dtos/signup-user.dto'
+import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 
 // import { EntityMetaService } from '../crud/services/entity-meta.service'
 
@@ -18,7 +18,8 @@ export class AuthService {
   /**
    * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.
    *
-   * @param slug The slug of the AuthenticableEntity where the user is going to be searched
+   * @param slug The slug of the entity where the user is going to be searched
+   * @param signupUserDto The DTO with the email and password of the user
    * @param email The email of the user
    * @param password The password of the user
    *
@@ -26,7 +27,7 @@ export class AuthService {
    */
   async createToken(
     slug: string,
-    signupUserDto: SignupUserDto
+    signupUserDto: SignupAuthenticableEntityDto
   ): Promise<{
     token: string
   }> {

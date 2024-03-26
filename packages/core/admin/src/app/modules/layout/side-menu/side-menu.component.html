@@ -1,5 +1,5 @@
 <ul class="menu-list mt-5">
-  <li *ngIf="entityMetas">
+  <li *ngIf="entityManifests">
     <a
       (click)="isCollectionsOpen = !isCollectionsOpen"
       class="has-submenu is-flex is-justify-content-space-between"
@@ -14,18 +14,20 @@
       <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
     </a>
     <ul *ngIf="isCollectionsOpen">
-      <li *ngFor="let entity of entityMetas">
+      <li *ngFor="let entity of entityManifests">
         <a
-          [routerLink]="['/dynamic', entity.definition.slug]"
+          [routerLink]="['/dynamic', entity.slug]"
           routerLinkActive="is-active"
         >
-          <span>{{
-            entity.definition.namePlural | capitalizeFirstLetter
-          }}</span>
+          <span>{{ entity.namePlural | capitalizeFirstLetter }}</span>
         </a>
       </li>
-      <li *ngIf="entityMetas.length === 0">
-        <a style="pointer-events:none" class="has-background-white-bis has-text-grey"><span>No collection yet</span></a>
+      <li *ngIf="entityManifests.length === 0">
+        <a
+          style="pointer-events: none"
+          class="has-background-white-bis has-text-grey"
+          ><span>No collection yet</span></a
+        >
       </li>
     </ul>
   </li>

@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core'
+import { AppManifest, EntityManifest } from '@casejs/types'
+import { BreadcrumbService } from '../../modules/shared/services/breadcrumb.service'
+import { ManifestService } from '../../modules/shared/services/manifest.service'
 // import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 // import { AppConfig } from '../../../../../shared/interfaces/app-config.interface'
@@ -11,19 +14,25 @@ import { Component, OnInit } from '@angular/core'
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-  entityMetas: any[]
-  appConfig: any
+  appManifest: AppManifest
+  entityManifests: EntityManifest[]
 
-  constructor() { //   breadcrumbService: BreadcrumbService // dynamicEntityService: DynamicEntityService, // private appConfigService: AppConfigService,
+  constructor(
+    private breadcrumbService: BreadcrumbService,
+    private manifestService: ManifestService
+  ) {
+    //
+    // dynamicEntityService: DynamicEntityService, // private appConfigService: AppConfigService,
     // dynamicEntityService.loadEntityMeta().subscribe((res: EntityMeta[]) => {
     //   this.entityMetas = res
     // })
-    // breadcrumbService.breadcrumbLinks.next([])
   }
 
   ngOnInit(): void {
-    // this.appConfigService.appConfig.subscribe((res: AppConfig) => {
-    //   this.appConfig = res
-    // })
+    this.breadcrumbService.breadcrumbLinks.next([])
+    this.manifestService.getManifest().then((res: AppManifest) => {
+      this.appManifest = res
+      this.entityManifests = Object.values(res.entities || {})
+    })
   }
 }

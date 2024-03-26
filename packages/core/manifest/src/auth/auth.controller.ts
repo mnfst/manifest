@@ -1,7 +1,7 @@
 import { Body, Controller, Param, Post } from '@nestjs/common'
 
 import { AuthService } from './auth.service'
-import { SignupUserDto } from './dtos/signup-user.dto'
+import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +10,7 @@ export class AuthController {
   @Post(':authenticableEntity/login')
   public async getToken(
     @Param('authenticableEntity') authenticableEntity: string,
-    @Body() signupUserDto: SignupUserDto
+    @Body() signupUserDto: SignupAuthenticableEntityDto
   ): Promise<{
     token: string
   }> {

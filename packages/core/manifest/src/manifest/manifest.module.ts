@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ManifestService } from './services/manifest/manifest.service'
 import { SchemaService } from './services/schema/schema.service'
 import { YamlService } from './services/yaml/yaml.service'
+import { ManifestController } from './manifest.controller';
 
 /**
  *
@@ -12,6 +13,7 @@ import { YamlService } from './services/yaml/yaml.service'
 
 @Module({
   providers: [ManifestService, YamlService, SchemaService],
-  exports: [ManifestService]
+  exports: [ManifestService],
+  controllers: [ManifestController]
 })
 export class ManifestModule {}

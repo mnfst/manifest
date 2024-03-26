@@ -28,15 +28,25 @@ export class ManifestService {
   /**
    * Load the manifest from the file, validate it and transform it.
    *
+   * @param publicVersion Whether to return the public version of the manifest.THe public version is the one that is exposed to the client: it hides settings and the hidden properties.
+   *
+   *
    * @returns The manifest.
    *
    * */
-  getAppManifest(): AppManifest {
+  getAppManifest(options?: { publicVersion?: boolean }): AppManifest {
     const manifestSchema: AppManifestSchema = this.yamlService.load()
 
     this.schemaService.validate(manifestSchema)
 
-    return this.transformAppManifest(manifestSchema)
+    console.log('manifestSchema', manifestSchema)
+
+    const appManifest: AppManifest = this.transformAppManifest(manifestSchema)
+
+    // if (options?.publicVersion) {
+    //   return this.hideSensitiveInformation(appManifest)
+    // }
+    return appManifest
   }
 
   /**
@@ -102,6 +112,7 @@ export class ManifestService {
    */
   transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
     return {
+      ...manifestSchema,
       entities: Object.entries(manifestSchema.entities).reduce(
         (
           acc: { [k: string]: EntityManifest },
@@ -111,8 +122,7 @@ export class ManifestService {
           return acc
         },
         {}
-      ),
-      ...manifestSchema
+      )
     } as AppManifest
   }
 
@@ -218,6 +228,41 @@ export class ManifestService {
       name: propManifestSchema.name,
       type: (propManifestSchema.type as PropType) || PropType.String,
       hidden: propManifestSchema.hidden || false
+    }
+  }
+
+  /**
+   * Hide sensitive information from the manifest to be sent to the client.
+   *
+   * @param manifest The manifest to save.
+   *
+   * @returns The manifest with sensitive information hidden.
+   *
+   * */
+  hideSensitiveInformation(manifest: AppManifest): AppManifest {
+    return {
+      ...manifest,
+      entities: Object.entries(manifest.entities).reduce(
+        (
+          acc: { [k: string]: EntityManifest },
+          [className, entity]: [string, EntityManifest]
+        ) => {
+          // TODO: Seed count should be hidden in the public version of the manifest.
+          const { seedCount, ...publicEntity } = entity
+
+          acc[className] = {
+            ...publicEntity,
+            properties: entity.properties
+              .filter((prop) => !prop.hidden)
+              .map((prop) => ({
+                name: prop.name,
+                type: prop.type
+              }))
+          }
+          return acc
+        },
+        {}
+      )
     }
   }
 }

@@ -2,14 +2,18 @@
   <div
     class="column is-10-tablet is-offset-1-tablet is-8-widescreen is-offset-2-widescreen is-6-fullhd is-offset-3-fullhd"
   >
-    <div class="content has-text-centered">
+    <div class="content has-text-centered" *ngIf="appManifest">
       <img src="/assets/images/welcome.svg" alt="Welcome" width="360" />
-      <h1>Welcome to CASE</h1>
-      <p class="is-size-5">Backend-as-a-Service without hassle</p>
+      <h1>{{ appManifest.name }}</h1>
+      <p class="is-size-5">
+        Proudly built with
+        <a href="https://manifest.build" target="_blank">Manifest</a>
+      </p>
 
       <div class="has-text-left">
         <div class="columns is-multiline">
-          <ng-container *ngIf="appConfig?.production === false">
+          <!-- TODO: This section should not be visible on production -->
+          <ng-container>
             <div class="column is-12 pb-0">
               <p class="is-uppercase has-text-dark has-text-weight-medium">
                 Documentation
@@ -34,6 +38,7 @@
                       <div
                         class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
                       >
+                        <!-- TODO: review the doc once changed -->
                         <div class="content">
                           <p class="is-size-5 has-text-weight-bold mb-0">
                             Create a new entity
@@ -237,50 +242,47 @@
               </a>
             </div>
           </ng-container>
-          <ng-container *ngIf="entityMetas && appConfig?.production === true">
-            <div class="column is-6 is-offset-3 pb-0">
-              <hr />
-              <p class="is-uppercase has-text-dark has-text-weight-medium">
-                Start navigating through the app
-              </p>
-            </div>
-            <div
-              class="column is-6 is-offset-3"
-              *ngFor="let entity of entityMetas"
+          <div class="column is-6 is-offset-3 pb-0">
+            <hr />
+            <p class="is-uppercase has-text-dark has-text-weight-medium">
+              Start navigating through the app
+            </p>
+          </div>
+          <div
+            class="column is-6 is-offset-3"
+            *ngFor="let entity of entityManifests"
+          >
+            <a
+              [routerLink]="['/dynamic', entity.slug]"
+              routerLinkActive="is-active"
+              class="card-link"
             >
-              <a
-                [routerLink]="['/dynamic', entity.definition.slug]"
-                routerLinkActive="is-active"
-                class="card-link"
+              <div
+                class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
               >
-                <div
-                  class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
-                >
-                  <div class="card-content p-0">
-                    <article class="media is-flex is-align-items-center">
-                      <div
-                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                      >
-                        <div class="content">
-                          <p class="is-size-5 has-text-weight-bold mb-0">
-                            <span>{{
-                              entity.definition.namePlural
-                                | capitalizeFirstLetter
-                            }}</span>
-                          </p>
-                        </div>
+                <div class="card-content p-0">
+                  <article class="media is-flex is-align-items-center">
+                    <div
+                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                    >
+                      <div class="content">
+                        <p class="is-size-5 has-text-weight-bold mb-0">
+                          <span>{{
+                            entity.namePlural | capitalizeFirstLetter
+                          }}</span>
+                        </p>
                       </div>
-                      <figure
-                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                      >
-                        <i class="icon icon-arrow-right"></i>
-                      </figure>
-                    </article>
-                  </div>
+                    </div>
+                    <figure
+                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                    >
+                      <i class="icon icon-arrow-right"></i>
+                    </figure>
+                  </article>
                 </div>
-              </a>
-            </div>
-          </ng-container>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
