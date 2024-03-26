@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'
 import * as jwt from 'jsonwebtoken'
-import { EntityMetadata, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 
@@ -18,7 +18,7 @@ export class AuthService {
   /**
    * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.
    *
-   * @param slug The slug of the entity where the user is going to be searched
+   * @param entitySlug The slug of the entity where the user is going to be searched
    * @param signupUserDto The DTO with the email and password of the user
    * @param email The email of the user
    * @param password The password of the user
@@ -26,18 +26,15 @@ export class AuthService {
    * @returns A JWT token
    */
   async createToken(
-    slug: string,
+    entitySlug: string,
     signupUserDto: SignupAuthenticableEntityDto
   ): Promise<{
     token: string
   }> {
-    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      { slug }
-    )
     const entityRepository: Repository<AuthenticableEntity> =
-      this.entityService.getEntityRepository(
-        entityMetadata
-      ) as Repository<AuthenticableEntity>
+      this.entityService.getEntityRepository({
+        entitySlug
+      }) as Repository<AuthenticableEntity>
 
     const user = await entityRepository.findOne({
       where: {
@@ -99,54 +96,44 @@ export class AuthService {
   //     password: signupUserDto.password
   //   })
   // }
-  // /**
-  //  * Returns the user from a JWT token. This user can be of any entity that extends AuthenticableEntity.
-  //  *
-  //  * @param token JWT token
-  //  * @param entitySlug Entity slug. If provided, the user will be searched only in this entity. If not provided, the user will be searched in all entities that extend AuthenticableEntity.
-  //  *
-  //  * @returns The user item from the JWT token
-  //  *
-  //  */
-  // async getUserFromToken(
-  //   token: string,
-  //   entitySlug?: string
-  // ): Promise<AuthenticableEntity> {
-  //   let decoded: jwt.JwtPayload
-  //   try {
-  //     decoded = jwt.verify(
-  //       token?.replace('Bearer ', ''),
-  //       this.configService.get('JWT_SECRET')
-  //     ) as jwt.JwtPayload
-  //   } catch (e) {
-  //     return null
-  //   }
-  //   if (!decoded) {
-  //     return null
-  //   }
-  //   if (entitySlug) {
-  //     const entityRepository: Repository<AuthenticableEntity> =
-  //       this.entityMetaService.getRepository(entitySlug)
-  //     return entityRepository.findOne({
-  //       where: {
-  //         email: decoded.email
-  //       }
-  //     })
-  //   } else {
-  //     const authenticableEntities: EntityMetadata[] =
-  //       this.entityMetaService.getAuthenticableEntities()
-  //     for (const entity of authenticableEntities) {
-  //       const user: AuthenticableEntity = await this.entityMetaService
-  //         .getRepository(entity.targetName)
-  //         .findOne({
-  //           where: {
-  //             email: decoded.email
-  //           }
-  //         })
-  //       if (user) {
-  //         return Promise.resolve(user)
-  //       }
-  //     }
-  //   }
-  // }
+
+  /**
+   * Returns the user from a JWT token. This user can be of any entity that extends AuthenticableEntity.
+   *
+   * @param token JWT token
+   * @param entitySlug Entity slug. If provided, the user will be searched only in this entity. If not provided, the user will be searched in all entities that extend AuthenticableEntity.
+   *
+   * @returns The user item from the JWT token
+   *
+   */
+  async getUserFromToken(
+    token: string,
+    entitySlug?: string
+  ): Promise<AuthenticableEntity> {
+    let decoded: jwt.JwtPayload
+    try {
+      decoded = jwt.verify(
+        token?.replace('Bearer ', ''),
+        this.configService.get('TOKEN_SECRET_KEY')
+      ) as jwt.JwtPayload
+    } catch (e) {
+      return null
+    }
+    if (!decoded) {
+      return null
+    }
+
+    const entityRepository: Repository<AuthenticableEntity> =
+      this.entityService.getEntityRepository({
+        entitySlug
+      }) as Repository<AuthenticableEntity>
+
+    console.log('decoded.email', decoded.email)
+
+    return entityRepository.findOne({
+      where: {
+        email: decoded.email
+      }
+    })
+  }
 }

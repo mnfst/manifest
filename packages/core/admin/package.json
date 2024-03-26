@@ -18,6 +18,7 @@
     "@angular/platform-browser": "^17.3.1",
     "@angular/platform-browser-dynamic": "^17.3.1",
     "@angular/router": "^17.3.1",
+    "@auth0/angular-jwt": "^5.2.0",
     "bulma": "^0.9.4",
     "bulma-tooltip": "^3.0.2",
     "rxjs": "~7.5.0",

@@ -62,7 +62,9 @@ export class SeederService {
 
     for (const entityMetadata of entityMetadatas) {
       const repository: Repository<BaseEntity> =
-        this.entityService.getEntityRepository(entityMetadata)
+        this.entityService.getEntityRepository({
+          entityMetadata
+        })
 
       if (entityMetadata.name === 'Admin') {
         this.seedAdmin(repository)

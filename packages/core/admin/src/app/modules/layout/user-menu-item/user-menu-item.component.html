@@ -11,9 +11,9 @@
   </div>
   <div class="dropdown-menu is-small" role="menu">
     <div class="dropdown-content">
-      <!-- <span class="dropdown-item" *ngIf="currentUser">
-        <strong>{{ currentUser.name }}</strong>
-      </span> -->
+      <span class="dropdown-item" *ngIf="currentUser">
+        <strong>{{ currentUser.email }}</strong>
+      </span>
       <a
         routerLink="/auth/logout"
         class="dropdown-item"

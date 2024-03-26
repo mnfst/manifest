@@ -1,5 +1,7 @@
-import { Body, Controller, Param, Post } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common'
 
+import { AuthenticableEntity } from '@casejs/types'
+import { Request } from 'express'
 import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 
@@ -27,14 +29,14 @@ export class AuthController {
   //   return this.authService.signUp(authenticableEntity, signupUserDto)
   // }
 
-  // @Get(':authenticableEntity/me')
-  // public async getCurrentUser(
-  //   @Param('authenticableEntity') authenticableEntity: string,
-  //   @Req() req: Request
-  // ): Promise<AuthenticableEntity> {
-  //   return this.authService.getUserFromToken(
-  //     req.headers?.authorization,
-  //     authenticableEntity
-  //   )
-  // }
+  @Get(':authenticableEntity/me')
+  public async getCurrentUser(
+    @Param('authenticableEntity') authenticableEntity: string,
+    @Req() req: Request
+  ): Promise<AuthenticableEntity> {
+    return this.authService.getUserFromToken(
+      req.headers?.authorization,
+      authenticableEntity
+    )
+  }
 }

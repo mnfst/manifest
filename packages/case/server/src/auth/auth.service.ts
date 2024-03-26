@@ -51,7 +51,7 @@ export class AuthService {
     return {
       token: jwt.sign(
         { email: signupUserDto.email },
-        this.configService.get('JWT_SECRET')
+        this.configService.get('TOKEN_SECRET_KEY')
       )
     }
   }
@@ -118,7 +118,7 @@ export class AuthService {
     try {
       decoded = jwt.verify(
         token?.replace('Bearer ', ''),
-        this.configService.get('JWT_SECRET')
+        this.configService.get('TOKEN_SECRET_KEY)
       ) as jwt.JwtPayload
     } catch (e) {
       return null

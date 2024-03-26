@@ -20,7 +20,7 @@ export class ManifestService {
 
   getManifest(): Promise<AppManifest> {
     if (!this.manifestPromise) {
-      return firstValueFrom(
+      this.manifestPromise = firstValueFrom(
         this.http.get<AppManifest>(`${environment.apiBaseUrl}/manifest`)
       )
     }

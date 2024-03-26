@@ -1,9 +1,9 @@
-import { Test } from '@nestjs/testing'
-import { AuthService } from './auth.service'
-import { ConfigService } from '@nestjs/config'
-import { DataSource } from 'typeorm'
-import * as jwt from 'jsonwebtoken'
 import { HttpException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Test } from '@nestjs/testing'
+import * as jwt from 'jsonwebtoken'
+import { DataSource } from 'typeorm'
+import { AuthService } from './auth.service'
 
 describe('AuthService', () => {
   let authService: AuthService
@@ -69,7 +69,7 @@ describe('AuthService', () => {
 
   describe('getUserFromToken', () => {
     it('should return a user when the token decodes to a valid email', async () => {
-      const jwtToken = jwt.sign(mockUser.email, configService.get('JWT_SECRET'))
+      const jwtToken = jwt.sign(mockUser.email, configService.get('TOKEN_SECRET_KEY))
       mockDataSource.getRepository().findOne.mockReturnValue(mockUser)
 
       const result = await authService.getUserFromToken(jwtToken)
@@ -79,7 +79,7 @@ describe('AuthService', () => {
     it('should return null when the token does not decode to a valid email', async () => {
       const jwtToken = jwt.sign(
         'nonexistent@email.com',
-        configService.get('JWT_SECRET')
+        configService.get('TOKEN_SECRET_KEY)
       )
       mockDataSource.getRepository().findOne.mockReturnValue(null)
 

@@ -72,7 +72,7 @@ export class CrudService {
     )
 
     const entityRepository: Repository<BaseEntity> =
-      this.entityService.getEntityRepository(entityMetadata)
+      this.entityService.getEntityRepository({ entityMetadata })
 
     let query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
@@ -173,7 +173,7 @@ export class CrudService {
     )
 
     const query: SelectQueryBuilder<BaseEntity> = this.entityService
-      .getEntityRepository(entityMetadata)
+      .getEntityRepository({ entityMetadata })
       .createQueryBuilder('entity')
       .select(this.getVisibleProps({ props: entityManifest.properties }))
       .where('entity.id = :id', { id })
@@ -194,14 +194,8 @@ export class CrudService {
   }
 
   async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
-    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      {
-        slug: entitySlug
-      }
-    )
-
     const entityRepository: Repository<any> =
-      this.entityService.getEntityRepository(entityMetadata)
+      this.entityService.getEntityRepository({ entitySlug })
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
 
@@ -218,14 +212,8 @@ export class CrudService {
     id: number,
     itemDto: any
   ): Promise<BaseEntity> {
-    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      {
-        slug: entitySlug
-      }
-    )
-
     const entityRepository: Repository<BaseEntity> =
-      this.entityService.getEntityRepository(entityMetadata)
+      this.entityService.getEntityRepository({ entitySlug })
 
     const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
@@ -247,14 +235,10 @@ export class CrudService {
   }
 
   async delete(entitySlug: string, id: number): Promise<DeleteResult> {
-    const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
-      {
-        slug: entitySlug
-      }
-    )
-
     const entityRepository: Repository<BaseEntity> =
-      this.entityService.getEntityRepository(entityMetadata)
+      this.entityService.getEntityRepository({
+        entitySlug
+      })
 
     const item = await entityRepository.findOne({ where: { id } })
 

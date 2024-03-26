@@ -12,11 +12,13 @@ export const baseEntity: {
   createdAt: {
     name: 'createdAt',
     type: 'date',
-    createDate: true
+    createDate: true,
+    select: false
   },
   updatedAt: {
     name: 'updatedAt',
     type: 'date',
-    updateDate: true
+    updateDate: true,
+    select: false
   }
 }

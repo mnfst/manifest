@@ -1,17 +1,23 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { firstValueFrom, ReplaySubject } from 'rxjs'
+import { Router } from '@angular/router'
+import { firstValueFrom } from 'rxjs'
 import { TOKEN_KEY } from '../../../constants'
 import { environment } from '../../../environments/environment'
 import { Admin } from '../../typescript/interfaces/admin.interface'
+import { FlashMessageService } from '../shared/services/flash-message.service'
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  public currentUser: ReplaySubject<Admin> = new ReplaySubject<Admin>(1)
+  private currentUserPromise: Promise<Admin> | null = null
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private flashMessageService: FlashMessageService
+  ) {}
 
   async login(credentials: {
     email: string
@@ -44,16 +50,18 @@ export class AuthService {
   }
 
   async me(): Promise<Admin> {
-    const admin: Admin = (await firstValueFrom(
-      this.http.get(`${environment.apiBaseUrl}/auth/admins/me`)
-    )) as Admin
-
-    if (!admin) {
-      this.logout()
-      return Promise.reject('No admin found.')
+    if (!this.currentUserPromise) {
+      this.currentUserPromise = firstValueFrom(
+        this.http.get(`${environment.apiBaseUrl}/auth/admins/me`)
+      ).catch((err) => {
+        this.logout
+        this.router.navigate(['/auth/login'])
+        this.flashMessageService.error(
+          'You must be logged in to view that page.'
+        )
+      }) as Promise<Admin>
     }
 
-    this.currentUser.next(admin)
-    return admin
+    return this.currentUserPromise
   }
 }

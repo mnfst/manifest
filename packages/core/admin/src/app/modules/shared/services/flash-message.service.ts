@@ -11,7 +11,7 @@ export class FlashMessageService {
   public flashMessage: Subject<{
     message: string
     className: string
-  }> = new Subject()
+  } | null> = new Subject()
 
   success(message: string) {
     this.flashMessage.next({ message, className: 'notification is-success' })
@@ -35,8 +35,7 @@ export class FlashMessageService {
 
   private clear() {
     setTimeout(() => {
-      this.flashMessage.next({ message: '', className: '' }),
-        this.flashMessageTimeOut
-    })
+      this.flashMessage.next(null)
+    }, this.flashMessageTimeOut)
   }
 }

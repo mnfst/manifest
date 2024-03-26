@@ -10,7 +10,8 @@ export const AdminEntitySchema: EntitySchema = new EntitySchema({
         type: 'varchar'
       },
       password: {
-        type: 'varchar'
+        type: 'varchar',
+        select: false
       }
     },
     baseEntity

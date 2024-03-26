@@ -103,12 +103,27 @@ export class EntityService {
   /**
    * Get the TypeORM repository for an entity.
    *
-   * @param entityMetadata The entity to get the repository for.
+   * @param entityMetadata The metadata for the entity.
+   * @param entitySlug The slug of the entity to get the repository for.
    *
    * @returns The repository for the entity.
    *
    * */
-  getEntityRepository(entityMetadata: EntityMetadata): Repository<BaseEntity> {
+  getEntityRepository({
+    entityMetadata,
+    entitySlug
+  }: {
+    entityMetadata?: EntityMetadata
+    entitySlug?: string
+  }): Repository<BaseEntity> {
+    if (!entityMetadata && !entitySlug) {
+      throw new Error('Either entityMetadata or entitySlug must be provided')
+    }
+
+    if (entitySlug) {
+      entityMetadata = this.getEntityMetadata({ slug: entitySlug })
+    }
+
     return this.dataSource.getRepository(entityMetadata.target)
   }
 }
