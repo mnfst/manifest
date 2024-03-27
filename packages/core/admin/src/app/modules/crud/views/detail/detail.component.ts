@@ -1,9 +1,9 @@
 import { Component } from '@angular/core'
-import { ActivatedRoute } from '@angular/router'
-import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
-
-import { BreadcrumbService } from '../../../common/services/breadcrumb.service'
-import { DynamicEntityService } from '../../dynamic-entity.service'
+import { ActivatedRoute, Router } from '@angular/router'
+import { BaseEntity, EntityManifest } from '@casejs/types'
+import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
+import { ManifestService } from '../../../shared/services/manifest.service'
+import { CrudService } from '../../services/crud.service'
 
 @Component({
   selector: 'app-detail',
@@ -11,41 +11,44 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
   styleUrls: ['./detail.component.scss']
 })
 export class DetailComponent {
-  item: any
-  entityMeta: EntityMeta
+  item: BaseEntity
+  entityManifest: EntityManifest
 
   constructor(
+    private crudService: CrudService,
+    private manifestService: ManifestService,
     private activatedRoute: ActivatedRoute,
-    private dynamicEntityService: DynamicEntityService,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.activatedRoute.params.subscribe((params) => {
-      this.dynamicEntityService
-        .loadEntityMeta()
-        .subscribe((res: EntityMeta[]) => {
-          this.entityMeta = res.find(
-            (entityMeta: EntityMeta) =>
-              entityMeta.definition.slug === params['entitySlug']
-          )
+    this.activatedRoute.params.subscribe(async (params) => {
+      // Get the entity manifest.
+      this.entityManifest = await this.manifestService.getEntityManifest(
+        params['entitySlug']
+      )
 
-          this.dynamicEntityService
-            .show(this.entityMeta.definition.slug, params['id'])
-            .then((res) => {
-              this.item = res
+      if (!this.entityManifest) {
+        this.router.navigate(['/404'])
+      }
 
-              this.breadcrumbService.breadcrumbLinks.next([
-                {
-                  label: this.entityMeta.definition.namePlural,
-                  path: `/dynamic/${this.entityMeta.definition.slug}`
-                },
-                {
-                  label: this.item[this.entityMeta.definition.propIdentifier]
-                }
-              ])
-            })
-        })
+      // Get the item.
+      this.item = await this.crudService.show(
+        this.entityManifest.slug,
+        params['id']
+      )
+
+      // Set the breadcrumbs.
+      this.breadcrumbService.breadcrumbLinks.next([
+        {
+          label: this.entityManifest.namePlural,
+          path: `/dynamic/${this.entityManifest.slug}`
+        },
+        {
+          label: this.item[this.entityManifest.mainProp as keyof BaseEntity]
+        }
+      ])
     })
   }
 }

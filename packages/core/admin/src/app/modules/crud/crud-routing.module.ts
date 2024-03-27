@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core'
 import { RouterModule, Routes } from '@angular/router'
 import { CreateEditComponent } from './views/create-edit/create-edit.component'
+import { DetailComponent } from './views/detail/detail.component'
 import { ListComponent } from './views/list/list.component'
 
 export const crudRoutes: Routes = [
@@ -15,10 +16,10 @@ export const crudRoutes: Routes = [
       edit: false
     }
   },
-  // {
-  //   path: ':entitySlug/:id',
-  //   component: DetailComponent
-  // },
+  {
+    path: ':entitySlug/:id',
+    component: DetailComponent
+  },
   {
     path: ':entitySlug/:id/edit',
     component: CreateEditComponent,

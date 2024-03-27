@@ -1,8 +1,8 @@
-@import '../../../../styles/variables/all';
-@import '../../../../../node_modules/bulma/sass/utilities/mixins'; 
+@import '../../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
 
 .properties {
-    + .properties {
-        margin-top: $column-gap;
-    }
+  + .properties {
+    margin-top: $column-gap;
+  }
 }

@@ -34,6 +34,14 @@ export class ManifestService {
    * @returns A Promise of the EntityManifest.
    **/
   getEntityManifest(entitySlug: string): Promise<EntityManifest> {
+    if (this.manifestPromise) {
+      return this.manifestPromise.then((manifest) => {
+        return Object.values(manifest.entities).find(
+          (entity) => entity.slug === entitySlug
+        )
+      })
+    }
+
     return firstValueFrom(
       this.http.get<EntityManifest>(
         `${environment.apiBaseUrl}/manifest/entities/${entitySlug}`

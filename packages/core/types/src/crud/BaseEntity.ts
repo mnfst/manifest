@@ -8,7 +8,23 @@
  *
  * */
 export interface BaseEntity {
+  /**
+   * The entity's unique identifier.
+   */
   id: number
+
+  /**
+   * The date and time the entity was created (automatic).
+   */
   createdAt: Date
+
+  /**
+   * The date and time the entity was last updated (automatic).
+   */
   updatedAt: Date
+
+  /**
+   * Any other properties.
+   */
+  [key: string]: any
 }

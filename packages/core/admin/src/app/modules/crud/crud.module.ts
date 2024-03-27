@@ -8,12 +8,13 @@ import { CrudRoutingModule } from './crud-routing.module'
 import { ListMetaComponent } from './partials/list-meta/list-meta.component'
 import { PaginationComponent } from './partials/pagination/pagination.component'
 import { CreateEditComponent } from './views/create-edit/create-edit.component'
+import { DetailComponent } from './views/detail/detail.component'
 import { ListComponent } from './views/list/list.component'
 
 @NgModule({
   declarations: [
     CreateEditComponent,
-    // DetailComponent,
+    DetailComponent,
     ListComponent,
     ListMetaComponent,
     PaginationComponent

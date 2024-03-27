@@ -1,10 +1,10 @@
-<section *ngIf="item && entityMeta">
+<section *ngIf="item && entityManifest">
   <div
     class="is-flex is-justify-content-space-between is-align-items-center mb-5"
   >
     <div class="left-part">
       <h1 class="title is-2 has-text-weight-light">
-        {{ item[entityMeta.definition.propIdentifier] }}
+        {{ item[entityManifest.mainProp] }}
       </h1>
     </div>
     <div class="right-part is-flex is-flex-direction-row">
@@ -22,18 +22,14 @@
   </div>
   <div class="card p-0 mb-6">
     <div class="card-content">
-      <div class="properties" *ngFor="let prop of entityMeta.props">
+      <div class="properties" *ngFor="let prop of entityManifest.properties">
         <p
           class="is-property-label is-uppercase has-text-dark has-text-weight-medium"
         >
-          {{ prop.label }}
+          {{ prop.name }}
         </p>
         <p class="is-property-value">
-          <app-yield
-            [value]="item[prop.propName]"
-            [type]="prop.type"
-            [options]="prop.options"
-          ></app-yield>
+          <app-yield [value]="item[prop.name]" [type]="prop.type"></app-yield>
         </p>
       </div>
     </div>
