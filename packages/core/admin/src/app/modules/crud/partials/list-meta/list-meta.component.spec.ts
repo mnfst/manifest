@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FileYieldComponent } from './file-yield.component';
+import { ListMetaComponent } from './list-meta.component';
 
-describe('FileYieldComponent', () => {
-  let component: FileYieldComponent;
-  let fixture: ComponentFixture<FileYieldComponent>;
+describe('ListMetaComponent', () => {
+  let component: ListMetaComponent;
+  let fixture: ComponentFixture<ListMetaComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FileYieldComponent ]
+      declarations: [ ListMetaComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(FileYieldComponent);
+    fixture = TestBed.createComponent(ListMetaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

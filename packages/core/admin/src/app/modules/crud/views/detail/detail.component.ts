@@ -2,15 +2,15 @@ import { Component } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
-import { DynamicEntityService } from '../../../../../../../admin/src/app/modules/crud/services/crud.service'
 import { BreadcrumbService } from '../../../common/services/breadcrumb.service'
+import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
-  selector: 'app-dynamic-entity-detail',
-  templateUrl: './dynamic-entity-detail.component.html',
-  styleUrls: ['./dynamic-entity-detail.component.scss']
+  selector: 'app-detail',
+  templateUrl: './detail.component.html',
+  styleUrls: ['./detail.component.scss']
 })
-export class DynamicEntityDetailComponent {
+export class DetailComponent {
   item: any
   entityMeta: EntityMeta
 

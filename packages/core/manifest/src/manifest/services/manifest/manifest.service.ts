@@ -39,13 +39,11 @@ export class ManifestService {
 
     this.schemaService.validate(manifestSchema)
 
-    console.log('manifestSchema', manifestSchema)
-
     const appManifest: AppManifest = this.transformAppManifest(manifestSchema)
 
-    // if (options?.publicVersion) {
-    //   return this.hideSensitiveInformation(appManifest)
-    // }
+    if (options?.publicVersion) {
+      return this.hideSensitiveInformation(appManifest)
+    }
     return appManifest
   }
 
@@ -75,13 +73,18 @@ export class ManifestService {
    * */
   getEntityManifest({
     className,
-    slug
+    slug,
+    publicVersion
   }: {
     className?: string
     slug?: string
+    publicVersion?: boolean
   }): EntityManifest {
     if (!className && !slug) {
-      throw new Error(`Either className or slug must be provided`)
+      throw new HttpException(
+        `Either className or slug must be provided`,
+        HttpStatus.BAD_REQUEST
+      )
     }
 
     const entities: EntityManifest[] = this.getEntityManifests()
@@ -99,6 +102,10 @@ export class ManifestService {
         `Entity ${className || slug} not found in manifest`,
         HttpStatus.NOT_FOUND
       )
+    }
+
+    if (publicVersion) {
+      return this.hideEntitySensitiveInformation(entityManifest)
     }
 
     return entityManifest
@@ -250,19 +257,32 @@ export class ManifestService {
           // TODO: Seed count should be hidden in the public version of the manifest.
           const { seedCount, ...publicEntity } = entity
 
-          acc[className] = {
-            ...publicEntity,
-            properties: entity.properties
-              .filter((prop) => !prop.hidden)
-              .map((prop) => ({
-                name: prop.name,
-                type: prop.type
-              }))
-          }
+          acc[className] = this.hideEntitySensitiveInformation(publicEntity)
           return acc
         },
         {}
       )
+    }
+  }
+
+  /**
+   * Hide entity sensitive information from the manifest to be sent to the client.
+   *
+   * @param entityManifest The entity manifest.
+   *
+   * @returns The entity manifest with sensitive information hidden.
+   */
+  hideEntitySensitiveInformation(
+    entityManifest: EntityManifest
+  ): EntityManifest {
+    return {
+      ...entityManifest,
+      properties: entityManifest.properties
+        .filter((prop) => !prop.hidden)
+        .map((prop) => ({
+          name: prop.name,
+          type: prop.type
+        }))
     }
   }
 }

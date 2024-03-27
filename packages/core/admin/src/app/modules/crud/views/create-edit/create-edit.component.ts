@@ -6,18 +6,18 @@ import { combineLatest } from 'rxjs'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 import { HttpErrorResponse } from '@angular/common/http'
-import { DynamicEntityService } from '../../../../../../../admin/src/app/modules/crud/services/crud.service'
 import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
 import { BreadcrumbService } from '../../../common/services/breadcrumb.service'
 import { FlashMessageService } from '../../../common/services/flash-message.service'
+import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
-  selector: 'app-dynamic-entity-create-edit',
-  templateUrl: './dynamic-entity-create-edit.component.html',
-  styleUrls: ['./dynamic-entity-create-edit.component.scss']
+  selector: 'app-create-edit',
+  templateUrl: './create-edit.component.html',
+  styleUrls: ['./create-edit.component.scss']
 })
-export class DynamicEntityCreateEditComponent {
+export class CreateEditComponent {
   item: any
   entityMeta: EntityMeta
   props: PropertyDescription[]

@@ -18,12 +18,7 @@ import { CrudService } from '../services/crud.service'
 export class CrudController {
   constructor(private readonly crudService: CrudService) {}
 
-  // @Get('meta')
-  // getMeta(): EntityMeta[] {
-  //   return this.entityMetaService.getMeta()
-  // }
-
-  @Get(':entity')
+  @Get('/:entity')
   findAll(
     @Param('entity') entitySlug: string,
     @Query() queryParams: { [key: string]: string | string[] }

@@ -1,6 +1,6 @@
 import { NgIf } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { TruncatePipe } from '../../../../common/pipes/truncate.pipe'
+import { TruncatePipe } from '../../pipes/truncate.pipe'
 
 @Component({
   selector: 'app-link-yield',

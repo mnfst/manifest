@@ -16,9 +16,15 @@ const routes: Routes = [
       import('./modules/auth/auth.module').then((m) => m.AuthModule)
   },
   {
+    path: 'dynamic',
+    loadChildren: () =>
+      import('./modules/crud/crud.module').then((m) => m.CrudModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '404',
-    component: Error404Component
-    // canActivate: [AuthGuard]
+    component: Error404Component,
+    canActivate: [AuthGuard]
   },
   {
     path: '**',

@@ -53,7 +53,6 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     <app-currency-yield
       *ngIf="type === PropType.Money"
       [value]="value"
-      [options]="options"
     ></app-currency-yield>
     <app-date-yield
       *ngIf="type === PropType.Date"
@@ -65,12 +64,8 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     ></app-email-yield>
 
     <app-label-yield
-      *ngIf="
-        type === PropType.Choice &&
-        (!options.display || options.display === 'label')
-      "
+      *ngIf="type === PropType.Choice"
       [value]="value"
-      [options]="options"
     ></app-label-yield>
 
     <app-location-yield
@@ -82,7 +77,6 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
 export class YieldComponent {
   @Input() value: any
   @Input() type: PropType
-  @Input() options?: any
   @Input() compact: boolean = false
 
   PropType = PropType

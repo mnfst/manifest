@@ -5,9 +5,9 @@ import { combineLatest } from 'rxjs'
 import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 import { PropertyDescription } from '~shared/interfaces/property-description.interface'
 
+import { DynamicEntityService } from '../../../../../../../admin/src/app/modules/crud/services/crud.service'
 import { BreadcrumbService } from '../../../common/services/breadcrumb.service'
 import { FlashMessageService } from '../../../common/services/flash-message.service'
-import { DynamicEntityService } from '../../dynamic-entity.service'
 
 @Component({
   selector: 'app-dynamic-entity-list',

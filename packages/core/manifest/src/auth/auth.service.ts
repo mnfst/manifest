@@ -128,8 +128,6 @@ export class AuthService {
         entitySlug
       }) as Repository<AuthenticableEntity>
 
-    console.log('decoded.email', decoded.email)
-
     return entityRepository.findOne({
       where: {
         email: decoded.email
