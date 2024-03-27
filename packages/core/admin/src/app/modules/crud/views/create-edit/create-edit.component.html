@@ -1,4 +1,4 @@
-<ng-container *ngIf="entityMeta">
+<ng-container *ngIf="entityManifest">
   <section>
     <div
       class="is-flex is-justify-content-space-between is-align-items-center mb-5"
@@ -6,7 +6,7 @@
       <div class="left-part">
         <h1 class="title is-2 has-text-weight-light">
           {{ edit ? 'Edit an existing' : 'Create a new' }}
-          {{ entityMeta.definition.nameSingular }}
+          {{ entityManifest.nameSingular }}
         </h1>
       </div>
       <div class="right-part">
@@ -36,16 +36,19 @@
             class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
           >
             <div class="form-group">
-              <div class="field mt-2 mb-4" *ngFor="let prop of props">
+              <div
+                class="field mt-2 mb-4"
+                *ngFor="let prop of entityManifest.properties"
+              >
                 <div class="control">
                   <app-input
                     [prop]="prop"
-                    [entitySlug]="entityMeta.definition.slug"
-                    [value]="edit ? item[prop.propName] : null"
-                    [errors]="errors[prop.propName]"
+                    [entitySlug]="entityManifest.slug"
+                    [value]="edit ? item[prop.name] : null"
+                    [errors]="errors[prop.name]"
                     (valueChanged)="
                       onChange({
-                        propName: prop.propName,
+                        propName: prop.name,
                         newValue: $event
                       })
                     "

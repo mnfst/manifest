@@ -1,16 +1,15 @@
 import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
-import { PropType } from '@casejs/types'
+import { EntityManifest, PropType, PropertyManifest } from '@casejs/types'
 import { combineLatest } from 'rxjs'
-import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
 
 import { HttpErrorResponse } from '@angular/common/http'
-import { PropertyDescription } from '../../../../../../shared/interfaces/property-description.interface'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
-import { BreadcrumbService } from '../../../common/services/breadcrumb.service'
-import { FlashMessageService } from '../../../common/services/flash-message.service'
-import { DynamicEntityService } from '../../dynamic-entity.service'
+import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
+import { FlashMessageService } from '../../../shared/services/flash-message.service'
+import { ManifestService } from '../../../shared/services/manifest.service'
+import { CrudService } from '../../services/crud.service'
 
 @Component({
   selector: 'app-create-edit',
@@ -19,8 +18,7 @@ import { DynamicEntityService } from '../../dynamic-entity.service'
 })
 export class CreateEditComponent {
   item: any
-  entityMeta: EntityMeta
-  props: PropertyDescription[]
+  entityManifest: EntityManifest
   errors: { [propName: string]: string[] } = {}
 
   form: FormGroup = this.formBuilder.group({})
@@ -29,85 +27,74 @@ export class CreateEditComponent {
   PropType = PropType
 
   constructor(
+    private crudService: CrudService,
+    private manifestService: ManifestService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private formBuilder: FormBuilder,
     private breadcrumbService: BreadcrumbService,
-    private flashMessageService: FlashMessageService,
-    private dynamicEntityService: DynamicEntityService
+    private flashMessageService: FlashMessageService
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.dynamicEntityService
-      .loadEntityMeta()
-      .subscribe((res: EntityMeta[]) => {
-        if (!res.length) {
-          return
+    combineLatest([
+      this.activatedRoute.params,
+      this.activatedRoute.data
+    ]).subscribe(async ([params, data]: [Params, Data]) => {
+      this.edit = data['edit']
+
+      this.entityManifest = await this.manifestService.getEntityManifest(
+        params['entitySlug']
+      )
+
+      if (!this.entityManifest) {
+        this.router.navigate(['/404'])
+      }
+
+      if (this.edit) {
+        this.item = await this.crudService.show(
+          this.entityManifest.slug,
+          params['id']
+        )
+
+        this.breadcrumbService.breadcrumbLinks.next([
+          {
+            label: this.entityManifest.namePlural,
+            path: `/dynamic/${this.entityManifest.slug}`
+          },
+          {
+            label: this.item[this.entityManifest.mainProp],
+            path: `/dynamic/${this.entityManifest.slug}/${this.item.id}`
+          },
+          {
+            label: 'Edit'
+          }
+        ])
+      } else {
+        this.breadcrumbService.breadcrumbLinks.next([
+          {
+            label: this.entityManifest.namePlural,
+            path: `/dynamic/${this.entityManifest.slug}`
+          },
+          {
+            label: `Create a new ${this.entityManifest.nameSingular}`
+          }
+        ])
+      }
+
+      this.entityManifest.properties.forEach((prop: PropertyManifest) => {
+        let value: any = null
+
+        if (this.item) {
+          value = this.item[prop.name]
+          // Special case for boolean props: we need to set the value to false if it's not set.
+        } else if (prop.type === PropType.Boolean) {
+          value = false
         }
 
-        combineLatest([
-          this.activatedRoute.params,
-          this.activatedRoute.data
-        ]).subscribe(async ([params, data]: [Params, Data]) => {
-          this.edit = data['edit']
-
-          this.entityMeta = res.find(
-            (entity) => entity.definition.slug === params['entitySlug']
-          )
-
-          if (!this.entityMeta) {
-            this.router.navigate(['/404'])
-          }
-
-          this.props = this.entityMeta.props.filter(
-            (prop) => !prop.options.isHiddenInAdminCreateEdit
-          )
-
-          if (this.edit) {
-            this.item = await this.dynamicEntityService.show(
-              this.entityMeta.definition.slug,
-              params['id']
-            )
-
-            this.breadcrumbService.breadcrumbLinks.next([
-              {
-                label: this.entityMeta.definition.namePlural,
-                path: `/dynamic/${this.entityMeta.definition.slug}`
-              },
-              {
-                label: this.item[this.entityMeta.definition.propIdentifier],
-                path: `/dynamic/${this.entityMeta.definition.slug}/${this.item.id}`
-              },
-              {
-                label: 'Edit'
-              }
-            ])
-          } else {
-            this.breadcrumbService.breadcrumbLinks.next([
-              {
-                label: this.entityMeta.definition.namePlural,
-                path: `/dynamic/${this.entityMeta.definition.slug}`
-              },
-              {
-                label: `Create a new ${this.entityMeta.definition.nameSingular}`
-              }
-            ])
-          }
-
-          this.entityMeta.props.forEach((prop) => {
-            let value: any = null
-
-            if (this.item) {
-              value = this.item[prop.propName]
-              // Special case for boolean props: we need to set the value to false if it's not set.
-            } else if (prop.type === PropType.Boolean) {
-              value = false
-            }
-
-            this.form.addControl(prop.propName, new FormControl(value))
-          })
-        })
+        this.form.addControl(prop.name, new FormControl(value))
       })
+    })
   }
 
   onChange(params: { newValue: any; propName: string }): void {
@@ -117,14 +104,14 @@ export class CreateEditComponent {
   submit(): void {
     this.loading = true
     if (this.edit) {
-      this.dynamicEntityService
-        .update(this.entityMeta.definition.slug, this.item.id, this.form.value)
+      this.crudService
+        .update(this.entityManifest.slug, this.item.id, this.form.value)
         .then(() => {
           this.loading = false
           this.flashMessageService.success(
-            `The ${this.entityMeta.definition.nameSingular} has been updated`
+            `The ${this.entityManifest.nameSingular} has been updated`
           )
-          this.router.navigate(['/dynamic', this.entityMeta.definition.slug])
+          this.router.navigate(['/dynamic', this.entityManifest.slug])
         })
         .catch((err: HttpErrorResponse) => {
           if (err.status === 400) {
@@ -133,20 +120,20 @@ export class CreateEditComponent {
 
           this.loading = false
           this.flashMessageService.error(
-            `The ${this.entityMeta.definition.nameSingular} could not be updated`
+            `The ${this.entityManifest.nameSingular} could not be updated`
           )
         })
     } else {
-      this.dynamicEntityService
-        .create(this.entityMeta.definition.slug, this.form.value)
+      this.crudService
+        .create(this.entityManifest.slug, this.form.value)
         .then((res: { identifiers: { id: number }[] }) => {
           this.loading = false
           this.flashMessageService.success(
-            `The ${this.entityMeta.definition.nameSingular} has been created successfully`
+            `The ${this.entityManifest.nameSingular} has been created successfully`
           )
           this.router.navigate([
             '/dynamic',
-            this.entityMeta.definition.slug,
+            this.entityManifest.slug,
             res.identifiers[0].id
           ])
         })
@@ -158,7 +145,7 @@ export class CreateEditComponent {
           this.loading = false
           this.flashMessageService.error(
             `Error: the ${
-              this.entityMeta.definition.nameSingular
+              this.entityManifest.nameSingular
             } could not be created:
               ${Object.values(this.errors).join(', ')}
             `
@@ -168,9 +155,9 @@ export class CreateEditComponent {
   }
 
   getErrorMessages(validationErrors: ValidationError[]): {
-    [propName: string]: string[]
+    [name: string]: string[]
   } {
-    const errorMessages: { [propName: string]: string[] } = {}
+    const errorMessages: { [name: string]: string[] } = {}
 
     validationErrors.forEach((validationError: ValidationError) => {
       errorMessages[validationError.property] = Object.values(
