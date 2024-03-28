@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { PropType } from '@casejs/types'
+import { PropType, PropertyManifest } from '@casejs/types'
 
 import { YieldType } from '../../../typescript/enums/yield-type.enum'
 import { BooleanYieldComponent } from './boolean-yield/boolean-yield.component'
@@ -32,51 +32,52 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
   ],
   template: `
     <app-text-yield
-      *ngIf="type === PropType.String || type === PropType.Text"
+      *ngIf="prop.type === PropType.String || prop.type === PropType.Text"
       [value]="value"
       [compact]="compact"
     ></app-text-yield>
     <app-number-yield
-      *ngIf="type === PropType.Number"
+      *ngIf="prop.type === PropType.Number"
       [value]="value"
     ></app-number-yield>
     <app-link-yield
-      *ngIf="type === PropType.Link"
+      *ngIf="prop.type === PropType.Link"
       [value]="value"
       [compact]="compact"
     ></app-link-yield>
 
     <app-boolean-yield
-      *ngIf="type === PropType.Boolean"
+      *ngIf="prop.type === PropType.Boolean"
       [value]="value"
     ></app-boolean-yield>
     <app-currency-yield
-      *ngIf="type === PropType.Money"
+      *ngIf="prop.type === PropType.Money"
       [value]="value"
     ></app-currency-yield>
     <app-date-yield
-      *ngIf="type === PropType.Date"
+      *ngIf="prop.type === PropType.Date"
       [value]="value"
     ></app-date-yield>
     <app-email-yield
-      *ngIf="type === PropType.Email"
+      *ngIf="prop.type === PropType.Email"
       [value]="value"
     ></app-email-yield>
 
     <app-label-yield
-      *ngIf="type === PropType.Choice"
+      *ngIf="prop.type === PropType.Choice"
+      [values]="prop.options?.['values']"
       [value]="value"
     ></app-label-yield>
 
     <app-location-yield
-      *ngIf="type === PropType.Location"
+      *ngIf="prop.type === PropType.Location"
       [value]="value"
     ></app-location-yield>
   `
 })
 export class YieldComponent {
+  @Input() prop: PropertyManifest
   @Input() value: any
-  @Input() type: PropType
   @Input() compact: boolean = false
 
   PropType = PropType

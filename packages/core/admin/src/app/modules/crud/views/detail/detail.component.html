@@ -29,7 +29,7 @@
           {{ prop.name }}
         </p>
         <p class="is-property-value">
-          <app-yield [value]="item[prop.name]" [type]="prop.type"></app-yield>
+          <app-yield [value]="item[prop.name]" [prop]="prop"></app-yield>
         </p>
       </div>
       <div class="relations" *ngFor="let relation of entityManifest.belongsTo">

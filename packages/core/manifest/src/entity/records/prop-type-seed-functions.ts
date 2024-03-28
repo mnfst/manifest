@@ -3,7 +3,7 @@ import { SHA3 } from 'crypto-js'
 
 import { PropType } from '@casejs/types'
 
-export const propTypeSeedFunctions: Record<PropType, () => any> = {
+export const propTypeSeedFunctions: Record<PropType, (options?: any) => any> = {
   [PropType.String]: () => faker.commerce.product(),
   [PropType.Number]: () => faker.number.int({ max: 50 }),
   [PropType.Link]: () => 'https://manifest.build',
@@ -18,7 +18,8 @@ export const propTypeSeedFunctions: Record<PropType, () => any> = {
   [PropType.Email]: () => faker.internet.email(),
   [PropType.Boolean]: () => faker.datatype.boolean(),
   [PropType.Password]: () => SHA3('manifest').toString(),
-  [PropType.Choice]: () => null,
+  [PropType.Choice]: (options: { values: string[] }) =>
+    faker.helpers.arrayElement(options.values),
   [PropType.Location]: () => ({
     lat: faker.location.latitude(),
     lng: faker.location.longitude()

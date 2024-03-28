@@ -13,6 +13,8 @@ export class PropertyService {
    *
    */
   getSeedValue(propertyManifest: PropertyManifest): any {
-    return propTypeSeedFunctions[propertyManifest.type]()
+    return propTypeSeedFunctions[propertyManifest.type](
+      propertyManifest.options
+    )
   }
 }

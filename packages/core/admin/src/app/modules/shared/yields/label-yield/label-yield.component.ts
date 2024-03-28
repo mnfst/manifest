@@ -14,11 +14,10 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
 })
 export class LabelYieldComponent implements OnInit {
   @Input() value: string
-  // @Input() options: EnumPropertyOptions
-
+  @Input() values: any | string[]
   index: number
 
   ngOnInit(): void {
-    // this.index = Object.values(this.options.enum).indexOf(this.value)
+    this.index = this.values.indexOf(this.value)
   }
 }

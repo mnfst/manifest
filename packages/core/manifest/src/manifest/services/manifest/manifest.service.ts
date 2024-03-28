@@ -234,7 +234,8 @@ export class ManifestService {
     return {
       name: propManifestSchema.name,
       type: (propManifestSchema.type as PropType) || PropType.String,
-      hidden: propManifestSchema.hidden || false
+      hidden: propManifestSchema.hidden || false,
+      options: propManifestSchema.options
     }
   }
 
@@ -281,7 +282,8 @@ export class ManifestService {
         .filter((prop) => !prop.hidden)
         .map((prop) => ({
           name: prop.name,
-          type: prop.type
+          type: prop.type,
+          options: prop.options
         }))
     }
   }

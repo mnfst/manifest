@@ -17,4 +17,9 @@ export type PropertyManifest = {
    * @default false
    */
   hidden?: boolean
+
+  /**
+   * The property options.
+   */
+  options?: Record<string, unknown>
 }

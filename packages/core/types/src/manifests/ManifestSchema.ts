@@ -34,10 +34,15 @@ export type PropertyManifestSchema =
        * If the property should be hidden in the API response. Default false. Doc: https://docs.case.app/property-types?id=hidden
        */
       hidden?: boolean
-      /**
-       * The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation
-       */
-      validation?: string[]
+      options?: GlobalPropertyOptionsSchema &
+        (
+          | {
+              [k: string]: unknown
+            }
+          | {
+              [k: string]: unknown
+            }
+        )
     }
   | string
 /**
@@ -50,7 +55,7 @@ export type RelationshipManifestSchema =
        */
       name?: string
       /**
-       * The entity that the relationship is with
+       * The class name of the entity that the relationship is with
        */
       entity: string
       /**
@@ -112,4 +117,10 @@ export interface EntityManifestSchema {
    * The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships
    */
   belongsTo?: RelationshipManifestSchema[]
+}
+/**
+ * Global options applicable to all property types.
+ */
+export interface GlobalPropertyOptionsSchema {
+  [k: string]: unknown
 }
