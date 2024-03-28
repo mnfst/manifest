@@ -1,7 +1,14 @@
 import { NgClass, NgFor } from '@angular/common'
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core'
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms'
-import { PropType, PropertyManifest, SelectOption } from '@casejs/types'
+import {
+  EntityManifest,
+  PropertyManifest,
+  RelationshipManifest,
+  SelectOption
+} from '@casejs/types'
+import { CrudService } from '../../../crud/services/crud.service'
+import { ManifestService } from '../../services/manifest.service'
 
 @Component({
   selector: 'app-select-input',
@@ -9,7 +16,7 @@ import { PropType, PropertyManifest, SelectOption } from '@casejs/types'
   imports: [ReactiveFormsModule, NgClass, NgFor],
   template: `
     <div [formGroup]="form">
-      <label [for]="prop.name">{{ prop.name }}</label>
+      <label [for]="label">{{ label }}</label>
       <div class="control">
         <div class="select" [ngClass]="{ 'is-danger': isError }">
           <select
@@ -17,7 +24,7 @@ import { PropType, PropertyManifest, SelectOption } from '@casejs/types'
             (change)="onChange($event)"
             formControlName="select"
           >
-            <option value="">Select {{ prop.name }}</option>
+            <option value="">Select {{ label }}</option>
             <option *ngFor="let option of options" [value]="option.id">
               {{ option.label }}
             </option>
@@ -30,7 +37,7 @@ import { PropType, PropertyManifest, SelectOption } from '@casejs/types'
 })
 export class SelectInputComponent implements OnInit {
   @Input() prop: PropertyManifest
-  @Input() type: PropType
+  @Input() relationship: RelationshipManifest
   @Input() value: { id: number }
   @Input() isError: boolean
 
@@ -41,30 +48,30 @@ export class SelectInputComponent implements OnInit {
     select: null
   })
 
-  // entityMeta: EntityMeta
+  label: string
+  entityManifest: EntityManifest
   options: SelectOption[]
 
   constructor(
-    // private dynamicEntityService: DynamicEntityService,
+    private manifestService: ManifestService,
+    private crudService: CrudService,
     private formBuilder: FormBuilder
   ) {}
 
-  ngOnInit(): void {
-    // if (this.type === PropType.Relation) {
-    //   this.dynamicEntityService
-    //     .loadEntityMeta()
-    //     .subscribe(async (res: EntityMeta[]) => {
-    //       // Note: only works for PropType.Relation at this time.
-    //       this.entityMeta = res.find(
-    //         (entity: EntityMeta) =>
-    //           entity.className ===
-    //           (this.prop.options as RelationPropertyOptions).entitySlug
-    //       )
-    //       this.options = await this.dynamicEntityService.listSelectOptions(
-    //         this.entityMeta.definition.slug
-    //       )
-    //     })
-    // }
+  async ngOnInit(): Promise<void> {
+    this.label = this.prop?.name || this.relationship.name
+
+    if (this.relationship) {
+      this.entityManifest = await this.manifestService.getEntityManifest({
+        className: this.relationship.entity
+      })
+
+      this.options = await this.crudService.listSelectOptions(
+        this.entityManifest.slug
+      )
+    }
+
+    // TODO: Enums
     // if (this.type === PropType.Enum) {
     //   let enumOptions: EnumPropertyOptions = this.prop
     //     .options as EnumPropertyOptions
@@ -75,22 +82,23 @@ export class SelectInputComponent implements OnInit {
     //     }
     //   })
     // }
-    // if (this.value) {
-    //   this.form.patchValue({
-    //     select: this.type === PropType.Relation ? this.value.id : this.value
-    //   })
-    // }
+
+    if (this.value) {
+      this.form.patchValue({
+        select: this.relationship ? this.value.id : this.value
+      })
+    }
   }
 
   onChange(event: any): void {
-    //   // Note: we need to emit null if the user selects the default option.
-    //   if (event.target.value === '') {
-    //     this.form.patchValue({
-    //       select: null
-    //     })
-    //     this.valueChanged.emit(null)
-    //     return
-    //   }
-    //   this.valueChanged.emit(event.target.value)
+    // Note: we need to emit null if the user selects the default option.
+    if (event.target.value === '') {
+      this.form.patchValue({
+        select: null
+      })
+      this.valueChanged.emit(null)
+      return
+    }
+    this.valueChanged.emit(event.target.value)
   }
 }

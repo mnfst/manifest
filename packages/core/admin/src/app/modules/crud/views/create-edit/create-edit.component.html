@@ -43,12 +43,29 @@
                 <div class="control">
                   <app-input
                     [prop]="prop"
-                    [entitySlug]="entityManifest.slug"
                     [value]="edit ? item[prop.name] : null"
                     [errors]="errors[prop.name]"
                     (valueChanged)="
                       onChange({
                         propName: prop.name,
+                        newValue: $event
+                      })
+                    "
+                  ></app-input>
+                </div>
+              </div>
+              <div
+                class="field mt-2 mb-4"
+                *ngFor="let relationship of entityManifest.belongsTo"
+              >
+                <div class="control">
+                  <app-input
+                    [relationship]="relationship"
+                    [value]="edit ? item[relationship.name] : null"
+                    [errors]="errors[relationship.name]"
+                    (valueChanged)="
+                      onChange({
+                        propName: relationship.name,
                         newValue: $event
                       })
                     "

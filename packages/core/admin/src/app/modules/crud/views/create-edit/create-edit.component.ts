@@ -1,7 +1,12 @@
 import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
-import { EntityManifest, PropType, PropertyManifest } from '@casejs/types'
+import {
+  EntityManifest,
+  PropType,
+  PropertyManifest,
+  RelationshipManifest
+} from '@casejs/types'
 import { combineLatest } from 'rxjs'
 
 import { HttpErrorResponse } from '@angular/common/http'
@@ -94,6 +99,14 @@ export class CreateEditComponent {
 
         this.form.addControl(prop.name, new FormControl(value))
       })
+
+      this.entityManifest.belongsTo.forEach(
+        (relationship: RelationshipManifest) => {
+          const value: number = this.item ? this.item[relationship.name] : null
+
+          this.form.addControl(relationship.name, new FormControl(value))
+        }
+      )
     })
   }
 

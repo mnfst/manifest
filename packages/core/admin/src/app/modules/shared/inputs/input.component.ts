@@ -7,7 +7,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core'
-import { PropType } from '@casejs/types'
+import { PropType, PropertyManifest, RelationshipManifest } from '@casejs/types'
 
 import { BooleanInputComponent } from './boolean-input/boolean-input.component'
 import { CurrencyInputComponent } from './currency-input/currency-input.component'
@@ -46,36 +46,36 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.String"
+      *ngIf="prop?.type === PropType.String"
     ></app-text-input>
     <app-number-input
       [prop]="prop"
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Number"
+      *ngIf="prop?.type === PropType.Number"
     ></app-number-input>
     <app-url-input
       [prop]="prop"
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Link"
+      *ngIf="prop?.type === PropType.Link"
     ></app-url-input>
     <app-textarea-input
       [prop]="prop"
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Text"
+      *ngIf="prop?.type === PropType.Text"
     ></app-textarea-input>
     <app-select-input
       [prop]="prop"
+      [relationship]="relationship"
       [value]="value"
       [isError]="isError"
-      [type]="prop.type"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Choice"
+      *ngIf="prop?.type === PropType.Choice || relationship"
     >
     </app-select-input>
     <app-currency-input
@@ -83,7 +83,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Money"
+      *ngIf="prop?.type === PropType.Money"
     >
     </app-currency-input>
     <app-boolean-input
@@ -91,7 +91,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Boolean"
+      *ngIf="prop?.type === PropType.Boolean"
     >
     </app-boolean-input>
     <app-email-input
@@ -99,7 +99,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Email"
+      *ngIf="prop?.type === PropType.Email"
     >
     </app-email-input>
     <app-date-input
@@ -107,7 +107,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Date"
+      *ngIf="prop?.type === PropType.Date"
     >
     </app-date-input>
     <app-password-input
@@ -115,7 +115,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Password"
+      *ngIf="prop?.type === PropType.Password"
     >
     </app-password-input>
     <app-location-input
@@ -123,7 +123,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop.type === PropType.Location"
+      *ngIf="prop?.type === PropType.Location"
     ></app-location-input>
 
     <!-- Error messages -->
@@ -133,8 +133,8 @@ import { UrlInputComponent } from './url-input/url-input.component'
   `
 })
 export class InputComponent implements OnChanges {
-  @Input() prop: any
-  @Input() entitySlug: string
+  @Input() prop: PropertyManifest
+  @Input() relationship: RelationshipManifest
   @Input() value: any
   @Input() errors: string[]
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()
