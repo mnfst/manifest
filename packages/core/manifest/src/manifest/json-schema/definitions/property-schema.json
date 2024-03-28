@@ -33,13 +33,32 @@
           "description": "If the property should be hidden in the API response. Default false. Doc: https://docs.case.app/property-types?id=hidden",
           "type": "boolean"
         },
-        "validation": {
-          "description": "The validation for the property with Class Validator. Doc: https://docs.case.app/property-types?id=validation",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^[A-Z][^\\s]*\\(.*\\)$"
-          }
+        "options": {
+          "allOf": [
+            {
+              "$ref": "./property-options-schema.json"
+            }
+          ],
+          "oneOf": [
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "money" } }
+              },
+              "then": {
+                "$ref": "./property-options/money-options-schema.json"
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "choice" } }
+              },
+              "then": {
+                "$ref": "./property-options/choice-options-schema.json"
+              }
+            }
+          ]
         }
       },
       "required": ["name"],
