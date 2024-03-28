@@ -13,7 +13,7 @@
         },
         "entity": {
           "type": "string",
-          "description": "The entity that the relationship is with"
+          "description": "The class name of the entity that the relationship is with"
         },
         "eager": {
           "type": "boolean",

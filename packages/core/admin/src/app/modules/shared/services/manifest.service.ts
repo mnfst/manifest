@@ -33,18 +33,28 @@ export class ManifestService {
    *
    * @returns A Promise of the EntityManifest.
    **/
-  getEntityManifest(entitySlug: string): Promise<EntityManifest> {
+  getEntityManifest({
+    slug,
+    className
+  }: {
+    slug?: string
+    className?: string
+  }): Promise<EntityManifest> {
+    if (!slug && !className) {
+      throw new Error('Either slug or className must be provided')
+    }
+
     if (this.manifestPromise) {
       return this.manifestPromise.then((manifest) => {
         return Object.values(manifest.entities).find(
-          (entity) => entity.slug === entitySlug
+          (entity) => entity.slug === slug || entity.className === className
         )
       })
     }
 
     return firstValueFrom(
       this.http.get<EntityManifest>(
-        `${environment.apiBaseUrl}/manifest/entities/${entitySlug}`
+        `${environment.apiBaseUrl}/manifest/entities/${slug}`
       )
     )
   }

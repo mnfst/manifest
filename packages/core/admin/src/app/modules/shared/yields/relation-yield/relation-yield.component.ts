@@ -1,40 +1,37 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
 import { RouterModule } from '@angular/router'
-import { EntityMeta } from '~shared/interfaces/entity-meta.interface'
-import { RelationPropertyOptions } from '~shared/interfaces/property-options/relation-property-options.interface'
-
-import { DynamicEntityService } from '../../../../dynamic-entity/dynamic-entity.service'
+import { EntityManifest, RelationshipManifest } from '@casejs/types'
+import { ManifestService } from '../../services/manifest.service'
 
 @Component({
   selector: 'app-relation-yield',
   standalone: true,
   imports: [RouterModule, CommonModule],
   template: ` <a
-      [routerLink]="['/', 'dynamic', entityMeta.definition.slug, item.id]"
-      *ngIf="item"
+      [routerLink]="['/', 'dynamic', entityManifest.slug, item.id]"
+      *ngIf="item && entityManifest"
     >
-      <span>{{ item[entityMeta.definition.propIdentifier] }}</span>
+      <span>{{ item[entityManifest.mainProp] }}</span>
     </a>
-
-    <span *ngIf="!item">-</span>`,
+    <span *ngIf="!item || !entityManifest">-</span>`,
   styleUrls: ['./relation-yield.component.scss']
 })
 export class RelationYieldComponent implements OnInit {
-  entityMeta: EntityMeta
+  entityManifest: EntityManifest
 
-  constructor(private dynamicEntityService: DynamicEntityService) {}
+  constructor(private manifestService: ManifestService) {}
 
   @Input() item: any
-  @Input() options: RelationPropertyOptions
+  @Input() relation: RelationshipManifest
 
   ngOnInit(): void {
-    this.dynamicEntityService
-      .loadEntityMeta()
-      .subscribe((res: EntityMeta[]) => {
-        this.entityMeta = res.find(
-          (entity: EntityMeta) => entity.className === this.options.entitySlug
-        )
+    this.manifestService
+      .getEntityManifest({
+        className: this.relation.entity
+      })
+      .then((entityManifest) => {
+        this.entityManifest = entityManifest
       })
   }
 }

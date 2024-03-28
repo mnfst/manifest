@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { firstValueFrom } from 'rxjs'
 
-import { Params } from '@angular/router'
 import { BaseEntity, Paginator, SelectOption } from '@casejs/types'
 import { environment } from '../../../../environments/environment'
 
@@ -14,20 +13,27 @@ export class CrudService {
 
   constructor(private http: HttpClient) {}
 
-  list(entitySlug: string, params?: Params): Promise<Paginator<BaseEntity>> {
+  list(
+    entitySlug: string,
+    options?: { filters?: { [k: string]: string }; relations?: string[] }
+  ): Promise<Paginator<BaseEntity>> {
     const queryParams: {
       [key: string]: any
     } = {
-      page: params?.['page'] || 1,
+      page: options.filters?.['page'] || 1,
       perPage: 20
     }
 
     // Add filters with _eq suffix.
-    Object.keys(params || {}).forEach((key: string) => {
+    Object.keys(options.filters || {}).forEach((key: string) => {
       if (key !== 'page') {
-        queryParams[`${key}_eq`] = params[key]
+        queryParams[`${key}_eq`] = options.filters[key]
       }
     })
+
+    if (options.relations) {
+      queryParams['relations'] = options.relations.join(',')
+    }
 
     return firstValueFrom(
       this.http.get<Paginator<BaseEntity>>(`${this.baseUrl}/${entitySlug}`, {

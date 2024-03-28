@@ -64,6 +64,9 @@
             >
               {{ prop.name }}
             </th>
+            <th *ngFor="let relation of entityManifest.belongsTo">
+              {{ relation.name }}
+            </th>
             <th></th>
           </tr>
         </thead>
@@ -89,6 +92,12 @@
                 [type]="prop.type"
                 [compact]="true"
               ></app-yield>
+            </td>
+            <td *ngFor="let relation of entityManifest.belongsTo">
+              <app-relation-yield
+                [item]="item[relation.name]"
+                [relation]="relation"
+              ></app-relation-yield>
             </td>
             <td class="has-text-right is-nowrap">
               <a

@@ -43,9 +43,9 @@ export class CreateEditComponent {
     ]).subscribe(async ([params, data]: [Params, Data]) => {
       this.edit = data['edit']
 
-      this.entityManifest = await this.manifestService.getEntityManifest(
-        params['entitySlug']
-      )
+      this.entityManifest = await this.manifestService.getEntityManifest({
+        slug: params['entitySlug']
+      })
 
       if (!this.entityManifest) {
         this.router.navigate(['/404'])

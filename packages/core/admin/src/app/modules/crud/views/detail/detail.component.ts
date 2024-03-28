@@ -25,9 +25,9 @@ export class DetailComponent {
   ngOnInit(): void {
     this.activatedRoute.params.subscribe(async (params) => {
       // Get the entity manifest.
-      this.entityManifest = await this.manifestService.getEntityManifest(
-        params['entitySlug']
-      )
+      this.entityManifest = await this.manifestService.getEntityManifest({
+        slug: params['entitySlug']
+      })
 
       if (!this.entityManifest) {
         this.router.navigate(['/404'])

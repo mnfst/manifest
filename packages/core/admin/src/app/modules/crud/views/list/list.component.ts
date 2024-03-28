@@ -4,7 +4,8 @@ import {
   EntityManifest,
   Paginator,
   PropType,
-  PropertyManifest
+  PropertyManifest,
+  RelationshipManifest
 } from '@casejs/types'
 import { combineLatest } from 'rxjs'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
@@ -44,12 +45,12 @@ export class ListComponent implements OnInit {
       this.activatedRoute.queryParams,
       this.activatedRoute.params
     ]).subscribe(async ([queryParams, params]: Params[]) => {
-      this.queryParams = queryParams
       delete this.paginator
+      this.queryParams = queryParams
 
-      this.entityManifest = await this.manifestService.getEntityManifest(
-        params['entitySlug']
-      )
+      this.entityManifest = await this.manifestService.getEntityManifest({
+        slug: params['entitySlug']
+      })
 
       if (!this.entityManifest) {
         this.router.navigate(['/404'])
@@ -67,10 +68,12 @@ export class ListComponent implements OnInit {
       ])
 
       this.loadingPaginator = true
-      this.paginator = await this.crudService.list(
-        this.entityManifest.slug,
-        queryParams
-      )
+      this.paginator = await this.crudService.list(this.entityManifest.slug, {
+        filters: this.queryParams,
+        relations: this.entityManifest.belongsTo.map(
+          (relation: RelationshipManifest) => relation.name
+        )
+      })
       this.loadingPaginator = false
     })
   }
@@ -84,7 +87,7 @@ export class ListComponent implements OnInit {
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
-      queryParams,
+      queryParams: this.queryParams,
       queryParamsHandling: 'merge'
     })
   }

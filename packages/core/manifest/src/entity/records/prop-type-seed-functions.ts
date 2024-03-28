@@ -8,7 +8,12 @@ export const propTypeSeedFunctions: Record<PropType, () => any> = {
   [PropType.Number]: () => faker.number.int({ max: 50 }),
   [PropType.Link]: () => 'https://manifest.build',
   [PropType.Text]: () => faker.commerce.productDescription(),
-  [PropType.Money]: () => faker.finance.amount(1, 500, 2),
+  [PropType.Money]: () =>
+    faker.finance.amount({
+      min: 1,
+      max: 500,
+      dec: 2
+    }),
   [PropType.Date]: () => faker.date.past(),
   [PropType.Email]: () => faker.internet.email(),
   [PropType.Boolean]: () => faker.datatype.boolean(),
