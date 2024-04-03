@@ -42,6 +42,7 @@ export class AuthService {
   }
 
   logout(): void {
+    delete this.currentUserPromise
     localStorage.removeItem(TOKEN_KEY)
   }
 

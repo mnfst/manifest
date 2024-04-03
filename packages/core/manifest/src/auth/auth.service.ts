@@ -2,6 +2,7 @@ import { AuthenticableEntity } from '@casejs/types'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'
+import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'
@@ -56,47 +57,6 @@ export class AuthService {
     }
   }
 
-  // /**
-  //  *
-  //  * Sign up a user. This user can be of any entity that extends AuthenticableEntity but Admin.
-  //  *
-  //  * @param entitySlug The slug of the AuthenticableEntity where the user is going to be created
-  //  * @param email The email of the user
-  //  * @param password The password of the user
-  //  *
-  //  * @returns A JWT token of the created user
-  //  *
-  //  */
-  // async signUp(
-  //   entitySlug: string,
-  //   signupUserDto: SignupUserDto
-  // ): Promise<{ token: string }> {
-  //   const repository: Repository<AuthenticableEntity> =
-  //     this.entityMetaService.getRepository(entitySlug)
-  //   if (
-  //     !this.entityMetaService
-  //       .getAuthenticableEntities()
-  //       .filter((entity) => entity.targetName !== 'Admin')
-  //       .find(
-  //         (entity) =>
-  //           entity.targetName ===
-  //           this.entityMetaService.getEntityMetadata(entitySlug).targetName
-  //       )
-  //   ) {
-  //     throw new HttpException(
-  //       'You cannot sign up in this entity',
-  //       HttpStatus.UNAUTHORIZED
-  //     )
-  //   }
-  //   const user: AuthenticableEntity = await repository.save(
-  //     repository.create(signupUserDto)
-  //   )
-  //   return this.createToken(entitySlug, {
-  //     email: user.email,
-  //     password: signupUserDto.password
-  //   })
-  // }
-
   /**
    * Returns the user from a JWT token. This user can be of any entity that extends AuthenticableEntity.
    *
@@ -106,7 +66,7 @@ export class AuthService {
    * @returns The user item from the JWT token
    *
    */
-  async getUserFromToken(
+  getUserFromToken(
     token: string,
     entitySlug?: string
   ): Promise<AuthenticableEntity> {
@@ -133,5 +93,19 @@ export class AuthService {
         email: decoded.email
       }
     })
+  }
+
+  /**
+   * Returns the user from a request. This user can be of any entity that extends AuthenticableEntity.
+   *
+   * @param req Request object
+   *
+   * @returns The user item from the request
+   **/
+  getUserFromRequest(
+    req: Request,
+    entitySlug: string
+  ): Promise<AuthenticableEntity> {
+    return this.getUserFromToken(req.headers?.['authorization'], entitySlug)
   }
 }

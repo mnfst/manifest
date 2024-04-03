@@ -1,21 +1,35 @@
-import { AppManifest, EntityManifest } from '@casejs/types'
-import { Controller, Get, Param } from '@nestjs/common'
+import { AppManifest, AuthenticableEntity, EntityManifest } from '@casejs/types'
+import { Controller, Get, Param, Req } from '@nestjs/common'
+import { Request } from 'express'
+import { AuthService } from '../../auth/auth.service'
 import { ManifestService } from '../services/manifest/manifest.service'
 
 @Controller('manifest')
 export class ManifestController {
-  constructor(private manifestService: ManifestService) {}
+  constructor(
+    private manifestService: ManifestService,
+    private authService: AuthService
+  ) {}
 
   @Get()
-  getPublicManifest(): AppManifest {
-    return this.manifestService.getAppManifest({ publicVersion: true })
+  async getPublicManifest(@Req() req: Request): Promise<AppManifest> {
+    const currentUser: AuthenticableEntity =
+      await this.authService.getUserFromRequest(req, 'admins')
+
+    return this.manifestService.getAppManifest({ publicVersion: !currentUser })
   }
 
   @Get('entities/:slug')
-  getEntityPublicManifest(@Param('slug') slug: string): EntityManifest {
+  async getEntityPublicManifest(
+    @Param('slug') slug: string,
+    @Req() req: Request
+  ): Promise<EntityManifest> {
+    const currentUser: AuthenticableEntity =
+      await this.authService.getUserFromRequest(req, 'admins')
+
     return this.manifestService.getEntityManifest({
       slug,
-      publicVersion: true
+      publicVersion: !currentUser
     })
   }
 }

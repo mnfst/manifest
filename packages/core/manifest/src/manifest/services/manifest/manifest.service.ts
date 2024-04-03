@@ -16,7 +16,7 @@ import {
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
-import { entityManifestDefaults } from './manifest.defaults'
+import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from './constants'
 
 @Injectable()
 export class ManifestService {
@@ -56,9 +56,12 @@ export class ManifestService {
   getEntityManifests(): EntityManifest[] {
     const manifestSchema: AppManifestSchema = this.yamlService.load()
 
+    // Add Admin entity.
+    manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
+
     return Object.entries(manifestSchema.entities).map(
       ([className, entity]: [string, EntityManifestSchema]) =>
-        this.transformEntity(className, entity)
+        this.transformEntityManifest(className, entity)
     )
   }
 
@@ -118,6 +121,9 @@ export class ManifestService {
    * @returns the manifest with defaults filled in and short form properties transformed into long form.
    */
   transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
+    // Add the Admin entity to the manifest.
+    manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
+
     return {
       ...manifestSchema,
       entities: Object.entries(manifestSchema.entities).reduce(
@@ -125,7 +131,10 @@ export class ManifestService {
           acc: { [k: string]: EntityManifest },
           [className, entityManifestSchema]: [string, EntityManifestSchema]
         ) => {
-          acc[className] = this.transformEntity(className, entityManifestSchema)
+          acc[className] = this.transformEntityManifest(
+            className,
+            entityManifestSchema
+          )
           return acc
         },
         {}
@@ -143,7 +152,7 @@ export class ManifestService {
    *
    * @returns the entity manifest with defaults filled in and short form properties transformed into long form.
    */
-  transformEntity(
+  transformEntityManifest(
     className: string,
     entityManifestSchema: EntityManifestSchema
   ): EntityManifest {
@@ -177,8 +186,7 @@ export class ManifestService {
         entityManifestSchema.mainProp ||
         properties.find((prop) => prop.type === PropType.String)?.name ||
         'id',
-      seedCount:
-        entityManifestSchema.seedCount || entityManifestDefaults.seedCount,
+      seedCount: entityManifestSchema.seedCount || DEFAULT_SEED_COUNT,
       belongsTo: (entityManifestSchema.belongsTo || []).map(
         (relationship: RelationshipManifestSchema) =>
           this.transformRelationship(relationship)
@@ -250,19 +258,25 @@ export class ManifestService {
   hideSensitiveInformation(manifest: AppManifest): AppManifest {
     return {
       ...manifest,
-      entities: Object.entries(manifest.entities).reduce(
-        (
-          acc: { [k: string]: EntityManifest },
-          [className, entity]: [string, EntityManifest]
-        ) => {
-          // TODO: Seed count should be hidden in the public version of the manifest.
-          const { seedCount, ...publicEntity } = entity
+      entities: Object.entries(manifest.entities)
+        .filter(
+          ([className, _entityManifestSchema]: [
+            string,
+            EntityManifestSchema
+          ]) => className !== ADMIN_ENTITY_MANIFEST.className
+        )
+        .reduce(
+          (
+            acc: { [k: string]: EntityManifest },
+            [className, entity]: [string, EntityManifest]
+          ) => {
+            const { seedCount, ...publicEntity } = entity
 
-          acc[className] = this.hideEntitySensitiveInformation(publicEntity)
-          return acc
-        },
-        {}
-      )
+            acc[className] = this.hideEntitySensitiveInformation(publicEntity)
+            return acc
+          },
+          {}
+        )
     }
   }
 

@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 import { AppManifest, EntityManifest } from '@casejs/types'
+import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { ManifestService } from '../../shared/services/manifest.service'
-
-// import { EntityMeta } from '../../../../../shared/interfaces/entity-meta.interface'
-// import { DynamicEntityService } from '../../../dynamic-entity/dynamic-entity.service'
 
 @Component({
   selector: 'app-side-menu',
@@ -20,7 +18,10 @@ export class SideMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.manifestService.getManifest().then((res: AppManifest) => {
-      this.entityManifests = Object.values(res.entities || {})
+      this.entityManifests = Object.values(res.entities || {}).filter(
+        (entityManifest: EntityManifest) =>
+          entityManifest.className !== ADMIN_CLASS_NAME
+      )
     })
   }
 }
