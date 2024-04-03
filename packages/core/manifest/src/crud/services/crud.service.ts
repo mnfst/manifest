@@ -345,7 +345,7 @@ export class CrudService {
             (requestedRelation: string) =>
               requestedRelation.replace(`${relation.propertyName}.`, '')
           ),
-          alias: relation.propertyName
+          alias: aliasName
         })
       }
     })
