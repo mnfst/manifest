@@ -9,12 +9,11 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
     <div
       class="is-flex is-align-items-center is-white-space-nowrap tooltip has-tooltip-left"
       [attr.data-tooltip]="value || 'Unknown'"
-      class="is-color-{{ valueIndex }}"
+      class="is-color-{{ index }}"
     >
-      <ng-container *ngFor="let enumOption of enumAsArray; let i = index">
-        <span *ngIf="valueIndex >= i" class="bullet"> </span>
-        <span class="bullet" *ngIf="valueIndex < i" class="bullet is-grey">
-        </span>
+      <ng-container *ngFor="let option of values; let i = index">
+        <span *ngIf="index >= i" class="bullet"> </span>
+        <span class="bullet" *ngIf="index < i" class="bullet is-grey"> </span>
       </ng-container>
     </div>
   `,
@@ -24,13 +23,12 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
 })
 export class ProgressBarYieldComponent implements OnInit {
   @Input() value: string
-  // @Input() options: EnumPropertyOptions
+  @Input() values: string[] | any
 
   enumAsArray: string[] = []
-  valueIndex: number
+  index: number
 
   ngOnInit(): void {
-    // this.enumAsArray = Object.values(this.options.enum)
-    this.valueIndex = this.enumAsArray.indexOf(this.value)
+    this.index = this.values.indexOf(this.value)
   }
 }

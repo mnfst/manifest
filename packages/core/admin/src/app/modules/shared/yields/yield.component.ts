@@ -64,10 +64,17 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     ></app-email-yield>
 
     <app-label-yield
-      *ngIf="prop.type === PropType.Choice"
+      *ngIf="prop.type === PropType.Choice && prop.options?.['sequential'] !== true"
       [values]="prop.options?.['values']"
       [value]="value"
     ></app-label-yield>
+
+    <app-progress-bar-yield
+      *ngIf="prop.type === PropType.Choice && prop.options?.['sequential'] === true"
+      [values]="prop.options?.['values']"
+      [value]="value"
+    >
+    </app-progress-bar-yield>
 
     <app-location-yield
       *ngIf="prop.type === PropType.Location"
