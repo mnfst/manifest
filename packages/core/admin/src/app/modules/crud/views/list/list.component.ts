@@ -51,6 +51,7 @@ export class ListComponent implements OnInit {
 
       if (!this.entityManifest) {
         this.router.navigate(['/404'])
+        return
       }
 
       this.breadcrumbService.breadcrumbLinks.next([

@@ -7,10 +7,7 @@ import { FlashMessageService } from '../../shared/services/flash-message.service
   styleUrls: ['./flash-message.component.scss']
 })
 export class FlashMessageComponent {
-  flashMessage: { message: string; className: string } = {
-    message: '',
-    className: ''
-  }
+  flashMessage: { message: string; className: string }
 
   constructor(private flashMessageService: FlashMessageService) {}
 
