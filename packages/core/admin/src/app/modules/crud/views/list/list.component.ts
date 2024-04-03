@@ -4,7 +4,6 @@ import {
   EntityManifest,
   Paginator,
   PropType,
-  PropertyManifest,
   RelationshipManifest
 } from '@casejs/types'
 import { combineLatest } from 'rxjs'
@@ -24,8 +23,6 @@ export class ListComponent implements OnInit {
   itemToDelete: { [key: string]: any }
 
   entityManifest: EntityManifest
-
-  filtrableProps: PropertyManifest[] = []
 
   queryParams: Params
   PropType = PropType
@@ -55,10 +52,6 @@ export class ListComponent implements OnInit {
       if (!this.entityManifest) {
         this.router.navigate(['/404'])
       }
-
-      this.filtrableProps = this.entityManifest.properties.filter(
-        (prop) => prop.type === PropType.Choice
-      )
 
       this.breadcrumbService.breadcrumbLinks.next([
         {

@@ -24,29 +24,6 @@
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="card p-0 mb-6" *ngIf="filtrableProps?.length">
-    <div class="card-content">
-      <h2 class="title is-5">Filters</h2>
-      <div class="columns is-multiline">
-        <div
-          class="column"
-          *ngFor="let filtrableProp of filtrableProps"
-          [ngClass]="{
-            'is-6-tablet is-4-desktop is-3-fullhd': filtrableProps.length <= 3,
-            'is-6-tablet is-3-desktop': filtrableProps.length > 3,
-          }"
-        >
-          <app-filter
-            [prop]="filtrableProp"
-            (valueChanged)="filter(filtrableProp.name, $event)"
-            [value]="queryParams[filtrableProp.name]"
-          ></app-filter>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
   <div class="is-loading" *ngIf="loadingPaginator">
     <span class="list-meta"></span>
