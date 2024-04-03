@@ -311,7 +311,12 @@ export class CrudService {
         return
       }
 
-      query.leftJoin(`${alias}.${relation.propertyName}`, relation.propertyName)
+      const aliasName: string = HelperService.camelCaseTwoStrings(
+        alias,
+        relation.propertyName
+      )
+
+      query.leftJoin(`${alias}.${relation.propertyName}`, aliasName)
 
       const relationEntityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
@@ -321,7 +326,7 @@ export class CrudService {
       query.addSelect(
         this.getVisibleProps({
           props: relationEntityManifest.properties,
-          alias: relation.propertyName
+          alias: aliasName
         })
       )
 

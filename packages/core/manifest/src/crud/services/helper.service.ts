@@ -20,4 +20,16 @@ export class HelperService {
     }
     return undefined
   }
+
+  /**
+   * Merge 2 stings using camel case.
+   */
+  static camelCaseTwoStrings(str1: string, str2: string) {
+    const combined = (str1 + ' ' + str2).toLowerCase().split(' ')
+    return combined
+      .map((word, index) =>
+        index === 0 ? word : word[0].toUpperCase() + word.slice(1)
+      )
+      .join('')
+  }
 }
