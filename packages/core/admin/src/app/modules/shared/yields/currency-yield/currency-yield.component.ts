@@ -6,12 +6,12 @@ import { Component, Input } from '@angular/core'
   standalone: true,
   imports: [NgIf, CurrencyPipe],
   template: `<span class="is-nowrap" *ngIf="value">
-      {{ value | currency }}</span
+      {{ value | currency : currency }}</span
     >
     <span class="is-nowrap" *ngIf="!value"> - </span>`,
   styleUrls: ['./currency-yield.component.scss']
 })
 export class CurrencyYieldComponent {
   @Input() value: number
-  // @Input() options: CurrencyPropertyOptions
+  @Input() currency: string | any
 }

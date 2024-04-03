@@ -1,8 +1,16 @@
 import { NgClass, NgFor } from '@angular/common'
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core'
+import {
+  Component,
+  EventEmitter,
+  Input,
+  NgIterable,
+  OnInit,
+  Output
+} from '@angular/core'
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import {
   EntityManifest,
+  PropType,
   PropertyManifest,
   RelationshipManifest,
   SelectOption
@@ -24,7 +32,7 @@ import { ManifestService } from '../../services/manifest.service'
             (change)="onChange($event)"
             formControlName="select"
           >
-            <option value="">Select {{ label }}</option>
+            <option value="">Select {{ label }}...</option>
             <option *ngFor="let option of options" [value]="option.id">
               {{ option.label }}
             </option>
@@ -50,7 +58,7 @@ export class SelectInputComponent implements OnInit {
 
   label: string
   entityManifest: EntityManifest
-  options: SelectOption[]
+  options: { id: string; label: string }[] | SelectOption[] | NgIterable<any>
 
   constructor(
     private manifestService: ManifestService,
@@ -69,19 +77,16 @@ export class SelectInputComponent implements OnInit {
       this.options = await this.crudService.listSelectOptions(
         this.entityManifest.slug
       )
+    } else if (this.prop.type === PropType.Choice) {
+      this.options = ((this.prop.options?.['values'] as string[]) || []).map(
+        (value: string) => {
+          return {
+            id: value,
+            label: value
+          }
+        }
+      )
     }
-
-    // TODO: Enums
-    // if (this.type === PropType.Enum) {
-    //   let enumOptions: EnumPropertyOptions = this.prop
-    //     .options as EnumPropertyOptions
-    //   this.options = Object.keys(enumOptions.enum).map((key) => {
-    //     return {
-    //       id: enumOptions.enum[key],
-    //       label: enumOptions.enum[key]
-    //     }
-    //   })
-    // }
 
     if (this.value) {
       this.form.patchValue({

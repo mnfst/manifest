@@ -50,10 +50,13 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
       *ngIf="prop.type === PropType.Boolean"
       [value]="value"
     ></app-boolean-yield>
+
     <app-currency-yield
       *ngIf="prop.type === PropType.Money"
+      [currency]="prop.options?.['currency']"
       [value]="value"
     ></app-currency-yield>
+
     <app-date-yield
       *ngIf="prop.type === PropType.Date"
       [value]="value"

@@ -81,6 +81,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     <app-currency-input
       [prop]="prop"
       [value]="value"
+      [currency]="prop?.options?.['currency']"
       [isError]="isError"
       (valueChanged)="onChange($event)"
       *ngIf="prop?.type === PropType.Money"

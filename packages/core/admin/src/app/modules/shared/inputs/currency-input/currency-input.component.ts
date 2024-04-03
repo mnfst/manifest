@@ -36,6 +36,7 @@ export class CurrencyInputComponent implements OnInit {
   @Input() prop: PropertyManifest
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
   @Input() value: string
+  @Input() currency: string | any
   @Input() isError: boolean
 
   @ViewChild('input', { static: true }) input: ElementRef
@@ -43,7 +44,7 @@ export class CurrencyInputComponent implements OnInit {
   symbol: string
 
   ngOnInit(): void {
-    this.symbol = getCurrencySymbol('USD', 'wide')
+    this.symbol = getCurrencySymbol(this.currency || 'USD', 'wide')
 
     if (this.value !== undefined) {
       this.input.nativeElement.value = this.value
