@@ -6,6 +6,7 @@ import { EntitySchema } from 'typeorm'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
+import pathsConfig from './config/paths'
 import yamlConfig from './config/yaml'
 import { CrudModule } from './crud/crud.module'
 import { EntityModule } from './entity/entity.module'
@@ -17,7 +18,7 @@ import { SeedModule } from './seed/seed.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, yamlConfig]
+      load: [databaseConfig, yamlConfig, pathsConfig]
     }),
 
     TypeOrmModule.forRootAsync({

@@ -3,21 +3,4 @@ name: React-blog backend with MANIFEST
 entities:
   Post:
     properties:
-      title: { type: text }
-      content:
-        type: text
-        validation:
-          - IsNotEmpty()
-          - MinLength(10)
-    hasMany:
-      comments: { entity: Comment }
-    belongsTo:
-      category: { entity: Category }
-  Category:
-    properties:
-      body: { type: text }
-    belongsTo:
-      post: { entity: Post }
-  Comment:
-    properties:
-      body: { type: text }
+      - title
