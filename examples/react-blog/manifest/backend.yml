@@ -4,3 +4,11 @@ entities:
   Post:
     properties:
       - title
+      - content
+    belongsTo:
+      - Author
+
+  Author:
+    properties:
+      - name
+      - email
