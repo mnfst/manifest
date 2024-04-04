@@ -12,3 +12,4 @@ entities:
     properties:
       - name
       - email
+      - bio

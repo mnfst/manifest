@@ -1,0 +1,15 @@
+{
+  "name": "case",
+  "version": "1.0.0",
+  "description": "A fabulous backend",
+  "scripts": {
+    "case": "node case.js"
+  },
+  "dependencies": {
+    "@manifest-yml/types": "latest"
+  },
+  "keywords": [
+    "CASE",
+    "backend"
+  ]
+}
