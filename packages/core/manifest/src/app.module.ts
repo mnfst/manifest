@@ -49,6 +49,10 @@ import { SeedModule } from './seed/seed.module'
 })
 export class AppModule {
   constructor(private loggerService: LoggerService) {
-    this.loggerService.initMessage()
+    const isSeed: boolean = process.argv[1].includes('seed')
+
+    if (!isSeed) {
+      this.loggerService.initMessage()
+    }
   }
 }

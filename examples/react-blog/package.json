@@ -18,7 +18,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "manifest": "node node_modules/@manifest-yml/manifest/scripts/watch/watch.js"
+    "manifest": "node node_modules/@manifest-yml/manifest/scripts/watch/watch.js",
+    "manifest:seed": "node node_modules/@manifest-yml/manifest/dist/seed/seed.js"
   },
   "eslintConfig": {
     "extends": [

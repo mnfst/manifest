@@ -58,8 +58,6 @@ export class SeederService {
     )
     await queryRunner.query('PRAGMA foreign_keys = ON')
 
-    console.log('[x] Removed all existing data...')
-
     for (const entityMetadata of entityMetadatas) {
       const repository: Repository<BaseEntity> =
         this.entityService.getEntityRepository({
@@ -67,7 +65,7 @@ export class SeederService {
         })
 
       if (entityMetadata.name === 'Admin') {
-        this.seedAdmin(repository)
+        await this.seedAdmin(repository)
         continue
       }
 
@@ -77,7 +75,7 @@ export class SeederService {
         })
 
       console.log(
-        `[x] Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+        `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
       )
 
       for (const _index of Array(entityManifest.seedCount).keys()) {
