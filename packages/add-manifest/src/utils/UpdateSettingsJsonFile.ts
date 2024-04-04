@@ -1,14 +1,14 @@
 export const updateSettingsJsonFile = ({
   fileContent,
-  newSettings
+  settings
 }: {
   fileContent: Record<string, unknown>
-  newSettings: Record<string, unknown>
+  settings: Record<string, unknown>
 }): string => {
   return JSON.stringify(
     {
       ...fileContent,
-      ...newSettings
+      ...settings
     },
     null,
     2

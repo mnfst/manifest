@@ -1,8 +1,7 @@
 {
-  "name": "case",
+  "name": "my-manifest-project",
   "version": "1.0.0",
-  "description": "A fabulous backend",
+  "description": "A project made with Manifest",
   "scripts": {},
-  "dependencies": {},
-  "keywords": ["CASE", "backend"]
+  "dependencies": {}
 }

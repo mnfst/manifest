@@ -1,15 +1,15 @@
 export const updateExtensionJsonFile = ({
   fileContent,
-  newExtensions
+  extensions
 }: {
   fileContent: {
     recommendations: string[]
   }
-  newExtensions: string[]
+  extensions: string[]
 }): string => {
-  fileContent.recommendations.forEach((recommendation) => {
+  extensions.forEach((recommendation) => {
     if (!fileContent.recommendations.includes(recommendation)) {
-      fileContent.recommendations.push(recommendation)
+      extensions.push(recommendation)
     }
   })
 

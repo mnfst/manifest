@@ -12,12 +12,12 @@ import { updateSettingsJsonFile } from '../../utils/UpdateSettingsJsonFile.js'
 const exec = promisify(execCp)
 
 export class MyCommand extends Command {
-  static description = 'Adds CASE to your project.'
+  static description = 'Adds Manifest to your project.'
 
   /**
    * The run method is called when the command is run.
    * Steps:
-   * 1. Create a folder with the name `case`.
+   * 1. Create a folder with the name `manifest`.
    * 2. Create a file inside the folder with the name `case.yml`.
    * 3. Update the `package.json` file with the new packages and scripts.
    * 4. Update the .vscode/extensions.json file with the recommended extensions.
@@ -27,13 +27,13 @@ export class MyCommand extends Command {
    * 8. Serve the new app.
    */
   async run(): Promise<void> {
-    const folderName = 'case'
-    const initialFileName = 'case.yml'
+    const folderName = 'manifest'
+    const initialFileName = 'backend.yml'
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const assetFolderPath = path.join(__dirname, '..', '..', '..', 'assets')
 
     try {
-      ux.action.start('Adding CASE to your project...')
+      ux.action.start('Adding Manifest to your project...')
 
       // Construct the folder path. This example creates the folder in the current working directory.
       const folderPath = path.join(process.cwd(), folderName)
@@ -84,16 +84,18 @@ export class MyCommand extends Command {
         )
       }
 
-      // TODO: Replace the packages and scripts by the real ones.
       fs.writeFileSync(
         packagePath,
         updatePackageJsonFile({
           fileContent: packageJson,
           newPackages: {
-            '@manifest-yml/types': 'latest' // Random package.
+            '@manifest-yml/manifest': '^0.0.1'
           },
           newScripts: {
-            case: 'node case.js'
+            manifest:
+              'node node_modules/@manifest-yml/manifest/scripts/watch/watch.js',
+            'manifest:seed':
+              'node node_modules/@manifest-yml/manifest/dist/seed/seed.js'
           }
         })
       )
@@ -122,7 +124,7 @@ export class MyCommand extends Command {
         extensionsFilePath,
         updateExtensionJsonFile({
           fileContent: extensionsJson,
-          newExtensions: ['redhat.vscode-yaml']
+          extensions: ['redhat.vscode-yaml']
         })
       )
 
@@ -141,9 +143,10 @@ export class MyCommand extends Command {
         settingsFilePath,
         updateSettingsJsonFile({
           fileContent: settingsJson,
-          newSettings: {
+          settings: {
             'yaml.schemas': {
-              'schema.json': ['case/*.yml', 'case/*.yaml']
+              './node_modules/@manifest-yml/manifest/dist/manifest/json-schema/manifest-schema.json':
+                '**/manifest/**/*.yml'
             }
           }
         })
@@ -159,10 +162,6 @@ export class MyCommand extends Command {
 
       if (!gitignoreContent.includes('node_modules')) {
         gitignoreContent += '\nnode_modules'
-      }
-
-      if (!gitignoreContent.includes('.vscode')) {
-        gitignoreContent += '\n.vscode'
       }
 
       fs.writeFileSync(gitignorePath, gitignoreContent)
@@ -186,7 +185,7 @@ export class MyCommand extends Command {
       ux.action.stop()
 
       try {
-        const { stdout, stderr } = await exec('npm run case')
+        const { stdout, stderr } = await exec('npm run manifest')
         if (stderr) {
           this.log(`stderr: ${stderr}`)
         }

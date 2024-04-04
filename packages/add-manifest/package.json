@@ -1,7 +1,7 @@
 {
-  "author": "CASE",
+  "author": "Manifest",
   "bin": {
-    "create-case-app": "./bin/run.js"
+    "add-manifest": "./bin/run.js"
   },
   "dependencies": {
     "@oclif/core": "^3",
@@ -12,7 +12,7 @@
     "path": "^0.12.7",
     "url": "^0.11.3"
   },
-  "description": "Create CASE app",
+  "description": "Add Manifest backend to your app",
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
@@ -57,7 +57,10 @@
       }
     }
   },
-  "repository": "brunobuddy/create-case-app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/casejs/case.git"
+  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts",
