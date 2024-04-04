@@ -7,8 +7,10 @@
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^4",
+    "axios": "^1.6.8",
     "chalk": "^5.3.0",
     "fs": "^0.0.1-security",
+    "open": "^10.1.0",
     "path": "^0.12.7",
     "url": "^0.11.3"
   },

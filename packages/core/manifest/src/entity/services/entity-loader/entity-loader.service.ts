@@ -10,7 +10,6 @@ import {
   EntitySchemaRelationOptions
 } from 'typeorm'
 import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import { AdminEntitySchema } from '../../core-entities/AdminEntitySchema'
 import { baseEntity } from '../../core-entities/base-entity'
 import { propTypeColumnTypes } from '../../records/prop-type-column-types'
 
@@ -28,12 +27,9 @@ export class EntityLoaderService {
     const entityManifests: EntityManifest[] =
       this.manifestService.getEntityManifests()
 
-    // Add core entities.
-    const entitySchemas: EntitySchema[] = [AdminEntitySchema]
-
     // Convert Manifest Entities to TypeORM Entities.
-    entitySchemas.push(
-      ...entityManifests.map((entityManifest: EntityManifest) => {
+    const entitySchemas: EntitySchema[] = entityManifests.map(
+      (entityManifest: EntityManifest) => {
         const entitySchema: EntitySchema = new EntitySchema({
           name: entityManifest.className,
 
@@ -74,7 +70,7 @@ export class EntityLoaderService {
         })
 
         return entitySchema
-      })
+      }
     )
 
     return entitySchemas

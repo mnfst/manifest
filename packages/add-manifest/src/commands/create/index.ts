@@ -1,7 +1,10 @@
 import { Command, ux } from '@oclif/core'
+import axios from 'axios'
 import chalk from 'chalk'
 import { exec as execCp } from 'child_process'
+import * as crypto from 'crypto'
 import * as fs from 'fs'
+import open from 'open'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
@@ -16,6 +19,7 @@ export class MyCommand extends Command {
 
   /**
    * The run method is called when the command is run.
+   *
    * Steps:
    * 1. Create a folder with the name `manifest`.
    * 2. Create a file inside the folder with the name `case.yml`.
@@ -23,8 +27,12 @@ export class MyCommand extends Command {
    * 4. Update the .vscode/extensions.json file with the recommended extensions.
    * 5. Update the .vscode/settings.json file with the recommended settings.
    * 6. Update the .gitignore file with the recommended settings.
-   * 7. Install the new packages.
-   * 8. Serve the new app.
+   * 7. Update the .env file with the environment variables.
+   * 8. Install the new packages.
+   * 9. Serve the new app.
+   * 10. Wait for the server to start.
+   * 11. Seed the database.
+   * 12. Open the browser.
    */
   async run(): Promise<void> {
     const folderName = 'manifest'
@@ -89,7 +97,7 @@ export class MyCommand extends Command {
         updatePackageJsonFile({
           fileContent: packageJson,
           newPackages: {
-            '@manifest-yml/manifest': '^0.0.1'
+            '@manifest-yml/manifest': '0.0.2-alpha.0'
           },
           newScripts: {
             manifest:
@@ -162,6 +170,7 @@ export class MyCommand extends Command {
 
       if (!gitignoreContent.includes('node_modules')) {
         gitignoreContent += '\nnode_modules'
+        gitignoreContent += '\n.env'
       }
 
       fs.writeFileSync(gitignorePath, gitignoreContent)
@@ -184,6 +193,22 @@ export class MyCommand extends Command {
       //  Serve the new app.
       ux.action.stop()
 
+      ux.action.start('Adding environment variables...')
+      // Add environment variables to .env file
+      const envFilePath = path.join(process.cwd(), '.env')
+      let envContent = ''
+
+      if (fs.existsSync(envFilePath)) {
+        envContent = fs.readFileSync(envFilePath, 'utf8')
+      }
+
+      envContent += `\nJWT_SECRET=${crypto.randomBytes(32).toString('hex')}`
+
+      fs.writeFileSync(envFilePath, envContent)
+
+      ux.action.stop()
+
+      ux.action.start('Serving the new app...')
       try {
         const { stdout, stderr } = await exec('npm run manifest')
         if (stderr) {
@@ -196,6 +221,55 @@ export class MyCommand extends Command {
       }
     } catch (error) {
       this.error(`Error: ${error}`)
+    }
+
+    // Wait for the server to start
+    await this.waitForServerToBeReady()
+    ux.action.stop()
+
+    ux.action.start('Seeding the database...')
+    try {
+      const { stdout, stderr } = await exec('npm run manifest:seed')
+      if (stderr) {
+        this.log(`stderr: ${stderr}`)
+      }
+      this.log(`stdout: ${stdout}`)
+      this.log('Database seeded successfully!')
+    } catch (error) {
+      this.error(`Execution error: ${error}`)
+    }
+
+    ux.action.stop()
+
+    open('http://localhost:1111/auth/login')
+  }
+
+  /**
+   * Check if the server is ready.
+   *
+   * @returns {Promise<boolean>} - Returns a promise that resolves to a boolean.
+   *
+   **/
+  async isServerReady(): Promise<boolean> {
+    return axios
+      .get('http://localhost:1111/health')
+      .then(() => true)
+      .catch(() => false)
+  }
+
+  /**
+   * Wait for the server to be ready.
+   *
+   * @returns {Promise<void>} - Returns a promise that resolves to void when the server is ready.
+   *
+   **/
+  async waitForServerToBeReady() {
+    let serverReady = false
+    while (!serverReady) {
+      serverReady = await this.isServerReady()
+      if (!serverReady) {
+        await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s before retrying
+      }
     }
   }
 }

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@manifest-yml/manifest": "^0.0.1",
+    "@manifest-yml/manifest": "0.0.2-alpha.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -19,7 +19,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "manifest": "node node_modules/@manifest-yml/manifest/scripts/watch/watch.js",
-    "manifest:seed": "node node_modules/@manifest-yml/manifest/dist/seed/seed.js"
+    "manifest:seed": "node node_modules/@manifest-yml/manifest/seed/seed.js"
   },
   "eslintConfig": {
     "extends": [

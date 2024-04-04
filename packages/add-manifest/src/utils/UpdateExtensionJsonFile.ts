@@ -9,7 +9,7 @@ export const updateExtensionJsonFile = ({
 }): string => {
   extensions.forEach((recommendation) => {
     if (!fileContent.recommendations.includes(recommendation)) {
-      extensions.push(recommendation)
+      fileContent.recommendations.push(recommendation)
     }
   })
 

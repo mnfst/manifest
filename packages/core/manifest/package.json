@@ -1,9 +1,8 @@
 {
   "name": "@manifest-yml/manifest",
-  "version": "0.0.1",
+  "version": "0.0.2-alpha.2",
   "description": "",
   "author": "Manifest",
-  "private": true,
   "license": "MIT",
   "scripts": {
     "build": "nest build",
@@ -20,7 +19,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "node dist/seed/seed.js",
     "generate-types": "ts-node src/manifest/json-schema/GenerateTypes.ts",
-    "prebuild": "npm run generate-types"
+    "prebuild": "npm run generate-types",
+    "postbuild": "cp package.json dist/ && cp -R scripts dist/",
+    "publish": "cd dist && npm publish"
   },
   "dependencies": {
     "@faker-js/faker": "^8.4.1",

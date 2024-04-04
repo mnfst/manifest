@@ -56,6 +56,10 @@ export class ManifestService {
   getEntityManifests(): EntityManifest[] {
     const manifestSchema: AppManifestSchema = this.yamlService.load()
 
+    if (!manifestSchema.entities) {
+      manifestSchema.entities = {}
+    }
+
     // Add Admin entity.
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
@@ -121,6 +125,10 @@ export class ManifestService {
    * @returns the manifest with defaults filled in and short form properties transformed into long form.
    */
   transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
+    if (!manifestSchema.entities) {
+      manifestSchema.entities = {}
+    }
+
     // Add the Admin entity to the manifest.
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 

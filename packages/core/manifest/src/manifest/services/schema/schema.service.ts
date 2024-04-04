@@ -61,26 +61,29 @@ export class SchemaService {
    */
   validateCustomLogic(manifest: AppManifestSchema): boolean {
     // 1.Validate that all entities in relationships exist.
-    const entityNames: string[] = Object.keys(manifest.entities)
-
-    Object.values(manifest.entities).forEach((entity: EntityManifestSchema) => {
-      const relationshipNames = Object.values(entity.belongsTo || []).map(
-        (relationship: RelationshipManifestSchema) => {
-          if (typeof relationship === 'string') {
-            return relationship
+    const entityNames: string[] = Object.keys(manifest.entities || {})
+    Object.values(manifest.entities || {}).forEach(
+      (entity: EntityManifestSchema) => {
+        const relationshipNames = Object.values(entity.belongsTo || []).map(
+          (relationship: RelationshipManifestSchema) => {
+            if (typeof relationship === 'string') {
+              return relationship
+            }
+            return relationship.entity
           }
-          return relationship.entity
-        }
-      )
+        )
 
-      relationshipNames.forEach((relationship: any) => {
-        if (!entityNames.includes(relationship)) {
-          console.error('#### JSON Schema Validation failed ####')
-          console.error(`Entity ${relationship} does not exist in the manifest`)
-          process.exit(1)
-        }
-      })
-    })
+        relationshipNames.forEach((relationship: any) => {
+          if (!entityNames.includes(relationship)) {
+            console.error('#### JSON Schema Validation failed ####')
+            console.error(
+              `Entity ${relationship} does not exist in the manifest`
+            )
+            process.exit(1)
+          }
+        })
+      }
+    )
 
     return true
   }
