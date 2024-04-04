@@ -1,4 +1,4 @@
-import { BaseEntity } from '@casejs/types'
+import { BaseEntity } from '@manifest-yml/types'
 import { EntitySchemaColumnOptions } from 'typeorm'
 
 export const baseEntity: {

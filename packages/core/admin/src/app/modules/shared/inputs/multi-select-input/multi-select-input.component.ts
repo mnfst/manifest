@@ -7,7 +7,7 @@ import {
   Input,
   Output
 } from '@angular/core'
-import { PropertyManifest, SelectOption } from '@casejs/types'
+import { PropertyManifest, SelectOption } from '@manifest-yml/types'
 
 @Component({
   selector: 'app-multi-select-input',

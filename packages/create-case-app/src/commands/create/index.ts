@@ -90,7 +90,7 @@ export class MyCommand extends Command {
         updatePackageJsonFile({
           fileContent: packageJson,
           newPackages: {
-            '@casejs/types': 'latest' // Random package.
+            '@manifest-yml/types': 'latest' // Random package.
           },
           newScripts: {
             case: 'node case.js'

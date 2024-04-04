@@ -1,4 +1,4 @@
-import { BaseEntity } from '@casejs/types'
+import { BaseEntity } from '@manifest-yml/types'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'

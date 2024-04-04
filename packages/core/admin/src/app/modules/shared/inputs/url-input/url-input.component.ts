@@ -9,7 +9,7 @@ import {
 } from '@angular/core'
 
 import { NgClass } from '@angular/common'
-import { PropertyManifest } from '@casejs/types'
+import { PropertyManifest } from '@manifest-yml/types'
 
 @Component({
   selector: 'app-url-input',

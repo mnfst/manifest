@@ -7,7 +7,11 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core'
-import { PropType, PropertyManifest, RelationshipManifest } from '@casejs/types'
+import {
+  PropType,
+  PropertyManifest,
+  RelationshipManifest
+} from '@manifest-yml/types'
 
 import { BooleanInputComponent } from './boolean-input/boolean-input.component'
 import { CurrencyInputComponent } from './currency-input/currency-input.component'

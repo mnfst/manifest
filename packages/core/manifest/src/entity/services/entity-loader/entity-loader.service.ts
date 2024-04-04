@@ -2,7 +2,7 @@ import {
   EntityManifest,
   PropertyManifest,
   RelationshipManifest
-} from '@casejs/types'
+} from '@manifest-yml/types'
 import { Injectable } from '@nestjs/common'
 import {
   EntitySchema,

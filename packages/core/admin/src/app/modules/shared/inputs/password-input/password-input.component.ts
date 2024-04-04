@@ -8,7 +8,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { PropertyManifest } from '@casejs/types'
+import { PropertyManifest } from '@manifest-yml/types'
 
 @Component({
   selector: 'app-password-input',

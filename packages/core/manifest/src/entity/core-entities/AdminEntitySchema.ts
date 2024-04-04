@@ -1,4 +1,4 @@
-import { AuthenticableEntity } from '@casejs/types'
+import { AuthenticableEntity } from '@manifest-yml/types'
 import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
 import { baseEntity } from './base-entity'
 

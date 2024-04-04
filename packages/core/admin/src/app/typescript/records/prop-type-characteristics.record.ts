@@ -1,4 +1,4 @@
-import { PropType } from '@casejs/types'
+import { PropType } from '@manifest-yml/types'
 import { InputType } from '../enums/input-type.enum'
 import { YieldType } from '../enums/yield-type.enum'
 

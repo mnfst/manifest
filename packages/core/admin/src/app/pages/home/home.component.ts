@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core'
-import { AppManifest, EntityManifest } from '@casejs/types'
+import { AppManifest, EntityManifest } from '@manifest-yml/types'
 import { BreadcrumbService } from '../../modules/shared/services/breadcrumb.service'
 import { ManifestService } from '../../modules/shared/services/manifest.service'
 

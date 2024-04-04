@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common'
 
-import { AuthenticableEntity } from '@casejs/types'
+import { AuthenticableEntity } from '@manifest-yml/types'
 import { Request } from 'express'
 import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'

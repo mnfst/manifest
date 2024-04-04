@@ -4,7 +4,7 @@ import {
   AppManifestSchema,
   EntityManifestSchema,
   RelationshipManifestSchema
-} from '@casejs/types'
+} from '@manifest-yml/types'
 import Ajv from 'ajv'
 import schemas from '../../json-schema'
 

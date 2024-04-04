@@ -14,7 +14,7 @@ import {
   PropertyManifest,
   RelationshipManifest,
   SelectOption
-} from '@casejs/types'
+} from '@manifest-yml/types'
 import { CrudService } from '../../../crud/services/crud.service'
 import { ManifestService } from '../../services/manifest.service'
 

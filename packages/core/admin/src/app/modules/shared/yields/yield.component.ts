@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { PropType, PropertyManifest } from '@casejs/types'
+import { PropType, PropertyManifest } from '@manifest-yml/types'
 
 import { YieldType } from '../../../typescript/enums/yield-type.enum'
 import { BooleanYieldComponent } from './boolean-yield/boolean-yield.component'

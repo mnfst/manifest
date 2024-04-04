@@ -13,7 +13,7 @@ import {
   SelectQueryBuilder
 } from 'typeorm'
 
-import { BaseEntity } from '@casejs/types'
+import { BaseEntity } from '@manifest-yml/types'
 import { validate } from 'class-validator'
 import { EntityService } from '../../entity/services/entity/entity.service'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
@@ -28,7 +28,7 @@ import {
   WhereKeySuffix,
   WhereOperator,
   whereOperatorKeySuffix
-} from '@casejs/types'
+} from '@manifest-yml/types'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import {
   DEFAULT_RESULTS_PER_PAGE,

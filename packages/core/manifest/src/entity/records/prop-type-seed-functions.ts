@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
 
-import { PropType } from '@casejs/types'
+import { PropType } from '@manifest-yml/types'
 
 export const propTypeSeedFunctions: Record<PropType, (options?: any) => any> = {
   [PropType.String]: () => faker.commerce.product(),

@@ -1,4 +1,4 @@
-import { BaseEntity, Paginator } from '@casejs/types'
+import { BaseEntity, Paginator } from '@manifest-yml/types'
 import { Injectable } from '@nestjs/common'
 import { SelectQueryBuilder } from 'typeorm'
 

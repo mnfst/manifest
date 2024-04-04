@@ -7,7 +7,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core'
-import { PropertyManifest } from '@casejs/types'
+import { PropertyManifest } from '@manifest-yml/types'
 
 @Component({
   selector: 'app-boolean-input',

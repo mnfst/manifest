@@ -12,7 +12,7 @@ import {
   PropertyManifestSchema,
   RelationshipManifest,
   RelationshipManifestSchema
-} from '@casejs/types'
+} from '@manifest-yml/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
