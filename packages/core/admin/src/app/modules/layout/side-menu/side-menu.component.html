@@ -1,12 +1,12 @@
 <ul class="menu-list mt-5">
   <li>
-    <a class="logo" routerLink="/">
+    <a class="logo" routerLink="/" [ngClass]="{ 'is-collapsed': isCollapsed }">
       <img 
       *ngIf="!isCollapsed"
        src="/assets/images/logo.svg" class="logo--image" [ngClass]="{ 'is-collapsed': isCollapsed }" width="205"/>
        <img 
       *ngIf="isCollapsed"
-       src="/assets/images/logotype.svg" class="logo--image" width="48"/>
+       src="/assets/images/logotype-manifest.svg" class="logo--image" width="36.35"/>
     </a>
   </li>
   <li *ngIf="entityManifests">
