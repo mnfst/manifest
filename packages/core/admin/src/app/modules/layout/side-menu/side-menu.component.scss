@@ -1,9 +1,10 @@
+@use 'sass:math';
 @import '../../../../styles/variables/all';
 @import 'bulma/sass/utilities/mixins';
 
 %is-hovered {
   background-color: $sidenav-item-hover-color;
-  color: $link;
+  color: $black;
 }
 
 .menu-list {
@@ -12,20 +13,22 @@
     display: inline-block;
     width: 100%;
     font-size: $size-5;
+    padding: 1px math.div($column-gap, 2);
 
     ul {
-      padding-left: 0;
-      margin: 0;
+      margin: 5px 0 0 0;
       border-left: 0;
+      padding-left: 0;
+
+      li {
+        padding: 1px 0;
+      }
     }
   }
 
   a {
-    border-radius: 0;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    -ms-border-radius: 0;
-    -o-border-radius: 0;
+    $item-min-height: 36px !default;
+    border-radius: $radius;
     position: relative;
     color: $sidenav-item-color;
     display: block;
@@ -35,19 +38,10 @@
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    min-height: 57px;
-    padding: 19px $gap;
+    min-height: $item-min-height;
+    line-height: $item-min-height;
+    padding: 0 $column-gap;
     transition: color 0.35s ease, background-color 0.05s ease-out;
-
-    &:before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 5px;
-      background-color: transparent;
-    }
 
     &:hover {
       @extend %is-hovered;
@@ -62,13 +56,25 @@
       }
     }
 
+    &.logo {
+      display: flex;
+      align-items: center;
+      height: 98px;
+      justify-content: flex-start;
+    }
+
     &.is-collapsed {
       padding-left: 0;
       padding-right: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+
+      .logo {
+        justify-content: center;
+      }
     }
+
   }
 }
 
@@ -76,7 +82,14 @@
   display: flex;
 }
 
-.logo {
-  height: 98px;
+app-user-menu-item {
+  border-top: 1px solid $border-color;
+  z-index: 99;
+  padding: 8px;
 
+  @include tablet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  }
 }

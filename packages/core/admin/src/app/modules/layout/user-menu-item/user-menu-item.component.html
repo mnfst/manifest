@@ -1,19 +1,23 @@
-<div class="dropdown is-right" [ngClass]="{ 'is-active': showUserMenu }">
+<div class="is-flex is-align-items-center is-justify-content-flex-start">
+
+</div>
+<div class="dropdown is-up" [ngClass]="{ 'is-active': showUserMenu }">
   <div class="dropdown-trigger">
-    <a (click)="showUserMenu = !showUserMenu">
+    <a (click)="showUserMenu = !showUserMenu" class="is-flex is-align-items-center is-justify-content-flex-start">
       <img
         src="/assets/images/avatar-default.svg"
         title="currentUser.name"
         alt="currentUser.name"
         class="avatar"
       />
+      <span class="dropdown-item pr-0" *ngIf="currentUser">
+        <strong>{{ currentUser.email }}</strong>
+      </span>
     </a>
   </div>
   <div class="dropdown-menu is-small" role="menu">
     <div class="dropdown-content">
-      <span class="dropdown-item" *ngIf="currentUser">
-        <strong>{{ currentUser.email }}</strong>
-      </span>
+      
       <a
         routerLink="/auth/logout"
         class="dropdown-item"

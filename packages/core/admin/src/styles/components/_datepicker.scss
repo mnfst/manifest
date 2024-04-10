@@ -33,12 +33,14 @@
     text-align: center;
     transition: all 0.18s ease-in-out;
   }
+
   .myDpSelectedDay .myDpDayValue,
   .myDpSelectedDay:hover .myDpDayValue {
     color: $white;
     background-color: $link;
     font-weight: $weight-bold;
   }
+
   .myDpDaycell {
     height: $day-cell-height;
     text-align: center;
@@ -46,19 +48,23 @@
     &:first-child {
       padding-left: 0 !important;
     }
+
     &:last-child {
       padding-right: 0 !important;
     }
+
     &:hover {
       .myDpDayValue {
         color: $link;
         background-color: $link-light;
       }
     }
+
     &:focus {
       box-shadow: none;
     }
   }
+
   .myDpMarkCurrDay {
     border: 0;
     box-shadow: $day-cell-box-shadow-size $link-light;
@@ -73,6 +79,7 @@
 
   .myDpDaycell:nth-child(6),
   .myDpDaycell:nth-child(7) {
+
     .myDpHighlight,
     .myDpDayValue {
       color: $grey-light;
@@ -91,7 +98,7 @@
   .myDpMarkCurrMonth,
   .myDpMarkCurrYear {
     background: transparent;
-    color: $black;
+    color: $dark;
     border: 0;
     font-size: 1.3rem;
   }
@@ -99,14 +106,17 @@
   .myDpCalTable {
     height: $calendar-height;
   }
+
   .myDpMonthYearSelBar {
     width: 100%;
     height: $year-height;
     background-color: $light;
   }
+
   table {
     min-width: unset;
   }
+
   .myDpWeekDayTitle,
   .myDpYearcell,
   .myDpMonthcell {
@@ -128,19 +138,23 @@
     @extend %icon;
     content: $icon-chevron-left;
   }
+
   .myDpIconRightArrow:before {
     @extend %icon;
     content: $icon-chevron-right;
   }
+
   .myDpTableSingleDay,
   .myDpTableSingleMonth,
   .myDpTableSingleYear {
     background: transparent;
+
     &:hover {
       background: transparent;
       color: $link;
     }
   }
+
   .myDpFooterBtn:focus,
   .myDpHeaderBtn:focus,
   .myDpMonthLabel:focus,
@@ -167,13 +181,16 @@
   border-bottom: $control-border-width solid $border;
   color: $grey;
   font-weight: 500;
+
   &.is-small {
     border-radius: $control-radius-small;
     font-size: $size-small;
   }
+
   &.is-medium {
     font-size: $size-medium;
   }
+
   &.is-large {
     font-size: $size-large;
   }
@@ -188,11 +205,13 @@
       border-bottom-right-radius: 0;
     }
   }
+
   + div > input[angular-mydatepicker] {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
 }
+
 input[angular-mydatepicker] {
   padding-right: $control-height;
 }
@@ -208,12 +227,15 @@ input[angular-mydatepicker] {
   font-size: $size-normal;
   text-align: center;
   color: $grey;
+
   &.is-small {
     font-size: $size-small;
   }
+
   &.is-medium {
     font-size: $size-medium;
   }
+
   &.is-large {
     font-size: $size-large;
   }
@@ -222,6 +244,7 @@ input[angular-mydatepicker] {
 .date-range-wrapper {
   @include mobile {
     flex-wrap: wrap;
+
     .input-text + div {
       width: calc(100% - #{$control-height});
       margin-bottom: $gap;

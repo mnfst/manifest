@@ -1,7 +1,7 @@
-
 *:focus {
   outline: none;
 }
+
 html {
   overflow-x: hidden;
   overflow-y: scroll;
@@ -31,7 +31,7 @@ body {
   text-rendering: optimizeLegibility;
   overflow: hidden;
   background: $main-background;
-  color: $black;
+  color: $dark;
   font-size: $size-7;
 }
 
@@ -44,12 +44,14 @@ body {
 .aside {
   min-height: calc(100vh - #{$navbar-height} + #{$gap});
 }
+
 .section {
   @include mobile {
     padding-left: 0;
     padding-right: 0;
   }
 }
+
 aside {
   transition: all $transition-duration $transition-timing;
   border-right: 1px solid $border-color;

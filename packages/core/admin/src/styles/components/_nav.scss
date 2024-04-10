@@ -19,7 +19,7 @@
   }
 
   .is-collapsed & {
-    width: 78px !important;
+    width: 63px !important;
   }
 }
 
@@ -80,8 +80,8 @@
 }
 
 .collapse-button {
-  position: absolute;
-  top: 50.5px;
+  position: fixed;
+  bottom: 64px;
   z-index: 9;
   transition: all $transition-duration $transition-timing;
 
@@ -104,7 +104,7 @@
   }
 
   &.is-collapsed {
-    left: calc(78px - 18px);
+    left: calc(63px - 18px);
 
     .icon-chevrons-left {
       transform: rotate(180deg);
@@ -142,15 +142,12 @@ aside .has-submenu + ul {
     z-index: 9;
     background: $sidenav-background-color;
     box-shadow: 10px 10px 20px rgba(48, 48, 50, 0.07);
-
-    li a {
-      padding-left: $gap !important;
-    }
+    padding: math.div($column-gap, 2) !important;
   }
 
   .wrapper:not(.is-collapsed) & {
     li a {
-      padding-left: 5.8rem !important;
+      padding-left: 4.5rem !important;
     }
   }
 }
@@ -159,5 +156,26 @@ aside .has-submenu + ul {
   @include desktop {
     display: block;
     margin: unset;
+  }
+}
+
+app-user-menu-item {
+  .wrapper:not(.is-collapsed) & {
+
+    @include desktop {
+      width: $aside-width-desktop;
+    }
+
+    @include widescreen {
+      width: $aside-width-widescreen;
+    }
+
+    @include fullhd {
+      width: $aside-width-fullhd;
+    }
+  }
+
+  .wrapper.is-collapsed & {
+    width: 62px;
   }
 }

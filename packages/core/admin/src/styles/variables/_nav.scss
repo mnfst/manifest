@@ -7,6 +7,7 @@ $navbar-item-active-color: $link !default;
 $navbar-item-img-max-height: unset !default;
 
 // Custom variables
+$navbar-height-touch: 8rem !default;
 $aside-width-tablet: 25% !default;
 $aside-width-desktop: 20% !default;
 $aside-width-widescreen: 20% !default;
@@ -16,5 +17,5 @@ $aside-width-collapsed: 77px !default;
 $aside-border-width: 1px !default;
 
 $sidenav-item-hover-color: $link-light !default;
-$sidenav-item-color: $black !default;
+$sidenav-item-color: $dark !default;
 $sidenav-background-color: $navbar-background-color !default;

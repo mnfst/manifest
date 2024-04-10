@@ -4,7 +4,7 @@
 nav.navbar {
   position: relative;
   z-index: 9;
-  height: $navbar-height;
+  height: $navbar-height-touch;
   width: 100vw;
   background-color: $sidenav-background-color;
 
@@ -22,19 +22,20 @@ nav.navbar {
       width: 100%;
     }
   }
-  > div:first-child {
-    > a {
-      margin: 0;
-      padding: 0;
-    }
+
+  .logo {
+    margin-right: $navbar-height-touch;
   }
 
+
   .navbar-burger {
-    height: $navbar-height;
-    width: 76px;
+    height: $navbar-height-touch;
+    width: 8rem;
+    min-width: 8rem;
     color: $sidenav-item-color;
+
     @include tablet {
-      width: $navbar-height;
+      width: $navbar-height-touch;
     }
 
     &:hover {
@@ -47,14 +48,9 @@ nav.navbar {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: $navbar-height;
-    width: $navbar-height;
+    height: $navbar-height-touch;
+    width: $navbar-height-touch;
   }
-}
-
-.logo {
-  display: inline-block;
-  padding: 8px 0 0 $gap;
 }
 
 .dashboard-title {
@@ -62,8 +58,9 @@ nav.navbar {
   padding-left: 20px;
   font-size: 15px;
   font-family: 'Georgia', 'Times New Roman', sans-serif;
-  color: $black;
+  color: $dark;
 }
+
 .navbar-item img {
   max-height: unset;
 }
@@ -74,6 +71,7 @@ nav.navbar {
   left: unset;
   right: 0;
   top: 30px;
+
   &:after {
     content: '';
     position: absolute;
@@ -83,9 +81,9 @@ nav.navbar {
     height: 0;
     border-style: solid;
     border-width: 0 6px 6px 6px;
-    border-color: transparent transparent rgba($sidenav-item-color, 0.1)
-      transparent;
+    border-color: transparent transparent rgba($sidenav-item-color, 0.1) transparent;
   }
+
   &:before {
     content: '';
     position: absolute;
@@ -95,8 +93,7 @@ nav.navbar {
     height: 0;
     border-style: solid;
     border-width: 0 6px 6px 6px;
-    border-color: transparent transparent rgba($sidenav-item-color, 0.1)
-      transparent;
+    border-color: transparent transparent rgba($sidenav-item-color, 0.1) transparent;
   }
 }
 
@@ -110,10 +107,10 @@ nav.navbar {
 
 .navbar-menu {
   display: block;
-  height: calc(100vh - #{$navbar-height});
+  height: calc(100vh - #{$navbar-height-touch});
   width: 260px;
   position: absolute;
-  top: $navbar-height;
+  top: $navbar-height-touch;
   left: -261px;
   z-index: 99999;
   opacity: 0;
@@ -150,14 +147,14 @@ nav.navbar {
 .hiding-layer {
   display: block;
   position: absolute;
-  top: $navbar-height;
+  top: $navbar-height-touch;
   left: 0;
   width: 100vw;
   opacity: 0;
   z-index: 9999;
   visibility: hidden;
-  height: calc(100vh - #{$navbar-height});
-  background: $black;
+  height: calc(100vh - #{$navbar-height-touch});
+  background: $dark;
   transition: opacity 0.16s ease-in-out, visibility 0.01s linear 0.16s;
 
   .is-open & {
@@ -165,4 +162,8 @@ nav.navbar {
     visibility: visible;
     transition: opacity 0.16s ease-in-out 0.01s, visibility 0.01s linear;
   }
+}
+
+app-side-menu {
+  height: 100%;
 }

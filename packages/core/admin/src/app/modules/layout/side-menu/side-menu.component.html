@@ -1,15 +1,16 @@
-<ul class="menu-list mt-5">
-  <li>
-    <a class="logo" routerLink="/" [ngClass]="{ 'is-collapsed': isCollapsed }">
-      <img 
-      *ngIf="!isCollapsed"
+<div class="is-flex is-fullheight is-flex-direction-column is-justify-content-space-between">
+  <ul class="menu-list mt-5" [ngClass]="{ 'is-collapsed': isCollapsed }">
+    <li class="is-hidden-touch">
+      <a class="logo" routerLink="/" [ngClass]="{ 'is-collapsed': isCollapsed }">
+        <img 
+        *ngIf="!isCollapsed"
        src="/assets/images/logo.svg" class="logo--image" [ngClass]="{ 'is-collapsed': isCollapsed }" width="205"/>
        <img 
       *ngIf="isCollapsed"
-       src="/assets/images/logotype-manifest.svg" class="logo--image" width="36.35"/>
+       src="/assets/images/logotype-manifest.svg" class="logo--image" width="46"/>
     </a>
   </li>
-  <li *ngIf="entityManifests">
+  <li *ngIf="entityManifests" >
     <a
       (click)="isCollectionsOpen = !isCollectionsOpen"
       class="has-submenu is-flex is-justify-content-space-between"
@@ -61,4 +62,7 @@
       </li>
     </ul>
   </li>
-</ul>
+  </ul>
+  <app-user-menu-item></app-user-menu-item>
+
+</div>
