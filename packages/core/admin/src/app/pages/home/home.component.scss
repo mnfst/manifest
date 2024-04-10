@@ -1,5 +1,5 @@
 @import '../../../styles/variables/all';
-@import '../../../../node_modules/bulma/sass/utilities/mixins'; 
+@import '../../../../node_modules/bulma/sass/utilities/mixins';
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Roboto&display=swap');
 
 code {
@@ -19,9 +19,10 @@ code {
 
 .card-link {
     transition: all $transition-duration $transition-timing;
-    &:hover .card{
+
+    &:hover .card {
         background-color: #f5f7f9;
         background-color: $sidenav-item-hover-color;
-    color: $link;
+        color: $link;
     }
 }
