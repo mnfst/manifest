@@ -12,8 +12,8 @@ npm run build
 Make sure to create a `.env` file at root level:
 
 ```.env
-PORT=4000
-JWT_SECRET=your_secret_key
+PORT=1111
+TOKEN_SECRET_KEY=your_secret_key
 NODE_ENV=production
 ```
 

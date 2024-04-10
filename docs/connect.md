@@ -23,6 +23,8 @@ const cs = new CaseClient()
 
 ## CRUD operations
 
+TODO: We should provide the way to do it with the REST API too.
+
 Perform all CRUD (Create Read Update Delete) operations with the SDK.
 
 ```js

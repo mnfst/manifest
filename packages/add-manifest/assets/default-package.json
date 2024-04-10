@@ -1,0 +1,7 @@
+{
+  "name": "my-manifest-project",
+  "version": "1.0.0",
+  "description": "A project made with Manifest",
+  "scripts": {},
+  "dependencies": {}
+}

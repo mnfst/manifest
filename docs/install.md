@@ -46,6 +46,6 @@ Environment variables are managed to a [dotenv](https://www.npmjs.com/package/do
 # .env
 
 PORT=4000
-JWT_SECRET=secret_key
+TOKEN_SECRET_KEY=secret_key
 NODE_ENV=development
 ```

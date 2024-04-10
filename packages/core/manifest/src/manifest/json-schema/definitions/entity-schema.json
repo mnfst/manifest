@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://manifest.build/schemas/definitions/entity-schema.json",
+  "title": "Entity Manifest Schema",
+  "description": "An entity in the system",
+  "type": "object",
+  "properties": {
+    "className": {
+      "description": "The class name. Used widely on the admin panel. Default: class name.",
+      "type": "string"
+    },
+    "nameSingular": {
+      "description": "The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase name.",
+      "type": "string"
+    },
+    "namePlural": {
+      "description": "The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase name.",
+      "type": "string"
+    },
+    "slug": {
+      "description": "The kebab-case slug of the entity that will define API endpoints. Default: plural dasherized name.",
+      "type": "string"
+    },
+    "mainProp": {
+      "description": "The main prop of the entity. Used widely on the admin panel. Default: first string field.",
+      "type": "string"
+    },
+    "seedCount": {
+      "description": "The number of entities to seed when running the seed command. Default: 50.",
+      "type": "integer"
+    },
+    "properties": {
+      "description": "The properties of the entity. Doc: https://docs.case.app/properties",
+      "type": "array",
+      "items": {
+        "$ref": "property-schema.json"
+      }
+    },
+    "belongsTo": {
+      "description": "The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships",
+      "type": "array",
+      "items": {
+        "$ref": "relationship-schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

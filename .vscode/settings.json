@@ -1,4 +1,8 @@
 {
+  "yaml.schemas": {
+    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "**/manifest/**/*.yml"
+  },
+
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#fde56f",
     "activityBar.activeBorder": "#699675",
@@ -44,8 +48,11 @@
     "search": "utils",
     "schematics": "batch",
     "case-client": "angular",
+    "case-schema": "class",
     "case": "src",
     "case-types": "typescript",
-    "create-case-app": "scripts"
+    "add-manifest": "scripts",
+    "manifest": "server",
+    "core/manifest": "meta"
   }
 }

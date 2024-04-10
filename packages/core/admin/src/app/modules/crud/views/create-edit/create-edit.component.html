@@ -1,0 +1,81 @@
+<ng-container *ngIf="entityManifest">
+  <section>
+    <div
+      class="is-flex is-justify-content-space-between is-align-items-center mb-5"
+    >
+      <div class="left-part">
+        <h1 class="title is-2 has-text-weight-light">
+          {{ edit ? 'Edit an existing' : 'Create a new' }}
+          {{ entityManifest.nameSingular }}
+        </h1>
+      </div>
+      <div class="right-part">
+        <button
+          class="button is-link is-hidden-touch"
+          [ngClass]="{ 'is-loading': loading }"
+          type="submit"
+          (click)="submit()"
+        >
+          Submit
+        </button>
+        <button
+          class="button is-link is-hidden-desktop is-circle"
+          [ngClass]="{ 'is-loading': loading }"
+          type="submit"
+          (click)="submit()"
+        >
+          <i class="icon icon-save"></i>
+        </button>
+      </div>
+    </div>
+
+    <form [formGroup]="form" *ngIf="item || !edit">
+      <div class="card p-4">
+        <div class="columns">
+          <div
+            class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
+          >
+            <div class="form-group">
+              <div
+                class="field mt-2 mb-4"
+                *ngFor="let prop of entityManifest.properties"
+              >
+                <div class="control">
+                  <app-input
+                    [prop]="prop"
+                    [value]="edit ? item[prop.name] : null"
+                    [errors]="errors[prop.name]"
+                    (valueChanged)="
+                      onChange({
+                        propName: prop.name,
+                        newValue: $event
+                      })
+                    "
+                  ></app-input>
+                </div>
+              </div>
+              <div
+                class="field mt-2 mb-4"
+                *ngFor="let relationship of entityManifest.belongsTo"
+              >
+                <div class="control">
+                  <app-input
+                    [relationship]="relationship"
+                    [value]="edit ? item[relationship.name] : null"
+                    [errors]="errors[relationship.name]"
+                    (valueChanged)="
+                      onChange({
+                        propName: relationship.name,
+                        newValue: $event
+                      })
+                    "
+                  ></app-input>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </section>
+</ng-container>
