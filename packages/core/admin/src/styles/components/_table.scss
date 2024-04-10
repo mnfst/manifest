@@ -1,6 +1,7 @@
 thead {
   white-space: nowrap;
 }
+
 tr {
   @each $name, $pair in $colors {
     $color: nth($pair, 1);
@@ -18,6 +19,7 @@ th {
   white-space: nowrap;
   text-transform: uppercase;
 }
+
 td {
   &.is-narrow {
     padding-top: 0.8em;
@@ -49,17 +51,9 @@ th {
   &:first-child {
     padding-left: $gap;
   }
+
   &:last-child {
     padding-right: $gap;
-  }
-
-  a {
-    
-    &:not(.button):hover,
-    &:not(.button):focus,
-    &:not(.button):active {
-      text-decoration: underline;
-    }
   }
 }
 
@@ -71,5 +65,24 @@ th {
     display: flex;
     align-items: center;
     height: 100%;
+  }
+}
+
+.has-detail-link {
+  cursor: pointer;
+  color: $primary;
+
+  span {
+    position: relative;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      position: absolute;
+      background-color: $primary;
+      bottom: -1px;
+      width: 100%;
+      height: 1px;
+    }
   }
 }

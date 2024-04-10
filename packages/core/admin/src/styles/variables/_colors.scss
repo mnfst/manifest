@@ -4,7 +4,6 @@ $black: #303032 !default; // Overload
 $white: #fff !default; // Overload
 
 $dark: $black !default; // Overload
-$light: $white !default; // Overload
 
 $black-bis: $dark !default;
 $black-ter: $dark !default;
@@ -16,12 +15,12 @@ $grey-lighter: #EAEAEF !default;
 $white-ter: #F2F2F6 !default;
 $white-bis: #F5F7F9 !default;
 
-$link: #5c1ee8 !default;
-$link-light: #eee8fd !default;
-$link-light-invert: findColorInvert($link-light) !default;
+$link: $grey-darker !default;
+$link-light: $white-bis !default;
+$link-light-invert: findColorInvert($white-bis) !default;
 
-$primary: #466b84 !default;
-$primary-light: #f1f9ff !default;
+$primary: #2430F0 !default;
+$primary-light: #f0f1ff !default;
 $primary-light-invert: findColorInvert($primary-light) !default;
 
 $success: #57b3a0 !default;

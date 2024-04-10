@@ -5,8 +5,10 @@
 th {
   font-weight: $weight-bold;
 }
+
 table {
   font-size: $size-7;
+
   @include fullhd {
     font-size: $size-6;
   }
@@ -44,6 +46,7 @@ h1,
   font-size: $size-7;
   margin-bottom: 0;
 }
+
 // Badges
 
 .badge {
@@ -58,14 +61,17 @@ h1,
   @include touch {
     font-size: 0.825em;
   }
+
   &.is-info {
     background-color: $info-light;
     color: $link;
   }
+
   &.is-success {
     background-color: $success-light;
     color: $success;
   }
+
   &.is-link {
     background-color: $link-light;
     color: $link;
@@ -95,6 +101,7 @@ hr {
 }
 
 a {
+  color: $primary;
   cursor: pointer;
 
   &.no-deco {
@@ -104,6 +111,23 @@ a {
     &:focus {
       color: inherit;
       text-decoration: none;
+    }
+  }
+
+  .main & {
+
+    span {
+      position: relative;
+
+      &:before {
+        content: '';
+        display: inline-block;
+        position: absolute;
+        background-color: $primary;
+        bottom: -1px;
+        width: 100%;
+        height: 1px;
+      }
     }
   }
 }
@@ -117,9 +141,11 @@ a {
 .is-italic {
   font-style: italic;
 }
+
 .no-transfo {
   text-transform: none;
 }
+
 .is-regular {
   font-weight: $weight-normal;
 }
@@ -131,6 +157,7 @@ a {
     color: $grey-light;
   }
 }
+
 //_ Specific rules
 .status-text {
   font-size: 1.1rem;
@@ -140,6 +167,7 @@ a {
 
 .coma-list {
   display: inline-block;
+
   + .coma-list {
     &:before {
       content: ',';
