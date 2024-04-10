@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, Input, OnInit } from '@angular/core'
 import { AppManifest, EntityManifest } from '@manifest-yml/types'
 import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { ManifestService } from '../../shared/services/manifest.service'
@@ -9,8 +9,8 @@ import { ManifestService } from '../../shared/services/manifest.service'
   styleUrls: ['./side-menu.component.scss']
 })
 export class SideMenuComponent implements OnInit {
+  @Input({required:true}) isCollapsed : boolean
   entityManifests: EntityManifest[]
-
   isCollectionsOpen = false
   isSettingsOpen = false
 
