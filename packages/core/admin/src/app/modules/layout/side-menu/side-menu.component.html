@@ -1,15 +1,11 @@
 <div class="side-menu-wrapper is-flex is-flex-direction-column is-justify-content-space-between">
   <div class="logo-wrapper is-hidden-touch">
-    <a class="logo" routerLink="/" [ngClass]="{ 'is-collapsed': isCollapsed }">
+    <a class="logo" routerLink="/">
       <img 
-      *ngIf="!isCollapsed"
-    src="/assets/images/logo.svg" class="logo--image" [ngClass]="{ 'is-collapsed': isCollapsed }" width="205"/>
-      <img 
-    *ngIf="isCollapsed"
-    src="/assets/images/logotype-manifest.svg" class="logo--image" width="28"/>
+    src="/assets/images/logo.svg" class="logo--image" width="205"/>
     </a>
   </div>
-  <ul class="menu-list" [ngClass]="{ 'is-collapsed': isCollapsed }">
+  <ul class="menu-list">
     
 
   <li *ngIf="entityManifests" >

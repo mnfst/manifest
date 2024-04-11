@@ -72,19 +72,6 @@
       height: 98px;
       justify-content: flex-start;
     }
-
-    &.is-collapsed {
-      padding-left: 0;
-      padding-right: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .logo {
-        justify-content: center;
-      }
-    }
-
   }
 }
 

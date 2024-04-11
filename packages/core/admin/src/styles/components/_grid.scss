@@ -58,12 +58,4 @@
     max-width: calc(100vw - #{$aside-width-fullhd});
     left: calc(#{$aside-width-fullhd});
   }
-
-  .is-collapsed & {
-    @include desktop {
-      width: calc(100vw - #{$aside-width-collapsed} - #{$aside-border-width});
-      max-width: calc(100vw - #{$aside-width-collapsed} - #{$aside-border-width});
-      left: calc(#{$aside-width-collapsed});
-    }
-  }
 }

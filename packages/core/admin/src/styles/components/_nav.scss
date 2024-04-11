@@ -17,10 +17,6 @@
   @include fullhd {
     width: $aside-width-fullhd;
   }
-
-  .is-collapsed & {
-    width: 63px !important;
-  }
 }
 
 .dropdown-trigger:after {
@@ -61,11 +57,6 @@
       left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
       width: calc(100% - #{$aside-width-fullhd} - #{$aside-border-width});
     }
-
-    .is-collapsed & {
-      left: $aside-width-collapsed;
-      width: calc(100% - #{$aside-width-collapsed});
-    }
   }
 
   > div:first-child {
@@ -77,39 +68,6 @@
 
 .sidebar {
   float: left;
-}
-
-.collapse-button {
-  position: fixed;
-  bottom: 64px;
-  z-index: 9;
-  transition: all $transition-duration $transition-timing;
-
-  .icon-chevrons-left {
-    transition: all $transition-duration $transition-timing;
-  }
-
-  &:not(.is-collapsed) {
-    @include desktop {
-      left: calc(#{$aside-width-desktop} - 18px);
-    }
-
-    @include widescreen {
-      left: calc(#{$aside-width-widescreen} - 18px);
-    }
-
-    @include fullhd {
-      left: calc(#{$aside-width-fullhd} - 18px);
-    }
-  }
-
-  &.is-collapsed {
-    left: calc(63px - 18px);
-
-    .icon-chevrons-left {
-      transform: rotate(180deg);
-    }
-  }
 }
 
 a {
@@ -126,29 +84,12 @@ li a {
     visibility: visible;
     transition: opacity $transition-duration $transition-timing .18s, visibility 0.01s linear;
 
-    .is-collapsed & {
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity $transition-duration $transition-timing, visibility 0.01s linear .18s;
-    }
   }
 }
 
 aside .has-submenu + ul {
-  .is-collapsed & {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    z-index: 9;
-    background: $sidenav-background-color;
-    box-shadow: 10px 10px 20px rgba(48, 48, 50, 0.07);
-    padding: math.div($column-gap, 2) !important;
-  }
-
-  .wrapper:not(.is-collapsed) & {
-    li a {
-      padding-left: 4.5rem !important;
-    }
+  li a {
+    padding-left: 4.5rem !important;
   }
 }
 
@@ -162,22 +103,15 @@ aside .has-submenu + ul {
 app-user-menu-item {
   background-color: $white;
 
-  .wrapper:not(.is-collapsed) & {
-
-    @include desktop {
-      width: $aside-width-desktop;
-    }
-
-    @include widescreen {
-      width: $aside-width-widescreen;
-    }
-
-    @include fullhd {
-      width: $aside-width-fullhd;
-    }
+  @include desktop {
+    width: $aside-width-desktop;
   }
 
-  .wrapper.is-collapsed & {
-    width: 62px;
+  @include widescreen {
+    width: $aside-width-widescreen;
+  }
+
+  @include fullhd {
+    width: $aside-width-fullhd;
   }
 }

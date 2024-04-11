@@ -1,28 +1,14 @@
 <ng-container *ngIf="!isLogin">
-  <app-touch-menu class="is-hidden-desktop"></app-touch-menu>
-  
-  <a
-      role="button"
-      class="is-hidden-touch button collapse-button is-circle is-small has-icon"
-      [ngClass]="{ 'is-collapsed': isCollapsed }"
-      aria-label="menu"
-      aria-expanded="false"
-      data-target="navbarBasicExample"
-      (click)="isCollapsed = !isCollapsed"
-    >
-    <span class="icon">
-    <i class="icon icon-chevrons-left"></i>
-  </span>
-  </a>    
+  <app-touch-menu class="is-hidden-desktop"></app-touch-menu> 
   
 </ng-container>
 
 <app-flash-message></app-flash-message>
 
-<div class="wrapper" [ngClass]="{ 'is-collapsed': isCollapsed }">
+<div class="wrapper" >
   <div class="columns">
     <aside class="column aside menu px-0 is-hidden-touch" *ngIf="!isLogin">
-      <app-side-menu [isCollapsed]="isCollapsed"></app-side-menu>
+      <app-side-menu></app-side-menu>
     </aside>
     <div class="column main">
       <main>

@@ -15,7 +15,7 @@
     width: 100%;
     border-bottom: 1px solid $border-color;
 
-    case-top-menu:not(.is-collapsed) & {
+    case-top-menu & {
       @include desktop {
         left: calc(#{$aside-width-desktop} + #{$aside-border-width});
         width: calc(100% - #{$aside-width-desktop} - #{$aside-border-width});

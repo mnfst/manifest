@@ -9,8 +9,6 @@ import { Admin } from './typescript/interfaces/admin.interface'
 })
 export class AppComponent implements OnInit {
   currentUser: Admin
-
-  isCollapsed = false
   isLogin = true
 
   constructor(private authService: AuthService, private router: Router) {}
