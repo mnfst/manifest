@@ -8,6 +8,16 @@
 }
 
 .menu-list {
+  --logo-height: 94px;
+  --footer-height: 54px;
+  --margin: 16px;
+  padding-top: var(--margin);
+  padding-bottom: var(--margin);
+  margin-bottom: var(--footer-height);
+  overflow-y: overlay;
+  overflow-x: hidden;
+  height: calc(100vh - var(--logo-height) - var(--footer-height) + 1px);
+
   li {
     position: relative;
     display: inline-block;
@@ -78,12 +88,19 @@
   }
 }
 
+.logo-wrapper {
+  padding: 1.6rem;
+  border-bottom: 1px solid $border-color;
+}
+
+
 .flex {
   display: flex;
 }
 
 app-user-menu-item {
   border-top: 1px solid $border-color;
+  border-right: 1px solid $border-color;
   z-index: 99;
   padding: 8px;
 
@@ -92,4 +109,8 @@ app-user-menu-item {
     bottom: 0;
     left: 0;
   }
+}
+
+.side-menu-wrapper {
+  height: 100%;
 }

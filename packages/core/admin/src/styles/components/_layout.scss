@@ -53,6 +53,8 @@ body {
 }
 
 aside {
+  position: fixed;
+  max-height: calc(100vh - #{$navbar-height} + #{$gap});
   transition: all $transition-duration $transition-timing;
   border-right: 1px solid $border-color;
 }

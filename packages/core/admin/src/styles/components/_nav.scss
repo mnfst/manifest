@@ -160,6 +160,8 @@ aside .has-submenu + ul {
 }
 
 app-user-menu-item {
+  background-color: $white;
+
   .wrapper:not(.is-collapsed) & {
 
     @include desktop {
