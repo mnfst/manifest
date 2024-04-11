@@ -1,5 +1,8 @@
+@import '../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
 .welcome-wrapper {
-  height: calc(100vh - 112px);
+  height: calc(100vh - #{$gap} - #{$navbar-height} - #{$footer-height});
   width: 100%;
   display: inline-flex;
   align-items: center;

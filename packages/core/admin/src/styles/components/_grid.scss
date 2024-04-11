@@ -36,7 +36,7 @@
     padding: $column-gap $gap;
     overflow-y: overlay;
     overflow-x: hidden;
-    height: 100vh;
+    min-height: 100%;
   }
 
   @include desktop {

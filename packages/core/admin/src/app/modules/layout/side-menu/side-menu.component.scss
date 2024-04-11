@@ -17,7 +17,15 @@
   margin-bottom: var(--footer-height);
   overflow-y: overlay;
   overflow-x: hidden;
-  height: calc(100vh - var(--logo-height) - var(--footer-height) + 1px);
+
+  @include desktop {
+    height: calc(100vh - var(--logo-height) - var(--footer-height) + 1px);
+  }
+
+  @include touch {
+    height: calc(100vh - #{$navbar-height-touch} - var(--footer-height) + 1px);
+  }
+
 
   li {
     position: relative;
