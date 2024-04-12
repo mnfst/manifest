@@ -29,6 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: $white;
   left: 0;
   top: 0;
   height: 100vh;
@@ -81,7 +82,7 @@
   flex-grow: 0;
   flex-shrink: 0;
   flex-basis: auto;
-  background: $white;
+  background: $dark;
   position: fixed;
   right: 0;
   top: 0;
