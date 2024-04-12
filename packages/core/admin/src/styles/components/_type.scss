@@ -104,6 +104,12 @@ a {
   color: $primary;
   cursor: pointer;
 
+  &[disabled] {
+    cursor: no-drop;
+    pointer-events: none;
+    color: $grey-light;
+  }
+
   &.no-deco {
     color: inherit;
 
@@ -112,6 +118,10 @@ a {
       color: inherit;
       text-decoration: none;
     }
+  }
+
+  .is-default & {
+    cursor: default;
   }
 
   .main & {
@@ -150,14 +160,6 @@ a {
   font-weight: $weight-normal;
 }
 
-a {
-  &[disabled] {
-    cursor: no-drop;
-    pointer-events: none;
-    color: $grey-light;
-  }
-}
-
 //_ Specific rules
 .status-text {
   font-size: 1.1rem;
@@ -187,8 +189,7 @@ a {
   }
 }
 
-.is-default,
-.is-default a {
+.is-default {
   cursor: default;
 }
 
