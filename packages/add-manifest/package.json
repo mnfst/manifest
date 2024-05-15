@@ -1,4 +1,5 @@
 {
+  "name": "create-case-app",
   "author": "Manifest",
   "bin": {
     "add-manifest": "./bin/run.js"
@@ -43,7 +44,6 @@
   "homepage": "https://github.com/brunobuddy/create-case-app",
   "license": "MIT",
   "main": "",
-  "name": "create-case-app",
   "oclif": {
     "bin": "create-case-app",
     "dirname": "create-case-app",

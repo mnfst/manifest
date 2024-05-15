@@ -38,7 +38,7 @@
     "authenticable"
   ],
   "material-icon-theme.files.associations": {
-    "**.controller.ts": "nest-controller",
+    "**.controller.ts": "nest",
     "**routing.module.ts": "routes",
     "**.contribution": "tune"
   },

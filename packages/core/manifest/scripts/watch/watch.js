@@ -4,14 +4,7 @@
 const { spawn } = require('child_process')
 const path = require('path')
 
-const nodemonPath = path.join(
-  __dirname,
-  '..',
-  '..',
-  'node_modules',
-  '.bin',
-  'nodemon'
-)
+const nodemonPath = path.join(process.cwd(), 'node_modules', '.bin', 'nodemon')
 
 const nodemon = spawn(
   nodemonPath,
