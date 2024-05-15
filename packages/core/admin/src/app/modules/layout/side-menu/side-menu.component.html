@@ -1,5 +1,14 @@
-<ul class="menu-list mt-5">
-  <li *ngIf="entityManifests">
+<div class="side-menu-wrapper is-flex is-flex-direction-column is-justify-content-space-between">
+  <div class="logo-wrapper is-hidden-touch">
+    <a class="logo" routerLink="/">
+      <img 
+    src="/assets/images/logo.svg" class="logo--image" width="155"/>
+    </a>
+  </div>
+  <ul class="menu-list">
+    
+
+  <li *ngIf="entityManifests" >
     <a
       (click)="isCollectionsOpen = !isCollectionsOpen"
       class="has-submenu is-flex is-justify-content-space-between"
@@ -51,4 +60,7 @@
       </li>
     </ul>
   </li>
-</ul>
+  </ul>
+  <app-user-menu-item></app-user-menu-item>
+
+</div>

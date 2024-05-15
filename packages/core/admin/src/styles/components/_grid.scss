@@ -1,52 +1,61 @@
 .is-12percent-fullhd {
+
   @include fullhd {
     flex: none;
     width: 12% !important;
   }
 }
+
 .is-1-5 {
   @include desktop {
     flex: none;
     width: 12.5% !important;
   }
+
   @include touch {
     width: 100%;
   }
 }
+
 .is-20-percent {
   @include desktop {
     flex: none;
     width: 20% !important;
   }
+
   @include touch {
     width: 100%;
   }
 }
 
 .main.column {
+  position: relative;
+
   @include touch {
     width: 100%;
     padding: $column-gap $gap;
+    overflow-y: overlay;
+    overflow-x: hidden;
+    min-height: 100%;
   }
+
   @include desktop {
     padding: $column-gap $gap;
     width: calc(100% - #{$aside-width-desktop});
-  }
-  @include widescreen {
-    width: calc(100vw - #{$aside-width-widescreen} - #{$gap});
-  }
-  @include fullhd {
-    padding: $column-gap 110px;
-    width: calc(
-      100vw - #{$aside-width-widescreen} - #{$main-padding-horizontal * 2}
-    );
+    max-width: calc(100% - #{$aside-width-desktop});
+    left: calc(#{$aside-width-desktop});
   }
 
-  .is-collapsed & {
-    @include desktop {
-      width: calc(
-        100vw - #{$aside-width-collapsed} - #{$aside-border-width} - #{$main-padding-horizontal}
-      );
-    }
+  @include widescreen {
+    width: calc(100vw - #{$aside-width-widescreen} - #{$gap});
+    max-width: calc(100vw - #{$aside-width-widescreen} - #{$gap});
+    left: calc(#{$aside-width-widescreen});
+  }
+
+  @include fullhd {
+    padding: $column-gap 110px;
+    width: calc(100vw - #{$aside-width-fullhd});
+    max-width: calc(100vw - #{$aside-width-fullhd});
+    left: calc(#{$aside-width-fullhd});
   }
 }

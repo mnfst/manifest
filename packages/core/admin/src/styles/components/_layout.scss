@@ -1,7 +1,7 @@
-
 *:focus {
   outline: none;
 }
+
 html {
   overflow-x: hidden;
   overflow-y: scroll;
@@ -31,7 +31,7 @@ body {
   text-rendering: optimizeLegibility;
   overflow: hidden;
   background: $main-background;
-  color: $black;
+  color: $dark;
   font-size: $size-7;
 }
 
@@ -42,22 +42,30 @@ body {
 
 .wrapper,
 .aside {
-  min-height: calc(100vh - #{$navbar-height} + #{$gap});
+  min-height: calc(100vh - #{$navbar-height} + #{$column-gap});
+
+  @include touch {
+    min-height: calc(100vh - #{$navbar-height-touch} + #{$column-gap});
+  }
 }
+
 .section {
   @include mobile {
     padding-left: 0;
     padding-right: 0;
   }
 }
+
 aside {
+  position: fixed;
+  max-height: calc(100vh - #{$navbar-height} + #{$gap});
   transition: all $transition-duration $transition-timing;
   border-right: 1px solid $border-color;
 }
 
 main {
   transition: all $transition-duration $transition-timing;
-  min-height: calc(100vh - #{$gap} - #{$navbar-height} - #{$footer-height});
+  min-height: 100%;
   margin-top: $gap;
   padding-bottom: $gap;
 }

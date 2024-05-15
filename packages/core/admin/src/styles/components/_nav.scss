@@ -17,10 +17,6 @@
   @include fullhd {
     width: $aside-width-fullhd;
   }
-
-  .is-collapsed & {
-    width: 78px !important;
-  }
 }
 
 .dropdown-trigger:after {
@@ -61,11 +57,6 @@
       left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
       width: calc(100% - #{$aside-width-fullhd} - #{$aside-border-width});
     }
-
-    .is-collapsed & {
-      left: $aside-width-collapsed;
-      width: calc(100% - #{$aside-width-collapsed});
-    }
   }
 
   > div:first-child {
@@ -79,35 +70,11 @@
   float: left;
 }
 
-.collapse-button {
-  position: absolute;
-  height: $navbar-height;
-  width: $navbar-height;
-  border: 1px solid $border-color;
-  top: 0;
-  left: 306px;
-  z-index: 33;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  @include desktop {
-    left: calc(#{$aside-width-desktop} + #{$aside-border-width});
-  }
-
-  @include widescreen {
-    left: calc(#{$aside-width-widescreen} + #{$aside-border-width});
-  }
-
-  @include fullhd {
-    left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
-  }
-
-  a {
-    height: 100%;
-    width: 100%;
-  }
+a {
+  height: 100%;
+  width: 100%;
 }
+
 
 li a {
 
@@ -117,32 +84,12 @@ li a {
     visibility: visible;
     transition: opacity $transition-duration $transition-timing .18s, visibility 0.01s linear;
 
-    .is-collapsed & {
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity $transition-duration $transition-timing, visibility 0.01s linear .18s;
-    }
   }
 }
 
 aside .has-submenu + ul {
-  .is-collapsed & {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    z-index: 9;
-    background: $sidenav-background-color;
-    box-shadow: 10px 10px 20px rgba(48, 48, 50, 0.07);
-
-    li a {
-      padding-left: $gap !important;
-    }
-  }
-
-  .wrapper:not(.is-collapsed) & {
-    li a {
-      padding-left: 5.8rem !important;
-    }
+  li a {
+    padding-left: 4.5rem !important;
   }
 }
 
@@ -150,5 +97,21 @@ aside .has-submenu + ul {
   @include desktop {
     display: block;
     margin: unset;
+  }
+}
+
+app-user-menu-item {
+  background-color: $white;
+
+  @include desktop {
+    width: $aside-width-desktop;
+  }
+
+  @include widescreen {
+    width: $aside-width-widescreen;
+  }
+
+  @include fullhd {
+    width: $aside-width-fullhd;
   }
 }

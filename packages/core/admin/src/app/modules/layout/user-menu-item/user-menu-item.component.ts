@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener } from '@angular/core'
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core'
 import { Admin } from '../../../typescript/interfaces/admin.interface'
 import { AuthService } from '../../auth/auth.service'
 
@@ -7,7 +7,7 @@ import { AuthService } from '../../auth/auth.service'
   templateUrl: './user-menu-item.component.html',
   styleUrls: ['./user-menu-item.component.scss']
 })
-export class UserMenuItemComponent {
+export class UserMenuItemComponent implements OnInit {
   currentUser: Admin
   showUserMenu = false
 

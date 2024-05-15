@@ -1,12 +1,12 @@
 <br>
 <p align="center">
   <a href="https://www.case.app">
-    <img alt="CASE" src="https://case.app/assets/images/logo-black.svg" height="40px" />
+    <img alt="manifest" src="https://manifest.build/logo-transparent.svg" height="55px" />
   </a>
 </p>
 
 <p align='center'>
-<strong>A complete backend without leaving your IDE</strong>
+<strong>Effortless backend</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/@casejs/case" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/%40casejs%2Fcase">
@@ -26,11 +26,11 @@
   <br>
 </p>
 
-<img  src="./docs/assets/images/cat-list.png" alt="CASE App" width="100%" style="border: 1px solid #dedede; margin-bottom: 2rem" />
+<img  src="./docs/assets/images/cat-list.png" alt="manifest admin panel" width="100%" style="border: 1px solid #dedede; margin-bottom: 2rem" />
 
-## What is CASE ?
+## What is manifest ?
 
-CASE is a Typescript lightweight **BaaS (Backend As A Service)** requiring minimal coding.
+manifest is a Yaml lightweight **BaaS (Backend As A Service)** requiring minimal coding.
 
 It provides a complete backend to your client app without the hassle that comes with it.
 
@@ -42,61 +42,33 @@ It provides a complete backend to your client app without the hassle that comes 
 
 ## Forget about drag-and-drop visual builders
 
-With CASE, you structure your data using TypeScript classes straight from your coding environment.
+With manifest, you structure your data using Yaml straight from your coding environment.
 
-```js
-// entities/cat.entity.ts
-@Entity()
-export class Cat extends BaseEntity {
-  @Prop()
-  name: string
+```yml
+// backend.yml
+name: Blog about cats
+entities:
+  📝 Post:
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+      - { name: publishedAt, type: date }
+      - { name: status, type: string }
+      - { name: likes, type: number }
+      - { name: price, type: money }
+      - { name: email, type: email }
+      - { name: public, type: boolean }
+      - { name: password, type: password }
+      - { name: location, type: location }
+    belongsTo:
+      - Category
+      - User
+      - { name: groupe, entity: Groupe, eager: true }
 
-  @Prop({
-    type: PropType.Date
-  })
-  birthDate: Date
-
-  @Prop({
-    type: PropType.Relation,
-    options: {
-      entity: Owner
-    }
-  })
-  owner: Owner
-}
-```
-
-## Effortless integration in your client app
-
-And allow the following code in your JS client built with your favorite stack: [React](https://docs.case.app/connect/react), [Svelte](https://docs.case.app/connect/svelte), [Angular](https://docs.case.app/connect/angular), [Vue](https://docs.case.app/connect/vue) or any front-end. You can even use it in NodeJS.
-
-```js
-import CaseClient from '@casejs/case-client'
-
-// Init SDK
-const cs = new CaseClient()
-
-// Get all cats with their owner
-const cats = await cs.from('cats').with(['owner']).find()
-
-// Filter cats.
-const cats = await cs
-  .from('cats')
-  .where('breed = siamese')
-  .andWhere('birthDate > 2020-01-01')
-  .find()
-
-// Create a new cat.
-const newCat = await cs.from('cats').create({
-  name: 'Milo',
-  age: 2
-})
-
-// Upload.
-const fileUrl: string = await cs.from('cats').addFile(file)
-
-// Login.
-await cs.login('users', 'user1@case.app', 'case')
+  🏷️ Category:
+    properties:
+      - name
+      - description
 ```
 
 ## Getting started
@@ -105,7 +77,7 @@ await cs.login('users', 'user1@case.app', 'case')
 
 - [NodeJS](https://nodejs.org/en/) (**v16.14.0** or higher). The recommended version is **18.x**.
 
-### Create your CASE project
+### Create your manifest backend
 
 Run the following on your terminal replacing `my-case-app` with your app's name:
 

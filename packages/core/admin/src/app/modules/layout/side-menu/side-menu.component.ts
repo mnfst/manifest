@@ -10,7 +10,6 @@ import { ManifestService } from '../../shared/services/manifest.service'
 })
 export class SideMenuComponent implements OnInit {
   entityManifests: EntityManifest[]
-
   isCollectionsOpen = false
   isSettingsOpen = false
 

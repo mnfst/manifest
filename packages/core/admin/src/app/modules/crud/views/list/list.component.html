@@ -11,7 +11,7 @@
     <!-- Create a new entity -->
     <div class="right-part is-flex">
       <a
-        class="button is-link ml-5 is-hidden-touch"
+        class="button is-dark ml-5 is-hidden-touch"
         [routerLink]="['/dynamic', entityManifest.slug, 'create']"
         >Create a new {{ entityManifest.nameSingular }}</a
       >
@@ -28,7 +28,7 @@
   <div class="is-loading" *ngIf="loadingPaginator">
     <span class="list-meta"></span>
   </div>
-  <div class="card p-0 mb-6">
+  <div class="card p-0 mb-6 is-shadowless">
     <div class="table-container" [ngClass]="{ 'mb-0': loadingPaginator }">
       <table class="table is-fullwidth is-hoverable">
         <thead>
@@ -77,14 +77,15 @@
               ></app-relation-yield>
             </td>
             <td class="has-text-right is-nowrap">
+              <div class="is-flex is-justify-content-flex-end">
               <a
-                class="has-text-weight-bold has-text-link"
+                class="button is-light is-small is-circle"
                 [routerLink]="['/', 'dynamic', entityManifest.slug, item['id']]"
                 ><i class="icon icon-eye"></i
               ></a>
 
               <a
-                class="has-text-weight-bold ml-6"
+              class="button is-light is-small is-circle mx-2"
                 [routerLink]="[
                   '/dynamic',
                   entityManifest.slug,
@@ -94,10 +95,11 @@
                 ><i class="icon icon-edit"></i
               ></a>
               <a
-                class="has-text-weight-bold ml-6"
+              class="button is-light is-small is-circle"
                 (click)="toggleDeleteModal(item)"
                 ><i class="icon icon-trash-2"></i
               ></a>
+            </div>
             </td>
           </tr>
         </tbody>

@@ -1,15 +1,15 @@
 //controls
 $control-padding-vertical: 0.375em !default;
 $control-padding-horizontal: $column-gap !default;
-$input-background-color: $white-ter !default;
+$input-background-color: $white-bis !default;
 $input-placeholder-color: rgba($black-ter, 0.5) !default;
-$input-color: $black !default;
-$input-radius: 3px !default;
+$input-color: $dark !default;
+$input-radius: 6px !default;
 $input-arrow: $black-ter !default;
 $input-icon-color: $black-ter !default;
 $input-icon-active-color: $link !default;
 
-$input-border-color: $grey-light !default;
+$input-border-color: $white-bis !default;
 
 $input-shadow: none !default;
 
@@ -22,11 +22,8 @@ $input-focus-box-shadow-size: 0 0 5px 0 !default;
 
 $input-disabled-color: $grey !default;
 $input-disabled-background-color: $grey-light !default;
-$input-disabled-border-color: $grey-dark !default;
-$input-disabled-placeholder-color: bulmaRgba(
-  $input-disabled-color,
-  0.3
-) !default;
+$input-disabled-border-color: $grey-light !default;
+$input-disabled-placeholder-color: bulmaRgba($input-disabled-color, 0.3) !default;
 
 $label-color: $grey !default;
 

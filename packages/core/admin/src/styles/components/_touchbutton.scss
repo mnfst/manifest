@@ -1,6 +1,7 @@
 .td-touch {
   position: relative;
 }
+
 .touch-action-bar {
   position: absolute;
   top: 0;
@@ -15,7 +16,6 @@
   transition: left 0.3s ease-in-out;
 
   .button {
-    width: $touchButtonWidth;
     height: 100%;
     width: $touchButtonWidth;
     padding: 0;
@@ -24,9 +24,11 @@
 
   &.has-2-items {
     width: 200%;
+
     &.is-open {
       left: -100%;
     }
+
     .touch-buttons {
       width: $touchButtonWidth;
     }
@@ -34,9 +36,11 @@
 
   &.has-3-items {
     width: 300%;
+
     &.is-open {
       left: -200%;
     }
+
     .touch-buttons {
       width: #{$touchButtonWidth * 2};
     }

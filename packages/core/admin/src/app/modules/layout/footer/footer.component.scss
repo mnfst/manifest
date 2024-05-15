@@ -4,3 +4,10 @@
 footer {
   height: $footer-height;
 }
+
+img {
+  position: relative;
+  top: 4px;
+  margin-left: 4px;
+  margin-right: 2px;
+}
