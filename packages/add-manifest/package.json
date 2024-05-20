@@ -1,8 +1,38 @@
 {
-  "name": "create-case-app",
+  "name": "add-manifest",
+  "version": "0.1.0-alpha.1",
   "author": "Manifest",
+  "description": "Add Manifest backend to your app",
   "bin": {
     "add-manifest": "./bin/run.js"
+  },
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "lint": "eslint . --ext .ts",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "npm run lint",
+    "prepack": "npm run build && oclif manifest && oclif readme",
+    "prepare": "npm run build",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "oclif": {
+    "bin": "add-manifest",
+    "dirname": "add-manifest",
+    "commands": {
+      "strategy": "single",
+      "target": "./dist/commands/index.js"
+    },
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "create": {
+        "description": "Add CASE to your app"
+      }
+    }
   },
   "dependencies": {
     "@oclif/core": "^3",
@@ -15,7 +45,6 @@
     "path": "^0.12.7",
     "url": "^0.11.3"
   },
-  "description": "Add Manifest backend to your app",
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
@@ -39,41 +68,16 @@
   "files": [
     "/bin",
     "/dist",
+    "/assets",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/brunobuddy/create-case-app",
+  "homepage": "https://manifest.build",
   "license": "MIT",
   "main": "",
-  "oclif": {
-    "bin": "create-case-app",
-    "dirname": "create-case-app",
-    "commands": "./dist/commands",
-    "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-plugins"
-    ],
-    "topicSeparator": " ",
-    "topics": {
-      "create": {
-        "description": "Add CASE to your app"
-      }
-    }
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/casejs/case.git"
   },
-  "scripts": {
-    "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint . --ext .ts",
-    "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "npm run lint",
-    "prepack": "npm run build && oclif manifest && oclif readme",
-    "prepare": "npm run build",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
-    "version": "oclif readme && git add README.md"
-  },
-  "version": "0.1.0",
   "bugs": "https://github.com/brunobuddy/create-case-app/issues",
   "keywords": [
     "oclif"

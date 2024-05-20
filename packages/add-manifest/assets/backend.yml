@@ -1,2 +1,15 @@
-name: My Manifest backend
-# Define your entities here: https://docs.manifest.build/entities
+# Learn how to use this file in the docs: https://manifest.build/docs
+name: A pet app
+entities:
+😃 Owner:
+  properties:
+    - name
+    - { name: email, type: email }
+
+😺 Cat:
+  properties:
+    - name
+    - { name: age, type: number }
+    - { name: birthdate, type: date }
+  belongsTo:
+    - Owner

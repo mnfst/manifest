@@ -8,9 +8,9 @@ import open from 'open'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
-import { updateExtensionJsonFile } from '../../utils/UpdateExtensionJsonFile.js'
-import { updatePackageJsonFile } from '../../utils/UpdatePackageJsonFile.js'
-import { updateSettingsJsonFile } from '../../utils/UpdateSettingsJsonFile.js'
+import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
+import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
+import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 
 const exec = promisify(execCp)
 
@@ -38,7 +38,7 @@ export class MyCommand extends Command {
     const folderName = 'manifest'
     const initialFileName = 'backend.yml'
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
-    const assetFolderPath = path.join(__dirname, '..', '..', '..', 'assets')
+    const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
 
     try {
       ux.action.start('Adding Manifest to your project...')
