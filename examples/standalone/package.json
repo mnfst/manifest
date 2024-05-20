@@ -1,0 +1,13 @@
+{
+  "name": "my-manifest-project",
+  "version": "1.0.0",
+  "description": "A project made with Manifest",
+  "scripts": {
+    "manifest": "node node_modules/@manifest-yml/manifest/scripts/watch/watch.js",
+    "manifest:seed": "node node_modules/@manifest-yml/manifest/dist/seed/seed.js"
+  },
+  "dependencies": {
+    "@manifest-yml/manifest": "0.0.2-alpha.0",
+    "nodemon": "^3.1.0"
+  }
+}

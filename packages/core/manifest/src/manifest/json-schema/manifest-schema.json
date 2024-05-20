@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://manifest.build/schemas/manifest-schema.json",
+  "title": "App Manifest Schema",
+  "description": "A complete backend in a single file.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The name of your app",
+      "type": "string"
+    },
+    "entities": {
+      "description": "The entities in your app. Doc: https://docs.case.app/entities",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "./definitions/entity-schema.json"
+      }
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}

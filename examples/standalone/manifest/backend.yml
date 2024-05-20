@@ -1,0 +1,15 @@
+name: My Manifest backend
+# Define your entities here: https://docs.manifest.build/entities
+entities:
+  📝 Post:
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+      - { name: publishedAt, type: date }
+      - { name: status, type: string }
+      - { name: likes, type: number }
+      - { name: price, type: money }
+      - { name: email, type: email }
+      - { name: public, type: boolean }
+      - { name: password, type: password }
+      - { name: location, type: location }

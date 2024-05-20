@@ -1,6 +1,6 @@
 {
   "yaml.schemas": {
-    "./packages/case-schema/schema/app-schema.json": "packages/case-schema/**/*.yml"
+    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "**/manifest/**/*.yml"
   },
 
   "workbench.colorCustomizations": {
@@ -38,7 +38,7 @@
     "authenticable"
   ],
   "material-icon-theme.files.associations": {
-    "**.controller.ts": "nest-controller",
+    "**.controller.ts": "nest",
     "**routing.module.ts": "routes",
     "**.contribution": "tune"
   },
@@ -51,6 +51,8 @@
     "case-schema": "class",
     "case": "src",
     "case-types": "typescript",
-    "create-case-app": "scripts"
+    "add-manifest": "scripts",
+    "manifest": "server",
+    "core/manifest": "meta"
   }
 }

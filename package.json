@@ -10,15 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/casejs/case.git"
   },
-  "scripts": {
-    "start:docs": "cd docs && docsify serve"
-  },
   "author": "CASE",
   "bugs": {
     "url": "https://github.com/casejs/case/issues"
   },
-  "homepage": "https://case.app",
-  "dependencies": {
-    "docsify-copy-code": "^2.1.1"
-  }
+  "homepage": "https://case.app"
 }

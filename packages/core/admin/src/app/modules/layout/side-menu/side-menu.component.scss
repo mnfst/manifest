@@ -1,0 +1,113 @@
+@use 'sass:math';
+@import '../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
+
+%is-hovered {
+  background-color: $sidenav-item-hover-color;
+  color: $black;
+}
+
+.menu-list {
+  --logo-height: 94px;
+  --footer-height: 54px;
+  --margin: 16px;
+  scrollbar-width: none;
+  padding-top: var(--margin);
+  padding-bottom: var(--margin);
+  margin-bottom: var(--footer-height);
+  overflow-y: overlay;
+  overflow-x: hidden;
+
+  @include desktop {
+    height: calc(100vh - var(--logo-height) - var(--footer-height) + 1px);
+  }
+
+  @include touch {
+    height: calc(100vh - #{$navbar-height-touch} - var(--footer-height) + 1px);
+  }
+
+
+  li {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    font-size: $size-5;
+    padding: 1px math.div($column-gap, 2);
+
+    ul {
+      margin: 5px 0 0 0;
+      border-left: 0;
+      padding-left: 0;
+
+      li {
+        padding: 0;
+      }
+    }
+  }
+
+  a {
+    $item-min-height: 36px !default;
+    border-radius: $radius;
+    position: relative;
+    color: $sidenav-item-color;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: $item-min-height;
+    line-height: $item-min-height;
+    padding: 0 $column-gap;
+    transition: color 0.35s ease, background-color 0.05s ease-out;
+
+    &:hover {
+      @extend %is-hovered;
+      transition: color 0.35s ease, background-color 0.05s ease-in;
+    }
+
+    &.is-active {
+      @extend %is-hovered;
+
+      &:before {
+        background-color: $link;
+      }
+    }
+
+    &.logo {
+      display: flex;
+      align-items: center;
+      height: 98px;
+      justify-content: flex-start;
+    }
+  }
+}
+
+.logo-wrapper {
+  padding: 1.6rem;
+  border-bottom: 1px solid $border-color;
+}
+
+
+.flex {
+  display: flex;
+}
+
+app-user-menu-item {
+  border-top: 1px solid $border-color;
+  border-right: 1px solid $border-color;
+  z-index: 99;
+  padding: 8px;
+
+  @include tablet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  }
+}
+
+.side-menu-wrapper {
+  height: 100%;
+}

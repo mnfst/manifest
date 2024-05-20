@@ -1,0 +1,26 @@
+{
+  "name": "@manifest-yml/types",
+  "version": "0.1.0-alpha.0",
+  "description": "Utility types used by Manifest",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc && cp package.json dist/ "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/casejs/case.git"
+  },
+  "keywords": [
+    "manifest",
+    "backend",
+    "baas",
+    "types"
+  ],
+  "author": "Manifest",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/casejs/case/issues"
+  },
+  "homepage": "https://github.com/casejs/case#readme"
+}

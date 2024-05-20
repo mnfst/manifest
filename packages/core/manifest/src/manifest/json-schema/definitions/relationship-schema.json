@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://manifest.build/schemas/definitions/relationship-schema.json",
+  "title": "Relationship Manifest Schema",
+  "description": "A relationship between two entities",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the relation"
+        },
+        "entity": {
+          "type": "string",
+          "description": "The class name of the entity that the relationship is with"
+        },
+        "eager": {
+          "type": "boolean",
+          "description": "Whether the relationship should be eager loaded. Otherwise, you need to explicitly request the relation in the client SDK or API.\nDefaults to false."
+        }
+      },
+      "required": ["entity"],
+      "additionalProperties": false
+    },
+    {
+      "type": "string",
+      "description": "A simple string representing the class name of the entity"
+    }
+  ]
+}

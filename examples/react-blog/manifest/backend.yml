@@ -1,0 +1,15 @@
+name: React-blog backend with MANIFEST
+
+entities:
+  Post:
+    properties:
+      - title
+      - content
+    belongsTo:
+      - Author
+
+  Author:
+    properties:
+      - name
+      - email
+      - bio

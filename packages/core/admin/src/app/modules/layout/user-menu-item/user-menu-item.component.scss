@@ -1,0 +1,39 @@
+@import '../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
+.dropdown-trigger {
+  max-width: 100%;
+  min-width: 100%;
+
+  > a {
+    @include touch {
+      width: 100%;
+      height: 100%;
+      display: inline-flex;
+      box-sizing: content-box;
+      align-items: center;
+      justify-content: center;
+      margin-right: 32px;
+    }
+
+    @include mobile {
+      margin-right: 30px;
+    }
+  }
+}
+
+.dropdown {
+  max-width: 100%;
+  min-width: 100%;
+}
+
+.dropdown-item {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+  overflow: hidden;
+}
+
+.avatar {
+  border-radius: $radius;
+}

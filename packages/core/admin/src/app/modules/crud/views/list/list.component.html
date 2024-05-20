@@ -1,0 +1,171 @@
+<ng-container *ngIf="entityManifest">
+  <div
+    class="is-flex flex-mobile is-justify-content-space-between is-align-items-center mb-2"
+  >
+    <div class="left-part">
+      <h1 class="title is-2 has-text-weight-light">
+        List of {{ entityManifest.namePlural }}
+      </h1>
+    </div>
+
+    <!-- Create a new entity -->
+    <div class="right-part is-flex">
+      <a
+        class="button is-dark ml-5 is-hidden-touch"
+        [routerLink]="['/dynamic', entityManifest.slug, 'create']"
+        >Create a new {{ entityManifest.nameSingular }}</a
+      >
+
+      <a
+        class="button is-circle is-link ml-5 is-hidden-desktop"
+        [routerLink]="['/dynamic', entityManifest.slug, 'create']"
+        ><i class="icon icon-plus"></i
+      ></a>
+    </div>
+  </div>
+
+  <app-list-meta [paginator]="paginator" *ngIf="paginator"> </app-list-meta>
+  <div class="is-loading" *ngIf="loadingPaginator">
+    <span class="list-meta"></span>
+  </div>
+  <div class="card p-0 mb-6 is-shadowless">
+    <div class="table-container" [ngClass]="{ 'mb-0': loadingPaginator }">
+      <table class="table is-fullwidth is-hoverable">
+        <thead>
+          <tr>
+            <th
+              *ngFor="let prop of entityManifest.properties"
+              [ngClass]="{
+                'has-text-right':prop.type === PropType.Money || prop.type === PropType.Number || prop.type === PropType.Date,
+                }"
+            >
+              {{ prop.name }}
+            </th>
+            <th *ngFor="let relation of entityManifest.belongsTo">
+              {{ relation.name }}
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody *ngIf="paginator?.data?.length">
+          <tr *ngFor="let item of paginator.data">
+            <td
+              *ngFor="let prop of entityManifest.properties"
+              [ngClass]="{
+                'has-text-right':
+                  prop.type === PropType.Money ||
+                  prop.type === PropType.Number ||
+                  prop.type === PropType.Date,
+                'has-detail-link': prop.name === entityManifest.mainProp
+              }"
+              (click)="
+                prop.name === entityManifest.mainProp
+                  ? goToDetailPage(item['id'])
+                  : null
+              "
+            >
+              <app-yield
+                [prop]="prop"
+                [value]="item[prop.name]"
+                [compact]="true"
+              ></app-yield>
+            </td>
+            <td *ngFor="let relation of entityManifest.belongsTo">
+              <app-relation-yield
+                [item]="item[relation.name]"
+                [relation]="relation"
+              ></app-relation-yield>
+            </td>
+            <td class="has-text-right is-nowrap">
+              <div class="is-flex is-justify-content-flex-end">
+              <a
+                class="button is-light is-small is-circle"
+                [routerLink]="['/', 'dynamic', entityManifest.slug, item['id']]"
+                ><i class="icon icon-eye"></i
+              ></a>
+
+              <a
+              class="button is-light is-small is-circle mx-2"
+                [routerLink]="[
+                  '/dynamic',
+                  entityManifest.slug,
+                  item['id'],
+                  'edit'
+                ]"
+                ><i class="icon icon-edit"></i
+              ></a>
+              <a
+              class="button is-light is-small is-circle"
+                (click)="toggleDeleteModal(item)"
+                ><i class="icon icon-trash-2"></i
+              ></a>
+            </div>
+            </td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="paginator?.data?.length === 0">
+          <tr>
+            <td [attr.colspan]="entityManifest.properties.length">
+              There is no {{ entityManifest.nameSingular }}.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Loader paginator -->
+    <div class="is-loading" *ngIf="loadingPaginator">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+      <div class="is-hidden-touch"></div>
+    </div>
+  </div>
+
+  <app-pagination
+    [paginator]="paginator"
+    (pageChanged)="filter('page', $event)"
+    *ngIf="paginator"
+  ></app-pagination>
+</ng-container>
+
+<div class="modal is-active" *ngIf="itemToDelete && entityManifest">
+  <div (click)="toggleDeleteModal()" class="modal-background"></div>
+  <div class="modal-card">
+    <div class="modal-card-body content">
+      <p>
+        Do you really want to delete
+        <strong>{{ itemToDelete[entityManifest.mainProp] }}</strong>
+        {{ entityManifest.nameSingular }} ? This action cannot be undone.
+      </p>
+      <p>
+        If {{ itemToDelete[entityManifest.mainProp] }} has related items, they
+        will be deleted too.
+      </p>
+      <div
+        class="is-flex is-align-items-center is-justify-content-space-between mt-6"
+      >
+        <button class="button is-white" (click)="toggleDeleteModal()">
+          Cancel
+        </button>
+        <button class="button is-danger" (click)="delete(itemToDelete['id'])">
+          Delete
+        </button>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        (click)="toggleDeleteModal()"
+      ></button>
+    </div>
+  </div>
+</div>
