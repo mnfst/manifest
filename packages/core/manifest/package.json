@@ -1,9 +1,10 @@
 {
-  "name": "@manifest-yml/manifest",
-  "version": "0.0.2-alpha.2",
-  "description": "",
+  "name": "manifest",
+  "version": "4.0.0-alpha.0",
+  "description": "Effortless backends",
   "author": "Manifest",
   "license": "MIT",
+  "homepage": "https://manifest.build",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -19,10 +20,13 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "node dist/seed/seed.js",
     "generate-types": "ts-node src/manifest/json-schema/GenerateTypes.ts",
-    "prebuild": "npm run generate-types",
-    "postbuild": "cp package.json dist/ && cp -R scripts dist/",
-    "publish": "cd dist && npm publish"
+    "prebuild": "npm run generate-types"
   },
+  "files": [
+    "/dist",
+    "scripts",
+    "README.md"
+  ],
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
     "@manifest-yml/admin": "0.0.1",

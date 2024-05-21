@@ -10,7 +10,7 @@
       "type": "string"
     },
     "entities": {
-      "description": "The entities in your app. Doc: https://docs.case.app/entities",
+      "description": "The entities in your app. Doc: https://manifest.build/docs/entities",
       "type": "object",
       "additionalProperties": {
         "$ref": "./definitions/entity-schema.json"

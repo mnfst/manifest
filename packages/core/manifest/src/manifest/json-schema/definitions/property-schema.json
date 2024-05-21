@@ -2,17 +2,17 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://manifest.build/schemas/definitions/property-schema.json",
   "title": "Property Manifest Schema",
-  "description": "A property in your entity. Doc: https://docs.case.app/properties",
+  "description": "A property in your entity. Doc: https://manifest.build/docs/properties",
   "anyOf": [
     {
       "type": "object",
       "properties": {
         "name": {
-          "description": "The name of the property. Doc: https://docs.case.app/properties",
+          "description": "The name of the property. Doc: https://manifest.build/docs/properties",
           "type": "string"
         },
         "type": {
-          "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://docs.case.app/property-types",
+          "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://manifest.build/docs/properties#property-types",
           "type": "string",
           "enum": [
             "string",
@@ -30,7 +30,7 @@
           ]
         },
         "hidden": {
-          "description": "If the property should be hidden in the API response. Default false. Doc: https://docs.case.app/property-types?id=hidden",
+          "description": "If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params",
           "type": "boolean"
         },
         "options": {

@@ -30,14 +30,14 @@
       "type": "integer"
     },
     "properties": {
-      "description": "The properties of the entity. Doc: https://docs.case.app/properties",
+      "description": "The properties of the entity. Doc: https://manifest.build/docs/entities",
       "type": "array",
       "items": {
         "$ref": "property-schema.json"
       }
     },
     "belongsTo": {
-      "description": "The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships",
+      "description": "The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations",
       "type": "array",
       "items": {
         "$ref": "relationship-schema.json"
