@@ -3,12 +3,13 @@
   "version": "0.1.0-alpha.1",
   "author": "Manifest",
   "description": "Add Manifest backend to your app",
+  "homepage": "https://manifest.build",
+  "license": "MIT",
   "bin": {
     "add-manifest": "./bin/run.js"
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint . --ext .ts",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
@@ -42,6 +43,7 @@
     "chalk": "^5.3.0",
     "fs": "^0.0.1-security",
     "open": "^10.1.0",
+    "ora": "^8.0.1",
     "path": "^0.12.7",
     "url": "^0.11.3"
   },
@@ -52,10 +54,6 @@
     "@types/mocha": "^10",
     "@types/node": "^18",
     "chai": "^4",
-    "eslint": "^8",
-    "eslint-config-oclif": "^5",
-    "eslint-config-oclif-typescript": "^3",
-    "eslint-config-prettier": "^9.1.0",
     "mocha": "^10",
     "oclif": "^4.4.12",
     "shx": "^0.3.4",
@@ -71,8 +69,6 @@
     "/assets",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://manifest.build",
-  "license": "MIT",
   "main": "",
   "repository": {
     "type": "git",
@@ -80,7 +76,12 @@
   },
   "bugs": "https://github.com/brunobuddy/create-case-app/issues",
   "keywords": [
-    "oclif"
+    "manifest",
+    "backend",
+    "backend-as-a-service",
+    "bass",
+    "api",
+    "rest"
   ],
   "types": "dist/index.d.ts",
   "exports": "./lib/index.js",

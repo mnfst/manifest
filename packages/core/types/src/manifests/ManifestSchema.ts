@@ -6,16 +6,16 @@
  */
 
 /**
- * A property in your entity. Doc: https://docs.case.app/properties
+ * A property in your entity. Doc: https://manifest.build/docs/properties
  */
 export type PropertyManifestSchema =
   | {
       /**
-       * The name of the property. Doc: https://docs.case.app/properties
+       * The name of the property. Doc: https://manifest.build/docs/properties
        */
       name: string
       /**
-       * The type of the property: text, number, link, currency... Default "string". Doc: https://docs.case.app/property-types
+       * The type of the property: text, number, link, currency... Default "string". Doc: https://manifest.build/docs/properties#property-types
        */
       type?:
         | 'string'
@@ -31,7 +31,7 @@ export type PropertyManifestSchema =
         | 'choice'
         | 'location'
       /**
-       * If the property should be hidden in the API response. Default false. Doc: https://docs.case.app/property-types?id=hidden
+       * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
        */
       hidden?: boolean
       options?: GlobalPropertyOptionsSchema &
@@ -75,7 +75,7 @@ export interface AppManifestSchema {
    */
   name: string
   /**
-   * The entities in your app. Doc: https://docs.case.app/entities
+   * The entities in your app. Doc: https://manifest.build/docs/entities
    */
   entities?: {
     [k: string]: EntityManifestSchema
@@ -110,11 +110,11 @@ export interface EntityManifestSchema {
    */
   seedCount?: number
   /**
-   * The properties of the entity. Doc: https://docs.case.app/properties
+   * The properties of the entity. Doc: https://manifest.build/docs/entities
    */
   properties?: PropertyManifestSchema[]
   /**
-   * The belongsTo relationships of the entity. Doc: https://docs.case.app/relationships
+   * The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations
    */
   belongsTo?: RelationshipManifestSchema[]
 }

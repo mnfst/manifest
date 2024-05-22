@@ -1,6 +1,6 @@
 # add-manifest
 
-The `add-manifest` command adds manifest to your project.
+The `add-manifest` command adds [Manifest](https://manifest.build) to your project.
 
 ```bash
 npx add-manifest
@@ -11,8 +11,9 @@ npx add-manifest
 ```bash
 npm install
 
-# Run from the /test-dir folder to prevent messing with project files.
-cd test-dir
+# Run from a test folder to prevent messing with project files.
+mkdir test-folder
+cd test-folder
 ../bin/dev.js create
 ```
 

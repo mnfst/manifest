@@ -1,15 +1,14 @@
-# Learn how to use this file in the docs: https://manifest.build/docs
-name: A pet app
+name: My pet app
 entities:
-😃 Owner:
-  properties:
-    - name
-    - { name: email, type: email }
+  😃 Owner:
+    properties:
+      - name
+      - { name: email, type: email }
 
-😺 Cat:
-  properties:
-    - name
-    - { name: age, type: number }
-    - { name: birthdate, type: date }
-  belongsTo:
-    - Owner
+  😺 Cat:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Owner

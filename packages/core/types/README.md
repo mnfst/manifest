@@ -1,4 +1,4 @@
-# @manifest-yml/types
+# Manifest types
 
 Utility types used by Manifest.
 
@@ -12,7 +12,6 @@ npm run build
 
 ```bash
 npm run build
-cd dist
 npm publish
 
 # Alpha / Beta versions

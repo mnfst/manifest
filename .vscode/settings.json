@@ -25,6 +25,7 @@
   },
   "peacock.color": "#fcdc3d",
   "cSpell.words": [
+    "authenticable",
     "bugsnag",
     "casejs",
     "dasherize",
@@ -32,10 +33,10 @@
     "dtos",
     "metadatas",
     "metas",
+    "mnfst",
     "nestjs",
     "typeorm",
-    "uniqid",
-    "authenticable"
+    "uniqid"
   ],
   "material-icon-theme.files.associations": {
     "**.controller.ts": "nest",

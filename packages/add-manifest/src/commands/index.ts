@@ -1,13 +1,14 @@
-import { Command, ux } from '@oclif/core'
+import { Command } from '@oclif/core'
 import axios from 'axios'
-import chalk from 'chalk'
-import { exec as execCp } from 'child_process'
-import * as crypto from 'crypto'
-import * as fs from 'fs'
+import { exec as execCp } from 'node:child_process'
+import * as crypto from 'node:crypto'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 import open from 'open'
-import * as path from 'path'
-import { fileURLToPath } from 'url'
-import { promisify } from 'util'
+import ora from 'ora'
+
 import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
 import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
 import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
@@ -40,27 +41,22 @@ export class MyCommand extends Command {
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
 
-    try {
-      ux.action.start('Adding Manifest to your project...')
+    const spinner = ora('Add Manifest to your project...').start()
 
+    try {
       // Construct the folder path. This example creates the folder in the current working directory.
       const folderPath = path.join(process.cwd(), folderName)
 
       // Check if the folder already exists
-      if (!fs.existsSync(folderPath)) {
-        // Create the folder
-        fs.mkdirSync(folderPath)
-        this.log(`Folder created: ${folderPath}`)
-      } else {
-        // This error message could be improved to take more space in terminal.
-        this.log(
-          chalk.redBright(`Error: Folder already exists`),
-          chalk.white(
-            `The ${folderName} folder already exists in the current directory. Please remove it and try again.`
-          )
+      if (fs.existsSync(folderPath)) {
+        spinner.fail(
+          `Error: The "${folderName}" folder already exists in the current directory. Please remove it and try again.`
         )
         process.exit(1)
       }
+
+      // Create the folder
+      fs.mkdirSync(folderPath)
 
       // Path where the new file should be created
       const newFilePath = path.join(folderPath, initialFileName)
@@ -74,8 +70,8 @@ export class MyCommand extends Command {
       // Write the content to the new file
       fs.writeFileSync(newFilePath, content)
 
-      ux.action.stop()
-      ux.action.start('Updating package.json file...')
+      spinner.succeed()
+      spinner.start('Update package.json file...')
 
       // Update package.json file.
       const packagePath = path.join(process.cwd(), 'package.json')
@@ -97,19 +93,17 @@ export class MyCommand extends Command {
         updatePackageJsonFile({
           fileContent: packageJson,
           newPackages: {
-            '@manifest-yml/manifest': '0.0.2-alpha.0'
+            manifest: '4.0.0-alpha.0'
           },
           newScripts: {
-            manifest:
-              'node node_modules/@manifest-yml/manifest/scripts/watch/watch.js',
-            'manifest:seed':
-              'node node_modules/@manifest-yml/manifest/dist/seed/seed.js'
+            manifest: 'node node_modules/manifest/scripts/watch/watch.js',
+            'manifest:seed': 'node node_modules/manifest/dist/seed/seed.js'
           }
         })
       )
 
-      ux.action.stop()
-      ux.action.start('Adding settings...')
+      spinner.succeed()
+      spinner.start('Add settings...')
 
       // Update .vscode/extensions.json file.
       const vscodeDirPath = path.join(process.cwd(), '.vscode')
@@ -131,8 +125,8 @@ export class MyCommand extends Command {
       fs.writeFileSync(
         extensionsFilePath,
         updateExtensionJsonFile({
-          fileContent: extensionsJson,
-          extensions: ['redhat.vscode-yaml']
+          extensions: ['redhat.vscode-yaml'],
+          fileContent: extensionsJson
         })
       )
 
@@ -153,7 +147,7 @@ export class MyCommand extends Command {
           fileContent: settingsJson,
           settings: {
             'yaml.schemas': {
-              './node_modules/@manifest-yml/manifest/dist/manifest/json-schema/manifest-schema.json':
+              './node_modules/manifest/dist/manifest/json-schema/manifest-schema.json':
                 '**/manifest/**/*.yml'
             }
           }
@@ -175,25 +169,20 @@ export class MyCommand extends Command {
 
       fs.writeFileSync(gitignorePath, gitignoreContent)
 
-      ux.action.stop()
-      ux.action.start('Installing dependencies...')
+      spinner.succeed()
+      spinner.start('Install dependencies...')
 
       // Install deps.
       try {
-        const { stdout, stderr } = await exec('npm install')
-        if (stderr) {
-          this.log(`stderr: ${stderr}`)
-        }
-        this.log(`stdout: ${stdout}`)
-        this.log('npm install completed successfully!')
+        await exec('npm install')
       } catch (error) {
-        this.error(`Execution error: ${error}`)
+        spinner.fail(`Execution error: ${error}`)
       }
 
       //  Serve the new app.
-      ux.action.stop()
+      spinner.succeed()
 
-      ux.action.start('Adding environment variables...')
+      spinner.start('Add environment variables...')
       // Add environment variables to .env file
       const envFilePath = path.join(process.cwd(), '.env')
       let envContent = ''
@@ -206,40 +195,39 @@ export class MyCommand extends Command {
 
       fs.writeFileSync(envFilePath, envContent)
 
-      ux.action.stop()
+      spinner.succeed()
 
-      ux.action.start('Serving the new app...')
+      spinner.start('Serve the backend...')
       try {
         const { stdout, stderr } = await exec('npm run manifest')
         if (stderr) {
           this.log(`stderr: ${stderr}`)
         }
         this.log(`stdout: ${stdout}`)
-        this.log('npm install completed successfully!')
       } catch (error) {
-        this.error(`Execution error: ${error}`)
+        spinner.fail(`Execution error: ${error}`)
       }
     } catch (error) {
-      this.error(`Error: ${error}`)
+      spinner.fail(`Error: ${error}`)
     }
 
     // Wait for the server to start
     await this.waitForServerToBeReady()
-    ux.action.stop()
+    spinner.succeed()
 
-    ux.action.start('Seeding the database...')
+    spinner.start('Seed initial data...')
     try {
-      const { stdout, stderr } = await exec('npm run manifest:seed')
+      const { stderr, stdout } = await exec('npm run manifest:seed')
       if (stderr) {
         this.log(`stderr: ${stderr}`)
       }
       this.log(`stdout: ${stdout}`)
       this.log('Database seeded successfully!')
     } catch (error) {
-      this.error(`Execution error: ${error}`)
+      spinner.fail(`Execution error: ${error}`)
     }
 
-    ux.action.stop()
+    spinner.succeed()
 
     open('http://localhost:1111/auth/login')
   }

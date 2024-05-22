@@ -1,9 +1,16 @@
 {
-  "name": "@manifest-yml/types",
-  "version": "0.1.0-alpha.0",
+  "name": "@mnfst/types",
+  "version": "0.1.0-alpha.2",
   "description": "Utility types used by Manifest",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "author": "Manifest",
+  "homepage": "https://manifest.build",
+  "license": "MIT",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
   "scripts": {
     "build": "tsc && cp package.json dist/ "
   },
@@ -17,10 +24,7 @@
     "baas",
     "types"
   ],
-  "author": "Manifest",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/casejs/case/issues"
-  },
-  "homepage": "https://github.com/casejs/case#readme"
+  }
 }
