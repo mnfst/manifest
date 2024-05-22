@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core'
-import { Paginator } from '@manifest-yml/types'
+import { Paginator } from '@mnfst/types'
 
 @Component({
   selector: 'app-list-meta',

@@ -6,7 +6,7 @@ import {
   PropType,
   PropertyManifest,
   RelationshipManifest
-} from '@manifest-yml/types'
+} from '@mnfst/types'
 import { combineLatest } from 'rxjs'
 
 import { HttpErrorResponse } from '@angular/common/http'

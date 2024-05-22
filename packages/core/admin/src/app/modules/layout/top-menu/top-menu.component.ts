@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 import { Title } from '@angular/platform-browser'
-import { AppManifest } from '@manifest-yml/types'
+import { AppManifest } from '@mnfst/types'
 import { BreadcrumbLink } from '../../../typescript/interfaces/breadcrumb-link.interface'
 import { CapitalizeFirstLetterPipe } from '../../shared/pipes/capitalize-first-letter.pipe'
 import { BreadcrumbService } from '../../shared/services/breadcrumb.service'

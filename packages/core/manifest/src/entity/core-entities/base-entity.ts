@@ -1,4 +1,4 @@
-import { BaseEntity } from '@manifest-yml/types'
+import { BaseEntity } from '@mnfst/types'
 import { EntitySchemaColumnOptions } from 'typeorm'
 
 export const baseEntity: {

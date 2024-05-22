@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core'
 import { FormControl, FormGroup, Validators } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
 
-import { PropType } from '@manifest-yml/types'
+import { PropType } from '@mnfst/types'
 
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
 import { AuthService } from '../../auth.service'

@@ -1,4 +1,4 @@
-import { PropType } from '@manifest-yml/types'
+import { PropType } from '@mnfst/types'
 import { ColumnType } from 'typeorm'
 
 export const propTypeColumnTypes: Record<PropType, ColumnType> = {

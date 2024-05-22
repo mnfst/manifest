@@ -4,7 +4,7 @@ import {
   EntityManifest,
   PropertyManifest,
   RelationshipManifest
-} from '@manifest-yml/types'
+} from '@mnfst/types'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity/entity.service'

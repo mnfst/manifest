@@ -8,7 +8,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { PropertyManifest } from '@manifest-yml/types'
+import { PropertyManifest } from '@mnfst/types'
 
 @Component({
   selector: 'app-date-input',

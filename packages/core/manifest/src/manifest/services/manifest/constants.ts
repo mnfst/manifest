@@ -1,4 +1,4 @@
-import { EntityManifest, PropType } from '@manifest-yml/types'
+import { EntityManifest, PropType } from '@mnfst/types'
 
 export const DEFAULT_SEED_COUNT: number = 50
 

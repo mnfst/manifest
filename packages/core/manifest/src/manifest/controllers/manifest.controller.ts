@@ -1,8 +1,4 @@
-import {
-  AppManifest,
-  AuthenticableEntity,
-  EntityManifest
-} from '@manifest-yml/types'
+import { AppManifest, AuthenticableEntity, EntityManifest } from '@mnfst/types'
 import { Controller, Get, Param, Req } from '@nestjs/common'
 import { Request } from 'express'
 import { AuthService } from '../../auth/auth.service'

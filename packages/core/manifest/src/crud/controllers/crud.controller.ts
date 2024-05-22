@@ -10,7 +10,7 @@ import {
   Query
 } from '@nestjs/common'
 
-import { BaseEntity, Paginator, SelectOption } from '@manifest-yml/types'
+import { BaseEntity, Paginator, SelectOption } from '@mnfst/types'
 import { DeleteResult, InsertResult } from 'typeorm'
 import { CrudService } from '../services/crud.service'
 

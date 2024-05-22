@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, Output } from '@angular/core'
-import { PropType, PropertyManifest } from '@manifest-yml/types'
+import { PropType, PropertyManifest } from '@mnfst/types'
 
 import { MultiSelectInputComponent } from '../inputs/multi-select-input/multi-select-input.component'
 

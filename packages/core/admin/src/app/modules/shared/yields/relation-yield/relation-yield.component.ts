@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
 import { RouterModule } from '@angular/router'
-import { EntityManifest, RelationshipManifest } from '@manifest-yml/types'
+import { EntityManifest, RelationshipManifest } from '@mnfst/types'
 import { ManifestService } from '../../services/manifest.service'
 
 @Component({

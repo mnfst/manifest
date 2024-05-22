@@ -12,7 +12,7 @@ import {
   PropertyManifestSchema,
   RelationshipManifest,
   RelationshipManifestSchema
-} from '@manifest-yml/types'
+} from '@mnfst/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'

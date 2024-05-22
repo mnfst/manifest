@@ -1,4 +1,4 @@
-import { AuthenticableEntity } from '@manifest-yml/types'
+import { AuthenticableEntity } from '@mnfst/types'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'

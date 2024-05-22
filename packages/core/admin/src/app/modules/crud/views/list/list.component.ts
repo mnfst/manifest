@@ -5,7 +5,7 @@ import {
   Paginator,
   PropType,
   RelationshipManifest
-} from '@manifest-yml/types'
+} from '@mnfst/types'
 import { combineLatest } from 'rxjs'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'

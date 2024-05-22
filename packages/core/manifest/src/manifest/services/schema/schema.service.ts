@@ -4,7 +4,7 @@ import {
   AppManifestSchema,
   EntityManifestSchema,
   RelationshipManifestSchema
-} from '@manifest-yml/types'
+} from '@mnfst/types'
 import Ajv from 'ajv'
 import schemas from '../../json-schema'
 

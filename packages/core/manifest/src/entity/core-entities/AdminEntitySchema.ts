@@ -1,4 +1,4 @@
-import { AuthenticableEntity } from '@manifest-yml/types'
+import { AuthenticableEntity } from '@mnfst/types'
 import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
 import { baseEntity } from './base-entity'
 
