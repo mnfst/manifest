@@ -1,51 +1,50 @@
 {
+  "yaml.schemas": {
+    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "**/manifest/**/*.yml"
+  },
+
   "workbench.colorCustomizations": {
-    "activityBar.activeBackground": "#fde56f",
-    "activityBar.activeBorder": "#699675",
-    "activityBar.background": "#fde56f",
-    "activityBar.foreground": "#15202b",
-    "activityBar.inactiveForeground": "#15202b99",
-    "activityBarBadge.background": "#029d83",
-    "activityBarBadge.foreground": "#e7e7e7",
-    "statusBar.background": "#fcdc3d",
-    "statusBar.foreground": "#15202b",
-    "statusBarItem.hoverBackground": "#fbd30b",
-    "titleBar.activeBackground": "#fcdc3d",
-    "titleBar.activeForeground": "#15202b",
-    "titleBar.inactiveBackground": "#fcdc3d99",
-    "titleBar.inactiveForeground": "#15202b99",
-    "sash.hoverBorder": "#fde56f",
-    "statusBarItem.remoteBackground": "#fcdc3d",
-    "statusBarItem.remoteForeground": "#15202b",
-    "commandCenter.border": "#15202b99"
+    "activityBar.activeBackground": "#f0f1ff",
+    "activityBar.activeBorder": "#57b3a0",
+    "activityBar.background": "#f0f1ff",
+    "activityBar.foreground": "#2430F0",
+    "activityBar.inactiveForeground": "#2430F099",
+    "activityBarBadge.background": "#57b3a0",
+    "activityBarBadge.foreground": "#ecf7fd",
+    "statusBar.background": "#f8a94a",
+    "statusBar.foreground": "#2430F0",
+    "statusBarItem.hoverBackground": "#fef6ee",
+    "titleBar.activeBackground": "#f8a94a",
+    "titleBar.activeForeground": "#2430F0",
+    "titleBar.inactiveBackground": "#f8a94a99",
+    "titleBar.inactiveForeground": "#2430F099",
+    "sash.hoverBorder": "#f0f1ff",
+    "statusBarItem.remoteBackground": "#f8a94a",
+    "statusBarItem.remoteForeground": "#2430F0",
+    "commandCenter.border": "#2430F099"
   },
   "peacock.color": "#fcdc3d",
   "cSpell.words": [
+    "authenticable",
     "bugsnag",
-    "casejs",
     "dasherize",
     "dasherized",
     "dtos",
     "metadatas",
     "metas",
+    "mnfst",
     "nestjs",
     "typeorm",
-    "uniqid",
-    "authenticable"
+    "uniqid"
   ],
   "material-icon-theme.files.associations": {
-    "**.controller.ts": "nest-controller",
-    "**routing.module.ts": "routes",
-    "**.contribution": "tune"
+    "**.controller.ts": "nest",
+    "**routing.module.ts": "routes"
   },
   "material-icon-theme.folders.associations": {
     "dtos": "interface",
-    "task": "tasks",
-    "search": "utils",
-    "schematics": "batch",
-    "case-client": "angular",
-    "case": "src",
-    "case-types": "typescript",
-    "create-case-app": "scripts"
+    "add-manifest": "scripts",
+    "manifest": "server",
+    "core/manifest": "meta"
   }
 }

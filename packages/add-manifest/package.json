@@ -1,0 +1,89 @@
+{
+  "name": "add-manifest",
+  "version": "0.1.0-alpha.1",
+  "author": "Manifest",
+  "description": "Add Manifest backend to your app",
+  "homepage": "https://manifest.build",
+  "license": "MIT",
+  "bin": {
+    "add-manifest": "./bin/run.js"
+  },
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "npm run lint",
+    "prepack": "npm run build && oclif manifest && oclif readme",
+    "prepare": "npm run build",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "oclif": {
+    "bin": "add-manifest",
+    "dirname": "add-manifest",
+    "commands": {
+      "strategy": "single",
+      "target": "./dist/commands/index.js"
+    },
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "create": {
+        "description": "Add Manifest backend to your app"
+      }
+    }
+  },
+  "dependencies": {
+    "@oclif/core": "^3",
+    "@oclif/plugin-help": "^6",
+    "@oclif/plugin-plugins": "^4",
+    "axios": "^1.6.8",
+    "chalk": "^5.3.0",
+    "fs": "^0.0.1-security",
+    "open": "^10.1.0",
+    "ora": "^8.0.1",
+    "path": "^0.12.7",
+    "url": "^0.11.3"
+  },
+  "devDependencies": {
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^3",
+    "@types/chai": "^4",
+    "@types/mocha": "^10",
+    "@types/node": "^18",
+    "chai": "^4",
+    "mocha": "^10",
+    "oclif": "^4.4.12",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "/bin",
+    "/dist",
+    "/assets",
+    "/oclif.manifest.json"
+  ],
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ManifestOfficial/manifest.git"
+  },
+  "bugs": "https://github.com/ManifestOfficial/manifest/issues",
+  "keywords": [
+    "manifest",
+    "backend",
+    "backend-as-a-service",
+    "bass",
+    "api",
+    "rest"
+  ],
+  "types": "dist/index.d.ts",
+  "exports": "./lib/index.js",
+  "type": "module"
+}
