@@ -8,7 +8,7 @@
 <p align='center'>
 <strong>Effortless backend</strong>
 <br><br>
-  <a href="https://www.npmjs.com/package/@casejs/case" target="_blank">
+  <a href="https://www.npmjs.com/package/manifest" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/manifest">
   </a>
   <a href="https://www.codefactor.io/repository/github/casejs/case" target="_blank">
