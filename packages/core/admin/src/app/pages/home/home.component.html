@@ -8,166 +8,121 @@
         Proudly built with
         <a href="https://manifest.build" target="_blank">Manifest</a>
       </p>
-      <hr>
+      <hr />
 
       <div>
         <ng-container>
-            <div class="columns is-multiline">
-            <!-- TODO: This section should not be visible on production -->
-              <div class="column is-12 pb-0">
-                <p class="is-uppercase has-text-dark has-text-weight-medium">
-                  Resources
-                </p>
-              </div>
-              <!-- TODO: Once we create the doc, we could create interesting links here. -->
-              <div class="column is-12">
-                <a
-                  class="card-link"
-                  href="https://docs.case.app/entities"
-                  target="_blank"
-                >
-                  <div
-                    class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-                  >
-                    <div class="card-content p-0">
-                      <article class="media is-flex is-align-items-center">
-                        <figure class="media-left m-0">
-                          <p class="image is-64x64">
-                            <img src="/assets/images/ext-link-01.svg" />
-                          </p>
-                        </figure>
-                        <div
-                          class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                        >
-                          <!-- TODO: review the doc once changed -->
-                          <div class="content">
-                            <p class="is-size-5 has-text-weight-bold mb-0">
-                              Documentation
-                            </p>
-                            <p>Find out how how to to play with manifest</p>
-                          </div>
-                        </div>
-                        <figure
-                          class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                        >
-                          <i class="icon icon-arrow-right"></i>
-                        </figure>
-                      </article>
-                    </div>
-                  </div>
-                </a>
-              </div>
-
-              <div class="column is-12 pb-0">
-                <p class="is-uppercase has-text-dark has-text-weight-medium">
-                  Feedback & Support
-                </p>
-              </div>
-              <div class="column is-6">
-                <a
-                  class="card-link"
-                  href="https://github.com/casejs/CASE/discussions/categories/feedback"
-                  target="_blank"
-                >
-                  <div
-                    class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-                  >
-                    <div class="card-content p-0">
-                      <article class="media is-flex is-align-items-center">
-                        <figure class="media-left m-0">
-                          <p class="image is-64x64">
-                            <img src="/assets/images/ext-link-gh.svg" />
-                          </p>
-                        </figure>
-                        <div
-                          class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                        >
-                          <div class="content">
-                            <p class="is-size-5 has-text-weight-bold mb-0">
-                              We need you 🙏
-                            </p>
-                            <p>Share your feedback and suggestions</p>
-                          </div>
-                        </div>
-                        <figure
-                          class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                        >
-                          <i class="icon icon-arrow-right"></i>
-                        </figure>
-                      </article>
-                    </div>
-                  </div>
-                </a>
-              </div>
-              <div class="column is-6">
-                <a
-                  class="card-link"
-                  href="https://discord.com/invite/FepAked3W7"
-                  target="_blank"
-                >
-                  <div
-                    class="card p-0 is-overflow-hidden is-shadowless is-bordered"
-                  >
-                    <div class="card-content p-0">
-                      <article class="media is-flex is-align-items-center">
-                        <figure class="media-left m-0">
-                          <p class="image is-64x64">
-                            <img src="/assets/images/ext-link-dc.svg" />
-                          </p>
-                        </figure>
-                        <div
-                          class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
-                        >
-                          <div class="content">
-                            <p class="is-size-5 has-text-weight-bold mb-0">
-                              Stuck ?
-                            </p>
-                            <p>Get help from the community on our Discord</p>
-                          </div>
-                        </div>
-                        <figure
-                          class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
-                        >
-                          <i class="icon icon-arrow-right"></i>
-                        </figure>
-                      </article>
-                    </div>
-                  </div>
-                </a>
-              </div>
-            </div>
-        </ng-container>
           <div class="columns is-multiline">
-          
+            <!-- TODO: This section should not be visible on production -->
             <div class="column is-12 pb-0">
-              <hr />
               <p class="is-uppercase has-text-dark has-text-weight-medium">
-                Start navigating through the app
+                Resources
               </p>
             </div>
-            <div
-              class="column is-6"
-              *ngFor="let entity of entityManifests"
-            >
+            <!-- TODO: Once we create the doc, we could create interesting links here. -->
+            <div class="column is-12">
               <a
-                [routerLink]="['/dynamic', entity.slug]"
-                routerLinkActive="is-active"
                 class="card-link"
+                href="https://manifest.build/docs"
+                target="_blank"
               >
                 <div
-                  class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
                 >
                   <div class="card-content p-0">
                     <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-01.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <!-- TODO: review the doc once changed -->
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Documentation
+                          </p>
+                          <p>Find out how how to to play with manifest</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <div class="column is-12 pb-0">
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Feedback & Support
+              </p>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://github.com/ManifestOfficial/manifest/discussions/categories/feedback"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-gh.svg" />
+                        </p>
+                      </figure>
                       <div
                         class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
                       >
                         <div class="content">
                           <p class="is-size-5 has-text-weight-bold mb-0">
-                            <span>{{
-                              entity.namePlural | capitalizeFirstLetter
-                            }}</span>
+                            We need you 🙏
                           </p>
+                          <p>Share your feedback and suggestions</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="column is-6">
+              <a
+                class="card-link"
+                href="https://discord.com/invite/FepAked3W7"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-dc.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Stuck ?
+                          </p>
+                          <p>Get help from the community on our Discord</p>
                         </div>
                       </div>
                       <figure
@@ -181,7 +136,47 @@
               </a>
             </div>
           </div>
-        
+        </ng-container>
+        <div class="columns is-multiline">
+          <div class="column is-12 pb-0">
+            <hr />
+            <p class="is-uppercase has-text-dark has-text-weight-medium">
+              Start navigating through the app
+            </p>
+          </div>
+          <div class="column is-6" *ngFor="let entity of entityManifests">
+            <a
+              [routerLink]="['/dynamic', entity.slug]"
+              routerLinkActive="is-active"
+              class="card-link"
+            >
+              <div
+                class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
+              >
+                <div class="card-content p-0">
+                  <article class="media is-flex is-align-items-center">
+                    <div
+                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
+                    >
+                      <div class="content">
+                        <p class="is-size-5 has-text-weight-bold mb-0">
+                          <span>{{
+                            entity.namePlural | capitalizeFirstLetter
+                          }}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <figure
+                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
+                    >
+                      <i class="icon icon-arrow-right"></i>
+                    </figure>
+                  </article>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>

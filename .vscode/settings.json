@@ -22,13 +22,11 @@
     "statusBarItem.remoteBackground": "#f8a94a",
     "statusBarItem.remoteForeground": "#2430F0",
     "commandCenter.border": "#2430F099"
-}
-
+  },
   "peacock.color": "#fcdc3d",
   "cSpell.words": [
     "authenticable",
     "bugsnag",
-    "casejs",
     "dasherize",
     "dasherized",
     "dtos",
@@ -41,18 +39,10 @@
   ],
   "material-icon-theme.files.associations": {
     "**.controller.ts": "nest",
-    "**routing.module.ts": "routes",
-    "**.contribution": "tune"
+    "**routing.module.ts": "routes"
   },
   "material-icon-theme.folders.associations": {
     "dtos": "interface",
-    "task": "tasks",
-    "search": "utils",
-    "schematics": "batch",
-    "case-client": "angular",
-    "case-schema": "class",
-    "case": "src",
-    "case-types": "typescript",
     "add-manifest": "scripts",
     "manifest": "server",
     "core/manifest": "meta"

@@ -23,7 +23,7 @@ export class MyCommand extends Command {
    *
    * Steps:
    * 1. Create a folder with the name `manifest`.
-   * 2. Create a file inside the folder with the name `case.yml`.
+   * 2. Create a file inside the folder with the name `manifest.yml`.
    * 3. Update the `package.json` file with the new packages and scripts.
    * 4. Update the .vscode/extensions.json file with the recommended extensions.
    * 5. Update the .vscode/settings.json file with the recommended settings.

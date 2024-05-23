@@ -17,8 +17,8 @@ export class LoginComponent implements OnInit {
   // appConfig: AppConfig
 
   defaultUser: any = {
-    email: 'admin@case.app',
-    password: 'case'
+    email: 'admin@manifest.build',
+    password: 'manifest'
   }
   suggestedEmail: string
   suggestedPassword: string

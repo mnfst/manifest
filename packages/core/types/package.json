@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/casejs/case.git"
+    "url": "git+https://github.com/ManifestOfficial/manifest.git"
   },
   "keywords": [
     "manifest",
@@ -25,6 +25,6 @@
     "types"
   ],
   "bugs": {
-    "url": "https://github.com/casejs/case/issues"
+    "url": "https://github.com/ManifestOfficial/manifest/issues"
   }
 }

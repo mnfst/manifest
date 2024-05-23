@@ -31,7 +31,7 @@
     "topicSeparator": " ",
     "topics": {
       "create": {
-        "description": "Add CASE to your app"
+        "description": "Add Manifest backend to your app"
       }
     }
   },
@@ -72,9 +72,9 @@
   "main": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/casejs/case.git"
+    "url": "git+https://github.com/ManifestOfficial/manifest.git"
   },
-  "bugs": "https://github.com/brunobuddy/create-case-app/issues",
+  "bugs": "https://github.com/ManifestOfficial/manifest/issues",
   "keywords": [
     "manifest",
     "backend",

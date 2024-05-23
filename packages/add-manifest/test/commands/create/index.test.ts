@@ -8,7 +8,7 @@ describe('MyCommand', () => {
     .command(['create'])
     .it('should create a folder and file', (ctx) => {
       expect(ctx.stdout).to.contain('Folder created:')
-      expect(ctx.stdout).to.contain('case.yml')
+      expect(ctx.stdout).to.contain('manifest.yml')
     })
 
   test
