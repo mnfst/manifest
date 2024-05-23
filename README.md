@@ -6,7 +6,7 @@
 </p>
 
 <p align='center'>
-<strong>Effortless backend</strong>
+<strong>Effortless backends</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/manifest" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/manifest">
