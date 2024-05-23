@@ -1,5 +1,0 @@
-{
-  "yaml.schemas": {
-    "./node_modules/@manifest-yml/manifest/dist/manifest/json-schema/manifest-schema.json": "**/manifest/**/*.yml"
-  }
-}
