@@ -9,7 +9,7 @@
 <strong>Effortless backend</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/@casejs/case" target="_blank">
-    <img alt="npm" src="https://img.shields.io/npm/v/%40casejs%2Fcase">
+    <img alt="npm" src="https://img.shields.io/npm/v/manifest">
   </a>
   <a href="https://www.codefactor.io/repository/github/casejs/case" target="_blank">
     <img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/casejs/case">
@@ -26,78 +26,57 @@
   <br>
 </p>
 
-<img  src="./docs/assets/images/cat-list.png" alt="manifest admin panel" width="100%" style="border: 1px solid #dedede; margin-bottom: 2rem" />
+# Manifest
 
-## What is manifest ?
+Manifest is the simplest **BaaS (Backend As A Service)** you will find.
 
-manifest is a Yaml lightweight **BaaS (Backend As A Service)** requiring minimal coding.
+It provides a complete backend to your client app without the hassle that comes with it. It actually fits into **a single YAML file** that generates a complete backend.
 
-It provides a complete backend to your client app without the hassle that comes with it.
+Here is an example of a complete Manifest app:
+
+```yaml
+# manifest/backend.yml
+name: Healthcare application
+
+entities:
+  👩🏾‍⚕️ Doctor:
+    properties:
+      - fullName
+      - avatar
+      - { name: price, type: money, options: { currency: EUR } }
+    belongsTo:
+      - City
+
+  🤒 Patient:
+    properties:
+      - fullName
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Doctor
+
+  🌍 City:
+    properties:
+      - name
+```
 
 ## Key features
 
-- ⚡ **Instant backend with DB, REST API and Admin panel** without any configuration
-- 🧠 **Smart SDK** to import in your favorite JS front-end
-- 🛠️ **Essential features** like Auth, Storage, Validation and Hooks
-
-## Forget about drag-and-drop visual builders
-
-With manifest, you structure your data using Yaml straight from your coding environment.
-
-```yml
-// backend.yml
-name: Blog about cats
-entities:
-  📝 Post:
-    properties:
-      - { name: title, type: string }
-      - { name: content, type: text }
-      - { name: publishedAt, type: date }
-      - { name: status, type: string }
-      - { name: likes, type: number }
-      - { name: price, type: money }
-      - { name: email, type: email }
-      - { name: public, type: boolean }
-      - { name: password, type: password }
-      - { name: location, type: location }
-    belongsTo:
-      - Category
-      - User
-      - { name: groupe, entity: Groupe, eager: true }
-
-  🏷️ Category:
-    properties:
-      - name
-      - description
-```
+- ⚡ **Instant complete backend** with zero configuration
+- 🧠 **Super-easy syntax** to build with ease
+- 🛠️ **Plug and play** with your favorite frontend
 
 ## Getting started
 
-### Prerequisites
+Simply run this terminal command to add Manifest:
 
-- [NodeJS](https://nodejs.org/en/) (**v16.14.0** or higher). The recommended version is **18.x**.
-
-### Create your manifest backend
-
-Run the following on your terminal replacing `my-case-app` with your app's name:
-
+```bash
+npx add-manifest
 ```
-npx create-case-app my-case-app
-```
-
-🎉 **Your backend is ready !**
-<br>
-<br>You can now:
-<br> - See your **Admin panel** at http://localhost:4000
-<br> - Use your **REST API** at http://localhost:4000/api
-
-You can now go through the [docs](https://docs.case.app/) to build your next block.
 
 ## Community & Resources
 
-- [Docs](https://docs.case.app/) - Learn CASE features
-- [Discord](https://discord.gg/FepAked3W7) - Come chat with the CASE community
-- [Dev.to](https://dev.to/casejs) - Stay tuned to CASE developments
+- [Docs](https://manifest.build/docs) - Get started with Manifest
+- [Discord](https://discord.gg/FepAked3W7) - Come chat with the community
 - [Github](https://github.com/casejs/case/issues) - Report bugs and share ideas to improve the product.
 
 ## Contributors
