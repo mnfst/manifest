@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "manifest/*.yml"],
+  "ext": "ts,yml,json",
+  "ignore": ["src/**/*.spec.ts"],
+  "exec": "nest start"
+}

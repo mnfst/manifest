@@ -1,0 +1,29 @@
+<nav
+  class="navbar"
+  role="navigation"
+  aria-label="main navigation"
+  [ngClass]="{ 'is-open': isOpen }"
+>
+  <div
+    class="navbar-wrapper is-flex is-align-items-center is-justify-content-space-between is-flex-direction-row-reverse is-fullheight"
+  >
+    <a
+      class="logo is-flex is-align-items-center is-justify-content-center px-0"
+      routerLink="/"
+    >
+      <img src="/assets/images/logo.svg" class="logo-image" width="180"/>
+    </a>
+
+    <a role="button" class="navbar-burger burger ml-0" (click)="toggleMenu()">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="hiding-layer" (click)="toggleMenu()"></div>
+  <div class="navbar-menu" id="create-dropdown">
+    <div class="navbar-end">
+      <app-side-menu></app-side-menu>
+    </div>
+  </div>
+</nav>

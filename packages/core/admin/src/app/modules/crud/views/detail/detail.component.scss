@@ -1,0 +1,9 @@
+@import '../../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
+.properties,
+.relations {
+  + div {
+    margin-top: $column-gap;
+  }
+}
