@@ -7,7 +7,7 @@ import path from 'path'
  *
  * This script is run as a prebuild step to generate the typescript types from the manifest JSON schema.
  */
-compileFromFile(path.join(__dirname, 'manifest-schema.json'), {
+compileFromFile(path.join(__dirname, 'schema.json'), {
   cwd: __dirname,
   bannerComment:
     '/* eslint-disable */\n/**\n* This file was automatically generated.\n* DO NOT MODIFY IT BY HAND. Instead, modify the source JSON Schema file,\n* and run `npm run build` to regenerate this file.\n*/',
