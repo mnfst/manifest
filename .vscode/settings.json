@@ -1,12 +1,12 @@
 {
   "yaml.schemas": {
-    "./packages/core/manifest/src/manifest/json-schema/manifest-schema.json": "**/manifest/**/*.yml"
+    "./packages/core/manifest/src/manifest/json-schema/schema.json": "**/manifest/**/*.yml"
   },
 
   "workbench.colorCustomizations": {
-    "activityBar.activeBackground": "#f0f1ff",
+    "activityBar.activeBackground": "#f8a94a",
     "activityBar.activeBorder": "#57b3a0",
-    "activityBar.background": "#f0f1ff",
+    "activityBar.background": "#57b3a0",
     "activityBar.foreground": "#2430F0",
     "activityBar.inactiveForeground": "#2430F099",
     "activityBarBadge.background": "#57b3a0",

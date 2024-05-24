@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://manifest.build/schemas/definitions/entity-schema.json",
+  "$id": "https://schema.manifest.build/definitions/entity-schema.json",
   "title": "Entity Manifest Schema",
   "description": "An entity in the system",
   "type": "object",

@@ -147,7 +147,7 @@ export class MyCommand extends Command {
           fileContent: settingsJson,
           settings: {
             'yaml.schemas': {
-              './node_modules/manifest/dist/manifest/json-schema/manifest-schema.json':
+              'https://schema.manifest.build/schema.json':
                 '**/manifest/**/*.yml'
             }
           }
