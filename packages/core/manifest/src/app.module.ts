@@ -16,6 +16,7 @@ import { LoggerModule } from './logger/logger.module'
 import { LoggerService } from './logger/logger.service'
 import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
+import { HealthModule } from './health/health.module'
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { SeedModule } from './seed/seed.module'
     SeedModule,
     CrudModule,
     AuthModule,
-    LoggerModule
+    LoggerModule,
+    HealthModule
   ]
 })
 export class AppModule {

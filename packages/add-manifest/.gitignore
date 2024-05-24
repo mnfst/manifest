@@ -12,5 +12,5 @@ node_modules
 oclif.lock
 oclif.manifest.json
 
-/test-dir/*
-!test-dir/.gitkeep
+/example/*
+!example/.gitkeep

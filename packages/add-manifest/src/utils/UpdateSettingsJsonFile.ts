@@ -5,12 +5,9 @@ export const updateSettingsJsonFile = ({
   fileContent: Record<string, unknown>
   settings: Record<string, unknown>
 }): string => {
-  return JSON.stringify(
-    {
-      ...fileContent,
-      ...settings
-    },
-    null,
-    2
-  )
+  Object.keys(settings).forEach((key: string) => {
+    fileContent[key] = settings[key]
+  })
+
+  return JSON.stringify(fileContent, null, 2)
 }
