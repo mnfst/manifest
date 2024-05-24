@@ -16,8 +16,6 @@ import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 const exec = promisify(execCp)
 
 export class MyCommand extends Command {
-  static description = 'Adds Manifest to your project.'
-
   /**
    * The run method is called when the command is run.
    *
@@ -78,7 +76,9 @@ export class MyCommand extends Command {
       let packageJson
 
       if (fs.existsSync(packagePath)) {
-        packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'))
+        packageJson = JSON.parse(
+          this.removeComments(fs.readFileSync(packagePath, 'utf8'))
+        )
       } else {
         packageJson = JSON.parse(
           fs.readFileSync(
@@ -93,7 +93,7 @@ export class MyCommand extends Command {
         updatePackageJsonFile({
           fileContent: packageJson,
           newPackages: {
-            manifest: '4.0.0-alpha.3'
+            manifest: '^4.0.0-alpha.0'
           },
           newScripts: {
             manifest: 'node node_modules/manifest/scripts/watch/watch.js',
@@ -106,8 +106,11 @@ export class MyCommand extends Command {
       spinner.start('Add settings...')
 
       // Update .vscode/extensions.json file.
-      const vscodeDirPath = path.join(process.cwd(), '.vscode')
-      const extensionsFilePath = path.join(vscodeDirPath, 'extensions.json')
+      const vscodeDirPath: string = path.join(process.cwd(), '.vscode')
+      const extensionsFilePath: string = path.join(
+        vscodeDirPath,
+        'extensions.json'
+      )
       let extensionsJson
 
       //  Ensure the `.vscode` Directory Exists
@@ -117,7 +120,9 @@ export class MyCommand extends Command {
 
       // Read or Initialize `extensions.json`
       if (fs.existsSync(extensionsFilePath)) {
-        extensionsJson = JSON.parse(fs.readFileSync(extensionsFilePath, 'utf8'))
+        extensionsJson = JSON.parse(
+          this.removeComments(fs.readFileSync(extensionsFilePath, 'utf8'))
+        )
       } else {
         extensionsJson = { recommendations: [] }
       }
@@ -136,7 +141,9 @@ export class MyCommand extends Command {
 
       // Read or Initialize `settings.json`
       if (fs.existsSync(settingsFilePath)) {
-        settingsJson = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'))
+        settingsJson = JSON.parse(
+          this.removeComments(fs.readFileSync(settingsFilePath, 'utf8'))
+        )
       } else {
         settingsJson = {}
       }
@@ -259,5 +266,19 @@ export class MyCommand extends Command {
         await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s before retrying
       }
     }
+  }
+
+  /**
+   * Transform a JSON with comments to a JSON without comments.
+   *
+   * @param {string} jsonWithComments - The JSON with comments.
+   *
+   * @returns {string} - The JSON without comments.
+   *
+   **/
+  removeComments(jsonString: string): string {
+    return jsonString
+      .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+      .replace(/\/\/.*$/gm, '') // Remove single-line comments
   }
 }

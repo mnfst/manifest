@@ -7,11 +7,10 @@ export const updateExtensionJsonFile = ({
     recommendations: string[]
   }
 }): string => {
-  extensions.forEach((recommendation) => {
-    if (!fileContent.recommendations.includes(recommendation)) {
-      fileContent.recommendations.push(recommendation)
+  extensions.forEach((extension: string) => {
+    if (!fileContent.recommendations.includes(extension)) {
+      fileContent.recommendations.push(extension)
     }
   })
-
   return JSON.stringify(fileContent, null, 2)
 }
