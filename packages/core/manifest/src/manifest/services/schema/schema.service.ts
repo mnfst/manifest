@@ -7,6 +7,7 @@ import {
 } from '@mnfst/types'
 import Ajv from 'ajv'
 import schemas from '../../json-schema'
+import chalk from 'chalk'
 
 @Injectable()
 export class SchemaService {
@@ -43,8 +44,13 @@ export class SchemaService {
     const valid = validate(manifest)
 
     if (!valid) {
-      console.error('#### JSON Schema Validation failed ####')
-      console.error(validate.errors)
+      console.log(
+        chalk.red('JSON Schema Validation failed. Please fix the following:')
+      )
+
+      validate.errors.forEach((error: any) => {
+        console.log(chalk.red(JSON.stringify(error, null, 2)))
+      })
       process.exit(1)
     }
 
@@ -75,9 +81,14 @@ export class SchemaService {
 
         relationshipNames.forEach((relationship: any) => {
           if (!entityNames.includes(relationship)) {
-            console.error('#### JSON Schema Validation failed ####')
-            console.error(
-              `Entity ${relationship} does not exist in the manifest`
+            console.log(
+              chalk.red(
+                'JSON Schema Validation failed. Please fix the following:'
+              )
+            )
+
+            console.log(
+              chalk.red(`Entity ${relationship} does not exist in the manifest`)
             )
             process.exit(1)
           }

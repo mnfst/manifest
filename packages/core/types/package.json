@@ -1,6 +1,6 @@
 {
   "name": "@mnfst/types",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Utility types used by Manifest",
   "author": "Manifest",
   "homepage": "https://manifest.build",
@@ -22,7 +22,10 @@
     "manifest",
     "backend",
     "baas",
-    "types"
+    "types",
+    "typescript",
+    "schema",
+    "utility"
   ],
   "bugs": {
     "url": "https://github.com/ManifestOfficial/manifest/issues"

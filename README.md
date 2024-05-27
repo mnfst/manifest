@@ -20,17 +20,13 @@
   <a href="https://opencollective.com/casejs"  target="_blank">
     <img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us">
   </a>
-  <a href=https://github.com/ManifestOfficial/manifest/blob/develop/LICENSE" target="_blank">
-    <img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-green">
+  <a href="https://github.com/ManifestOfficial/manifest/blob/develop/LICENSE" target="_blank">
+    <img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green">
   </a>
   <br>
 </p>
 
-# Manifest
-
 [Manifest](https://manifest.build) is the simplest **BaaS (Backend As A Service)** you will find.
-
-It provides a complete backend to your client app without the hassle that comes with it. It actually fits into **a single YAML file** that generates a complete backend.
 
 Here is an example of a complete Manifest app:
 

@@ -1,0 +1,14 @@
+name: My pet app
+entities:
+  😃 Owner:
+    properties:
+      - name
+      - { name: email, type: email }
+
+  😺 Cat:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Owner
