@@ -3,6 +3,7 @@ import { SHA3 } from 'crypto-js'
 
 import { PropType } from '@mnfst/types'
 
+// This is a mapping of prop types to seed functions.
 export const propTypeSeedFunctions: Record<PropType, (options?: any) => any> = {
   [PropType.String]: () => faker.commerce.product(),
   [PropType.Number]: () => faker.number.int({ max: 50 }),

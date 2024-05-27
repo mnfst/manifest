@@ -37,8 +37,8 @@
   ],
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@mnfst/admin": "0.1.0-alpha.0",
-    "@mnfst/types": "0.1.0-alpha.2",
+    "@mnfst/admin": "^0.1.0-alpha.1",
+    "@mnfst/types": "^0.1.0-alpha.2",
     "@nestjs/common": "^10.3.3",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^10.3.3",

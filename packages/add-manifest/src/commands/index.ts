@@ -185,7 +185,9 @@ export class MyCommand extends Command {
     spinner.start('Add environment variables...')
     // Add environment variables to .env file
     const envFilePath = path.join(process.cwd(), '.env')
-    const envJWTSecret = `JWT_SECRET=${crypto.randomBytes(32).toString('hex')}`
+    const envJWTSecret = `TOKEN_SECRET_KEY=${crypto
+      .randomBytes(32)
+      .toString('hex')}`
 
     let envContent: string
 

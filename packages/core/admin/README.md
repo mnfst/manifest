@@ -2,11 +2,11 @@
 
 This is the official [Manifest](https://manifest.build) admin panel.
 
-## Publish
+## Install
 
-Make sure that the version in `package.json` is correct.
+First make sure that you have an active Manifest task serving on port 1111.
 
 ```
-npm run build
-npm publish
+npm install
+npm run start
 ```
