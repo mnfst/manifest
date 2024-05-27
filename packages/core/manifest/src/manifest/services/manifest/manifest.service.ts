@@ -37,7 +37,14 @@ export class ManifestService {
   getAppManifest(options?: { publicVersion?: boolean }): AppManifest {
     const manifestSchema: AppManifestSchema = this.yamlService.load()
 
+    if (!manifestSchema.entities) {
+      manifestSchema.entities = {}
+    }
+
     this.schemaService.validate(manifestSchema)
+
+    // Add Admin entity.
+    manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
     const appManifest: AppManifest = this.transformAppManifest(manifestSchema)
 

@@ -1,7 +1,25 @@
 {
   "name": "@mnfst/admin",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "homepage": "https://manifest.build",
+  "keywords": [
+    "admin",
+    "dashboard",
+    "backend",
+    "api",
+    "mnfst",
+    "manifest",
+    "baas",
+    "backend-as-a-service"
+  ],
+  "description": "Official Manifest admin panel",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ManifestOfficial/manifest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ManifestOfficial/manifest/issues"
+  },
   "files": [
     "dist/"
   ],
@@ -24,7 +42,7 @@
     "@angular/platform-browser-dynamic": "^17.3.1",
     "@angular/router": "^17.3.1",
     "@auth0/angular-jwt": "^5.2.0",
-    "@mnfst/types": "^0.1.0-alpha.2",
+    "@mnfst/types": "^0.1.0-alpha.3",
     "bulma": "^0.9.4",
     "bulma-tooltip": "^3.0.2",
     "rxjs": "~7.5.0",
@@ -43,15 +61,5 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "typescript": "~5.4.3"
-  },
-  "keywords": [
-    "admin",
-    "dashboard",
-    "backend",
-    "api",
-    "mnfst",
-    "manifest",
-    "baas",
-    "backend-as-a-service"
-  ]
+  }
 }
