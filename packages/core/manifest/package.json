@@ -7,10 +7,10 @@
   "homepage": "https://manifest.build",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ManifestOfficial/manifest.git"
+    "url": "git+https://github.com/mnfst/manifest.git"
   },
   "bugs": {
-    "url": "https://github.com/ManifestOfficial/manifest/issues"
+    "url": "https://github.com/mnfst/manifest/issues"
   },
   "keywords": [
     "manifest",

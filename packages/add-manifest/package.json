@@ -73,9 +73,9 @@
   "main": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ManifestOfficial/manifest.git"
+    "url": "git+https://github.com/mnfst/manifest.git"
   },
-  "bugs": "https://github.com/ManifestOfficial/manifest/issues",
+  "bugs": "https://github.com/mnfst/manifest/issues",
   "keywords": [
     "manifest",
     "backend",
