@@ -43,9 +43,9 @@
     "chalk": "^5.3.0",
     "fs": "^0.0.1-security",
     "jsonc-parser": "^3.2.1",
-    "open": "^10.1.0",
     "ora": "^8.0.1",
     "path": "^0.12.7",
+    "tree-kill": "^1.2.2",
     "url": "^0.11.3"
   },
   "devDependencies": {
