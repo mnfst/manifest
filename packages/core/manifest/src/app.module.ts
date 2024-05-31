@@ -61,15 +61,6 @@ export class AppModule {
 
     if (!isSeed) {
       this.loggerService.initMessage()
-      this.openUrl(
-        'http://localhost:1111/auth/login?email=admin@manifest.build&password=admin'
-      )
     }
-  }
-
-  async openUrl(url: string) {
-    // ESM import.
-    const open = (await import('open')).default
-    await open(url)
   }
 }
