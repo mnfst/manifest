@@ -19,7 +19,7 @@ export class LoggerService {
 
     console.log(
       chalk.blue(
-        '🎉 Manifest successfully started! See your admin panel: ',
+        '🎉 Manifest successfully started at ',
         chalk.underline.blue(`http://localhost:${port}`)
       )
     )

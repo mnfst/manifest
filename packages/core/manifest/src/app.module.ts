@@ -50,11 +50,26 @@ import { HealthModule } from './health/health.module'
   ]
 })
 export class AppModule {
-  constructor(private loggerService: LoggerService) {
+  constructor(private loggerService: LoggerService) {}
+
+  async onModuleInit() {
+    await this.init()
+  }
+
+  private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
 
     if (!isSeed) {
       this.loggerService.initMessage()
+      this.openUrl(
+        'http://localhost:1111/auth/login?email=admin@manifest.build&password=admin'
+      )
     }
+  }
+
+  async openUrl(url: string) {
+    // ESM import.
+    const open = (await import('open')).default
+    await open(url)
   }
 }
