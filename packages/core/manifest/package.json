@@ -1,16 +1,16 @@
 {
   "name": "manifest",
-  "version": "4.0.0-alpha.6",
+  "version": "4.0.0-alpha.8",
   "description": "Effortless backends",
   "author": "Manifest",
   "license": "MIT",
   "homepage": "https://manifest.build",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ManifestOfficial/manifest.git"
+    "url": "git+https://github.com/mnfst/manifest.git"
   },
   "bugs": {
-    "url": "https://github.com/ManifestOfficial/manifest/issues"
+    "url": "https://github.com/mnfst/manifest/issues"
   },
   "keywords": [
     "manifest",
@@ -44,7 +44,7 @@
   ],
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@mnfst/admin": "^0.1.0-alpha.2",
+    "@mnfst/admin": "^0.1.0-alpha.4",
     "@mnfst/types": "^0.1.0-alpha.3",
     "@nestjs/common": "^10.3.3",
     "@nestjs/config": "^3.2.0",

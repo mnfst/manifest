@@ -50,7 +50,13 @@ import { HealthModule } from './health/health.module'
   ]
 })
 export class AppModule {
-  constructor(private loggerService: LoggerService) {
+  constructor(private loggerService: LoggerService) {}
+
+  async onModuleInit() {
+    await this.init()
+  }
+
+  private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
 
     if (!isSeed) {
