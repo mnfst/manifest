@@ -1,7 +1,7 @@
 <br>
 <p align="center">
   <a href="https://manifest.build">
-    <img alt="manifest" src="https://manifest.build/logo-transparent.svg" height="55px" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" />
   </a>
 </p>
 
