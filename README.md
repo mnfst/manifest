@@ -1,7 +1,7 @@
 <br>
 <p align="center">
   <a href="https://manifest.build">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
   </a>
 </p>
 
