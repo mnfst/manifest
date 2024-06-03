@@ -1,7 +1,7 @@
 <br>
 <p align="center">
   <a href="https://manifest.build">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-poc.svg" height="55px" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
   </a>
 </p>
 
@@ -17,7 +17,7 @@
   <a href="https://discord.com/invite/FepAked3W7" target="_blank">
     <img alt="Discord" src="https://img.shields.io/discord/1089907785178812499?label=discord">
   </a>
-  <a href="https://opencollective.com/casejs"  target="_blank">
+  <a href="https://opencollective.com/mnfst"  target="_blank">
     <img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us">
   </a>
   <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank">
