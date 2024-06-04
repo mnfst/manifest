@@ -15,4 +15,16 @@ describe('PropertyService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
+
+  it('should return the seed value for a property', () => {
+    const propertyManifest = {
+      type: 'string',
+      options: {
+        minLength: 5,
+        maxLength: 10
+      }
+    } as any
+
+    expect(service.getSeedValue(propertyManifest)).not.toBeNull()
+  })
 })
