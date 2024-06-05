@@ -1,13 +1,13 @@
 import { Command } from '@oclif/core'
 import axios from 'axios'
-import { exec as execCp } from 'node:child_process'
+import { PromiseWithChild, exec as execCp } from 'node:child_process'
 import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import open from 'open'
 import ora from 'ora'
+import treeKill from 'tree-kill'
 import { parse } from 'jsonc-parser'
 
 import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
@@ -91,7 +91,7 @@ export class MyCommand extends Command {
       updatePackageJsonFile({
         fileContent: packageJson,
         newPackages: {
-          manifest: '^4.0.0-alpha.4'
+          manifest: '^4.0.0-alpha.8'
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',
@@ -201,17 +201,20 @@ export class MyCommand extends Command {
     fs.writeFileSync(envFilePath, envContent)
 
     spinner.succeed()
+    spinner.start('Build the database...')
 
-    spinner.start('Serve the backend...')
+    let serveTask: PromiseWithChild<{ stdout: string; stderr: string }> | null =
+      null
+
     try {
-      exec('npm run manifest')
+      // We run the manifest script to build the database.
+      serveTask = exec('npm run manifest')
+
+      await this.waitForServerToBeReady()
+      spinner.succeed()
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
     }
-
-    // Wait for the server to start
-    await this.waitForServerToBeReady()
-    spinner.succeed()
 
     spinner.start('Seed initial data...')
     try {
@@ -222,7 +225,14 @@ export class MyCommand extends Command {
 
     spinner.succeed()
 
-    open('http://localhost:1111/auth/login')
+    console.log()
+    console.log('🎉 Manifest successfully installed !')
+    console.log()
+    console.log('🚀 Run `npm run manifest` to start the server.')
+    console.log()
+
+    await this.silentKill(serveTask?.child?.pid || 0)
+    process.exit()
   }
 
   /**
@@ -266,5 +276,24 @@ export class MyCommand extends Command {
     return jsonString
       .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
       .replace(/\/\/.*$/gm, '') // Remove single-line comments
+  }
+
+  /**
+   * Kill a process without logging an error if it fails.
+   *
+   * @param {number} pid - The process ID.
+   * @returns {Promise<void>} - A promise that resolves when the process is killed.
+   *
+   */
+  silentKill(pid: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      treeKill(pid, 'SIGKILL', (err) => {
+        if (err) {
+          reject(`Failed to kill process: ${err}`)
+        } else {
+          resolve()
+        }
+      })
+    })
   }
 }

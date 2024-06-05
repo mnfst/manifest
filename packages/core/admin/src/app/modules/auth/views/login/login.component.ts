@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { Component, OnInit } from '@angular/core'
 import { FormControl, FormGroup, Validators } from '@angular/forms'
-import { ActivatedRoute, Router } from '@angular/router'
+import { ActivatedRoute, Params, Router } from '@angular/router'
 
 import { PropType } from '@mnfst/types'
 
@@ -14,12 +14,6 @@ import { AuthService } from '../../auth.service'
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  // appConfig: AppConfig
-
-  defaultUser: any = {
-    email: 'admin@manifest.build',
-    password: 'manifest'
-  }
   suggestedEmail: string
   suggestedPassword: string
 
@@ -34,32 +28,24 @@ export class LoginComponent implements OnInit {
     private readonly authService: AuthService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private flashMessageService: FlashMessageService // private appConfigService: AppConfigService
+    private flashMessageService: FlashMessageService
   ) {}
 
   ngOnInit(): void {
-    //   combineLatest([
-    //     this.appConfigService.appConfig,
-    //     this.activatedRoute.queryParams
-    //   ]).subscribe(([appConfig, queryParams]: [AppConfig, Params]) => {
-    //     this.appConfig = appConfig
-    //     if (queryParams['email']) {
-    //       this.suggestedEmail = queryParams['email']
-    //     } else if (!this.appConfig.production) {
-    //       this.suggestedEmail = this.defaultUser.email
-    //     }
-    //     if (queryParams['password']) {
-    //       this.suggestedPassword = queryParams['password']
-    //     } else if (!this.appConfig.production) {
-    //       this.suggestedPassword = this.defaultUser.password
-    //     }
-    //     if (this.suggestedEmail) {
-    //       this.patchValue('email', this.suggestedEmail)
-    //     }
-    //     if (this.suggestedPassword) {
-    //       this.patchValue('password', this.suggestedPassword)
-    //     }
-    //   })
+    this.activatedRoute.queryParams.subscribe((queryParams: Params) => {
+      if (queryParams['email']) {
+        this.suggestedEmail = queryParams['email']
+      }
+      if (queryParams['password']) {
+        this.suggestedPassword = queryParams['password']
+      }
+      if (this.suggestedEmail) {
+        this.patchValue('email', this.suggestedEmail)
+      }
+      if (this.suggestedPassword) {
+        this.patchValue('password', this.suggestedPassword)
+      }
+    })
   }
 
   patchValue(controlName: string, value: string) {

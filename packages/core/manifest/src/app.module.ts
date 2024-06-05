@@ -8,7 +8,6 @@ import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
 import generalConfig from './config/general'
 import pathsConfig from './config/paths'
-import yamlConfig from './config/yaml'
 import { CrudModule } from './crud/crud.module'
 import { EntityModule } from './entity/entity.module'
 import { EntityLoaderService } from './entity/services/entity-loader/entity-loader.service'
@@ -22,7 +21,7 @@ import { HealthModule } from './health/health.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [generalConfig, databaseConfig, yamlConfig, pathsConfig]
+      load: [generalConfig, databaseConfig, pathsConfig]
     }),
 
     TypeOrmModule.forRootAsync({
@@ -50,7 +49,13 @@ import { HealthModule } from './health/health.module'
   ]
 })
 export class AppModule {
-  constructor(private loggerService: LoggerService) {
+  constructor(private loggerService: LoggerService) {}
+
+  async onModuleInit() {
+    await this.init()
+  }
+
+  private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
 
     if (!isSeed) {

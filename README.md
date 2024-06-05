@@ -1,7 +1,10 @@
 <br>
 <p align="center">
-  <a href="https://manifest.build">
-    <img alt="manifest" src="https://manifest.build/logo-transparent.svg" height="55px" />
+  <a href="https://manifest.build/#gh-light-mode-only">
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
+  </a>
+  <a href="https://manifest.build/#gh-dark-mode-only">
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
   </a>
 </p>
 
@@ -11,16 +14,16 @@
   <a href="https://www.npmjs.com/package/manifest" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/manifest">
   </a>
-  <a href="https://www.codefactor.io/repository/github/ManifestOfficial/manifest" target="_blank">
-    <img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/ManifestOfficial/manifest">
+  <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank">
+    <img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest">
   </a>
   <a href="https://discord.com/invite/FepAked3W7" target="_blank">
     <img alt="Discord" src="https://img.shields.io/discord/1089907785178812499?label=discord">
   </a>
-  <a href="https://opencollective.com/casejs"  target="_blank">
+  <a href="https://opencollective.com/mnfst"  target="_blank">
     <img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us">
   </a>
-  <a href="https://github.com/ManifestOfficial/manifest/blob/develop/LICENSE" target="_blank">
+  <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank">
     <img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green">
   </a>
   <br>
@@ -73,12 +76,12 @@ npx add-manifest
 
 - [Docs](https://manifest.build/docs) - Get started with Manifest
 - [Discord](https://discord.gg/FepAked3W7) - Come chat with the community
-- [Github](https://github.com/ManifestOfficial/manifest/issues) - Report bugs and share ideas to improve the product.
+- [Github](https://github.com/mnfst/manifest/issues) - Report bugs and share ideas to improve the product.
 
 ## Contributors
 
 Thanks to our first wonderful contributors !
 
-<a href="https://github.com/ManifestOfficial/manifest/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ManifestOfficial/manifest" />
+<a href="https://github.com/mnfst/manifest/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mnfst/manifest" />
 </a>

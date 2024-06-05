@@ -81,7 +81,7 @@ export class ListComponent implements OnInit {
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
-      queryParams: this.queryParams,
+      queryParams,
       queryParamsHandling: 'merge'
     })
   }
