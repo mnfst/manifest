@@ -3,3 +3,6 @@ contact_links:
   - name: 🆕 Feature request
     url: https://github.com/mnfst/manifest/discussions/new?category=feature-request
     about: Ask for new features! The most popular features will be included in the roadmap.
+  - name: 📃 Documentation Bug Report
+    url: https://github.com/mnfst/docs/issues/new
+    about: Create a report to help us improve the Manifest documentation.
