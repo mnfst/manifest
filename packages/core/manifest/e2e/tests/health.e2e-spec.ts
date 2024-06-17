@@ -6,6 +6,9 @@ import TestAgent from 'supertest/lib/agent'
 import { AppModule } from '../../src/app.module'
 
 describe('Health (e2e)', () => {
+  let app: INestApplication
+  let request: TestAgent
+
   let originalConsoleLog
 
   beforeAll(() => {
@@ -16,9 +19,6 @@ describe('Health (e2e)', () => {
   afterAll(() => {
     console.log = originalConsoleLog
   })
-
-  let app: INestApplication
-  let request: TestAgent
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({

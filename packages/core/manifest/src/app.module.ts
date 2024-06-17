@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { EntitySchema } from 'typeorm'
-import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
 import generalConfig from './config/general'
@@ -16,6 +15,7 @@ import { LoggerService } from './logger/logger.service'
 import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
 import { HealthModule } from './health/health.module'
+import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions'
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { HealthModule } from './health/health.module'
         configService: ConfigService,
         entityLoaderService: EntityLoaderService
       ) => {
-        const databaseConfig: SqliteConnectionOptions =
+        const databaseConfig: BetterSqlite3ConnectionOptions =
           configService.get('database')
 
         const entities: EntitySchema[] = entityLoaderService.loadEntities()
