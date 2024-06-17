@@ -23,7 +23,6 @@ import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/Be
       isGlobal: true,
       load: [generalConfig, databaseConfig, pathsConfig]
     }),
-
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, EntityModule],
       useFactory: (

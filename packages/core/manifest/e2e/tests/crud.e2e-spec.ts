@@ -7,7 +7,7 @@ import { AppModule } from '../../src/app.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { YamlService } from '../../src/manifest/services/yaml/yaml.service'
 
-describe('Health (e2e)', () => {
+describe('CRUD (e2e)', () => {
   let app: INestApplication
   let request: TestAgent
 
@@ -26,10 +26,11 @@ describe('Health (e2e)', () => {
     await app.init()
   })
 
-  it('/GET health', () => {
-    return request
-      .get('/health')
-      .expect(200)
-      .expect(JSON.stringify({ status: 'OK' }))
+  it('/GET dynamic/:entity', () => {
+    return request.get('/dynamic/dogs').expect(200)
   })
+
+  // TODO: Test individually each CRUD endpoint.
+  // TODO: Manifest e2e tests.
+  // TODO: Seed test database.
 })
