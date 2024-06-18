@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
+import { SwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger'
 import connectLiveReload from 'connect-livereload'
 import * as express from 'express'
 import * as livereload from 'livereload'
@@ -46,6 +47,15 @@ async function bootstrap() {
       res.sendFile(join(adminPath, 'index.html'))
     }
   })
+
+  const apiDoc = new DocumentBuilder()
+    .setTitle('Cats example')
+    .setDescription('The cats API description')
+    .build()
+
+  const document: OpenAPIObject = SwaggerModule.createDocument(app, apiDoc)
+
+  SwaggerModule.setup('api', app, document)
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
 }

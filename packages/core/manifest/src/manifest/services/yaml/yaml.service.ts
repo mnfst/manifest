@@ -4,10 +4,12 @@ import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
 import { AppManifestSchema } from '@mnfst/types'
-import { MANIFEST_FILE_NAME, MANIFEST_FOLDER_NAME } from '../../../constants'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class YamlService {
+  constructor(private readonly configService: ConfigService) {}
+
   /**
    *
    * Load the manifest from the YML file and transform it into a AppManifest object.
@@ -17,7 +19,7 @@ export class YamlService {
    **/
   load(): AppManifestSchema {
     let fileContent: string = fs.readFileSync(
-      `${process.cwd()}/${MANIFEST_FOLDER_NAME}/${MANIFEST_FILE_NAME}`,
+      this.configService.get('paths').database,
       'utf8'
     )
 
