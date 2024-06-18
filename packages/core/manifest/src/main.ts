@@ -1,17 +1,14 @@
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
-import { SwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger'
+import { SwaggerModule } from '@nestjs/swagger'
 import connectLiveReload from 'connect-livereload'
 import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 import { AppModule } from './app.module'
 import { DEFAULT_PORT } from './constants'
-import { ManifestModule } from './manifest/manifest.module'
-import { AuthModule } from './auth/auth.module'
-import { ManifestService } from './manifest/services/manifest/manifest.service'
-import { EntityManifest } from '@mnfst/types'
+import { OpenApiService } from './open-api/services/open-api.service'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -54,47 +51,9 @@ async function bootstrap() {
   })
 
   if (!isProduction && !isTest) {
-    // Generate the Swagger API documentation.
-    const apiDoc = new DocumentBuilder()
-      .setTitle('Cats example')
-      .setDescription('The cats API description')
-      .build()
+    const openApiService: OpenApiService = app.get(OpenApiService)
 
-    const document: OpenAPIObject = SwaggerModule.createDocument(app, apiDoc, {
-      include: [ManifestModule, AuthModule]
-    })
-
-    const manifestService: ManifestService = app.get(ManifestService)
-
-    const entities: EntityManifest[] = manifestService.getEntityManifests()
-
-    console.log(entities)
-
-    entities.forEach((entity: EntityManifest) => {
-      document.paths[`/api/${entity.slug}`] = {
-        get: {
-          tags: [entity.slug],
-          summary: `Get all ${entity.slug}`,
-          responses: {
-            '200': {
-              description: `The ${entity.slug} were obtained.`,
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'array',
-                    items: {
-                      $ref: `#/components/schemas/${entity.slug}`
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
-
-    SwaggerModule.setup('api', app, document)
+    SwaggerModule.setup('api', app, openApiService.generateOpenApiObject())
   }
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
