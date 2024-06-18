@@ -27,6 +27,7 @@
     "start:dev": "nodemon",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "seed": "node dist/seed/seed.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:ci": "jest --ci",
@@ -35,7 +36,6 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./e2e/jest-e2e.json",
     "test:e2e:ci": "jest --config ./e2e/jest-e2e.json --ci",
-    "seed": "node dist/seed/seed.js",
     "generate-types": "ts-node src/manifest/json-schema/GenerateTypes.ts",
     "prebuild": "npm run generate-types"
   },

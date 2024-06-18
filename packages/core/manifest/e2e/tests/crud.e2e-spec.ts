@@ -1,36 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { INestApplication } from '@nestjs/common'
-import supertest from 'supertest'
-
-import TestAgent from 'supertest/lib/agent'
-import { AppModule } from '../../src/app.module'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { YamlService } from '../../src/manifest/services/yaml/yaml.service'
+import { Paginator } from '@mnfst/types'
 
 describe('CRUD (e2e)', () => {
-  let app: INestApplication
-  let request: TestAgent
+  it('GET /dynamic/:entity', async () => {
+    const response = await global.request.get('/dynamic/dogs')
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule]
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchObject<Paginator<any>>({
+      data: expect.any(Array),
+      currentPage: expect.any(Number),
+      lastPage: expect.any(Number),
+      from: expect.any(Number),
+      to: expect.any(Number),
+      total: expect.any(Number),
+      perPage: expect.any(Number)
     })
-      .overrideProvider(YamlService)
-      .useValue(global.MockYamlService)
-      .overrideModule(TypeOrmModule)
-      .useModule(TypeOrmModule.forRootAsync(global.mockTypeOrmOptions))
-      .compile()
-
-    app = moduleFixture.createNestApplication()
-    request = supertest(app.getHttpServer())
-    await app.init()
-  })
-
-  it('/GET dynamic/:entity', () => {
-    return request.get('/dynamic/dogs').expect(200)
+    // expect(response.body.data.length).toBeGreaterThan(0)
   })
 
   // TODO: Test individually each CRUD endpoint.
-  // TODO: Manifest e2e tests.
   // TODO: Seed test database.
 })

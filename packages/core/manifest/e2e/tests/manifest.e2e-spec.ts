@@ -1,37 +1,38 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { INestApplication } from '@nestjs/common'
-import supertest from 'supertest'
-
-import TestAgent from 'supertest/lib/agent'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { YamlService } from '../../src/manifest/services/yaml/yaml.service'
-import { AppModule } from '../../src/app.module'
-
-jest.mock('fs')
+import { EntityManifest } from '@mnfst/types'
 
 describe('Manifest (e2e)', () => {
-  let app: INestApplication
-  let request: TestAgent
+  it('GET /manifest', async () => {
+    const response = await global.request.get('/manifest')
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule]
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchObject({
+      name: expect.any(String),
+      entities: expect.any(Object)
     })
-      .overrideProvider(YamlService)
-      .useValue(global.MockYamlService)
-      .overrideModule(TypeOrmModule)
-      .useModule(TypeOrmModule.forRootAsync(global.mockTypeOrmOptions))
-      .compile()
 
-    app = moduleFixture.createNestApplication()
-    request = supertest(app.getHttpServer())
-    await app.init()
+    expect(Object.keys(response.body.entities).length).toBeGreaterThan(0)
+
+    Object.values(response.body.entities).forEach((entity: EntityManifest) => {
+      expect(entity).toMatchObject<Partial<EntityManifest>>({
+        properties: expect.any(Array)
+      })
+
+      if (entity.belongsTo !== undefined) {
+        expect(entity.belongsTo).toEqual(expect.any(Array))
+      }
+    })
   })
 
-  it('/GET manifest', () => {
-    return request
-      .get('/manifest')
-      .expect(200)
-      .expect(JSON.stringify({ status: 'OK' }))
+  it('GET /manifest/entities/:slug', async () => {
+    const response = await global.request.get('/manifest/entities/dogs')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchObject<Partial<EntityManifest>>({
+      properties: expect.any(Array)
+    })
+
+    if (response.body.belongsTo !== undefined) {
+      expect(response.body.belongsTo).toEqual(expect.any(Array))
+    }
   })
 })
