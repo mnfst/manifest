@@ -29,6 +29,9 @@
   <br>
 </p>
 
+> [!NOTE]  
+> Manifest is in the Proof of Concept phase. If this approach suits you, we will develop a stable version with the expected features. We rely on your feedback to understand which features you need.
+
 [Manifest](https://manifest.build) is the simplest **BaaS (Backend As A Service)** you will find.
 
 Here is an example of a complete Manifest app:

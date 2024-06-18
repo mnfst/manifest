@@ -1,0 +1,14 @@
+name: 'mock-backend-for-e2e-tests'
+entities:
+  Owner:
+    properties:
+      - name
+      - { name: email, type: email }
+
+  Dog:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Owner
