@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { EntitySchema } from 'typeorm'
-import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
 import generalConfig from './config/general'
@@ -16,6 +15,7 @@ import { LoggerService } from './logger/logger.service'
 import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
 import { HealthModule } from './health/health.module'
+import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions'
 
 @Module({
   imports: [
@@ -23,14 +23,13 @@ import { HealthModule } from './health/health.module'
       isGlobal: true,
       load: [generalConfig, databaseConfig, pathsConfig]
     }),
-
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, EntityModule],
       useFactory: (
         configService: ConfigService,
         entityLoaderService: EntityLoaderService
       ) => {
-        const databaseConfig: SqliteConnectionOptions =
+        const databaseConfig: BetterSqlite3ConnectionOptions =
           configService.get('database')
 
         const entities: EntitySchema[] = entityLoaderService.loadEntities()
@@ -57,8 +56,9 @@ export class AppModule {
 
   private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
+    const isTest: boolean = process.env.NODE_ENV === 'test'
 
-    if (!isSeed) {
+    if (!isSeed && !isTest) {
       this.loggerService.initMessage()
     }
   }

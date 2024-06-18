@@ -1,8 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { YamlService } from './yaml.service'
+import * as fs from 'fs'
+
+jest.mock('fs')
 
 describe('YamlService', () => {
   let service: YamlService
+
+  beforeAll(() => {
+    ;(fs.readFileSync as jest.Mock).mockImplementation(
+      () => 'mocked file content'
+    )
+  })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

@@ -38,3 +38,10 @@ Simply run this command on your terminal from the root of your project:
 ```bash
 npx add-manifest
 ```
+
+## Test
+
+```bash
+npm run test
+npm run test:e2e
+```
