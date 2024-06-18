@@ -16,6 +16,7 @@ import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
 import { HealthModule } from './health/health.module'
 import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions'
+import { OpenApiModule } from './open-api/open-api.module'
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/Be
     CrudModule,
     AuthModule,
     LoggerModule,
-    HealthModule
+    HealthModule,
+    OpenApiModule
   ]
 })
 export class AppModule {
@@ -57,8 +59,9 @@ export class AppModule {
   private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
     const isTest: boolean = process.env.NODE_ENV === 'test'
+    const isProduction: boolean = process.env.NODE_ENV === 'production'
 
-    if (!isSeed && !isTest) {
+    if (!isSeed && !isTest && !isProduction) {
       this.loggerService.initMessage()
     }
   }
