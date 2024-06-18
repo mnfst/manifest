@@ -5,7 +5,9 @@ export default (): { database: BetterSqlite3ConnectionOptions } => {
   return {
     database: {
       type: 'better-sqlite3',
-      database: `${process.cwd()}/manifest/backend.db`,
+      database:
+        process.env.DB_DATABASE || `${process.cwd()}/manifest/backend.db`,
+      dropSchema: process.env.DB_DROP_SCHEMA === 'true' || false,
       subscribers: [AdminEventSubscriber],
       synchronize: true
     }
