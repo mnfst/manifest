@@ -50,7 +50,7 @@ async function bootstrap() {
     }
   })
 
-  if (!isProduction && !isTest) {
+  if (!isProduction) {
     const openApiService: OpenApiService = app.get(OpenApiService)
 
     SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
