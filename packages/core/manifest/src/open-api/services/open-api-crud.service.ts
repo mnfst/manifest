@@ -45,7 +45,7 @@ export class OpenApiCrudService {
       get: {
         summary: `List ${entityManifest.namePlural}`,
         description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/rest-api#filters`,
-        tags: [entityManifest.namePlural],
+        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
         parameters: [
           {
             name: 'page',
@@ -128,7 +128,7 @@ export class OpenApiCrudService {
       get: {
         summary: `List ${entityManifest.namePlural} for select options`,
         description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'.`,
-        tags: [entityManifest.namePlural],
+        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
         responses: {
           '200': {
             description: `List of ${entityManifest.namePlural} for select options`,
@@ -161,7 +161,7 @@ export class OpenApiCrudService {
       post: {
         summary: `Create a new ${entityManifest.nameSingular}`,
         description: `Creates a new ${entityManifest.nameSingular} passing the properties in the request body as JSON.`,
-        tags: [entityManifest.namePlural],
+        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
         requestBody: {
           content: {
             'application/json': {
@@ -195,7 +195,7 @@ export class OpenApiCrudService {
       get: {
         summary: `Get a single ${entityManifest.nameSingular}`,
         description: `Retrieves the details of a single ${entityManifest.nameSingular} by its ID.`,
-        tags: [entityManifest.namePlural],
+        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
         parameters: [
           {
             name: 'id',
@@ -238,7 +238,7 @@ export class OpenApiCrudService {
       put: {
         summary: `Update an existing ${entityManifest.nameSingular}`,
         description: `Updates a single ${entityManifest.nameSingular} by its ID. The properties to update are passed in the request body as JSON.`,
-        tags: [entityManifest.namePlural],
+        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
         requestBody: {
           content: {
             'application/json': {
@@ -290,7 +290,7 @@ export class OpenApiCrudService {
       delete: {
         summary: `Delete an existing ${entityManifest.nameSingular}`,
         description: `Deletes a single ${entityManifest.nameSingular} by its ID.`,
-        tags: [entityManifest.namePlural],
+        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
         parameters: [
           {
             name: 'id',
@@ -312,5 +312,10 @@ export class OpenApiCrudService {
         }
       }
     }
+  }
+
+  private capitalizeFirstLetter(str: string) {
+    if (str.length === 0) return str // Handle empty string case
+    return str.charAt(0).toUpperCase() + str.slice(1)
   }
 }

@@ -57,8 +57,7 @@ async function bootstrap() {
       customfavIcon: 'assets/images/favicon.png',
       customSiteTitle: 'Manifest API Doc',
       customCss: `
-        .topbar-wrapper img {content:url(\'assets/images/logo.svg\'); width:300px; height:auto;}
-        .swagger-ui .topbar { background-color: white; }`
+        .swagger-ui .topbar { background-color: blue; }`
     })
   }
 
