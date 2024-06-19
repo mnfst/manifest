@@ -53,6 +53,17 @@ export class OpenApiService {
                 type: 'integer'
               }
             }
+          },
+          SelectOption: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'number'
+              },
+              label: {
+                type: 'string'
+              }
+            }
           }
         }
       }

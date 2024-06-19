@@ -4,6 +4,13 @@ import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.in
 
 @Injectable()
 export class OpenApiCrudService {
+  /**
+   * Generates the paths for the entities. For each entity, it generates the paths for listing, creating, updating and deleting.
+   *
+   * @param entityManifests The entity manifests.
+   * @returns The paths object.
+   *
+   */
   generateEntityPaths(
     entityManifests: EntityManifest[]
   ): Record<string, PathItemObject> {
@@ -26,6 +33,13 @@ export class OpenApiCrudService {
     return paths
   }
 
+  /**
+   * Generates the path for listing entities.
+   *
+   * @param entityManifest The entity manifest.
+   * @returns The path item object.
+   *
+   */
   generateListPath(entityManifest: EntityManifest): PathItemObject {
     return {
       get: {
@@ -89,10 +103,7 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'array',
-                  items: {
-                    $ref: '#/components/schemas/Paginator'
-                  }
+                  $ref: '#/components/schemas/Paginator'
                 }
               }
             }
@@ -102,12 +113,21 @@ export class OpenApiCrudService {
     }
   }
 
+  /**
+   * Generates the path for listing entities for select options.
+   * This is used to fill select dropdown options.
+   *
+   * @param entityManifest The entity manifest.
+   * @returns The path item object.
+   *
+   */
   generateListSelectOptionsPath(
     entityManifest: EntityManifest
   ): PathItemObject {
     return {
       get: {
         summary: `List ${entityManifest.namePlural} for select options`,
+        description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'.`,
         tags: [entityManifest.namePlural],
         responses: {
           '200': {
@@ -117,7 +137,7 @@ export class OpenApiCrudService {
                 schema: {
                   type: 'array',
                   items: {
-                    $ref: `#/components/schemas/${entityManifest.slug}`
+                    $ref: `#/components/schemas/SelectOption`
                   }
                 }
               }
@@ -128,81 +148,166 @@ export class OpenApiCrudService {
     }
   }
 
+  /**
+   * Generates the path for creating an entity.
+   * This is used to create a new entity.
+   *
+   * @param entityManifest The entity manifest.
+   * @returns The path item object.
+   *
+   */
   generateCreatePath(entityManifest: EntityManifest): PathItemObject {
     return {
       post: {
-        summary: `Create ${entityManifest.nameSingular}`,
+        summary: `Create a new ${entityManifest.nameSingular}`,
+        description: `Creates a new ${entityManifest.nameSingular} passing the properties in the request body as JSON.`,
         tags: [entityManifest.namePlural],
         requestBody: {
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/${entityManifest.slug}`
+                type: 'object'
               }
             }
           }
         },
         responses: {
           '201': {
-            description: `The ${entityManifest.nameSingular} has been successfully created`
+            description: `OK`
+          },
+          '400': {
+            description: `Bad request`
           }
         }
       }
     }
   }
 
+  /**
+   * Generates the path for retrieving the details of an entity.
+   *
+   * @param entityManifest The entity manifest.
+   * @returns The path item object.
+   *
+   */
   generateDetailPath(entityManifest: EntityManifest): PathItemObject {
     return {
       get: {
-        summary: `Get ${entityManifest.nameSingular}`,
+        summary: `Get a single ${entityManifest.nameSingular}`,
+        description: `Retrieves the details of a single ${entityManifest.nameSingular} by its ID.`,
         tags: [entityManifest.namePlural],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            description: `The ID of the ${entityManifest.nameSingular}`,
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
         responses: {
           '200': {
-            description: `The ${entityManifest.nameSingular}`,
+            description: `OK`,
             content: {
               'application/json': {
                 schema: {
-                  $ref: `#/components/schemas/${entityManifest.slug}`
+                  type: 'object'
                 }
               }
             }
+          },
+          '404': {
+            description: `The ${entityManifest.nameSingular} was not found`
           }
         }
       }
     }
   }
 
+  /**
+   * Generates the path for updating an entity.
+   *
+   * @param entityManifest The entity manifest.
+   * @returns The path item object.
+   *
+   */
   generateUpdatePath(entityManifest: EntityManifest): PathItemObject {
     return {
       put: {
-        summary: `Update ${entityManifest.nameSingular}`,
+        summary: `Update an existing ${entityManifest.nameSingular}`,
+        description: `Updates a single ${entityManifest.nameSingular} by its ID. The properties to update are passed in the request body as JSON.`,
         tags: [entityManifest.namePlural],
         requestBody: {
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/${entityManifest.slug}`
+                type: 'object'
               }
             }
           }
         },
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            description: `The ID of the ${entityManifest.nameSingular}`,
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
         responses: {
           '200': {
-            description: `The ${entityManifest.nameSingular} has been successfully updated`
+            description: `OK`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object'
+                }
+              }
+            }
+          },
+          '404': {
+            description: `Not found`
           }
         }
       }
     }
   }
 
+  /**
+   * Generates the path for deleting an entity.
+   *
+   * @param entityManifest The entity manifest.
+   * @returns The path item object.
+   *
+   */
   generateDeletePath(entityManifest: EntityManifest): PathItemObject {
     return {
       delete: {
-        summary: `Delete ${entityManifest.nameSingular}`,
+        summary: `Delete an existing ${entityManifest.nameSingular}`,
+        description: `Deletes a single ${entityManifest.nameSingular} by its ID.`,
         tags: [entityManifest.namePlural],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            description: `The ID of the ${entityManifest.nameSingular}`,
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
         responses: {
           '200': {
-            description: `The ${entityManifest.nameSingular} has been successfully deleted`
+            description: `OK`
+          },
+          '404': {
+            description: `The ${entityManifest.nameSingular} was not found`
           }
         }
       }

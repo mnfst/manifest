@@ -53,7 +53,13 @@ async function bootstrap() {
   if (!isProduction && !isTest) {
     const openApiService: OpenApiService = app.get(OpenApiService)
 
-    SwaggerModule.setup('api', app, openApiService.generateOpenApiObject())
+    SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
+      customfavIcon: 'assets/images/favicon.png',
+      customSiteTitle: 'Manifest API Doc',
+      customCss: `
+        .topbar-wrapper img {content:url(\'assets/images/logo.svg\'); width:300px; height:auto;}
+        .swagger-ui .topbar { background-color: white; }`
+    })
   }
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
