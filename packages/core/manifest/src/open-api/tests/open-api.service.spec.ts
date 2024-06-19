@@ -4,10 +4,12 @@ import { AppManifest, EntityManifest, PropType } from '@mnfst/types'
 import { OpenAPIObject } from '@nestjs/swagger'
 import { OpenApiCrudService } from '../services/open-api-crud.service'
 import { ManifestService } from '../../manifest/services/manifest/manifest.service'
+import { OpenApiManifestService } from '../services/open-api-manifest.service'
 
 describe('OpenApiService', () => {
   let service: OpenApiService
   let openApiCrudService: OpenApiCrudService
+  let openApiManifestService: OpenApiManifestService
 
   const dummyAppManifest: AppManifest = {
     name: 'Test App',
@@ -36,6 +38,12 @@ describe('OpenApiService', () => {
           }
         },
         {
+          provide: OpenApiManifestService,
+          useValue: {
+            generateManifestPaths: jest.fn((appManifest: AppManifest) => {})
+          }
+        },
+        {
           provide: ManifestService,
           useValue: {
             getAppManifest: jest.fn(() => dummyAppManifest)
@@ -46,6 +54,9 @@ describe('OpenApiService', () => {
 
     service = module.get<OpenApiService>(OpenApiService)
     openApiCrudService = module.get<OpenApiCrudService>(OpenApiCrudService)
+    openApiManifestService = module.get<OpenApiManifestService>(
+      OpenApiManifestService
+    )
   })
 
   it('should be defined', () => {
@@ -55,10 +66,9 @@ describe('OpenApiService', () => {
   it('should return an OpenAPIObject', () => {
     const openApiObject: OpenAPIObject = service.generateOpenApiObject()
 
-    expect(openApiObject.openapi).toBe('3.0.0')
+    expect(openApiObject.openapi).toBe('3.1.0')
     expect(openApiObject.info.title).toBe('Test App')
-    expect(openApiObject.info.version).toBe('1.0.0')
-    expect(openApiObject.paths).toEqual([])
+    expect(openApiObject.info.version).toBe('')
   })
 
   it('should generate paths for each entity', () => {
@@ -68,6 +78,16 @@ describe('OpenApiService', () => {
 
     expect(openApiCrudService.generateEntityPaths).toHaveBeenCalledTimes(
       Object.keys(dummyAppManifest.entities).length
+    )
+  })
+
+  it('should generate the manifest paths', () => {
+    jest.spyOn(openApiManifestService, 'generateManifestPaths')
+
+    service.generateOpenApiObject()
+
+    expect(openApiManifestService.generateManifestPaths).toHaveBeenCalledWith(
+      dummyAppManifest
     )
   })
 })

@@ -4,6 +4,13 @@ import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.in
 
 @Injectable()
 export class OpenApiManifestService {
+  /**
+   * Generates the paths for the manifest endpoints.
+   *
+   * @param appManifest The manifest of the application.
+   * @returns The paths for the manifest endpoints.
+   *
+   */
   generateManifestPaths(
     appManifest: AppManifest
   ): Record<string, PathItemObject> {
@@ -39,6 +46,13 @@ export class OpenApiManifestService {
     return paths
   }
 
+  /**
+   * Generates the path for the entity manifest endpoint.
+   *
+   * @param entityManifest The manifest of the entity.
+   * @returns The path for the entity manifest endpoint.
+   *
+   */
   generateEntityManifestPath(entityManifest: EntityManifest): PathItemObject {
     return {
       get: {

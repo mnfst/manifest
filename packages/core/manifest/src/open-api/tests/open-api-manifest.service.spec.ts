@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { OpenApiManifestService } from '../open-api-manifest.service'
+import { OpenApiManifestService } from '../services/open-api-manifest.service'
 
 describe('OpenApiManifestService', () => {
   let service: OpenApiManifestService

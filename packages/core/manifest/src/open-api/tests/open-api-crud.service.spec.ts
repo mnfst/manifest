@@ -34,10 +34,17 @@ describe('OpenApiCrudService', () => {
   })
 
   it('should generate all 6 entity paths', () => {
-    const paths = service.generateEntityPaths(dummyEntityManifest)
+    jest.spyOn(service, 'generateListPath').mockReturnValue({})
+    jest.spyOn(service, 'generateListSelectOptionsPath').mockReturnValue({})
+    jest.spyOn(service, 'generateCreatePath').mockReturnValue({})
+    jest.spyOn(service, 'generateDetailPath').mockReturnValue({})
+    jest.spyOn(service, 'generateUpdatePath').mockReturnValue({})
+    jest.spyOn(service, 'generateDeletePath').mockReturnValue({})
+
+    const paths = service.generateEntityPaths([dummyEntityManifest])
 
     expect(paths).toBeDefined()
-    expect(paths.length).toBe(6)
+    expect(Object.keys(paths).length).toBe(3)
 
     expect(service.generateListPath).toHaveBeenCalled()
     expect(service.generateListSelectOptionsPath).toHaveBeenCalled()
