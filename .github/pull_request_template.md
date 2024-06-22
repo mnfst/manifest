@@ -8,12 +8,10 @@
 
 Check the packages that require a new publication or release:
 
-| Task            | Impacted | Comments |
-| --------------- | -------- | -------- |
-| @mnfst/manifest | [ ]      |          |
-| @mnfst/admin    | [ ]      |          |
-| @mnfst/types    | [ ]      |          |
-| doc             | [ ]      |          |
+- [ ] @mnfst/manifest
+- [ ] @mnfst/types
+- [ ] @mnfst/admin
+- [ ] doc
 
 ## Check list before submitting
 
