@@ -4,6 +4,17 @@
 
 ## How can it be tested?
 
+## Impacted packages
+
+Check the packages that require a new publication or release:
+
+| Task            | Impacted | Comments |
+| --------------- | -------- | -------- |
+| @mnfst/manifest | [ ]      |          |
+| @mnfst/admin    | [ ]      |          |
+| @mnfst/types    | [ ]      |          |
+| doc             | [ ]      |          |
+
 ## Check list before submitting
 
 - [ ] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)
