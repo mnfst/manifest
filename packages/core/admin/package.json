@@ -28,7 +28,8 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "link-local-types": "cd ../types && npm install && npm run build && npm link && cd ../manifest && npm link @mnfst/types"
   },
   "private": false,
   "license": "MIT",
