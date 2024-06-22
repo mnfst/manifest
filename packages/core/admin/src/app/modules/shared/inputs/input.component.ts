@@ -21,6 +21,7 @@ import { SelectInputComponent } from './select-input/select-input.component'
 import { TextInputComponent } from './text-input/text-input.component'
 import { TextareaInputComponent } from './textarea-input/textarea-input.component'
 import { UrlInputComponent } from './url-input/url-input.component'
+import { TimestampInputComponent } from './timestamp-input/timestamp-input.component'
 
 @Component({
   selector: 'app-input',
@@ -30,6 +31,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
     BooleanInputComponent,
     CurrencyInputComponent,
     DateInputComponent,
+    TimestampInputComponent,
     EmailInputComponent,
     UrlInputComponent,
     MultiSelectInputComponent,
@@ -111,6 +113,14 @@ import { UrlInputComponent } from './url-input/url-input.component'
       *ngIf="prop?.type === PropType.Date"
     >
     </app-date-input>
+    <app-timestamp-input
+      [prop]="prop"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop?.type === PropType.Timestamp"
+    >
+    </app-timestamp-input>
     <app-password-input
       [prop]="prop"
       [value]="value"

@@ -16,6 +16,7 @@ export const propTypeSeedFunctions: Record<PropType, (options?: any) => any> = {
       dec: 2
     }),
   [PropType.Date]: () => faker.date.past(),
+  [PropType.Timestamp]: () => faker.date.recent(),
   [PropType.Email]: () => faker.internet.email(),
   [PropType.Boolean]: () => faker.datatype.boolean(),
   [PropType.Password]: () => SHA3('manifest').toString(),
