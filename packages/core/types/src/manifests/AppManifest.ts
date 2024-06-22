@@ -8,6 +8,11 @@ export interface AppManifest extends AppManifestSchema {
   name: string
 
   /**
+   * The version of the app.
+   */
+  version?: string
+
+  /**
    * The entities of the app.
    */
   entities?: {
