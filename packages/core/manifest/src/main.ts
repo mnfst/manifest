@@ -268,55 +268,55 @@ async function bootstrap() {
 }
 
 .swagger-ui .opblock.opblock-post {
-  border-color: #49cc90;
+  border-color: #57b3a0;
   background: rgba(73, 204, 144, .1)
 }
 
 .swagger-ui .opblock.opblock-post .opblock-summary-method {
-  background: #49cc90
+  background: #57b3a0
 }
 
 .swagger-ui .opblock.opblock-post .opblock-summary {
-  border-color: #49cc90
+  border-color: #57b3a0
 }
 
 .swagger-ui .opblock.opblock-put {
-  border-color: #fca130;
+  border-color: #f8a94a;
   background: rgba(252, 161, 48, .1)
 }
 
 .swagger-ui .opblock.opblock-put .opblock-summary-method {
-  background: #fca130
+  background: #f8a94a
 }
 
 .swagger-ui .opblock.opblock-put .opblock-summary {
-  border-color: #fca130
+  border-color: #f8a94a
 }
 
 .swagger-ui .opblock.opblock-delete {
-  border-color: #f93e3e;
+  border-color: #f46470;
   background: rgba(249, 62, 62, .1)
 }
 
 .swagger-ui .opblock.opblock-delete .opblock-summary-method {
-  background: #f93e3e
+  background: #f46470
 }
 
 .swagger-ui .opblock.opblock-delete .opblock-summary {
-  border-color: #f93e3e
+  border-color: #f46470
 }
 
 .swagger-ui .opblock.opblock-get {
-  border-color: #61affe;
+  border-color: #2430F0;
   background: #F5F7F9
 }
 
 .swagger-ui .opblock.opblock-get .opblock-summary-method {
-  background: #61affe
+  background: #2430F0
 }
 
 .swagger-ui .opblock.opblock-get .opblock-summary {
-  border-color: #61affe
+  border-color: #2430F0
 }
 
 .swagger-ui .opblock.opblock-patch {
@@ -331,6 +331,18 @@ async function bootstrap() {
 .swagger-ui .opblock.opblock-patch .opblock-summary {
   border-color: #50e3c2
 }
+  .swagger-ui .opblock.opblock-put .tab-header .tab-item.active h4 span:after {
+  background: #f8a94a;
+  }
+
+  .swagger-ui .opblock.opblock-post .tab-header .tab-item.active h4 span:after {
+  background: #57b3a0;
+  }
+
+.swagger-ui .opblock.opblock-delete .tab-header .tab-item.active h4 span:after {
+background: #f46470;
+}
+
 
 .swagger-ui .opblock.opblock-head {
   border-color: #9012fe;
@@ -644,16 +656,16 @@ async function bootstrap() {
 }
 
 .swagger-ui .btn.cancel {
-  border-color: #ff6060;
+  border-color: #f46470;
   font-family: Titillium Web, sans-serif;
-  color: #ff6060
+  color: #f46470
 }
 
 .swagger-ui .btn.authorize {
   line-height: 1;
   display: inline;
-  color: #49cc90;
-  border-color: #49cc90
+  color: #57b3a0;
+  border-color: #57b3a0
 }
 
 .swagger-ui .btn.authorize span {
@@ -662,20 +674,20 @@ async function bootstrap() {
 }
 
 .swagger-ui .btn.authorize svg {
-  fill: #49cc90
+  fill: #57b3a0
 }
 
 .swagger-ui .btn.execute {
   -webkit-animation: pulse 2s infinite;
   animation: pulse 2s infinite;
   color: #fff;
-  border-color: #4990e2
+  border-color: #2430F0
 }
 
 @-webkit-keyframes pulse {
   0% {
     color: #fff;
-    background: #4990e2;
+    background: #2430F0;
     box-shadow: none;
   }
   70% {
@@ -683,7 +695,7 @@ async function bootstrap() {
   }
   to {
     color: #fff;
-    background: #4990e2;
+    background: #2430F0;
     box-shadow: none;
   }
 }
@@ -691,7 +703,7 @@ async function bootstrap() {
 @keyframes pulse {
   0% {
     color: #fff;
-    background: #4990e2;
+    background: #2430F0;
     box-shadow: none;
   }
   70% {
@@ -699,7 +711,7 @@ async function bootstrap() {
   }
   to {
     color: #fff;
-    background: #4990e2;
+    background: #2430F0;
     box-shadow: none;
   }
 }
@@ -814,7 +826,7 @@ async function bootstrap() {
 .swagger-ui input[type=email].invalid, .swagger-ui input[type=password].invalid, .swagger-ui input[type=search].invalid, .swagger-ui input[type=text].invalid {
   -webkit-animation: shake .4s 1;
   animation: shake .4s 1;
-  border-color: #f93e3e;
+  border-color: #f46470;
   background: #feebeb
 }
 
@@ -871,7 +883,7 @@ async function bootstrap() {
 }
 
 .swagger-ui textarea:focus {
-  border: 2px solid #61affe
+  border: 2px solid #2430F0
 }
 
 .swagger-ui textarea.curl {
@@ -886,8 +898,18 @@ async function bootstrap() {
   font-weight: 600;
   color: #fff
 }
+  .swagger-ui .opblock.opblock-get .tab-header .tab-item.active h4 span:after {
+    background: #2430F0;
+  }
+  
 
-.swagger-ui .checkbox {
+  .swagger-ui .response-control-media-type__accept-message {
+      color: #57b3a0
+  }
+      .swagger-ui .response-control-media-type--accept-controller select {
+      border-color: #57b3a0}
+
+  .swagger-ui .checkbox {
   padding: 5px 0 10px;
   -webkit-transition: opacity .5s;
   transition: opacity .5s;
@@ -1397,7 +1419,7 @@ async function bootstrap() {
   -webkit-transition: all .4s;
   transition: all .4s;
   font-family: Open Sans, sans-serif;
-  color: #4990e2
+  color: #2430F0
 }
 
 .swagger-ui .info a:hover {
@@ -1517,7 +1539,7 @@ async function bootstrap() {
   padding: 10px 20px;
   -webkit-animation: scaleUp .5s;
   animation: scaleUp .5s;
-  border: 2px solid #f93e3e;
+  border: 2px solid #f46470;
   border-radius: 4px;
   background: rgba(249, 62, 62, .1)
 }
