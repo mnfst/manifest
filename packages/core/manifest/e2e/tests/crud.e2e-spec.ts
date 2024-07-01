@@ -12,20 +12,50 @@ describe('CRUD (e2e)', () => {
     expect(response.status).toBe(201)
   })
 
-  it('GET /dynamic/:entity', async () => {
-    const response = await global.request.get('/dynamic/dogs')
+  describe('GET /dynamic/:entity', () => {
+    it('should return all items', async () => {
+      const response = await global.request.get('/dynamic/dogs')
 
-    expect(response.status).toBe(200)
-    expect(response.body).toMatchObject<Paginator<any>>({
-      data: expect.any(Array),
-      currentPage: expect.any(Number),
-      lastPage: expect.any(Number),
-      from: expect.any(Number),
-      to: expect.any(Number),
-      total: expect.any(Number),
-      perPage: expect.any(Number)
+      expect(response.status).toBe(200)
+      expect(response.body).toMatchObject<Paginator<any>>({
+        data: expect.any(Array),
+        currentPage: expect.any(Number),
+        lastPage: expect.any(Number),
+        from: expect.any(Number),
+        to: expect.any(Number),
+        total: expect.any(Number),
+        perPage: expect.any(Number)
+      })
+      expect(response.body.data.length).toBe(1)
     })
-    expect(response.body.data.length).toBe(1)
+
+    it('should filter items by field', async () => {
+      const response = await global.request.get(
+        `/dynamic/dogs?name_eq=${dummyDog.name}`
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body.data.length).toBe(1)
+    })
+
+    it('should filter items by relationship', async () => {
+      const bigNumber: number = 999
+
+      const response = await global.request.get(
+        `/dynamic/dogs?relations=owner&owner.id_eq=${bigNumber}`
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body.data.length).toBe(0)
+    })
+
+    it('should return a 400 error if the filter field does not exist', async () => {
+      const response = await global.request.get(
+        `/dynamic/dogs?invalidField_eq=${dummyDog.name}`
+      )
+
+      expect(response.status).toBe(400)
+    })
   })
 
   it('GET /dynamic/:entity/select-options', async () => {
