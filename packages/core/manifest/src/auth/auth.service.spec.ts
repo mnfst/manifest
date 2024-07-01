@@ -48,10 +48,7 @@ describe('AuthService', () => {
 
   describe('createToken', () => {
     it('should return a valid JWT token if a user is found', async () => {
-      const result = await authService.createToken('admins', {
-        email: 'testEmail',
-        password: 'testPlainPassword'
-      })
+      const result = await authService.createToken('admins', mockUser)
       expect(result).toHaveProperty('token')
 
       const decodedPayload = jwt.decode(result.token)
