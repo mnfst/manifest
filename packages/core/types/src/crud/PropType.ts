@@ -8,6 +8,7 @@ export enum PropType {
   Link = 'link',
   Money = 'money',
   Date = 'date',
+  Timestamp = 'timestamp',
   Email = 'email',
   Boolean = 'boolean',
   Password = 'password',

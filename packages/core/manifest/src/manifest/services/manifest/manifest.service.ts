@@ -126,12 +126,16 @@ export class ManifestService {
   }
 
   /**
-   * Transform an AppManifestSchema into an AppManifest.
+   * Transform an AppManifestSchema into an AppManifest ensuring that undefined properties are filled in with defaults.
    *
    * @param manifestSchema the manifest schema to transform.
    * @returns the manifest with defaults filled in and short form properties transformed into long form.
    */
   transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
+    if (!manifestSchema.version) {
+      manifestSchema.version = '0.0.1'
+    }
+
     if (!manifestSchema.entities) {
       manifestSchema.entities = {}
     }

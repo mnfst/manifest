@@ -1,6 +1,6 @@
 {
   "name": "@mnfst/admin",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "homepage": "https://manifest.build",
   "keywords": [
     "admin",
@@ -28,7 +28,8 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "link-local-types": "cd ../types && npm install && npm run build && npm link && cd ../manifest && npm link @mnfst/types"
   },
   "private": false,
   "license": "MIT",
@@ -42,7 +43,7 @@
     "@angular/platform-browser-dynamic": "^17.3.1",
     "@angular/router": "^17.3.1",
     "@auth0/angular-jwt": "^5.2.0",
-    "@mnfst/types": "^0.1.0-alpha.3",
+    "@mnfst/types": "^0.1.0-alpha.4",
     "bulma": "^0.9.4",
     "bulma-tooltip": "^3.0.2",
     "rxjs": "~7.5.0",

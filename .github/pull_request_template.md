@@ -4,6 +4,15 @@
 
 ## How can it be tested?
 
+## Impacted packages
+
+Check the packages that require a new publication or release:
+
+- [ ] @mnfst/manifest
+- [ ] @mnfst/types
+- [ ] @mnfst/admin
+- [ ] doc
+
 ## Check list before submitting
 
 - [ ] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)

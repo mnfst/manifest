@@ -21,6 +21,7 @@
             "link",
             "money",
             "date",
+            "timestamp",
             "email",
             "boolean",
             "relation",
