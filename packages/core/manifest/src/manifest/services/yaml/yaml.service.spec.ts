@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { YamlService } from './yaml.service'
 import * as fs from 'fs'
+import { ConfigService } from '@nestjs/config'
 
 jest.mock('fs')
 
@@ -15,7 +16,17 @@ describe('YamlService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [YamlService]
+      providers: [
+        YamlService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(() => ({
+              database: 'mocked database path'
+            }))
+          }
+        }
+      ]
     }).compile()
 
     service = module.get<YamlService>(YamlService)

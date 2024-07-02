@@ -17,13 +17,21 @@ export class LoggerService {
 
     console.log()
 
+    console.log(chalk.blue('Manifest backend successfully started! '))
+    console.log()
+
     console.log(
       chalk.blue(
-        '🎉 Manifest successfully started! See your admin panel: ',
+        '🖥️  Admin Panel: ',
         chalk.underline.blue(`http://localhost:${port}`)
       )
     )
-
+    console.log(
+      chalk.blue(
+        '📚 API Doc: ',
+        chalk.underline.blue(`http://localhost:${port}/api`)
+      )
+    )
     console.log()
   }
 }
