@@ -19,6 +19,11 @@
   color: $input-placeholder-color !important;
 }
 
+input[type="datetime-local"] {
+  display: block;
+  padding-right: 12px;
+}
+
 label:not(.file-label):not(.checkbox):not(.image-label):not(.is-boxed) {
   font-size: $size-6;
   font-weight: $weight-bold;

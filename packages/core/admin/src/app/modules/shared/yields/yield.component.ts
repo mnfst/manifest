@@ -13,6 +13,7 @@ import { LocationYieldComponent } from './location-yield/location-yield.componen
 import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
 import { TextYieldComponent } from './text-yield/text-yield.component'
+import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -22,6 +23,7 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
     BooleanYieldComponent,
     CurrencyYieldComponent,
     DateYieldComponent,
+    TimestampYieldComponent,
     EmailYieldComponent,
     NumberYieldComponent,
     LinkYieldComponent,
@@ -45,22 +47,23 @@ import { TextYieldComponent } from './text-yield/text-yield.component'
       [value]="value"
       [compact]="compact"
     ></app-link-yield>
-
     <app-boolean-yield
       *ngIf="prop.type === PropType.Boolean"
       [value]="value"
     ></app-boolean-yield>
-
     <app-currency-yield
       *ngIf="prop.type === PropType.Money"
       [currency]="prop.options?.['currency']"
       [value]="value"
     ></app-currency-yield>
-
     <app-date-yield
       *ngIf="prop.type === PropType.Date"
       [value]="value"
     ></app-date-yield>
+    <app-timestamp-yield
+      *ngIf="prop.type === PropType.Timestamp"
+      [value]="value"
+    ></app-timestamp-yield>
     <app-email-yield
       *ngIf="prop.type === PropType.Email"
       [value]="value"
