@@ -15,8 +15,8 @@ import {
 
 import { BaseEntity } from '@mnfst/types'
 import { validate } from 'class-validator'
-import { EntityService } from '../../entity/services/entity/entity.service'
-import { ManifestService } from '../../manifest/services/manifest/manifest.service'
+import { EntityService } from '../../entity/services/entity.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 import {
   EntityManifest,

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ManifestService } from './manifest.service'
-import { YamlService } from '../yaml/yaml.service'
-import { SchemaService } from '../schema/schema.service'
+import { ManifestService } from '../services/manifest.service'
+import { YamlService } from '../services/yaml.service'
+import { SchemaService } from '../services/schema.service'
 
 describe('ManifestService', () => {
   let service: ManifestService

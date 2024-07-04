@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { EntityService } from './entity.service'
-import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
+import { EntityService } from '../services/entity.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 import { DataSource } from 'typeorm'
 
 describe('EntityService', () => {

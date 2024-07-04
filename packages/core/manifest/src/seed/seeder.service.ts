@@ -7,12 +7,12 @@ import {
 } from '@mnfst/types'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
-import { EntityService } from '../entity/services/entity/entity.service'
-import { PropertyService } from '../entity/services/property/property.service'
-import { RelationshipService } from '../entity/services/relationship/relationship.service'
+import { EntityService } from '../entity/services/entity.service'
+import { PropertyService } from '../entity/services/property.service'
+import { RelationshipService } from '../entity/services/relationship.service'
 
 import { DEFAULT_ADMIN_CREDENTIALS } from '../constants'
-import { ManifestService } from '../manifest/services/manifest/manifest.service'
+import { ManifestService } from '../manifest/services/manifest.service'
 
 @Injectable()
 export class SeederService {

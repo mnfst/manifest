@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { RelationshipService } from './relationship.service'
-import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
+import { RelationshipService } from '../services/relationship.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 describe('RelationshipService', () => {
   let service: RelationshipService

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { Test } from '@nestjs/testing'
 import * as jwt from 'jsonwebtoken'
 import { AuthService } from './auth.service'
-import { EntityService } from '../entity/services/entity/entity.service'
+import { EntityService } from '../entity/services/entity.service'
 
 describe('AuthService', () => {
   let authService: AuthService

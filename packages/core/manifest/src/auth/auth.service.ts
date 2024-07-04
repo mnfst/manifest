@@ -5,7 +5,7 @@ import { SHA3 } from 'crypto-js'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'
-import { EntityService } from '../entity/services/entity/entity.service'
+import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 
 // import { EntityMetaService } from '../crud/services/entity-meta.service'

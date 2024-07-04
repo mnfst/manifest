@@ -6,7 +6,7 @@ import {
   RelationshipManifestSchema
 } from '@mnfst/types'
 import Ajv from 'ajv'
-import schemas from '../../json-schema'
+import schemas from '../json-schema'
 import chalk from 'chalk'
 
 @Injectable()

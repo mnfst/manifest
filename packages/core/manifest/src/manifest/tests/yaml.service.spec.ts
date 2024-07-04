@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { YamlService } from './yaml.service'
+import { YamlService } from '../services/yaml.service'
 import * as fs from 'fs'
 import { ConfigService } from '@nestjs/config'
 

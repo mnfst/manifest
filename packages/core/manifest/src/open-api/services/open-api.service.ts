@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { OpenApiCrudService } from './open-api-crud.service'
 import { OpenAPIObject } from '@nestjs/swagger'
-import { ManifestService } from '../../manifest/services/manifest/manifest.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 import { AppManifest } from '@mnfst/types'
 import { OpenApiManifestService } from './open-api-manifest.service'
 

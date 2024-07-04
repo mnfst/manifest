@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { SchemaService } from '../schema/schema.service'
-import { YamlService } from '../yaml/yaml.service'
+import { SchemaService } from './schema.service'
+import { YamlService } from './yaml.service'
 
 import {
   AppManifest,
@@ -16,7 +16,7 @@ import {
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
-import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from './constants'
+import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from '../constants'
 
 @Injectable()
 export class ManifestService {

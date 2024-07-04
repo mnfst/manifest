@@ -9,9 +9,9 @@ import {
   EntitySchemaColumnOptions,
   EntitySchemaRelationOptions
 } from 'typeorm'
-import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
-import { baseEntity } from '../../core-entities/base-entity'
-import { propTypeColumnTypes } from '../../records/prop-type-column-types'
+import { ManifestService } from '../../manifest/services/manifest.service'
+import { baseEntity } from '../core-entities/base-entity'
+import { propTypeColumnTypes } from '../records/prop-type-column-types'
 
 @Injectable()
 export class EntityLoaderService {

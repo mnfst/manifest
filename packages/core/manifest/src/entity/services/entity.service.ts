@@ -2,7 +2,7 @@ import { BaseEntity } from '@mnfst/types'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
-import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 @Injectable()
 export class EntityService {

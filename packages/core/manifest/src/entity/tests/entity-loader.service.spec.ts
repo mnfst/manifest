@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { EntityLoaderService } from './entity-loader.service'
-import { ManifestService } from '../../../manifest/services/manifest/manifest.service'
+import { EntityLoaderService } from '../services/entity-loader.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 describe('EntityLoaderService', () => {
   let service: EntityLoaderService

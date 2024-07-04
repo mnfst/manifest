@@ -3,7 +3,7 @@ import { OpenApiService } from '../services/open-api.service'
 import { AppManifest, EntityManifest, PropType } from '@mnfst/types'
 import { OpenAPIObject } from '@nestjs/swagger'
 import { OpenApiCrudService } from '../services/open-api-crud.service'
-import { ManifestService } from '../../manifest/services/manifest/manifest.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 import { OpenApiManifestService } from '../services/open-api-manifest.service'
 
 describe('OpenApiService', () => {

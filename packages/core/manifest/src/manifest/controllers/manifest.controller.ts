@@ -2,7 +2,7 @@ import { AppManifest, AuthenticableEntity, EntityManifest } from '@mnfst/types'
 import { Controller, Get, Param, Req } from '@nestjs/common'
 import { Request } from 'express'
 import { AuthService } from '../../auth/auth.service'
-import { ManifestService } from '../services/manifest/manifest.service'
+import { ManifestService } from '../services/manifest.service'
 import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('Manifest')

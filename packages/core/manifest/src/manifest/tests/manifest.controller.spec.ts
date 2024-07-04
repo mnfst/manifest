@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ManifestController } from './manifest.controller'
-import { ManifestService } from '../services/manifest/manifest.service'
+import { ManifestController } from '../controllers/manifest.controller'
+import { ManifestService } from '../services/manifest.service'
 import { AuthService } from '../../auth/auth.service'
 
 describe('ManifestController', () => {

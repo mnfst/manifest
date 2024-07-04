@@ -1,6 +1,6 @@
 import { PropertyManifest } from '@mnfst/types'
 import { Injectable } from '@nestjs/common'
-import { propTypeSeedFunctions } from '../../records/prop-type-seed-functions'
+import { propTypeSeedFunctions } from '../records/prop-type-seed-functions'
 
 @Injectable()
 export class PropertyService {
