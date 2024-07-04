@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../src/app.module'
-import { YamlService } from '../src/manifest/services/yaml/yaml.service'
+import { YamlService } from '../src/manifest/services/yaml.service'
 import { INestApplication } from '@nestjs/common'
 import supertest from 'supertest'
 import { load } from 'js-yaml'

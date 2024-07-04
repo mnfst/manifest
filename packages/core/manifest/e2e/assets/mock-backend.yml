@@ -31,15 +31,19 @@ entities:
       - name
       - { name: age, type: number }
       - { name: birthdate, type: date }
-    policies:
-      create: private
-      read: private
-      update: locked
-      delete: admin
-      signUp: public
+    #  policies:
+    #   create: private
+    #   read: private
+    #   update: locked
+    #   delete: admin
+    #   signUp: public
 
   User:
     authenticable: true
+    properties:
+      - name
 
+  Contributor:
+    authenticable: true
     properties:
       - name

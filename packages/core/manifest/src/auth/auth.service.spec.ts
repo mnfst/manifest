@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing'
 import * as jwt from 'jsonwebtoken'
 import { AuthService } from './auth.service'
 import { EntityService } from '../entity/services/entity.service'
+import { ADMIN_ENTITY_MANIFEST } from '../constants'
 
 describe('AuthService', () => {
   let authService: AuthService
@@ -48,7 +49,10 @@ describe('AuthService', () => {
 
   describe('createToken', () => {
     it('should return a valid JWT token if a user is found', async () => {
-      const result = await authService.createToken('admins', mockUser)
+      const result = await authService.createToken(
+        ADMIN_ENTITY_MANIFEST.slug,
+        mockUser
+      )
       expect(result).toHaveProperty('token')
 
       const decodedPayload = jwt.decode(result.token)
@@ -62,7 +66,7 @@ describe('AuthService', () => {
       })
 
       expect(async () => {
-        await authService.createToken('admins', {
+        await authService.createToken(ADMIN_ENTITY_MANIFEST.slug, {
           email: 'unknownUserEmail',
           password: 'testPlainPassword'
         })
