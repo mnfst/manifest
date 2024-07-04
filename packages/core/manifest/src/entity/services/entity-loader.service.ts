@@ -12,7 +12,7 @@ import {
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { baseEntity } from '../core-entities/base-entity'
 import { propTypeColumnTypes } from '../records/prop-type-column-types'
-import { baseAuthenticableEntity } from '../core-entities/base-athenticable-entity'
+import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
 
 @Injectable()
 export class EntityLoaderService {

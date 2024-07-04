@@ -11,7 +11,11 @@ import { EntityService } from '../entity/services/entity.service'
 import { PropertyService } from '../entity/services/property.service'
 import { RelationshipService } from '../entity/services/relationship.service'
 
-import { DEFAULT_ADMIN_CREDENTIALS } from '../constants'
+import {
+  ADMIN_ENTITY_MANIFEST,
+  AUTHENTICABLE_PROPS,
+  DEFAULT_ADMIN_CREDENTIALS
+} from '../constants'
 import { ManifestService } from '../manifest/services/manifest.service'
 
 @Injectable()
@@ -64,7 +68,7 @@ export class SeederService {
           entityMetadata
         })
 
-      if (entityMetadata.name === 'Admin') {
+      if (entityMetadata.name === ADMIN_ENTITY_MANIFEST.className) {
         await this.seedAdmin(repository)
         continue
       }
@@ -80,6 +84,10 @@ export class SeederService {
 
       for (const _index of Array(entityManifest.seedCount).keys()) {
         const newRecord: BaseEntity = repository.create()
+
+        if (entityManifest.authenticable) {
+          entityManifest.properties.push(...AUTHENTICABLE_PROPS)
+        }
 
         entityManifest.properties.forEach(
           (propertyManifest: PropertyManifest) => {

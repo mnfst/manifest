@@ -8,7 +8,8 @@ export const baseAuthenticableEntity: {
 } = Object.assign(
   {
     email: {
-      type: 'varchar'
+      type: 'varchar',
+      unique: true
     },
     password: {
       type: 'varchar',

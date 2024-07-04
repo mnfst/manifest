@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { SchemaService } from './schema.service'
 import { YamlService } from './yaml.service'
+import { AUTHENTICABLE_PROPS } from '../../constants'
 
 import {
   AppManifest,
@@ -16,7 +17,7 @@ import {
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
-import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from '../constants'
+import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from '../../constants'
 
 @Injectable()
 export class ManifestService {
@@ -132,13 +133,8 @@ export class ManifestService {
    * @returns the manifest with defaults filled in and short form properties transformed into long form.
    */
   transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
-    if (!manifestSchema.version) {
-      manifestSchema.version = '0.0.1'
-    }
-
-    if (!manifestSchema.entities) {
-      manifestSchema.entities = {}
-    }
+    manifestSchema.version = manifestSchema.version || '0.0.1'
+    manifestSchema.entities = manifestSchema.entities || {}
 
     // Add the Admin entity to the manifest.
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
@@ -212,6 +208,10 @@ export class ManifestService {
       ),
       authenticable: entityManifestSchema.authenticable || false,
       properties
+    }
+
+    if (entityManifest.authenticable) {
+      properties.push(...AUTHENTICABLE_PROPS)
     }
 
     return entityManifest
