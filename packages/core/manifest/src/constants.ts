@@ -22,7 +22,8 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
 export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
   {
     name: 'email',
-    type: PropType.Email
+    type: PropType.Email,
+    hidden: true
   },
   {
     name: 'password',

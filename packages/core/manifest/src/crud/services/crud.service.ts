@@ -55,14 +55,17 @@ export class CrudService {
    **/
   async findAll({
     entitySlug,
-    queryParams
+    queryParams,
+    fullVersion
   }: {
     entitySlug: string
     queryParams?: { [key: string]: string | string[] }
+    fullVersion?: boolean
   }) {
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
-        slug: entitySlug
+        slug: entitySlug,
+        fullVersion
       })
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
@@ -80,7 +83,15 @@ export class CrudService {
     // Select only visible props.
     query.select(
       this.getVisibleProps({
-        props: entityManifest.properties
+        props: entityManifest.properties,
+        fullVersion
+      })
+    )
+
+    console.log(
+      this.getVisibleProps({
+        props: entityManifest.properties,
+        fullVersion
       })
     )
 
@@ -155,16 +166,21 @@ export class CrudService {
   async findOne({
     entitySlug,
     id,
-    queryParams
+    queryParams,
+    fullVersion
   }: {
     entitySlug: string
     id: number
     queryParams?: { [key: string]: string | string[] }
+    fullVersion?: boolean
   }) {
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
-        slug: entitySlug
+        slug: entitySlug,
+        fullVersion
       })
+
+    console.log(entityManifest)
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
       {
@@ -175,7 +191,9 @@ export class CrudService {
     const query: SelectQueryBuilder<BaseEntity> = this.entityService
       .getEntityRepository({ entityMetadata })
       .createQueryBuilder('entity')
-      .select(this.getVisibleProps({ props: entityManifest.properties }))
+      .select(
+        this.getVisibleProps({ props: entityManifest.properties, fullVersion })
+      )
       .where('entity.id = :id', { id })
 
     this.loadRelations({
@@ -257,16 +275,18 @@ export class CrudService {
    */
   private getVisibleProps({
     props,
-    alias = 'entity'
+    alias = 'entity',
+    fullVersion
   }: {
     props: PropertyManifest[]
     alias?: string
+    fullVersion?: boolean
   }): string[] {
     // Id is always visible.
     const visibleProps: string[] = [`${alias}.id`]
 
     props
-      .filter((prop) => !prop.hidden)
+      .filter((prop) => fullVersion || !prop.hidden)
       .forEach((prop) => visibleProps.push(`${alias}.${prop.name}`))
 
     return visibleProps

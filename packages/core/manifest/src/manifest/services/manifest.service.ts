@@ -35,7 +35,7 @@ export class ManifestService {
    * @returns The manifest.
    *
    * */
-  getAppManifest(options?: { publicVersion?: boolean }): AppManifest {
+  getAppManifest(options?: { fullVersion?: boolean }): AppManifest {
     const manifestSchema: AppManifestSchema = this.yamlService.load()
 
     if (!manifestSchema.entities) {
@@ -49,7 +49,7 @@ export class ManifestService {
 
     const appManifest: AppManifest = this.transformAppManifest(manifestSchema)
 
-    if (options?.publicVersion) {
+    if (!options?.fullVersion) {
       return this.hideSensitiveInformation(appManifest)
     }
     return appManifest
@@ -89,11 +89,11 @@ export class ManifestService {
   getEntityManifest({
     className,
     slug,
-    publicVersion
+    fullVersion
   }: {
     className?: string
     slug?: string
-    publicVersion?: boolean
+    fullVersion?: boolean
   }): EntityManifest {
     if (!className && !slug) {
       throw new HttpException(
@@ -119,7 +119,7 @@ export class ManifestService {
       )
     }
 
-    if (publicVersion) {
+    if (!fullVersion) {
       return this.hideEntitySensitiveInformation(entityManifest)
     }
 

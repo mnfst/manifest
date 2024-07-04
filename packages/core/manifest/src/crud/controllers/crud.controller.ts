@@ -7,25 +7,35 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query
+  Query,
+  Req
 } from '@nestjs/common'
 
 import { BaseEntity, Paginator, SelectOption } from '@mnfst/types'
 import { DeleteResult, InsertResult } from 'typeorm'
 import { CrudService } from '../services/crud.service'
+import { AuthService } from '../../auth/auth.service'
+import { Request } from 'express'
 
 @Controller('dynamic')
 export class CrudController {
-  constructor(private readonly crudService: CrudService) {}
+  constructor(
+    private readonly crudService: CrudService,
+    private readonly authService: AuthService
+  ) {}
 
   @Get('/:entity')
-  findAll(
+  async findAll(
     @Param('entity') entitySlug: string,
-    @Query() queryParams: { [key: string]: string | string[] }
+    @Query() queryParams: { [key: string]: string | string[] },
+    @Req() req: Request
   ): Promise<Paginator<BaseEntity>> {
+    const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
+
     return this.crudService.findAll({
       entitySlug,
-      queryParams
+      queryParams,
+      fullVersion: isAdmin
     })
   }
 
@@ -41,15 +51,19 @@ export class CrudController {
   }
 
   @Get(':entity/:id')
-  findOne(
+  async findOne(
     @Param('entity') entitySlug: string,
     @Param('id', ParseIntPipe) id: number,
-    @Query() queryParams: { [key: string]: string | string[] }
+    @Query() queryParams: { [key: string]: string | string[] },
+    @Req() req: Request
   ): Promise<BaseEntity> {
+    const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
+
     return this.crudService.findOne({
       entitySlug,
       id,
-      queryParams
+      queryParams,
+      fullVersion: isAdmin
     })
   }
 

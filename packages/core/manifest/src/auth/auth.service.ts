@@ -7,6 +7,7 @@ import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
+import { ADMIN_ENTITY_MANIFEST } from '../constants'
 
 // import { EntityMetaService } from '../crud/services/entity-meta.service'
 
@@ -107,5 +108,18 @@ export class AuthService {
     entitySlug: string
   ): Promise<AuthenticableEntity> {
     return this.getUserFromToken(req.headers?.['authorization'], entitySlug)
+  }
+
+  /**
+   * Returns whether the user from a request is an admin.
+   *
+   * @param req Request object
+   *
+   * @returns A promise that resolves to true if the user is an admin, and false otherwise.
+   */
+  async isReqUserAdmin(req: Request): Promise<boolean> {
+    return this.getUserFromRequest(req, ADMIN_ENTITY_MANIFEST.slug).then(
+      (user: AuthenticableEntity) => !!user
+    )
   }
 }

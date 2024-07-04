@@ -5,6 +5,8 @@ describe('Authorization (e2e)', () => {
     it('has not access to locked entity rules', async () => {})
 
     it('admins are only visible to other admins', async () => {})
+
+    it('can see hidden properties of entities', async () => {})
   })
 
   describe('Authenticable entity', () => {
@@ -13,6 +15,8 @@ describe('Authorization (e2e)', () => {
     it('has not access to other entity rules', async () => {})
 
     it('cannot manage admins', async () => {})
+
+    it('cannot see hidden properties of entities', async () => {})
   })
 
   describe('Guest', () => {
@@ -21,5 +25,7 @@ describe('Authorization (e2e)', () => {
     it('has not access to other entity rules', async () => {})
 
     it('cannot manage admins', async () => {})
+
+    it('cannot see hidden properties of entities', async () => {})
   })
 })
