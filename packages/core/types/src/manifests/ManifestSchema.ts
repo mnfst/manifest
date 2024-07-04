@@ -119,6 +119,10 @@ export interface EntityManifestSchema {
    */
   properties?: PropertyManifestSchema[]
   /**
+   * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
+   */
+  authenticable?: boolean
+  /**
    * The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations
    */
   belongsTo?: RelationshipManifestSchema[]

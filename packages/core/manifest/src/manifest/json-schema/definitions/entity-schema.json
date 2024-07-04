@@ -36,6 +36,10 @@
         "$ref": "property-schema.json"
       }
     },
+    "authenticable": {
+      "description": "Whether the entity is authenticable. Doc: https://manifest.build/docs/auth",
+      "type": "boolean"
+    },
     "belongsTo": {
       "description": "The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations",
       "type": "array",

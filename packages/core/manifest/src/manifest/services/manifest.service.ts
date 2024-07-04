@@ -210,6 +210,7 @@ export class ManifestService {
         (relationship: RelationshipManifestSchema) =>
           this.transformRelationship(relationship)
       ),
+      authenticable: entityManifestSchema.authenticable || false,
       properties
     }
 

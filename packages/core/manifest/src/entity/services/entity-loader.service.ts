@@ -12,6 +12,7 @@ import {
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { baseEntity } from '../core-entities/base-entity'
 import { propTypeColumnTypes } from '../records/prop-type-column-types'
+import { baseAuthenticableEntity } from '../core-entities/base-athenticable-entity'
 
 @Injectable()
 export class EntityLoaderService {
@@ -47,8 +48,10 @@ export class EntityLoaderService {
 
               return acc
             },
-            // Merge with baseEntity for base columns like id, createdAt, updatedAt.
-            { ...baseEntity }
+            // Merge with base entities for base columns.
+            entityManifest.authenticable
+              ? { ...baseAuthenticableEntity }
+              : { ...baseEntity }
           ) as { [key: string]: EntitySchemaColumnOptions },
 
           // Convert belongsTo relationships to many-to-one relations.
