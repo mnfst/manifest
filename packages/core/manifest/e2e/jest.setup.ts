@@ -7,6 +7,7 @@ import { load } from 'js-yaml'
 import fs from 'fs'
 import { SwaggerModule } from '@nestjs/swagger'
 import { OpenApiService } from '../src/open-api/services/open-api.service'
+import { SeederService } from '../src/seed/seeder.service'
 
 let app: INestApplication
 
@@ -33,6 +34,10 @@ beforeAll(async () => {
     .compile()
 
   app = moduleFixture.createNestApplication()
+
+  // Seed the database with the mock data.
+  const seedService = app.get(SeederService)
+  await seedService.seed('admin')
 
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())

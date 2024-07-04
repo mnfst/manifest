@@ -1,4 +1,4 @@
-import { AuthenticableEntity } from '@mnfst/types'
+import { AuthenticableEntity, EntityManifest } from '@mnfst/types'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SHA3 } from 'crypto-js'
@@ -8,6 +8,8 @@ import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 import { ADMIN_ENTITY_MANIFEST } from '../constants'
+import { ManifestService } from '../manifest/services/manifest.service'
+import { validate } from 'class-validator'
 
 // import { EntityMetaService } from '../crud/services/entity-meta.service'
 
@@ -15,7 +17,8 @@ import { ADMIN_ENTITY_MANIFEST } from '../constants'
 export class AuthService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly entityService: EntityService
+    private readonly entityService: EntityService,
+    private readonly manifestService: ManifestService
   ) {}
   /**
    * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.
@@ -59,6 +62,49 @@ export class AuthService {
   }
 
   /**
+   *
+   * Sign up a user. This user can be of any entity that extends AuthenticableEntity but Admin.
+   *
+   * @param entitySlug The slug of the AuthenticableEntity where the user is going to be created
+   * @param email The email of the user
+   * @param password The password of the user
+   *
+   * @returns A JWT token of the created user
+   *
+   */
+  async signup(
+    entitySlug: string,
+    signupUserDto: SignupAuthenticableEntityDto
+  ): Promise<{ token: string }> {
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
+
+    if (!entityManifest.authenticable) {
+      throw new HttpException(
+        'Entity is not authenticable',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
+    const entityRepository: Repository<any> =
+      this.entityService.getEntityRepository({ entitySlug })
+
+    const newUser: AuthenticableEntity = entityRepository.create(signupUserDto)
+    newUser.password = SHA3(newUser.password).toString()
+
+    const errors = await validate(newUser)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
+
+    const savedUser = await entityRepository.save(newUser)
+
+    return this.createToken(entitySlug, savedUser)
+  }
+
+  /**
    * Returns the user from a JWT token. This user can be of any entity that extends AuthenticableEntity.
    *
    * @param token JWT token
@@ -78,10 +124,10 @@ export class AuthService {
         this.configService.get('TOKEN_SECRET_KEY')
       ) as jwt.JwtPayload
     } catch (e) {
-      return null
+      return Promise.resolve(null)
     }
     if (!decoded) {
-      return null
+      return Promise.resolve(null)
     }
 
     const entityRepository: Repository<AuthenticableEntity> =

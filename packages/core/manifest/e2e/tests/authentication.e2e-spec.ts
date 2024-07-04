@@ -21,11 +21,20 @@ describe('Authentication (e2e)', () => {
         .post('/auth/admins/login')
         .send(DEFAULT_ADMIN_CREDENTIALS)
 
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(201)
+      expect(response.body).toMatchObject({
+        token: expect.any(String)
+      })
     })
 
     it('can get my current user as admin', async () => {
-      const response = await global.request.get('/auth/admins/me')
+      const loginResponse: Response = await global.request
+        .post('/auth/admins/login')
+        .send(DEFAULT_ADMIN_CREDENTIALS)
+
+      const response = await global.request
+        .get('/auth/admins/me')
+        .set('Authorization', 'Bearer ' + loginResponse.body['token'])
 
       expect(response.status).toBe(200)
       expect(response.body).toMatchObject({
@@ -39,7 +48,7 @@ describe('Authentication (e2e)', () => {
         password: 'testPassword'
       })
 
-      expect(response.status).toBe(403)
+      expect(response.status).toBe(401)
     })
   })
 
@@ -58,7 +67,7 @@ describe('Authentication (e2e)', () => {
         .post('/auth/users/login')
         .send(newUserData)
 
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(201)
     })
 
     it('can get my current user as authenticable entity', async () => {

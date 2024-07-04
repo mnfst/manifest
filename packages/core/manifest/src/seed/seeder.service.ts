@@ -5,6 +5,7 @@ import {
   PropertyManifest,
   RelationshipManifest
 } from '@mnfst/types'
+import { SHA3 } from 'crypto-js'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
@@ -37,14 +38,13 @@ export class SeederService {
    *
    */
   async seed(tableName?: string): Promise<void> {
-    let entityMetadatas: EntityMetadata[]
+    let entityMetadatas: EntityMetadata[] =
+      this.entityService.getEntityMetadatas()
 
     if (tableName) {
       entityMetadatas = entityMetadatas.filter(
         (entity: EntityMetadata) => entity.tableName === tableName
       )
-    } else {
-      entityMetadatas = this.entityService.getEntityMetadatas()
     }
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
@@ -78,9 +78,11 @@ export class SeederService {
           className: entityMetadata.name
         })
 
-      console.log(
-        `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-      )
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+        )
+      }
 
       for (const _index of Array(entityManifest.seedCount).keys()) {
         const newRecord: BaseEntity = repository.create()
@@ -119,7 +121,7 @@ export class SeederService {
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
-    admin.password = DEFAULT_ADMIN_CREDENTIALS.password
+    admin.password = SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
 
     await repository.save(admin)
   }

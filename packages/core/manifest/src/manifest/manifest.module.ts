@@ -1,10 +1,10 @@
 import { Module, forwardRef } from '@nestjs/common'
-import { AuthService } from '../auth/auth.service'
 import { EntityModule } from '../entity/entity.module'
 import { ManifestController } from './controllers/manifest.controller'
 import { ManifestService } from './services/manifest.service'
 import { SchemaService } from './services/schema.service'
 import { YamlService } from './services/yaml.service'
+import { AuthModule } from '../auth/auth.module'
 
 /**
  *
@@ -14,8 +14,8 @@ import { YamlService } from './services/yaml.service'
  */
 
 @Module({
-  imports: [forwardRef(() => EntityModule)],
-  providers: [ManifestService, YamlService, SchemaService, AuthService],
+  imports: [forwardRef(() => EntityModule), forwardRef(() => AuthModule)],
+  providers: [ManifestService, YamlService, SchemaService],
   controllers: [ManifestController],
   exports: [ManifestService]
 })

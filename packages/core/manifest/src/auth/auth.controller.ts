@@ -21,15 +21,15 @@ export class AuthController {
     return this.authService.createToken(authenticableEntity, signupUserDto)
   }
 
-  // @Post(':authenticableEntity/signup')
-  // public async signUp(
-  //   @Param('authenticableEntity') authenticableEntity: string,
-  //   @Body() signupUserDto: SignupUserDto
-  // ): Promise<{
-  //   token: string
-  // }> {
-  //   return this.authService.signUp(authenticableEntity, signupUserDto)
-  // }
+  @Post(':authenticableEntity/signup')
+  public async signup(
+    @Param('authenticableEntity') authenticableEntity: string,
+    @Body() signupUserDto: SignupAuthenticableEntityDto
+  ): Promise<{
+    token: string
+  }> {
+    return this.authService.signup(authenticableEntity, signupUserDto)
+  }
 
   @Get(':authenticableEntity/me')
   public async getCurrentUser(

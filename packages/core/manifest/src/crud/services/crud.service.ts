@@ -184,7 +184,10 @@ export class CrudService {
       .getEntityRepository({ entityMetadata })
       .createQueryBuilder('entity')
       .select(
-        this.getVisibleProps({ props: entityManifest.properties, fullVersion })
+        this.getVisibleProps({
+          props: entityManifest.properties,
+          fullVersion
+        })
       )
       .where('entity.id = :id', { id })
 
