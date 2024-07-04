@@ -1,3 +1,4 @@
+import { SHA3 } from 'crypto-js'
 import {
   HttpException,
   HttpStatus,
@@ -82,13 +83,6 @@ export class CrudService {
 
     // Select only visible props.
     query.select(
-      this.getVisibleProps({
-        props: entityManifest.properties,
-        fullVersion
-      })
-    )
-
-    console.log(
       this.getVisibleProps({
         props: entityManifest.properties,
         fullVersion
@@ -180,8 +174,6 @@ export class CrudService {
         fullVersion
       })
 
-    console.log(entityManifest)
-
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
       {
         className: entityManifest.className
@@ -212,10 +204,19 @@ export class CrudService {
   }
 
   async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
+
     const entityRepository: Repository<any> =
       this.entityService.getEntityRepository({ entitySlug })
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
+
+    if (entityManifest.authenticable) {
+      newItem.password = SHA3(newItem.password).toString()
+    }
 
     const errors = await validate(newItem)
     if (errors.length) {
@@ -230,6 +231,11 @@ export class CrudService {
     id: number,
     itemDto: any
   ): Promise<BaseEntity> {
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
+
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
 
@@ -243,6 +249,12 @@ export class CrudService {
       ...item,
       ...itemDto
     } as BaseEntity)
+
+    if (entityManifest.authenticable && itemDto.password) {
+      itemToSave.password = SHA3(itemToSave.password).toString()
+    } else if (entityManifest.authenticable && !itemDto.password) {
+      delete itemToSave.password
+    }
 
     const errors = await validate(itemToSave)
     if (errors.length) {
@@ -286,6 +298,7 @@ export class CrudService {
     const visibleProps: string[] = [`${alias}.id`]
 
     props
+      .filter((prop) => prop.name !== 'password') // Never return password.
       .filter((prop) => fullVersion || !prop.hidden)
       .forEach((prop) => visibleProps.push(`${alias}.${prop.name}`))
 
