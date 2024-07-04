@@ -1,12 +1,16 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.manifest.build/schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "App Manifest Schema",
-  "description": "A complete backend in a single file.",
+  "description": "A complete backend in a single file",
   "type": "object",
   "properties": {
     "name": {
       "description": "The name of your app",
+      "type": "string"
+    },
+    "version": {
+      "description": "The version of your app",
       "type": "string"
     },
     "entities": {

@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.0.0-alpha.8",
+  "version": "4.0.0-alpha.9",
   "description": "Effortless backends",
   "author": "Manifest",
   "license": "MIT",
@@ -37,6 +37,7 @@
     "test:e2e": "jest --config ./e2e/jest-e2e.json",
     "test:e2e:ci": "jest --config ./e2e/jest-e2e.json --ci",
     "generate-types": "ts-node src/manifest/json-schema/GenerateTypes.ts",
+    "link-local-types": "cd ../types && npm install && npm run build && npm link && cd ../manifest && npm link @mnfst/types",
     "prebuild": "npm run generate-types"
   },
   "files": [
@@ -46,12 +47,13 @@
   ],
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@mnfst/admin": "^0.1.0-alpha.4",
-    "@mnfst/types": "^0.1.0-alpha.3",
+    "@mnfst/admin": "^0.1.0-alpha.5",
+    "@mnfst/types": "^0.1.0-alpha.4",
     "@nestjs/common": "^10.3.3",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^10.3.3",
     "@nestjs/platform-express": "^10.3.3",
+    "@nestjs/swagger": "^7.3.1",
     "@nestjs/typeorm": "^10.0.2",
     "ajv": "^8.12.0",
     "better-sqlite3": "^9.6.0",

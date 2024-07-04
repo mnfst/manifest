@@ -24,6 +24,7 @@ export type PropertyManifestSchema =
         | 'link'
         | 'money'
         | 'date'
+        | 'timestamp'
         | 'email'
         | 'boolean'
         | 'relation'
@@ -67,13 +68,17 @@ export type RelationshipManifestSchema =
   | string
 
 /**
- * A complete backend in a single file.
+ * A complete backend in a single file
  */
 export interface AppManifestSchema {
   /**
    * The name of your app
    */
   name: string
+  /**
+   * The version of your app
+   */
+  version?: string
   /**
    * The entities in your app. Doc: https://manifest.build/docs/entities
    */

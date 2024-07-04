@@ -5,6 +5,8 @@ import { INestApplication } from '@nestjs/common'
 import supertest from 'supertest'
 import { load } from 'js-yaml'
 import fs from 'fs'
+import { SwaggerModule } from '@nestjs/swagger'
+import { OpenApiService } from '../src/open-api/services/open-api.service'
 
 let app: INestApplication
 
@@ -34,6 +36,10 @@ beforeAll(async () => {
 
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())
+
+  // Set the SwaggerModule to serve the OpenAPI doc.
+  const openApiService = app.get(OpenApiService)
+  SwaggerModule.setup('api', app, openApiService.generateOpenApiObject())
 
   await app.init()
 })
