@@ -36,6 +36,18 @@ export class AuthService {
   ): Promise<{
     token: string
   }> {
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
+
+    if (!entityManifest.authenticable) {
+      throw new HttpException(
+        'Entity is not authenticable',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
     const entityRepository: Repository<AuthenticableEntity> =
       this.entityService.getEntityRepository({
         entitySlug
@@ -76,6 +88,13 @@ export class AuthService {
     entitySlug: string,
     signupUserDto: SignupAuthenticableEntityDto
   ): Promise<{ token: string }> {
+    if (entitySlug === ADMIN_ENTITY_MANIFEST.slug) {
+      throw new HttpException(
+        'Admins cannot be created with this method.',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
         slug: entitySlug
@@ -101,7 +120,10 @@ export class AuthService {
 
     const savedUser = await entityRepository.save(newUser)
 
-    return this.createToken(entitySlug, savedUser)
+    return this.createToken(entitySlug, {
+      email: savedUser.email,
+      password: signupUserDto.password
+    })
   }
 
   /**

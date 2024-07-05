@@ -69,7 +69,8 @@ export class EntityLoaderService {
               return acc
             },
             {}
-          )
+          ),
+          uniques: entityManifest.authenticable ? [{ columns: ['email'] }] : []
         })
 
         return entitySchema

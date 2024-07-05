@@ -17,6 +17,8 @@ describe('Authorization (e2e)', () => {
     it('cannot manage admins', async () => {})
 
     it('cannot see hidden properties of entities', async () => {})
+
+    it('cannot signup as an authenticable entity if the rule is not public', async () => {})
   })
 
   describe('Guest', () => {

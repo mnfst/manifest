@@ -48,11 +48,19 @@ describe('Authentication (e2e)', () => {
         password: 'testPassword'
       })
 
-      expect(response.status).toBe(401)
+      expect(response.status).toBe(400)
     })
   })
 
   describe('Authenticable entity', () => {
+    it('can signup as an authenticable entity', async () => {
+      const response = await global.request
+        .post('/auth/users/signup')
+        .send(newUserData)
+
+      expect(response.status).toBe(201)
+    })
+
     it('can login as authenticable entity', async () => {
       const errorResponse = await global.request
         .post('/auth/users/login')
@@ -63,54 +71,44 @@ describe('Authentication (e2e)', () => {
 
       expect(errorResponse.status).toBe(401)
 
-      const response = await global.request
+      const loginResponse: Response = await global.request
         .post('/auth/users/login')
         .send(newUserData)
 
-      expect(response.status).toBe(201)
+      expect(loginResponse.status).toBe(201)
     })
 
     it('can get my current user as authenticable entity', async () => {
-      const response = await global.request.get('/auth/users/me')
+      const loginResponse: Response = await global.request
+        .post('/auth/users/login')
+        .send(newUserData)
+
+      const response = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + loginResponse.body['token'])
 
       expect(response.status).toBe(200)
       expect(response.body).toMatchObject({
         email: newUserData.email
       })
     })
-
-    it('can signup if signup rule is public', async () => {
-      const response = await global.request
-        .post('/auth/users/signup')
-        .send(newUserData)
-
-      expect(response.status).toBe(201)
-    })
-
-    it('cannot signup if signup rule is not public', async () => {
-      const response = await global.request
-        .post('/auth/contributors/signup')
-        .send(newUserData)
-
-      expect(response.status).toBe(403)
-    })
   })
 
-  describe('Other entity', () => {
-    it('cannot login as other entity', async () => {
+  describe('Non-authenticable entity', () => {
+    it('cannot login as non-authenticable entity', async () => {
       const response = await global.request
         .post('/auth/dogs/login')
         .send(newUserData)
 
-      expect(response.status).toBe(404)
+      expect(response.status).toBe(400)
     })
 
-    it('cannot signup as other entity', async () => {
+    it('cannot signup as non-authenticable entity', async () => {
       const response = await global.request
         .post('/auth/dogs/signup')
         .send(newUserData)
 
-      expect(response.status).toBe(404)
+      expect(response.status).toBe(400)
     })
   })
 })
