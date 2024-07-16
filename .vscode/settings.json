@@ -41,7 +41,6 @@
     "uniqid"
   ],
   "material-icon-theme.files.associations": {
-    "**.controller.ts": "nest",
     "**routing.module.ts": "routes"
   },
   "material-icon-theme.folders.associations": {

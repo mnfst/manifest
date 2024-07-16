@@ -18,14 +18,25 @@ export class YamlService {
    *
    **/
   load(): AppManifestSchema {
-    let fileContent: string = fs.readFileSync(
+    const fileContent: string = fs.readFileSync(
       this.configService.get('paths').database,
       'utf8'
     )
 
-    fileContent = this.ignoreEmojis(fileContent)
+    const appManifestSchema: AppManifestSchema = yaml.load(
+      fileContent
+    ) as AppManifestSchema
 
-    return yaml.load(fileContent) as AppManifestSchema
+    // Remove emojis from entity keys.
+    Object.keys(appManifestSchema.entities).forEach((key) => {
+      const newKey: string = this.ignoreEmojis(key)
+      if (newKey !== key) {
+        appManifestSchema.entities[newKey] = appManifestSchema.entities[key]
+        delete appManifestSchema.entities[key]
+      }
+    })
+
+    return appManifestSchema
   }
 
   /**

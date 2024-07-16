@@ -1,13 +1,22 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards
+} from '@nestjs/common'
 
 import { AuthenticableEntity } from '@mnfst/types'
 import { Request } from 'express'
 import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
-import { ApiTags } from '@nestjs/swagger'
+import { Rule } from './decorators/rule.decorator'
+import { AuthorizationGuard } from './guards/authorization/authorization.guard'
 
-@ApiTags('Auth')
 @Controller('auth')
+@UseGuards(AuthorizationGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -21,6 +30,7 @@ export class AuthController {
     return this.authService.createToken(authenticableEntity, signupUserDto)
   }
 
+  @Rule('signup')
   @Post(':authenticableEntity/signup')
   public async signup(
     @Param('authenticableEntity') authenticableEntity: string,
@@ -31,6 +41,7 @@ export class AuthController {
     return this.authService.signup(authenticableEntity, signupUserDto)
   }
 
+  @Rule('read')
   @Get(':authenticableEntity/me')
   public async getCurrentUser(
     @Param('authenticableEntity') authenticableEntity: string,
