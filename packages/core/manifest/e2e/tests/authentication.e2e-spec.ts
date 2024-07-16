@@ -92,6 +92,18 @@ describe('Authentication (e2e)', () => {
         email: newUserData.email
       })
     })
+
+    it('can signup as an authenticable entity', async () => {
+      const response = await global.request.post('/auth/users/signup').send({
+        email: 'test@example.com',
+        password: 'testPassword'
+      })
+
+      expect(response.status).toBe(201)
+      expect(response.body).toMatchObject({
+        token: expect.any(String)
+      })
+    })
   })
 
   describe('Non-authenticable entity', () => {

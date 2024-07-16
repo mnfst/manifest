@@ -1,33 +1,236 @@
+import { DEFAULT_ADMIN_CREDENTIALS } from '../../src/constants'
+
 describe('Authorization (e2e)', () => {
-  describe('Admin', () => {
-    it('has access to admin, private and public entity rules', async () => {})
+  const newUserData = {
+    email: 'newUser@example.com',
+    password: 'password'
+  }
 
-    it('has not access to locked entity rules', async () => {})
+  let adminToken: string
+  let userToken: string
+  let contributorToken: string
 
-    it('admins are only visible to other admins', async () => {})
+  beforeAll(async () => {
+    // Get admin token (login as default admin).
+    const adminLoginResponse = await global.request
+      .post('/auth/admins/login')
+      .send(DEFAULT_ADMIN_CREDENTIALS)
+    adminToken = adminLoginResponse.body.token
 
-    it('can see hidden properties of entities', async () => {})
+    // Get user token (signup as new user and get token).
+    const userSignupResponse = await global.request
+      .post('/auth/users/signup')
+      .send(newUserData)
+    userToken = userSignupResponse.body.token
+
+    // Get contributor token (signup as new contributor and get token).
+    const contributorSignupResponse = await global.request
+      .post('/auth/contributors/signup')
+      .send(newUserData)
+    contributorToken = contributorSignupResponse.body.token
   })
 
-  describe('Authenticable entity', () => {
-    it('has access to its private and public entity rules', async () => {})
+  describe('Rules', () => {
+    it('should have public access by default', async () => {
+      const listResponse = await global.request.get('/dynamic/owners')
 
-    it('has not access to other entity rules', async () => {})
+      expect(listResponse.status).toBe(200)
+    })
 
-    it('cannot manage admins', async () => {})
+    it('should allow access to public rules to everyone', async () => {
+      const listResponse = await global.request.get('/dynamic/cats')
+      const showResponse = await global.request.get('/dynamic/cats/1')
 
-    it('cannot see hidden properties of entities', async () => {})
+      expect(listResponse.status).toBe(200)
+      expect(showResponse.status).toBe(200)
+    })
 
-    it('cannot signup as an authenticable entity if the rule is not public', async () => {})
+    it('should allow access to restricted rules to all logged in users if no entity is provided', async () => {
+      const restrictedCreateResponseAsUser = await global.request
+        .post('/dynamic/birds')
+        .send({
+          name: 'lala'
+        })
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const restrictedCreateResponseAsContributor = await global.request
+        .post('/dynamic/birds')
+        .send({
+          name: 'lala'
+        })
+        .set('Authorization', 'Bearer ' + contributorToken)
+
+      expect(restrictedCreateResponseAsUser.status).toBe(201)
+    })
+
+    it('should allow access to restricted rules to logged in users of a defined entity if provided', async () => {
+      const restrictedToContributorsUpdateResponse = await global.request
+        .put('/dynamic/birds/1')
+        .set('Authorization', 'Bearer ' + contributorToken)
+        .send({ name: 'new name' })
+
+      // Policy where 2
+      const restrictedToContributorsAndUsersUpdateResponse =
+        await global.request
+          .get('/dynamic/birds/1')
+          .set('Authorization', 'Bearer ' + userToken)
+
+      expect(restrictedToContributorsUpdateResponse.status).toBe(200)
+      expect(restrictedToContributorsAndUsersUpdateResponse.status).toBe(200)
+    })
+
+    it('should allow access to admin rules only to admins', async () => {
+      const adminReadResponse = await global.request
+        .get('/dynamic/snakes')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      const userReadResponse = await global.request
+        .get('/dynamic/snakes')
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const guestReadResponse = await global.request.get('/dynamic/snakes')
+
+      expect(adminReadResponse.status).toBe(200)
+      expect(userReadResponse.status).toBe(401)
+      expect(guestReadResponse.status).toBe(401)
+    })
+
+    it('should deny access to restricted rules to guests', async () => {
+      const restrictedCreateResponse =
+        await global.request.post('/dynamic/birds')
+
+      const restrictedToContributorsAndUsersUpdateResponse =
+        await global.request.get('/dynamic/birds/1')
+
+      expect(restrictedCreateResponse.status).toBe(401)
+      expect(restrictedToContributorsAndUsersUpdateResponse.status).toBe(401)
+    })
+
+    it('should deny access to restricted rules to users of other entities if entity is provided', async () => {
+      const restrictedToContributorsUpdateResponse = await global.request
+        .put('/dynamic/birds/1')
+        .set('Authorization', 'Bearer ' + userToken)
+        .send({ name: 'new name' })
+
+      expect(restrictedToContributorsUpdateResponse.status).toBe(401)
+    })
+
+    it('should deny access to everyone even admins for forbidden rules', async () => {
+      const forbiddenUpdateResponseAsGuest = await global.request
+        .put('/auth/snakes/signup')
+        .send(newUserData)
+
+      const forbiddenUpdateResponseAsUser = await global.request
+        .put('/auth/snakes/signup')
+        .set('Authorization', 'Bearer ' + userToken)
+        .send(newUserData)
+
+      const forbiddenUpdateResponseAsAdmin = await global.request
+        .put('/auth/snakes/signup')
+        .set('Authorization', 'Bearer ' + adminToken)
+        .send(newUserData)
+
+      expect(forbiddenUpdateResponseAsGuest.status).toBe(401)
+      expect(forbiddenUpdateResponseAsUser.status).toBe(401)
+      expect(forbiddenUpdateResponseAsAdmin.status).toBe(401)
+    })
+
+    it('should work with multiple rules creating and AND logic between rules', async () => {
+      const restrictedTwiceDeleteResponseAsUser = await global.request
+        .delete('/dynamic/birds/1')
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const restrictedTwiceDeleteResponseAsContributor = await global.request
+        .delete('/dynamic/birds/1')
+        .set('Authorization', 'Bearer ' + contributorToken)
+
+      expect(restrictedTwiceDeleteResponseAsUser.status).toBe(401)
+      expect(restrictedTwiceDeleteResponseAsContributor.status).toBe(401)
+    })
+
+    it('should work with emojis shortcodes', async () => {
+      const publicResponseUsingEmoji = await global.request.get('/dynamic/cats')
+      const restrictedResponseUsingEmoji = await global.request
+        .post('/dynamic/cats')
+        .send({
+          name: 'new cat'
+        })
+      const forbiddenResponseUsingEmoji = await global.request
+        .delete('/dynamic/cats/1')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      expect(publicResponseUsingEmoji.status).toBe(200)
+      expect(restrictedResponseUsingEmoji.status).toBe(401)
+      expect(forbiddenResponseUsingEmoji.status).toBe(401)
+    })
   })
 
-  describe('Guest', () => {
-    it('has access to public entity rules', async () => {})
+  describe('Admin role', () => {
+    it('admins are only visible to other admins', async () => {
+      const adminReadResponseAsAdmin = await global.request
+        .get('/dynamic/admins')
+        .set('Authorization', 'Bearer ' + adminToken)
 
-    it('has not access to other entity rules', async () => {})
+      const userReadResponseAsAdmin = await global.request
+        .get('/dynamic/admins')
+        .set('Authorization', 'Bearer ' + userToken)
 
-    it('cannot manage admins', async () => {})
+      const guestReadResponseAsAdmin =
+        await global.request.get('/dynamic/admins')
 
-    it('cannot see hidden properties of entities', async () => {})
+      expect(adminReadResponseAsAdmin.status).toBe(200)
+      expect(userReadResponseAsAdmin.status).toBe(401)
+      expect(guestReadResponseAsAdmin.status).toBe(401)
+    })
+
+    it('only admins can manage admins', async () => {
+      const newAdmin = {
+        email: 'new@email.com',
+        password: 'password'
+      }
+
+      const adminCreateAdminResponse = await global.request
+        .post('/dynamic/admins')
+        .send(newAdmin)
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      const userCreateAdminResponse = await global.request
+        .post('/dynamic/admins')
+        .send(newAdmin)
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const guestCreateAdminResponse = await global.request
+        .post('/dynamic/admins')
+        .send(newAdmin)
+
+      expect(adminCreateAdminResponse.status).toBe(201)
+      expect(userCreateAdminResponse.status).toBe(401)
+      expect(guestCreateAdminResponse.status).toBe(401)
+    })
+
+    it('hidden properties of entities are only visible to admins', async () => {
+      const responseAsAdmin = await global.request
+        .get('/dynamic/cats/1')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      const responseAsUser = await global.request
+        .get('/dynamic/cats/1')
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const responseAsGuest = await global.request.get('/dynamic/cats/1')
+
+      expect(responseAsAdmin.body).toMatchObject({
+        name: expect.any(String),
+        hiddenProp: expect.any(Boolean)
+      })
+      expect(responseAsUser.body).not.toMatchObject({
+        name: expect.any(String),
+        hiddenProp: expect.any(Boolean)
+      })
+      expect(responseAsGuest.body).not.toMatchObject({
+        name: expect.any(String),
+        hiddenProp: expect.any(Boolean)
+      })
+    })
   })
 })

@@ -35,6 +35,8 @@
     "mnfst",
     "nestjs",
     "openapi",
+    "shortcodes",
+    "signup",
     "typeorm",
     "uniqid"
   ],

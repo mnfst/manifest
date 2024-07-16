@@ -7,14 +7,31 @@
   "properties": {
     "access": {
       "type": "string",
-      "enum": ["public", "restricted", "forbidden", "🌐", "🚫", "🔒"]
+      "enum": [
+        "public",
+        "restricted",
+        "forbidden",
+        "admin",
+        "🌐",
+        "🚫",
+        "🔒",
+        "️👨🏻‍💻"
+      ]
     },
-    "entities": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "allow": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
     }
   },
-  "required": ["access"]
+  "required": ["access"],
+  "additionalProperties": false
 }

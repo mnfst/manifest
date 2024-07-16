@@ -28,6 +28,12 @@
       "items": {
         "$ref": "policy-schema.json"
       }
+    },
+    "signup": {
+      "type": "array",
+      "items": {
+        "$ref": "policy-schema.json"
+      }
     }
   },
   "additionalProperties": false
