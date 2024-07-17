@@ -174,6 +174,7 @@ export class ManifestService {
     const properties: PropertyManifest[] = (entitySchema.properties || []).map(
       (propManifest: PropertySchema) => this.transformProperty(propManifest)
     )
+    const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
 
     const entityManifest: EntityManifest = {
       className: entitySchema.className || className,
@@ -205,19 +206,19 @@ export class ManifestService {
       policies: {
         create:
           entitySchema.policies?.create?.map((p) => this.transformPolicy(p)) ||
-          [],
+          publicPolicy,
         read:
           entitySchema.policies?.read?.map((p) => this.transformPolicy(p)) ||
-          [],
+          publicPolicy,
         update:
           entitySchema.policies?.update?.map((p) => this.transformPolicy(p)) ||
-          [],
+          publicPolicy,
         delete:
           entitySchema.policies?.delete?.map((p) => this.transformPolicy(p)) ||
-          [],
+          publicPolicy,
         signup:
           entitySchema.policies?.signup?.map((p) => this.transformPolicy(p)) ||
-          []
+          publicPolicy
       }
     }
 
@@ -300,11 +301,17 @@ export class ManifestService {
         break
       case '🚫':
         access = 'forbidden'
+        break
+      default:
+        access = policySchema.access as AccessPolicy
     }
 
     const policyManifest: PolicyManifest = {
-      access,
-      allow:
+      access
+    }
+
+    if (policySchema.allow) {
+      policyManifest.allow =
         typeof policySchema.allow === 'string'
           ? [policySchema.allow]
           : policySchema.allow

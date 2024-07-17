@@ -44,9 +44,9 @@ export class AuthController {
   @Get(':entity/me')
   @Rule('read')
   public async getCurrentUser(
-    @Param('entity') entity: string,
+    @Param('entity') _entity: string,
     @Req() req: Request
   ): Promise<AuthenticableEntity> {
-    return this.authService.getUserFromToken(req.headers?.authorization, entity)
+    return (await this.authService.getUserFromRequest(req)).user
   }
 }

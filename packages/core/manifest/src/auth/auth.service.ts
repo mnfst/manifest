@@ -67,7 +67,7 @@ export class AuthService {
     }
     return {
       token: jwt.sign(
-        { email: signupUserDto.email },
+        { email: signupUserDto.email, entitySlug },
         this.configService.get('TOKEN_SECRET_KEY')
       )
     }
@@ -135,11 +135,10 @@ export class AuthService {
    * @returns The user item from the JWT token
    *
    */
-  getUserFromToken(
-    token: string,
-    entitySlug?: string
-  ): Promise<AuthenticableEntity> {
-    let decoded: jwt.JwtPayload
+  async getUserFromToken(
+    token: string
+  ): Promise<{ user: AuthenticableEntity; entitySlug: string }> {
+    let decoded: jwt.JwtPayload<{ email: string; entitySlug: string }>
     try {
       decoded = jwt.verify(
         token?.replace('Bearer ', ''),
@@ -154,14 +153,16 @@ export class AuthService {
 
     const entityRepository: Repository<AuthenticableEntity> =
       this.entityService.getEntityRepository({
-        entitySlug
+        entitySlug: decoded.entitySlug
       }) as Repository<AuthenticableEntity>
 
-    return entityRepository.findOne({
+    const user = await entityRepository.findOne({
       where: {
         email: decoded.email
       }
     })
+
+    return { user, entitySlug: decoded.entitySlug }
   }
 
   /**
@@ -172,10 +173,9 @@ export class AuthService {
    * @returns The user item from the request
    **/
   getUserFromRequest(
-    req: Request,
-    entitySlug: string
-  ): Promise<AuthenticableEntity> {
-    return this.getUserFromToken(req.headers?.['authorization'], entitySlug)
+    req: Request
+  ): Promise<{ user: AuthenticableEntity; entitySlug: string }> {
+    return this.getUserFromToken(req.headers?.['authorization'])
   }
 
   /**
@@ -186,8 +186,9 @@ export class AuthService {
    * @returns A promise that resolves to true if the user is an admin, and false otherwise.
    */
   async isReqUserAdmin(req: Request): Promise<boolean> {
-    return this.getUserFromRequest(req, ADMIN_ENTITY_MANIFEST.slug).then(
-      (user: AuthenticableEntity) => !!user
+    return this.getUserFromRequest(req).then(
+      (res: { user: AuthenticableEntity; entitySlug: string }) =>
+        !!res.user && res.entitySlug === ADMIN_ENTITY_MANIFEST.slug
     )
   }
 }
