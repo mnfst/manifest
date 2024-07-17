@@ -1,4 +1,4 @@
-import { AuthorizationGuard } from '../guards/authorization/authorization.guard'
+import { AuthorizationGuard } from '../guards/authorization.guard'
 
 describe('AuthorizationGuard', () => {
   it('should be defined', () => {

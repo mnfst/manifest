@@ -16,7 +16,14 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   slug: 'admins',
   authenticable: true,
   properties: [],
-  belongsTo: []
+  belongsTo: [],
+  policies: {
+    create: [{ access: 'admin' }],
+    read: [{ access: 'admin' }],
+    update: [{ access: 'admin' }],
+    delete: [{ access: 'admin' }],
+    signup: [{ access: 'forbidden' }]
+  }
 }
 
 export const AUTHENTICABLE_PROPS: PropertyManifest[] = [

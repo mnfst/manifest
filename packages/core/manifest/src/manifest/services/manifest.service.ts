@@ -7,12 +7,15 @@ import {
   AppManifest,
   AppManifestSchema,
   EntityManifest,
-  EntityManifestSchema,
+  EntitySchema,
+  PolicySchema,
+  PolicyManifest,
   PropType,
   PropertyManifest,
-  PropertyManifestSchema,
+  PropertySchema,
   RelationshipManifest,
-  RelationshipManifestSchema
+  RelationshipSchema,
+  AccessPolicy
 } from '@mnfst/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
@@ -72,7 +75,7 @@ export class ManifestService {
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
     return Object.entries(manifestSchema.entities).map(
-      ([className, entity]: [string, EntityManifestSchema]) =>
+      ([className, entity]: [string, EntitySchema]) =>
         this.transformEntityManifest(className, entity)
     )
   }
@@ -144,12 +147,9 @@ export class ManifestService {
       entities: Object.entries(manifestSchema.entities).reduce(
         (
           acc: { [k: string]: EntityManifest },
-          [className, entityManifestSchema]: [string, EntityManifestSchema]
+          [className, entitySchema]: [string, EntitySchema]
         ) => {
-          acc[className] = this.transformEntityManifest(
-            className,
-            entityManifestSchema
-          )
+          acc[className] = this.transformEntityManifest(className, entitySchema)
           return acc
         },
         {}
@@ -159,7 +159,7 @@ export class ManifestService {
 
   /**
    *
-   * Transform an EntityManifestSchema into an EntityManifest ensuring that undefined properties are filled in with defaults
+   * Transform an EntitySchema into an EntityManifest ensuring that undefined properties are filled in with defaults
    * and short form properties are transformed into long form.
    *
    * @param className the class name of the entity.
@@ -169,45 +169,56 @@ export class ManifestService {
    */
   transformEntityManifest(
     className: string,
-    entityManifestSchema: EntityManifestSchema
+    entitySchema: EntitySchema
   ): EntityManifest {
-    const properties: PropertyManifest[] = (
-      entityManifestSchema.properties || []
-    ).map((propManifest: PropertyManifestSchema) =>
-      this.transformProperty(propManifest)
+    const properties: PropertyManifest[] = (entitySchema.properties || []).map(
+      (propManifest: PropertySchema) => this.transformProperty(propManifest)
     )
 
     const entityManifest: EntityManifest = {
-      className: entityManifestSchema.className || className,
+      className: entitySchema.className || className,
       nameSingular:
-        entityManifestSchema.nameSingular ||
-        pluralize
-          .singular(entityManifestSchema.className || className)
-          .toLowerCase(),
+        entitySchema.nameSingular ||
+        pluralize.singular(entitySchema.className || className).toLowerCase(),
       namePlural:
-        entityManifestSchema.namePlural ||
-        pluralize
-          .plural(entityManifestSchema.className || className)
-          .toLowerCase(),
+        entitySchema.namePlural ||
+        pluralize.plural(entitySchema.className || className).toLowerCase(),
       slug:
-        entityManifestSchema.slug ||
+        entitySchema.slug ||
         slugify(
           dasherize(
-            pluralize.plural(entityManifestSchema.className || className)
+            pluralize.plural(entitySchema.className || className)
           ).toLowerCase()
         ),
       // First "string" property found in the entity if exists, otherwise "id".
       mainProp:
-        entityManifestSchema.mainProp ||
+        entitySchema.mainProp ||
         properties.find((prop) => prop.type === PropType.String)?.name ||
         'id',
-      seedCount: entityManifestSchema.seedCount || DEFAULT_SEED_COUNT,
-      belongsTo: (entityManifestSchema.belongsTo || []).map(
-        (relationship: RelationshipManifestSchema) =>
+      seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
+      belongsTo: (entitySchema.belongsTo || []).map(
+        (relationship: RelationshipSchema) =>
           this.transformRelationship(relationship)
       ),
-      authenticable: entityManifestSchema.authenticable || false,
-      properties
+      authenticable: entitySchema.authenticable || false,
+      properties,
+      policies: {
+        create:
+          entitySchema.policies?.create?.map((p) => this.transformPolicy(p)) ||
+          [],
+        read:
+          entitySchema.policies?.read?.map((p) => this.transformPolicy(p)) ||
+          [],
+        update:
+          entitySchema.policies?.update?.map((p) => this.transformPolicy(p)) ||
+          [],
+        delete:
+          entitySchema.policies?.delete?.map((p) => this.transformPolicy(p)) ||
+          [],
+        signup:
+          entitySchema.policies?.signup?.map((p) => this.transformPolicy(p)) ||
+          []
+      }
     }
 
     if (entityManifest.authenticable) {
@@ -225,7 +236,7 @@ export class ManifestService {
    * @returns the relationship with the short form properties transformed into long form.
    */
   transformRelationship(
-    relationship: RelationshipManifestSchema
+    relationship: RelationshipSchema
   ): RelationshipManifest {
     if (typeof relationship === 'string') {
       return {
@@ -245,26 +256,61 @@ export class ManifestService {
    *
    * Transform the short form of the property into the long form.
    *
-   * @param propManifest the property that can be in short form.
+   * @param propSchema the property that can be in short form.
+   *
    * @returns the property with the short form properties transformed into long form.
    *
    */
-  transformProperty(
-    propManifestSchema: PropertyManifestSchema
-  ): PropertyManifest {
-    if (typeof propManifestSchema === 'string') {
+  transformProperty(propSchema: PropertySchema): PropertyManifest {
+    if (typeof propSchema === 'string') {
       return {
-        name: propManifestSchema.toLowerCase(),
+        name: propSchema.toLowerCase(),
         type: PropType.String,
         hidden: false
       }
     }
     return {
-      name: propManifestSchema.name,
-      type: (propManifestSchema.type as PropType) || PropType.String,
-      hidden: propManifestSchema.hidden || false,
-      options: propManifestSchema.options
+      name: propSchema.name,
+      type: (propSchema.type as PropType) || PropType.String,
+      hidden: propSchema.hidden || false,
+      options: propSchema.options
     }
+  }
+
+  /**
+   * Transform the short form of a policy into the long form.
+   *
+   * @param policySchema the policy that can be in short form.
+   *
+   * @returns the policy with the short form properties transformed into long form.
+   */
+  transformPolicy(policySchema: PolicySchema): PolicyManifest {
+    let access: AccessPolicy
+
+    // Transform emojis into long form.
+    switch (policySchema.access) {
+      case '🌐':
+        access = 'public'
+        break
+      case '🔒':
+        access = 'restricted'
+        break
+      case '️👨🏻‍💻':
+        access = 'admin'
+        break
+      case '🚫':
+        access = 'forbidden'
+    }
+
+    const policyManifest: PolicyManifest = {
+      access,
+      allow:
+        typeof policySchema.allow === 'string'
+          ? [policySchema.allow]
+          : policySchema.allow
+    }
+
+    return policyManifest
   }
 
   /**
@@ -280,10 +326,8 @@ export class ManifestService {
       ...manifest,
       entities: Object.entries(manifest.entities)
         .filter(
-          ([className, _entityManifestSchema]: [
-            string,
-            EntityManifestSchema
-          ]) => className !== ADMIN_ENTITY_MANIFEST.className
+          ([className, _entitySchema]: [string, EntitySchema]) =>
+            className !== ADMIN_ENTITY_MANIFEST.className
         )
         .reduce(
           (

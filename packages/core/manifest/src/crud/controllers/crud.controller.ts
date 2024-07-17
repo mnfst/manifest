@@ -8,7 +8,8 @@ import {
   Post,
   Put,
   Query,
-  Req
+  Req,
+  UseGuards
 } from '@nestjs/common'
 
 import { BaseEntity, Paginator, SelectOption } from '@mnfst/types'
@@ -16,8 +17,11 @@ import { DeleteResult, InsertResult } from 'typeorm'
 import { CrudService } from '../services/crud.service'
 import { AuthService } from '../../auth/auth.service'
 import { Request } from 'express'
+import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { Rule } from '../../auth/decorators/rule.decorator'
 
 @Controller('dynamic')
+@UseGuards(AuthorizationGuard)
 export class CrudController {
   constructor(
     private readonly crudService: CrudService,
@@ -25,6 +29,7 @@ export class CrudController {
   ) {}
 
   @Get('/:entity')
+  @Rule('read')
   async findAll(
     @Param('entity') entitySlug: string,
     @Query() queryParams: { [key: string]: string | string[] },
@@ -40,6 +45,7 @@ export class CrudController {
   }
 
   @Get(':entity/select-options')
+  @Rule('read')
   findSelectOptions(
     @Param('entity') entitySlug: string,
     @Query() queryParams: { [key: string]: string | string[] }
@@ -51,6 +57,7 @@ export class CrudController {
   }
 
   @Get(':entity/:id')
+  @Rule('read')
   async findOne(
     @Param('entity') entitySlug: string,
     @Param('id', ParseIntPipe) id: number,
@@ -68,6 +75,7 @@ export class CrudController {
   }
 
   @Post(':entity')
+  @Rule('create')
   store(
     @Param('entity') entity: string,
     @Body() entityDto: any
@@ -76,6 +84,7 @@ export class CrudController {
   }
 
   @Put(':entity/:id')
+  @Rule('update')
   update(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number,
@@ -85,6 +94,7 @@ export class CrudController {
   }
 
   @Delete(':entity/:id')
+  @Rule('delete')
   delete(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number

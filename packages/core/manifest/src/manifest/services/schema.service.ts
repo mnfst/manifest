@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common'
 
 import {
   AppManifestSchema,
-  EntityManifestSchema,
-  RelationshipManifestSchema
+  EntitySchema,
+  RelationshipSchema
 } from '@mnfst/types'
 import Ajv from 'ajv'
 import schemas from '../json-schema'
@@ -68,33 +68,32 @@ export class SchemaService {
   validateCustomLogic(manifest: AppManifestSchema): boolean {
     // 1.Validate that all entities in relationships exist.
     const entityNames: string[] = Object.keys(manifest.entities || {})
-    Object.values(manifest.entities || {}).forEach(
-      (entity: EntityManifestSchema) => {
-        const relationshipNames = Object.values(entity.belongsTo || []).map(
-          (relationship: RelationshipManifestSchema) => {
-            if (typeof relationship === 'string') {
-              return relationship
-            }
-            return relationship.entity
+    Object.values(manifest.entities || {}).forEach((entity: EntitySchema) => {
+      const relationshipNames = Object.values(entity.belongsTo || []).map(
+        (relationship: RelationshipSchema) => {
+          if (typeof relationship === 'string') {
+            return relationship
           }
-        )
+          return relationship.entity
+        }
+      )
 
-        relationshipNames.forEach((relationship: any) => {
-          if (!entityNames.includes(relationship)) {
-            console.log(
-              chalk.red(
-                'JSON Schema Validation failed. Please fix the following:'
-              )
+      relationshipNames.forEach((relationship: any) => {
+        if (!entityNames.includes(relationship)) {
+          console.log(
+            chalk.red(
+              'JSON Schema Validation failed. Please fix the following:'
             )
+          )
 
-            console.log(
-              chalk.red(`Entity ${relationship} does not exist in the manifest`)
-            )
-            process.exit(1)
-          }
-        })
-      }
-    )
+          console.log(
+            chalk.red(`Entity ${relationship} does not exist in the manifest`)
+          )
+          process.exit(1)
+        }
+      })
+    })
+    // TODO: Same for policies "allow".
 
     return true
   }
