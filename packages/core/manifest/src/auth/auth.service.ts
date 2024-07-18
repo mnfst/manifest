@@ -175,7 +175,13 @@ export class AuthService {
   getUserFromRequest(
     req: Request
   ): Promise<{ user: AuthenticableEntity; entitySlug: string }> {
-    return this.getUserFromToken(req.headers?.['authorization'])
+    const token = req.headers?.['authorization']
+
+    if (!token) {
+      return Promise.resolve(null)
+    }
+
+    return this.getUserFromToken(token)
   }
 
   /**
@@ -188,7 +194,7 @@ export class AuthService {
   async isReqUserAdmin(req: Request): Promise<boolean> {
     return this.getUserFromRequest(req).then(
       (res: { user: AuthenticableEntity; entitySlug: string }) =>
-        !!res.user && res.entitySlug === ADMIN_ENTITY_MANIFEST.slug
+        !!res?.user && res?.entitySlug === ADMIN_ENTITY_MANIFEST.slug
     )
   }
 }

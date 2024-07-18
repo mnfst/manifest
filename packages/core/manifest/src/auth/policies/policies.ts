@@ -1,15 +1,53 @@
-import { AccessPolicy } from '@mnfst/types'
+import { AccessPolicy, AuthenticableEntity, EntityManifest } from '@mnfst/types'
+import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 
 export const policies: Record<
   AccessPolicy,
-  (user: any, entity: any) => boolean
+  (
+    user: AuthenticableEntity,
+    entity: EntityManifest,
+    options?: {
+      allow?: string[]
+    }
+  ) => boolean
 > = {
-  // TODO Implement policies
-  public: (user, entity) => true,
+  /**
+   * Returns whether the user is an admin.
+   */
+  admin: (user: AuthenticableEntity, entity: EntityManifest) =>
+    user && entity.slug === ADMIN_ENTITY_MANIFEST.slug,
 
-  restricted: (user, entity) => !!user,
+  /**
+   * Allows access to all users.
+   */
+  public: (_user: AuthenticableEntity, _entity: EntityManifest) => true,
 
-  forbidden: (user, entity) => false,
+  /**
+   * Forbids access to all users.
+   */
+  forbidden: (_user: AuthenticableEntity, _entity: EntityManifest) => false,
 
-  admin: (user, entity) => user?.role === 'admin'
+  /**
+   * Returns whether the user is authenticated. If "allow" is provided, it will check if the entity is allowed.
+   */
+  restricted: (
+    user: AuthenticableEntity,
+    entity: EntityManifest,
+    options: { allow: string[] }
+  ) => {
+    if (!user) {
+      return false
+    }
+
+    // Admins have access to restricted content.
+    if (policies.admin(user, entity)) {
+      return true
+    }
+
+    if (options.allow) {
+      return options.allow.includes(entity.className)
+    }
+
+    return false
+  }
 }

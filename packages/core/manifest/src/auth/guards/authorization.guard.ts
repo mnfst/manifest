@@ -5,6 +5,7 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 import { EntityManifest, PolicyManifest } from '@mnfst/types'
 import { AuthService } from '../auth.service'
 import { Request } from 'express'
+import { policies } from '../policies/policies'
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -25,20 +26,27 @@ export class AuthorizationGuard implements CanActivate {
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({ slug: entitySlug })
 
-    console.log(entityManifest.className, entityManifest.policies)
-
-    const policies: PolicyManifest[] = entityManifest.policies[rule]
-
-    console.log(policies)
+    const rulePolicies: PolicyManifest[] = entityManifest.policies[rule]
 
     const req: Request = context.switchToHttp().getRequest()
+
     const { user, entitySlug: userEntitySlug }: any =
-      await this.authService.getUserFromRequest(req)
+      (await this.authService.getUserFromRequest(req)) || {}
 
-    console.log(user, userEntitySlug)
+    let userEntityManifest: EntityManifest
+    if (userEntitySlug) {
+      userEntityManifest = this.manifestService.getEntityManifest({
+        slug: userEntitySlug
+      })
+    } else {
+      userEntityManifest = null
+    }
 
-    // TODO: Check if user matches the policy
+    return rulePolicies.every((policy: PolicyManifest) => {
+      const policyFn = policies[policy.access]
 
-    return true
+      // Execute the policy function that returns a boolean.
+      return policyFn(user, userEntityManifest, { allow: policy.allow })
+    })
   }
 }
