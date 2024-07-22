@@ -48,6 +48,6 @@ export const policies: Record<
       return options.allow.includes(entity.className)
     }
 
-    return false
+    return true
   }
 }

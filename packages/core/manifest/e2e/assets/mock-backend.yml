@@ -52,7 +52,7 @@ entities:
       - name
       - { name: age, type: number }
       - { name: birthdate, type: date }
-      - { name: hiddenProp, type: boolean }
+      - { name: hiddenProp, type: boolean, hidden: true }
     policies:
       create:
         - access: 🔒 # Restricted to logged in users.

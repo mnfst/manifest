@@ -75,7 +75,8 @@ export class SeederService {
 
       const entityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
-          className: entityMetadata.name
+          className: entityMetadata.name,
+          fullVersion: true
         })
 
       if (process.env.NODE_ENV !== 'test') {

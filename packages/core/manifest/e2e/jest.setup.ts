@@ -37,7 +37,7 @@ beforeAll(async () => {
 
   // Seed the database with the mock data.
   const seedService = app.get(SeederService)
-  await seedService.seed('admin')
+  await seedService.seed()
 
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())
