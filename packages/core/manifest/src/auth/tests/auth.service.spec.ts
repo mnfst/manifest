@@ -2,28 +2,20 @@ import { HttpException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Test } from '@nestjs/testing'
 import * as jwt from 'jsonwebtoken'
-import { AuthService } from './auth.service'
-import { EntityService } from '../entity/services/entity.service'
-import { ADMIN_ENTITY_MANIFEST } from '../constants'
+import { AuthService } from '../auth.service'
+import { EntityService } from '../../entity/services/entity.service'
+import { ADMIN_ENTITY_MANIFEST } from '../../constants'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 describe('AuthService', () => {
   let authService: AuthService
   let configService: ConfigService
   let entityService: EntityService
+  let manifestService: ManifestService
 
   const mockUser = {
     email: 'testEmail',
     password: 'testHashedPassword'
-  }
-
-  const mockConfigService = {
-    get: jest.fn().mockReturnValue('test-jwt-secret')
-  }
-
-  const mockEntityService = {
-    getEntityRepository: jest.fn().mockReturnValue({
-      findOne: jest.fn().mockReturnValue(Promise.resolve(mockUser))
-    })
   }
 
   beforeEach(async () => {
@@ -33,11 +25,23 @@ describe('AuthService', () => {
 
         {
           provide: ConfigService,
-          useValue: mockConfigService
+          useValue: {
+            get: jest.fn().mockReturnValue('test-jwt-secret')
+          }
         },
         {
           provide: EntityService,
-          useValue: mockEntityService
+          useValue: {
+            getEntityRepository: jest.fn().mockReturnValue({
+              findOne: jest.fn().mockReturnValue(Promise.resolve(mockUser))
+            })
+          }
+        },
+        {
+          provide: ManifestService,
+          useValue: {
+            getEntityManifest: jest.fn().mockReturnValue(ADMIN_ENTITY_MANIFEST)
+          }
         }
       ]
     }).compile()
@@ -45,6 +49,7 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService)
     configService = module.get<ConfigService>(ConfigService)
     entityService = module.get<EntityService>(EntityService)
+    manifestService = module.get<ManifestService>(ManifestService)
   })
 
   describe('createToken', () => {
@@ -80,15 +85,15 @@ describe('AuthService', () => {
         findOne: jest.fn().mockReturnValue(Promise.resolve(mockUser))
       })
 
-      const jwtToken = jwt.sign(
-        mockUser.email,
-        configService.get('TOKEN_SECRET_KEY')
+      const { token } = await authService.createToken(
+        ADMIN_ENTITY_MANIFEST.slug,
+        mockUser
       )
 
-      expect(await authService.getUserFromToken(jwtToken)).toHaveProperty(
-        'email',
-        mockUser.email
-      )
+      const response = await authService.getUserFromToken(token)
+
+      expect(response.user).toHaveProperty('email', mockUser.email)
+      expect(response.entitySlug).toBe(ADMIN_ENTITY_MANIFEST.slug)
     })
 
     it('should return null when the token does not decode to a valid email', async () => {
@@ -96,7 +101,7 @@ describe('AuthService', () => {
         findOne: jest.fn().mockReturnValue(Promise.resolve(null))
       })
 
-      const jwtToken = jwt.sign(
+      const { jwtToken, entitySlug } = jwt.sign(
         'nonexistent@email.com',
         configService.get('TOKEN_SECRET_KEY')
       )

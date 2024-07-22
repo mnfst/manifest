@@ -132,7 +132,7 @@ export class AuthService {
    * @param token JWT token
    * @param entitySlug Entity slug. If provided, the user will be searched only in this entity. If not provided, the user will be searched in all entities that extend AuthenticableEntity.
    *
-   * @returns The user item from the JWT token
+   * @returns The user item from the JWT token and the entity slug of the user.
    *
    */
   async getUserFromToken(
