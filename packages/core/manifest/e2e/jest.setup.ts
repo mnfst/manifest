@@ -16,6 +16,7 @@ beforeAll(async () => {
   process.env.NODE_ENV = 'test'
   process.env.DB_DATABASE = ':memory:'
   process.env.DB_DROP_SCHEMA = 'true'
+  process.env.TOKEN_SECRET_KEY = 'test'
 
   // Start the NestJS application mocking some services.
   const moduleFixture: TestingModule = await Test.createTestingModule({
