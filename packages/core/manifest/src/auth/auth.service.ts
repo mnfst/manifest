@@ -178,7 +178,7 @@ export class AuthService {
     const token = req.headers?.['authorization']
 
     if (!token) {
-      return Promise.resolve(null)
+      return Promise.resolve({ user: null, entitySlug: null })
     }
 
     return this.getUserFromToken(token)

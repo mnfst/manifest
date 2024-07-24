@@ -1,12 +1,12 @@
 import { AppManifest, EntityManifest } from '@mnfst/types'
-import { Controller, Get, Param, Req } from '@nestjs/common'
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
 import { AuthService } from '../../auth/auth.service'
 import { ManifestService } from '../services/manifest.service'
-import { ApiTags } from '@nestjs/swagger'
+import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 
-@ApiTags('Manifest')
 @Controller('manifest')
+@UseGuards(IsAdminGuard)
 export class ManifestController {
   constructor(
     private manifestService: ManifestService,
