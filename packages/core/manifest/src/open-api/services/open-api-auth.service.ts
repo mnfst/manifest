@@ -1,19 +1,37 @@
-import { AppManifest, EntityManifest } from '@mnfst/types'
+import { AppManifest, EntityManifest, PolicyManifest } from '@mnfst/types'
 import { Injectable } from '@nestjs/common'
 import {
   PathItemObject,
   SecuritySchemeObject
 } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 
 @Injectable()
 export class OpenApiAuthService {
+  /**
+   * Generates the paths for the OpenAPI spec: Login, signup ang get current user for authenticable entities.
+   *
+   * @param appManifest The manifest of the application.
+   *
+   * @returns The paths.
+   *
+   */
   generateAuthPaths(appManifest: any): Record<string, PathItemObject> {
-    const paths: Record<string, PathItemObject> = {
+    const paths: Record<string, PathItemObject> = {}
+
+    // Authenticable entities and admins.
+    const authenticableEntities: EntityManifest[] = Object.values(
+      appManifest.entities as Record<string, EntityManifest>
+    )
+      .filter((entity: EntityManifest) => entity.authenticable)
+      .concat(ADMIN_ENTITY_MANIFEST)
+
+    authenticableEntities.forEach((entity: EntityManifest) => {
       // Login.
-      ['/api/auth/admins/login']: {
+      paths[`/api/auth/${entity.slug}/login`] = {
         post: {
-          summary: 'Login as an admin',
-          description: 'Logs in as an admin.',
+          summary: `Login as a ${entity.nameSingular}`,
+          description: `Logs in as a ${entity.nameSingular}.`,
           tags: ['Auth'],
           requestBody: {
             content: {
@@ -31,8 +49,8 @@ export class OpenApiAuthService {
                   required: ['email', 'password']
                 },
                 example: {
-                  email: 'admin@manifest.build',
-                  password: 'admin'
+                  email: 'example@manifest.build',
+                  password: 'password'
                 }
               }
             }
@@ -109,23 +127,158 @@ export class OpenApiAuthService {
             }
           }
         }
-      },
+      }
 
       // Get current user.
-      ['/api/auth/admins/me']: {
+      paths[`/api/auth/${entity.slug}/me`] = {
         get: {
-          summary: 'Get current admin',
-          description: 'Get the current admin.',
+          summary: `Get current ${entity.nameSingular}`,
+          description: `Get current ${entity.nameSingular}.`,
           tags: ['Auth'],
           security: [
             {
-              admin: []
+              [entity.className]: []
             }
           ],
-          responses: {}
+          responses: {
+            '200': {
+              description: 'Successful request',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      id: {
+                        type: 'number'
+                      },
+                      email: {
+                        type: 'string'
+                      }
+                    }
+                  },
+                  example: {
+                    id: 1,
+                    email: 'user@example.com'
+                  }
+                }
+              }
+            },
+            '403': {
+              description: 'Forbidden',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      statusCode: {
+                        type: 'number'
+                      },
+                      message: {
+                        type: 'string'
+                      },
+                      error: {
+                        type: 'string'
+                      }
+                    }
+                  },
+                  example: {
+                    message: 'Forbidden resource',
+                    error: 'Forbidden',
+                    statusCode: 403
+                  }
+                }
+              }
+            }
+          }
         }
       }
-    }
+
+      // Signup (if available).
+      if (
+        entity.policies.signup.every(
+          (policy: PolicyManifest) => policy.access === 'public'
+        )
+      ) {
+        paths[`/api/auth/${entity.slug}/signup`] = {
+          post: {
+            summary: `Signup as ${entity.nameSingular}`,
+            description: `Signs up as ${entity.nameSingular}.`,
+            tags: ['Auth'],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      email: {
+                        type: 'string'
+                      },
+                      password: {
+                        type: 'string'
+                      }
+                    },
+                    required: ['email', 'password']
+                  },
+                  example: {
+                    email: 'user@example.com',
+                    password: 'password'
+                  }
+                }
+              }
+            },
+            responses: {
+              '200': {
+                description: 'Successful signup',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        token: {
+                          type: 'string'
+                        }
+                      }
+                    },
+                    example: {
+                      token: '12345'
+                    }
+                  }
+                }
+              },
+              '400': {
+                description: 'Bad request',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        statusCode: {
+                          type: 'number'
+                        },
+                        message: {
+                          type: 'array',
+                          items: {
+                            type: 'string'
+                          }
+                        },
+                        error: {
+                          type: 'string'
+                        }
+                      }
+                    },
+                    example: {
+                      message: ['password should not be empty'],
+                      statusCode: 400,
+                      error: 'Bad Request'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
 
     return paths
   }
@@ -143,7 +296,7 @@ export class OpenApiAuthService {
     const securitySchemes: Record<string, SecuritySchemeObject> = {}
 
     // Admin auth.
-    securitySchemes['Admin auth'] = {
+    securitySchemes['Admin'] = {
       type: 'http',
       scheme: 'bearer',
       name: 'Admin auth',
@@ -158,7 +311,7 @@ export class OpenApiAuthService {
     ).filter((entity: any) => entity.authenticable)
 
     authenticableEntities.forEach((entity: EntityManifest) => {
-      securitySchemes[`${entity.className} auth`] = {
+      securitySchemes[`${entity.className}`] = {
         type: 'http',
         scheme: 'bearer',
         name: `${entity.className} auth`,

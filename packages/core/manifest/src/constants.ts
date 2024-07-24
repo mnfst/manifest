@@ -15,6 +15,8 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   mainProp: 'email',
   slug: 'admins',
   authenticable: true,
+  nameSingular: 'admin',
+  namePlural: 'admins',
   properties: [],
   belongsTo: [],
   policies: {
