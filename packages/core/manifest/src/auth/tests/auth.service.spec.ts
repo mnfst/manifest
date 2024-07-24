@@ -96,7 +96,7 @@ describe('AuthService', () => {
       expect(response.entitySlug).toBe(ADMIN_ENTITY_MANIFEST.slug)
     })
 
-    it('should return null when the token does not decode to a valid email', async () => {
+    it('should return an object with null user and entity slug when the token does not decode to a valid email', async () => {
       entityService.getEntityRepository = jest.fn().mockReturnValue({
         findOne: jest.fn().mockReturnValue(Promise.resolve(null))
       })
@@ -106,7 +106,10 @@ describe('AuthService', () => {
         configService.get('TOKEN_SECRET_KEY')
       )
 
-      expect(await authService.getUserFromToken(jwtToken)).toBe(null)
+      expect(await authService.getUserFromToken(jwtToken)).toMatchObject({
+        user: null,
+        entitySlug: null
+      })
     })
   })
 })

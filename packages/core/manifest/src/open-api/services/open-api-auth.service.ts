@@ -16,7 +16,7 @@ export class OpenApiAuthService {
    * @returns The paths.
    *
    */
-  generateAuthPaths(appManifest: any): Record<string, PathItemObject> {
+  generateAuthPaths(appManifest: AppManifest): Record<string, PathItemObject> {
     const paths: Record<string, PathItemObject> = {}
 
     // Authenticable entities and admins.

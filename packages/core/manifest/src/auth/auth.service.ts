@@ -145,10 +145,10 @@ export class AuthService {
         this.configService.get('TOKEN_SECRET_KEY')
       ) as jwt.JwtPayload
     } catch (e) {
-      return Promise.resolve(null)
+      return Promise.resolve({ user: null, entitySlug: null })
     }
     if (!decoded) {
-      return Promise.resolve(null)
+      return Promise.resolve({ user: null, entitySlug: null })
     }
 
     const entityRepository: Repository<AuthenticableEntity> =
