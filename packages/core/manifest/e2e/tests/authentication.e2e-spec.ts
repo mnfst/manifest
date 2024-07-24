@@ -48,7 +48,7 @@ describe('Authentication (e2e)', () => {
         password: 'testPassword'
       })
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(403)
     })
   })
 
