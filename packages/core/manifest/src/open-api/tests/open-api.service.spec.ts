@@ -5,11 +5,13 @@ import { OpenAPIObject } from '@nestjs/swagger'
 import { OpenApiCrudService } from '../services/open-api-crud.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { OpenApiManifestService } from '../services/open-api-manifest.service'
+import { OpenApiAuthService } from '../services/open-api-auth.service'
 
 describe('OpenApiService', () => {
   let service: OpenApiService
   let openApiCrudService: OpenApiCrudService
   let openApiManifestService: OpenApiManifestService
+  let openApiAuthService: OpenApiAuthService
 
   const dummyAppManifest: AppManifest = {
     name: 'Test App',
@@ -54,6 +56,13 @@ describe('OpenApiService', () => {
           provide: ManifestService,
           useValue: {
             getAppManifest: jest.fn(() => dummyAppManifest)
+          }
+        },
+        {
+          provide: OpenApiAuthService,
+          useValue: {
+            generateAuthPaths: jest.fn((appManifest: AppManifest) => {}),
+            getSecuritySchemes: jest.fn((appManifest: AppManifest) => {})
           }
         }
       ]
