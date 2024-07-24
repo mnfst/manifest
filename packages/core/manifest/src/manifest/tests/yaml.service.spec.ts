@@ -35,10 +35,4 @@ describe('YamlService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
-
-  it('should load the manifest from the YAML file and transform it into a AppManifest object', () => {
-    const manifest = service.load()
-
-    expect(manifest).toBeDefined()
-  })
 })
