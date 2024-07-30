@@ -358,6 +358,13 @@ html {
 background: #af0f03;
 }
 
+.swagger-ui .opblock.opblock-patch .tab-header .tab-item.active h4 span:after {
+background: #633497;
+}
+.swagger-ui .opblock.opblock-options .tab-header .tab-item.active h4 span:after {
+background: #ce107c;
+}
+
 
 .swagger-ui .opblock.opblock-head {
   border-color: #9012fe;
