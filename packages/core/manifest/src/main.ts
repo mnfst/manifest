@@ -54,7 +54,7 @@ async function bootstrap() {
     const openApiService: OpenApiService = app.get(OpenApiService)
 
     SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
-      customfavIcon: 'assets/images/favicon.png',
+      customfavIcon: 'assets/images/open-api/favicon.ico',
       customSiteTitle: 'Manifest API Doc',
       customCss: `
         
