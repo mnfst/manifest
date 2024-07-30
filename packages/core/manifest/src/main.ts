@@ -56,11 +56,15 @@ async function bootstrap() {
     SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
       customfavIcon: 'assets/images/open-api/favicon.ico',
       customSiteTitle: 'Manifest API Doc',
+
       customCss: `
         
 .swagger-ui html {
   box-sizing: border-box;
-  background: #fff;
+  }
+  
+html {
+  background: #ffffff;
 }
 
 .swagger-ui *, .swagger-ui :after, .swagger-ui :before {
@@ -542,7 +546,7 @@ background: #af0f03;
 
 .swagger-ui .scheme-container {
   margin: 0 0 20px;
-  padding: 30px 0;
+  padding: 0;
   box-shadow: none;
 }
 
@@ -1347,7 +1351,11 @@ background: #af0f03;
 
 .swagger-ui .topbar {
   padding: 8px 30px;
-  background-color: #007F31
+  background-color: #007F31;
+  display: none;
+}
+.swagger-ui .swagger-container  {
+  margin-top: 0
 }
 
 .swagger-ui .topbar .topbar-wrapper {
