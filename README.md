@@ -65,6 +65,17 @@ Simply run this terminal command to add Manifest:
 npx add-manifest
 ```
 
+## Product roadmap
+| Feature | Description | Release date | Status |
+| --- | --- | --- | --- |
+| **OpenAPI Doc** | Instant live documentation for your REST API | July 2024 | ✅ Available |
+| **Auth** | Make any entity authenticatable and add rules for endpoints | August 2024 | 🚧 In progress |
+| **Validation** | Custom validation for creating and updating items | Quarter 03 2024 | 📝 To specify |
+| **Many-to-many** | Advanced relationship management | Quarter 03 2024 | 📝 To specify |
+| **Hooks** | Trigger webhooks at specific events | Quarter 03 2024 | 📝 To specify |
+| **Media upload** | Allow file and image uploads with rules and resizing | Quarter 04 2024 | 📝 To specify |
+
+
 ## Community & Resources
 
 - [Docs](https://manifest.build/docs) - Get started with Manifest
