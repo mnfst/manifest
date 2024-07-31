@@ -77,6 +77,8 @@ Our mission is to enable developers of all experience levels to create and share
 | **Hooks** | Trigger webhooks at specific events | Quarter 03 2024 | 📝 To specify |
 | **Media upload** | Allow file and image uploads with rules and resizing | Quarter 04 2024 | 📝 To specify |
 
+🆕 [Suggest a new feature for the next versions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
+
 
 ## Community & Resources
 
