@@ -66,6 +66,8 @@ npx add-manifest
 ```
 
 ## Product roadmap
+Our mission is to enable developers of all experience levels to create and share innovative solutions. As an **open source** product, we continuously improve Manifest through community collaboration. After our successful PoC, we are further developing the product with your feedback. Here are the upcoming features:
+
 | Feature | Description | Release date | Status |
 | --- | --- | --- | --- |
 | **OpenAPI Doc** | Instant live documentation for your REST API | July 2024 | ✅ Available |
