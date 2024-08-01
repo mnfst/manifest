@@ -70,7 +70,7 @@ export type RelationshipSchema =
 /**
  * A complete backend in a single file
  */
-export interface AppManifestSchema {
+export interface Manifest {
   /**
    * The name of your app
    */
