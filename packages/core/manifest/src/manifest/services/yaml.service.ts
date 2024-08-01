@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
-import { AppManifestSchema } from '@mnfst/types'
+import { Manifest } from '@mnfst/types'
 import { ConfigService } from '@nestjs/config'
 
 @Injectable()
@@ -17,26 +17,24 @@ export class YamlService {
    * @returns AppManifest the manifest
    *
    **/
-  load(): AppManifestSchema {
+  load(): Manifest {
     const fileContent: string = fs.readFileSync(
       this.configService.get('paths').database,
       'utf8'
     )
 
-    const appManifestSchema: AppManifestSchema = yaml.load(
-      fileContent
-    ) as AppManifestSchema
+    const Manifest: Manifest = yaml.load(fileContent) as Manifest
 
     // Remove emojis from entity keys.
-    Object.keys(appManifestSchema.entities).forEach((key) => {
+    Object.keys(Manifest.entities).forEach((key) => {
       const newKey: string = this.ignoreEmojis(key)
       if (newKey !== key) {
-        appManifestSchema.entities[newKey] = appManifestSchema.entities[key]
-        delete appManifestSchema.entities[key]
+        Manifest.entities[newKey] = Manifest.entities[key]
+        delete Manifest.entities[key]
       }
     })
 
-    return appManifestSchema
+    return Manifest
   }
 
   /**

@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common'
 
-import {
-  AppManifestSchema,
-  EntitySchema,
-  RelationshipSchema
-} from '@mnfst/types'
+import { Manifest, EntitySchema, RelationshipSchema } from '@mnfst/types'
 import Ajv from 'ajv'
 import schemas from '../json-schema'
 import chalk from 'chalk'
@@ -19,7 +15,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validate(manifest: AppManifestSchema): boolean {
+  validate(manifest: Manifest): boolean {
     this.validateAgainstSchema(manifest, schemas[0])
     this.validateCustomLogic(manifest)
 
@@ -35,7 +31,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateAgainstSchema(manifest: AppManifestSchema, schema: any): boolean {
+  validateAgainstSchema(manifest: Manifest, schema: any): boolean {
     let validate: any = new Ajv({
       schemas
     })
@@ -65,7 +61,7 @@ export class SchemaService {
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateCustomLogic(manifest: AppManifestSchema): boolean {
+  validateCustomLogic(manifest: Manifest): boolean {
     // 1.Validate that all entities in relationships exist.
     const entityNames: string[] = Object.keys(manifest.entities || {})
     Object.values(manifest.entities || {}).forEach((entity: EntitySchema) => {

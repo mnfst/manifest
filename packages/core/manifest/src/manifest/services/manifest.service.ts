@@ -5,7 +5,7 @@ import { AUTHENTICABLE_PROPS } from '../../constants'
 
 import {
   AppManifest,
-  AppManifestSchema,
+  Manifest,
   EntityManifest,
   EntitySchema,
   PolicySchema,
@@ -39,7 +39,7 @@ export class ManifestService {
    *
    * */
   getAppManifest(options?: { fullVersion?: boolean }): AppManifest {
-    const manifestSchema: AppManifestSchema = this.yamlService.load()
+    const manifestSchema: Manifest = this.yamlService.load()
 
     if (!manifestSchema.entities) {
       manifestSchema.entities = {}
@@ -65,7 +65,7 @@ export class ManifestService {
    *
    * */
   getEntityManifests(): EntityManifest[] {
-    const manifestSchema: AppManifestSchema = this.yamlService.load()
+    const manifestSchema: Manifest = this.yamlService.load()
 
     if (!manifestSchema.entities) {
       manifestSchema.entities = {}
@@ -130,12 +130,12 @@ export class ManifestService {
   }
 
   /**
-   * Transform an AppManifestSchema into an AppManifest ensuring that undefined properties are filled in with defaults.
+   * Transform an Manifest into an AppManifest ensuring that undefined properties are filled in with defaults.
    *
    * @param manifestSchema the manifest schema to transform.
    * @returns the manifest with defaults filled in and short form properties transformed into long form.
    */
-  transformAppManifest(manifestSchema: AppManifestSchema): AppManifest {
+  transformAppManifest(manifestSchema: Manifest): AppManifest {
     manifestSchema.version = manifestSchema.version || '0.0.1'
     manifestSchema.entities = manifestSchema.entities || {}
 
