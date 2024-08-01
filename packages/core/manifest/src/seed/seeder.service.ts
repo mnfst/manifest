@@ -5,14 +5,19 @@ import {
   PropertyManifest,
   RelationshipManifest
 } from '@mnfst/types'
+import { SHA3 } from 'crypto-js'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
-import { EntityService } from '../entity/services/entity/entity.service'
-import { PropertyService } from '../entity/services/property/property.service'
-import { RelationshipService } from '../entity/services/relationship/relationship.service'
+import { EntityService } from '../entity/services/entity.service'
+import { PropertyService } from '../entity/services/property.service'
+import { RelationshipService } from '../entity/services/relationship.service'
 
-import { DEFAULT_ADMIN_CREDENTIALS } from '../constants'
-import { ManifestService } from '../manifest/services/manifest/manifest.service'
+import {
+  ADMIN_ENTITY_MANIFEST,
+  AUTHENTICABLE_PROPS,
+  DEFAULT_ADMIN_CREDENTIALS
+} from '../constants'
+import { ManifestService } from '../manifest/services/manifest.service'
 
 @Injectable()
 export class SeederService {
@@ -33,14 +38,13 @@ export class SeederService {
    *
    */
   async seed(tableName?: string): Promise<void> {
-    let entityMetadatas: EntityMetadata[]
+    let entityMetadatas: EntityMetadata[] =
+      this.entityService.getEntityMetadatas()
 
     if (tableName) {
       entityMetadatas = entityMetadatas.filter(
         (entity: EntityMetadata) => entity.tableName === tableName
       )
-    } else {
-      entityMetadatas = this.entityService.getEntityMetadatas()
     }
 
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
@@ -64,22 +68,29 @@ export class SeederService {
           entityMetadata
         })
 
-      if (entityMetadata.name === 'Admin') {
+      if (entityMetadata.name === ADMIN_ENTITY_MANIFEST.className) {
         await this.seedAdmin(repository)
         continue
       }
 
       const entityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
-          className: entityMetadata.name
+          className: entityMetadata.name,
+          fullVersion: true
         })
 
-      console.log(
-        `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-      )
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+        )
+      }
 
       for (const _index of Array(entityManifest.seedCount).keys()) {
         const newRecord: BaseEntity = repository.create()
+
+        if (entityManifest.authenticable) {
+          entityManifest.properties.push(...AUTHENTICABLE_PROPS)
+        }
 
         entityManifest.properties.forEach(
           (propertyManifest: PropertyManifest) => {
@@ -111,7 +122,7 @@ export class SeederService {
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
-    admin.password = DEFAULT_ADMIN_CREDENTIALS.password
+    admin.password = SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
 
     await repository.save(admin)
   }

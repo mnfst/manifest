@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/policies/policies-schema.json",
+  "title": "Policies Schema",
+  "description": "The policies of the entity. Doc: https://manifest.build/docs/policies",
+  "type": "object",
+  "properties": {
+    "create": {
+      "type": "array",
+      "items": {
+        "$ref": "policy-schema.json"
+      }
+    },
+    "read": {
+      "type": "array",
+      "items": {
+        "$ref": "policy-schema.json"
+      }
+    },
+    "update": {
+      "type": "array",
+      "items": {
+        "$ref": "policy-schema.json"
+      }
+    },
+    "delete": {
+      "type": "array",
+      "items": {
+        "$ref": "policy-schema.json"
+      }
+    },
+    "signup": {
+      "type": "array",
+      "items": {
+        "$ref": "policy-schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

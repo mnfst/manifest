@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.manifest.build/definitions/relationship-schema.json",
-  "title": "Relationship Manifest Schema",
+  "title": "Relationship Schema",
   "description": "A relationship between two entities",
   "anyOf": [
     {

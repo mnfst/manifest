@@ -18,7 +18,14 @@ describe('OpenApiCrudService', () => {
         name: 'name',
         type: PropType.String
       }
-    ]
+    ],
+    policies: {
+      create: [],
+      read: [],
+      update: [],
+      delete: [],
+      signup: []
+    }
   }
 
   beforeEach(async () => {

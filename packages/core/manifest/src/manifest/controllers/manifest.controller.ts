@@ -1,12 +1,12 @@
-import { AppManifest, AuthenticableEntity, EntityManifest } from '@mnfst/types'
-import { Controller, Get, Param, Req } from '@nestjs/common'
+import { AppManifest, EntityManifest } from '@mnfst/types'
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
 import { AuthService } from '../../auth/auth.service'
-import { ManifestService } from '../services/manifest/manifest.service'
-import { ApiTags } from '@nestjs/swagger'
+import { ManifestService } from '../services/manifest.service'
+import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 
-@ApiTags('Manifest')
 @Controller('manifest')
+@UseGuards(IsAdminGuard)
 export class ManifestController {
   constructor(
     private manifestService: ManifestService,
@@ -14,24 +14,22 @@ export class ManifestController {
   ) {}
 
   @Get()
-  async getPublicManifest(@Req() req: Request): Promise<AppManifest> {
-    const currentUser: AuthenticableEntity =
-      await this.authService.getUserFromRequest(req, 'admins')
+  async getManifest(@Req() req: Request): Promise<AppManifest> {
+    const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
 
-    return this.manifestService.getAppManifest({ publicVersion: !currentUser })
+    return this.manifestService.getAppManifest({ fullVersion: isAdmin })
   }
 
   @Get('entities/:slug')
-  async getEntityPublicManifest(
+  async getEntityManifest(
     @Param('slug') slug: string,
     @Req() req: Request
   ): Promise<EntityManifest> {
-    const currentUser: AuthenticableEntity =
-      await this.authService.getUserFromRequest(req, 'admins')
+    const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
 
     return this.manifestService.getEntityManifest({
       slug,
-      publicVersion: !currentUser
+      fullVersion: isAdmin
     })
   }
 }

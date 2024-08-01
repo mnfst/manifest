@@ -4,7 +4,7 @@
 # compiled output
 /dist
 /node_modules
-/manifest
+/manifest/backend.db
 
 # Logs
 logs

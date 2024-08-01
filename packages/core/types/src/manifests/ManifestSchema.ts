@@ -8,7 +8,7 @@
 /**
  * A property in your entity. Doc: https://manifest.build/docs/properties
  */
-export type PropertyManifestSchema =
+export type PropertySchema =
   | {
       /**
        * The name of the property. Doc: https://manifest.build/docs/properties
@@ -49,7 +49,7 @@ export type PropertyManifestSchema =
 /**
  * A relationship between two entities
  */
-export type RelationshipManifestSchema =
+export type RelationshipSchema =
   | {
       /**
        * The name of the relation
@@ -70,7 +70,7 @@ export type RelationshipManifestSchema =
 /**
  * A complete backend in a single file
  */
-export interface AppManifestSchema {
+export interface Manifest {
   /**
    * The name of your app
    */
@@ -83,13 +83,13 @@ export interface AppManifestSchema {
    * The entities in your app. Doc: https://manifest.build/docs/entities
    */
   entities?: {
-    [k: string]: EntityManifestSchema
+    [k: string]: EntitySchema
   }
 }
 /**
  * An entity in the system
  */
-export interface EntityManifestSchema {
+export interface EntitySchema {
   /**
    * The class name. Used widely on the admin panel. Default: class name.
    */
@@ -117,15 +117,37 @@ export interface EntityManifestSchema {
   /**
    * The properties of the entity. Doc: https://manifest.build/docs/entities
    */
-  properties?: PropertyManifestSchema[]
+  properties?: PropertySchema[]
+  /**
+   * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
+   */
+  authenticable?: boolean
   /**
    * The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations
    */
-  belongsTo?: RelationshipManifestSchema[]
+  belongsTo?: RelationshipSchema[]
+  policies?: PoliciesSchema
 }
 /**
  * Global options applicable to all property types.
  */
 export interface GlobalPropertyOptionsSchema {
   [k: string]: unknown
+}
+/**
+ * The policies of the entity. Doc: https://manifest.build/docs/policies
+ */
+export interface PoliciesSchema {
+  create?: PolicySchema[]
+  read?: PolicySchema[]
+  update?: PolicySchema[]
+  delete?: PolicySchema[]
+  signup?: PolicySchema[]
+}
+/**
+ * The policies of the entity. Doc: https://manifest.build/docs/policies
+ */
+export interface PolicySchema {
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  allow?: string | string[]
 }

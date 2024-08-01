@@ -1,9 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common'
 import { ManifestModule } from '../manifest/manifest.module'
-import { EntityLoaderService } from './services/entity-loader/entity-loader.service'
-import { EntityService } from './services/entity/entity.service'
-import { PropertyService } from './services/property/property.service'
-import { RelationshipService } from './services/relationship/relationship.service'
+import { EntityLoaderService } from './services/entity-loader.service'
+import { EntityService } from './services/entity.service'
+import { PropertyService } from './services/property.service'
+import { RelationshipService } from './services/relationship.service'
 
 @Module({
   imports: [forwardRef(() => ManifestModule)],

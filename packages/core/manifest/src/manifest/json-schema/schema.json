@@ -1,7 +1,7 @@
 {
-  "$id": "https://schema.manifest.build/schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "App Manifest Schema",
+  "$id": "https://schema.manifest.build/schema.json",
+  "title": "Manifest",
   "description": "A complete backend in a single file",
   "type": "object",
   "properties": {

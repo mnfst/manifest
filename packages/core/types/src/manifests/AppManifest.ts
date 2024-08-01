@@ -1,7 +1,7 @@
 import { EntityManifest } from './EntityManifest'
-import { AppManifestSchema } from './ManifestSchema'
+import { Manifest } from './ManifestSchema'
 
-export interface AppManifest extends AppManifestSchema {
+export interface AppManifest extends Manifest {
   /**
    * The name of the app.
    */

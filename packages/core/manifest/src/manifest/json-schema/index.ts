@@ -5,6 +5,8 @@ import moneyOptionsSchema from './definitions/property-options/money-options-sch
 import propertySchema from './definitions/property-schema.json'
 import relationshipSchema from './definitions/relationship-schema.json'
 import manifestSchema from './schema.json'
+import policiesSchema from './definitions/policies/policies-schema.json'
+import policySchema from './definitions/policies/policy-schema.json'
 
 export default [
   manifestSchema,
@@ -12,6 +14,12 @@ export default [
   propertySchema,
   relationshipSchema,
   propertyOptionsSchema,
+
+  // Property options.
   choiceOptionsSchema,
-  moneyOptionsSchema
+  moneyOptionsSchema,
+
+  // Policies.
+  policiesSchema,
+  policySchema
 ]
