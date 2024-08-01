@@ -65,6 +65,21 @@ Simply run this terminal command to add Manifest:
 npx add-manifest
 ```
 
+## Product roadmap
+Our mission is to enable developers of all experience levels to create and share innovative solutions. As an **open source** product, we continuously improve Manifest through community collaboration. After our successful PoC, we are further developing the product with your feedback. Here are the upcoming features:
+
+| Feature | Description | Release date | Status |
+| --- | --- | --- | --- |
+| **OpenAPI Doc** | Instant live documentation for your REST API | July 2024 | ✅ Available |
+| **Auth** | Make any entity authenticatable and add rules for endpoints | August 2024 | 🚧 In progress |
+| **Validation** | Custom validation for creating and updating items | Quarter 03 2024 | 📝 To specify |
+| **Many-to-many** | Advanced relationship management | Quarter 03 2024 | 📝 To specify |
+| **Hooks** | Trigger webhooks at specific events | Quarter 03 2024 | 📝 To specify |
+| **Media upload** | Allow file and image uploads with rules and resizing | Quarter 04 2024 | 📝 To specify |
+
+🆕 [Suggest a new feature for the next versions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
+
+
 ## Community & Resources
 
 - [Docs](https://manifest.build/docs) - Get started with Manifest
