@@ -1,5 +1,3 @@
 {
-  "startCommand": "npm run manifest",
-  "openFile": "manifest/backend.yml",
-  "previewUrl": "http://localhost:1111/auth/login?email=admin@manifest.build&password=admin"
+  "startCommand": "npm run manifest"
 }
