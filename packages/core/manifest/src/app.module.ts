@@ -15,8 +15,8 @@ import { LoggerService } from './logger/logger.service'
 import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
 import { HealthModule } from './health/health.module'
-import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions'
 import { OpenApiModule } from './open-api/open-api.module'
+import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { OpenApiModule } from './open-api/open-api.module'
         configService: ConfigService,
         entityLoaderService: EntityLoaderService
       ) => {
-        const databaseConfig: BetterSqlite3ConnectionOptions =
+        const databaseConfig: SqliteConnectionOptions =
           configService.get('database')
 
         const entities: EntitySchema[] = entityLoaderService.loadEntities()
