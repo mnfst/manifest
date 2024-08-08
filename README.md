@@ -72,10 +72,10 @@ Our mission is to enable developers of all experience levels to create and share
 | --- | --- | --- | --- |
 | **OpenAPI Doc** | Instant live documentation for your REST API | July 2024 | ✅ Available |
 | **Auth** | Make any entity authenticatable and add rules for endpoints | August 2024 | 🚧 In progress |
-| **Validation** | Custom validation for creating and updating items | Quarter 03 2024 | 📝 To specify |
-| **Many-to-many** | Advanced relationship management | Quarter 03 2024 | 📝 To specify |
-| **Hooks** | Trigger webhooks at specific events | Quarter 03 2024 | 📝 To specify |
-| **Media upload** | Allow file and image uploads with rules and resizing | Quarter 04 2024 | 📝 To specify |
+| **Validation** | Custom validation for creating and updating items | Q3 2024 | 📝 To specify |
+| **Many-to-many** | Advanced relationship management | Q4 2024 | 📝 To specify |
+| **Hooks** | Trigger webhooks at specific events | Q4 2024 | 📝 To specify |
+| **Media upload** | Allow file and image uploads with rules and resizing | Q4 2024 | 📝 To specify |
 
 🆕 [Suggest a new feature for the next versions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
 
