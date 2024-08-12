@@ -23,5 +23,6 @@ entities:
           type: choice,
           options: { values: [ball, bone, frisbee] }
         }
+      - { name: location, type: location }
     belongsTo:
       - Owner

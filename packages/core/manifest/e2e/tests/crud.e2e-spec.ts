@@ -12,7 +12,8 @@ describe('CRUD (e2e)', () => {
     isGoodBoy: true,
     acquiredAt: new Date().toISOString(),
     email: 'test@example.com',
-    favoriteToy: 'ball'
+    favoriteToy: 'ball',
+    location: { lat: 12, lng: 13 }
   }
 
   it('POST /dynamic/:entity', async () => {
