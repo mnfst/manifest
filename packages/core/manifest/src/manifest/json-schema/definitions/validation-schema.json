@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/validation-schema.json",
+  "title": "Validation Schema",
+  "description": "Validation for the property. Doc: https://manifest.build/docs/validation",
+  "type": "object",
+  "properties": {
+    "min": {
+      "description": "The minimum value or length allowed for the property.",
+      "type": "number"
+    },
+    "max": {
+      "description": "The maximum value or length allowed for the property.",
+      "type": "number"
+    },
+    "isEmpty": {
+      "description": "Indicates whether the property can be empty.",
+      "type": "boolean"
+    },
+    "isNotEmpty": {
+      "description": "Indicates whether the property must not be empty.",
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

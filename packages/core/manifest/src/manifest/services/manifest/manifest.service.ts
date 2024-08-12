@@ -181,6 +181,7 @@ export class ManifestService {
       this.transformProperty(propManifest)
     )
 
+    // TODO: We should add the validators here: both from types and from the schema.
     const entityManifest: EntityManifest = {
       className: entityManifestSchema.className || className,
       nameSingular:

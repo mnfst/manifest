@@ -87,7 +87,7 @@ export interface AppManifestSchema {
   }
 }
 /**
- * An entity in the system
+ * An entity in your system: https://manifest.build/docs/entities
  */
 export interface EntityManifestSchema {
   /**

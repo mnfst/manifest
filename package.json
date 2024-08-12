@@ -1,0 +1,7 @@
+{
+  "name": "manifest",
+  "version": "4.0.0-alpha.10",
+  "workspaces": [
+    "packages/*"
+  ]
+}

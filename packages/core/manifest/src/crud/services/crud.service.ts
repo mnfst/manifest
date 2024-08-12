@@ -36,13 +36,15 @@ import {
 } from '../../constants'
 import { HelperService } from './helper.service'
 import { PaginationService } from './pagination.service'
+import { ValidationService } from '../../validation/services/validation.service'
 
 @Injectable()
 export class CrudService {
   constructor(
     private readonly entityService: EntityService,
     private readonly manifestService: ManifestService,
-    private readonly paginationService: PaginationService
+    private readonly paginationService: PaginationService,
+    private readonly validationService: ValidationService
   ) {}
 
   /**
@@ -197,9 +199,17 @@ export class CrudService {
     const entityRepository: Repository<any> =
       this.entityService.getEntityRepository({ entitySlug })
 
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug
+      })
+
     const newItem: BaseEntity = entityRepository.create(itemDto)
 
-    const errors = await validate(newItem)
+    const errors = await this.validationService.validate(
+      newItem,
+      entityManifest
+    )
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
@@ -226,6 +236,7 @@ export class CrudService {
       ...itemDto
     } as BaseEntity)
 
+    // TODO: Use validation service.
     const errors = await validate(itemToSave)
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
