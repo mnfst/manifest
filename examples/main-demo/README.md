@@ -20,7 +20,6 @@ Seeds dummy data for your entities and properties. This commands deletes the pre
 
 ## Access to the admin panel
 
-Adress: http://localhost:1111
 **EMAIL:** admin@manifest.build  
 **PASSWORD:** admin
 
