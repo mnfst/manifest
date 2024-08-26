@@ -18,6 +18,12 @@ The page will reload when you make changes.
 
 Seeds dummy data for your entities and properties. This commands deletes the previous data.
 
+## Access to the admin panel
+
+Adress: http://localhost:1111
+**EMAIL:** admin@manifest.build  
+**PASSWORD:** admin
+
 ## Learn More
 
 You can learn more in the [Manifest documentation](https://manifest.build/docs).
