@@ -1,5 +1,4 @@
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
-import { AdminEventSubscriber } from '../entity/subscribers/AdminEventSubscriber'
 
 export default (): { database: SqliteConnectionOptions } => {
   return {
