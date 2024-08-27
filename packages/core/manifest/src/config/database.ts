@@ -1,9 +1,10 @@
-import { BetterSqlite3ConnectionOptions } from 'typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions'
+import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
+import { AdminEventSubscriber } from '../entity/subscribers/AdminEventSubscriber'
 
-export default (): { database: BetterSqlite3ConnectionOptions } => {
+export default (): { database: SqliteConnectionOptions } => {
   return {
     database: {
-      type: 'better-sqlite3',
+      type: 'sqlite',
       database:
         process.env.DB_DATABASE || `${process.cwd()}/manifest/backend.db`,
       dropSchema: process.env.DB_DROP_SCHEMA === 'true' || false,
