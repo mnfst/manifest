@@ -19,12 +19,9 @@
   <br>
 </p>
 
-> [!NOTE]  
-> Manifest is on BETA. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+[Manifest](https://manifest.build) is a complete backend that fits in a single YAML file:
 
-[Manifest](https://manifest.build) is the simplest **BaaS (Backend As A Service)** you will find.
-
-Here is an example of a complete Manifest app:
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/mnfst/manifest/tree/feature/demo-stackblitz/examples/main-demo?file=manifest/backend.yml)
 
 ```yaml
 # manifest/backend.yml
@@ -51,11 +48,14 @@ entities:
       - name
 ```
 
+> [!NOTE]  
+> Manifest is on BETA. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+
 ## Key features
 
-- ⚡ **Instant complete backend** with zero configuration
-- 🧠 **Super-easy syntax** to build with ease
-- 🛠️ **Plug and play** with your favorite frontend
+- ⚡ **Develop 10x faster** comparing to traditional approaches
+- 😎 **Super-easy syntax** easy to read and version control
+- 🕊️ **Self-hosted** free open source software
 
 ## Getting started
 
