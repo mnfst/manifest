@@ -4,7 +4,6 @@ import {
   ElementRef,
   EventEmitter,
   Input,
-  OnInit,
   Output,
   ViewChild
 } from '@angular/core'
@@ -25,7 +24,7 @@ import { PropertyManifest } from '@mnfst/types'
     />`,
   styleUrls: ['./password-input.component.scss']
 })
-export class PasswordInputComponent implements OnInit {
+export class PasswordInputComponent {
   @Input() prop: PropertyManifest
   @Input() value: string
   @Input() isError: boolean
@@ -33,12 +32,6 @@ export class PasswordInputComponent implements OnInit {
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
 
   @ViewChild('input', { static: true }) input: ElementRef
-
-  ngOnInit(): void {
-    if (this.value !== undefined) {
-      this.input.nativeElement.value = this.value
-    }
-  }
 
   onChange(event: any) {
     this.valueChanged.emit(event.target.value)

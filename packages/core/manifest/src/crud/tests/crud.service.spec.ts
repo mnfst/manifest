@@ -1,8 +1,8 @@
 import { CrudService } from '../services/crud.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { ManifestService } from '../../manifest/services/manifest/manifest.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 import { PaginationService } from '../services/pagination.service'
-import { EntityService } from '../../entity/services/entity/entity.service'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('CrudService', () => {
   let service: CrudService
