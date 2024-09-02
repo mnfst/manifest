@@ -7,7 +7,6 @@ describe('CRUD (e2e)', () => {
     website: 'https://example.com',
     description: 'lorem ipsum',
     birthdate: new Date().toISOString(),
-    password: 'password',
     price: 100,
     isGoodBoy: true,
     acquiredAt: new Date().toISOString(),

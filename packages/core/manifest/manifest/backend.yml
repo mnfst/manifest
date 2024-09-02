@@ -1,0 +1,26 @@
+name: My pet app
+
+entities:
+  😺 Cat:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+      - { name: aquiredAt, type: timestamp }
+      - { name: hiddenProp, type: boolean, hidden: true }
+    belongsTo:
+      - { name: owner, entity: User }
+    policies:
+      read:
+        - access: restricted
+      create:
+        - access: public
+      update:
+        - { access: public }
+      delete:
+        - { access: 🔒, allow: [User] }
+
+  User:
+    authenticable: true
+    properties:
+      - name

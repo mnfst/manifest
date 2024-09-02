@@ -1,12 +1,13 @@
 name: 'mock-backend-for-e2e-tests'
 entities:
+  # Default entity with only a name and email property.
   Owner:
     properties:
       - name
       - { name: email, type: email }
 
+  # Testing all property types with the Dog entity.
   Dog:
-    # Testing all property types.
     properties:
       - name
       - { name: description, type: text }
@@ -26,3 +27,61 @@ entities:
       - { name: location, type: location }
     belongsTo:
       - Owner
+
+  # Testing policies with the Bird entity.
+  Bird:
+    properties:
+      - name
+    policies:
+      read:
+        # Only for Users and contributors.
+        - { access: restricted, allow: [User, Contributor] }
+      create:
+        # Only for logged as authenticable entity.
+        - access: restricted
+      update:
+        # Only for Users.
+        - { access: restricted, allow: User }
+      delete:
+        # Impossible logic to test multiple rules
+        - { access: restricted, allow: [Contributor] }
+        - { access: restricted, allow: [User] }
+
+  # Testing policies with the Cat entity.
+  Cat:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+      - { name: hiddenProp, type: boolean, hidden: true }
+    policies:
+      create:
+        - access: 🔒 # Restricted to logged in users.
+      read:
+        - access: 🌐 # Public.
+      update:
+        - access: forbidden
+      delete:
+        - { access: 🚫 } # Forbidden
+
+  # Testing policies with the Snake entity.
+  Snake:
+    authenticable: true
+    properties:
+      - name
+    policies:
+      read:
+        - access: admin
+      signup:
+        - access: 🚫
+
+  # Testing authenticable entities with the User and Contributor entities.
+  User:
+    authenticable: true
+    properties:
+      - name
+
+  Contributor:
+    authenticable: true
+    properties:
+      - name

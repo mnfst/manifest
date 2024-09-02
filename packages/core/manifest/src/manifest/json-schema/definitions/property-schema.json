@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.manifest.build/definitions/property-schema.json",
-  "title": "Property Manifest Schema",
+  "title": "Property Schema",
   "description": "A property in your entity. Doc: https://manifest.build/docs/properties",
   "anyOf": [
     {

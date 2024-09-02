@@ -7,10 +7,11 @@ import { ManifestModule } from '../manifest/manifest.module'
 import { CrudService } from './services/crud.service'
 import { PaginationService } from './services/pagination.service'
 import { ValidationModule } from '../validation/validation.module'
+import { AuthService } from '../auth/auth.service'
 
 @Module({
   imports: [EntityModule, ManifestModule, ValidationModule],
   controllers: [CrudController],
-  providers: [CrudService, PaginationService]
+  providers: [CrudService, PaginationService, AuthService]
 })
 export class CrudModule {}
