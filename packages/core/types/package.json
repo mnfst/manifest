@@ -1,6 +1,6 @@
 {
   "name": "@mnfst/types",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-beta",
   "description": "Utility types used by Manifest",
   "author": "Manifest",
   "homepage": "https://manifest.build",

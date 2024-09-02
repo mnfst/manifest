@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.0.0-alpha.10",
+  "version": "4.0.0-beta",
   "description": "Effortless backends",
   "author": "Manifest",
   "license": "MIT",
@@ -18,7 +18,9 @@
     "backend-as-a-service",
     "bass",
     "api",
-    "rest"
+    "rest",
+    "fullstack",
+    "yaml"
   ],
   "scripts": {
     "build": "nest build",
@@ -47,8 +49,8 @@
   ],
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@mnfst/admin": "^0.1.0-alpha.5",
-    "@mnfst/types": "^0.1.0-alpha.4",
+    "@mnfst/admin": "^0.1.0-beta",
+    "@mnfst/types": "^0.1.0-beta",
     "@nestjs/common": "^10.3.3",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^10.3.3",
