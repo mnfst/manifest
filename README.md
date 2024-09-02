@@ -20,7 +20,7 @@
 </p>
 
 > [!NOTE]  
-> Manifest is in the Proof of Concept phase (PoC). We are currently developing the first stable version. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+> Manifest is on BETA. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
 
 [Manifest](https://manifest.build) is the simplest **BaaS (Backend As A Service)** you will find.
 
@@ -66,19 +66,19 @@ npx add-manifest
 ```
 
 ## Product roadmap
+
 Our mission is to enable developers of all experience levels to create and share innovative solutions. As an **open source** product, we continuously improve Manifest through community collaboration. After our successful PoC, we are further developing the product with your feedback. Here are the upcoming features:
 
-| Feature | Description | Release date | Status |
-| --- | --- | --- | --- |
-| **OpenAPI Doc** | Instant live documentation for your REST API | July 2024 | ✅ Available |
-| **Auth** | Make any entity authenticatable and add rules for endpoints | August 2024 | 🚧 In progress |
-| **Validation** | Custom validation for creating and updating items | Q3 2024 | 📝 To specify |
-| **Many-to-many** | Advanced relationship management | Q4 2024 | 📝 To specify |
-| **Hooks** | Trigger webhooks at specific events | Q4 2024 | 📝 To specify |
-| **Media upload** | Allow file and image uploads with rules and resizing | Q4 2024 | 📝 To specify |
+| Feature          | Description                                                 | Release date | Status         |
+| ---------------- | ----------------------------------------------------------- | ------------ | -------------- |
+| **OpenAPI Doc**  | Instant live documentation for your REST API                | July 2024    | ✅ Available   |
+| **Auth**         | Make any entity authenticatable and add rules for endpoints | August 2024  | ✅ Available   |
+| **Validation**   | Custom validation for creating and updating items           | Q4 2024      | 🚧 In progress |
+| **Many-to-many** | Advanced relationship management                            | Q4 2024      | 📝 To specify  |
+| **Hooks**        | Trigger webhooks at specific events                         | Q4 2024      | 📝 To specify  |
+| **Media upload** | Allow file and image uploads with rules and resizing        | Q4 2024      | 📝 To specify  |
 
 🆕 [Suggest a new feature for the next versions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
-
 
 ## Community & Resources
 
