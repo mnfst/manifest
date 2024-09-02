@@ -1,5 +1,4 @@
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
-import { AdminEventSubscriber } from '../entity/subscribers/AdminEventSubscriber'
 
 export default (): { database: SqliteConnectionOptions } => {
   return {
@@ -8,7 +7,6 @@ export default (): { database: SqliteConnectionOptions } => {
       database:
         process.env.DB_DATABASE || `${process.cwd()}/manifest/backend.db`,
       dropSchema: process.env.DB_DROP_SCHEMA === 'true' || false,
-      subscribers: [AdminEventSubscriber],
       synchronize: true
     }
   }

@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../src/app.module'
-import { YamlService } from '../src/manifest/services/yaml/yaml.service'
+import { YamlService } from '../src/manifest/services/yaml.service'
 import { INestApplication } from '@nestjs/common'
 import supertest from 'supertest'
 import { load } from 'js-yaml'
 import fs from 'fs'
 import { SwaggerModule } from '@nestjs/swagger'
 import { OpenApiService } from '../src/open-api/services/open-api.service'
+import { SeederService } from '../src/seed/seeder.service'
 
 let app: INestApplication
 
@@ -15,6 +16,7 @@ beforeAll(async () => {
   process.env.NODE_ENV = 'test'
   process.env.DB_DATABASE = ':memory:'
   process.env.DB_DROP_SCHEMA = 'true'
+  process.env.TOKEN_SECRET_KEY = 'test'
 
   // Start the NestJS application mocking some services.
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,6 +35,11 @@ beforeAll(async () => {
     .compile()
 
   app = moduleFixture.createNestApplication()
+
+  // Seed the database with the mock data. Admin and Cat entities are seeded.
+  const seedService = app.get(SeederService)
+  await seedService.seed('admin')
+  await seedService.seed('cat')
 
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())

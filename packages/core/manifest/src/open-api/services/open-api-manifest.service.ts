@@ -15,11 +15,16 @@ export class OpenApiManifestService {
     appManifest: AppManifest
   ): Record<string, PathItemObject> {
     const paths: Record<string, PathItemObject> = {
-      '/api/manifest': {
+      ['/api/manifest']: {
         get: {
           summary: 'Get the manifest',
           description: 'Retrieves the manifest of the application.',
           tags: ['Manifest'],
+          security: [
+            {
+              Admin: []
+            }
+          ],
           responses: {
             '200': {
               description: 'The manifest of the application.',
@@ -27,6 +32,32 @@ export class OpenApiManifestService {
                 'application/json': {
                   schema: {
                     $ref: '#/components/schemas/AppManifest'
+                  }
+                }
+              }
+            },
+            '403': {
+              description: 'Forbidden',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string'
+                      },
+                      error: {
+                        type: 'string'
+                      },
+                      statusCode: {
+                        type: 'number'
+                      }
+                    }
+                  },
+                  example: {
+                    message: 'Forbidden resource',
+                    error: 'Forbidden',
+                    statusCode: 403
                   }
                 }
               }
@@ -59,6 +90,11 @@ export class OpenApiManifestService {
         summary: `Get the ${entityManifest.nameSingular} manifest`,
         description: `Retrieves the manifest of the ${entityManifest.nameSingular} entity with all its properties.`,
         tags: ['Manifest'],
+        security: [
+          {
+            Admin: []
+          }
+        ],
         responses: {
           '200': {
             description: `The manifest of the ${entityManifest.nameSingular} entity.`,
@@ -66,6 +102,32 @@ export class OpenApiManifestService {
               'application/json': {
                 schema: {
                   $ref: '#/components/schemas/EntityManifest'
+                }
+              }
+            }
+          },
+          '403': {
+            description: 'Forbidden',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string'
+                    },
+                    error: {
+                      type: 'string'
+                    },
+                    statusCode: {
+                      type: 'number'
+                    }
+                  }
+                },
+                example: {
+                  message: 'Forbidden resource',
+                  error: 'Forbidden',
+                  statusCode: 403
                 }
               }
             }
