@@ -1,0 +1,12 @@
+{
+  "name": "manifest-main-demo",
+  "version": "0.1.0",
+  "description": "Demo project for Manifest",
+  "scripts": {
+    "manifest": "node node_modules/manifest/scripts/watch/watch.js",
+    "manifest:seed": "node node_modules/manifest/dist/seed/seed.js"
+  },
+  "dependencies": {
+    "manifest": "^4.0.0-alpha.10"
+  }
+}

@@ -1,8 +1,21 @@
 import { EntityManifest } from '@mnfst/types'
+import { DEFAULT_ADMIN_CREDENTIALS } from '../../src/constants'
 
 describe('Manifest (e2e)', () => {
+  let adminToken: string
+
+  beforeAll(async () => {
+    adminToken = (
+      await global.request
+        .post('/auth/admins/login')
+        .send(DEFAULT_ADMIN_CREDENTIALS)
+    ).body['token']
+  })
+
   it('GET /manifest', async () => {
-    const response = await global.request.get('/manifest')
+    const response = await global.request
+      .get('/manifest')
+      .set('Authorization', 'Bearer ' + adminToken)
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchObject({
@@ -24,7 +37,9 @@ describe('Manifest (e2e)', () => {
   })
 
   it('GET /manifest/entities/:slug', async () => {
-    const response = await global.request.get('/manifest/entities/dogs')
+    const response = await global.request
+      .get('/manifest/entities/dogs')
+      .set('Authorization', 'Bearer ' + adminToken)
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchObject<Partial<EntityManifest>>({
