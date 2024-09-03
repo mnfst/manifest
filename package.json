@@ -1,7 +1,13 @@
 {
   "name": "manifest",
   "version": "4.0.0-alpha.10",
-  "workspaces": [
-    "packages/**/*"
-  ]
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.1"
+  },
+  "packageManager": "npm@10.7.0"
 }

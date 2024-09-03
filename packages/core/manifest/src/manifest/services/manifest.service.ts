@@ -7,7 +7,7 @@ import {
   AppManifest,
   Manifest,
   EntityManifest,
-  EntitySchema,
+  EntityManifestSchema,
   PolicySchema,
   PolicyManifest,
   PropType,
@@ -75,7 +75,7 @@ export class ManifestService {
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
     return Object.entries(manifestSchema.entities).map(
-      ([className, entity]: [string, EntitySchema]) =>
+      ([className, entity]: [string, EntityManifestSchema]) =>
         this.transformEntityManifest(className, entity)
     )
   }
@@ -147,7 +147,7 @@ export class ManifestService {
       entities: Object.entries(manifestSchema.entities).reduce(
         (
           acc: { [k: string]: EntityManifest },
-          [className, entitySchema]: [string, EntitySchema]
+          [className, entitySchema]: [string, EntityManifestSchema]
         ) => {
           acc[className] = this.transformEntityManifest(className, entitySchema)
           return acc
@@ -169,7 +169,7 @@ export class ManifestService {
    */
   transformEntityManifest(
     className: string,
-    entitySchema: EntitySchema
+    entitySchema: EntityManifestSchema
   ): EntityManifest {
     const properties: PropertyManifest[] = (entitySchema.properties || []).map(
       (propManifest: PropertySchema) => this.transformProperty(propManifest)
@@ -335,7 +335,7 @@ export class ManifestService {
       ...manifest,
       entities: Object.entries(manifest.entities)
         .filter(
-          ([className, _entitySchema]: [string, EntitySchema]) =>
+          ([className, _entitySchema]: [string, EntityManifestSchema]) =>
             className !== ADMIN_ENTITY_MANIFEST.className
         )
         .reduce(
