@@ -1,4 +1,5 @@
 import { PropType } from '../crud'
+import { ValidationManifest } from './ValidationManifest'
 
 export type PropertyManifest = {
   /**
@@ -22,4 +23,9 @@ export type PropertyManifest = {
    * The property options.
    */
   options?: Record<string, unknown>
+
+  /**
+   * Validation rules for the property.
+   */
+  validation?: ValidationManifest
 }

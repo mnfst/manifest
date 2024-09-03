@@ -31,6 +31,7 @@ export type PropertySchema =
         | 'password'
         | 'choice'
         | 'location'
+      validation?: ValidationSchema
       /**
        * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
        */
@@ -83,13 +84,13 @@ export interface Manifest {
    * The entities in your app. Doc: https://manifest.build/docs/entities
    */
   entities?: {
-    [k: string]: EntitySchema
+    [k: string]: EntityManifestSchema
   }
 }
 /**
  * An entity in your system: https://manifest.build/docs/entities
  */
-export interface EntitySchema {
+export interface EntityManifestSchema {
   /**
    * The class name. Used widely on the admin panel. Default: class name.
    */
@@ -127,6 +128,27 @@ export interface EntitySchema {
    */
   belongsTo?: RelationshipSchema[]
   policies?: PoliciesSchema
+}
+/**
+ * Validation object for the property.
+ */
+export interface ValidationSchema {
+  /**
+   * The minimum value or length allowed for the property.
+   */
+  min?: number
+  /**
+   * The maximum value or length allowed for the property.
+   */
+  max?: number
+  /**
+   * Indicates whether the property can be empty.
+   */
+  isEmpty?: boolean
+  /**
+   * Indicates whether the property must not be empty.
+   */
+  isNotEmpty?: boolean
 }
 /**
  * Global options applicable to all property types.

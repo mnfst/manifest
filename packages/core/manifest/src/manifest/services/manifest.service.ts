@@ -276,6 +276,7 @@ export class ManifestService {
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
       options: propSchema.options
+      // TODO: Add validation here.
     }
   }
 

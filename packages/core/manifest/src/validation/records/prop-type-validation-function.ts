@@ -6,18 +6,18 @@ export const propTypeValidationFunctions: Record<
   PropType,
   (value: any) => boolean
 > = {
-  [PropType.String]: (value) => isString(value),
-  [PropType.Number]: (value) => isNumber(value),
+  [PropType.String]: (value: any) => isString(value),
+  [PropType.Number]: (value: any) => isNumber(value),
 
   // TODO: Validators
-  [PropType.Link]: (value) => false,
-  [PropType.Text]: (value) => false,
-  [PropType.Money]: (value) => false,
-  [PropType.Date]: (value) => false,
-  [PropType.Timestamp]: (value) => false,
-  [PropType.Email]: (value) => false,
-  [PropType.Boolean]: (value) => false,
-  [PropType.Password]: (value) => false,
-  [PropType.Choice]: (value) => false,
-  [PropType.Location]: (value) => false
+  [PropType.Link]: (value: any) => false,
+  [PropType.Text]: (value: any) => false,
+  [PropType.Money]: (value: any) => false,
+  [PropType.Date]: (value: any) => false,
+  [PropType.Timestamp]: (value: any) => false,
+  [PropType.Email]: (value: any) => false,
+  [PropType.Boolean]: (value: any) => false,
+  [PropType.Password]: (value: any) => false,
+  [PropType.Choice]: (value: any) => false,
+  [PropType.Location]: (value: any) => false
 }
