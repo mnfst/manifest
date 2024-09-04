@@ -1,4 +1,4 @@
-import { Paginator, SelectOption } from '@mnfst/types'
+import { Paginator, SelectOption } from '@repo/types'
 
 describe('CRUD (e2e)', () => {
   const dummyDog = {

@@ -1,4 +1,4 @@
-import { AppManifest, EntityManifest, PolicyManifest } from '@mnfst/types'
+import { AppManifest, EntityManifest, PolicyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import {
   PathItemObject,

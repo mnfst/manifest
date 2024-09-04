@@ -1,4 +1,4 @@
-import { PropType } from '@mnfst/types'
+import { PropType } from '@repo/types'
 import { isNumber, isString } from 'class-validator'
 
 // This is a mapping of prop types to validation functions.

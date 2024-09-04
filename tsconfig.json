@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@repo/types": ["packages/core/types/src"]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { BaseEntity, EntityManifest } from '@mnfst/types'
+import { BaseEntity, EntityManifest } from '@repo/types'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'

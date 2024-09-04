@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { firstValueFrom } from 'rxjs'
 
-import { BaseEntity, Paginator, SelectOption } from '@mnfst/types'
+import { BaseEntity, Paginator, SelectOption } from '@repo/types'
 import { environment } from '../../../../environments/environment'
 
 @Injectable({

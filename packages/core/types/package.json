@@ -1,33 +1,6 @@
 {
-  "name": "@mnfst/types",
-  "version": "0.1.0-beta",
-  "description": "Utility types used by Manifest",
-  "author": "Manifest",
-  "homepage": "https://manifest.build",
-  "license": "MIT",
-  "private": false,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "/dist"
-  ],
+  "name": "@repo/types",
   "scripts": {
-    "build": "tsc"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mnfst/manifest.git"
-  },
-  "keywords": [
-    "manifest",
-    "backend",
-    "baas",
-    "types",
-    "typescript",
-    "schema",
-    "utility"
-  ],
-  "bugs": {
-    "url": "https://github.com/mnfst/manifest/issues"
+    "check-types": "tsc --noEmit"
   }
 }

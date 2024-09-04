@@ -5,7 +5,7 @@ import {
   OnChanges,
   Output
 } from '@angular/core'
-import { Paginator } from '@mnfst/types'
+import { Paginator } from '@repo/types'
 
 @Component({
   selector: 'app-pagination',

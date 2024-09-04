@@ -1,4 +1,4 @@
-import { EntityManifest, PropType, PropertyManifest } from '@mnfst/types'
+import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
 
 // Default values.
 export const DEFAULT_PORT = 1111

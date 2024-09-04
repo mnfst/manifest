@@ -36,15 +36,7 @@ export type PropertySchema =
        * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
        */
       hidden?: boolean
-      options?: GlobalPropertyOptionsSchema &
-        (
-          | {
-              [k: string]: unknown
-            }
-          | {
-              [k: string]: unknown
-            }
-        )
+      options?: GlobalPropertyOptionsSchema
     }
   | string
 /**

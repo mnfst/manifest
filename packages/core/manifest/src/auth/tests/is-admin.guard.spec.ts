@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing'
 import { IsAdminGuard } from '../guards/is-admin.guard'
 import { AuthService } from '../auth.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
-import { AuthenticableEntity } from '@mnfst/types'
+import { AuthenticableEntity } from '@repo/types'
 
 describe('IsAdminGuard', () => {
   let authService: AuthService

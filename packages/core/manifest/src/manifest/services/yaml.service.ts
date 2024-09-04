@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
-import { Manifest } from '@mnfst/types'
+import { Manifest } from '@repo/types'
 import { ConfigService } from '@nestjs/config'
 
 @Injectable()

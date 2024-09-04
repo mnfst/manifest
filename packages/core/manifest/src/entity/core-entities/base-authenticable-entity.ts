@@ -1,4 +1,4 @@
-import { AuthenticableEntity } from '@mnfst/types'
+import { AuthenticableEntity } from '@repo/types'
 import { EntitySchemaColumnOptions } from 'typeorm'
 import { baseEntity } from './base-entity'
 

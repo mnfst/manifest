@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiService } from '../services/open-api.service'
-import { AppManifest, EntityManifest, PropType } from '@mnfst/types'
+import { AppManifest, EntityManifest, PropType } from '@repo/types'
 import { OpenAPIObject } from '@nestjs/swagger'
 import { OpenApiCrudService } from '../services/open-api-crud.service'
 import { ManifestService } from '../../manifest/services/manifest.service'

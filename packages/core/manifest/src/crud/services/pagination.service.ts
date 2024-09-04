@@ -1,4 +1,4 @@
-import { BaseEntity, Paginator } from '@mnfst/types'
+import { BaseEntity, Paginator } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { SelectQueryBuilder } from 'typeorm'
 

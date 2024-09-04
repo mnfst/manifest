@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core'
-import { AppManifest, EntityManifest } from '@mnfst/types'
+import { AppManifest, EntityManifest } from '@repo/types'
 import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { ManifestService } from '../../shared/services/manifest.service'
 

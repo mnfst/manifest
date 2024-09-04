@@ -1,4 +1,4 @@
-import { PropType } from '@mnfst/types'
+import { PropType } from '@repo/types'
 import { ColumnType } from 'typeorm'
 
 // This is a mapping of prop types to column types in sqlite.

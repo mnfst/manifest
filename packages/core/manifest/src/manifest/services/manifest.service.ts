@@ -16,7 +16,7 @@ import {
   RelationshipManifest,
   RelationshipSchema,
   AccessPolicy
-} from '@mnfst/types'
+} from '@repo/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'

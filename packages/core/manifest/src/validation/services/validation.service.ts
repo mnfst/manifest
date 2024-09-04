@@ -1,4 +1,4 @@
-import { EntityManifest } from '@mnfst/types'
+import { EntityManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { ValidationError } from 'class-validator'
 

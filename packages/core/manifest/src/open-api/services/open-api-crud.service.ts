@@ -1,4 +1,4 @@
-import { EntityManifest } from '@mnfst/types'
+import { EntityManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 

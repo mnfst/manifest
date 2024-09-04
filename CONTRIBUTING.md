@@ -26,7 +26,6 @@ Manifest is a set of several packages and [repositories](https://github.com/orgs
 | -------------- | ------------------------------------------ | -------------------------- | --------------------------------------------- | ---------------------------------------------------------- |
 | Manifest       | Manifest core                              | NestJS / Express / TypeORM | [manifest](https://github.com/mnfst/manifest) | [manifest](https://www.npmjs.com/package/manifest)         |
 | Manifest Admin | Official Admin Panel                       | Angular                    | [manifest](https://github.com/mnfst/manifest) | [@mnfst/admin](https://www.npmjs.com/package/@mnfst/admin) |
-| Manifest Types | Utility types                              | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | [@mnfst/types](https://www.npmjs.com/package/@mnfst/types) |
 | Add Manifest   | NPX install script                         | OCLIF                      | [manifest](https://github.com/mnfst/manifest) | [add-manifest](https://www.npmjs.com/package/add-manifest) |
 | JS SDK         | JavaScript SDK                             | TypeScript                 | [js-sdk](https://github.com/mnfst/js-sdk)     | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)     |
 | Website        | Official website: https://manifest.build   | NextJS                     | [website](https://github.com/mnfst/website)   | -                                                          |
