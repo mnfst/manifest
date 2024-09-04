@@ -1,4 +1,6 @@
-export default (): { paths: { admin: string; database: string } } => {
+export default (): {
+  paths: { admin: string; database: string }
+} => {
   return {
     paths: {
       admin: `${process.cwd()}/node_modules/@mnfst/admin/dist`,
