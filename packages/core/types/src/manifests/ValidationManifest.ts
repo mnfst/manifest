@@ -1,4 +1,4 @@
+import { ValidationSchema } from './ManifestSchema'
+
 // TODO: Full implementation.
-export type ValidationManifest = {
-  min: number
-}
+export interface ValidationManifest extends ValidationSchema {}

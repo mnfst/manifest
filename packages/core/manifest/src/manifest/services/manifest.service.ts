@@ -271,12 +271,13 @@ export class ManifestService {
         hidden: false
       }
     }
+
     return {
       name: propSchema.name,
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
-      options: propSchema.options
-      // TODO: Add validation here.
+      options: propSchema.options,
+      validation: propSchema.validation
     }
   }
 
@@ -367,11 +368,10 @@ export class ManifestService {
       ...entityManifest,
       properties: entityManifest.properties
         .filter((prop) => !prop.hidden)
-        .map((prop) => ({
-          name: prop.name,
-          type: prop.type,
-          options: prop.options
-        }))
+        .map((prop) => {
+          delete prop.hidden
+          return prop
+        })
     }
   }
 }

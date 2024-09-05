@@ -15,7 +15,7 @@ import {
 } from 'typeorm'
 
 import { BaseEntity } from '@repo/types'
-import { validate } from 'class-validator'
+import { ValidationError, validate } from 'class-validator'
 import { EntityService } from '../../entity/services/entity.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
 
@@ -223,10 +223,11 @@ export class CrudService {
       newItem.password = SHA3(newItem.password).toString()
     }
 
-    const errors = await this.validationService.validate(
+    const errors: ValidationError[] = this.validationService.validate(
       newItem,
       entityManifest
     )
+
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }

@@ -1,10 +1,10 @@
 export default (): {
-  paths: { admin: string; database: string }
+  paths: { adminPanelFolder: string; manifestFile: string }
 } => {
   return {
     paths: {
-      admin: `${process.cwd()}/node_modules/@mnfst/admin/dist`,
-      database: `${process.cwd()}/manifest/backend.yml`
+      adminPanelFolder: `${process.cwd()}/node_modules/@mnfst/admin/dist`,
+      manifestFile: `${process.cwd()}/manifest/backend.yml`
     }
   }
 }

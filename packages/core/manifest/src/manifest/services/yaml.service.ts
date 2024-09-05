@@ -19,7 +19,7 @@ export class YamlService {
    **/
   load(): Manifest {
     const fileContent: string = fs.readFileSync(
-      this.configService.get('paths').database,
+      this.configService.get('paths').manifestFile,
       'utf8'
     )
 

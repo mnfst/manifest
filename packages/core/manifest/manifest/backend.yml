@@ -4,7 +4,7 @@ entities:
   😺 Cat:
     properties:
       - name
-      - { name: age, type: number }
+      - { name: age, type: number, validation: { min: 3 } }
       - { name: birthdate, type: date }
       - { name: aquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }

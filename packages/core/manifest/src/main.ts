@@ -37,16 +37,16 @@ async function bootstrap() {
     app.use(connectLiveReload())
   }
 
-  const adminPath: string = configService.get('paths').admin
+  const adminPanelFolder: string = configService.get('paths').adminPanelFolder
 
-  app.use(express.static(adminPath))
+  app.use(express.static(adminPanelFolder))
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {
     if (req.url.startsWith('/api') || req.url.startsWith('/storage')) {
       next()
     } else {
-      res.sendFile(join(adminPath, 'index.html'))
+      res.sendFile(join(adminPanelFolder, 'index.html'))
     }
   })
 
