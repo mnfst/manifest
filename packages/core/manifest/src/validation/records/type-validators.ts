@@ -16,10 +16,7 @@ import {
  * @returns A string with the error message if the value is invalid, otherwise null.
  *
  */
-export const propTypeValidationFunctions: Record<
-  PropType,
-  (value: any) => string | null
-> = {
+export const typeValidators: Record<PropType, (value: any) => string | null> = {
   [PropType.String]: (value: any) =>
     isString(value) ? null : 'The value must be a string',
   [PropType.Number]: (value: any) =>
@@ -38,7 +35,7 @@ export const propTypeValidationFunctions: Record<
   [PropType.Boolean]: (value: any) =>
     isBoolean(value) ? null : 'The value must be a boolean',
   [PropType.Password]: (value: any) =>
-    isString(value) ? null : 'The value must be a string',
+    isString(value) ? null : 'The value must be a string', // TODO: Manage updates
   [PropType.Choice]: (value: any) => null, // TODO: Custom validation with context.
   [PropType.Location]: (value: any) => null // TODO: Custom validation
 }
