@@ -5,13 +5,19 @@
   "description": "Validation for the property. Doc: https://manifest.build/docs/validation",
   "type": "object",
   "properties": {
-    "min": {
-      "description": "The minimum value or length allowed for the property.",
-      "type": "number"
+    "isDefined": {
+      "description": "Checks if value is defined (!== undefined, !== null).",
+      "type": "boolean"
     },
-    "max": {
-      "description": "The maximum value or length allowed for the property.",
-      "type": "number"
+    "IsOptional": {
+      "description": "Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.",
+      "type": "boolean"
+    },
+    "equals": {
+      "description": "Checks if value equals (\"===\") comparison."
+    },
+    "notEquals": {
+      "description": "Checks if value not equal (\"!==\") comparison."
     },
     "isEmpty": {
       "description": "Indicates whether the property can be empty.",
@@ -20,6 +26,97 @@
     "isNotEmpty": {
       "description": "Indicates whether the property must not be empty.",
       "type": "boolean"
+    },
+    "isIn": {
+      "description": "Checks if value is in an array of allowed values.",
+      "type": "array"
+    },
+    "isNotIn": {
+      "description": "Checks if value not in an array of disallowed values.",
+      "type": "array"
+    },
+    "min": {
+      "description": "The minimum value or length allowed for the property.",
+      "type": "number"
+    },
+    "max": {
+      "description": "The maximum value or length allowed for the property.",
+      "type": "number"
+    },
+    "minDate": {
+      "description": "The minimum date allowed for the property.",
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "maxDate": {
+      "description": "The maximum date allowed for the property.",
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "contains": {
+      "description": "Checks if string contains the seed.",
+      "type": "string"
+    },
+    "notContains": {
+      "description": "Checks if string does not contain the seed.",
+      "type": "string"
+    },
+    "isAlpha": {
+      "description": "Checks if the string contains only letters (a-zA-Z).",
+      "type": "boolean"
+    },
+    "isAlphanumeric": {
+      "description": "Checks if the string contains only letters and numbers.",
+      "type": "boolean"
+    },
+    "isAscii": {
+      "description": "Checks if the string contains ASCII chars only.",
+      "type": "boolean"
+    },
+    "isEmail": {
+      "description": "Checks if the string is an email.",
+      "type": "boolean"
+    },
+    "isJSON": {
+      "description": "Checks if the string is valid JSON.",
+      "type": "boolean"
+    },
+    "minLength": {
+      "description": "Checks if the string's length is not less than given number.",
+      "type": "number"
+    },
+    "maxLength": {
+      "description": "Checks if the string's length is not more than given number.",
+      "type": "number"
+    },
+    "matches": {
+      "description": "Checks if string matches the pattern.",
+      "type": "string",
+      "format": "regex"
+    },
+    "isMimeType": {
+      "description": "Checks if the string matches to a valid MIME type format.",
+      "type": "boolean"
+    },
+    "arrayContains": {
+      "description": "Checks if array contains all values from the given array of values.",
+      "type": "array"
+    },
+    "arrayNotContains": {
+      "description": "Checks if array does not contain any of the given values.",
+      "type": "array"
+    },
+    "arrayNotEmpty": {
+      "description": "Checks if given array is not empty.",
+      "type": "boolean"
+    },
+    "arrayMinSize": {
+      "description": "Checks if the array's length is greater than or equal to the specified number.",
+      "type": "number"
+    },
+    "arrayMaxSize": {
+      "description": "Checks if the array's length is less than or equal to the specified number.",
+      "type": "number"
     }
   },
   "additionalProperties": false

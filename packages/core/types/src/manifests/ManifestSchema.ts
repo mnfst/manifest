@@ -126,13 +126,25 @@ export interface EntityManifestSchema {
  */
 export interface ValidationSchema {
   /**
-   * The minimum value or length allowed for the property.
+   * Checks if value is defined (!== undefined, !== null).
    */
-  min?: number
+  isDefined?: boolean
   /**
-   * The maximum value or length allowed for the property.
+   * Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.
    */
-  max?: number
+  IsOptional?: boolean
+  /**
+   * Checks if value equals ("===") comparison.
+   */
+  equals?: {
+    [k: string]: unknown
+  }
+  /**
+   * Checks if value not equal ("!==") comparison.
+   */
+  notEquals?: {
+    [k: string]: unknown
+  }
   /**
    * Indicates whether the property can be empty.
    */
@@ -141,6 +153,94 @@ export interface ValidationSchema {
    * Indicates whether the property must not be empty.
    */
   isNotEmpty?: boolean
+  /**
+   * Checks if value is in an array of allowed values.
+   */
+  isIn?: unknown[]
+  /**
+   * Checks if value not in an array of disallowed values.
+   */
+  isNotIn?: unknown[]
+  /**
+   * The minimum value or length allowed for the property.
+   */
+  min?: number
+  /**
+   * The maximum value or length allowed for the property.
+   */
+  max?: number
+  /**
+   * The minimum date allowed for the property.
+   */
+  minDate?: string | null
+  /**
+   * The maximum date allowed for the property.
+   */
+  maxDate?: string | null
+  /**
+   * Checks if string contains the seed.
+   */
+  contains?: string
+  /**
+   * Checks if string does not contain the seed.
+   */
+  notContains?: string
+  /**
+   * Checks if the string contains only letters (a-zA-Z).
+   */
+  isAlpha?: boolean
+  /**
+   * Checks if the string contains only letters and numbers.
+   */
+  isAlphanumeric?: boolean
+  /**
+   * Checks if the string contains ASCII chars only.
+   */
+  isAscii?: boolean
+  /**
+   * Checks if the string is an email.
+   */
+  isEmail?: boolean
+  /**
+   * Checks if the string is valid JSON.
+   */
+  isJSON?: boolean
+  /**
+   * Checks if the string's length is not less than given number.
+   */
+  minLength?: number
+  /**
+   * Checks if the string's length is not more than given number.
+   */
+  maxLength?: number
+  /**
+   * Checks if string matches the pattern.
+   */
+  matches?: string
+  /**
+   * Checks if the string matches to a valid MIME type format.
+   */
+  isMimeType?: boolean
+  /**
+   * Checks if array contains all values from the given array of values.
+   */
+  arrayContains?: unknown[]
+  /**
+   * Checks if array does not contain any of the given values.
+   */
+  arrayNotContains?: unknown[]
+  /**
+   * Checks if given array is not empty.
+   */
+  arrayNotEmpty?: boolean
+  /**
+   * Checks if the array's length is greater than or equal to the specified number.
+   */
+  arrayMinSize?: number
+  /**
+   * Checks if the array's length is less than or equal to the specified number.
+   */
+  arrayMaxSize?: number
 }
 /**
  * Global options applicable to all property types.
