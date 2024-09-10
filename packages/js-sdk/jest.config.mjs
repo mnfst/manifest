@@ -6,4 +6,7 @@ export default {
     '^.+\\.ts$': 'ts-jest',
   },
   testPathIgnorePatterns: ['/example'],
+  moduleNameMapper: {
+    '^@repo/types$': '<rootDir>/../core/types/src',
+  },
 }
