@@ -9,7 +9,7 @@
       "description": "Checks if value is defined (!== undefined, !== null).",
       "type": "boolean"
     },
-    "IsOptional": {
+    "isOptional": {
       "description": "Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.",
       "type": "boolean"
     },
@@ -45,13 +45,11 @@
     },
     "minDate": {
       "description": "The minimum date allowed for the property.",
-      "type": ["string", "null"],
-      "format": "date-time"
+      "type": "string"
     },
     "maxDate": {
       "description": "The maximum date allowed for the property.",
-      "type": ["string", "null"],
-      "format": "date-time"
+      "type": "string"
     },
     "contains": {
       "description": "Checks if string contains the seed.",
@@ -91,8 +89,7 @@
     },
     "matches": {
       "description": "Checks if string matches the pattern.",
-      "type": "string",
-      "format": "regex"
+      "type": "string"
     },
     "isMimeType": {
       "description": "Checks if the string matches to a valid MIME type format.",

@@ -15,7 +15,7 @@ import {
 } from 'typeorm'
 
 import { BaseEntity } from '@repo/types'
-import { ValidationError, validate } from 'class-validator'
+import { ValidationError } from 'class-validator'
 import { EntityService } from '../../entity/services/entity.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
 
@@ -259,14 +259,22 @@ export class CrudService {
       ...itemDto
     } as BaseEntity)
 
-    // TODO: Use validation service.
+    // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {
       itemToSave.password = SHA3(itemToSave.password).toString()
     } else if (entityManifest.authenticable && !itemDto.password) {
       delete itemToSave.password
     }
 
-    const errors = await validate(itemToSave)
+    // Passwords are optional on update.
+    entityManifest.properties
+      .filter((p) => p.type === PropType.Password)
+      .forEach((p) => {
+        p.validation.isOptional = true
+      })
+
+    const errors = this.validationService.validate(itemToSave, entityManifest)
+
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }

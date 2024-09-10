@@ -132,7 +132,7 @@ export interface ValidationSchema {
   /**
    * Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.
    */
-  IsOptional?: boolean
+  isOptional?: boolean
   /**
    * Checks if value equals ("===") comparison.
    */
@@ -172,11 +172,11 @@ export interface ValidationSchema {
   /**
    * The minimum date allowed for the property.
    */
-  minDate?: string | null
+  minDate?: string
   /**
    * The maximum date allowed for the property.
    */
-  maxDate?: string | null
+  maxDate?: string
   /**
    * Checks if string contains the seed.
    */

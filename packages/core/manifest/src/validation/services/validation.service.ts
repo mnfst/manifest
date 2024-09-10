@@ -45,9 +45,10 @@ export class ValidationService {
     const errors: ValidationError[] = []
 
     // Validate that the property value is of the correct type based on PropType.
-    if (typeof propValue !== 'undefined') {
-      const typeValidationError: string | null =
-        typeValidators[propertyManifest.type](propValue)
+    if (typeof propValue !== 'undefined' && propValue !== null) {
+      const typeValidationError: string | null = typeValidators[
+        propertyManifest.type
+      ](propValue, propertyManifest.options)
       if (typeValidationError) {
         errors.push({
           property: propertyManifest.name,
@@ -62,10 +63,17 @@ export class ValidationService {
     // Validate the property value against the validation schema.
     Object.entries(propertyManifest.validation || {}).forEach(
       ([key, context]: [string, any]) => {
-        const validationError: string | null = customValidators[key](
-          propValue,
-          context
-        )
+        let validationError: string | null
+
+        // If the property is optional and the value is undefined or null, skip validation.
+        if (
+          propertyManifest.validation.isOptional &&
+          (propValue === undefined || propValue === null)
+        ) {
+          validationError = null
+        } else {
+          validationError = customValidators[key](propValue, context)
+        }
 
         if (validationError) {
           const existingPropertyError = errors.find(

@@ -55,7 +55,6 @@ export const customValidators: Record<
   isDefined: (propValue: any) =>
     isDefined(propValue) ? null : 'The value must be defined',
 
-  IsOptional: (propValue: any, context: any) => null, // TODO: This is a special validator that ignores all other validators if the value is empty.
   equals: (propValue: any, comparison: any) =>
     equals(propValue, comparison)
       ? null
@@ -146,5 +145,8 @@ export const customValidators: Record<
   arrayMaxSize: (propValue: any, max: number) =>
     arrayMaxSize(propValue, max)
       ? null
-      : `The value must contain at most ${max} elements`
+      : `The value must contain at most ${max} elements`,
+
+  // IsOptional is a special case that always returns null. The logic is handled in the validation service.
+  isOptional: (propValue: any, context: any) => null
 }
