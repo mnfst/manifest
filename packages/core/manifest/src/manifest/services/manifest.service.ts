@@ -7,7 +7,7 @@ import {
   AppManifest,
   Manifest,
   EntityManifest,
-  EntityManifestSchema,
+  EntitySchema,
   PolicySchema,
   PolicyManifest,
   PropType,
@@ -75,7 +75,7 @@ export class ManifestService {
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
     return Object.entries(manifestSchema.entities).map(
-      ([className, entity]: [string, EntityManifestSchema]) =>
+      ([className, entity]: [string, EntitySchema]) =>
         this.transformEntityManifest(className, entity)
     )
   }
@@ -147,7 +147,7 @@ export class ManifestService {
       entities: Object.entries(manifestSchema.entities).reduce(
         (
           acc: { [k: string]: EntityManifest },
-          [className, entitySchema]: [string, EntityManifestSchema]
+          [className, entitySchema]: [string, EntitySchema]
         ) => {
           acc[className] = this.transformEntityManifest(className, entitySchema)
           return acc
@@ -169,14 +169,14 @@ export class ManifestService {
    */
   transformEntityManifest(
     className: string,
-    entitySchema: EntityManifestSchema
+    entitySchema: EntitySchema
   ): EntityManifest {
     const properties: PropertyManifest[] = (entitySchema.properties || []).map(
-      (propManifest: PropertySchema) => this.transformProperty(propManifest)
+      (propManifest: PropertySchema) =>
+        this.transformProperty(propManifest, entitySchema)
     )
     const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
 
-    // TODO: We should add the validators here: both from types and from the schema.
     const entityManifest: EntityManifest = {
       className: entitySchema.className || className,
       nameSingular:
@@ -259,11 +259,16 @@ export class ManifestService {
    * Transform the short form of the property into the long form.
    *
    * @param propSchema the property that can be in short form.
+   * @param entitySchema the entity schema to which the property belongs.
+   *
    *
    * @returns the property with the short form properties transformed into long form.
    *
    */
-  transformProperty(propSchema: PropertySchema): PropertyManifest {
+  transformProperty(
+    propSchema: PropertySchema,
+    entitySchema: EntitySchema
+  ): PropertyManifest {
     if (typeof propSchema === 'string') {
       return {
         name: propSchema.toLowerCase(),
@@ -277,7 +282,10 @@ export class ManifestService {
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
       options: propSchema.options,
-      validation: propSchema.validation
+      validation: Object.assign(
+        entitySchema.validation[propSchema.name] || {},
+        propSchema.validation
+      )
     }
   }
 
@@ -336,7 +344,7 @@ export class ManifestService {
       ...manifest,
       entities: Object.entries(manifest.entities)
         .filter(
-          ([className, _entitySchema]: [string, EntityManifestSchema]) =>
+          ([className, _entitySchema]: [string, EntitySchema]) =>
             className !== ADMIN_ENTITY_MANIFEST.className
         )
         .reduce(

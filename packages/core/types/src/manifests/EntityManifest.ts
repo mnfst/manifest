@@ -1,9 +1,9 @@
-import { EntityManifestSchema } from './ManifestSchema'
+import { EntitySchema } from './ManifestSchema'
 import { PolicyManifest } from './PolicyManifest'
 import { PropertyManifest } from './PropertyManifest'
 import { RelationshipManifest } from './RelationshipManifest'
 
-export interface EntityManifest extends EntityManifestSchema {
+export interface EntityManifest extends EntitySchema {
   /**
    * The properties of the entity.
    */

@@ -19,6 +19,8 @@ entities:
         - { access: public }
       delete:
         - { access: 🔒, allow: [User] }
+    validation:
+      age: { min: 20 } # Gets overriden by the property definition.
 
   User:
     authenticable: true
