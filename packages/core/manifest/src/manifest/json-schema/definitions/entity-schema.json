@@ -53,7 +53,7 @@
       "$ref": "./policies/policies-schema.json"
     },
     "validation": {
-      "description": "Validation object for the properties.",
+      "description": "Validation object for the properties. Doc: https://manifest.build/docs/validation",
       "type": "object",
       "properties": {
         "*": {
