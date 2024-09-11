@@ -2,9 +2,9 @@
   "name": "manifest",
   "version": "4.0.0-beta",
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "test": "turbo run test"
+    "build": "npx turbo run build",
+    "dev": "npx turbo run dev",
+    "test": "npx turbo run test"
   },
   "workspaces": [
     "packages/**/*"
