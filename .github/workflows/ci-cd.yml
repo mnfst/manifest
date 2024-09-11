@@ -17,9 +17,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '18.x'
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm install
-      - name: Install dependencies
+      - name: Install dependencies (workspaces)
         run: npm ci --workspaces
       - name: Build App
         run: npm run build
