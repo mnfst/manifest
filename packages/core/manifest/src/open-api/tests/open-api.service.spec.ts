@@ -11,7 +11,6 @@ describe('OpenApiService', () => {
   let service: OpenApiService
   let openApiCrudService: OpenApiCrudService
   let openApiManifestService: OpenApiManifestService
-  let openApiAuthService: OpenApiAuthService
 
   const dummyAppManifest: AppManifest = {
     name: 'Test App',

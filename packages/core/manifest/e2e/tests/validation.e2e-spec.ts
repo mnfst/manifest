@@ -25,15 +25,13 @@ describe('Validation (e2e)', () => {
     it('location type expects and valid location object', async () => {})
   })
 
-  describe('Validation behaviors', () => {
+  describe('Validation behavior', () => {
     it('nothing is mandatory by default', async () => {})
 
     it('validation in the property object is prioritized over validation object', async () => {})
 
     it('required is an alias of isNotEmpty validator', async () => {})
-  })
 
-  describe('Validators', () => {
-    // TODO: Test individual validators as in class-validator.
+    it('isOptional skips validation if the value is undefined or null', async () => {})
   })
 })

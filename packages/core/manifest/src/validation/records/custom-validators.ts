@@ -51,7 +51,7 @@ export const customValidators: Record<
     isEmpty(propValue) ? null : 'The value must be empty',
 
   isNotEmpty: (propValue: any) =>
-    isEmpty(propValue) ? 'The value must not be empty' : null,
+    isNotEmpty(propValue) ? 'The value must not be empty' : null,
 
   required: (propValue: any) =>
     isNotEmpty(propValue) ? null : 'The value is required',
