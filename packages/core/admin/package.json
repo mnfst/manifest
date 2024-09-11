@@ -29,8 +29,7 @@
     "start": "ng serve",
     "dev": "ng serve",
     "build": "ng build --configuration production",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "watch": "ng build --watch --configuration development"
   },
   "private": false,
   "license": "MIT",

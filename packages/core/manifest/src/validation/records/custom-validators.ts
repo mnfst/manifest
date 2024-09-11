@@ -24,7 +24,8 @@ import {
   arrayNotContains,
   arrayNotEmpty,
   arrayMinSize,
-  arrayMaxSize
+  arrayMaxSize,
+  isNotEmpty
 } from 'class-validator'
 import { ValidationManifest } from '@repo/types'
 
@@ -51,6 +52,9 @@ export const customValidators: Record<
 
   isNotEmpty: (propValue: any) =>
     isEmpty(propValue) ? 'The value must not be empty' : null,
+
+  required: (propValue: any) =>
+    isNotEmpty(propValue) ? null : 'The value is required',
 
   isDefined: (propValue: any) =>
     isDefined(propValue) ? null : 'The value must be defined',

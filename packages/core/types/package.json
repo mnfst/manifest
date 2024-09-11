@@ -1,6 +1,6 @@
 {
   "name": "@repo/types",
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "build": "tsc --noEmit"
   }
 }

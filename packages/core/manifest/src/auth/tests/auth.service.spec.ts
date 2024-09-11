@@ -22,7 +22,6 @@ describe('AuthService', () => {
     const module = await Test.createTestingModule({
       providers: [
         AuthService,
-
         {
           provide: ConfigService,
           useValue: {

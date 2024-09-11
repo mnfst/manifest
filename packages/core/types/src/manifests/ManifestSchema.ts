@@ -161,6 +161,10 @@ export interface ValidationSchema {
    */
   isNotEmpty?: boolean
   /**
+   * Indicates whether the property must not be empty.
+   */
+  required?: boolean
+  /**
    * Checks if value is in an array of allowed values.
    */
   isIn?: unknown[]
@@ -269,15 +273,7 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
 }
 /**
@@ -312,6 +308,10 @@ export interface ValidationSchema1 {
    * Indicates whether the property must not be empty.
    */
   isNotEmpty?: boolean
+  /**
+   * Indicates whether the property must not be empty.
+   */
+  required?: boolean
   /**
    * Checks if value is in an array of allowed values.
    */

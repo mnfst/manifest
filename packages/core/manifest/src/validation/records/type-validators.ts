@@ -1,7 +1,7 @@
 import { PropType } from '@repo/types'
 import {
   isBoolean,
-  isDate,
+  isDateString,
   isEmail,
   isIn,
   isLatLong,
@@ -41,7 +41,7 @@ export const typeValidators: Record<
       : 'The value must be a number with up to 2 decimal places',
 
   [PropType.Date]: (value: string) =>
-    isDate(value) ? null : 'The value must be a valid date',
+    isDateString(value) ? null : 'The value must be a valid date',
 
   [PropType.Timestamp]: (value: number) =>
     typeof value === 'number' &&

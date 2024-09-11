@@ -9,7 +9,7 @@ export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Text]: 'text',
   [PropType.Money]: 'decimal',
   [PropType.Date]: 'date',
-  [PropType.Timestamp]: 'text',
+  [PropType.Timestamp]: 'integer',
   [PropType.Email]: 'varchar',
   [PropType.Boolean]: 'boolean',
   [PropType.Password]: 'varchar',

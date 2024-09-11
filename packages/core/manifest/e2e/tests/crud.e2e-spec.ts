@@ -6,10 +6,10 @@ describe('CRUD (e2e)', () => {
     age: 5,
     website: 'https://example.com',
     description: 'lorem ipsum',
-    birthdate: new Date().toISOString(),
+    birthdate: '2024-01-01',
     price: 100,
     isGoodBoy: true,
-    acquiredAt: new Date().toISOString(),
+    acquiredAt: new Date().getTime(),
     email: 'test@example.com',
     favoriteToy: 'ball',
     location: { lat: 12, lng: 13 }

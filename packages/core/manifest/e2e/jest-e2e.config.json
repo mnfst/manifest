@@ -6,5 +6,8 @@
   "transform": {
     "^.+\\.ts$": "ts-jest"
   },
-  "setupFilesAfterEnv": ["./jest.setup.ts"]
+  "setupFilesAfterEnv": ["./jest.setup.ts"],
+  "moduleNameMapper": {
+    "^@repo/types$": "<rootDir>/../../types/src"
+  }
 }

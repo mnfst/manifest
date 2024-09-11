@@ -27,6 +27,10 @@
       "description": "Indicates whether the property must not be empty.",
       "type": "boolean"
     },
+    "required": {
+      "description": "Indicates whether the property must not be empty.",
+      "type": "boolean"
+    },
     "isIn": {
       "description": "Checks if value is in an array of allowed values.",
       "type": "array"

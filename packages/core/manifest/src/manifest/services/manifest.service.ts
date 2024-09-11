@@ -283,7 +283,7 @@ export class ManifestService {
       hidden: propSchema.hidden || false,
       options: propSchema.options,
       validation: Object.assign(
-        entitySchema.validation[propSchema.name] || {},
+        entitySchema.validation?.[propSchema.name] || {},
         propSchema.validation
       )
     }
