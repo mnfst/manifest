@@ -175,6 +175,11 @@ export class ManifestService {
       (propManifest: PropertySchema) =>
         this.transformProperty(propManifest, entitySchema)
     )
+
+    if (entitySchema.authenticable) {
+      properties.push(...AUTHENTICABLE_PROPS)
+    }
+
     const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
 
     const entityManifest: EntityManifest = {
@@ -223,10 +228,6 @@ export class ManifestService {
       }
     }
 
-    if (entityManifest.authenticable) {
-      properties.push(...AUTHENTICABLE_PROPS)
-    }
-
     return entityManifest
   }
 
@@ -269,11 +270,13 @@ export class ManifestService {
     propSchema: PropertySchema,
     entitySchema: EntitySchema
   ): PropertyManifest {
+    // Short syntax.
     if (typeof propSchema === 'string') {
       return {
-        name: propSchema.toLowerCase(),
+        name: propSchema,
         type: PropType.String,
-        hidden: false
+        hidden: false,
+        validation: entitySchema.validation?.[propSchema] || {}
       }
     }
 

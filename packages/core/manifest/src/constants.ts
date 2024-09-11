@@ -32,12 +32,14 @@ export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
   {
     name: 'email',
     type: PropType.Email,
-    hidden: true
+    hidden: true,
+    validation: { isNotEmpty: true }
   },
   {
     name: 'password',
     type: PropType.Password,
-    hidden: true
+    hidden: true,
+    validation: { isNotEmpty: true }
   }
 ]
 

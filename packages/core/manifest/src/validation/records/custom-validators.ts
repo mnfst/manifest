@@ -47,17 +47,21 @@ export const customValidators: Record<
       ? null
       : `The value must be less than or equal to ${maxValue}`,
 
-  isEmpty: (propValue: any) =>
-    isEmpty(propValue) ? null : 'The value must be empty',
+  isEmpty: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isEmpty(propValue) ? null : 'The value must be empty',
 
-  isNotEmpty: (propValue: any) =>
-    isNotEmpty(propValue) ? 'The value must not be empty' : null,
+  isNotEmpty: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isNotEmpty(propValue)
+      ? null
+      : 'The value must not be empty',
 
-  required: (propValue: any) =>
-    isNotEmpty(propValue) ? null : 'The value is required',
+  required: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isNotEmpty(propValue) ? null : 'The value is required',
 
-  isDefined: (propValue: any) =>
-    isDefined(propValue) ? null : 'The value must be defined',
+  isDefined: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isDefined(propValue)
+      ? null
+      : 'The value must be defined',
 
   equals: (propValue: any, comparison: any) =>
     equals(propValue, comparison)
@@ -93,22 +97,30 @@ export const customValidators: Record<
   notContains: (propValue: any, seed: any) =>
     notContains(propValue, seed) ? null : `The value must not contain ${seed}`,
 
-  isAlpha: (propValue: any) =>
-    isAlpha(propValue) ? null : 'The value must contain only letters (a-zA-Z)',
+  isAlpha: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isAlpha(propValue)
+      ? null
+      : 'The value must contain only letters (a-zA-Z)',
 
-  isAlphanumeric: (propValue: any) =>
-    isAlphanumeric(propValue)
+  isAlphanumeric: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isAlphanumeric(propValue)
       ? null
       : 'The value must contain only letters and numbers',
 
-  isAscii: (propValue: any) =>
-    isAscii(propValue) ? null : 'The value must contain only ASCII characters',
+  isAscii: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isAscii(propValue)
+      ? null
+      : 'The value must contain only ASCII characters',
 
-  isEmail: (propValue: any) =>
-    isEmail(propValue) ? null : 'The value must be a valid email address',
+  isEmail: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isEmail(propValue)
+      ? null
+      : 'The value must be a valid email address',
 
-  isJSON: (propValue: any) =>
-    isJSON(propValue) ? null : 'The value must be a valid JSON string',
+  isJSON: (propValue: any, isFilterActive: boolean) =>
+    !isFilterActive || isJSON(propValue)
+      ? null
+      : 'The value must be a valid JSON string',
 
   minLength: (propValue: any, min: number) =>
     minLength(propValue, min)

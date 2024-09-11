@@ -214,12 +214,13 @@ export class CrudService {
 
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
-        slug: entitySlug
+        slug: entitySlug,
+        fullVersion: true
       })
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
 
-    if (entityManifest.authenticable) {
+    if (entityManifest.authenticable && itemDto.password) {
       newItem.password = SHA3(newItem.password).toString()
     }
 
@@ -242,7 +243,8 @@ export class CrudService {
   ): Promise<BaseEntity> {
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
-        slug: entitySlug
+        slug: entitySlug,
+        fullVersion: true
       })
 
     const entityRepository: Repository<BaseEntity> =
