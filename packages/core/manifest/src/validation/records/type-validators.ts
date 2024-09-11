@@ -40,14 +40,17 @@ export const typeValidators: Record<
       ? null
       : 'The value must be a number with up to 2 decimal places',
 
+  // Combine isDateString from class-validator with a custom regex to validate the YYYY-MM-DD format.
   [PropType.Date]: (value: string) =>
-    isDateString(value) ? null : 'The value must be a valid date',
+    isDateString(value) && new RegExp(/^\d{4}-\d{2}-\d{2}$/).test(value)
+      ? null
+      : 'The value must be a valid date',
 
   [PropType.Timestamp]: (value: number) =>
     typeof value === 'number' &&
     Number.isInteger(value) &&
     value > 0 &&
-    value < Date.now()
+    value <= Date.now()
       ? null
       : 'The value must be a valid timestamp',
 
@@ -66,7 +69,9 @@ export const typeValidators: Record<
       : 'The value must be one of the available choices',
 
   [PropType.Location]: (value: { lat: string; lng }) =>
-    value.lat && value.lng && isLatLong(`${value.lat},${value.lng}`)
+    typeof value.lat !== 'undefined' &&
+    typeof value.lng !== 'undefined' &&
+    isLatLong(`${value.lat},${value.lng}`)
       ? null
       : 'The value must be a valid latitude and longitude'
 }
