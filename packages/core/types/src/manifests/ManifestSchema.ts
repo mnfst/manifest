@@ -53,6 +53,10 @@ export type RelationshipSchema =
        */
       entity: string
       /**
+       * Whether the relationship can be null. Defaults to false.
+       */
+      nullable?: boolean
+      /**
        * Whether the relationship should be eager loaded. Otherwise, you need to explicitly request the relation in the client SDK or API.
        * Defaults to false.
        */
@@ -119,9 +123,13 @@ export interface EntitySchema {
    * The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations
    */
   belongsTo?: RelationshipSchema[]
+  /**
+   * The hasMany relationships of the entity. Doc: https://manifest.build/docs/relations
+   */
+  hasMany?: RelationshipSchema[]
   policies?: PoliciesSchema
   /**
-   * Validation object for the properties.
+   * Validation object for the properties. Doc: https://manifest.build/docs/validation
    */
   validation?: {
     '*'?: ValidationSchema1

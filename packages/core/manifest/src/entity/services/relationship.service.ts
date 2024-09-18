@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import { EntityManifest, RelationshipManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntitySchemaRelationOptions } from 'typeorm'
 
 @Injectable()
 export class RelationshipService {
@@ -25,5 +26,40 @@ export class RelationshipService {
       min: 1,
       max: relatedEntity.seedCount
     })
+  }
+
+  /**
+   * Converts belongsTo relationships to TypeORM EntitySchemaRelationOptions of many-to-one relations.
+   *
+   * @param belongsToRelationships The belongsTo relationships to convert.
+   *
+   * @returns The converted EntitySchemaRelationOptions.
+   *
+   */
+  getEntitySchemaBelongsToRelationOptions(
+    belongsToRelationships: RelationshipManifest[]
+  ): { [key: string]: EntitySchemaRelationOptions } {
+    return belongsToRelationships.reduce(
+      (
+        acc: { [key: string]: EntitySchemaRelationOptions },
+        belongsToRelationShip: RelationshipManifest
+      ) => {
+        acc[belongsToRelationShip.name] = {
+          target: belongsToRelationShip.entity,
+          type: 'many-to-one',
+          eager: !!belongsToRelationShip.eager
+        }
+
+        return acc
+      },
+      {}
+    )
+  }
+
+  getEntitySchemaHasManyRelationOptions(
+    hasManyRelationships: RelationshipManifest[]
+  ): { [key: string]: EntitySchemaRelationOptions } {
+    // TODO: Implement this method.
+    return {}
   }
 }

@@ -47,6 +47,13 @@
         "$ref": "relationship-schema.json"
       }
     },
+    "hasMany": {
+      "description": "The hasMany relationships of the entity. Doc: https://manifest.build/docs/relations",
+      "type": "array",
+      "items": {
+        "$ref": "relationship-schema.json"
+      }
+    },
     "policies": {
       "description": "The policies of the entity. Doc: https://manifest.build/docs/policies",
       "type": "object",

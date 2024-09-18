@@ -15,6 +15,10 @@
           "type": "string",
           "description": "The class name of the entity that the relationship is with"
         },
+        "nullable": {
+          "type": "boolean",
+          "description": "Whether the relationship can be null. Defaults to false."
+        },
         "eager": {
           "type": "boolean",
           "description": "Whether the relationship should be eager loaded. Otherwise, you need to explicitly request the relation in the client SDK or API.\nDefaults to false."
