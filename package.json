@@ -4,7 +4,8 @@
   "scripts": {
     "build": "npx turbo run build",
     "dev": "npx turbo run dev",
-    "test": "npx turbo run test"
+    "test": "npx turbo run test",
+    "seed": "cd packages/core/manifest && npm run seed"
   },
   "workspaces": [
     "packages/**/*"

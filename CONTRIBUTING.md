@@ -80,10 +80,16 @@ npm install --workspaces
 npm run dev
 ```
 
-The you can play around with your [backend.yml](https://manifest.build/docs/manifest-file) file at `packages/core/manifest/manifest/backend.yml` and see the results:
+Then you can play around with your [backend.yml](https://manifest.build/docs/manifest-file) file at `packages/core/manifest/manifest/backend.yml` and see the results:
 
 - Admin panel `http://localhost:4200`
 - API Doc `http://localhost:3000/api`
+
+Don't forget to seed to generate an _admin_ user and dummy data:
+
+```
+npm run seed
+```
 
 ### Test
 
