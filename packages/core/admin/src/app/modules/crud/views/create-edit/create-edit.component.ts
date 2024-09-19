@@ -100,7 +100,7 @@ export class CreateEditComponent {
         this.form.addControl(prop.name, new FormControl(value))
       })
 
-      this.entityManifest.belongsTo.forEach(
+      this.entityManifest.relationships.forEach(
         (relationship: RelationshipManifest) => {
           const value: number = this.item ? this.item[relationship.name] : null
 

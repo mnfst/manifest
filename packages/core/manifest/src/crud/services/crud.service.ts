@@ -95,7 +95,7 @@ export class CrudService {
     this.loadRelations({
       query,
       entityMetadata,
-      belongsTo: entityManifest.belongsTo,
+      relationships: entityManifest.relationships,
       requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
@@ -196,7 +196,7 @@ export class CrudService {
     this.loadRelations({
       query,
       entityMetadata,
-      belongsTo: entityManifest.belongsTo,
+      relationships: entityManifest.relationships,
       requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
@@ -330,7 +330,7 @@ export class CrudService {
    *
    * @param query the query builder.
    * @param entityMetadata the entity metadata.
-   * @param belongsTo the belongsTo relationships.
+   * @param relationships the relationships.
    * @param requestedRelations the requested relations.
    * @param alias the alias of the entity.
    *
@@ -339,41 +339,41 @@ export class CrudService {
   private loadRelations({
     query,
     entityMetadata,
-    belongsTo,
+    relationships,
     requestedRelations,
     alias = 'entity'
   }: {
     query: SelectQueryBuilder<BaseEntity>
     entityMetadata: EntityMetadata
-    belongsTo: RelationshipManifest[]
+    relationships: RelationshipManifest[]
     requestedRelations?: string[]
     alias?: string
   }): SelectQueryBuilder<BaseEntity> {
     // Get item relations and select only their visible props.
-    entityMetadata.relations.forEach((relation: RelationMetadata) => {
-      const relationshipManifest: RelationshipManifest = belongsTo.find(
-        (belongsTo: RelationshipManifest) =>
-          belongsTo.name === relation.propertyName
+    entityMetadata.relations.forEach((relationMetadata: RelationMetadata) => {
+      const relationshipManifest: RelationshipManifest = relationships.find(
+        (relationship: RelationshipManifest) =>
+          relationship.name === relationMetadata.propertyName
       )
 
       // Only eager relations are loaded.
       if (
         !relationshipManifest.eager &&
-        !requestedRelations?.includes(relation.propertyName)
+        !requestedRelations?.includes(relationMetadata.propertyName)
       ) {
         return
       }
 
       const aliasName: string = HelperService.camelCaseTwoStrings(
         alias,
-        relation.propertyName
+        relationMetadata.propertyName
       )
 
-      query.leftJoin(`${alias}.${relation.propertyName}`, aliasName)
+      query.leftJoin(`${alias}.${relationMetadata.propertyName}`, aliasName)
 
       const relationEntityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
-          className: relation.inverseEntityMetadata.targetName
+          className: relationMetadata.inverseEntityMetadata.targetName
         })
 
       query.addSelect(
@@ -386,17 +386,17 @@ export class CrudService {
       // Load relations of relations.
       const relationEntityMetadata: EntityMetadata =
         this.entityService.getEntityMetadata({
-          className: relation.inverseEntityMetadata.targetName
+          className: relationMetadata.inverseEntityMetadata.targetName
         })
 
       if (relationEntityMetadata.relations.length) {
         query = this.loadRelations({
           query,
           entityMetadata: relationEntityMetadata,
-          belongsTo: relationEntityManifest.belongsTo,
+          relationships: relationEntityManifest.relationships,
           requestedRelations: requestedRelations?.map(
             (requestedRelation: string) =>
-              requestedRelation.replace(`${relation.propertyName}.`, '')
+              requestedRelation.replace(`${relationMetadata.propertyName}.`, '')
           ),
           alias: aliasName
         })
@@ -453,10 +453,11 @@ export class CrudService {
           (prop: PropertyManifest) => prop.name === propName && !prop.hidden
         )
 
-        const relation: RelationshipManifest = entityManifest.belongsTo.find(
-          (belongsTo: RelationshipManifest) =>
-            belongsTo.name === propName.split('.')[0]
-        )
+        const relation: RelationshipManifest =
+          entityManifest.relationships.find(
+            (relationship: RelationshipManifest) =>
+              relationship.name === propName.split('.')[0]
+          )
 
         if (!prop && !relation) {
           throw new HttpException(

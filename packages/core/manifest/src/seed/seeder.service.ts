@@ -47,6 +47,7 @@ export class SeederService {
       )
     }
 
+    // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
     await queryRunner.query('PRAGMA foreign_keys = OFF')
     await Promise.all(
@@ -61,6 +62,11 @@ export class SeederService {
       )
     )
     await queryRunner.query('PRAGMA foreign_keys = ON')
+
+    // Keep only regular tables for seeding.
+    entityMetadatas = entityMetadatas.filter(
+      (entity: EntityMetadata) => entity.tableType === 'regular'
+    )
 
     for (const entityMetadata of entityMetadatas) {
       const repository: Repository<BaseEntity> =
@@ -99,7 +105,7 @@ export class SeederService {
           }
         )
 
-        entityManifest.belongsTo.forEach(
+        entityManifest.relationships.forEach(
           (relationManifest: RelationshipManifest) => {
             newRecord[relationManifest.name] =
               this.relationshipService.getSeedValue(relationManifest)

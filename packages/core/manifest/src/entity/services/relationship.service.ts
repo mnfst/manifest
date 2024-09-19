@@ -28,6 +28,29 @@ export class RelationshipService {
     })
   }
 
+  getEntitySchemaRelationOptions(
+    relationships: RelationshipManifest[],
+    centralEntityName: string
+  ): { [key: string]: EntitySchemaRelationOptions } {
+    const belongsToRelationships: RelationshipManifest[] = relationships.filter(
+      (relationship: RelationshipManifest) =>
+        relationship.type === 'many-to-one'
+    )
+
+    const hasManyRelationships: RelationshipManifest[] = relationships.filter(
+      (relationship: RelationshipManifest) =>
+        relationship.type === 'many-to-many'
+    )
+
+    return {
+      ...this.getEntitySchemaBelongsToRelationOptions(belongsToRelationships),
+      ...this.getEntitySchemaHasManyRelationOptions(
+        hasManyRelationships,
+        centralEntityName
+      )
+    }
+  }
+
   /**
    * Converts belongsTo relationships to TypeORM EntitySchemaRelationOptions of many-to-one relations.
    *

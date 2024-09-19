@@ -36,13 +36,16 @@
             <th
               *ngFor="let prop of entityManifest.properties"
               [ngClass]="{
-                'has-text-right':prop.type === PropType.Money || prop.type === PropType.Number || prop.type === PropType.Date,
-                }"
+                'has-text-right':
+                  prop.type === PropType.Money ||
+                  prop.type === PropType.Number ||
+                  prop.type === PropType.Date
+              }"
             >
               {{ prop.name }}
             </th>
-            <th *ngFor="let relation of entityManifest.belongsTo">
-              {{ relation.name }}
+            <th *ngFor="let relationship of entityManifest.relationships">
+              {{ relationship.name }}
             </th>
             <th></th>
           </tr>
@@ -70,7 +73,7 @@
                 [compact]="true"
               ></app-yield>
             </td>
-            <td *ngFor="let relation of entityManifest.belongsTo">
+            <td *ngFor="let relation of entityManifest.relationships">
               <app-relation-yield
                 [item]="item[relation.name]"
                 [relation]="relation"
@@ -78,28 +81,33 @@
             </td>
             <td class="has-text-right is-nowrap">
               <div class="is-flex is-justify-content-flex-end">
-              <a
-                class="button is-light is-small is-circle"
-                [routerLink]="['/', 'dynamic', entityManifest.slug, item['id']]"
-                ><i class="icon icon-eye"></i
-              ></a>
+                <a
+                  class="button is-light is-small is-circle"
+                  [routerLink]="[
+                    '/',
+                    'dynamic',
+                    entityManifest.slug,
+                    item['id']
+                  ]"
+                  ><i class="icon icon-eye"></i
+                ></a>
 
-              <a
-              class="button is-light is-small is-circle mx-2"
-                [routerLink]="[
-                  '/dynamic',
-                  entityManifest.slug,
-                  item['id'],
-                  'edit'
-                ]"
-                ><i class="icon icon-edit"></i
-              ></a>
-              <a
-              class="button is-light is-small is-circle"
-                (click)="toggleDeleteModal(item)"
-                ><i class="icon icon-trash-2"></i
-              ></a>
-            </div>
+                <a
+                  class="button is-light is-small is-circle mx-2"
+                  [routerLink]="[
+                    '/dynamic',
+                    entityManifest.slug,
+                    item['id'],
+                    'edit'
+                  ]"
+                  ><i class="icon icon-edit"></i
+                ></a>
+                <a
+                  class="button is-light is-small is-circle"
+                  (click)="toggleDeleteModal(item)"
+                  ><i class="icon icon-trash-2"></i
+                ></a>
+              </div>
             </td>
           </tr>
         </tbody>

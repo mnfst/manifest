@@ -50,9 +50,17 @@ export class CrudService {
     )
   }
 
-  show(entitySlug: string, id: number): Promise<BaseEntity> {
+  show(
+    entitySlug: string,
+    id: number,
+    options?: { relations?: string[] }
+  ): Promise<BaseEntity> {
     return firstValueFrom(
-      this.http.get<BaseEntity>(`${this.baseUrl}/${entitySlug}/${id}`)
+      this.http.get<BaseEntity>(`${this.baseUrl}/${entitySlug}/${id}`, {
+        params: {
+          relations: options?.relations?.join(',')
+        }
+      })
     )
   }
 

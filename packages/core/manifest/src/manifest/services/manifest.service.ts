@@ -203,14 +203,16 @@ export class ManifestService {
         properties.find((prop) => prop.type === PropType.String)?.name ||
         'id',
       seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
-      belongsTo: (entitySchema.belongsTo || []).map(
-        (relationship: RelationshipSchema) =>
-          this.transformRelationship(relationship)
-      ),
-      hasMany: (entitySchema.hasMany || []).map(
-        (relationship: RelationshipSchema) =>
-          this.transformRelationship(relationship)
-      ),
+      relationships: [
+        ...(entitySchema.belongsTo || []).map(
+          (relationship: RelationshipSchema) =>
+            this.transformRelationship(relationship, 'many-to-one')
+        ),
+        ...(entitySchema.hasMany || []).map(
+          (relationship: RelationshipSchema) =>
+            this.transformRelationship(relationship, 'many-to-many')
+        )
+      ],
       authenticable: entitySchema.authenticable || false,
       properties,
       policies: {
@@ -243,19 +245,22 @@ export class ManifestService {
    * @returns the relationship with the short form properties transformed into long form.
    */
   transformRelationship(
-    relationship: RelationshipSchema
+    relationship: RelationshipSchema,
+    type: 'many-to-one' | 'many-to-many'
   ): RelationshipManifest {
     if (typeof relationship === 'string') {
       return {
         name: relationship.toLowerCase(),
         entity: relationship,
-        eager: false
+        eager: false,
+        type
       }
     }
     return {
       name: relationship.name || relationship.entity.toLowerCase(),
       entity: relationship.entity,
-      eager: relationship.eager || false
+      eager: relationship.eager || false,
+      type
     }
   }
 
