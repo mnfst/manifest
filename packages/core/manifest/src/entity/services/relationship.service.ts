@@ -132,7 +132,6 @@ export class RelationshipService {
           target: hasManyRelationShip.entity,
           type: 'many-to-many',
           eager: !!hasManyRelationShip.eager,
-          cascade: true,
           joinTable: {
             name: `${centralEntityName}_${hasManyRelationShip.name}`
           }

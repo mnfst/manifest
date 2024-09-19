@@ -106,18 +106,55 @@ export class SeederService {
           }
         )
 
-        entityManifest.relationships.forEach(
-          (relationManifest: RelationshipManifest) => {
+        entityManifest.relationships
+          .filter(
+            (relationship: RelationshipManifest) =>
+              relationship.type === 'many-to-one'
+          )
+          .forEach((relationManifest: RelationshipManifest) => {
             newRecord[relationManifest.name] =
               this.relationshipService.getSeedValue(relationManifest)
-          }
-        )
+          })
 
         await repository.save(newRecord)
       }
     }
 
-    return Promise.resolve()
+    // Seed many to many relationships after all entities have been seeded.
+    const manyToManyPromises: Promise<BaseEntity>[] = []
+
+    for (const entityMetadata of entityMetadatas) {
+      const entityManifest: EntityManifest =
+        this.manifestService.getEntityManifest({
+          className: entityMetadata.name,
+          fullVersion: true
+        })
+
+      const repository: Repository<BaseEntity> =
+        this.entityService.getEntityRepository({
+          entityMetadata
+        })
+
+      const allRecords: BaseEntity[] = await repository.find()
+
+      entityManifest.relationships
+        .filter(
+          (relationship: RelationshipManifest) =>
+            relationship.type === 'many-to-many'
+        )
+        .forEach((relationshipManifest: RelationshipManifest) => {
+          allRecords.forEach(async (record: BaseEntity) => {
+            record[relationshipManifest.name] =
+              this.relationshipService.getSeedValue(relationshipManifest)
+
+            manyToManyPromises.push(repository.save(record))
+          })
+        })
+    }
+
+    await Promise.all(manyToManyPromises)
+
+    return
   }
 
   /**
