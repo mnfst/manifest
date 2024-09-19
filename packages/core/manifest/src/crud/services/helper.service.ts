@@ -32,4 +32,18 @@ export class HelperService {
       )
       .join('')
   }
+
+  /**
+   * Get a random integer while excluding some values.
+   */
+  static getRandomIntExcluding(
+    min: number,
+    max: number,
+    exclude?: number[]
+  ): number {
+    const randomInt = Math.floor(Math.random() * (max - min + 1)) + min
+    return exclude?.length && exclude.includes(randomInt)
+      ? this.getRandomIntExcluding(min, max, exclude)
+      : randomInt
+  }
 }

@@ -85,6 +85,7 @@ export class SeederService {
           fullVersion: true
         })
 
+      // Prevent logging during tests.
       if (process.env.NODE_ENV !== 'test') {
         console.log(
           `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`

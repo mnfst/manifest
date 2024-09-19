@@ -3,29 +3,62 @@ import { EntityManifest, RelationshipManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { EntitySchemaRelationOptions } from 'typeorm'
+import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
+import { HelperService } from '../../crud/services/helper.service'
 
 @Injectable()
 export class RelationshipService {
   constructor(private manifestService: ManifestService) {}
 
   /**
-   * Get the seed value for a relationship based on the relationship seed count.
+   * Get the seed value for a relationship based on the number of relation items (seed count).
    *
    * @param relationshipManifest The relationship manifest in its detailed form.
    *
-   * @returns The seed value (id).
+   * @returns An single id or an array of objects with an id property.
    *
    **/
-  getSeedValue(relationshipManifest: RelationshipManifest): number {
+  getSeedValue(
+    relationshipManifest: RelationshipManifest
+  ): number | { id: number }[] {
     const relatedEntity: EntityManifest =
       this.manifestService.getEntityManifest({
         className: relationshipManifest.entity
       })
 
-    return faker.number.int({
-      min: 1,
-      max: relatedEntity.seedCount
-    })
+    if (relationshipManifest.type === 'many-to-one') {
+      return faker.number.int({
+        min: 1,
+        max: relatedEntity.seedCount
+      })
+    } else if (relationshipManifest.type === 'many-to-many') {
+      // On many-to-many relationships, we need to generate a random number of relations.
+
+      const max: number =
+        DEFAULT_MAX_MANY_TO_MANY_RELATIONS > relatedEntity.seedCount
+          ? relatedEntity.seedCount
+          : DEFAULT_MAX_MANY_TO_MANY_RELATIONS
+
+      const numberOfRelations: number = faker.number.int({
+        min: 0,
+        max
+      })
+
+      const relations: { id: number }[] = []
+
+      for (let i = 0; i < numberOfRelations; i++) {
+        relations.push({
+          // We need to make sure that the id is unique.
+          id: HelperService.getRandomIntExcluding(
+            1,
+            relatedEntity.seedCount,
+            relations.map((relation) => relation.id)
+          )
+        })
+      }
+
+      return relations
+    }
   }
 
   getEntitySchemaRelationOptions(
@@ -99,6 +132,7 @@ export class RelationshipService {
           target: hasManyRelationShip.entity,
           type: 'many-to-many',
           eager: !!hasManyRelationShip.eager,
+          cascade: true,
           joinTable: {
             name: `${centralEntityName}_${hasManyRelationShip.name}`
           }
