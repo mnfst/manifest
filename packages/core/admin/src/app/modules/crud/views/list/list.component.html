@@ -73,11 +73,26 @@
                 [compact]="true"
               ></app-yield>
             </td>
-            <td *ngFor="let relation of entityManifest.relationships">
+            <td *ngFor="let relationship of entityManifest.relationships">
               <app-relation-yield
-                [item]="item[relation.name]"
-                [relation]="relation"
+                [item]="item[relationship.name]"
+                [relationship]="relationship"
+                *ngIf="relationship.type === 'many-to-one'"
               ></app-relation-yield>
+              <ng-container *ngIf="relationship.type === 'many-to-many'">
+                <ng-container
+                  *ngFor="
+                    let relation of item[relationship.name];
+                    let last = last
+                  "
+                >
+                  <app-relation-yield
+                    [item]="relation"
+                    [relationship]="relationship"
+                  ></app-relation-yield>
+                  <ng-container *ngIf="!last">, </ng-container>
+                </ng-container>
+              </ng-container>
             </td>
             <td class="has-text-right is-nowrap">
               <div class="is-flex is-justify-content-flex-end">
