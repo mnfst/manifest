@@ -20,7 +20,7 @@ describe('Relationship', () => {
 
     it('can query 2 nested one to many relationship from parent to child to parent', async () => {})
 
-    it('eager relationship loads relation by default', async () => {})
+    it('eager belongsTo relations are loaded by default', async () => {})
 
     it('can filter by a one to many relationship', async () => {})
 
@@ -40,7 +40,7 @@ describe('Relationship', () => {
 
     it('can query nested many to many relationships', async () => {})
 
-    it('eager relationship loads relation by default', async () => {})
+    it('eager manyToMany relations are loaded by default', async () => {})
 
     it('can filter by a many to many relationship', async () => {})
 

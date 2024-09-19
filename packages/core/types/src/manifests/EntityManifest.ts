@@ -15,6 +15,11 @@ export interface EntityManifest extends EntitySchema {
   belongsTo: RelationshipManifest[]
 
   /**
+   * The hasMany relationships of the entity.
+   */
+  hasMany: RelationshipManifest[]
+
+  /**
    * The policies of the entity.
    */
   policies: {

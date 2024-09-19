@@ -207,6 +207,10 @@ export class ManifestService {
         (relationship: RelationshipSchema) =>
           this.transformRelationship(relationship)
       ),
+      hasMany: (entitySchema.hasMany || []).map(
+        (relationship: RelationshipSchema) =>
+          this.transformRelationship(relationship)
+      ),
       authenticable: entitySchema.authenticable || false,
       properties,
       policies: {

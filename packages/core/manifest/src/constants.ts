@@ -19,6 +19,7 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   namePlural: 'admins',
   properties: [],
   belongsTo: [],
+  hasMany: [],
   policies: {
     create: [{ access: 'admin' }],
     read: [{ access: 'admin' }],

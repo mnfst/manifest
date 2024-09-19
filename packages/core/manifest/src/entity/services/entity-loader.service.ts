@@ -51,10 +51,15 @@ export class EntityLoaderService {
           ) as { [key: string]: EntitySchemaColumnOptions },
 
           // Convert belongsTo relationships to many-to-one relations.
-          relations:
-            this.relationshipService.getEntitySchemaBelongsToRelationOptions(
+          relations: {
+            ...this.relationshipService.getEntitySchemaBelongsToRelationOptions(
               entityManifest.belongsTo
             ),
+            ...this.relationshipService.getEntitySchemaHasManyRelationOptions(
+              entityManifest.hasMany,
+              entityManifest.nameSingular
+            )
+          },
           uniques: entityManifest.authenticable ? [{ columns: ['email'] }] : []
         })
 

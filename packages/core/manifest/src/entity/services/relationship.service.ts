@@ -56,10 +56,33 @@ export class RelationshipService {
     )
   }
 
+  /**
+   * Converts hasMany relationships to TypeORM EntitySchemaRelationOptions of one-to-many relations.
+   * @param hasManyRelationships  The hasMany relationships to convert.
+   * @param centralEntityName The name of the entity that has the hasMany relationships.
+   *
+   * @returns The converted EntitySchemaRelationOptions.
+   */
   getEntitySchemaHasManyRelationOptions(
-    hasManyRelationships: RelationshipManifest[]
+    hasManyRelationships: RelationshipManifest[],
+    centralEntityName: string
   ): { [key: string]: EntitySchemaRelationOptions } {
-    // TODO: Implement this method.
-    return {}
+    return hasManyRelationships.reduce(
+      (
+        acc: { [key: string]: EntitySchemaRelationOptions },
+        hasManyRelationShip: RelationshipManifest
+      ) => {
+        acc[hasManyRelationShip.name] = {
+          target: hasManyRelationShip.entity,
+          type: 'many-to-many',
+          eager: !!hasManyRelationShip.eager,
+          joinTable: {
+            name: `${centralEntityName}_${hasManyRelationShip.name}`
+          }
+        }
+        return acc
+      },
+      {}
+    )
   }
 }
