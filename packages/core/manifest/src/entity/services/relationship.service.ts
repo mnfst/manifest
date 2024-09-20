@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable, forwardRef } from '@nestjs/common'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
 import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
@@ -16,6 +16,7 @@ import {
 export class RelationshipService {
   constructor(
     private manifestService: ManifestService,
+    @Inject(forwardRef(() => EntityService))
     private entityService: EntityService
   ) {}
 
