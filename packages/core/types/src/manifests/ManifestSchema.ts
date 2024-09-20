@@ -189,14 +189,6 @@ export interface ValidationSchema {
    */
   max?: number
   /**
-   * The minimum date allowed for the property.
-   */
-  minDate?: string
-  /**
-   * The maximum date allowed for the property.
-   */
-  maxDate?: string
-  /**
    * Checks if string contains the seed.
    */
   contains?: string
@@ -236,30 +228,6 @@ export interface ValidationSchema {
    * Checks if string matches the pattern.
    */
   matches?: string
-  /**
-   * Checks if the string matches to a valid MIME type format.
-   */
-  isMimeType?: boolean
-  /**
-   * Checks if array contains all values from the given array of values.
-   */
-  arrayContains?: unknown[]
-  /**
-   * Checks if array does not contain any of the given values.
-   */
-  arrayNotContains?: unknown[]
-  /**
-   * Checks if given array is not empty.
-   */
-  arrayNotEmpty?: boolean
-  /**
-   * Checks if the array's length is greater than or equal to the specified number.
-   */
-  arrayMinSize?: number
-  /**
-   * Checks if the array's length is less than or equal to the specified number.
-   */
-  arrayMaxSize?: number
 }
 /**
  * Global options applicable to all property types.
@@ -337,14 +305,6 @@ export interface ValidationSchema1 {
    */
   max?: number
   /**
-   * The minimum date allowed for the property.
-   */
-  minDate?: string
-  /**
-   * The maximum date allowed for the property.
-   */
-  maxDate?: string
-  /**
    * Checks if string contains the seed.
    */
   contains?: string
@@ -384,28 +344,4 @@ export interface ValidationSchema1 {
    * Checks if string matches the pattern.
    */
   matches?: string
-  /**
-   * Checks if the string matches to a valid MIME type format.
-   */
-  isMimeType?: boolean
-  /**
-   * Checks if array contains all values from the given array of values.
-   */
-  arrayContains?: unknown[]
-  /**
-   * Checks if array does not contain any of the given values.
-   */
-  arrayNotContains?: unknown[]
-  /**
-   * Checks if given array is not empty.
-   */
-  arrayNotEmpty?: boolean
-  /**
-   * Checks if the array's length is greater than or equal to the specified number.
-   */
-  arrayMinSize?: number
-  /**
-   * Checks if the array's length is less than or equal to the specified number.
-   */
-  arrayMaxSize?: number
 }

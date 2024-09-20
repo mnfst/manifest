@@ -7,8 +7,6 @@ import {
   notEquals,
   isIn,
   isNotIn,
-  minDate,
-  maxDate,
   contains,
   notContains,
   isAlpha,
@@ -19,12 +17,6 @@ import {
   minLength,
   maxLength,
   matches,
-  isMimeType,
-  arrayContains,
-  arrayNotContains,
-  arrayNotEmpty,
-  arrayMinSize,
-  arrayMaxSize,
   isNotEmpty
 } from 'class-validator'
 import { ValidationManifest } from '@repo/types'
@@ -81,16 +73,6 @@ export const customValidators: Record<
       ? null
       : `The value must not be one of ${values}`,
 
-  minDate: (propValue: any, date: Date | (() => Date)) =>
-    minDate(propValue, date)
-      ? null
-      : `The value must be greater than or equal to ${date}`,
-
-  maxDate: (propValue: any, date: Date | (() => Date)) =>
-    maxDate(propValue, date)
-      ? null
-      : `The value must be less than or equal to ${date}`,
-
   contains: (propValue: any, seed: any) =>
     contains(propValue, seed) ? null : `The value must contain ${seed}`,
 
@@ -136,32 +118,6 @@ export const customValidators: Record<
     matches(propValue, pattern)
       ? null
       : `The value must match the pattern ${pattern}`,
-
-  isMimeType: (propValue: any) =>
-    isMimeType(propValue) ? null : 'The value must be a valid MIME type',
-
-  arrayContains: (propValue: any, values: any[]) =>
-    arrayContains(propValue, values)
-      ? null
-      : `The value must contain all of ${values}`,
-
-  arrayNotContains: (propValue: any, values: any[]) =>
-    arrayNotContains(propValue, values)
-      ? null
-      : `The value must not contain any of ${values}`,
-
-  arrayNotEmpty: (propValue: any) =>
-    arrayNotEmpty(propValue) ? null : 'The value must not be empty',
-
-  arrayMinSize: (propValue: any, min: number) =>
-    arrayMinSize(propValue, min)
-      ? null
-      : `The value must contain at least ${min} elements`,
-
-  arrayMaxSize: (propValue: any, max: number) =>
-    arrayMaxSize(propValue, max)
-      ? null
-      : `The value must contain at most ${max} elements`,
 
   // IsOptional is a special case that always returns null. The logic is handled in the validation service.
   isOptional: (propValue: any, context: any) => null
