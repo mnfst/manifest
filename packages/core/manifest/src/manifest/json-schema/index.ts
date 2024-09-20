@@ -4,6 +4,7 @@ import choiceOptionsSchema from './definitions/property-options/choice-options-s
 import moneyOptionsSchema from './definitions/property-options/money-options-schema.json'
 import propertySchema from './definitions/property-schema.json'
 import relationshipSchema from './definitions/relationship-schema.json'
+import validationSchema from './definitions/validation-schema.json'
 import manifestSchema from './schema.json'
 import policiesSchema from './definitions/policies/policies-schema.json'
 import policySchema from './definitions/policies/policy-schema.json'
@@ -13,6 +14,7 @@ export default [
   entitySchema,
   propertySchema,
   relationshipSchema,
+  validationSchema,
   propertyOptionsSchema,
 
   // Property options.

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { PropType, PropertyManifest } from '@mnfst/types'
+import { PropType, PropertyManifest } from '@repo/types'
 
 import { YieldType } from '../../../typescript/enums/yield-type.enum'
 import { BooleanYieldComponent } from './boolean-yield/boolean-yield.component'
@@ -70,13 +70,17 @@ import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.compo
     ></app-email-yield>
 
     <app-label-yield
-      *ngIf="prop.type === PropType.Choice && prop.options?.['sequential'] !== true"
+      *ngIf="
+        prop.type === PropType.Choice && prop.options?.['sequential'] !== true
+      "
       [values]="prop.options?.['values']"
       [value]="value"
     ></app-label-yield>
 
     <app-progress-bar-yield
-      *ngIf="prop.type === PropType.Choice && prop.options?.['sequential'] === true"
+      *ngIf="
+        prop.type === PropType.Choice && prop.options?.['sequential'] === true
+      "
       [values]="prop.options?.['values']"
       [value]="value"
     >

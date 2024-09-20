@@ -30,6 +30,10 @@
             "location"
           ]
         },
+        "validation": {
+          "description": "Validation object for the property.",
+          "$ref": "./validation-schema.json"
+        },
         "hidden": {
           "description": "If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params",
           "type": "boolean"

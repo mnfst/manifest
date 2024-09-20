@@ -3,7 +3,7 @@ import { AuthorizationGuard } from '../guards/authorization.guard'
 import { Reflector } from '@nestjs/core'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { AuthService } from '../auth.service'
-import { EntityManifest } from '@mnfst/types'
+import { EntityManifest } from '@repo/types'
 
 describe('AuthorizationGuard', () => {
   let authorizationGuard: AuthorizationGuard

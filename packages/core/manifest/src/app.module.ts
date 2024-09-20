@@ -17,11 +17,13 @@ import { SeedModule } from './seed/seed.module'
 import { HealthModule } from './health/health.module'
 import { OpenApiModule } from './open-api/open-api.module'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
+import { ValidationModule } from './validation/validation.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '.env.contribution'],
       load: [generalConfig, databaseConfig, pathsConfig]
     }),
     TypeOrmModule.forRootAsync({
@@ -46,7 +48,8 @@ import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionO
     AuthModule,
     LoggerModule,
     HealthModule,
-    OpenApiModule
+    OpenApiModule,
+    ValidationModule
   ]
 })
 export class AppModule {

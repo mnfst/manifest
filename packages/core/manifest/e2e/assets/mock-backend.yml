@@ -6,7 +6,7 @@ entities:
       - name
       - { name: email, type: email }
 
-  # Testing all property types with the Dog entity.
+  # Testing all property types and their validation with the Dog entity.
   Dog:
     properties:
       - name
@@ -24,6 +24,7 @@ entities:
           type: choice,
           options: { values: [ball, bone, frisbee] }
         }
+      - { name: location, type: location }
     belongsTo:
       - Owner
 
@@ -84,3 +85,35 @@ entities:
     authenticable: true
     properties:
       - name
+
+  # Testing validation with the Car and SuperUser entity.
+  Car:
+    properties:
+      - model
+      - brand
+      - { name: year, type: number, validation: { min: 2000 } }
+    validation:
+      model: { contains: 'turbo' }
+      brand: { minLength: 3, maxLength: 20 }
+      year: { min: 2023, max: 2024, isOptional: true }
+
+  SuperUser:
+    authenticable: true
+    properties:
+      - { name: name, type: string, validation: { required: true } }
+      - {
+          name: propWithInactiveFilters,
+          type: string,
+          validation:
+            {
+              isEmpty: false,
+              isNotEmpty: false,
+              required: false,
+              isDefined: false,
+              isAlpha: false,
+              isAlphanumeric: false,
+              isAscii: false,
+              isEmail: false,
+              isJSON: false
+            }
+        }

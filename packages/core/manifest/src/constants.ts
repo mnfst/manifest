@@ -1,4 +1,4 @@
-import { EntityManifest, PropType, PropertyManifest } from '@mnfst/types'
+import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
 
 // Default values.
 export const DEFAULT_PORT = 1111
@@ -32,12 +32,14 @@ export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
   {
     name: 'email',
     type: PropType.Email,
-    hidden: true
+    hidden: true,
+    validation: { isNotEmpty: true }
   },
   {
     name: 'password',
     type: PropType.Password,
-    hidden: true
+    hidden: true,
+    validation: { isNotEmpty: true }
   }
 ]
 

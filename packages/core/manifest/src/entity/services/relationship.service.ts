@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { EntityManifest, RelationshipManifest } from '@mnfst/types'
+import { EntityManifest, RelationshipManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { ManifestService } from '../../manifest/services/manifest.service'
 

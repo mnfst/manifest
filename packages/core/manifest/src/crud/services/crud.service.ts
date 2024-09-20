@@ -14,8 +14,8 @@ import {
   SelectQueryBuilder
 } from 'typeorm'
 
-import { BaseEntity } from '@mnfst/types'
-import { validate } from 'class-validator'
+import { BaseEntity } from '@repo/types'
+import { ValidationError } from 'class-validator'
 import { EntityService } from '../../entity/services/entity.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
 
@@ -29,7 +29,7 @@ import {
   WhereKeySuffix,
   WhereOperator,
   whereOperatorKeySuffix
-} from '@mnfst/types'
+} from '@repo/types'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import {
   DEFAULT_RESULTS_PER_PAGE,
@@ -37,13 +37,15 @@ import {
 } from '../../constants'
 import { HelperService } from './helper.service'
 import { PaginationService } from './pagination.service'
+import { ValidationService } from '../../validation/services/validation.service'
 
 @Injectable()
 export class CrudService {
   constructor(
     private readonly entityService: EntityService,
     private readonly manifestService: ManifestService,
-    private readonly paginationService: PaginationService
+    private readonly paginationService: PaginationService,
+    private readonly validationService: ValidationService
   ) {}
 
   /**
@@ -207,21 +209,26 @@ export class CrudService {
   }
 
   async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
-    const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
-        slug: entitySlug
-      })
-
     const entityRepository: Repository<any> =
       this.entityService.getEntityRepository({ entitySlug })
 
+    const entityManifest: EntityManifest =
+      this.manifestService.getEntityManifest({
+        slug: entitySlug,
+        fullVersion: true
+      })
+
     const newItem: BaseEntity = entityRepository.create(itemDto)
 
-    if (entityManifest.authenticable) {
+    if (entityManifest.authenticable && itemDto.password) {
       newItem.password = SHA3(newItem.password).toString()
     }
 
-    const errors = await validate(newItem)
+    const errors: ValidationError[] = this.validationService.validate(
+      newItem,
+      entityManifest
+    )
+
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
@@ -236,7 +243,8 @@ export class CrudService {
   ): Promise<BaseEntity> {
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
-        slug: entitySlug
+        slug: entitySlug,
+        fullVersion: true
       })
 
     const entityRepository: Repository<BaseEntity> =
@@ -253,13 +261,22 @@ export class CrudService {
       ...itemDto
     } as BaseEntity)
 
+    // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {
       itemToSave.password = SHA3(itemToSave.password).toString()
     } else if (entityManifest.authenticable && !itemDto.password) {
       delete itemToSave.password
     }
 
-    const errors = await validate(itemToSave)
+    // Passwords are optional on update.
+    entityManifest.properties
+      .filter((p) => p.type === PropType.Password)
+      .forEach((p) => {
+        p.validation.isOptional = true
+      })
+
+    const errors = this.validationService.validate(itemToSave, entityManifest)
+
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }

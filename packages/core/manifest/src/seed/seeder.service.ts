@@ -4,7 +4,7 @@ import {
   EntityManifest,
   PropertyManifest,
   RelationshipManifest
-} from '@mnfst/types'
+} from '@repo/types'
 import { SHA3 } from 'crypto-js'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'

@@ -16,7 +16,7 @@ import {
   RelationshipManifest,
   RelationshipSchema,
   AccessPolicy
-} from '@mnfst/types'
+} from '@repo/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
@@ -172,8 +172,14 @@ export class ManifestService {
     entitySchema: EntitySchema
   ): EntityManifest {
     const properties: PropertyManifest[] = (entitySchema.properties || []).map(
-      (propManifest: PropertySchema) => this.transformProperty(propManifest)
+      (propManifest: PropertySchema) =>
+        this.transformProperty(propManifest, entitySchema)
     )
+
+    if (entitySchema.authenticable) {
+      properties.push(...AUTHENTICABLE_PROPS)
+    }
+
     const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
 
     const entityManifest: EntityManifest = {
@@ -222,10 +228,6 @@ export class ManifestService {
       }
     }
 
-    if (entityManifest.authenticable) {
-      properties.push(...AUTHENTICABLE_PROPS)
-    }
-
     return entityManifest
   }
 
@@ -258,23 +260,35 @@ export class ManifestService {
    * Transform the short form of the property into the long form.
    *
    * @param propSchema the property that can be in short form.
+   * @param entitySchema the entity schema to which the property belongs.
+   *
    *
    * @returns the property with the short form properties transformed into long form.
    *
    */
-  transformProperty(propSchema: PropertySchema): PropertyManifest {
+  transformProperty(
+    propSchema: PropertySchema,
+    entitySchema: EntitySchema
+  ): PropertyManifest {
+    // Short syntax.
     if (typeof propSchema === 'string') {
       return {
-        name: propSchema.toLowerCase(),
+        name: propSchema,
         type: PropType.String,
-        hidden: false
+        hidden: false,
+        validation: entitySchema.validation?.[propSchema] || {}
       }
     }
+
     return {
       name: propSchema.name,
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
-      options: propSchema.options
+      options: propSchema.options,
+      validation: Object.assign(
+        entitySchema.validation?.[propSchema.name] || {},
+        propSchema.validation
+      )
     }
   }
 
@@ -365,11 +379,10 @@ export class ManifestService {
       ...entityManifest,
       properties: entityManifest.properties
         .filter((prop) => !prop.hidden)
-        .map((prop) => ({
-          name: prop.name,
-          type: prop.type,
-          options: prop.options
-        }))
+        .map((prop) => {
+          delete prop.hidden
+          return prop
+        })
     }
   }
 }

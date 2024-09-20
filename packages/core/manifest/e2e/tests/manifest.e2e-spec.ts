@@ -1,4 +1,4 @@
-import { EntityManifest } from '@mnfst/types'
+import { EntityManifest } from '@repo/types'
 import { DEFAULT_ADMIN_CREDENTIALS } from '../../src/constants'
 
 describe('Manifest (e2e)', () => {

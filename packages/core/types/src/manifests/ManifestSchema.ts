@@ -31,19 +31,12 @@ export type PropertySchema =
         | 'password'
         | 'choice'
         | 'location'
+      validation?: ValidationSchema
       /**
        * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
        */
       hidden?: boolean
-      options?: GlobalPropertyOptionsSchema &
-        (
-          | {
-              [k: string]: unknown
-            }
-          | {
-              [k: string]: unknown
-            }
-        )
+      options?: GlobalPropertyOptionsSchema
     }
   | string
 /**
@@ -87,7 +80,7 @@ export interface Manifest {
   }
 }
 /**
- * An entity in the system
+ * An entity in your system: https://manifest.build/docs/entities
  */
 export interface EntitySchema {
   /**
@@ -127,6 +120,106 @@ export interface EntitySchema {
    */
   belongsTo?: RelationshipSchema[]
   policies?: PoliciesSchema
+  /**
+   * Validation object for the properties. Doc: https://manifest.build/docs/validation
+   */
+  validation?: {
+    '*'?: ValidationSchema1
+    [k: string]: unknown
+  }
+}
+/**
+ * Validation object for the property.
+ */
+export interface ValidationSchema {
+  /**
+   * Checks if value is defined (!== undefined, !== null).
+   */
+  isDefined?: boolean
+  /**
+   * Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.
+   */
+  isOptional?: boolean
+  /**
+   * Checks if value equals ("===") comparison.
+   */
+  equals?: {
+    [k: string]: unknown
+  }
+  /**
+   * Checks if value not equal ("!==") comparison.
+   */
+  notEquals?: {
+    [k: string]: unknown
+  }
+  /**
+   * Indicates whether the property can be empty.
+   */
+  isEmpty?: boolean
+  /**
+   * Indicates whether the property must not be empty.
+   */
+  isNotEmpty?: boolean
+  /**
+   * Indicates whether the property must not be empty.
+   */
+  required?: boolean
+  /**
+   * Checks if value is in an array of allowed values.
+   */
+  isIn?: unknown[]
+  /**
+   * Checks if value not in an array of disallowed values.
+   */
+  isNotIn?: unknown[]
+  /**
+   * The minimum value or length allowed for the property.
+   */
+  min?: number
+  /**
+   * The maximum value or length allowed for the property.
+   */
+  max?: number
+  /**
+   * Checks if string contains the seed.
+   */
+  contains?: string
+  /**
+   * Checks if string does not contain the seed.
+   */
+  notContains?: string
+  /**
+   * Checks if the string contains only letters (a-zA-Z).
+   */
+  isAlpha?: boolean
+  /**
+   * Checks if the string contains only letters and numbers.
+   */
+  isAlphanumeric?: boolean
+  /**
+   * Checks if the string contains ASCII chars only.
+   */
+  isAscii?: boolean
+  /**
+   * Checks if the string is an email.
+   */
+  isEmail?: boolean
+  /**
+   * Checks if the string is valid JSON.
+   */
+  isJSON?: boolean
+  /**
+   * Checks if the string's length is not less than given number.
+   */
+  minLength?: number
+  /**
+   * Checks if the string's length is not more than given number.
+   */
+  maxLength?: number
+  /**
+   * Checks if string matches the pattern.
+   */
+  matches?: string
 }
 /**
  * Global options applicable to all property types.
@@ -150,4 +243,97 @@ export interface PoliciesSchema {
 export interface PolicySchema {
   access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
+}
+/**
+ * Validation for the property. Doc: https://manifest.build/docs/validation
+ */
+export interface ValidationSchema1 {
+  /**
+   * Checks if value is defined (!== undefined, !== null).
+   */
+  isDefined?: boolean
+  /**
+   * Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.
+   */
+  isOptional?: boolean
+  /**
+   * Checks if value equals ("===") comparison.
+   */
+  equals?: {
+    [k: string]: unknown
+  }
+  /**
+   * Checks if value not equal ("!==") comparison.
+   */
+  notEquals?: {
+    [k: string]: unknown
+  }
+  /**
+   * Indicates whether the property can be empty.
+   */
+  isEmpty?: boolean
+  /**
+   * Indicates whether the property must not be empty.
+   */
+  isNotEmpty?: boolean
+  /**
+   * Indicates whether the property must not be empty.
+   */
+  required?: boolean
+  /**
+   * Checks if value is in an array of allowed values.
+   */
+  isIn?: unknown[]
+  /**
+   * Checks if value not in an array of disallowed values.
+   */
+  isNotIn?: unknown[]
+  /**
+   * The minimum value or length allowed for the property.
+   */
+  min?: number
+  /**
+   * The maximum value or length allowed for the property.
+   */
+  max?: number
+  /**
+   * Checks if string contains the seed.
+   */
+  contains?: string
+  /**
+   * Checks if string does not contain the seed.
+   */
+  notContains?: string
+  /**
+   * Checks if the string contains only letters (a-zA-Z).
+   */
+  isAlpha?: boolean
+  /**
+   * Checks if the string contains only letters and numbers.
+   */
+  isAlphanumeric?: boolean
+  /**
+   * Checks if the string contains ASCII chars only.
+   */
+  isAscii?: boolean
+  /**
+   * Checks if the string is an email.
+   */
+  isEmail?: boolean
+  /**
+   * Checks if the string is valid JSON.
+   */
+  isJSON?: boolean
+  /**
+   * Checks if the string's length is not less than given number.
+   */
+  minLength?: number
+  /**
+   * Checks if the string's length is not more than given number.
+   */
+  maxLength?: number
+  /**
+   * Checks if string matches the pattern.
+   */
+  matches?: string
 }

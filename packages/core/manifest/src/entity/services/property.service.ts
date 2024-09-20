@@ -1,4 +1,4 @@
-import { PropertyManifest } from '@mnfst/types'
+import { PropertyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { propTypeSeedFunctions } from '../records/prop-type-seed-functions'
 

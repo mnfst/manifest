@@ -9,7 +9,7 @@ import {
 } from '@angular/core'
 
 import { NgClass } from '@angular/common'
-import { PropertyManifest } from '@mnfst/types'
+import { PropertyManifest } from '@repo/types'
 
 @Component({
   selector: 'app-url-input',

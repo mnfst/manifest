@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "outDir": "./dist"
-  },
-  "include": ["src"]
+    "noEmit": true,
+    "rootDir": "./",
+    "baseUrl": "./"
+  }
 }

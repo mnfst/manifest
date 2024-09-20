@@ -8,7 +8,7 @@ import {
   UseGuards
 } from '@nestjs/common'
 
-import { AuthenticableEntity } from '@mnfst/types'
+import { AuthenticableEntity } from '@repo/types'
 import { Request } from 'express'
 import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'

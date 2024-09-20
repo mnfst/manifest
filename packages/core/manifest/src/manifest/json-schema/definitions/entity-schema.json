@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.manifest.build/definitions/entity-schema.json",
   "title": "Entity Schema",
-  "description": "An entity in the system",
+  "description": "An entity in your system: https://manifest.build/docs/entities",
   "type": "object",
   "properties": {
     "className": {
@@ -51,6 +51,15 @@
       "description": "The policies of the entity. Doc: https://manifest.build/docs/policies",
       "type": "object",
       "$ref": "./policies/policies-schema.json"
+    },
+    "validation": {
+      "description": "Validation object for the properties. Doc: https://manifest.build/docs/validation",
+      "type": "object",
+      "properties": {
+        "*": {
+          "$ref": "./validation-schema.json"
+        }
+      }
     }
   },
   "additionalProperties": false

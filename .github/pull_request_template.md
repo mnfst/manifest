@@ -9,7 +9,6 @@
 Check the packages that require a new publication or release:
 
 - [ ] @mnfst/manifest
-- [ ] @mnfst/types
 - [ ] @mnfst/admin
 - [ ] @mnfst/js-sdk
 - [ ] doc

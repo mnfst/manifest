@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiAuthService } from '../services/open-api-auth.service'
-import { AppManifest, EntityManifest } from '@mnfst/types'
+import { AppManifest, EntityManifest } from '@repo/types'
 import { SecuritySchemeObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 

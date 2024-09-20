@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { SHA3 } from 'crypto-js'
 
-import { PropType } from '@mnfst/types'
+import { PropType } from '@repo/types'
 
 // This is a mapping of prop types to seed functions.
 export const propTypeSeedFunctions: Record<PropType, (options?: any) => any> = {

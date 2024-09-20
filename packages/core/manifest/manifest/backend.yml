@@ -1,10 +1,10 @@
 name: My pet app
 
 entities:
-  😺 Cat:
+  Cat 😺:
     properties:
       - name
-      - { name: age, type: number }
+      - { name: age, type: number, validation: { min: 3, isOptional: true } }
       - { name: birthdate, type: date }
       - { name: aquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }
@@ -19,6 +19,8 @@ entities:
         - { access: public }
       delete:
         - { access: 🔒, allow: [User] }
+    validation:
+      age: { min: 20 } # Gets overriden by the property definition.
 
   User:
     authenticable: true

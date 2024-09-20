@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiCrudService } from '../services/open-api-crud.service'
-import { EntityManifest, PropType } from '@mnfst/types'
+import { EntityManifest, PropType } from '@repo/types'
 
 describe('OpenApiCrudService', () => {
   let service: OpenApiCrudService
