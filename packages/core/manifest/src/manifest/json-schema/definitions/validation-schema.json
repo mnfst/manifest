@@ -47,14 +47,6 @@
       "description": "The maximum value or length allowed for the property.",
       "type": "number"
     },
-    "minDate": {
-      "description": "The minimum date allowed for the property.",
-      "type": "string"
-    },
-    "maxDate": {
-      "description": "The maximum date allowed for the property.",
-      "type": "string"
-    },
     "contains": {
       "description": "Checks if string contains the seed.",
       "type": "string"
@@ -94,30 +86,6 @@
     "matches": {
       "description": "Checks if string matches the pattern.",
       "type": "string"
-    },
-    "isMimeType": {
-      "description": "Checks if the string matches to a valid MIME type format.",
-      "type": "boolean"
-    },
-    "arrayContains": {
-      "description": "Checks if array contains all values from the given array of values.",
-      "type": "array"
-    },
-    "arrayNotContains": {
-      "description": "Checks if array does not contain any of the given values.",
-      "type": "array"
-    },
-    "arrayNotEmpty": {
-      "description": "Checks if given array is not empty.",
-      "type": "boolean"
-    },
-    "arrayMinSize": {
-      "description": "Checks if the array's length is greater than or equal to the specified number.",
-      "type": "number"
-    },
-    "arrayMaxSize": {
-      "description": "Checks if the array's length is less than or equal to the specified number.",
-      "type": "number"
     }
   },
   "additionalProperties": false
