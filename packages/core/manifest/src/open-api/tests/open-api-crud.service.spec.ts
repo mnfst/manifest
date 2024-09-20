@@ -13,6 +13,7 @@ describe('OpenApiCrudService', () => {
     mainProp: 'name',
     seedCount: 50,
     belongsTo: [],
+    relationships: [],
     properties: [
       {
         name: 'name',

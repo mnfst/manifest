@@ -23,7 +23,7 @@ describe('OpenApiService', () => {
             type: PropType.String
           }
         ],
-        belongsTo: [],
+        relationships: [],
         policies: {
           create: [],
           read: [],

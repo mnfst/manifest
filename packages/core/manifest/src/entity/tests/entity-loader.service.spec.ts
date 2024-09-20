@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EntityLoaderService } from '../services/entity-loader.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
+import { RelationshipService } from '../services/relationship.service'
 
 describe('EntityLoaderService', () => {
   let service: EntityLoaderService
@@ -13,6 +14,12 @@ describe('EntityLoaderService', () => {
           provide: ManifestService,
           useValue: {
             getEntityManifest: jest.fn()
+          }
+        },
+        {
+          provide: RelationshipService,
+          useValue: {
+            getEntitySchemaRelationOptions: jest.fn()
           }
         }
       ]

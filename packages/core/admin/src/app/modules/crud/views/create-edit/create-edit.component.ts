@@ -9,6 +9,8 @@ import {
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
 
+import { getDtoPropertyNameFromRelationship } from '@repo/helpers'
+
 import { HttpErrorResponse } from '@angular/common/http'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
@@ -104,14 +106,39 @@ export class CreateEditComponent {
         (relationship: RelationshipManifest) => {
           const value: number = this.item ? this.item[relationship.name] : null
 
-          this.form.addControl(relationship.name, new FormControl(value))
+          this.form.addControl(
+            getDtoPropertyNameFromRelationship(relationship),
+            new FormControl(value)
+          )
         }
       )
     })
   }
 
+  /**
+   * Change event handler for form controls.
+   *
+   * @param params the new value and the property name
+   *
+   */
   onChange(params: { newValue: any; propName: string }): void {
     this.form.controls[params.propName].setValue(params.newValue)
+  }
+
+  /**
+   * Change event handler for relationship form controls.
+   *
+   * @param params the new value and the relationship manifest
+   *
+   */
+  onRelationChange(params: {
+    newValue: any
+    relationship: RelationshipManifest
+  }): void {
+    return this.onChange({
+      newValue: params.newValue,
+      propName: getDtoPropertyNameFromRelationship(params.relationship)
+    })
   }
 
   submit(): void {

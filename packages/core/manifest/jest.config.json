@@ -4,6 +4,7 @@
     "^.+\\.ts$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^@repo/types$": "<rootDir>/../types/src"
+    "^@repo/types$": "<rootDir>/../types/src",
+    "^@repo/helpers$": "<rootDir>/../helpers/src"
   }
 }

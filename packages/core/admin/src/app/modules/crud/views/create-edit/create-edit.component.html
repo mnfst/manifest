@@ -64,8 +64,8 @@
                     [value]="edit ? item[relationship.name] : null"
                     [errors]="errors[relationship.name]"
                     (valueChanged)="
-                      onChange({
-                        propName: relationship.name,
+                      onRelationChange({
+                        relationship,
                         newValue: $event
                       })
                     "

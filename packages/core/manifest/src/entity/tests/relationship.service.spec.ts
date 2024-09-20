@@ -1,14 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { RelationshipService } from '../services/relationship.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
+import { RelationshipManifest } from '@repo/types'
+import { EntityService } from '../services/entity.service'
 
 describe('RelationshipService', () => {
   let service: RelationshipService
 
   const mockSeedCount = 50
-  const dummyRelationManifest = {
+  const dummyRelationManifest: RelationshipManifest = {
     name: 'owner',
-    entity: 'User'
+    entity: 'User',
+    type: 'many-to-one'
   }
 
   beforeEach(async () => {
@@ -21,6 +24,12 @@ describe('RelationshipService', () => {
             getEntityManifest: jest.fn().mockReturnValue({
               seedCount: mockSeedCount
             })
+          }
+        },
+        {
+          provide: EntityService,
+          useValue: {
+            getEntityRepository: jest.fn()
           }
         }
       ]

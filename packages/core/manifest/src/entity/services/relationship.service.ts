@@ -1,14 +1,23 @@
 import { faker } from '@faker-js/faker'
-import { EntityManifest, RelationshipManifest } from '@repo/types'
+import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { ManifestService } from '../../manifest/services/manifest.service'
-import { EntitySchemaRelationOptions } from 'typeorm'
+import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
 import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
-import { HelperService } from '../../crud/services/helper.service'
+import { EntityService } from './entity.service'
+
+import {
+  getRandomIntExcluding,
+  getDtoPropertyNameFromRelationship,
+  forceNumberArray
+} from '@repo/helpers'
 
 @Injectable()
 export class RelationshipService {
-  constructor(private manifestService: ManifestService) {}
+  constructor(
+    private manifestService: ManifestService,
+    private entityService: EntityService
+  ) {}
 
   /**
    * Get the seed value for a relationship based on the number of relation items (seed count).
@@ -49,7 +58,7 @@ export class RelationshipService {
       for (let i = 0; i < numberOfRelations; i++) {
         relations.push({
           // We need to make sure that the id is unique.
-          id: HelperService.getRandomIntExcluding(
+          id: getRandomIntExcluding(
             1,
             relatedEntity.seedCount,
             relations.map((relation) => relation.id)
@@ -140,5 +149,47 @@ export class RelationshipService {
       },
       {}
     )
+  }
+
+  /**
+   * Fetches the related items for a given DTO based on the relationships and the DTO's properties. Ex: { tagIds: [1, 2, 3] } -> { tags: [Tag1, Tag2, Tag3] }. This is useful when creating or updating an entity.
+   *
+   * @param itemDto The DTO to fetch the related items for.
+   * @param relationships The relationships to fetch the related items for.
+   *
+   * @returns A "relationItems" object with the related items.
+   * */
+  async fetchRelationItemsFromDto(
+    itemDto: Object,
+    relationships: RelationshipManifest[]
+  ): Promise<{ [key: string]: BaseEntity | BaseEntity[] }> {
+    const fetchPromises: { [key: string]: Promise<BaseEntity | BaseEntity[]> } =
+      {}
+
+    relationships.forEach(async (relationship: RelationshipManifest) => {
+      const propertyName: string =
+        getDtoPropertyNameFromRelationship(relationship)
+
+      const relationIds: number[] = forceNumberArray(itemDto[propertyName])
+
+      if (relationIds.length) {
+        const relatedEntityRepository: Repository<BaseEntity> =
+          this.entityService.getEntityRepository({
+            entitySlug: relationship.entity
+          })
+
+        fetchPromises[relationship.name] = relatedEntityRepository.findBy({
+          id: In(relationIds)
+        })
+      }
+    })
+
+    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } = {}
+
+    for (const [key, value] of Object.entries(fetchPromises)) {
+      relationItems[key] = await value
+    }
+
+    return relationItems
   }
 }

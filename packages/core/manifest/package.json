@@ -50,15 +50,16 @@
     "README.md"
   ],
   "dependencies": {
+    "@repo/types": "*",
+    "@repo/helpers": "*",
+    "@repo/admin": "*",
     "@faker-js/faker": "^8.4.1",
-    "@mnfst/admin": "*",
     "@nestjs/common": "^10.3.3",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^10.3.3",
     "@nestjs/platform-express": "^10.3.3",
     "@nestjs/swagger": "^7.3.1",
     "@nestjs/typeorm": "^10.0.2",
-    "@repo/types": "*",
     "ajv": "^8.12.0",
     "chalk": "^4.1.2",
     "class-transformer": "^0.5.1",

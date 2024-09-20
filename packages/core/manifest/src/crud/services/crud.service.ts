@@ -6,6 +6,8 @@ import {
   NotFoundException
 } from '@nestjs/common'
 
+import { camelCaseTwoStrings, getRecordKeyByValue } from '@repo/helpers'
+
 import {
   DeleteResult,
   EntityMetadata,
@@ -35,9 +37,10 @@ import {
   DEFAULT_RESULTS_PER_PAGE,
   QUERY_PARAMS_RESERVED_WORDS
 } from '../../constants'
-import { HelperService } from './helper.service'
+
 import { PaginationService } from './pagination.service'
 import { ValidationService } from '../../validation/services/validation.service'
+import { RelationshipService } from '../../entity/services/relationship.service'
 
 @Injectable()
 export class CrudService {
@@ -45,7 +48,8 @@ export class CrudService {
     private readonly entityService: EntityService,
     private readonly manifestService: ManifestService,
     private readonly paginationService: PaginationService,
-    private readonly validationService: ValidationService
+    private readonly validationService: ValidationService,
+    private readonly relationshipService: RelationshipService
   ) {}
 
   /**
@@ -219,6 +223,11 @@ export class CrudService {
       })
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
+    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
+      await this.relationshipService.fetchRelationItemsFromDto(
+        itemDto,
+        entityManifest.relationships
+      )
 
     if (entityManifest.authenticable && itemDto.password) {
       newItem.password = SHA3(newItem.password).toString()
@@ -233,7 +242,7 @@ export class CrudService {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    return entityRepository.insert(newItem)
+    return entityRepository.insert({ ...newItem, ...relationItems })
   }
 
   async update(
@@ -364,7 +373,7 @@ export class CrudService {
         return
       }
 
-      const aliasName: string = HelperService.camelCaseTwoStrings(
+      const aliasName: string = camelCaseTwoStrings(
         alias,
         relationMetadata.propertyName
       )
@@ -443,7 +452,7 @@ export class CrudService {
           )
         }
 
-        const operator: WhereOperator = HelperService.getRecordKeyByValue(
+        const operator: WhereOperator = getRecordKeyByValue(
           whereOperatorKeySuffix,
           suffix
         ) as WhereOperator
@@ -469,10 +478,7 @@ export class CrudService {
         let whereKey: string
 
         if (relation) {
-          const aliasName: string = HelperService.camelCaseTwoStrings(
-            'entity',
-            relation.name
-          )
+          const aliasName: string = camelCaseTwoStrings('entity', relation.name)
           whereKey = `${aliasName}.${propName.split('.')[1]}`
         } else {
           whereKey = `entity.${propName}`

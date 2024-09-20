@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { NgModule } from '@angular/core'
 import { ReactiveFormsModule } from '@angular/forms'
-import { FilterComponent } from '../shared/filters/filter.component'
 import { InputComponent } from '../shared/inputs/input.component'
 import { RelationYieldComponent } from '../shared/yields/relation-yield/relation-yield.component'
 import { YieldComponent } from '../shared/yields/yield.component'
@@ -24,7 +23,6 @@ import { ListComponent } from './views/list/list.component'
     CommonModule,
     ReactiveFormsModule,
     CrudRoutingModule,
-    FilterComponent,
     YieldComponent,
     InputComponent,
     RelationYieldComponent

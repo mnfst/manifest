@@ -20,7 +20,8 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "paths": {
-      "@repo/types": ["../types/src"]
+      "@repo/types": ["../types/src"],
+      "@repo/helpers": ["../helpers/src"]
     }
   }
 }
