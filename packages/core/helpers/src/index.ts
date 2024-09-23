@@ -118,6 +118,11 @@ export function forceNumberArray(
     return [value]
   } else if (typeof value === 'string') {
     return [parseInt(value)]
+  } else if (typeof value === 'undefined' || value === null) {
+    return []
   }
+
+  console.log('value', value)
+
   return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
 }

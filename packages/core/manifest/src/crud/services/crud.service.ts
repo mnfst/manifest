@@ -242,8 +242,6 @@ export class CrudService {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    console.log('newItem', { ...newItem, ...relationItems })
-
     return entityRepository.save({ ...newItem, ...relationItems })
   }
 
@@ -263,36 +261,41 @@ export class CrudService {
 
     const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
+    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
+      await this.relationshipService.fetchRelationItemsFromDto(
+        itemDto,
+        entityManifest.relationships.filter((r) => r.type !== 'one-to-many')
+      )
+
     if (!item) {
       throw new NotFoundException('Item not found')
     }
 
-    const itemToSave: BaseEntity = entityRepository.create({
+    const updatedItem: BaseEntity = entityRepository.create({
       ...item,
       ...itemDto
     } as BaseEntity)
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {
-      itemToSave.password = SHA3(itemToSave.password).toString()
+      updatedItem.password = SHA3(updatedItem.password).toString()
     } else if (entityManifest.authenticable && !itemDto.password) {
-      delete itemToSave.password
+      delete updatedItem.password
     }
 
-    // Passwords are optional on update.
-    entityManifest.properties
-      .filter((p) => p.type === PropType.Password)
-      .forEach((p) => {
-        p.validation.isOptional = true
-      })
-
-    const errors = this.validationService.validate(itemToSave, entityManifest)
+    const errors = this.validationService.validate(
+      updatedItem,
+      entityManifest,
+      {
+        isUpdate: true
+      }
+    )
 
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    return entityRepository.save(itemToSave)
+    return entityRepository.save({ ...updatedItem, ...relationItems })
   }
 
   async delete(entitySlug: string, id: number): Promise<DeleteResult> {

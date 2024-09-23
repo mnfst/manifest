@@ -130,8 +130,7 @@ export class RelationshipService {
         relationOptions[relationshipName] = {
           target: oneToManyRelationship.entity,
           type: 'one-to-many',
-          eager: false,
-          cascade: true
+          eager: false
         }
       })
 
@@ -167,9 +166,17 @@ export class RelationshipService {
             })
           })
 
-        fetchPromises[relationship.name] = relatedEntityRepository.findBy({
-          id: In(relationIds)
-        })
+        fetchPromises[relationship.name] =
+          relationship.type === 'many-to-one'
+            ? relatedEntityRepository.findOneBy({ id: relationIds[0] })
+            : relatedEntityRepository.findBy({
+                id: In(relationIds)
+              })
+      } else {
+        fetchPromises[relationship.name] =
+          relationship.type === 'many-to-one'
+            ? Promise.resolve(null)
+            : Promise.resolve([])
       }
     })
 

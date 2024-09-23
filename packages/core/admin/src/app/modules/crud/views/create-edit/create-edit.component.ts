@@ -61,7 +61,12 @@ export class CreateEditComponent {
       if (this.edit) {
         this.item = await this.crudService.show(
           this.entityManifest.slug,
-          params['id']
+          params['id'],
+          {
+            relations: this.entityManifest.relationships
+              .filter((r) => r.type !== 'one-to-many')
+              .map((r) => r.name)
+          }
         )
 
         this.breadcrumbService.breadcrumbLinks.next([

@@ -27,7 +27,7 @@ import { forceNumberArray } from '@repo/helpers'
 export class MultiSelectInputComponent {
   @Input() prop: PropertyManifest
   @Input() relationship: RelationshipManifest
-  @Input() value: number[] | string[] | number | string
+  @Input() value: { id: number }[]
   @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
@@ -59,11 +59,12 @@ export class MultiSelectInputComponent {
     }
 
     if (this.value) {
-      this.value = forceNumberArray(this.value)
       this.selectedOptions = []
       this.options
         .filter((option) =>
-          forceNumberArray(this.value).find((value) => value === option.id)
+          forceNumberArray(this.value.map((v) => v.id)).find(
+            (value) => value === option.id
+          )
         )
         .forEach((option) => {
           option.selected = true
