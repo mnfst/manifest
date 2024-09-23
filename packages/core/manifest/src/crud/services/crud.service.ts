@@ -6,7 +6,7 @@ import {
   NotFoundException
 } from '@nestjs/common'
 
-import { camelCaseTwoStrings, getRecordKeyByValue } from '@repo/helpers'
+import { camelize, getRecordKeyByValue } from '@repo/helpers'
 
 import {
   DeleteResult,
@@ -226,7 +226,7 @@ export class CrudService {
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto(
         itemDto,
-        entityManifest.relationships
+        entityManifest.relationships.filter((r) => r.type !== 'one-to-many')
       )
 
     if (entityManifest.authenticable && itemDto.password) {
@@ -242,7 +242,9 @@ export class CrudService {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    return entityRepository.insert({ ...newItem, ...relationItems })
+    console.log('newItem', { ...newItem, ...relationItems })
+
+    return entityRepository.save({ ...newItem, ...relationItems })
   }
 
   async update(
@@ -373,10 +375,7 @@ export class CrudService {
         return
       }
 
-      const aliasName: string = camelCaseTwoStrings(
-        alias,
-        relationMetadata.propertyName
-      )
+      const aliasName: string = camelize([alias, relationMetadata.propertyName])
 
       query.leftJoin(`${alias}.${relationMetadata.propertyName}`, aliasName)
 
@@ -478,7 +477,7 @@ export class CrudService {
         let whereKey: string
 
         if (relation) {
-          const aliasName: string = camelCaseTwoStrings('entity', relation.name)
+          const aliasName: string = camelize(['entity', relation.name])
           whereKey = `${aliasName}.${propName.split('.')[1]}`
         } else {
           whereKey = `entity.${propName}`

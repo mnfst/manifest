@@ -64,9 +64,9 @@ export class ListComponent implements OnInit {
       this.loadingPaginator = true
       this.paginator = await this.crudService.list(this.entityManifest.slug, {
         filters: this.queryParams,
-        relations: this.entityManifest.relationships?.map(
-          (relation: RelationshipManifest) => relation.name
-        )
+        relations: this.entityManifest.relationships
+          ?.filter((r) => r.type !== 'one-to-many')
+          .map((relation: RelationshipManifest) => relation.name)
       })
       this.loadingPaginator = false
     })

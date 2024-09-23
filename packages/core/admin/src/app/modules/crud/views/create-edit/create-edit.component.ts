@@ -102,16 +102,16 @@ export class CreateEditComponent {
         this.form.addControl(prop.name, new FormControl(value))
       })
 
-      this.entityManifest.relationships.forEach(
-        (relationship: RelationshipManifest) => {
+      this.entityManifest.relationships
+        .filter((r) => r.type !== 'one-to-many')
+        .forEach((relationship: RelationshipManifest) => {
           const value: number = this.item ? this.item[relationship.name] : null
 
           this.form.addControl(
             getDtoPropertyNameFromRelationship(relationship),
             new FormControl(value)
           )
-        }
-      )
+        })
     })
   }
 
@@ -166,7 +166,7 @@ export class CreateEditComponent {
     } else {
       this.crudService
         .create(this.entityManifest.slug, this.form.value)
-        .then((res: { identifiers: { id: number }[] }) => {
+        .then((createdItem: { id: number }) => {
           this.loading = false
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been created successfully`
@@ -174,7 +174,7 @@ export class CreateEditComponent {
           this.router.navigate([
             '/dynamic',
             this.entityManifest.slug,
-            res.identifiers[0].id
+            createdItem.id
           ])
         })
         .catch((err: HttpErrorResponse) => {

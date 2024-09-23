@@ -9,8 +9,10 @@ import { EntityService } from './entity.service'
 import {
   getRandomIntExcluding,
   getDtoPropertyNameFromRelationship,
-  forceNumberArray
+  forceNumberArray,
+  camelize
 } from '@repo/helpers'
+import pluralize from 'pluralize'
 
 @Injectable()
 export class RelationshipService {
@@ -71,85 +73,69 @@ export class RelationshipService {
     }
   }
 
-  getEntitySchemaRelationOptions(
-    relationships: RelationshipManifest[],
-    centralEntityName: string
-  ): { [key: string]: EntitySchemaRelationOptions } {
-    const belongsToRelationships: RelationshipManifest[] = relationships.filter(
-      (relationship: RelationshipManifest) =>
-        relationship.type === 'many-to-one'
-    )
-
-    const hasManyRelationships: RelationshipManifest[] = relationships.filter(
-      (relationship: RelationshipManifest) =>
-        relationship.type === 'many-to-many'
-    )
-
-    return {
-      ...this.getEntitySchemaBelongsToRelationOptions(belongsToRelationships),
-      ...this.getEntitySchemaHasManyRelationOptions(
-        hasManyRelationships,
-        centralEntityName
-      )
-    }
-  }
-
   /**
-   * Converts belongsTo relationships to TypeORM EntitySchemaRelationOptions of many-to-one relations.
+   * Get the TypeORM EntitySchemaRelationOptions for a given entity based on its relationships.
    *
-   * @param belongsToRelationships The belongsTo relationships to convert.
+   * @param entityManifest The entity manifest to get the relationships for.
    *
-   * @returns The converted EntitySchemaRelationOptions.
-   *
-   */
-  getEntitySchemaBelongsToRelationOptions(
-    belongsToRelationships: RelationshipManifest[]
-  ): { [key: string]: EntitySchemaRelationOptions } {
-    return belongsToRelationships.reduce(
-      (
-        acc: { [key: string]: EntitySchemaRelationOptions },
-        belongsToRelationShip: RelationshipManifest
-      ) => {
-        acc[belongsToRelationShip.name] = {
+   * @returns The EntitySchemaRelationOptions for the given entity.
+   * */
+  getEntitySchemaRelationOptions(entityManifest: EntityManifest): {
+    [key: string]: EntitySchemaRelationOptions
+  } {
+    const relationOptions: {
+      [key: string]: EntitySchemaRelationOptions
+    } = {}
+
+    // Get the many-to-one relationships.
+    entityManifest.relationships
+      .filter(
+        (relationship: RelationshipManifest) =>
+          relationship.type === 'many-to-one'
+      )
+      .forEach((belongsToRelationShip: RelationshipManifest) => {
+        relationOptions[belongsToRelationShip.name] = {
           target: belongsToRelationShip.entity,
           type: 'many-to-one',
           eager: !!belongsToRelationShip.eager
         }
+      })
 
-        return acc
-      },
-      {}
-    )
-  }
-
-  /**
-   * Converts hasMany relationships to TypeORM EntitySchemaRelationOptions of one-to-many relations.
-   * @param hasManyRelationships  The hasMany relationships to convert.
-   * @param centralEntityName The name of the entity that has the hasMany relationships.
-   *
-   * @returns The converted EntitySchemaRelationOptions.
-   */
-  getEntitySchemaHasManyRelationOptions(
-    hasManyRelationships: RelationshipManifest[],
-    centralEntityName: string
-  ): { [key: string]: EntitySchemaRelationOptions } {
-    return hasManyRelationships.reduce(
-      (
-        acc: { [key: string]: EntitySchemaRelationOptions },
-        hasManyRelationShip: RelationshipManifest
-      ) => {
-        acc[hasManyRelationShip.name] = {
+    // Get the many-to-many relationships.
+    entityManifest.relationships
+      .filter(
+        (relationship: RelationshipManifest) =>
+          relationship.type === 'many-to-many'
+      )
+      .forEach((hasManyRelationShip: RelationshipManifest) => {
+        relationOptions[hasManyRelationShip.name] = {
           target: hasManyRelationShip.entity,
           type: 'many-to-many',
           eager: !!hasManyRelationShip.eager,
           joinTable: {
-            name: `${centralEntityName}_${hasManyRelationShip.name}`
+            name: `${camelize(entityManifest.className)}_${hasManyRelationShip.name}`
           }
         }
-        return acc
-      },
-      {}
-    )
+      })
+
+    // Get the one-to-many relationships.
+    entityManifest.relationships
+      .filter(
+        (relationship: RelationshipManifest) =>
+          relationship.type === 'one-to-many'
+      )
+      .forEach((oneToManyRelationship: RelationshipManifest) => {
+        const relationshipName: string = pluralize(oneToManyRelationship.name)
+
+        relationOptions[relationshipName] = {
+          target: oneToManyRelationship.entity,
+          type: 'one-to-many',
+          eager: false,
+          cascade: true
+        }
+      })
+
+    return relationOptions
   }
 
   /**
@@ -176,7 +162,9 @@ export class RelationshipService {
       if (relationIds.length) {
         const relatedEntityRepository: Repository<BaseEntity> =
           this.entityService.getEntityRepository({
-            entitySlug: relationship.entity
+            entityMetadata: this.entityService.getEntityMetadata({
+              className: relationship.entity
+            })
           })
 
         fetchPromises[relationship.name] = relatedEntityRepository.findBy({

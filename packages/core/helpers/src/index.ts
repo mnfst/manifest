@@ -21,15 +21,34 @@ export function getRecordKeyByValue<
 }
 
 /**
- * Merge 2 strings using camel case.
+ * Camelize a string or an array of strings.
+ *
+ * @param str The string or array of strings to camelize.
+ *
+ * @returns The camelized string.
  */
-export function camelCaseTwoStrings(str1: string, str2: string): string {
-  const combined = (str1 + ' ' + str2).toLowerCase().split(' ')
-  return combined
-    .map((word, index) =>
-      index === 0 ? word : word[0].toUpperCase() + word.slice(1)
-    )
-    .join('')
+export function camelize(str: string | string[]): string {
+  const combined = Array.isArray(str) ? str.join('_') : str
+
+  return lowerCaseFirstLetter(
+    combined
+      .split('_')
+      .map((word, index) =>
+        index === 0 ? word : word[0].toUpperCase() + word.slice(1)
+      )
+      .join('')
+  )
+}
+
+/**
+ * Lowercase the first letter of a string.
+ *
+ * @param str The string to lowercase the first letter of.
+ *
+ * @returns The string with the first letter lowercased.
+ */
+export function lowerCaseFirstLetter(str: string): string {
+  return str.charAt(0).toLowerCase() + str.slice(1)
 }
 
 /**

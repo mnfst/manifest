@@ -64,15 +64,9 @@ export class CrudService {
     )
   }
 
-  create(
-    entitySlug: string,
-    data: any
-  ): Promise<{ identifiers: { id: number }[] }> {
+  create(entitySlug: string, data: any): Promise<{ id: number }> {
     return firstValueFrom(
-      this.http.post<{ identifiers: { id: number }[] }>(
-        `${this.baseUrl}/${entitySlug}`,
-        data
-      )
+      this.http.post<{ id: number }>(`${this.baseUrl}/${entitySlug}`, data)
     )
   }
 

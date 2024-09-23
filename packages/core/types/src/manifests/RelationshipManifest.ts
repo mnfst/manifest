@@ -19,5 +19,5 @@ export type RelationshipManifest = {
   /**
    * The type of the relationship.
    */
-  type: 'many-to-one' | 'many-to-many'
+  type: 'many-to-one' | 'many-to-many' | 'one-to-many'
 }

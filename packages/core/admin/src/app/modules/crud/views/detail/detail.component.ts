@@ -38,9 +38,9 @@ export class DetailComponent {
         this.entityManifest.slug,
         params['id'],
         {
-          relations: this.entityManifest.relationships?.map(
-            (relationship: RelationshipManifest) => relationship.name
-          )
+          relations: this.entityManifest.relationships
+            ?.filter((r) => r.type !== 'one-to-many')
+            .map((relationship: RelationshipManifest) => relationship.name)
         }
       )
 

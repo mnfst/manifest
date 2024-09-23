@@ -20,7 +20,7 @@ entities:
       delete:
         - { access: 🔒, allow: [User] }
     validation:
-      age: { min: 20 } # Gets overriden by the property definition.
+      age: { min: 20 } # Gets overridden by the property definition.
 
   Food:
     properties:
