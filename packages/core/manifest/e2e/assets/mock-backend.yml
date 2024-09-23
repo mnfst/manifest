@@ -1,6 +1,10 @@
+# Warning: This file is used for testing purposes only.
+# All entities and properties in this files are used somewhere in the e2e tests.
+#
+# Please do not modify it unless you know what you are doing.
+
 name: 'mock-backend-for-e2e-tests'
 entities:
-  # Default entity with only a name and email property.
   Owner:
     properties:
       - name
@@ -117,3 +121,39 @@ entities:
               isJSON: false
             }
         }
+
+  # Testing relationships with the Post, Author, and Tags entities.
+  Post:
+    properties:
+      - title
+      - { name: content, type: text }
+    belongsTo:
+      - Author
+    belongsToMany:
+      - Tags
+
+  Note:
+    properties:
+      - title
+    belongsTo:
+      - { name: author, entity: Author, eager: true }
+
+  Tweet:
+    properties:
+      - text
+    belongsToMany:
+      - { name: customTagNames, entity: Tags, eager: true }
+
+  Author:
+    properties:
+      - name
+    belongsTo:
+      - University
+
+  University:
+    properties:
+      - name
+
+  Tags:
+    properties:
+      - name

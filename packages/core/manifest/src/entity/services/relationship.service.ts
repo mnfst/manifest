@@ -107,13 +107,13 @@ export class RelationshipService {
         (relationship: RelationshipManifest) =>
           relationship.type === 'many-to-many'
       )
-      .forEach((hasManyRelationShip: RelationshipManifest) => {
-        relationOptions[hasManyRelationShip.name] = {
-          target: hasManyRelationShip.entity,
+      .forEach((manyToManyRelationShip: RelationshipManifest) => {
+        relationOptions[manyToManyRelationShip.name] = {
+          target: manyToManyRelationShip.entity,
           type: 'many-to-many',
-          eager: !!hasManyRelationShip.eager,
+          eager: !!manyToManyRelationShip.eager,
           joinTable: {
-            name: `${camelize(entityManifest.className)}_${hasManyRelationShip.name}`
+            name: `${camelize(entityManifest.className)}_${manyToManyRelationShip.name}`
           }
         }
       })

@@ -195,7 +195,7 @@ export class ManifestService {
               (relationship: RelationshipSchema) =>
                 this.transformRelationship(relationship, 'many-to-one')
             ),
-            ...(entitySchema.hasMany || []).map(
+            ...(entitySchema.belongsToMany || []).map(
               (relationship: RelationshipSchema) =>
                 this.transformRelationship(relationship, 'many-to-many')
             )

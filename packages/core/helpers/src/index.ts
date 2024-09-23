@@ -122,7 +122,5 @@ export function forceNumberArray(
     return []
   }
 
-  console.log('value', value)
-
   return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
 }

@@ -1,53 +1,359 @@
 describe('Relationship', () => {
-  describe('BelongsTo', () => {
-    it('can create a one to many relationship', async () => {})
+  const dummyPost = {
+    title: 'Post title',
+    content: 'Post content',
+    author: {
+      id: 1
+    }
+  }
 
-    it('can update a one to many relationship', async () => {})
+  describe('ManyToOne', () => {
+    it('can create a many to one relationship and query it from child to parent', async () => {
+      const createResponse = await global.request.post('/posts').send(dummyPost)
 
-    it('relationship is mandatory by default', async () => {})
+      const fetchedPost = await global.request.get(
+        `/posts/${createResponse.body.id}?relations=author`
+      )
 
-    it('nullable relationship are optional', async () => {})
+      expect(createResponse.status).toBe(201)
+      expect(fetchedPost.status).toBe(200)
+      expect(fetchedPost.body.author.id).toBe(dummyPost.author.id)
+    })
 
-    it('can query a one to many relationship from child to parent', async () => {})
+    it('many to one relationship is nullable', async () => {
+      const createResponse = await global.request.post('/posts').send({
+        title: 'Post without author',
+        content: 'Post content'
+      })
 
-    it('can query a one to many relationship from parent to child', async () => {})
+      const fetchedPost = await global.request.get(
+        `/posts/${createResponse.body.id}?relations=author`
+      )
 
-    it('can query nested one to many relationships from child to parent', async () => {})
+      expect(createResponse.status).toBe(201)
+      expect(fetchedPost.status).toBe(200)
+      expect(fetchedPost.body.author).toBeNull()
+    })
 
-    it('can query nested one to many relationships from parent to child', async () => {})
+    it('eager many to one relations are loaded by default', async () => {
+      const fetchedNote = await global.request.get('/notes/1')
 
-    it('can query 2 nested one to many relationship from child to parent to child', async () => {})
+      expect(fetchedNote.status).toBe(200)
+      expect(fetchedNote.body.author.id).toBe(expect.any(Number))
+    })
 
-    it('can query 2 nested one to many relationship from parent to child to parent', async () => {})
+    it('can filter by a many to one relationship', async () => {
+      const newAuthor = {
+        name: 'Author name'
+      }
+      const veryBigNumber = '9999'
 
-    it('eager belongsTo relations are loaded by default', async () => {})
+      const createAuthorResponse = await global.request
+        .post('/authors')
+        .send(newAuthor)
 
-    it('can filter by a one to many relationship', async () => {})
+      const filteredResponse = await global.request.get(
+        `/posts?relations=author&author.id_eq=${createAuthorResponse.body.id}`
+      )
+      const nonExistentAuthorResponse = await global.request.get(
+        `/posts?relations=author&author.id_eq=${veryBigNumber}`
+      )
 
-    it('can sort by a one to many relationship', async () => {})
+      expect(filteredResponse.status).toBe(200)
+      expect(filteredResponse.body.data.length).toBe(1)
 
-    it('restrict delete on parent entity with children', async () => {})
+      expect(nonExistentAuthorResponse.status).toBe(200)
+      expect(nonExistentAuthorResponse.body.data.length).toBe(0)
+    })
+
+    it('can query a many to one relationship from parent to child', async () => {
+      const newAuthor = {
+        name: 'Author name'
+      }
+
+      const createAuthorResponse = await global.request
+        .post('/authors')
+        .send(newAuthor)
+
+      const createPostResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        author: {
+          id: createAuthorResponse.body.id
+        }
+      })
+
+      const fetchedAuthor = await global.request.get(
+        `/authors/${createAuthorResponse.body.id}?relations=posts`
+      )
+
+      expect(fetchedAuthor.status).toBe(200)
+      expect(fetchedAuthor.body.posts[0].id).toBe(createPostResponse.body.id)
+    })
+
+    it('can query nested many to one relationships from child to parent', async () => {
+      const listResponse = await global.request.get(
+        '/posts?relations=author,author.university'
+      )
+      const detailResponse = await global.request.get(
+        '/posts/1?relations=author,author.university'
+      )
+
+      expect(listResponse.status).toBe(200)
+      expect(listResponse.body.data[0].author.university.id).toBe(
+        expect.any(Number)
+      )
+
+      expect(detailResponse.status).toBe(200)
+      expect(detailResponse.body.author.university.id).toBe(expect.any(Number))
+    })
+
+    it('can query nested many to one relationships from parent to child', async () => {
+      const dummyUniversityId = 5
+      const newAuthor = {
+        name: 'Author name',
+        university: {
+          id: dummyUniversityId
+        }
+      }
+
+      const createAuthorResponse = await global.request
+        .post('/authors')
+        .send(newAuthor)
+
+      const createPostResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        author: {
+          id: createAuthorResponse.body.id
+        }
+      })
+
+      const fetchedUniversity = await global.request.get(
+        `/universities/${dummyUniversityId}?relations=authors,authors.posts`
+      )
+
+      expect(fetchedUniversity.status).toBe(200)
+      expect(fetchedUniversity.body.authors[0].posts[0].id).toBe(
+        createPostResponse.body.id
+      )
+    })
+
+    it('can query 2 nested many to one relationship from child to parent to child', async () => {
+      const newAuthor = {
+        name: 'Author name'
+      }
+
+      const createAuthorResponse = await global.request
+        .post('/authors')
+        .send(newAuthor)
+
+      const createPostResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        author: {
+          id: createAuthorResponse.body.id
+        }
+      })
+
+      const createNoteResponse = await global.request.post('/notes').send({
+        title: 'Note title',
+        author: {
+          id: createAuthorResponse.body.id
+        }
+      })
+
+      const fetchedNote = await global.request.get(
+        `/notes/${createNoteResponse.body.id}?relations=author,author.posts`
+      )
+
+      expect(fetchedNote.status).toBe(200)
+      expect(fetchedNote.body.author.posts[0].id).toBe(
+        createPostResponse.body.id
+      )
+    })
+
+    it('restrict delete on parent entity with children', async () => {
+      const createAuthorResponse = await global.request.post('/authors').send({
+        name: 'Author name'
+      })
+
+      await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        author: {
+          id: createAuthorResponse.body.id
+        }
+      })
+
+      const deleteResponse = await global.request.delete(
+        `/authors/${createAuthorResponse.body.id}`
+      )
+
+      expect(deleteResponse.status).toBe(400)
+    })
   })
 
-  describe('Many to Many', () => {
-    it('creates a join table for many to many relationships on the declaration side', async () => {})
+  describe('ManyToMany', () => {
+    it('can create a many to many relationship', async () => {
+      const dummyTagIds = [1, 3]
 
-    it('can create a many to many relationship', async () => {})
+      const createResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        tags: dummyTagIds.map((id) => ({ id }))
+      })
 
-    it('can update a many to many relationship', async () => {})
+      const fetchedPost = await global.request.get(
+        `/posts/${createResponse.body.id}?relations=tags`
+      )
 
-    it('can query a many to many relationship from both sides', async () => {})
+      expect(createResponse.status).toBe(201)
+      expect(fetchedPost.status).toBe(200)
+      expect(fetchedPost.body.tags.length).toBe(dummyTagIds.length)
+      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(dummyTagIds)
+    })
 
-    it('can query nested many to many relationships', async () => {})
+    it('can update a many to many relationship', async () => {
+      const dummyTagIds = [1, 3]
+      const otherTagIds = [2, 4, 5]
 
-    it('eager manyToMany relations are loaded by default', async () => {})
+      const createResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        tags: dummyTagIds.map((id) => ({ id }))
+      })
 
-    it('can filter by a many to many relationship', async () => {})
+      const updateResponse = await global.request
+        .put(`/posts/${createResponse.body.id}`)
+        .send({
+          tags: otherTagIds.map((id) => ({ id }))
+        })
 
-    it('can sort by a many to many relationship', async () => {})
+      const fetchedPost = await global.request.get(
+        `/posts/${createResponse.body.id}?relations=tags`
+      )
 
-    it('can delete a many to many relationship', async () => {})
+      expect(updateResponse.status).toBe(200)
+      expect(fetchedPost.status).toBe(200)
+      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(otherTagIds)
+    })
 
-    it('if the relationship is specified in both sides, the join table is created only once', async () => {})
+    it('can remove a many to many relationship', async () => {
+      const dummyTagIds = [1, 3]
+
+      const createResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        tags: dummyTagIds.map((id) => ({ id }))
+      })
+
+      const updateResponse = await global.request
+        .put(`/posts/${createResponse.body.id}`)
+        .send({
+          tags: []
+        })
+
+      const fetchedPost = await global.request.get(
+        `/posts/${createResponse.body.id}?relations=tags`
+      )
+
+      expect(updateResponse.status).toBe(200)
+      expect(fetchedPost.status).toBe(200)
+      expect(fetchedPost.body.tags.length).toBe(0)
+    })
+
+    it('can query a many to many relationship from both sides', async () => {
+      const dummyTagIds = [1, 3]
+
+      const createResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        tags: dummyTagIds.map((id) => ({ id }))
+      })
+
+      const fetchedPost = await global.request.get(
+        `/posts/${createResponse.body.id}?relations=tags`
+      )
+
+      const fetchedTag = await global.request.get(
+        `/tags/${dummyTagIds[0]}?relations=posts`
+      )
+
+      expect(createResponse.status).toBe(201)
+      expect(fetchedPost.status).toBe(200)
+      expect(fetchedTag.status).toBe(200)
+      expect(fetchedPost.body.tags[0].id).toBe(dummyTagIds[0])
+      expect(fetchedTag.body.posts[0].id).toBe(createResponse.body.id)
+    })
+
+    it('can query nested many to many relationships', async () => {
+      const dummyTagIds = [1, 3]
+      const dummyAuthorId = 4
+
+      const createResponse = await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        tags: dummyTagIds.map((id) => ({ id })),
+        author: {
+          id: dummyAuthorId
+        }
+      })
+
+      const fetchedAuthor = await global.request.get(
+        `/authors/${dummyAuthorId}?relations=posts,posts.tags`
+      )
+
+      expect(createResponse.status).toBe(201)
+      expect(fetchedAuthor.status).toBe(200)
+      expect(fetchedAuthor.body.posts[0].tags.map((tag) => tag.id)).toEqual(
+        dummyTagIds
+      )
+    })
+
+    it('eager manyToMany relations are loaded by default', async () => {
+      const dummyTagIds = [1, 3]
+
+      const createTweetResponse = await global.request.post('/tweets').send({
+        text: 'Tweet content',
+        customTagNames: dummyTagIds.map((id) => ({ id }))
+      })
+
+      const fetchedTweet = await global.request.get(
+        `/tweets/${createTweetResponse.body.id}`
+      )
+
+      expect(createTweetResponse.status).toBe(201)
+      expect(fetchedTweet.status).toBe(200)
+      expect(fetchedTweet.body.customTags.map((tag) => tag.id)).toEqual(
+        dummyTagIds
+      )
+    })
+
+    it('can filter by a many to many relationship', async () => {
+      const createTagResponse = await global.request.post('/tags').send({
+        name: 'Tag name'
+      })
+
+      await global.request.post('/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        tags: [{ id: createTagResponse.body.id }]
+      })
+
+      const filteredResponse = await global.request.get(
+        `/posts?relations=tags&tags.id_eq=${createTagResponse.body.id}`
+      )
+
+      const nonExistentTagResponse = await global.request.get(
+        `/posts?relations=tags&tags.id_eq=9999`
+      )
+
+      expect(filteredResponse.status).toBe(200)
+      expect(filteredResponse.body.data.length).toBe(1)
+
+      expect(nonExistentTagResponse.status).toBe(200)
+      expect(nonExistentTagResponse.body.data.length).toBe(0)
+    })
   })
 })
