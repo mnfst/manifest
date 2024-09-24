@@ -1,19 +1,11 @@
 import { NgClass } from '@angular/common'
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewChild
-} from '@angular/core'
-import { PropertyManifest } from '@mnfst/types'
+import { Component } from '@angular/core'
+import { BaseInputComponent } from '../base-input/base-input-component'
 
 @Component({
   selector: 'app-text-input',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass,BaseInputComponent],
   template: `<label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input form-control"
@@ -24,21 +16,4 @@ import { PropertyManifest } from '@mnfst/types'
     />`,
   styleUrls: ['./text-input.component.scss']
 })
-export class TextInputComponent implements OnInit {
-  @Input() prop: PropertyManifest
-  @Input() value: string
-  @Input() isError: boolean
-
-  @Output() valueChanged: EventEmitter<number> = new EventEmitter()
-
-  @ViewChild('input', { static: true }) input: ElementRef
-
-  ngOnInit(): void {
-    if (this.value !== undefined) {
-      this.input.nativeElement.value = this.value
-    }
-  }
-  onChange(event: any) {
-    this.valueChanged.emit(event.target.value)
-  }
-}
+export class TextInputComponent extends BaseInputComponent {}
