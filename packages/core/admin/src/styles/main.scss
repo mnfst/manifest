@@ -1,46 +1,46 @@
 @use 'sass:math';
 
 // Variables
-@import './variables/all';
+@use './variables/all';
 
 // Bulma
-@import 'bulma/bulma';
+@use 'bulma/bulma';
 
 // Dependencies.
-@import 'bulma-tooltip/src/sass/index';
+@use 'bulma-tooltip/src/sass/index';
 
 // Mixins & helpers
-@import './helpers/helpers';
+@use './helpers/helpers';
 
 // Components
-@import './components/address-input';
-@import './components/analog-progress-bar';
-@import './components/avatar';
-@import './components/buttons';
-@import './components/cards';
-@import './components/colorpicker';
-@import './components/datepicker';
-@import './components/dropdown';
-@import './components/forms';
-@import './components/generic';
-@import './components/grid';
-@import './components/icons';
-@import './components/layout';
-@import './components/lists';
-@import './components/modals';
-@import './components/multisearch';
-@import './components/multiselect';
-@import './components/nav';
-@import './components/notification';
-@import './components/pagination';
-@import './components/progress-bar';
-@import './components/rich-text';
-@import './components/spinner';
-@import './components/switch-yield';
-@import './components/table';
-@import './components/tabs';
-@import './components/type';
-@import './components/yield-file-icon';
+@use './components/address-input';
+@use './components/analog-progress-bar';
+@use './components/avatar';
+@use './components/buttons';
+@use './components/cards';
+@use './components/colorpicker';
+@use './components/datepicker';
+@use './components/dropdown';
+@use './components/forms';
+@use './components/generic';
+@use './components/grid';
+@use './components/icons';
+@use './components/layout';
+@use './components/lists';
+@use './components/modals';
+@use './components/multisearch';
+@use './components/multiselect';
+@use './components/nav';
+@use './components/notification';
+@use './components/pagination';
+@use './components/progress-bar';
+@use './components/rich-text';
+@use './components/spinner';
+@use './components/switch-yield';
+@use './components/table';
+@use './components/tabs';
+@use './components/type';
+@use './components/yield-file-icon';
 
 // Layouts
-@import './layout/error404';
+@use './layout/error404';

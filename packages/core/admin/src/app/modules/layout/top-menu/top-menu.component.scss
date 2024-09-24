@@ -1,11 +1,11 @@
 @use 'sass:math';
-@import '../../../../styles/variables/all';
-@import 'bulma/sass/utilities/mixins';
+@use '../../../../styles/variables/all';
+@use 'bulma/sass/utilities/mixins';
 
 
 .navbar {
   position: relative;
-  height: $navbar-height;
+  height: $navbar-height; 
 
   &:before {
     transition: all $transition-duration $transition-timing;
