@@ -13,8 +13,11 @@ There are several ways to contribute to Manifest other than developing:
 - 🐛 Report a bug using [GitHub issues](https://github.com/mnfst/manifest/issues/new?assignees=SebConejo&labels=bug&projects=&template=%F0%9F%90%9B-bug-report.md&title=)
 - ✨ Suggest an enhancement using [GitHub discussions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
 - 🪶 Correct or improve the doc in its [own repository](https://github.com/mnfst/docs/issues/new)
+- 🔧 To work on issues, first check out our [Good First Issue](https://github.com/mnfst/manifest/labels/good%20first%20issue).
 
 Otherwise, you also can offer your help by talking to a team member on our [Discord](https://discord.com/invite/FepAked3W7) 🤗.
+
+
 
 ## Packages and repositories
 
