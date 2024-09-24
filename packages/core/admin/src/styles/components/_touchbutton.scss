@@ -1,4 +1,7 @@
-$touchButtonWidth: 50px; // Define the variable with a default value
+$touchButton_Width: 50px; // Define the variable with a default value
+$touch_ButtonWidth:50px;
+
+
 
 .td-touch {
   position: relative;
@@ -32,7 +35,7 @@ $touchButtonWidth: 50px; // Define the variable with a default value
     }
 
     .touch-buttons {
-      width: $touchButtonWidth;
+      width: $touchButton_Width;
     }
   }
 
@@ -44,7 +47,7 @@ $touchButtonWidth: 50px; // Define the variable with a default value
     }
 
     .touch-buttons {
-      width: #{$touchButtonWidth * 2};
+      width: #{$touch_ButtonWidth * 2};
     }
   }
 }
@@ -62,7 +65,7 @@ $touchButtonWidth: 50px; // Define the variable with a default value
     left: 0;
     width: 100%;
     height: 100%;
-    width: $touchButtonWidth;
+    width: $touch_ButtonWidth;
     display: flex;
     justify-content: center;
     align-items: center;

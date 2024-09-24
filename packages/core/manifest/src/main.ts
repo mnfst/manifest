@@ -705,6 +705,22 @@ background: #ce107c;
   border-color: #2430F0
 }
 
+@keyframes pulse {
+  0% {
+    color: #fff;
+    background: #2430F0;
+    box-shadow: none;
+  }
+  70% {
+    box-shadow: none;
+  }
+  to {
+    color: #fff;
+    background: #2430F0;
+    box-shadow: none;
+  }
+}
+
 @-webkit-keyframes pulse {
   0% {
     color: #fff;
@@ -721,21 +737,6 @@ background: #ce107c;
   }
 }
 
-@keyframes pulse {
-  0% {
-    color: #fff;
-    background: #2430F0;
-    box-shadow: none;
-  }
-  70% {
-    box-shadow: none;
-  }
-  to {
-    color: #fff;
-    background: #2430F0;
-    box-shadow: none;
-  }
-}
 
 .swagger-ui .btn-group {
   display: -webkit-box;
@@ -851,7 +852,8 @@ background: #ce107c;
   background: #feebeb
 }
 
-@-webkit-keyframes shake {
+
+@keyframes shake {
   10%, 90% {
     -webkit-transform: translate3d(-1px, 0, 0);
     transform: translate3d(-1px, 0, 0)
@@ -870,7 +872,8 @@ background: #ce107c;
   }
 }
 
-@keyframes shake {
+
+@-webkit-keyframes shake {
   10%, 90% {
     -webkit-transform: translate3d(-1px, 0, 0);
     transform: translate3d(-1px, 0, 0)
