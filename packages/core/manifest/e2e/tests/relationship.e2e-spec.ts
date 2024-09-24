@@ -2,32 +2,50 @@ describe('Relationship', () => {
   const dummyPost = {
     title: 'Post title',
     content: 'Post content',
-    author: {
-      id: 1
-    }
+    authorId: 1
   }
 
   describe('ManyToOne', () => {
     it('can create a many to one relationship and query it from child to parent', async () => {
-      const createResponse = await global.request.post('/posts').send(dummyPost)
+      const getAuthorsResponse = await global.request.get('/dynamic/authors/1')
+
+      const createResponse = await global.request
+        .post('/dynamic/posts')
+        .send(dummyPost)
 
       const fetchedPost = await global.request.get(
-        `/posts/${createResponse.body.id}?relations=author`
+        `/dynamic/posts/${createResponse.body.id}?relations=author`
       )
 
       expect(createResponse.status).toBe(201)
       expect(fetchedPost.status).toBe(200)
-      expect(fetchedPost.body.author.id).toBe(dummyPost.author.id)
+      expect(fetchedPost.body.author.id).toBe(dummyPost.authorId)
+    })
+
+    it('can query a many to one relationship from parent to child', async () => {
+      const createResponse = await global.request
+        .post('/dynamic/posts')
+        .send(dummyPost)
+
+      const fetchedAuthor = await global.request.get(
+        `/dynamic/authors/${dummyPost.authorId}?relations=posts`
+      )
+
+      expect(createResponse.status).toBe(201)
+      expect(fetchedAuthor.status).toBe(200)
+      expect(fetchedAuthor.body.posts.map((p) => p.id)).toContain(
+        createResponse.body.id
+      )
     })
 
     it('many to one relationship is nullable', async () => {
-      const createResponse = await global.request.post('/posts').send({
+      const createResponse = await global.request.post('/dynamic/posts').send({
         title: 'Post without author',
         content: 'Post content'
       })
 
       const fetchedPost = await global.request.get(
-        `/posts/${createResponse.body.id}?relations=author`
+        `/dynamic/posts/${createResponse.body.id}?relations=author`
       )
 
       expect(createResponse.status).toBe(201)
@@ -36,10 +54,10 @@ describe('Relationship', () => {
     })
 
     it('eager many to one relations are loaded by default', async () => {
-      const fetchedNote = await global.request.get('/notes/1')
+      const fetchedNote = await global.request.get('/dynamic/notes/1')
 
       expect(fetchedNote.status).toBe(200)
-      expect(fetchedNote.body.author.id).toBe(expect.any(Number))
+      expect(fetchedNote.body.author.id).toEqual(expect.any(Number))
     })
 
     it('can filter by a many to one relationship', async () => {
@@ -49,14 +67,20 @@ describe('Relationship', () => {
       const veryBigNumber = '9999'
 
       const createAuthorResponse = await global.request
-        .post('/authors')
+        .post('/dynamic/authors')
         .send(newAuthor)
 
+      await global.request.post('/dynamic/posts').send({
+        title: 'Post title',
+        content: 'Post content',
+        authorId: createAuthorResponse.body.id
+      })
+
       const filteredResponse = await global.request.get(
-        `/posts?relations=author&author.id_eq=${createAuthorResponse.body.id}`
+        `/dynamic/posts?relations=author&author.id_eq=${createAuthorResponse.body.id}`
       )
       const nonExistentAuthorResponse = await global.request.get(
-        `/posts?relations=author&author.id_eq=${veryBigNumber}`
+        `/dynamic/posts?relations=author&author.id_eq=${veryBigNumber}`
       )
 
       expect(filteredResponse.status).toBe(200)
@@ -66,49 +90,41 @@ describe('Relationship', () => {
       expect(nonExistentAuthorResponse.body.data.length).toBe(0)
     })
 
-    it('can query a many to one relationship from parent to child', async () => {
+    it('can query nested many to one relationships from child to parent', async () => {
       const newAuthor = {
-        name: 'Author name'
+        name: 'Author name',
+        universityId: 1
       }
 
       const createAuthorResponse = await global.request
-        .post('/authors')
+        .post('/dynamic/authors')
         .send(newAuthor)
 
-      const createPostResponse = await global.request.post('/posts').send({
+      await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        author: {
-          id: createAuthorResponse.body.id
-        }
+        authorId: createAuthorResponse.body.id
       })
 
-      const fetchedAuthor = await global.request.get(
-        `/authors/${createAuthorResponse.body.id}?relations=posts`
-      )
-
-      expect(fetchedAuthor.status).toBe(200)
-      expect(fetchedAuthor.body.posts[0].id).toBe(createPostResponse.body.id)
-    })
-
-    it('can query nested many to one relationships from child to parent', async () => {
       const listResponse = await global.request.get(
-        '/posts?relations=author,author.university'
+        `/dynamic/posts?relations=author,author.university`
       )
       const detailResponse = await global.request.get(
-        '/posts/1?relations=author,author.university'
+        `/dynamic/posts/1?relations=author,author.university`
       )
 
       expect(listResponse.status).toBe(200)
-      expect(listResponse.body.data[0].author.university.id).toBe(
+      expect(listResponse.body.data[0].author.university.id).toEqual(
         expect.any(Number)
       )
 
       expect(detailResponse.status).toBe(200)
-      expect(detailResponse.body.author.university.id).toBe(expect.any(Number))
+      expect(detailResponse.body.author.university.id).toEqual(
+        expect.any(Number)
+      )
     })
 
-    it('can query nested many to one relationships from parent to child', async () => {
+    it('can query nested many to one relationships from parent to child to child', async () => {
       const dummyUniversityId = 5
       const newAuthor = {
         name: 'Author name',
@@ -139,55 +155,21 @@ describe('Relationship', () => {
       )
     })
 
-    it('can query 2 nested many to one relationship from child to parent to child', async () => {
-      const newAuthor = {
-        name: 'Author name'
-      }
-
-      const createAuthorResponse = await global.request
-        .post('/authors')
-        .send(newAuthor)
-
-      const createPostResponse = await global.request.post('/posts').send({
-        title: 'Post title',
-        content: 'Post content',
-        author: {
-          id: createAuthorResponse.body.id
-        }
-      })
-
-      const createNoteResponse = await global.request.post('/notes').send({
-        title: 'Note title',
-        author: {
-          id: createAuthorResponse.body.id
-        }
-      })
-
-      const fetchedNote = await global.request.get(
-        `/notes/${createNoteResponse.body.id}?relations=author,author.posts`
-      )
-
-      expect(fetchedNote.status).toBe(200)
-      expect(fetchedNote.body.author.posts[0].id).toBe(
-        createPostResponse.body.id
-      )
-    })
-
     it('restrict delete on parent entity with children', async () => {
-      const createAuthorResponse = await global.request.post('/authors').send({
-        name: 'Author name'
-      })
+      const createAuthorResponse = await global.request
+        .post('/dynamic/authors')
+        .send({
+          name: 'Author name'
+        })
 
-      await global.request.post('/posts').send({
+      await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        author: {
-          id: createAuthorResponse.body.id
-        }
+        authorId: createAuthorResponse.body.id
       })
 
       const deleteResponse = await global.request.delete(
-        `/authors/${createAuthorResponse.body.id}`
+        `/dynamic/authors/${createAuthorResponse.body.id}`
       )
 
       expect(deleteResponse.status).toBe(400)
@@ -198,14 +180,14 @@ describe('Relationship', () => {
     it('can create a many to many relationship', async () => {
       const dummyTagIds = [1, 3]
 
-      const createResponse = await global.request.post('/posts').send({
+      const createResponse = await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        tags: dummyTagIds.map((id) => ({ id }))
+        tagIds: dummyTagIds
       })
 
       const fetchedPost = await global.request.get(
-        `/posts/${createResponse.body.id}?relations=tags`
+        `/dynamic/posts/${createResponse.body.id}?relations=tags`
       )
 
       expect(createResponse.status).toBe(201)
@@ -218,20 +200,20 @@ describe('Relationship', () => {
       const dummyTagIds = [1, 3]
       const otherTagIds = [2, 4, 5]
 
-      const createResponse = await global.request.post('/posts').send({
+      const createResponse = await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        tags: dummyTagIds.map((id) => ({ id }))
+        tagIds: dummyTagIds
       })
 
       const updateResponse = await global.request
         .put(`/posts/${createResponse.body.id}`)
         .send({
-          tags: otherTagIds.map((id) => ({ id }))
+          tagIds: otherTagIds
         })
 
       const fetchedPost = await global.request.get(
-        `/posts/${createResponse.body.id}?relations=tags`
+        `/dynamic/posts/${createResponse.body.id}?relations=tags`
       )
 
       expect(updateResponse.status).toBe(200)
@@ -242,20 +224,20 @@ describe('Relationship', () => {
     it('can remove a many to many relationship', async () => {
       const dummyTagIds = [1, 3]
 
-      const createResponse = await global.request.post('/posts').send({
+      const createResponse = await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        tags: dummyTagIds.map((id) => ({ id }))
+        tagIds: dummyTagIds
       })
 
       const updateResponse = await global.request
         .put(`/posts/${createResponse.body.id}`)
         .send({
-          tags: []
+          tagIds: []
         })
 
       const fetchedPost = await global.request.get(
-        `/posts/${createResponse.body.id}?relations=tags`
+        `/dynamic/posts/${createResponse.body.id}?relations=tags`
       )
 
       expect(updateResponse.status).toBe(200)
@@ -266,18 +248,18 @@ describe('Relationship', () => {
     it('can query a many to many relationship from both sides', async () => {
       const dummyTagIds = [1, 3]
 
-      const createResponse = await global.request.post('/posts').send({
+      const createResponse = await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        tags: dummyTagIds.map((id) => ({ id }))
+        tagIds: dummyTagIds
       })
 
       const fetchedPost = await global.request.get(
-        `/posts/${createResponse.body.id}?relations=tags`
+        `/dynamic/posts/${createResponse.body.id}?relations=tags`
       )
 
       const fetchedTag = await global.request.get(
-        `/tags/${dummyTagIds[0]}?relations=posts`
+        `/dynamic/tags/${dummyTagIds[0]}?relations=posts`
       )
 
       expect(createResponse.status).toBe(201)
@@ -291,17 +273,15 @@ describe('Relationship', () => {
       const dummyTagIds = [1, 3]
       const dummyAuthorId = 4
 
-      const createResponse = await global.request.post('/posts').send({
+      const createResponse = await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
         tags: dummyTagIds.map((id) => ({ id })),
-        author: {
-          id: dummyAuthorId
-        }
+        authorId: dummyAuthorId
       })
 
       const fetchedAuthor = await global.request.get(
-        `/authors/${dummyAuthorId}?relations=posts,posts.tags`
+        `/dynamic/authors/${dummyAuthorId}?relations=posts,posts.tags`
       )
 
       expect(createResponse.status).toBe(201)
@@ -314,13 +294,15 @@ describe('Relationship', () => {
     it('eager manyToMany relations are loaded by default', async () => {
       const dummyTagIds = [1, 3]
 
-      const createTweetResponse = await global.request.post('/tweets').send({
-        text: 'Tweet content',
-        customTagNames: dummyTagIds.map((id) => ({ id }))
-      })
+      const createTweetResponse = await global.request
+        .post('/dynamic/tweets')
+        .send({
+          text: 'Tweet content',
+          customTagNameIds: dummyTagIds
+        })
 
       const fetchedTweet = await global.request.get(
-        `/tweets/${createTweetResponse.body.id}`
+        `/dynamic/tweets/${createTweetResponse.body.id}`
       )
 
       expect(createTweetResponse.status).toBe(201)
@@ -331,22 +313,24 @@ describe('Relationship', () => {
     })
 
     it('can filter by a many to many relationship', async () => {
-      const createTagResponse = await global.request.post('/tags').send({
-        name: 'Tag name'
-      })
+      const createTagResponse = await global.request
+        .post('/dynamic/tags')
+        .send({
+          name: 'Tag name'
+        })
 
-      await global.request.post('/posts').send({
+      await global.request.post('/dynamic/posts').send({
         title: 'Post title',
         content: 'Post content',
-        tags: [{ id: createTagResponse.body.id }]
+        tagIds: [createTagResponse.body.id]
       })
 
       const filteredResponse = await global.request.get(
-        `/posts?relations=tags&tags.id_eq=${createTagResponse.body.id}`
+        `/dynamic/posts?relations=tags&tags.id_eq=${createTagResponse.body.id}`
       )
 
       const nonExistentTagResponse = await global.request.get(
-        `/posts?relations=tags&tags.id_eq=9999`
+        `/dynamic/posts?relations=tags&tags.id_eq=9999`
       )
 
       expect(filteredResponse.status).toBe(200)

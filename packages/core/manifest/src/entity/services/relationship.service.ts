@@ -130,7 +130,8 @@ export class RelationshipService {
         relationOptions[relationshipName] = {
           target: oneToManyRelationship.entity,
           type: 'one-to-many',
-          eager: false
+          eager: false,
+          inverseSide: oneToManyRelationship.inverseSide
         }
       })
 

@@ -11,8 +11,6 @@ entities:
     belongsTo:
       - { name: owner, entity: User }
     policies:
-      read:
-        - access: restricted
       create:
         - access: public
       update:

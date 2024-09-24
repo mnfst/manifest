@@ -20,4 +20,9 @@ export type RelationshipManifest = {
    * The type of the relationship.
    */
   type: 'many-to-one' | 'many-to-many' | 'one-to-many'
+
+  /**
+   * The inverse side of the relationship (only for one-to-many)
+   */
+  inverseSide?: string
 }
