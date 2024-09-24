@@ -142,7 +142,7 @@ entities:
     properties:
       - text
     belongsToMany:
-      - { name: customTagNames, entity: Tag }
+      - { name: customTagNames, entity: Tag, eager: true }
 
   Author:
     properties:

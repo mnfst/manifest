@@ -401,7 +401,7 @@ export class CrudService {
           relationship.name === relationMetadata.propertyName
       )
 
-      // Only eager relations are loaded.
+      // Only eager or requested relations are loaded.
       if (
         !relationshipManifest.eager &&
         !requestedRelations?.includes(relationMetadata.propertyName)
@@ -436,10 +436,18 @@ export class CrudService {
           query,
           entityMetadata: relationEntityMetadata,
           relationships: relationEntityManifest.relationships,
-          requestedRelations: requestedRelations?.map(
-            (requestedRelation: string) =>
-              requestedRelation.replace(`${relationMetadata.propertyName}.`, '')
-          ),
+          requestedRelations: requestedRelations
+            ?.filter(
+              (requestedRelation: string) =>
+                requestedRelation !== relationMetadata.propertyName
+            ) // Remove the current relation from the requested relations to avoid infinite recursion.
+            .map(
+              (requestedRelation: string) =>
+                requestedRelation.replace(
+                  `${relationMetadata.propertyName}.`,
+                  ''
+                ) // Remove the current relation prefix.
+            ),
           alias: aliasName
         })
       }
