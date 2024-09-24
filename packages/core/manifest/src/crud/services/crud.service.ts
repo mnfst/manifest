@@ -298,16 +298,47 @@ export class CrudService {
     return entityRepository.save({ ...updatedItem, ...relationItems })
   }
 
+  /**
+   * Deletes an item.
+   *
+   * @param entitySlug the entity slug.
+   * @param id the item id.
+   *
+   * @returns the delete result.
+   */
   async delete(entitySlug: string, id: number): Promise<DeleteResult> {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({
         entitySlug
       })
 
-    const item = await entityRepository.findOne({ where: { id } })
+    const oneToManyRelationships: RelationshipManifest[] = this.manifestService
+      .getEntityManifest({
+        slug: entitySlug
+      })
+      .relationships.filter((r) => r.type === 'one-to-many')
+
+    const item = await entityRepository.findOne({
+      where: { id },
+      relations: oneToManyRelationships.map((r) => r.name)
+    })
 
     if (!item) {
       throw new NotFoundException('Item not found')
+    }
+
+    // Throw an error if the item has related items in a one-to-many relationship.
+    if (oneToManyRelationships.length) {
+      oneToManyRelationships.forEach((relationship: RelationshipManifest) => {
+        const relatedItems = item[relationship.name]
+
+        if (relatedItems.length) {
+          throw new HttpException(
+            `Cannot delete item as it has related ${relationship.name}. Please delete the related items first.`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+      })
     }
 
     return entityRepository.delete(id)

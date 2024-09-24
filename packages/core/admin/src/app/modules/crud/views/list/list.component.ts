@@ -86,17 +86,29 @@ export class ListComponent implements OnInit {
     })
   }
 
+  /**
+   * Delete an item
+   *
+   * @param id The ID of the item to delete
+   *
+   * @returns void
+   */
   delete(id: number): void {
-    this.crudService.delete(this.entityManifest.slug, id).then((res) => {
-      this.itemToDelete = null
-      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
-      this.flashMessageService.success(
-        `The ${this.entityManifest.nameSingular} has been deleted.`
-      )
-      this.paginator.data = this.paginator.data.filter(
-        (item: any) => item.id !== id
-      )
-    })
+    this.crudService
+      .delete(this.entityManifest.slug, id)
+      .then(() => {
+        this.itemToDelete = null
+        this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+        this.flashMessageService.success(
+          `The ${this.entityManifest.nameSingular} has been deleted.`
+        )
+        this.paginator.data = this.paginator.data.filter(
+          (item: any) => item.id !== id
+        )
+      })
+      .catch((err) => {
+        this.flashMessageService.error(err.error.message)
+      })
   }
 
   goToDetailPage(id: number): void {
