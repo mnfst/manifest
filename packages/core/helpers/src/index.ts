@@ -54,14 +54,18 @@ export function lowerCaseFirstLetter(str: string): string {
 /**
  * Get a random integer while excluding some values.
  */
-export function getRandomIntExcluding(
-  min: number,
-  max: number,
+export function getRandomIntExcluding({
+  min,
+  max,
+  exclude
+}: {
+  min: number
+  max: number
   exclude?: number[]
-): number {
+}): number {
   const randomInt = Math.floor(Math.random() * (max - min + 1)) + min
   return exclude?.length && exclude.includes(randomInt)
-    ? getRandomIntExcluding(min, max, exclude)
+    ? getRandomIntExcluding({ min, max, exclude })
     : randomInt
 }
 

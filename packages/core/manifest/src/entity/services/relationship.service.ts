@@ -43,7 +43,10 @@ export class RelationshipService {
         min: 1,
         max: relatedEntity.seedCount
       })
-    } else if (relationshipManifest.type === 'many-to-many') {
+    } else if (
+      relationshipManifest.type === 'many-to-many' &&
+      relationshipManifest.owningSide
+    ) {
       // On many-to-many relationships, we need to generate a random number of relations.
 
       const max: number =
@@ -58,15 +61,20 @@ export class RelationshipService {
 
       const relations: { id: number }[] = []
 
-      for (let i = 0; i < numberOfRelations; i++) {
-        relations.push({
+      while (relations.length < numberOfRelations) {
+        const newRelation: { id: number } = {
           // We need to make sure that the id is unique.
-          id: getRandomIntExcluding(
-            1,
-            relatedEntity.seedCount,
-            relations.map((relation) => relation.id)
-          )
-        })
+          id: getRandomIntExcluding({
+            min: 1,
+            max: relatedEntity.seedCount,
+            exclude: relations.map((relation) => relation.id)
+          })
+        }
+
+        // Only add the relation if it's not already in the list to prevent duplicates.
+        if (!relations.find((relation) => relation.id === newRelation.id)) {
+          relations.push(newRelation)
+        }
       }
 
       return relations

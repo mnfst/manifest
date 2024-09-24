@@ -242,7 +242,10 @@ export class ManifestService {
     // Generate the ManyToMany relationships from the opposite ManyToMany relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
       entityManifest.relationships.push(
-        ...this.getOppositeManyToManyRelationships(entityManifests, entityManifest)
+        ...this.getOppositeManyToManyRelationships(
+          entityManifests,
+          entityManifest
+        )
       )
     })
 
@@ -408,6 +411,7 @@ export class ManifestService {
           entity: oppositeRelationship.entity.className,
           eager: false,
           type: 'many-to-many',
+          owningSide: false,
           inverseSide: oppositeRelationship.relationship.name
         }
 

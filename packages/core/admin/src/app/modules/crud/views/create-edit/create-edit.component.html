@@ -58,7 +58,14 @@
                 class="field mt-2 mb-4"
                 *ngFor="let relationship of entityManifest.relationships"
               >
-                <div class="control">
+                <div
+                  class="control"
+                  *ngIf="
+                    relationship.type === 'many-to-one' ||
+                    (relationship.type === 'many-to-many' &&
+                      relationship.owningSide)
+                  "
+                >
                   <app-input
                     [relationship]="relationship"
                     [value]="edit ? item[relationship.name] : null"
