@@ -22,7 +22,12 @@ export type RelationshipManifest = {
   type: 'many-to-one' | 'many-to-many' | 'one-to-many'
 
   /**
-   * The inverse side of the relationship (only for one-to-many)
+   * Is this relationship the owning side of the relationship? (only for many-to-many)
+   */
+  owningSide?: boolean
+
+  /**
+   * The inverse side of the relationship.
    */
   inverseSide?: string
 }

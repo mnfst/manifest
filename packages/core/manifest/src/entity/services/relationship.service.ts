@@ -112,7 +112,12 @@ export class RelationshipService {
           target: manyToManyRelationShip.entity,
           type: 'many-to-many',
           eager: !!manyToManyRelationShip.eager,
-          joinTable: {
+          inverseSide: manyToManyRelationShip.inverseSide
+        }
+
+        // If this is the owning side of the relationship, we need to set the join table name.
+        if (manyToManyRelationShip.owningSide) {
+          relationOptions[manyToManyRelationShip.name].joinTable = {
             name: `${camelize(entityManifest.className)}_${manyToManyRelationShip.name}`
           }
         }

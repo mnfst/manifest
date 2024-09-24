@@ -31,7 +31,7 @@ export function camelize(str: string | string[]): string {
   const combined = Array.isArray(str) ? str.join('_') : str
 
   return lowerCaseFirstLetter(
-    combined
+    (combined || '')
       .split('_')
       .map((word, index) =>
         index === 0 ? word : word[0].toUpperCase() + word.slice(1)

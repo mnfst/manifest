@@ -197,7 +197,11 @@ export class ManifestService {
             ),
             ...(entitySchema.belongsToMany || []).map(
               (relationship: RelationshipSchema) =>
-                this.transformRelationship(relationship, 'many-to-many')
+                this.transformRelationship(
+                  relationship,
+                  'many-to-many',
+                  entitySchema.className || className
+                )
             )
           ],
           authenticable: entitySchema.authenticable || false,
@@ -235,6 +239,13 @@ export class ManifestService {
       )
     })
 
+    // Generate the ManyToMany relationships from the opposite ManyToMany relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.relationships.push(
+        ...this.getOppositeManyToManyRelationships(entityManifests, entityManifest)
+      )
+    })
+
     return entityManifests
   }
 
@@ -243,25 +254,51 @@ export class ManifestService {
    * Transform the short form of the relationship into the long form.
    *
    * @param relationship the relationship that can include short form properties.
+   * @param type the type of the relationship.
+   * @param entityClassName the class name of the entity to which the relationship belongs (only for many-to-many relationships).
+   *
    * @returns the relationship with the short form properties transformed into long form.
    */
   transformRelationship(
     relationship: RelationshipSchema,
-    type: 'many-to-one' | 'many-to-many'
+    type: 'many-to-one' | 'many-to-many',
+    entityClassName?: string
   ): RelationshipManifest {
-    if (typeof relationship === 'string') {
+    if (type === 'many-to-one') {
+      if (typeof relationship === 'string') {
+        return {
+          name: camelize(relationship),
+          entity: relationship,
+          eager: false,
+          type
+        }
+      }
       return {
-        name: camelize(relationship),
-        entity: relationship,
-        eager: false,
+        name: camelize(relationship.name || relationship.entity),
+        entity: relationship.entity,
+        eager: relationship.eager || false,
         type
       }
-    }
-    return {
-      name: camelize(relationship.name) || camelize(relationship.entity),
-      entity: relationship.entity,
-      eager: relationship.eager || false,
-      type
+    } else {
+      // Many-to-many.
+      if (typeof relationship === 'string') {
+        return {
+          name: pluralize(camelize(relationship)),
+          entity: relationship,
+          eager: false,
+          type,
+          owningSide: true,
+          inverseSide: pluralize(camelize(entityClassName))
+        }
+      }
+      return {
+        name: pluralize(camelize(relationship.name || relationship.entity)),
+        entity: relationship.entity,
+        eager: relationship.eager || false,
+        type,
+        owningSide: true,
+        inverseSide: pluralize(camelize(entityClassName))
+      }
     }
   }
 
@@ -314,6 +351,63 @@ export class ManifestService {
           entity: oppositeRelationship.entity.className,
           eager: false,
           type: 'one-to-many',
+          inverseSide: oppositeRelationship.relationship.name
+        }
+
+        return relationship
+      }
+    )
+  }
+
+  /**
+   * Generate the ManyToMany relationships from the opposite ManyToMany relationships.
+   *
+   * @param entityManifests The entity manifests.
+   * @param currentEntityManifest The entity manifest for which to generate the ManyToMany relationships.
+   *
+   * @returns The ManyToMany relationships.
+   */
+  getOppositeManyToManyRelationships(
+    entityManifests: EntityManifest[],
+    currentEntityManifest: EntityManifest
+  ): RelationshipManifest[] {
+    // We need to get the entities that have ManyToMany relationships to the current entity to create the opposite ManyToMany relationships.
+    const oppositeRelationships: {
+      entity: EntityManifest
+      relationship: RelationshipManifest
+    }[] = entityManifests
+      .filter(
+        (otherEntityManifest: EntityManifest) =>
+          otherEntityManifest.className !== currentEntityManifest.className
+      )
+      .reduce((acc, otherEntityManifest: EntityManifest) => {
+        const oppositeRelationship: RelationshipManifest =
+          otherEntityManifest.relationships.find(
+            (relationship: RelationshipManifest) =>
+              relationship.entity === currentEntityManifest.className &&
+              relationship.type === 'many-to-many'
+          )
+
+        if (oppositeRelationship) {
+          acc.push({
+            entity: otherEntityManifest,
+            relationship: oppositeRelationship
+          })
+        }
+
+        return acc
+      }, [])
+
+    return oppositeRelationships.map(
+      (oppositeRelationship: {
+        entity: EntityManifest
+        relationship: RelationshipManifest
+      }) => {
+        const relationship: RelationshipManifest = {
+          name: pluralize(camelize(oppositeRelationship.entity.namePlural)),
+          entity: oppositeRelationship.entity.className,
+          eager: false,
+          type: 'many-to-many',
           inverseSide: oppositeRelationship.relationship.name
         }
 
