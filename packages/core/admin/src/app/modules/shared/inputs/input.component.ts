@@ -4,10 +4,14 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  Output,
-  SimpleChanges
+  Output
 } from '@angular/core'
-import { PropType, PropertyManifest, RelationshipManifest } from '@repo/types'
+import {
+  EntityManifest,
+  PropType,
+  PropertyManifest,
+  RelationshipManifest
+} from '@repo/types'
 
 import { BooleanInputComponent } from './boolean-input/boolean-input.component'
 import { CurrencyInputComponent } from './currency-input/currency-input.component'
@@ -149,6 +153,8 @@ import { FileInputComponent } from './file-input/file-input.component'
       *ngIf="prop?.type === PropType.Location"
     ></app-location-input>
     <app-file-input
+      [prop]="prop"
+      [entitySlug]="entityManifest.slug"
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
@@ -164,6 +170,7 @@ import { FileInputComponent } from './file-input/file-input.component'
 })
 export class InputComponent implements OnChanges {
   @Input() prop: PropertyManifest
+  @Input() entityManifest: EntityManifest
   @Input() relationship: RelationshipManifest
   @Input() value: any
   @Input() errors: string[]
@@ -176,7 +183,7 @@ export class InputComponent implements OnChanges {
     this.valueChanged.emit(event)
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.isError = !!this.errors?.length
   }
 }

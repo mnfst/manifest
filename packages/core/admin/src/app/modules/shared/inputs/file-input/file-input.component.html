@@ -1,4 +1,5 @@
 <div class="control">
+  <label [for]="prop.name">{{ prop.name }}</label>
   <div *ngIf="!value">
     <div class="file" [ngClass]="{ 'show-errors': isError }">
       <label class="file-label">

@@ -11,6 +11,7 @@ import { environment } from '../../../../../environments/environment'
 import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { NgClass, NgIf } from '@angular/common'
+import { PropertyManifest } from '@repo/types'
 
 @Component({
   selector: 'app-file-input',
@@ -19,6 +20,8 @@ import { NgClass, NgIf } from '@angular/common'
   templateUrl: './file-input.component.html'
 })
 export class FileInputComponent {
+  @Input() prop: PropertyManifest
+  @Input() entitySlug: string
   @Input() value: string
   @Input() isError: boolean
 
@@ -47,8 +50,8 @@ export class FileInputComponent {
     this.fileContent = this.fileInputEl.nativeElement.files.item(0)
     return this.uploadService
       .uploadFile({
-        entity: 'file', // TODO: Get entity and prop from parent component.
-        property: 'file',
+        entity: this.entitySlug,
+        property: this.prop.name,
         fileContent: this.fileContent
       })
       .then(
