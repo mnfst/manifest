@@ -19,6 +19,8 @@ describe('UploadController', () => {
   describe('uploadFile', () => {
     it('should return the path of the uploaded file', () => {})
 
+    it('creates unique file names', () => {})
+
     it('should return a 400 error if entity name or property is not provided', () => {})
 
     it('expect the file to be passed as "file" in a multipart/form-data', () => {})

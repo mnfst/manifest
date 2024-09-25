@@ -13,5 +13,7 @@ export enum PropType {
   Boolean = 'boolean',
   Password = 'password',
   Choice = 'choice',
-  Location = 'location'
+  Location = 'location',
+  File = 'file',
+  Image = 'image'
 }

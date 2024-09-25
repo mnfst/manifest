@@ -8,6 +8,9 @@ export const DEFAULT_RESULTS_PER_PAGE = 20
 export const DEFAULT_SEED_COUNT: number = 50
 export const DEFAULT_MAX_MANY_TO_MANY_RELATIONS: number = 5
 
+// Storage.
+export const STORAGE_PATH = 'public/storage'
+
 // Admin entity.
 export const DEFAULT_ADMIN_CREDENTIALS = {
   email: 'admin@manifest.build',

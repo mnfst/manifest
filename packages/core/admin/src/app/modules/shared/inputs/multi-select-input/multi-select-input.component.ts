@@ -5,6 +5,7 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  OnInit,
   Output
 } from '@angular/core'
 import {
@@ -24,7 +25,7 @@ import { forceNumberArray } from '@repo/helpers'
   templateUrl: './multi-select-input.component.html',
   styleUrls: ['./multi-select-input.component.scss']
 })
-export class MultiSelectInputComponent {
+export class MultiSelectInputComponent implements OnInit {
   @Input() prop: PropertyManifest
   @Input() relationship: RelationshipManifest
   @Input() value: { id: number }[]

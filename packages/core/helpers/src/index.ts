@@ -41,6 +41,20 @@ export function camelize(str: string | string[]): string {
 }
 
 /**
+ * Kebabize a string.
+ *
+ * @param str The string to kebabize.
+ *
+ * @returns The kebabized string.
+ */
+export function kebabize(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/\s+/g, '-')
+    .toLowerCase()
+}
+
+/**
  * Lowercase the first letter of a string.
  *
  * @param str The string to lowercase the first letter of.

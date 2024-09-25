@@ -79,6 +79,7 @@
     "slugify": "^1.6.6",
     "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20",
+    "uniqid": "^5.4.0",
     "url": "^0.11.3"
   },
   "devDependencies": {

@@ -22,6 +22,7 @@ import { TextInputComponent } from './text-input/text-input.component'
 import { TextareaInputComponent } from './textarea-input/textarea-input.component'
 import { UrlInputComponent } from './url-input/url-input.component'
 import { TimestampInputComponent } from './timestamp-input/timestamp-input.component'
+import { FileInputComponent } from './file-input/file-input.component'
 
 @Component({
   selector: 'app-input',
@@ -40,7 +41,8 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
     SelectInputComponent,
     TextareaInputComponent,
     TextInputComponent,
-    LocationInputComponent
+    LocationInputComponent,
+    FileInputComponent
   ],
   template: `
     <app-text-input
@@ -146,6 +148,13 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
       (valueChanged)="onChange($event)"
       *ngIf="prop?.type === PropType.Location"
     ></app-location-input>
+    <app-file-input
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop?.type === PropType.File"
+    >
+    </app-file-input>
 
     <!-- Error messages -->
     <ul *ngIf="errors?.length">
