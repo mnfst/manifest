@@ -226,7 +226,9 @@ export class CrudService {
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto(
         itemDto,
-        entityManifest.relationships.filter((r) => r.type !== 'one-to-many')
+        entityManifest.relationships
+          .filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       )
 
     if (entityManifest.authenticable && itemDto.password) {
@@ -264,7 +266,9 @@ export class CrudService {
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto(
         itemDto,
-        entityManifest.relationships.filter((r) => r.type !== 'one-to-many')
+        entityManifest.relationships
+          .filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       )
 
     if (!item) {
