@@ -51,6 +51,7 @@
     "add-manifest": "scripts",
     "manifest": "server",
     "core/manifest": "meta",
-    "js-sdk": "javascript"
+    "js-sdk": "javascript",
+    "json-schema": "json"
   }
 }

@@ -27,7 +27,9 @@
             "relation",
             "password",
             "choice",
-            "location"
+            "location",
+            "file",
+            "image"
           ]
         },
         "validation": {

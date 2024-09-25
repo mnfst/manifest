@@ -14,5 +14,7 @@ export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Boolean]: 'boolean',
   [PropType.Password]: 'varchar',
   [PropType.Choice]: 'simple-enum',
-  [PropType.Location]: 'json'
+  [PropType.Location]: 'json',
+  [PropType.File]: 'varchar',
+  [PropType.Image]: 'varchar'
 }

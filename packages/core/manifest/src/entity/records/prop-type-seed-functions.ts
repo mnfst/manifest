@@ -25,5 +25,7 @@ export const propTypeSeedFunctions: Record<PropType, (options?: any) => any> = {
   [PropType.Location]: () => ({
     lat: faker.location.latitude(),
     lng: faker.location.longitude()
-  })
+  }),
+  [PropType.File]: () => faker.system.filePath(), // TODO: Seed function
+  [PropType.Image]: () => faker.image.imageUrl() // TODO: Seed function
 }

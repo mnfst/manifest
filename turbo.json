@@ -5,6 +5,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "@repo/json-schema#build": {
+      "outputs": []
+    },
     "dev": {
       "persistent": true,
       "cache": false
