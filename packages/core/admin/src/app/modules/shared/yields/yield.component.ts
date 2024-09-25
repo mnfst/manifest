@@ -43,8 +43,9 @@ import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.compo
       [value]="value"
     ></app-number-yield>
     <app-link-yield
-      *ngIf="prop.type === PropType.Link"
+      *ngIf="prop.type === PropType.Link || prop.type === PropType.File"
       [value]="value"
+      [external]="prop.type === PropType.Link"
       [compact]="compact"
     ></app-link-yield>
     <app-boolean-yield

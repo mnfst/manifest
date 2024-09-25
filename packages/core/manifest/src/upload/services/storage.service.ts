@@ -4,7 +4,7 @@ import { STORAGE_PATH } from '../../constants'
 
 import * as fs from 'fs'
 import * as mkdirp from 'mkdirp'
-import * as uniqid from 'uniqid'
+import uniqid from 'uniqid'
 
 @Injectable()
 export class StorageService {
@@ -41,7 +41,7 @@ export class StorageService {
 
     const filePath: string = `${folder}/${uniqid()}-${file.originalname}`
 
-    fs.writeFileSync(filePath, file.buffer)
+    fs.writeFileSync(`${STORAGE_PATH}/${filePath}`, file.buffer)
 
     return filePath
   }
@@ -61,9 +61,9 @@ export class StorageService {
       new Date().toLocaleString('en-us', { month: 'short' }) +
       new Date().getFullYear()
 
-    const folder: string = `${STORAGE_PATH}/${kebabize(entity)}/${kebabize(property)}/${dateString}`
+    const folder: string = `${kebabize(entity)}/${kebabize(property)}/${dateString}`
 
-    mkdirp.sync(folder)
+    mkdirp.sync(`${STORAGE_PATH}/${folder}`)
 
     return folder
   }

@@ -8,6 +8,7 @@ entities:
       - { name: birthdate, type: date }
       - { name: aquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }
+      - { name: certificate, type: file }
     belongsTo:
       - { name: owner, entity: User }
     policies:
