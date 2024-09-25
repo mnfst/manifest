@@ -9,6 +9,8 @@ import {
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
 
+import { getDtoPropertyNameFromRelationship } from '@repo/helpers'
+
 import { HttpErrorResponse } from '@angular/common/http'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
@@ -59,7 +61,12 @@ export class CreateEditComponent {
       if (this.edit) {
         this.item = await this.crudService.show(
           this.entityManifest.slug,
-          params['id']
+          params['id'],
+          {
+            relations: this.entityManifest.relationships
+              .filter((r) => r.type !== 'one-to-many')
+              .map((r) => r.name)
+          }
         )
 
         this.breadcrumbService.breadcrumbLinks.next([
@@ -100,18 +107,43 @@ export class CreateEditComponent {
         this.form.addControl(prop.name, new FormControl(value))
       })
 
-      this.entityManifest.belongsTo.forEach(
-        (relationship: RelationshipManifest) => {
+      this.entityManifest.relationships
+        .filter((r) => r.type !== 'one-to-many')
+        .forEach((relationship: RelationshipManifest) => {
           const value: number = this.item ? this.item[relationship.name] : null
 
-          this.form.addControl(relationship.name, new FormControl(value))
-        }
-      )
+          this.form.addControl(
+            getDtoPropertyNameFromRelationship(relationship),
+            new FormControl(value)
+          )
+        })
     })
   }
 
+  /**
+   * Change event handler for form controls.
+   *
+   * @param params the new value and the property name
+   *
+   */
   onChange(params: { newValue: any; propName: string }): void {
     this.form.controls[params.propName].setValue(params.newValue)
+  }
+
+  /**
+   * Change event handler for relationship form controls.
+   *
+   * @param params the new value and the relationship manifest
+   *
+   */
+  onRelationChange(params: {
+    newValue: any
+    relationship: RelationshipManifest
+  }): void {
+    return this.onChange({
+      newValue: params.newValue,
+      propName: getDtoPropertyNameFromRelationship(params.relationship)
+    })
   }
 
   submit(): void {
@@ -139,7 +171,7 @@ export class CreateEditComponent {
     } else {
       this.crudService
         .create(this.entityManifest.slug, this.form.value)
-        .then((res: { identifiers: { id: number }[] }) => {
+        .then((createdItem: { id: number }) => {
           this.loading = false
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been created successfully`
@@ -147,7 +179,7 @@ export class CreateEditComponent {
           this.router.navigate([
             '/dynamic',
             this.entityManifest.slug,
-            res.identifiers[0].id
+            createdItem.id
           ])
         })
         .catch((err: HttpErrorResponse) => {

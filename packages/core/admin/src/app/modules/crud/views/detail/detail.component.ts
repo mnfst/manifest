@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { BaseEntity, EntityManifest } from '@repo/types'
+import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
@@ -36,7 +36,12 @@ export class DetailComponent {
       // Get the item.
       this.item = await this.crudService.show(
         this.entityManifest.slug,
-        params['id']
+        params['id'],
+        {
+          relations: this.entityManifest.relationships
+            ?.filter((r) => r.type !== 'one-to-many')
+            .map((relationship: RelationshipManifest) => relationship.name)
+        }
       )
 
       // Set the breadcrumbs.

@@ -116,9 +116,13 @@ export interface EntitySchema {
    */
   authenticable?: boolean
   /**
-   * The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations
+   * The ManyToOne relationships of the entity. Doc: https://manifest.build/docs/relations
    */
   belongsTo?: RelationshipSchema[]
+  /**
+   * The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/relations
+   */
+  belongsToMany?: RelationshipSchema[]
   policies?: PoliciesSchema
   /**
    * Validation object for the properties. Doc: https://manifest.build/docs/validation

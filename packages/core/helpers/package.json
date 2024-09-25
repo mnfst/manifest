@@ -1,0 +1,9 @@
+{
+  "name": "@repo/helpers",
+  "scripts": {
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/types": "*"
+  }
+}

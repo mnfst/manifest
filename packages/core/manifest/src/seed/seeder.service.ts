@@ -47,6 +47,7 @@ export class SeederService {
       )
     }
 
+    // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
     await queryRunner.query('PRAGMA foreign_keys = OFF')
     await Promise.all(
@@ -61,6 +62,11 @@ export class SeederService {
       )
     )
     await queryRunner.query('PRAGMA foreign_keys = ON')
+
+    // Keep only regular tables for seeding.
+    entityMetadatas = entityMetadatas.filter(
+      (entity: EntityMetadata) => entity.tableType === 'regular'
+    )
 
     for (const entityMetadata of entityMetadatas) {
       const repository: Repository<BaseEntity> =
@@ -79,6 +85,7 @@ export class SeederService {
           fullVersion: true
         })
 
+      // Prevent logging during tests.
       if (process.env.NODE_ENV !== 'test') {
         console.log(
           `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
@@ -99,18 +106,55 @@ export class SeederService {
           }
         )
 
-        entityManifest.belongsTo.forEach(
-          (relationManifest: RelationshipManifest) => {
+        entityManifest.relationships
+          .filter(
+            (relationship: RelationshipManifest) =>
+              relationship.type === 'many-to-one'
+          )
+          .forEach((relationManifest: RelationshipManifest) => {
             newRecord[relationManifest.name] =
               this.relationshipService.getSeedValue(relationManifest)
-          }
-        )
+          })
 
         await repository.save(newRecord)
       }
     }
 
-    return Promise.resolve()
+    // Seed many to many relationships after all entities have been seeded.
+    const manyToManyPromises: Promise<BaseEntity>[] = []
+
+    for (const entityMetadata of entityMetadatas) {
+      const entityManifest: EntityManifest =
+        this.manifestService.getEntityManifest({
+          className: entityMetadata.name,
+          fullVersion: true
+        })
+
+      const repository: Repository<BaseEntity> =
+        this.entityService.getEntityRepository({
+          entityMetadata
+        })
+
+      const allRecords: BaseEntity[] = await repository.find()
+
+      entityManifest.relationships
+        .filter(
+          (relationship: RelationshipManifest) =>
+            relationship.type === 'many-to-many'
+        )
+        .forEach((relationshipManifest: RelationshipManifest) => {
+          allRecords.forEach(async (record: BaseEntity) => {
+            record[relationshipManifest.name] =
+              this.relationshipService.getSeedValue(relationshipManifest)
+
+            manyToManyPromises.push(repository.save(record))
+          })
+        })
+    }
+
+    await Promise.all(manyToManyPromises)
+
+    return
   }
 
   /**

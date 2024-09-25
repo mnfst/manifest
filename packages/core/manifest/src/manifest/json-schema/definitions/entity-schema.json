@@ -41,7 +41,14 @@
       "type": "boolean"
     },
     "belongsTo": {
-      "description": "The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations",
+      "description": "The ManyToOne relationships of the entity. Doc: https://manifest.build/docs/relations",
+      "type": "array",
+      "items": {
+        "$ref": "relationship-schema.json"
+      }
+    },
+    "belongsToMany": {
+      "description": "The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/relations",
       "type": "array",
       "items": {
         "$ref": "relationship-schema.json"

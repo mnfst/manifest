@@ -3,7 +3,8 @@ import fetchMock from 'fetch-mock'
 
 describe('CRUD operations', () => {
   const baseUrl: string = 'http://localhost:1111/api/dynamic'
-  const dummyResponse = { id: 1, test: 'test' }
+  const dummyResponse = { dummy: 'response' }
+  const dummyItem = { name: 'Tom', age: 10, id: 1 }
 
   beforeEach(() => {
     fetchMock.restore()
@@ -35,7 +36,7 @@ describe('CRUD operations', () => {
     it('should filter the items by query parameters', async () => {
       fetchMock.mock(
         `${baseUrl}/cats?name_eq=Tom&age_gt=50&wealth_gte=1000&problems_lt=5&friends_lte=10&nickName_like=tommy&eyeColor_in=brown%2Cblue%2Cgreen`,
-        dummyResponse
+        dummyResponse,
       )
 
       const manifest = new Manifest()
@@ -56,8 +57,8 @@ describe('CRUD operations', () => {
     it('should fail if the where operator is not valid', async () => {
       const manifest = new Manifest()
 
-      expect(() => manifest.from('cats').where('name != Tom')).toThrow
-      expect(() => manifest.from('cats').where('notValid')).toThrow
+      expect(() => manifest.from('cats').where('name != Tom')).toThrow()
+      expect(() => manifest.from('cats').where('notValid')).toThrow()
     })
 
     it('should order the items by query parameters', async () => {
@@ -84,7 +85,7 @@ describe('CRUD operations', () => {
     it('should load the relations of the entity', async () => {
       fetchMock.mock(
         `${baseUrl}/cats?relations=owner%2Cowner.company`,
-        dummyResponse
+        dummyResponse,
       )
 
       const manifest = new Manifest()
@@ -120,16 +121,16 @@ describe('CRUD operations', () => {
           },
         },
         {
-          identifiers: [dummyResponse],
-        }
+          identifiers: [dummyItem],
+        },
       )
 
       fetchMock.mock(
         {
-          url: `${baseUrl}/cats/${dummyResponse.id}`,
+          url: `${baseUrl}/cats/${dummyItem.id}`,
           method: 'GET',
         },
-        dummyResponse
+        dummyResponse,
       )
 
       const manifest = new Manifest()
@@ -153,14 +154,14 @@ describe('CRUD operations', () => {
             age: 10,
           },
         },
-        dummyResponse
+        dummyResponse,
       )
       fetchMock.mock(
         {
           url: `${baseUrl}/cats/${id}`,
           method: 'GET',
         },
-        dummyResponse
+        dummyResponse,
       )
 
       const manifest = new Manifest()
@@ -180,7 +181,7 @@ describe('CRUD operations', () => {
           url: `${baseUrl}/cats/${id}`,
           method: 'DELETE',
         },
-        {}
+        {},
       )
 
       const manifest = new Manifest()

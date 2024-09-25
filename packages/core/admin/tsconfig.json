@@ -25,7 +25,8 @@
     "useDefineForClassFields": false,
     "lib": ["ES2022", "dom"],
     "paths": {
-      "@repo/types": ["../types/src"]
+      "@repo/types": ["../types/src"],
+      "@repo/helpers": ["../helpers/src"]
     }
   },
   "angularCompilerOptions": {
