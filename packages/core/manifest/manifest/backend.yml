@@ -9,6 +9,12 @@ entities:
       - { name: aquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }
       - { name: certificate, type: file }
+      - { name: photo, type: image }
+      - {
+          name: photo2,
+          type: image,
+          options: { sizes: { small: { height: 30 } } }
+        }
     belongsTo:
       - { name: owner, entity: User }
     policies:

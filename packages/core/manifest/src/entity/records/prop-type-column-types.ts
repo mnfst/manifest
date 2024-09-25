@@ -16,5 +16,5 @@ export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Choice]: 'simple-enum',
   [PropType.Location]: 'json',
   [PropType.File]: 'varchar',
-  [PropType.Image]: 'varchar'
+  [PropType.Image]: 'json'
 }

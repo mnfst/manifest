@@ -75,7 +75,7 @@ export class UploadService {
   }): Promise<any> {
     const formData = new FormData()
 
-    formData.append('file', fileContent)
+    formData.append(type, fileContent)
     formData.append('entity', entity)
     formData.append('property', property)
 

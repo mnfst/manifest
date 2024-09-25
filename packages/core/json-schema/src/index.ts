@@ -2,6 +2,7 @@ import entitySchema from './schema/definitions/entity-schema.json'
 import propertyOptionsSchema from './schema/definitions/property-options-schema.json'
 import choiceOptionsSchema from './schema/definitions/property-options/choice-options-schema.json'
 import moneyOptionsSchema from './schema/definitions/property-options/money-options-schema.json'
+import imageOptionsSchema from './schema/definitions/property-options/image-options-schema.json'
 import propertySchema from './schema/definitions/property-schema.json'
 import relationshipSchema from './schema/definitions/relationship-schema.json'
 import validationSchema from './schema/definitions/validation-schema.json'
@@ -20,8 +21,7 @@ export default [
   // Property options.
   choiceOptionsSchema,
   moneyOptionsSchema,
-
-  // TODO: fileOptionsSchema, imageOptionsSchema
+  imageOptionsSchema,
 
   // Policies.
   policiesSchema,

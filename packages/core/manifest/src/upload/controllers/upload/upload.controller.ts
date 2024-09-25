@@ -28,12 +28,17 @@ export class UploadController {
     }
   }
 
-  // @Post('/image')
-  // @UseInterceptors(FileInterceptor('file'))
-  // uploadImage(
-  //   @UploadedFile() file: any,
-  //   @Body('resourceName') resourceName: string
-  // ): { path: string } {
-  //   return { path: this.storageService.storeImage(file, resourceName) }
-  // }
+  @Post('/image')
+  @UseInterceptors(FileInterceptor('image'))
+  uploadImage(
+    @UploadedFile() image: any,
+    @Body('entity') entity: string,
+    @Body('property') property: string
+  ): { [key: string]: string } {
+    return this.storageService.storeImage({
+      image,
+      entity,
+      property
+    })
+  }
 }

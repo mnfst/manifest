@@ -10,16 +10,16 @@ import {
 import { environment } from '../../../../../environments/environment'
 import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
-import { NgClass, NgIf } from '@angular/common'
 import { PropertyManifest } from '@repo/types'
+import { NgClass, NgIf } from '@angular/common'
 
 @Component({
-  selector: 'app-file-input',
+  selector: 'app-image-input',
   standalone: true,
   imports: [NgIf, NgClass],
-  templateUrl: './file-input.component.html'
+  templateUrl: './image-input.component.html'
 })
-export class FileInputComponent {
+export class ImageInputComponent {
   @Input() prop: PropertyManifest
   @Input() entitySlug: string
   @Input() value: string
@@ -27,9 +27,9 @@ export class FileInputComponent {
 
   @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 
-  @ViewChild('fileInput', { static: false }) fileInputEl: ElementRef
+  @ViewChild('imageInput', { static: false }) imageInputEl: ElementRef
 
-  storageBaseUrl = environment.storageBaseUrl
+  storagePath: string = environment.storageBaseUrl
 
   fileContent: any
   loading: boolean
@@ -39,16 +39,12 @@ export class FileInputComponent {
     private flashMessageService: FlashMessageService
   ) {}
 
-  /**
-   * Handle the file input event.
-   *
-   *
-   */
-  async onFileInputEvent(): Promise<void> {
+  // Upload image and update value.
+  imageInputEvent() {
     this.loading = true
-    this.fileContent = this.fileInputEl.nativeElement.files.item(0)
-    return this.uploadService
-      .uploadFile({
+    this.fileContent = this.imageInputEl.nativeElement.files.item(0)
+    this.uploadService
+      .uploadImage({
         entity: this.entitySlug,
         property: this.prop.name,
         fileContent: this.fileContent
@@ -62,7 +58,7 @@ export class FileInputComponent {
         (err) => {
           this.loading = false
           this.flashMessageService.error(
-            'There was an error uploading your file.'
+            'There was an error uploading your image.'
           )
         }
       )

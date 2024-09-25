@@ -1,15 +1,33 @@
-import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
+import {
+  EntityManifest,
+  PropType,
+  PropertyManifest,
+  ImageSize
+} from '@repo/types'
 
 // Default values.
-export const DEFAULT_PORT = 1111
-export const DEFAULT_RESULTS_PER_PAGE = 20
+export const DEFAULT_PORT: number = 1111
+export const DEFAULT_RESULTS_PER_PAGE: number = 20
 
 // Seeder.
 export const DEFAULT_SEED_COUNT: number = 50
 export const DEFAULT_MAX_MANY_TO_MANY_RELATIONS: number = 5
 
-// Storage.
-export const STORAGE_PATH = 'public/storage'
+// Uploads.
+export const STORAGE_PATH: string = 'public/storage'
+export const DEFAULT_IMAGE_SIZES: {
+  [key: string]: ImageSize
+} = {
+  thumbnail: {
+    width: 80,
+    height: 80
+  },
+  medium: {
+    width: 160,
+    height: 160
+    // TODO: Fit ?
+  }
+}
 
 // Admin entity.
 export const DEFAULT_ADMIN_CREDENTIALS = {

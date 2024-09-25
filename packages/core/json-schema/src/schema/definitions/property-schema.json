@@ -64,6 +64,15 @@
               "then": {
                 "$ref": "./property-options/choice-options-schema.json"
               }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "image" } }
+              },
+              "then": {
+                "$ref": "./property-options/image-options-schema.json"
+              }
             }
           ]
         }

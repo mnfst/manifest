@@ -27,6 +27,7 @@ import { TextareaInputComponent } from './textarea-input/textarea-input.componen
 import { UrlInputComponent } from './url-input/url-input.component'
 import { TimestampInputComponent } from './timestamp-input/timestamp-input.component'
 import { FileInputComponent } from './file-input/file-input.component'
+import { ImageInputComponent } from './image-input/image-input.component'
 
 @Component({
   selector: 'app-input',
@@ -46,7 +47,8 @@ import { FileInputComponent } from './file-input/file-input.component'
     TextareaInputComponent,
     TextInputComponent,
     LocationInputComponent,
-    FileInputComponent
+    FileInputComponent,
+    ImageInputComponent
   ],
   template: `
     <app-text-input
@@ -161,6 +163,15 @@ import { FileInputComponent } from './file-input/file-input.component'
       *ngIf="prop?.type === PropType.File"
     >
     </app-file-input>
+    <app-image-input
+      [prop]="prop"
+      [entitySlug]="entityManifest.slug"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop?.type === PropType.Image"
+    >
+    </app-image-input>
 
     <!-- Error messages -->
     <ul *ngIf="errors?.length">
