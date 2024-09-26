@@ -75,15 +75,14 @@ a {
   width: 100%;
 }
 
-
 li a {
-
   i + span,
   span + i {
     opacity: 1;
     visibility: visible;
-    transition: opacity $transition-duration $transition-timing .18s, visibility 0.01s linear;
-
+    transition:
+      opacity $transition-duration $transition-timing 0.18s,
+      visibility 0.01s linear;
   }
 }
 
@@ -100,7 +99,8 @@ aside .has-submenu + ul {
   }
 }
 
-app-user-menu-item {
+app-user-menu-item,
+.ad {
   background-color: $white;
 
   @include desktop {
@@ -113,5 +113,20 @@ app-user-menu-item {
 
   @include fullhd {
     width: $aside-width-fullhd;
+  }
+}
+
+.ad {
+  bottom: 53px;
+  position: fixed;
+  padding: 8px;
+  background: transparent;
+
+  @include tablet-only {
+    width: $aside-width-tablet;
+    padding-right: 0;
+  }
+  @include mobile {
+    width: 100%;
   }
 }
