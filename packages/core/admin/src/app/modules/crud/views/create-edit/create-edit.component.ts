@@ -65,6 +65,7 @@ export class CreateEditComponent {
           {
             relations: this.entityManifest.relationships
               .filter((r) => r.type !== 'one-to-many')
+              .filter((r) => r.type !== 'many-to-many' || r.owningSide)
               .map((r) => r.name)
           }
         )
@@ -109,8 +110,17 @@ export class CreateEditComponent {
 
       this.entityManifest.relationships
         .filter((r) => r.type !== 'one-to-many')
+        .filter((r) => r.type !== 'many-to-many' || r.owningSide)
         .forEach((relationship: RelationshipManifest) => {
-          const value: number = this.item ? this.item[relationship.name] : null
+          let value: number | number[] = null
+
+          if (relationship.type === 'many-to-one') {
+            value = this.item ? this.item[relationship.name]?.id : null
+          } else if (relationship.type === 'many-to-many') {
+            value = this.item
+              ? this.item[relationship.name].map((item: any) => item.id)
+              : []
+          }
 
           this.form.addControl(
             getDtoPropertyNameFromRelationship(relationship),

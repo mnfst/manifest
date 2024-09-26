@@ -40,6 +40,7 @@ export class DetailComponent {
         {
           relations: this.entityManifest.relationships
             ?.filter((r) => r.type !== 'one-to-many')
+            .filter((r) => r.type !== 'many-to-many' || r.owningSide)
             .map((relationship: RelationshipManifest) => relationship.name)
         }
       )

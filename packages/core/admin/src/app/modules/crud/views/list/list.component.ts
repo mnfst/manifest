@@ -66,6 +66,7 @@ export class ListComponent implements OnInit {
         filters: this.queryParams,
         relations: this.entityManifest.relationships
           ?.filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
           .map((relation: RelationshipManifest) => relation.name)
       })
       this.loadingPaginator = false
