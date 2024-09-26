@@ -2,6 +2,7 @@ import {
   AuthenticableEntity,
   BaseEntity,
   EntityManifest,
+  PropType,
   PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
@@ -9,23 +10,31 @@ import { SHA3 } from 'crypto-js'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
-import { PropertyService } from '../entity/services/property.service'
 import { RelationshipService } from '../entity/services/relationship.service'
+
+import { faker } from '@faker-js/faker'
+import * as fs from 'fs'
+import * as path from 'path'
 
 import {
   ADMIN_ENTITY_MANIFEST,
   AUTHENTICABLE_PROPS,
-  DEFAULT_ADMIN_CREDENTIALS
+  DEFAULT_ADMIN_CREDENTIALS,
+  DUMMY_FILE_NAME
 } from '../constants'
 import { ManifestService } from '../manifest/services/manifest.service'
 
+import { StorageService } from '../storage/services/storage/storage.service'
+
 @Injectable()
 export class SeederService {
+  seededFiles: { [key: string]: string } = {}
+
   constructor(
     private entityService: EntityService,
-    private propertyService: PropertyService,
     private relationshipService: RelationshipService,
     private manifestService: ManifestService,
+    private storageService: StorageService,
     private dataSource: DataSource
   ) {}
 
@@ -101,8 +110,10 @@ export class SeederService {
 
         entityManifest.properties.forEach(
           (propertyManifest: PropertyManifest) => {
-            newRecord[propertyManifest.name] =
-              this.propertyService.getSeedValue(propertyManifest)
+            newRecord[propertyManifest.name] = this.seedProperty(
+              propertyManifest,
+              entityManifest
+            )
           }
         )
 
@@ -155,6 +166,86 @@ export class SeederService {
     await Promise.all(manyToManyPromises)
 
     return
+  }
+
+  /**
+   * Seed a property with a default value.
+   *
+   * @param propertyManifest The property manifest.
+   *
+   * @returns The seeded value.
+   */
+  private seedProperty(
+    propertyManifest: PropertyManifest,
+    entityManifest: EntityManifest
+  ): any {
+    switch (propertyManifest.type) {
+      case PropType.String:
+        return faker.commerce.product()
+      case PropType.Number:
+        return faker.number.int({ max: 50 })
+      case PropType.Link:
+        return 'https://manifest.build'
+      case PropType.Text:
+        return faker.commerce.productDescription()
+      case PropType.Money:
+        return faker.finance.amount({
+          min: 1,
+          max: 500,
+          dec: 2
+        })
+      case PropType.Date:
+        return faker.date.past()
+      case PropType.Timestamp:
+        return faker.date.recent()
+      case PropType.Email:
+        return faker.internet.email()
+      case PropType.Boolean:
+        return faker.datatype.boolean()
+      case PropType.Password:
+        return SHA3('manifest').toString()
+      case PropType.Choice:
+        return faker.helpers.arrayElement(
+          propertyManifest.options.values as any[]
+        )
+      case PropType.Location:
+        return {
+          lat: faker.location.latitude(),
+          lng: faker.location.longitude()
+        }
+      case PropType.File:
+        // Prevent seeding the same file multiple times.
+        if (
+          this.seededFiles[
+            `${entityManifest.className}.${propertyManifest.name}`
+          ]
+        ) {
+          return this.seededFiles[
+            `${entityManifest.className}.${propertyManifest.name}`
+          ]
+        }
+
+        const dummyFileContent = fs.readFileSync(
+          path.join(__dirname, '..', '..', '..', 'assets', DUMMY_FILE_NAME)
+        )
+
+        const filePath: string = this.storageService.store(
+          entityManifest.slug,
+          propertyManifest.name,
+          {
+            originalname: DUMMY_FILE_NAME,
+            buffer: dummyFileContent
+          }
+        )
+        this.seededFiles[
+          `${entityManifest.className}.${propertyManifest.name}`
+        ] = filePath
+
+        return filePath
+
+      case PropType.Image:
+        return 'test'
+    }
   }
 
   /**

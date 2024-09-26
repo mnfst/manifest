@@ -1,17 +1,19 @@
 import { HttpException, Injectable } from '@nestjs/common'
-import { kebabize } from '../../../../helpers/src'
-import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../constants'
+import { StorageService } from '../../storage/services/storage/storage.service'
 
-import * as fs from 'fs'
-import * as mkdirp from 'mkdirp'
 import uniqid from 'uniqid'
 import sharp from 'sharp'
 import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
+
+import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../constants'
 import { ManifestService } from '../../manifest/services/manifest.service'
 
 @Injectable()
-export class StorageService {
-  constructor(private readonly manifestService: ManifestService) {}
+export class UploadService {
+  constructor(
+    private readonly storageService: StorageService,
+    private readonly manifestService: ManifestService
+  ) {}
 
   /**
    * Store a file.
@@ -42,13 +44,14 @@ export class StorageService {
       )
     }
 
-    const folder: string = this.createUploadFolder(entity, property)
+    const folder: string = this.storageService.createUploadFolder(
+      entity,
+      property
+    )
 
     const filePath: string = `${folder}/${uniqid()}-${file.originalname}`
 
-    fs.writeFileSync(`${STORAGE_PATH}/${filePath}`, file.buffer)
-
-    return filePath
+    return this.storageService.store(entity, property, file)
   }
 
   storeImage({
@@ -71,7 +74,10 @@ export class StorageService {
       )
     }
 
-    const folder: string = this.createUploadFolder(entity, property)
+    const folder: string = this.storageService.createUploadFolder(
+      entity,
+      property
+    )
     const uniqueName: string = uniqid()
 
     // Get custom image sizes.
@@ -110,25 +116,5 @@ export class StorageService {
     })
 
     return imagePaths
-  }
-
-  /**
-   * Create the upload folder if it doesn't exist.
-   *
-   * @param entity The entity name.
-   * @param property The property name.
-   *
-   * @returns The folder path.
-   */
-  private createUploadFolder(entity: string, property: string): string {
-    const dateString: string =
-      new Date().toLocaleString('en-us', { month: 'short' }) +
-      new Date().getFullYear()
-
-    const folder: string = `${kebabize(entity)}/${kebabize(property)}/${dateString}`
-
-    mkdirp.sync(`${STORAGE_PATH}/${folder}`)
-
-    return folder
   }
 }

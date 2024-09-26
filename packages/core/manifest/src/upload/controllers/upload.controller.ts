@@ -6,11 +6,11 @@ import {
   UseInterceptors
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { StorageService } from '../../services/storage.service'
+import { UploadService } from '../services/upload.service'
 
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly storageService: StorageService) {}
+  constructor(private readonly uploadService: UploadService) {}
 
   @Post('/file')
   @UseInterceptors(FileInterceptor('file'))
@@ -20,7 +20,7 @@ export class UploadController {
     @Body('property') property: string
   ): { path: string } {
     return {
-      path: this.storageService.storeFile({
+      path: this.uploadService.storeFile({
         file,
         entity,
         property
@@ -35,7 +35,7 @@ export class UploadController {
     @Body('entity') entity: string,
     @Body('property') property: string
   ): { [key: string]: string } {
-    return this.storageService.storeImage({
+    return this.uploadService.storeImage({
       image,
       entity,
       property
