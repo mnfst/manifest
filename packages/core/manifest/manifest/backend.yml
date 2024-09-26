@@ -13,7 +13,8 @@ entities:
       - {
           name: photo2,
           type: image,
-          options: { sizes: { small: { height: 30 } } }
+          options:
+            { sizes: { small: { height: 30, width: 30 }, tiny: { width: 20 } } }
         }
     belongsTo:
       - { name: owner, entity: User }

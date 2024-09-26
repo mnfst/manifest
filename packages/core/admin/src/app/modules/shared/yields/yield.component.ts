@@ -14,6 +14,7 @@ import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
 import { TextYieldComponent } from './text-yield/text-yield.component'
 import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.component'
+import { ImageYieldComponent } from './image-yield/image-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -30,7 +31,8 @@ import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.compo
     TextYieldComponent,
     LabelYieldComponent,
     ProgressBarYieldComponent,
-    LocationYieldComponent
+    LocationYieldComponent,
+    ImageYieldComponent
   ],
   template: `
     <app-text-yield
@@ -91,6 +93,12 @@ import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.compo
       *ngIf="prop.type === PropType.Location"
       [value]="value"
     ></app-location-yield>
+
+    <app-image-yield
+      *ngIf="prop.type === PropType.Image"
+      [value]="value"
+      [sizes]="prop.options?.['sizes']"
+    ></app-image-yield>
   `
 })
 export class YieldComponent {

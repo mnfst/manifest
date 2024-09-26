@@ -2,7 +2,7 @@ import {
   EntityManifest,
   PropType,
   PropertyManifest,
-  ImageSize
+  ImageSizesObject
 } from '@repo/types'
 
 // Default values.
@@ -15,9 +15,7 @@ export const DEFAULT_MAX_MANY_TO_MANY_RELATIONS: number = 5
 
 // Uploads.
 export const STORAGE_PATH: string = 'public/storage'
-export const DEFAULT_IMAGE_SIZES: {
-  [key: string]: ImageSize
-} = {
+export const DEFAULT_IMAGE_SIZES: ImageSizesObject = {
   thumbnail: {
     width: 80,
     height: 80
@@ -25,7 +23,6 @@ export const DEFAULT_IMAGE_SIZES: {
   medium: {
     width: 160,
     height: 160
-    // TODO: Fit ?
   }
 }
 

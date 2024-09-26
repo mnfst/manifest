@@ -28,11 +28,11 @@
 
   <!-- Previously uploaded file -->
   <div
-    *ngIf="value"
+    *ngIf="displayedImage"
     class="has-current-file is-flex is-align-items-center is-justify-content-space-between mt-1 has-background-white-ter pl-1"
   >
-    IMAGE {{ value }}
-    <!-- <case-image [path]="imagePath" className="py-1 is-block"> </case-image> -->
+    <img [src]="displayedImage" />
+
     <span class="file-cta file-remove">
       <a (click)="removeFile()">
         <i class="icon icon-x is-size-5"></i>

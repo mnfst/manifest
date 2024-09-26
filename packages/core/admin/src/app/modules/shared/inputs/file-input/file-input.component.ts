@@ -31,7 +31,6 @@ export class FileInputComponent {
 
   storageBaseUrl = environment.storageBaseUrl
 
-  fileContent: any
   loading: boolean
 
   constructor(
@@ -46,12 +45,12 @@ export class FileInputComponent {
    */
   async onFileInputEvent(): Promise<void> {
     this.loading = true
-    this.fileContent = this.fileInputEl.nativeElement.files.item(0)
+
     return this.uploadService
       .uploadFile({
         entity: this.entitySlug,
         property: this.prop.name,
-        fileContent: this.fileContent
+        fileContent: this.fileInputEl.nativeElement.files.item(0)
       })
       .then(
         (res: { path: string }) => {

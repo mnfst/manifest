@@ -6,7 +6,7 @@ import * as fs from 'fs'
 import * as mkdirp from 'mkdirp'
 import uniqid from 'uniqid'
 import sharp from 'sharp'
-import { EntityManifest, ImageSize, PropertyManifest } from '@repo/types'
+import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
 import { ManifestService } from '../../manifest/services/manifest.service'
 
 @Injectable()
@@ -88,10 +88,8 @@ export class StorageService {
       throw new HttpException('Entity or property not found', 400)
     }
 
-    const imageSizes: {
-      [key: string]: ImageSize
-    } =
-      (propertyManifest.options.sizes as { [key: string]: ImageSize }) ||
+    const imageSizes: ImageSizesObject =
+      (propertyManifest.options.sizes as ImageSizesObject) ||
       DEFAULT_IMAGE_SIZES
 
     const imagePaths: { [key: string]: string } = {}
