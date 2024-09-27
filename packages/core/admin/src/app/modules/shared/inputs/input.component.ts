@@ -77,9 +77,19 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop?.type === PropType.Choice || relationship"
+      *ngIf="
+        prop?.type === PropType.Choice || relationship?.type === 'many-to-one'
+      "
     >
     </app-select-input>
+    <app-multi-select-input
+      [prop]="prop"
+      [relationship]="relationship"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="relationship?.type === 'many-to-many'"
+    ></app-multi-select-input>
     <app-currency-input
       [prop]="prop"
       [value]="value"

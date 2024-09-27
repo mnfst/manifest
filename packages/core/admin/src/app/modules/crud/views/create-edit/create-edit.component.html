@@ -56,16 +56,23 @@
               </div>
               <div
                 class="field mt-2 mb-4"
-                *ngFor="let relationship of entityManifest.belongsTo"
+                *ngFor="let relationship of entityManifest.relationships"
               >
-                <div class="control">
+                <div
+                  class="control"
+                  *ngIf="
+                    relationship.type === 'many-to-one' ||
+                    (relationship.type === 'many-to-many' &&
+                      relationship.owningSide)
+                  "
+                >
                   <app-input
                     [relationship]="relationship"
                     [value]="edit ? item[relationship.name] : null"
                     [errors]="errors[relationship.name]"
                     (valueChanged)="
-                      onChange({
-                        propName: relationship.name,
+                      onRelationChange({
+                        relationship,
                         newValue: $event
                       })
                     "

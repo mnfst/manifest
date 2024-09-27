@@ -23,12 +23,12 @@ export class RelationYieldComponent implements OnInit {
   constructor(private manifestService: ManifestService) {}
 
   @Input() item: any
-  @Input() relation: RelationshipManifest
+  @Input() relationship: RelationshipManifest
 
   ngOnInit(): void {
     this.manifestService
       .getEntityManifest({
-        className: this.relation.entity
+        className: this.relationship.entity
       })
       .then((entityManifest) => {
         this.entityManifest = entityManifest

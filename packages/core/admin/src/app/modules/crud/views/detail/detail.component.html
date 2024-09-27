@@ -32,18 +32,44 @@
           <app-yield [value]="item[prop.name]" [prop]="prop"></app-yield>
         </p>
       </div>
-      <div class="relations" *ngFor="let relation of entityManifest.belongsTo">
-        <p
-          class="is-property-label mb-1 is-uppercase has-text-dark has-text-weight-medium"
+      <div
+        class="relations"
+        *ngFor="let relationship of entityManifest.relationships"
+      >
+        <ng-container
+          *ngIf="
+            relationship.type === 'many-to-one' ||
+            (relationship.type === 'many-to-many' && relationship.owningSide)
+          "
         >
-          {{ relation.name }}
-        </p>
-        <p class="is-property-value">
-          <app-relation-yield
-            [item]="item[relation.name]"
-            [relation]="relation"
-          ></app-relation-yield>
-        </p>
+          <p
+            class="is-property-label mb-1 is-uppercase has-text-dark has-text-weight-medium"
+          >
+            {{ relationship.name }}
+          </p>
+          <p class="is-property-value">
+            <app-relation-yield
+              [item]="item[relationship.name]"
+              [relationship]="relationship"
+              *ngIf="relationship.type === 'many-to-one'"
+            ></app-relation-yield>
+
+            <ng-container *ngIf="relationship.type === 'many-to-many'">
+              <ng-container
+                *ngFor="
+                  let relation of item[relationship.name];
+                  let last = last
+                "
+              >
+                <app-relation-yield
+                  [item]="relation"
+                  [relationship]="relationship"
+                ></app-relation-yield>
+                <ng-container *ngIf="!last">, </ng-container>
+              </ng-container>
+            </ng-container>
+          </p>
+        </ng-container>
       </div>
     </div>
     <div class="table-container">

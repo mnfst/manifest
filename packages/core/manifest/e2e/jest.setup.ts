@@ -36,10 +36,14 @@ beforeAll(async () => {
 
   app = moduleFixture.createNestApplication()
 
-  // Seed the database with the mock data. Admin and Cat entities are seeded.
+  // Seed the database with the mock data.
   const seedService = app.get(SeederService)
   await seedService.seed('admin')
   await seedService.seed('cat')
+  await seedService.seed('university')
+  await seedService.seed('author')
+  await seedService.seed('tag')
+  await seedService.seed('note')
 
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())

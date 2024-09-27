@@ -1,4 +1,4 @@
-import { EntityManifest, PropertyManifest } from '@repo/types'
+import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { ValidationError } from 'class-validator'
 import { typeValidators } from '../records/type-validators'
@@ -12,12 +12,26 @@ export class ValidationService {
    *
    * @param itemDto The item DTO to validate.
    * @param entity The entity manifest to validate against.
+   * @param options Additional options for validation.
    *
    * @returns A promise of an array of validation errors.
    *
    */
-  validate(itemDto: any, entityManifest: EntityManifest): ValidationError[] {
+  validate(
+    itemDto: any,
+    entityManifest: EntityManifest,
+    options?: { isUpdate?: boolean }
+  ): ValidationError[] {
     const errors: ValidationError[] = []
+
+    if (options?.isUpdate) {
+      // Passwords are optional on update.
+      entityManifest.properties
+        .filter((p) => p.type === PropType.Password)
+        .forEach((p) => {
+          p.validation.isOptional = true
+        })
+    }
 
     entityManifest.properties.forEach((propertyManifest: PropertyManifest) => {
       const propValue: any = itemDto[propertyManifest.name]

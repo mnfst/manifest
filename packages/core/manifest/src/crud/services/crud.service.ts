@@ -6,6 +6,8 @@ import {
   NotFoundException
 } from '@nestjs/common'
 
+import { camelize, getRecordKeyByValue } from '@repo/helpers'
+
 import {
   DeleteResult,
   EntityMetadata,
@@ -35,9 +37,10 @@ import {
   DEFAULT_RESULTS_PER_PAGE,
   QUERY_PARAMS_RESERVED_WORDS
 } from '../../constants'
-import { HelperService } from './helper.service'
+
 import { PaginationService } from './pagination.service'
 import { ValidationService } from '../../validation/services/validation.service'
+import { RelationshipService } from '../../entity/services/relationship.service'
 
 @Injectable()
 export class CrudService {
@@ -45,7 +48,8 @@ export class CrudService {
     private readonly entityService: EntityService,
     private readonly manifestService: ManifestService,
     private readonly paginationService: PaginationService,
-    private readonly validationService: ValidationService
+    private readonly validationService: ValidationService,
+    private readonly relationshipService: RelationshipService
   ) {}
 
   /**
@@ -95,7 +99,7 @@ export class CrudService {
     this.loadRelations({
       query,
       entityMetadata,
-      belongsTo: entityManifest.belongsTo,
+      relationships: entityManifest.relationships,
       requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
@@ -196,7 +200,7 @@ export class CrudService {
     this.loadRelations({
       query,
       entityMetadata,
-      belongsTo: entityManifest.belongsTo,
+      relationships: entityManifest.relationships,
       requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
@@ -219,6 +223,13 @@ export class CrudService {
       })
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
+    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
+      await this.relationshipService.fetchRelationItemsFromDto(
+        itemDto,
+        entityManifest.relationships
+          .filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+      )
 
     if (entityManifest.authenticable && itemDto.password) {
       newItem.password = SHA3(newItem.password).toString()
@@ -233,7 +244,7 @@ export class CrudService {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    return entityRepository.insert(newItem)
+    return entityRepository.save({ ...newItem, ...relationItems })
   }
 
   async update(
@@ -252,48 +263,86 @@ export class CrudService {
 
     const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
+    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
+      await this.relationshipService.fetchRelationItemsFromDto(
+        itemDto,
+        entityManifest.relationships
+          .filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+      )
+
     if (!item) {
       throw new NotFoundException('Item not found')
     }
 
-    const itemToSave: BaseEntity = entityRepository.create({
+    const updatedItem: BaseEntity = entityRepository.create({
       ...item,
       ...itemDto
     } as BaseEntity)
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {
-      itemToSave.password = SHA3(itemToSave.password).toString()
+      updatedItem.password = SHA3(updatedItem.password).toString()
     } else if (entityManifest.authenticable && !itemDto.password) {
-      delete itemToSave.password
+      delete updatedItem.password
     }
 
-    // Passwords are optional on update.
-    entityManifest.properties
-      .filter((p) => p.type === PropType.Password)
-      .forEach((p) => {
-        p.validation.isOptional = true
-      })
-
-    const errors = this.validationService.validate(itemToSave, entityManifest)
+    const errors = this.validationService.validate(
+      updatedItem,
+      entityManifest,
+      {
+        isUpdate: true
+      }
+    )
 
     if (errors.length) {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    return entityRepository.save(itemToSave)
+    return entityRepository.save({ ...updatedItem, ...relationItems })
   }
 
+  /**
+   * Deletes an item.
+   *
+   * @param entitySlug the entity slug.
+   * @param id the item id.
+   *
+   * @returns the delete result.
+   */
   async delete(entitySlug: string, id: number): Promise<DeleteResult> {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({
         entitySlug
       })
 
-    const item = await entityRepository.findOne({ where: { id } })
+    const oneToManyRelationships: RelationshipManifest[] = this.manifestService
+      .getEntityManifest({
+        slug: entitySlug
+      })
+      .relationships.filter((r) => r.type === 'one-to-many')
+
+    const item = await entityRepository.findOne({
+      where: { id },
+      relations: oneToManyRelationships.map((r) => r.name)
+    })
 
     if (!item) {
       throw new NotFoundException('Item not found')
+    }
+
+    // Throw an error if the item has related items in a one-to-many relationship.
+    if (oneToManyRelationships.length) {
+      oneToManyRelationships.forEach((relationship: RelationshipManifest) => {
+        const relatedItems = item[relationship.name]
+
+        if (relatedItems.length) {
+          throw new HttpException(
+            `Cannot delete item as it has related ${relationship.name}. Please delete the related items first.`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+      })
     }
 
     return entityRepository.delete(id)
@@ -330,7 +379,7 @@ export class CrudService {
    *
    * @param query the query builder.
    * @param entityMetadata the entity metadata.
-   * @param belongsTo the belongsTo relationships.
+   * @param relationships the relationships.
    * @param requestedRelations the requested relations.
    * @param alias the alias of the entity.
    *
@@ -339,41 +388,38 @@ export class CrudService {
   private loadRelations({
     query,
     entityMetadata,
-    belongsTo,
+    relationships,
     requestedRelations,
     alias = 'entity'
   }: {
     query: SelectQueryBuilder<BaseEntity>
     entityMetadata: EntityMetadata
-    belongsTo: RelationshipManifest[]
+    relationships: RelationshipManifest[]
     requestedRelations?: string[]
     alias?: string
   }): SelectQueryBuilder<BaseEntity> {
     // Get item relations and select only their visible props.
-    entityMetadata.relations.forEach((relation: RelationMetadata) => {
-      const relationshipManifest: RelationshipManifest = belongsTo.find(
-        (belongsTo: RelationshipManifest) =>
-          belongsTo.name === relation.propertyName
+    entityMetadata.relations.forEach((relationMetadata: RelationMetadata) => {
+      const relationshipManifest: RelationshipManifest = relationships.find(
+        (relationship: RelationshipManifest) =>
+          relationship.name === relationMetadata.propertyName
       )
 
-      // Only eager relations are loaded.
+      // Only eager or requested relations are loaded.
       if (
         !relationshipManifest.eager &&
-        !requestedRelations?.includes(relation.propertyName)
+        !requestedRelations?.includes(relationMetadata.propertyName)
       ) {
         return
       }
 
-      const aliasName: string = HelperService.camelCaseTwoStrings(
-        alias,
-        relation.propertyName
-      )
+      const aliasName: string = camelize([alias, relationMetadata.propertyName])
 
-      query.leftJoin(`${alias}.${relation.propertyName}`, aliasName)
+      query.leftJoin(`${alias}.${relationMetadata.propertyName}`, aliasName)
 
       const relationEntityManifest: EntityManifest =
         this.manifestService.getEntityManifest({
-          className: relation.inverseEntityMetadata.targetName
+          className: relationMetadata.inverseEntityMetadata.targetName
         })
 
       query.addSelect(
@@ -386,18 +432,26 @@ export class CrudService {
       // Load relations of relations.
       const relationEntityMetadata: EntityMetadata =
         this.entityService.getEntityMetadata({
-          className: relation.inverseEntityMetadata.targetName
+          className: relationMetadata.inverseEntityMetadata.targetName
         })
 
       if (relationEntityMetadata.relations.length) {
         query = this.loadRelations({
           query,
           entityMetadata: relationEntityMetadata,
-          belongsTo: relationEntityManifest.belongsTo,
-          requestedRelations: requestedRelations?.map(
-            (requestedRelation: string) =>
-              requestedRelation.replace(`${relation.propertyName}.`, '')
-          ),
+          relationships: relationEntityManifest.relationships,
+          requestedRelations: requestedRelations
+            ?.filter(
+              (requestedRelation: string) =>
+                requestedRelation !== relationMetadata.propertyName
+            ) // Remove the current relation from the requested relations to avoid infinite recursion.
+            .map(
+              (requestedRelation: string) =>
+                requestedRelation.replace(
+                  `${relationMetadata.propertyName}.`,
+                  ''
+                ) // Remove the current relation prefix.
+            ),
           alias: aliasName
         })
       }
@@ -443,7 +497,7 @@ export class CrudService {
           )
         }
 
-        const operator: WhereOperator = HelperService.getRecordKeyByValue(
+        const operator: WhereOperator = getRecordKeyByValue(
           whereOperatorKeySuffix,
           suffix
         ) as WhereOperator
@@ -453,10 +507,11 @@ export class CrudService {
           (prop: PropertyManifest) => prop.name === propName && !prop.hidden
         )
 
-        const relation: RelationshipManifest = entityManifest.belongsTo.find(
-          (belongsTo: RelationshipManifest) =>
-            belongsTo.name === propName.split('.')[0]
-        )
+        const relation: RelationshipManifest =
+          entityManifest.relationships.find(
+            (relationship: RelationshipManifest) =>
+              relationship.name === propName.split('.')[0]
+          )
 
         if (!prop && !relation) {
           throw new HttpException(
@@ -468,10 +523,7 @@ export class CrudService {
         let whereKey: string
 
         if (relation) {
-          const aliasName: string = HelperService.camelCaseTwoStrings(
-            'entity',
-            relation.name
-          )
+          const aliasName: string = camelize(['entity', relation.name])
           whereKey = `${aliasName}.${propName.split('.')[1]}`
         } else {
           whereKey = `entity.${propName}`

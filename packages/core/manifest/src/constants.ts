@@ -3,7 +3,10 @@ import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
 // Default values.
 export const DEFAULT_PORT = 1111
 export const DEFAULT_RESULTS_PER_PAGE = 20
+
+// Seeder.
 export const DEFAULT_SEED_COUNT: number = 50
+export const DEFAULT_MAX_MANY_TO_MANY_RELATIONS: number = 5
 
 // Admin entity.
 export const DEFAULT_ADMIN_CREDENTIALS = {
@@ -18,7 +21,8 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   nameSingular: 'admin',
   namePlural: 'admins',
   properties: [],
-  belongsTo: [],
+  relationships: [],
+  belongsToMany: [],
   policies: {
     create: [{ access: 'admin' }],
     read: [{ access: 'admin' }],

@@ -8,6 +8,7 @@
   },
   "setupFilesAfterEnv": ["./jest.setup.ts"],
   "moduleNameMapper": {
-    "^@repo/types$": "<rootDir>/../../types/src"
+    "^@repo/types$": "<rootDir>/../../types/src",
+    "^@repo/helpers$": "<rootDir>/../../helpers/src"
   }
 }

@@ -1,26 +1,6 @@
 {
-  "name": "@mnfst/admin",
-  "version": "0.1.0-beta",
-  "homepage": "https://manifest.build",
-  "keywords": [
-    "admin",
-    "panel",
-    "dashboard",
-    "backend",
-    "api",
-    "mnfst",
-    "manifest",
-    "baas",
-    "backend-as-a-service"
-  ],
+  "name": "@repo/admin",
   "description": "Official Manifest admin panel",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mnfst/manifest.git"
-  },
-  "bugs": {
-    "url": "https://github.com/mnfst/manifest/issues"
-  },
   "files": [
     "dist/"
   ],
@@ -31,10 +11,9 @@
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development"
   },
-  "private": false,
-  "license": "MIT",
   "dependencies": {
     "@repo/types": "*",
+    "@repo/helpers": "*",
     "@angular/animations": "^17.3.1",
     "@angular/common": "^17.3.1",
     "@angular/compiler": "^17.3.1",
