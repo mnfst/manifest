@@ -1,7 +1,7 @@
 import { INestApplicationContext } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from '../app.module'
-import { SeederService } from './seeder.service'
+import { AppModule } from '../../app.module'
+import { SeederService } from '../services/seeder.service'
 
 async function bootstrap() {
   NestFactory.createApplicationContext(AppModule, {

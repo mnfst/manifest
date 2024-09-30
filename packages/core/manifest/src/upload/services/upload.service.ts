@@ -1,11 +1,8 @@
 import { HttpException, Injectable } from '@nestjs/common'
 import { StorageService } from '../../storage/services/storage/storage.service'
 
-import uniqid from 'uniqid'
-import sharp from 'sharp'
 import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
 
-import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../constants'
 import { ManifestService } from '../../manifest/services/manifest.service'
 
 @Injectable()
@@ -44,13 +41,6 @@ export class UploadService {
       )
     }
 
-    const folder: string = this.storageService.createUploadFolder(
-      entity,
-      property
-    )
-
-    const filePath: string = `${folder}/${uniqid()}-${file.originalname}`
-
     return this.storageService.store(entity, property, file)
   }
 
@@ -74,47 +64,34 @@ export class UploadService {
       )
     }
 
-    const folder: string = this.storageService.createUploadFolder(
-      entity,
-      property
-    )
-    const uniqueName: string = uniqid()
-
-    // Get custom image sizes.
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
         slug: entity
       })
 
-    const propertyManifest: PropertyManifest = entityManifest?.properties.find(
-      (prop) => prop.name === property
+    const propertyManifest: PropertyManifest = entityManifest.properties.find(
+      (prop: PropertyManifest) => prop.name === property
     )
 
     if (!propertyManifest) {
-      throw new HttpException('Entity or property not found', 400)
+      throw new HttpException(
+        `Property ${property} does not exist on entity ${entity}`,
+        400
+      )
     }
 
-    const imageSizes: ImageSizesObject =
-      (propertyManifest.options.sizes as ImageSizesObject) ||
-      DEFAULT_IMAGE_SIZES
+    if (propertyManifest.type !== 'image') {
+      throw new HttpException(
+        `Property ${property} is not an image property`,
+        400
+      )
+    }
 
-    const imagePaths: { [key: string]: string } = {}
-
-    Object.keys(imageSizes).forEach((sizeName: string) => {
-      const imagePath: string = `${folder}/${uniqueName}-${sizeName}.jpg`
-
-      sharp(image.buffer)
-        .jpeg({ quality: 80 })
-        .resize(imageSizes[sizeName].width, imageSizes[sizeName].height, {
-          fit: imageSizes[sizeName].fit
-        })
-        .toFile(`${STORAGE_PATH}/${imagePath}`, () => {
-          return imagePath
-        })
-
-      imagePaths[sizeName] = imagePath
-    })
-
-    return imagePaths
+    return this.storageService.storeImage(
+      entity,
+      property,
+      image,
+      propertyManifest.options.sizes as ImageSizesObject
+    )
   }
 }

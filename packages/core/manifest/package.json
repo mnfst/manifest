@@ -30,7 +30,7 @@
     "dev": "nodemon",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/manifest/main",
-    "seed": "node dist/manifest/src/seed/seed.js",
+    "seed": "node dist/manifest/src/seed/scripts/seed.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "npm run test:unit && npm run test:e2e",
     "test:ci": "npm run test:unit:ci && npm run test:e2e:ci",

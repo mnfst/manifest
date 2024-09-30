@@ -19,7 +19,7 @@ import { OpenApiModule } from './open-api/open-api.module'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { ValidationModule } from './validation/validation.module'
 import { UploadModule } from './upload/upload.module'
-import { StorageModule } from './storage/storage.module';
+import { StorageModule } from './storage/storage.module'
 
 @Module({
   imports: [

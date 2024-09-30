@@ -13,6 +13,7 @@ export const DEFAULT_RESULTS_PER_PAGE: number = 20
 export const DEFAULT_SEED_COUNT: number = 50
 export const DEFAULT_MAX_MANY_TO_MANY_RELATIONS: number = 5
 export const DUMMY_FILE_NAME: string = 'dummy-invoice.pdf'
+export const DUMMY_IMAGE_NAME: string = 'dummy-image.jpg'
 
 // Uploads.
 export const STORAGE_PATH: string = 'public/storage'
