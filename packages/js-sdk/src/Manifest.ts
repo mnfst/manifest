@@ -313,4 +313,65 @@ export default class Manifest {
       body: body ? JSON.stringify(body) : undefined,
     }).then((res) => res.json())
   }
+
+  /**
+   * Upload a file to the entity.
+   *
+   * @param property The property of the entity to upload the file to.
+   * @param file The file to upload.
+   *
+   * @returns true if the upload was successful.
+   */
+  async upload(property: string, file: Blob): Promise<boolean> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('entity', this.slug)
+    formData.append('property', property)
+
+    console.log('formData', formData, `${this.baseUrl}/upload/file`)
+
+    await fetch(`${this.baseUrl}/upload/file`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: this.headers['Authorization'],
+      },
+    }).catch((err) => {
+      console.error(err)
+      return {}
+    })
+
+    return true
+  }
+
+  /**
+   * Upload an image to the entity.
+   *
+   * @param property The property of the entity to upload the image to.
+   * @param image The image to upload.
+   *
+   * @returns an object containing the path of the uploaded image in different sizes.
+   * */
+  async uploadImage(
+    property: string,
+    image: Blob,
+  ): Promise<{ [key: string]: string }> {
+    const formData = new FormData()
+    formData.append('image', image)
+    formData.append('entity', this.slug)
+    formData.append('property', property)
+
+    return fetch(`${this.baseUrl}/upload/image`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: this.headers['Authorization'],
+      },
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err)
+        return {}
+      })
+  }
 }
