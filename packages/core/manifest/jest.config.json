@@ -5,6 +5,7 @@
   },
   "moduleNameMapper": {
     "^@repo/types$": "<rootDir>/../types/src",
-    "^@repo/helpers$": "<rootDir>/../helpers/src"
+    "^@repo/helpers$": "<rootDir>/../helpers/src",
+    "^@repo/json-schema$": "<rootDir>/../json-schema/src"
   }
 }
