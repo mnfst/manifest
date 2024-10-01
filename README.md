@@ -50,7 +50,7 @@ entities:
 ```
 
 > [!NOTE]  
-> Manifest is on BETA. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+> Manifest is on BETA. We would love to have your feedback! If something does not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know through [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
 
 ## Key features
 
@@ -89,7 +89,7 @@ Our mission is to enable developers of all experience levels to create and share
 
 ## Contributors
 
-Thanks to our first wonderful contributors !
+Thanks to our first wonderful contributors!
 
 <a href="https://github.com/mnfst/manifest/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=mnfst/manifest" />
