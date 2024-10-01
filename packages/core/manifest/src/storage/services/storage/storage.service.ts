@@ -54,8 +54,6 @@ export class StorageService {
 
     const imagePaths: { [key: string]: string } = {}
 
-    console.log(imageSizes)
-
     Object.keys(imageSizes || DEFAULT_IMAGE_SIZES).forEach(
       (sizeName: string) => {
         const imagePath: string = `${folder}/${uniqueName}-${sizeName}.jpg`

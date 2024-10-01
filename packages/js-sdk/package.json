@@ -45,7 +45,8 @@
     "url": "https://github.com/casejs/case-client/issues"
   },
   "dependencies": {
-    "@repo/types": "*"
+    "@repo/types": "*",
+    "@repo/helpers": "*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

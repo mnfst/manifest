@@ -1,5 +1,6 @@
 import fetchMock from 'fetch-mock'
 import Manifest from '../src/Manifest'
+import { base64ToBlob } from '@repo/helpers'
 
 describe('Upload', () => {
   const baseUrl: string = 'http://localhost:1111/api'
@@ -10,7 +11,7 @@ describe('Upload', () => {
 
   it('should upload a file', async () => {
     const file = new Blob(['Hello, this is a test file!'], {
-      type: 'text/plain',
+      type: 'text/plain'
     })
 
     // TODO: Ensure that the FormData object is in the correct format.
@@ -19,8 +20,8 @@ describe('Upload', () => {
       method: 'POST',
       response: {
         status: 200,
-        body: true,
-      },
+        body: true
+      }
     })
 
     const manifest = new Manifest()
@@ -40,8 +41,8 @@ describe('Upload', () => {
       method: 'POST',
       response: {
         status: 200,
-        body: true,
-      },
+        body: true
+      }
     })
 
     const manifest = new Manifest()
@@ -50,23 +51,3 @@ describe('Upload', () => {
     expect(response).toEqual(true)
   })
 })
-
-// Helper function to convert base64 to Blob
-function base64ToBlob(base64: string, contentType: string): Blob {
-  const byteCharacters = atob(base64)
-  const byteArrays: Uint8Array[] = []
-
-  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512)
-    const byteNumbers = new Array(slice.length)
-
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i)
-    }
-
-    const byteArray = new Uint8Array(byteNumbers)
-    byteArrays.push(byteArray)
-  }
-
-  return new Blob(byteArrays, { type: contentType })
-}

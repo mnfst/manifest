@@ -10,12 +10,6 @@ entities:
       - { name: hiddenProp, type: boolean, hidden: true }
       - { name: certificate, type: file }
       - { name: photo, type: image }
-      - {
-          name: photo2,
-          type: image,
-          options:
-            { sizes: { small: { height: 30, width: 30 }, tiny: { width: 20 } } }
-        }
     belongsTo:
       - { name: owner, entity: User }
     policies:
