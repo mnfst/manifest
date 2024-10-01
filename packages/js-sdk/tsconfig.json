@@ -11,7 +11,8 @@
     "strict": true,
     "skipLibCheck": true,
     "paths": {
-      "@repo/types": ["../core/types/src"]
+      "@repo/types": ["../core/types/src"],
+      "@repo/helpers": ["../core/helpers/src"]
     }
   },
   "include": ["src"],

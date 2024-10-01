@@ -155,9 +155,13 @@ export function getSmallestImageSize(
 ): string {
   return Object.keys(imageSizesObject).reduce(
     (smallestSize: string, currentSize: string) => {
+      const currentImageSize = imageSizesObject?.[currentSize]
+      const smallestImageSize = imageSizesObject?.[smallestSize]
+
       if (
-        imageSizesObject[currentSize].width <
-        imageSizesObject[smallestSize].width
+        currentImageSize?.width !== undefined &&
+        smallestImageSize?.width !== undefined &&
+        currentImageSize.width < smallestImageSize.width
       ) {
         return currentSize
       }
