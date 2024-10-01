@@ -10,7 +10,7 @@ import { getSmallestImageSize } from '@repo/helpers'
   standalone: true,
   imports: [NgIf],
   template: `
-    <img [src]="image" alt="image" *ngIf="image" />
+    <img [src]="image" alt="image" *ngIf="image" width="36" height="36" />
     <span *ngIf="!image">-</span>
   `
 })
