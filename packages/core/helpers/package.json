@@ -1,6 +1,8 @@
 {
   "name": "@repo/helpers",
   "scripts": {
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "lint": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
   }
 }

@@ -14,7 +14,9 @@
     "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
     "prepare": "npm run build",
-    "version": "oclif readme && git add README.md"
+    "version": "oclif readme && git add README.md",
+    "lint": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "oclif": {
     "bin": "add-manifest",

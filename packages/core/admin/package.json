@@ -9,7 +9,9 @@
     "start": "ng serve",
     "dev": "ng serve",
     "build": "ng build --configuration production && cp -r ./dist ../manifest/dist/admin",
-    "watch": "ng build --watch --configuration development"
+    "watch": "ng build --watch --configuration development",
+    "lint": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
     "@angular/animations": "^17.3.1",

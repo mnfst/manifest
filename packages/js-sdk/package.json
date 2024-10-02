@@ -11,7 +11,9 @@
     "dev": "tsc -w",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/add-extensions.cjs",
     "test:ci": "jest --ci",
-    "prepare": "ts-patch install -s"
+    "prepare": "ts-patch install -s",
+    "lint": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "files": [
     "dist/",

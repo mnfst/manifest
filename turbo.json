@@ -28,6 +28,12 @@
       "persistent": true,
       "cache": false
     },
-    "test": {}
+    "test": {},
+    "lint": {
+      "outputs": []
+    },
+    "lint:fix": {
+      "outputs": []
+    }
   }
 }

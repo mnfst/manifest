@@ -5,12 +5,15 @@
     "build": "npx turbo run build",
     "dev": "npx turbo run dev",
     "test": "npx turbo run test",
-    "seed": "cd packages/core/manifest && npm run seed"
+    "seed": "cd packages/core/manifest && npm run seed",
+    "lint": "npx turbo run lint",
+    "lint:fix": "npx turbo run lint:fix"
   },
   "workspaces": [
     "packages/**/*"
   ],
   "devDependencies": {
+    "prettier": "^3.3.3",
     "turbo": "^2.1.1"
   },
   "packageManager": "npm@10.7.0"
