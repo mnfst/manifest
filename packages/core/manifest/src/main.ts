@@ -1655,7 +1655,7 @@ background: #ce107c;
 
  .swagger-ui .opblock.opblock-post .opblock-summary-method {
    background: transparent;
-   color: #AD7A03;  
+   color: #AD7A03;
  }
 
  .swagger-ui .opblock.opblock-post .opblock-summary {

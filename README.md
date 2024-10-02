@@ -15,6 +15,7 @@
   <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
   <a href="https://discord.com/invite/FepAked3W7" target="_blank"><img alt="Discord" src="https://img.shields.io/discord/1089907785178812499?label=discord"></a>
   <a href="https://opencollective.com/mnfst"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://www.codetriage.com/mnfst/manifest" target="_blank"><img alt="CodeTriage" src="https://www.codetriage.com/mnfst/manifest/badges/users.svg"></a>
   <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
   <br>
 </p>
@@ -49,7 +50,7 @@ entities:
 ```
 
 > [!NOTE]  
-> Manifest is on BETA. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+> Manifest is on BETA. We would love to have your feedback! If something does not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know through [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
 
 ## Key features
 
@@ -88,7 +89,7 @@ Our mission is to enable developers of all experience levels to create and share
 
 ## Contributors
 
-Thanks to our first wonderful contributors !
+Thanks to our first wonderful contributors!
 
 <a href="https://github.com/mnfst/manifest/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=mnfst/manifest" />
