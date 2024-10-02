@@ -95,7 +95,8 @@ export class MyCommand extends Command {
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',
-          'manifest:seed': 'node node_modules/manifest/dist/seed/seed.js'
+          'manifest:seed':
+            'node node_modules/manifest/dist/seed/scripts/seed.js'
         }
       })
     )

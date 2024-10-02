@@ -73,5 +73,8 @@ export const typeValidators: Record<
     typeof value.lng !== 'undefined' &&
     isLatLong(`${value.lat},${value.lng}`)
       ? null
-      : 'The value must be a valid latitude and longitude'
+      : 'The value must be a valid latitude and longitude',
+
+  [PropType.File]: (value: string) => null, // TODO: Type validators for files
+  [PropType.Image]: (value: string) => null // TODO: Type validators for images
 }

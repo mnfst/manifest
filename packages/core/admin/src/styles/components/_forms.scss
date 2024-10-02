@@ -19,7 +19,7 @@
   color: $input-placeholder-color !important;
 }
 
-input[type="datetime-local"] {
+input[type='datetime-local'] {
   display: block;
   padding-right: 12px;
 }
@@ -118,7 +118,6 @@ case-select-input {
       box-shadow: $checkbox-box-shadow-width $input-disabled-border-color inset;
     }
   }
-
 }
 
 // Checkbox & radio
@@ -148,9 +147,14 @@ case-select-input {
 
 // File
 .file-cta {
-
   &.file-remove {
     border: 0;
+
+    a {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   @each $name, $pair in $colors {
@@ -207,7 +211,6 @@ label.radio {
   &:hover input.is-checked ~ .checkmark {
     box-shadow: $checkbox-box-shadow-width $link inset;
   }
-
 
   &.is-disabled {
     cursor: not-allowed;

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { SchemaService } from './schema.service'
 import { YamlService } from './yaml.service'
-import { AUTHENTICABLE_PROPS } from '../../constants'
+import { AUTHENTICABLE_PROPS, DEFAULT_IMAGE_SIZES } from '../../constants'
 
 import {
   AppManifest,
@@ -449,7 +449,11 @@ export class ManifestService {
       name: propSchema.name,
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
-      options: propSchema.options,
+      options:
+        propSchema.options ||
+        (propSchema.type === PropType.Image
+          ? { sizes: DEFAULT_IMAGE_SIZES }
+          : {}),
       validation: Object.assign(
         entitySchema.validation?.[propSchema.name] || {},
         propSchema.validation

@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.manifest.build/definitions/property-options/money-options-schema.json",
   "title": "Money Options Schema",
+  "description": "Specific options for the \"Money\" property type. Doc: https://manifest.build/docs/properties#money",
   "type": "object",
   "properties": {
     "currency": {

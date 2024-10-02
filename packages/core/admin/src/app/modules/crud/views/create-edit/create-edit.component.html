@@ -43,6 +43,7 @@
                 <div class="control">
                   <app-input
                     [prop]="prop"
+                    [entityManifest]="entityManifest"
                     [value]="edit ? item[prop.name] : null"
                     [errors]="errors[prop.name]"
                     (valueChanged)="

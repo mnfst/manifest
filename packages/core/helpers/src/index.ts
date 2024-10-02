@@ -1,5 +1,5 @@
 // src/index.ts
-import { RelationshipManifest } from '@repo/types'
+import { ImageSizesObject, RelationshipManifest } from '@repo/types'
 
 /**
  * Get record key by its value.
@@ -38,6 +38,20 @@ export function camelize(str: string | string[]): string {
       )
       .join('')
   )
+}
+
+/**
+ * Kebabize a string.
+ *
+ * @param str The string to kebabize.
+ *
+ * @returns The kebabized string.
+ */
+export function kebabize(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/\s+/g, '-')
+    .toLowerCase()
 }
 
 /**
@@ -127,4 +141,50 @@ export function forceNumberArray(
   }
 
   return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
+}
+
+/**
+ * Get the smallest size from an ImageSizesObject based on the width.
+ *
+ * @param imageSizesObject The ImageSizesObject.
+ *
+ * @returns The smallest size name.
+ */
+export function getSmallestImageSize(
+  imageSizesObject: ImageSizesObject
+): string {
+  return Object.keys(imageSizesObject).reduce(
+    (smallestSize: string, currentSize: string) => {
+      const currentImageSize = imageSizesObject?.[currentSize]
+      const smallestImageSize = imageSizesObject?.[smallestSize]
+
+      if (
+        currentImageSize?.width !== undefined &&
+        smallestImageSize?.width !== undefined &&
+        currentImageSize.width < smallestImageSize.width
+      ) {
+        return currentSize
+      }
+      return smallestSize
+    }
+  )
+}
+
+export function base64ToBlob(base64: string, contentType: string): Blob {
+  const byteCharacters = atob(base64)
+  const byteArrays: Uint8Array[] = []
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512)
+    const byteNumbers = new Array(slice.length)
+
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
+    }
+
+    const byteArray = new Uint8Array(byteNumbers)
+    byteArrays.push(byteArray)
+  }
+
+  return new Blob(byteArrays, { type: contentType })
 }

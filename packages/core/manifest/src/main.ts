@@ -38,8 +38,9 @@ async function bootstrap() {
   }
 
   const adminPanelFolder: string = configService.get('paths').adminPanelFolder
-
   app.use(express.static(adminPanelFolder))
+
+  app.use('/storage', express.static('public/storage'))
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {

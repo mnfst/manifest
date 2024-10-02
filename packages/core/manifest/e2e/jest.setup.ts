@@ -7,7 +7,7 @@ import { load } from 'js-yaml'
 import fs from 'fs'
 import { SwaggerModule } from '@nestjs/swagger'
 import { OpenApiService } from '../src/open-api/services/open-api.service'
-import { SeederService } from '../src/seed/seeder.service'
+import { SeederService } from '../src/seed/services/seeder.service'
 
 let app: INestApplication
 

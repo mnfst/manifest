@@ -8,7 +8,7 @@ export default class Manifest {
 
   private slug: string
   private headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   }
   private queryParams: { [key: string]: string } = {}
 
@@ -52,13 +52,13 @@ export default class Manifest {
         path: `/dynamic/${this.slug}`,
         queryParams: {
           ...this.queryParams,
-          ...paginationParams,
-        },
+          ...paginationParams
+        }
       })
     } else {
       return this.fetch({
         path: `/dynamic/${this.slug}`,
-        queryParams: this.queryParams,
+        queryParams: this.queryParams
       })
     }
   }
@@ -74,7 +74,7 @@ export default class Manifest {
    **/
   async findOneById<T>(id: number): Promise<T> {
     return this.fetch({
-      path: `/dynamic/${this.slug}/${id}`,
+      path: `/dynamic/${this.slug}/${id}`
     })
   }
 
@@ -89,7 +89,7 @@ export default class Manifest {
     const response = await this.fetch({
       path: `/dynamic/${this.slug}`,
       method: 'POST',
-      body: itemDto,
+      body: itemDto
     })
 
     const createdItemId: number = response.identifiers[0].id
@@ -110,7 +110,7 @@ export default class Manifest {
     await this.fetch({
       path: `/dynamic/${this.slug}/${id}`,
       method: 'PUT',
-      body: itemDto,
+      body: itemDto
     })
 
     return this.findOneById(id)
@@ -128,7 +128,7 @@ export default class Manifest {
   async delete(id: number): Promise<number> {
     return this.fetch({
       path: `/dynamic/${this.slug}/${id}`,
-      method: 'DELETE',
+      method: 'DELETE'
     }).then(() => id)
   }
 
@@ -146,14 +146,14 @@ export default class Manifest {
     const whereOperator: WhereOperator = Object.values(WhereOperator)
       .reverse()
       .find((operator) =>
-        whereClause.includes(` ${operator} `),
+        whereClause.includes(` ${operator} `)
       ) as WhereOperator
 
     if (!whereOperator) {
       throw new Error(
         `Invalid where clause. Where clause must include one of the following operators: ${Object.values(
-          WhereOperator,
-        ).join(', ')}.`,
+          WhereOperator
+        ).join(', ')}.`
       )
     }
 
@@ -221,15 +221,15 @@ export default class Manifest {
   async login(
     entitySlug: string,
     email: string,
-    password: string,
+    password: string
   ): Promise<boolean> {
     const response: { token: string } = await this.fetch({
       path: `/auth/${entitySlug}/login`,
       method: 'POST',
       body: {
         email,
-        password,
-      },
+        password
+      }
     })
 
     this.headers['Authorization'] = `Bearer ${response.token}`
@@ -259,15 +259,15 @@ export default class Manifest {
   async signup(
     entitySlug: string,
     email: string,
-    password: string,
+    password: string
   ): Promise<any> {
     const response: { token: string } = await this.fetch({
       path: `/auth/${entitySlug}/signup`,
       method: 'POST',
       body: {
         email,
-        password,
-      },
+        password
+      }
     })
 
     this.headers['Authorization'] = `Bearer ${response.token}`
@@ -284,7 +284,7 @@ export default class Manifest {
    */
   async me(): Promise<any> {
     return this.fetch({
-      path: `/auth/${this.slug}/me`,
+      path: `/auth/${this.slug}/me`
     })
   }
 
@@ -292,7 +292,7 @@ export default class Manifest {
     path,
     method,
     body,
-    queryParams,
+    queryParams
   }: {
     path: string
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -310,7 +310,66 @@ export default class Manifest {
     return fetch(url.toString(), {
       headers: this.headers,
       method: method || 'GET',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : undefined
     }).then((res) => res.json())
+  }
+
+  /**
+   * Upload a file to the entity.
+   *
+   * @param property The property of the entity to upload the file to.
+   * @param file The file to upload.
+   *
+   * @returns true if the upload was successful.
+   */
+  async upload(property: string, file: Blob): Promise<boolean> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('entity', this.slug)
+    formData.append('property', property)
+
+    await fetch(`${this.baseUrl}/upload/file`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: this.headers['Authorization']
+      }
+    }).catch((err) => {
+      console.error(err)
+      return {}
+    })
+
+    return true
+  }
+
+  /**
+   * Upload an image to the entity.
+   *
+   * @param property The property of the entity to upload the image to.
+   * @param image The image to upload.
+   *
+   * @returns an object containing the path of the uploaded image in different sizes.
+   * */
+  async uploadImage(
+    property: string,
+    image: Blob
+  ): Promise<{ [key: string]: string }> {
+    const formData = new FormData()
+    formData.append('image', image)
+    formData.append('entity', this.slug)
+    formData.append('property', property)
+
+    return fetch(`${this.baseUrl}/upload/image`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: this.headers['Authorization']
+      }
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err)
+        return {}
+      })
   }
 }

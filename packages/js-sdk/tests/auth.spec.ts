@@ -6,7 +6,7 @@ describe('Auth', () => {
 
   const credentials = {
     email: 'admin@manifest.build',
-    password: 'admin',
+    password: 'admin'
   }
   const token: string = '12345'
 
@@ -21,11 +21,11 @@ describe('Auth', () => {
         method: 'POST',
         body: credentials,
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       },
       {
-        token: token,
+        token: token
       }
     )
 
@@ -46,11 +46,11 @@ describe('Auth', () => {
         method: 'POST',
         body: credentials,
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       },
       {
-        token: token,
+        token: token
       }
     )
 
@@ -64,7 +64,7 @@ describe('Auth', () => {
     const manifest = new Manifest()
     manifest['headers']['Authorization'] = `Bearer ${token}`
 
-    await manifest.logout()
+    manifest.logout()
 
     expect(manifest['headers']['Authorization']).toBeUndefined()
   })
@@ -76,11 +76,11 @@ describe('Auth', () => {
         method: 'POST',
         body: credentials,
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       },
       {
-        token: token,
+        token: token
       }
     )
 
@@ -101,11 +101,11 @@ describe('Auth', () => {
         url: `${baseUrl}/users/me`,
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       },
       {
-        email: credentials.email,
+        email: credentials.email
       }
     )
 
