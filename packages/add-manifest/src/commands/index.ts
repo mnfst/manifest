@@ -91,12 +91,12 @@ export class MyCommand extends Command {
       updatePackageJsonFile({
         fileContent: packageJson,
         newPackages: {
-          manifest: '^4.0.0-beta'
+          manifest: '^4.0.1'
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',
           'manifest:seed':
-            'node node_modules/manifest/dist/seed/scripts/seed.js'
+            'node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js'
         }
       })
     )

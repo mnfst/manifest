@@ -8,12 +8,10 @@
     "ng": "ng",
     "start": "ng serve",
     "dev": "ng serve",
-    "build": "ng build --configuration production",
+    "build": "ng build --configuration production && cp -r ./dist ../manifest/dist/admin",
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {
-    "@repo/types": "*",
-    "@repo/helpers": "*",
     "@angular/animations": "^17.3.1",
     "@angular/common": "^17.3.1",
     "@angular/compiler": "^17.3.1",

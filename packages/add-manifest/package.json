@@ -1,8 +1,8 @@
 {
   "name": "add-manifest",
-  "version": "0.1.0-beta",
+  "version": "1.0.0",
   "author": "Manifest",
-  "description": "Add Manifest backend to your app",
+  "description": "Add Manifest backend",
   "homepage": "https://manifest.build",
   "license": "MIT",
   "bin": {
@@ -30,7 +30,7 @@
     "topicSeparator": " ",
     "topics": {
       "create": {
-        "description": "Add Manifest backend to your app"
+        "description": "Add Manifest backend"
       }
     }
   },

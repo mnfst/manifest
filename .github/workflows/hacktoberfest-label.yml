@@ -1,0 +1,16 @@
+name: Add "hacktoberfest-accepted" label to merged PRs
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  add-label:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Add 'hacktoberfest-accepted' label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: 'hacktoberfest-accepted'
