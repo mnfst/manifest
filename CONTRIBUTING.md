@@ -13,8 +13,11 @@ There are several ways to contribute to Manifest other than developing:
 - 🐛 Report a bug using [GitHub issues](https://github.com/mnfst/manifest/issues/new?assignees=SebConejo&labels=bug&projects=&template=%F0%9F%90%9B-bug-report.md&title=)
 - ✨ Suggest an enhancement using [GitHub discussions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
 - 🪶 Correct or improve the doc in its [own repository](https://github.com/mnfst/docs/issues/new)
+- 🔧 To work on issues, first check out our [Good First Issue](https://github.com/mnfst/manifest/labels/good%20first%20issue).
 
 Otherwise, you also can offer your help by talking to a team member on our [Discord](https://discord.com/invite/FepAked3W7) 🤗.
+
+
 
 ## Packages and repositories
 
@@ -25,10 +28,10 @@ Manifest is a set of several packages and [repositories](https://github.com/orgs
 | Name           | Description                                | Stack                      | Repo                                          | Package                                                    |
 | -------------- | ------------------------------------------ | -------------------------- | --------------------------------------------- | ---------------------------------------------------------- |
 | Manifest       | Manifest core                              | NestJS / Express / TypeORM | [manifest](https://github.com/mnfst/manifest) | [manifest](https://www.npmjs.com/package/manifest)         |
-| Manifest Admin | Official Admin Panel                       | Angular                    | [manifest](https://github.com/mnfst/manifest) | [@mnfst/admin](https://www.npmjs.com/package/@mnfst/admin) |
-| Manifest Types | Utility types                              | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | [@mnfst/types](https://www.npmjs.com/package/@mnfst/types) |
+| Manifest Admin | Official Admin Panel                       | Angular                    | [manifest](https://github.com/mnfst/manifest) | -                                                          |
 | Add Manifest   | NPX install script                         | OCLIF                      | [manifest](https://github.com/mnfst/manifest) | [add-manifest](https://www.npmjs.com/package/add-manifest) |
-| JS SDK         | JavaScript SDK                             | TypeScript                 | [js-sdk](https://github.com/mnfst/js-sdk)     | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)     |
+| JS SDK         | JavaScript SDK                             | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)     |
+| Manifest Types | Utility types                              | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | -                                                          |
 | Website        | Official website: https://manifest.build   | NextJS                     | [website](https://github.com/mnfst/website)   | -                                                          |
 | Docs           | Documentation: https://manifest.build/docs | Markdown / Docusaurus      | [docs](https://github.com/mnfst/docs)         | -                                                          |
 
@@ -68,5 +71,33 @@ When contributing, please follow this branch naming convention:
 - `hotfix/x` branches create a hotfix and the PR should be done to the `master` branch
 
 This rule applies to all repositories.
+
+### Getting started
+
+From the root of the repository, run:
+
+```
+npm install
+npm install --workspaces
+
+npm run dev
+```
+
+Then you can play around with your [backend.yml](https://manifest.build/docs/manifest-file) file at `packages/core/manifest/manifest/backend.yml` and see the results:
+
+- Admin panel `http://localhost:4200`
+- API Doc `http://localhost:3000/api`
+
+Don't forget to seed to generate an _admin_ user and dummy data:
+
+```
+npm run seed
+```
+
+### Test
+
+```
+npm run test
+```
 
 **Happy coding!** 🤗

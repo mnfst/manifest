@@ -12,7 +12,7 @@ import {
   UseGuards
 } from '@nestjs/common'
 
-import { BaseEntity, Paginator, SelectOption } from '@mnfst/types'
+import { BaseEntity, Paginator, SelectOption } from '@repo/types'
 import { DeleteResult, InsertResult } from 'typeorm'
 import { CrudService } from '../services/crud.service'
 import { AuthService } from '../../auth/auth.service'

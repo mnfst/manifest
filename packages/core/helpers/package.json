@@ -1,0 +1,6 @@
+{
+  "name": "@repo/helpers",
+  "scripts": {
+    "build": "tsc --noEmit"
+  }
+}

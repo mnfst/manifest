@@ -1,22 +1,18 @@
-import {
-  EntityManifest,
-  PropertyManifest,
-  RelationshipManifest
-} from '@mnfst/types'
+import { EntityManifest, PropertyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
-import {
-  EntitySchema,
-  EntitySchemaColumnOptions,
-  EntitySchemaRelationOptions
-} from 'typeorm'
+import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { baseEntity } from '../core-entities/base-entity'
 import { propTypeColumnTypes } from '../records/prop-type-column-types'
 import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
+import { RelationshipService } from './relationship.service'
 
 @Injectable()
 export class EntityLoaderService {
-  constructor(private manifestService: ManifestService) {}
+  constructor(
+    private manifestService: ManifestService,
+    private relationshipService: RelationshipService
+  ) {}
 
   /**
    * Load entities from YML file and convert into TypeORM entities.
@@ -53,23 +49,10 @@ export class EntityLoaderService {
               ? { ...baseAuthenticableEntity }
               : { ...baseEntity }
           ) as { [key: string]: EntitySchemaColumnOptions },
-
-          // Convert belongsTo relationships to many-to-one relations.
-          relations: entityManifest.belongsTo.reduce(
-            (
-              acc: { [key: string]: EntitySchemaRelationOptions },
-              belongsToRelationShip: RelationshipManifest
-            ) => {
-              acc[belongsToRelationShip.name] = {
-                target: belongsToRelationShip.entity,
-                type: 'many-to-one',
-                eager: !!belongsToRelationShip.eager
-              }
-
-              return acc
-            },
-            {}
-          ),
+          relations:
+            this.relationshipService.getEntitySchemaRelationOptions(
+              entityManifest
+            ),
           uniques: entityManifest.authenticable ? [{ columns: ['email'] }] : []
         })
 

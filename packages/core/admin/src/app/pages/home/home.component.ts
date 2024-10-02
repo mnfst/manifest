@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core'
-import { AppManifest, EntityManifest } from '@mnfst/types'
+import { AppManifest, EntityManifest } from '@repo/types'
 import { BreadcrumbService } from '../../modules/shared/services/breadcrumb.service'
 import { ManifestService } from '../../modules/shared/services/manifest.service'
 

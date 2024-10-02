@@ -1,24 +1,33 @@
 name: My pet app
 
 entities:
-  😺 Cat:
+  Cat 😺:
     properties:
       - name
-      - { name: age, type: number }
+      - { name: age, type: number, validation: { min: 3 } }
       - { name: birthdate, type: date }
       - { name: aquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }
+      - { name: certificate, type: file }
+      - { name: photo, type: image }
     belongsTo:
       - { name: owner, entity: User }
     policies:
-      read:
-        - access: restricted
       create:
         - access: public
       update:
         - { access: public }
       delete:
         - { access: 🔒, allow: [User] }
+    validation:
+      age: { min: 20 } # Gets overridden by the property definition.
+
+  Food:
+    properties:
+      - name
+      - { name: expirationDate, type: date }
+    belongsToMany:
+      - { name: cats, entity: Cat }
 
   User:
     authenticable: true

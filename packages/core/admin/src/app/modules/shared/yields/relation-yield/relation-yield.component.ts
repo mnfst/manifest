@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
 import { RouterModule } from '@angular/router'
-import { EntityManifest, RelationshipManifest } from '@mnfst/types'
+import { EntityManifest, RelationshipManifest } from '@repo/types'
 import { ManifestService } from '../../services/manifest.service'
 
 @Component({
@@ -23,12 +23,12 @@ export class RelationYieldComponent implements OnInit {
   constructor(private manifestService: ManifestService) {}
 
   @Input() item: any
-  @Input() relation: RelationshipManifest
+  @Input() relationship: RelationshipManifest
 
   ngOnInit(): void {
     this.manifestService
       .getEntityManifest({
-        className: this.relation.entity
+        className: this.relationship.entity
       })
       .then((entityManifest) => {
         this.entityManifest = entityManifest

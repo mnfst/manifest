@@ -7,7 +7,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { PropertyManifest } from '@mnfst/types'
+import { PropertyManifest } from '@repo/types'
 
 @Component({
   selector: 'app-timestamp-input',

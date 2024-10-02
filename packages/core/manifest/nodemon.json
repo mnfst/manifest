@@ -1,6 +1,6 @@
 {
   "watch": ["src", "manifest/*.yml"],
   "ext": "ts,yml,json",
-  "ignore": ["src/**/*.spec.ts"],
+  "ignore": ["src/**/*.spec.ts", "dist", ".turbo", "node_modules"],
   "exec": "nest start"
 }

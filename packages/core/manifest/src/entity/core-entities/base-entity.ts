@@ -1,4 +1,4 @@
-import { BaseEntity } from '@mnfst/types'
+import { BaseEntity } from '@repo/types'
 import { EntitySchemaColumnOptions } from 'typeorm'
 
 // This is a base entity that all entities extend from.

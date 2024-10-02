@@ -8,43 +8,29 @@
 # *  PASSWORD: admin                       *
 # ******************************************
 
-name: Simple Invoicing App
+name: Healthcare application 👩🏾‍⚕️
 
-entities: # Define your entities here.
-  📄 Invoice:
+entities:
+  Doctor:
     properties:
-      - { name: date, type: date }
-      - { name: invoiceNumber, type: number }
-      - { name: amount, type: money, options: { currency: USD } }
-      - { name: payed, type: boolean }
-    belongsTo:
-      - Project # A simple relationship between Invoice and Project
-
-  🛠️ Project:
-    properties:
-      - name
-      - description
-      - { name: deadline, type: date }
-      - { name: budget, type: money, options: { currency: USD } }
+      - fullName
+      - { name: avatar, type: image }
+      - { name: price, type: money, options: { currency: EUR } }
       - {
           name: type,
           type: choice,
-          options: { values: ['Service', 'Product', 'Retail'] }
+          options: { values: ['Generalist', 'Specialist', 'Intern'] }
         }
-      - { name: finished, type: boolean }
-      # Checkout all available real-world types: https://manifest.build/docs/properties#property-types
     belongsTo:
-      - Customer
+      - City
 
-  🧾 Customer:
+  Patient:
     properties:
-      - { name: name, type: string }
-      - { name: email, type: email }
-      - { name: billingAddress, type: text }
-      - { name: location, type: location }
-      - {
-          name: industry,
-          type: choice,
-          options:
-            { values: ['Retail', 'Services', 'Manufacturing', 'Technology'] }
-        }
+      - fullName
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Doctor
+
+  City:
+    properties:
+      - name

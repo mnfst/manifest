@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 
-import { Manifest, EntitySchema, RelationshipSchema } from '@mnfst/types'
+import { Manifest, RelationshipSchema, EntitySchema } from '@repo/types'
 import Ajv from 'ajv'
-import schemas from '../json-schema'
+import schemas from '@repo/json-schema'
 import chalk from 'chalk'
 
 @Injectable()

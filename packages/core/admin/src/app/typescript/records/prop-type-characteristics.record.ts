@@ -1,4 +1,4 @@
-import { PropType } from '@mnfst/types'
+import { PropType } from '@repo/types'
 import { InputType } from '../enums/input-type.enum'
 import { YieldType } from '../enums/yield-type.enum'
 

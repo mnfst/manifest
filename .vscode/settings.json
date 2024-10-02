@@ -1,6 +1,6 @@
 {
   "yaml.schemas": {
-    "./packages/core/manifest/src/manifest/json-schema/schema.json": "**/manifest/**/*.yml"
+    "./packages/core/json-schema/src/schema/schema.json": "**/manifest/**/**backend.yml"
   },
 
   "workbench.colorCustomizations": {
@@ -31,6 +31,8 @@
     "dasherize",
     "dasherized",
     "dtos",
+    "kebabize",
+    "kebabized",
     "metadatas",
     "metas",
     "mnfst",
@@ -48,6 +50,8 @@
     "dtos": "interface",
     "add-manifest": "scripts",
     "manifest": "server",
-    "core/manifest": "meta"
+    "core/manifest": "meta",
+    "js-sdk": "javascript",
+    "json-schema": "json"
   }
 }

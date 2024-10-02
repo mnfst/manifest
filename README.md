@@ -1,25 +1,26 @@
 <br>
 <p align="center">
   <a href="https://manifest.build/#gh-light-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - A backend so simple that it fits in a YAML file" />
   </a>
   <a href="https://manifest.build/#gh-dark-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - A backend so simple that it fits in a YAML file" />
   </a>
 </p>
 
 <p align='center'>
-<strong>Effortless backends</strong>
+<strong>A backend so simple that it fits in a YAML file</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
   <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
   <a href="https://discord.com/invite/FepAked3W7" target="_blank"><img alt="Discord" src="https://img.shields.io/discord/1089907785178812499?label=discord"></a>
   <a href="https://opencollective.com/mnfst"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://www.codetriage.com/mnfst/manifest" target="_blank"><img alt="CodeTriage" src="https://www.codetriage.com/mnfst/manifest/badges/users.svg"></a>
   <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
   <br>
 </p>
 
-[Manifest](https://manifest.build) is a complete backend that fits in a single YAML file:
+[Manifest](https://manifest.build) is the simplest backend you can find:
 
 <a href="https://stackblitz.com/fork/github/mnfst/manifest/tree/master/examples/main-demo?file=manifest/backend.yml" target="_blank"><img alt="Open in StackBlitz" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"></a>
 
@@ -49,7 +50,7 @@ entities:
 ```
 
 > [!NOTE]  
-> Manifest is on BETA. We would love to have your feedback ! If something do not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know trough [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+> Manifest is on BETA. We would love to have your feedback! If something does not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know through [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
 
 ## Key features
 
@@ -88,7 +89,7 @@ Our mission is to enable developers of all experience levels to create and share
 
 ## Contributors
 
-Thanks to our first wonderful contributors !
+Thanks to our first wonderful contributors!
 
 <a href="https://github.com/mnfst/manifest/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=mnfst/manifest" />

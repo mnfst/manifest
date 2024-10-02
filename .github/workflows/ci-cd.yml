@@ -7,7 +7,7 @@ on:
     branches: [master, develop]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,19 +17,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '18.x'
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ./packages/core/manifest
-      # Enure that we are using the latest version of the types package (even if it is not published yet).
-      - name: Link local types
-        run: npm run link-local-types
-        working-directory: ./packages/core/manifest
+      - name: Install root dependencies
+        run: npm install
+      - name: Install dependencies (workspaces)
+        run: npm ci --workspaces
       - name: Build App
         run: npm run build
-        working-directory: ./packages/core/manifest
       - name: Run tests
-        run: npm run test:ci
-        working-directory: ./packages/core/manifest
-      - name: Run End-to-End tests
-        run: npm run test:e2e:ci
-        working-directory: ./packages/core/manifest
+        run: npm run test

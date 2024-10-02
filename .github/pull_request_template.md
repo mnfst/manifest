@@ -6,17 +6,14 @@
 
 ## Impacted packages
 
-Check the packages that require a new publication or release:
+Check the NPM packages that require a new publication or release:
 
-- [ ] @mnfst/manifest
-- [ ] @mnfst/types
-- [ ] @mnfst/admin
-- [ ] @mnfst/js-sdk
-- [ ] doc
+- [ ] [manifest](https://www.npmjs.com/package/manifest)
+- [ ] [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)
 
 ## Check list before submitting
 
 - [ ] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)
 - [ ] I wrote the relative tests
-- [ ] I updated the documentation if necessary
+- [ ] I created a PR for the [documentation](https://github.com/mnfst/docs) if necessary and attached the link to this PR
 - [ ] This PR is wrote in a clear language and correctly labeled

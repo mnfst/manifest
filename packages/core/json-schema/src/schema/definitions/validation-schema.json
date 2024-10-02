@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/validation-schema.json",
+  "title": "Validation Schema",
+  "description": "Validation for the property. Doc: https://manifest.build/docs/validation",
+  "type": "object",
+  "properties": {
+    "isDefined": {
+      "description": "Checks if value is defined (!== undefined, !== null).",
+      "type": "boolean"
+    },
+    "isOptional": {
+      "description": "Checks if given value is empty (=== null, === undefined) and if so, ignores all the validators on the property.",
+      "type": "boolean"
+    },
+    "equals": {
+      "description": "Checks if value equals (\"===\") comparison."
+    },
+    "notEquals": {
+      "description": "Checks if value not equal (\"!==\") comparison."
+    },
+    "isEmpty": {
+      "description": "Indicates whether the property can be empty.",
+      "type": "boolean"
+    },
+    "isNotEmpty": {
+      "description": "Indicates whether the property must not be empty.",
+      "type": "boolean"
+    },
+    "required": {
+      "description": "Indicates whether the property must not be empty.",
+      "type": "boolean"
+    },
+    "isIn": {
+      "description": "Checks if value is in an array of allowed values.",
+      "type": "array"
+    },
+    "isNotIn": {
+      "description": "Checks if value not in an array of disallowed values.",
+      "type": "array"
+    },
+    "min": {
+      "description": "The minimum value or length allowed for the property.",
+      "type": "number"
+    },
+    "max": {
+      "description": "The maximum value or length allowed for the property.",
+      "type": "number"
+    },
+    "contains": {
+      "description": "Checks if string contains the seed.",
+      "type": "string"
+    },
+    "notContains": {
+      "description": "Checks if string does not contain the seed.",
+      "type": "string"
+    },
+    "isAlpha": {
+      "description": "Checks if the string contains only letters (a-zA-Z).",
+      "type": "boolean"
+    },
+    "isAlphanumeric": {
+      "description": "Checks if the string contains only letters and numbers.",
+      "type": "boolean"
+    },
+    "isAscii": {
+      "description": "Checks if the string contains ASCII chars only.",
+      "type": "boolean"
+    },
+    "isEmail": {
+      "description": "Checks if the string is an email.",
+      "type": "boolean"
+    },
+    "isJSON": {
+      "description": "Checks if the string is valid JSON.",
+      "type": "boolean"
+    },
+    "minLength": {
+      "description": "Checks if the string's length is not less than given number.",
+      "type": "number"
+    },
+    "maxLength": {
+      "description": "Checks if the string's length is not more than given number.",
+      "type": "number"
+    },
+    "matches": {
+      "description": "Checks if string matches the pattern.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

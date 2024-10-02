@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "@repo/json-schema#build",
+        "manifest#build",
+        "@repo/admin#build",
+        "@mnfst/sdk#build"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "manifest#build": {
+      "outputs": ["dist/**"]
+    },
+    "@repo/admin#build": {
+      "dependsOn": ["manifest#build"],
+      "outputs": ["dist/**"]
+    },
+    "@repo/json-schema#build": {
+      "outputs": []
+    },
+    "@mnfst/sdk#build": {
+      "dependsOn": ["@repo/json-schema#build"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "test": {}
+  }
+}

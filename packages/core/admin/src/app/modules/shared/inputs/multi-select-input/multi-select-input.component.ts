@@ -5,9 +5,18 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  OnInit,
   Output
 } from '@angular/core'
-import { PropertyManifest, SelectOption } from '@mnfst/types'
+import {
+  EntityManifest,
+  PropertyManifest,
+  RelationshipManifest,
+  SelectOption
+} from '@repo/types'
+import { ManifestService } from '../../services/manifest.service'
+import { CrudService } from '../../../crud/services/crud.service'
+import { forceNumberArray } from '@repo/helpers'
 
 @Component({
   selector: 'app-multi-select-input',
@@ -16,51 +25,53 @@ import { PropertyManifest, SelectOption } from '@mnfst/types'
   templateUrl: './multi-select-input.component.html',
   styleUrls: ['./multi-select-input.component.scss']
 })
-export class MultiSelectInputComponent {
+export class MultiSelectInputComponent implements OnInit {
   @Input() prop: PropertyManifest
-  @Input() value: number[] | string[] | number | string
+  @Input() relationship: RelationshipManifest
+  @Input() value: { id: number }[]
+  @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
 
-  // entityMeta: EntityMeta
   options: SelectOption[]
   selectedOptions: SelectOption[] = []
 
   showList: boolean
+  entityManifest: EntityManifest
+  label: string
 
   constructor(
-    // private dynamicEntityService: DynamicEntityService,
+    private manifestService: ManifestService,
+    private crudService: CrudService,
     private elementRef: ElementRef
   ) {}
 
-  ngOnInit(): void {
-    // this.dynamicEntityService
-    //   .loadEntityMeta()
-    //   .subscribe(async (res: EntityMeta[]) => {
-    //     // Note: only works for PropType.Relation at this time.
-    //     this.entityMeta = res.find(
-    //       (entity: EntityMeta) =>
-    //         entity.className ===
-    //         (this.prop.options as RelationPropertyOptions).entitySlug
-    //     )
-    //     this.options = await this.dynamicEntityService.listSelectOptions(
-    //       this.entityMeta.definition.slug
-    //     )
-    //     if (this.value) {
-    //       this.value = this.forceNumberArray(this.value)
-    //       this.selectedOptions = []
-    //       this.options
-    //         .filter((option) =>
-    //           this.forceNumberArray(this.value).find(
-    //             (value) => value === option.id
-    //           )
-    //         )
-    //         .forEach((option) => {
-    //           option.selected = true
-    //           this.selectedOptions.push(option)
-    //         })
-    //     }
-    //   })
+  async ngOnInit(): Promise<void> {
+    this.label = this.prop?.name || this.relationship.name
+
+    if (this.relationship) {
+      this.entityManifest = await this.manifestService.getEntityManifest({
+        className: this.relationship.entity
+      })
+
+      this.options = await this.crudService.listSelectOptions(
+        this.entityManifest.slug
+      )
+    }
+
+    if (this.value) {
+      this.selectedOptions = []
+      this.options
+        .filter((option) =>
+          forceNumberArray(this.value.map((v) => v.id)).find(
+            (value) => value === option.id
+          )
+        )
+        .forEach((option) => {
+          option.selected = true
+          this.selectedOptions.push(option)
+        })
+    }
   }
 
   selectAll(): void {
@@ -87,15 +98,6 @@ export class MultiSelectInputComponent {
 
     option.selected = !option.selected
     this.valueChanged.emit(this.selectedOptions.map((option) => option.id))
-  }
-
-  forceNumberArray(value: string | number | number[] | string[]): number[] {
-    if (typeof value === 'number') {
-      return [value]
-    } else if (typeof value === 'string') {
-      return [parseInt(value)]
-    }
-    return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
   }
 
   @HostListener('document:click', ['$event.target'])

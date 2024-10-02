@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { AuthService } from '../auth.service'
-import { AuthenticableEntity } from '@mnfst/types'
+import { AuthenticableEntity } from '@repo/types'
 import { Request } from 'express'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 

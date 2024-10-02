@@ -1,0 +1,15 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "setupFilesAfterEnv": ["./jest.setup.ts"],
+  "moduleNameMapper": {
+    "^@repo/types$": "<rootDir>/../../types/src",
+    "^@repo/helpers$": "<rootDir>/../../helpers/src",
+    "^@repo/json-schema$": "<rootDir>/../../json-schema/src"
+  }
+}

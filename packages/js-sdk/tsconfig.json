@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "es2016",
+    "outDir": "./dist/",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "lib": ["dom", "esnext"],
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@repo/types": ["../core/types/src"],
+      "@repo/helpers": ["../core/helpers/src"]
+    },
+    "resolveJsonModule": true,
+    "allowJs": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "example"]
+}

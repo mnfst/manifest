@@ -1,0 +1,17 @@
+{
+  "name": "manifest",
+  "version": "4.0.0",
+  "scripts": {
+    "build": "npx turbo run build",
+    "dev": "npx turbo run dev",
+    "test": "npx turbo run test",
+    "seed": "cd packages/core/manifest && npm run seed"
+  },
+  "workspaces": [
+    "packages/**/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.1.1"
+  },
+  "packageManager": "npm@10.7.0"
+}

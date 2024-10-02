@@ -1,8 +1,8 @@
 {
   "name": "add-manifest",
-  "version": "0.1.0-beta",
+  "version": "1.0.0",
   "author": "Manifest",
-  "description": "Add Manifest backend to your app",
+  "description": "Add Manifest backend",
   "homepage": "https://manifest.build",
   "license": "MIT",
   "bin": {
@@ -14,7 +14,6 @@
     "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
     "prepare": "npm run build",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
   "oclif": {
@@ -31,7 +30,7 @@
     "topicSeparator": " ",
     "topics": {
       "create": {
-        "description": "Add Manifest backend to your app"
+        "description": "Add Manifest backend"
       }
     }
   },
@@ -51,11 +50,6 @@
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
-    "@types/chai": "^4",
-    "@types/mocha": "^10",
-    "@types/node": "^18",
-    "chai": "^4",
-    "mocha": "^10",
     "oclif": "^4.4.12",
     "shx": "^0.3.4",
     "ts-node": "^10.9.2",

@@ -5,7 +5,7 @@ import {
   Paginator,
   PropType,
   RelationshipManifest
-} from '@mnfst/types'
+} from '@repo/types'
 import { combineLatest } from 'rxjs'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
@@ -64,9 +64,10 @@ export class ListComponent implements OnInit {
       this.loadingPaginator = true
       this.paginator = await this.crudService.list(this.entityManifest.slug, {
         filters: this.queryParams,
-        relations: this.entityManifest.belongsTo.map(
-          (relation: RelationshipManifest) => relation.name
-        )
+        relations: this.entityManifest.relationships
+          ?.filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+          .map((relation: RelationshipManifest) => relation.name)
       })
       this.loadingPaginator = false
     })
@@ -86,17 +87,29 @@ export class ListComponent implements OnInit {
     })
   }
 
+  /**
+   * Delete an item
+   *
+   * @param id The ID of the item to delete
+   *
+   * @returns void
+   */
   delete(id: number): void {
-    this.crudService.delete(this.entityManifest.slug, id).then((res) => {
-      this.itemToDelete = null
-      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
-      this.flashMessageService.success(
-        `The ${this.entityManifest.nameSingular} has been deleted.`
-      )
-      this.paginator.data = this.paginator.data.filter(
-        (item: any) => item.id !== id
-      )
-    })
+    this.crudService
+      .delete(this.entityManifest.slug, id)
+      .then(() => {
+        this.itemToDelete = null
+        this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+        this.flashMessageService.success(
+          `The ${this.entityManifest.nameSingular} has been deleted.`
+        )
+        this.paginator.data = this.paginator.data.filter(
+          (item: any) => item.id !== id
+        )
+      })
+      .catch((err) => {
+        this.flashMessageService.error(err.error.message)
+      })
   }
 
   goToDetailPage(id: number): void {

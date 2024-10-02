@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { AppManifest, EntityManifest } from '@mnfst/types'
+import { AppManifest, EntityManifest } from '@repo/types'
 import { firstValueFrom } from 'rxjs'
 import { environment } from '../../../../environments/environment'
 

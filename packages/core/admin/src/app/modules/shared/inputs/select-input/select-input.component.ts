@@ -14,7 +14,7 @@ import {
   PropertyManifest,
   RelationshipManifest,
   SelectOption
-} from '@mnfst/types'
+} from '@repo/types'
 import { CrudService } from '../../../crud/services/crud.service'
 import { ManifestService } from '../../services/manifest.service'
 
