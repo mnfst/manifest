@@ -1,3 +1,3 @@
-import Manifest from './Manifest.js'
+import Manifest from './Manifest'
 
 export default Manifest

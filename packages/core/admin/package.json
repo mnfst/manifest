@@ -12,8 +12,6 @@
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {
-    "@repo/types": "*",
-    "@repo/helpers": "*",
     "@angular/animations": "^17.3.1",
     "@angular/common": "^17.3.1",
     "@angular/compiler": "^17.3.1",
