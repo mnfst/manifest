@@ -1,7 +1,7 @@
 {
   "name": "manifest",
-  "version": "4.0.0-beta",
-  "description": "Effortless backends",
+  "version": "4.0.0",
+  "description": "A backend so simple that it fits in a YAML file",
   "author": "Manifest",
   "license": "MIT",
   "homepage": "https://manifest.build",

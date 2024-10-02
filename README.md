@@ -1,15 +1,15 @@
 <br>
 <p align="center">
   <a href="https://manifest.build/#gh-light-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - A backend so simple that it fits in a YAML file" />
   </a>
   <a href="https://manifest.build/#gh-dark-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - Effortless backends" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - A backend so simple that it fits in a YAML file" />
   </a>
 </p>
 
 <p align='center'>
-<strong>Effortless backends</strong>
+<strong>A backend so simple that it fits in a YAML file</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
   <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
@@ -19,7 +19,7 @@
   <br>
 </p>
 
-[Manifest](https://manifest.build) is a complete backend that fits in a single YAML file:
+[Manifest](https://manifest.build) is the simplest backend you can find:
 
 <a href="https://stackblitz.com/fork/github/mnfst/manifest/tree/master/examples/main-demo?file=manifest/backend.yml" target="_blank"><img alt="Open in StackBlitz" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"></a>
 
