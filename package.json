@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.0.0-beta",
+  "version": "4.0.0",
   "scripts": {
     "build": "npx turbo run build",
     "dev": "npx turbo run dev",
