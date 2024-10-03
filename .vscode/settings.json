@@ -2,7 +2,6 @@
   "yaml.schemas": {
     "./packages/core/json-schema/src/schema/schema.json": "**/manifest/**/**backend.yml"
   },
-
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#f8a94a",
     "activityBar.activeBorder": "#57b3a0",
