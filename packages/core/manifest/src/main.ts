@@ -507,6 +507,7 @@ background: #ce107c;
 
 .swagger-ui .responses-inner h4
 {
+  
   margin: 25px 0 5px;
   color: #1eb1e8;
   border-left: solid 3px #41444e2b;
