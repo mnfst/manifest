@@ -1,5 +1,6 @@
 import fetchMock from 'fetch-mock'
 import Manifest from '../src/Manifest'
+import { mockAndPerformLogin } from './helpers/mockLogin'
 
 describe('Auth', () => {
   const baseUrl: string = 'http://localhost:1111/api/auth'
@@ -15,21 +16,7 @@ describe('Auth', () => {
   })
 
   it('should login', async () => {
-    fetchMock.mock(
-      {
-        url: `${baseUrl}/users/login`,
-        method: 'POST',
-        body: credentials,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      },
-      {
-        token: token
-      }
-    )
-
-    const manifest = new Manifest()
+    const manifest = await mockAndPerformLogin(baseUrl, credentials, token)
     const response = await manifest.login(
       'users',
       credentials.email,
@@ -40,21 +27,7 @@ describe('Auth', () => {
   })
 
   it('should add token to headers after login', async () => {
-    fetchMock.mock(
-      {
-        url: `${baseUrl}/users/login`,
-        method: 'POST',
-        body: credentials,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      },
-      {
-        token: token
-      }
-    )
-
-    const manifest = new Manifest()
+    const manifest = await mockAndPerformLogin(baseUrl, credentials, token)
     await manifest.login('users', credentials.email, credentials.password)
 
     expect(manifest['headers']['Authorization']).toEqual(`Bearer ${token}`)
