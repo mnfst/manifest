@@ -1,6 +1,6 @@
 {
   "yaml.schemas": {
-    "https://schema.manifest.build/schema.json": "**/manifest/**/*.yml"
+    "./packages/core/json-schema/src/schema/schema.json": "**/manifest/**/**backend.yml"
   },
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#f8a94a",
