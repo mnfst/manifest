@@ -510,8 +510,6 @@ background: #ce107c;
 {
   margin: 25px 0 5px;
   color: #1eb1e8;
-  border-left: solid 3px #41444e2b;
-  padding-left: 3px;
 }
 
 .swagger-ui .response-col_status {
