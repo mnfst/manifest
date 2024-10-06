@@ -5,7 +5,7 @@ export default (): { database: SqliteConnectionOptions } => {
     database: {
       type: 'sqlite',
       database: `${process.cwd()}/manifest/backend.db`,
-      dropSchema: false,
+      dropSchema: process.env.DB_DROP_SCHEMA === 'true' || false,
       synchronize: true
     }
   }
