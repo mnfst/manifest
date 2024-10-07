@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "A backend so simple that it fits in a YAML file",
   "author": "Manifest",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "yaml"
   ],
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && cd ../admin && npm run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nodemon",
