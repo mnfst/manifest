@@ -49,4 +49,11 @@ export class AuthController {
   ): Promise<AuthenticableEntity> {
     return (await this.authService.getUserFromRequest(req)).user
   }
+
+  @Get('admins/default-exists')
+  public async isDefaultAdminExists(): Promise<{
+    exists: boolean
+  }> {
+    return this.authService.isDefaultAdminExists()
+  }
 }
