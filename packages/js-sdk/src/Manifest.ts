@@ -86,13 +86,13 @@ export default class Manifest {
    * @returns The created item.
    */
   async create<T>(itemDto: any): Promise<T> {
-    const response = await this.fetch({
+    const response: T = await this.fetch({
       path: `/dynamic/${this.slug}`,
       method: 'POST',
       body: itemDto
     })
 
-    const createdItemId: number = response.identifiers[0].id
+    const createdItemId: number = (response as { id: number })['id']
 
     return this.findOneById(createdItemId)
   }

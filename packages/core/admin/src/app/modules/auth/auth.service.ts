@@ -65,4 +65,15 @@ export class AuthService {
 
     return this.currentUserPromise
   }
+
+  /**
+   * Returns true if the default user admin is in the database, false otherwise
+   */
+  async isDefaultAdminExists(): Promise<boolean> {
+    return (
+      firstValueFrom(
+        this.http.get(`${environment.apiBaseUrl}/auth/admins/default-exists`)
+      ) as Promise<{ exists: boolean }>
+    ).then((res) => res.exists)
+  }
 }

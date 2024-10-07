@@ -7,6 +7,7 @@ import { PropType } from '@repo/types'
 
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
 import { AuthService } from '../../auth.service'
+import { DEFAULT_ADMIN_CREDENTIALS } from '../../../../../constants'
 
 @Component({
   selector: 'app-login',
@@ -19,10 +20,7 @@ export class LoginComponent implements OnInit {
 
   PropType = PropType
 
-  form: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required])
-  })
+  form: FormGroup
 
   constructor(
     private readonly authService: AuthService,
@@ -32,19 +30,25 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.activatedRoute.queryParams.subscribe((queryParams: Params) => {
-      if (queryParams['email']) {
+    this.activatedRoute.queryParams.subscribe(async (queryParams: Params) => {
+      if (queryParams['email'] && queryParams['password']) {
         this.suggestedEmail = queryParams['email']
-      }
-      if (queryParams['password']) {
         this.suggestedPassword = queryParams['password']
+      } else {
+        if (await this.authService.isDefaultAdminExists()) {
+          this.suggestedEmail = DEFAULT_ADMIN_CREDENTIALS.email
+          this.suggestedPassword = DEFAULT_ADMIN_CREDENTIALS.password
+        }
       }
-      if (this.suggestedEmail) {
-        this.patchValue('email', this.suggestedEmail)
-      }
-      if (this.suggestedPassword) {
-        this.patchValue('password', this.suggestedPassword)
-      }
+
+      this.form = new FormGroup({
+        email: new FormControl(this.suggestedEmail || '', [
+          Validators.required
+        ]),
+        password: new FormControl(this.suggestedPassword || '', [
+          Validators.required
+        ])
+      })
     })
   }
 
