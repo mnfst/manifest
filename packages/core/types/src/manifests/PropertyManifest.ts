@@ -1,5 +1,5 @@
 import { PropType } from '../crud'
-import { ValidationManifest } from './ValidationManifest'
+import { ValidationSchema } from './ManifestSchema'
 
 export type PropertyManifest = {
   /**
@@ -27,5 +27,5 @@ export type PropertyManifest = {
   /**
    * Validation rules for the property.
    */
-  validation?: ValidationManifest
+  validation?: ValidationSchema
 }
