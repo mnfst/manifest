@@ -1,3 +1,15 @@
+@mixin switch-color-styles($color) {
+  &::before,
+  &:before {
+    background-color: transparent;
+    border-color: $color !important;
+  }
+  &::after,
+  &:after {
+    background: $color;
+  }
+}
+
 @mixin switch-size($size) {
   $switch-height: $size * 1.4;
   $switch-width: $switch-height * 1.7;
@@ -221,15 +233,7 @@
       &.is-outlined {
         &:checked {
           + label {
-            &::before,
-            &:before {
-              background-color: transparent;
-              border-color: $color !important;
-            }
-            &::after,
-            &:after {
-              background: $color;
-            }
+            @include switch-color-styles($color);
           }
         }
       }
@@ -253,15 +257,7 @@
       }
       &.is-outlined {
         + label {
-          &::before,
-          &:before {
-            background-color: transparent;
-            border-color: $color !important;
-          }
-          &::after,
-          &:after {
-            background: $color;
-          }
+          @include switch-color-styles($color);
         }
       }
     }
