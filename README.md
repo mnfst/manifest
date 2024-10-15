@@ -89,6 +89,8 @@ Our mission is to enable developers of all experience levels to create and share
 
 ## Contributors
 
+We welcome contributions to Manifest, Please see our [Contributing Guidelines](./CONTRIBUTING.md) to get started and join the journey.
+
 Thanks to our first wonderful contributors!
 
 <a href="https://github.com/mnfst/manifest/graphs/contributors">
