@@ -19,14 +19,14 @@ import {
   matches,
   isNotEmpty
 } from 'class-validator'
-import { ValidationManifest } from '@repo/types'
+import { ValidationSchema } from '@repo/types'
 
 /*
  * Custom validators based on class-validator.
- * Each ValidationManifest property specified has a corresponding custom validator.
+ * Each ValidationSchema property specified has a corresponding custom validator.
  */
 export const customValidators: Record<
-  keyof ValidationManifest,
+  keyof ValidationSchema,
   (value: any, context: any) => string | null
 > = {
   min: (propValue: any, minValue: number) =>
