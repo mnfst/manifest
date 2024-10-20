@@ -154,82 +154,7 @@ export class ManifestService {
     [keyof: string]: EntitySchema
   }): EntityManifest[] {
     const entityManifests: EntityManifest[] = Object.entries(entityObject).map(
-      ([className, entitySchema]: [string, EntitySchema]) => {
-        const properties: PropertyManifest[] = (
-          entitySchema.properties || []
-        ).map((propManifest: PropertySchema) =>
-          this.transformProperty(propManifest, entitySchema)
-        )
-
-        if (entitySchema.authenticable) {
-          properties.push(...AUTHENTICABLE_PROPS)
-        }
-
-        const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
-
-        return {
-          className: entitySchema.className || className,
-          nameSingular:
-            entitySchema.nameSingular ||
-            pluralize
-              .singular(entitySchema.className || className)
-              .toLowerCase(),
-          namePlural:
-            entitySchema.namePlural ||
-            pluralize.plural(entitySchema.className || className).toLowerCase(),
-          slug:
-            entitySchema.slug ||
-            slugify(
-              dasherize(
-                pluralize.plural(entitySchema.className || className)
-              ).toLowerCase()
-            ),
-          // First "string" property found in the entity if exists, otherwise "id".
-          mainProp:
-            entitySchema.mainProp ||
-            properties.find((prop) => prop.type === PropType.String)?.name ||
-            'id',
-          seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
-          relationships: [
-            ...(entitySchema.belongsTo || []).map(
-              (relationship: RelationshipSchema) =>
-                this.transformRelationship(relationship, 'many-to-one')
-            ),
-            ...(entitySchema.belongsToMany || []).map(
-              (relationship: RelationshipSchema) =>
-                this.transformRelationship(
-                  relationship,
-                  'many-to-many',
-                  entitySchema.className || className
-                )
-            )
-          ],
-          authenticable: entitySchema.authenticable || false,
-          properties,
-          policies: {
-            create:
-              entitySchema.policies?.create?.map((p) =>
-                this.transformPolicy(p)
-              ) || publicPolicy,
-            read:
-              entitySchema.policies?.read?.map((p) =>
-                this.transformPolicy(p)
-              ) || publicPolicy,
-            update:
-              entitySchema.policies?.update?.map((p) =>
-                this.transformPolicy(p)
-              ) || publicPolicy,
-            delete:
-              entitySchema.policies?.delete?.map((p) =>
-                this.transformPolicy(p)
-              ) || publicPolicy,
-            signup:
-              entitySchema.policies?.signup?.map((p) =>
-                this.transformPolicy(p)
-              ) || publicPolicy
-          }
-        }
-      }
+      ([className, entitySchema]: [string, EntitySchema]) => this.createEntityManifest(className, entitySchema)
     )
 
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
@@ -251,6 +176,90 @@ export class ManifestService {
 
     return entityManifests
   }
+
+  private createEntityManifest(className: string, entitySchema: EntitySchema){
+    const properties: PropertyManifest[] = (
+      entitySchema.properties || []
+    ).map((propManifest: PropertySchema) =>
+      this.transformProperty(propManifest, entitySchema)
+    )
+
+    if (entitySchema.authenticable) {
+      properties.push(...AUTHENTICABLE_PROPS)
+    }
+
+    const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
+
+    return {
+      className: entitySchema.className || className,
+      nameSingular: this.getSingularName(entitySchema, className),
+      namePlural: this.getPluralName(entitySchema, className),
+      slug: this.getSlug(entitySchema, className),
+      // First "string" property found in the entity if exists, otherwise "id".
+      mainProp: this.getMainProp(entitySchema, properties),
+      seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
+      relationships: this.getRelationShip(entitySchema, className),
+      authenticable: entitySchema.authenticable || false,
+      properties,
+      policies: {
+        create: this.transformPoliciesList(entitySchema.policies?.create, publicPolicy),
+        read: this.transformPoliciesList(entitySchema.policies?.read, publicPolicy),
+        update: this.transformPoliciesList(entitySchema.policies?.update, publicPolicy),
+        delete: this.transformPoliciesList(entitySchema.policies?.delete, publicPolicy),
+        signup: this.transformPoliciesList(entitySchema.policies?.signup, publicPolicy)
+      }
+    }
+  }
+
+
+  private getSingularName(entitySchema: EntitySchema, className: string){
+    return  entitySchema.nameSingular ||
+    pluralize
+      .singular(entitySchema.className || className)
+      .toLowerCase()
+  }
+
+  private getPluralName(entitySchema: EntitySchema, className: string){
+    return entitySchema.namePlural ||
+    pluralize.plural(entitySchema.className || className).toLowerCase()
+  }
+
+  private getSlug(entitySchema: EntitySchema, className: string){
+    return entitySchema.slug ||
+    slugify(
+      dasherize(
+        pluralize.plural(entitySchema.className || className)
+      ).toLowerCase()
+    )
+  }
+
+  private getMainProp(entitySchema: EntitySchema, properties){
+    return entitySchema.mainProp ||
+    properties.find((prop) => prop.type === PropType.String)?.name ||
+    'id'
+  }
+
+  private getRelationShip(entitySchema: EntitySchema, className: string){
+    return [
+      ...(entitySchema.belongsTo || []).map(
+        (relationship: RelationshipSchema) =>
+          this.transformRelationship(relationship, 'many-to-one')
+      ),
+      ...(entitySchema.belongsToMany || []).map(
+        (relationship: RelationshipSchema) =>
+          this.transformRelationship(
+            relationship,
+            'many-to-many',
+            entitySchema.className || className
+          )
+      )
+    ]
+  }
+  
+  private transformPoliciesList(policyList: PolicySchema[], defaultPolicy: PolicyManifest[]): PolicyManifest[] {
+    return policyList?.map((p) => this.transformPolicy(p)) || defaultPolicy;
+  }
+  
 
   /**
    *
