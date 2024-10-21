@@ -6,7 +6,7 @@ export default {
     '^.+\\.ts$': 'ts-jest'
   },
   moduleNameMapper: {
-    '^@repo/types$': '<rootDir>/../core/types/src',
+    '^@repo/types$': '<rootDir>/../core/types/src/index.ts',
     '^@repo/helpers$': '<rootDir>/../core/helpers/src/index.ts'
   }
 }
