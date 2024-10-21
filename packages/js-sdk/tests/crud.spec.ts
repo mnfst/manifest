@@ -16,7 +16,7 @@ describe('CRUD operations', () => {
 
       const manifest = new Manifest()
       const paginator = await manifest.from('cats').find({
-        page: 2,
+        page: 2
       })
 
       expect(paginator).toMatchObject(dummyResponse)
@@ -27,7 +27,7 @@ describe('CRUD operations', () => {
 
       const manifest = new Manifest()
       const paginator = await manifest.from('cats').find({
-        perPage: 5,
+        perPage: 5
       })
 
       expect(paginator).toMatchObject(dummyResponse)
@@ -36,7 +36,7 @@ describe('CRUD operations', () => {
     it('should filter the items by query parameters', async () => {
       fetchMock.mock(
         `${baseUrl}/cats?name_eq=Tom&age_gt=50&wealth_gte=1000&problems_lt=5&friends_lte=10&nickName_like=tommy&eyeColor_in=brown%2Cblue%2Cgreen`,
-        dummyResponse,
+        dummyResponse
       )
 
       const manifest = new Manifest()
@@ -85,7 +85,7 @@ describe('CRUD operations', () => {
     it('should load the relations of the entity', async () => {
       fetchMock.mock(
         `${baseUrl}/cats?relations=owner%2Cowner.company`,
-        dummyResponse,
+        dummyResponse
       )
 
       const manifest = new Manifest()
@@ -117,29 +117,19 @@ describe('CRUD operations', () => {
           method: 'POST',
           body: {
             name: 'Tom',
-            age: 10,
-          },
+            age: 10
+          }
         },
-        {
-          identifiers: [dummyItem],
-        },
-      )
-
-      fetchMock.mock(
-        {
-          url: `${baseUrl}/cats/${dummyItem.id}`,
-          method: 'GET',
-        },
-        dummyResponse,
+        dummyItem
       )
 
       const manifest = new Manifest()
       const item = await manifest.from('cats').create({
         name: 'Tom',
-        age: 10,
+        age: 10
       })
 
-      expect(item).toMatchObject(dummyResponse)
+      expect(item).toMatchObject(dummyItem)
     })
 
     it('should update an item', async () => {
@@ -151,26 +141,19 @@ describe('CRUD operations', () => {
           method: 'PUT',
           body: {
             name: 'Tom',
-            age: 10,
-          },
+            age: 10
+          }
         },
-        dummyResponse,
-      )
-      fetchMock.mock(
-        {
-          url: `${baseUrl}/cats/${id}`,
-          method: 'GET',
-        },
-        dummyResponse,
+        dummyItem
       )
 
       const manifest = new Manifest()
       const item = await manifest.from('cats').update(id, {
         name: 'Tom',
-        age: 10,
+        age: 10
       })
 
-      expect(item).toMatchObject(dummyResponse)
+      expect(item).toMatchObject(dummyItem)
     })
 
     it('should delete an item', async () => {
@@ -179,9 +162,9 @@ describe('CRUD operations', () => {
       fetchMock.mock(
         {
           url: `${baseUrl}/cats/${id}`,
-          method: 'DELETE',
+          method: 'DELETE'
         },
-        {},
+        {}
       )
 
       const manifest = new Manifest()

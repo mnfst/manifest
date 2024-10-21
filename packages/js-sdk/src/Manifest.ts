@@ -86,15 +86,11 @@ export default class Manifest {
    * @returns The created item.
    */
   async create<T>(itemDto: any): Promise<T> {
-    const response: T = await this.fetch({
+    return this.fetch({
       path: `/dynamic/${this.slug}`,
       method: 'POST',
       body: itemDto
     })
-
-    const createdItemId: number = (response as { id: number })['id']
-
-    return this.findOneById(createdItemId)
   }
 
   /**
@@ -107,13 +103,11 @@ export default class Manifest {
    * @example client.from('cats').update(1, { name: 'updated name' });
    */
   async update<T>(id: number, itemDto: any): Promise<T> {
-    await this.fetch({
+    return this.fetch({
       path: `/dynamic/${this.slug}/${id}`,
       method: 'PUT',
       body: itemDto
     })
-
-    return this.findOneById(id)
   }
 
   /**
@@ -371,5 +365,16 @@ export default class Manifest {
         console.error(err)
         return {}
       })
+  }
+
+  /**
+   * Helper that returns the absolute URL of the image.
+   *
+   * @param image The image object containing the different sizes of the image.
+   *
+   * @returns The absolute URL of the image.
+   */
+  imageUrl(image: { [key: string]: string }, size: string): string {
+    return `${this.baseUrl.replace(/\/api$/, '')}/storage/${image[size]}`
   }
 }
