@@ -135,12 +135,12 @@ export function forceNumberArray(
   if (typeof value === 'number') {
     return [value]
   } else if (typeof value === 'string') {
-    return [parseInt(value)]
+    return [parseInt(value, 10)]
   } else if (typeof value === 'undefined' || value === null) {
     return []
   }
 
-  return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
+  return value.map((v) => (typeof v === 'string' ? parseInt(v, 10) : v))
 }
 
 /**
