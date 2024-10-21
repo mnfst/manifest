@@ -1,7 +1,7 @@
 import { AppManifest, EntityManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
-
+import { getForbiddenResponse } from '../utils/common-response.utils'
 @Injectable()
 export class OpenApiManifestService {
   /**
@@ -36,32 +36,7 @@ export class OpenApiManifestService {
                 }
               }
             },
-            '403': {
-              description: 'Forbidden',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      message: {
-                        type: 'string'
-                      },
-                      error: {
-                        type: 'string'
-                      },
-                      statusCode: {
-                        type: 'number'
-                      }
-                    }
-                  },
-                  example: {
-                    message: 'Forbidden resource',
-                    error: 'Forbidden',
-                    statusCode: 403
-                  }
-                }
-              }
-            }
+            '403': getForbiddenResponse()
           }
         }
       }
@@ -106,32 +81,7 @@ export class OpenApiManifestService {
               }
             }
           },
-          '403': {
-            description: 'Forbidden',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string'
-                    },
-                    error: {
-                      type: 'string'
-                    },
-                    statusCode: {
-                      type: 'number'
-                    }
-                  }
-                },
-                example: {
-                  message: 'Forbidden resource',
-                  error: 'Forbidden',
-                  statusCode: 403
-                }
-              }
-            }
-          }
+          '403': getForbiddenResponse()
         }
       }
     }
