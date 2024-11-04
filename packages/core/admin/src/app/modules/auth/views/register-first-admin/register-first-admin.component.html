@@ -2,69 +2,73 @@
   <div class="hero-body">
     <div class="container has-text-centered">
       <div class="columns">
-        <div class="column col-login">
-          <div>
+        <div class="column col-welcome">
+          <div class="register-wrap">
             <img
               src="/assets/images/logo.svg"
               alt="manifest logo"
               class="mb-3"
               width="264"
             />
+            <div class="card is-bordered">
+              <div class="card-content">
+                <div class="content">
+                  <h2 class="title is-2 has-text-weight-bold">Welcome</h2>
 
-            <h2 class="title is-4">Welcome</h2>
+                  <p class="is-size-5">
+                    Welcome to your admin panel. Create your first admin account
+                    to continue. You can always change those values later.
+                  </p>
 
-            <p>
-              Welcome to your admin panel. Create your first admin account to
-              continue. You can always change those values later.
-            </p>
+                  <div class="has-text-left" *ngIf="form">
+                    <div class="field mb-5">
+                      <div class="control">
+                        <app-input
+                          [prop]="{
+                            name: 'email',
+                            type: PropType.Email
+                          }"
+                          (valueChanged)="patchValue('email', $event)"
+                        ></app-input>
+                      </div>
+                    </div>
+                    <div class="field mb-5">
+                      <div class="control">
+                        <app-input
+                          [prop]="{
+                            name: 'password',
+                            type: PropType.Password
+                          }"
+                          (valueChanged)="patchValue('password', $event)"
+                        ></app-input>
+                      </div>
+                    </div>
 
-            <div class="has-text-left" *ngIf="form">
-              <div class="field mb-5">
-                <div class="control">
-                  <app-input
-                    [prop]="{
-                      name: 'email',
-                      type: PropType.Email
-                    }"
-                    (valueChanged)="patchValue('email', $event)"
-                  ></app-input>
-                </div>
-                <div class="field mb-5">
-                  <div class="control">
-                    <app-input
-                      [prop]="{
-                        name: 'password',
-                        type: PropType.Password
-                      }"
-                      (valueChanged)="patchValue('password', $event)"
-                    ></app-input>
+                    <div class="field mb-5">
+                      <div class="control">
+                        <app-input
+                          [prop]="{
+                            name: 'confirm password',
+                            type: PropType.Password
+                          }"
+                          (valueChanged)="patchValue('confirmPassword', $event)"
+                        ></app-input>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div class="field mb-5">
-                  <div class="control">
-                    <app-input
-                      [prop]="{
-                        name: 'confirm password',
-                        type: PropType.Password
-                      }"
-                      (valueChanged)="patchValue('confirmPassword', $event)"
-                    ></app-input>
-                  </div>
+                  <button
+                    class="button is-block is-dark is-fullwidth mb-0"
+                    (click)="submit()"
+                    [disabled]="!form.valid"
+                  >
+                    Login
+                  </button>
                 </div>
               </div>
-
-              <button
-                class="button is-block is-dark is-fullwidth mb-3"
-                (click)="submit()"
-                [disabled]="!form.valid"
-              >
-                Login
-              </button>
             </div>
           </div>
         </div>
-        <div class="column col-decoration"></div>
       </div>
     </div>
   </div>
