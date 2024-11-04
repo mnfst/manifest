@@ -18,6 +18,7 @@ import { PropertyManifest } from '@repo/types'
     <input
       class="input form-control"
       [ngClass]="{ 'is-danger': isError }"
+      placeholder="Password..."
       type="password"
       autocomplete="current-password"
       (change)="onChange($event)"

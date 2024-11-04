@@ -20,7 +20,7 @@ import { PropertyManifest } from '@repo/types'
       class="input"
       [ngClass]="{ 'is-danger': isError }"
       type="email"
-      placeholder="Email"
+      placeholder="Email..."
       autocomplete="email"
       (change)="onChange($event)"
       #input

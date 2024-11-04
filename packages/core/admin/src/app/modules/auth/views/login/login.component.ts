@@ -31,6 +31,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.activatedRoute.queryParams.subscribe(async (queryParams: Params) => {
+      // Set suggested email and password from query params or default admin credentials.
       if (queryParams['email'] && queryParams['password']) {
         this.suggestedEmail = queryParams['email']
         this.suggestedPassword = queryParams['password']
@@ -40,15 +41,20 @@ export class LoginComponent implements OnInit {
           this.suggestedPassword = DEFAULT_ADMIN_CREDENTIALS.password
         }
       }
-
       this.form = new FormGroup({
         email: new FormControl(this.suggestedEmail || '', [
-          Validators.required
+          Validators.required,
+          Validators.email
         ]),
         password: new FormControl(this.suggestedPassword || '', [
           Validators.required
         ])
       })
+
+      // Redirect to register first admin if the database is empty.
+      if (await this.authService.isDbEmpty()) {
+        this.router.navigate(['/auth/welcome'])
+      }
     })
   }
 
