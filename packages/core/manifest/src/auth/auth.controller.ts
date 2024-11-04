@@ -31,7 +31,7 @@ export class AuthController {
     return this.authService.createToken(entity, signupUserDto)
   }
 
-  @Post(':admins/signup')
+  @Post('admins/signup')
   @UseGuards(IsDbEmptyGuard)
   public async signupAdmin(
     @Body() signupUserDto: SignupAuthenticableEntityDto
