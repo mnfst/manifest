@@ -51,14 +51,13 @@ async function bootstrap() {
     }
   })
 
-  if (!isProduction) {
-    const openApiService: OpenApiService = app.get(OpenApiService)
+  const openApiService: OpenApiService = app.get(OpenApiService)
 
-    SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
-      customfavIcon: 'assets/images/open-api/favicon.ico',
-      customSiteTitle: 'Manifest API Doc',
+  SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
+    customfavIcon: 'assets/images/open-api/favicon.ico',
+    customSiteTitle: 'Manifest API Doc',
 
-      customCss: `
+    customCss: `
         
 .swagger-ui html {
   box-sizing: border-box;
@@ -1791,8 +1790,7 @@ background: #ce107c;
    fill: #535356;
  }
 `
-    })
-  }
+  })
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
 }

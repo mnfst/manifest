@@ -9,6 +9,7 @@
 Check the NPM packages that require a new publication or release:
 
 - [ ] [manifest](https://www.npmjs.com/package/manifest)
+- [] [add-manifest](https://www.npmjs.com/package/add-manifest)
 - [ ] [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)
 
 ## Check list before submitting
