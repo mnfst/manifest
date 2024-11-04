@@ -1,60 +1,43 @@
 import { Test } from '@nestjs/testing'
 import { IsDbEmptyGuard } from '../guards/is-db-empty.guard'
-import { ManifestService } from '../../manifest/services/manifest.service'
-import { EntityService } from '../../entity/services/entity.service'
+import { DatabaseService } from '../../crud/services/database.service'
 
 describe('IsDbEmptyGuard', () => {
-  let manifestService: ManifestService
-  let entityService: EntityService
+  let databaseService: DatabaseService
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         IsDbEmptyGuard,
         {
-          provide: ManifestService,
+          provide: DatabaseService,
           useValue: {
-            getAppManifest: jest.fn().mockReturnValue({
-              entities: {}
-            })
-          }
-        },
-        {
-          provide: EntityService,
-          useValue: {
-            getEntityRepository: jest.fn().mockReturnValue({
-              createQueryBuilder: jest.fn().mockReturnValue({
-                getCount: jest.fn().mockReturnValue(0)
-              })
-            })
+            isDbEmpty: jest.fn().mockReturnValue(Promise.resolve(true))
           }
         }
       ]
     }).compile()
 
-    manifestService = module.get<ManifestService>(ManifestService)
-    entityService = module.get<EntityService>(EntityService)
+    databaseService = module.get<DatabaseService>(DatabaseService)
   })
 
   it('should be defined', () => {
-    expect(new IsDbEmptyGuard(manifestService, entityService)).toBeDefined()
+    expect(new IsDbEmptyGuard(databaseService)).toBeDefined()
   })
 
   it('should return true if the database is empty', async () => {
-    const isDbEmptyGuard = new IsDbEmptyGuard(manifestService, entityService)
+    const isDbEmptyGuard = new IsDbEmptyGuard(databaseService)
     const res = await isDbEmptyGuard.canActivate()
 
     expect(res).toBe(true)
   })
 
   it('should return false if the database is not empty', async () => {
-    jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
-      createQueryBuilder: jest.fn().mockReturnValue({
-        getCount: jest.fn().mockReturnValue(1)
-      })
-    } as any)
+    jest
+      .spyOn(databaseService, 'isDbEmpty')
+      .mockReturnValue(Promise.resolve(false))
 
-    const isDbEmptyGuard = new IsDbEmptyGuard(manifestService, entityService)
+    const isDbEmptyGuard = new IsDbEmptyGuard(databaseService)
     const res = await isDbEmptyGuard.canActivate()
 
     expect(res).toBe(false)
