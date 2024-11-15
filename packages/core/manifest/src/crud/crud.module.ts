@@ -8,10 +8,13 @@ import { CrudService } from './services/crud.service'
 import { PaginationService } from './services/pagination.service'
 import { ValidationModule } from '../validation/validation.module'
 import { AuthService } from '../auth/auth.service'
+import { DatabaseService } from './services/database.service'
+import { DatabaseController } from './controllers/database.controller'
 
 @Module({
   imports: [EntityModule, ManifestModule, ValidationModule],
-  controllers: [CrudController],
-  providers: [CrudService, PaginationService, AuthService]
+  controllers: [CrudController, DatabaseController],
+  providers: [CrudService, PaginationService, AuthService, DatabaseService],
+  exports: [DatabaseService]
 })
 export class CrudModule {}

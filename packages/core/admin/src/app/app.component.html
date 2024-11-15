@@ -1,11 +1,10 @@
 <ng-container *ngIf="!isLogin">
-  <app-touch-menu class="is-hidden-desktop"></app-touch-menu> 
-  
+  <app-touch-menu class="is-hidden-desktop"></app-touch-menu>
 </ng-container>
 
 <app-flash-message></app-flash-message>
 
-<div class="wrapper" >
+<div class="wrapper">
   <div class="columns">
     <aside class="column aside menu px-0 is-hidden-touch" *ngIf="!isLogin">
       <app-side-menu></app-side-menu>

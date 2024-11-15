@@ -14,8 +14,10 @@ npm install
 # Run from a test folder to prevent messing with project files.
 mkdir test-folder
 cd test-folder
-../bin/dev.js create
+../bin/dev.js
 ```
+
+However due to the monorepo workspace structure, the launch script will fail as the path to the node modules folder is different than when served.
 
 ## Publish
 

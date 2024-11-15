@@ -25,32 +25,32 @@
                     (valueChanged)="patchValue('email', $event)"
                   ></app-input>
                 </div>
-                <div class="field mb-5">
-                  <div class="control">
-                    <app-input
-                      [prop]="{
-                        name: 'password',
-                        type: PropType.Password
-                      }"
-                      [value]="suggestedPassword"
-                      (valueChanged)="patchValue('password', $event)"
-                    ></app-input>
-                  </div>
+              </div>
+              <div class="field mb-5">
+                <div class="control">
+                  <app-input
+                    [prop]="{
+                      name: 'password',
+                      type: PropType.Password
+                    }"
+                    [value]="suggestedPassword"
+                    (valueChanged)="patchValue('password', $event)"
+                  ></app-input>
                 </div>
               </div>
-
-              <button
-                class="button is-block is-dark is-fullwidth mb-3"
-                (click)="submit()"
-                [disabled]="!form.valid"
-              >
-                Login
-              </button>
             </div>
+
+            <button
+              class="button is-block is-dark is-fullwidth mb-3"
+              (click)="submit()"
+              [disabled]="!form.valid"
+            >
+              Login
+            </button>
           </div>
         </div>
-        <div class="column col-decoration"></div>
       </div>
+      <div class="column col-decoration"></div>
     </div>
   </div>
 </section>
