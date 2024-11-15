@@ -84,7 +84,7 @@ export class CrudService {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entityMetadata })
 
-    let query: SelectQueryBuilder<BaseEntity> =
+    const query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
 
     // Select only visible props.

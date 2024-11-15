@@ -160,7 +160,7 @@ export class RelationshipService {
    * @returns A "relationItems" object with the related items.
    * */
   async fetchRelationItemsFromDto(
-    itemDto: Object,
+    itemDto: object,
     relationships: RelationshipManifest[]
   ): Promise<{ [key: string]: BaseEntity | BaseEntity[] }> {
     const fetchPromises: { [key: string]: Promise<BaseEntity | BaseEntity[]> } =

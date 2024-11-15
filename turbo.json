@@ -28,6 +28,9 @@
       "persistent": true,
       "cache": false
     },
-    "test": {}
+    "test": {},
+    "lint": {
+      "outputs": []
+    }
   }
 }
