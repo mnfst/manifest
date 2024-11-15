@@ -1,7 +1,7 @@
 {
   "name": "manifest",
-  "version": "4.0.4",
-  "description": "A backend so simple that it fits in a YAML file",
+  "version": "4.0.5",
+  "description": "A backend so simple that it fits into 1 YAML file",
   "author": "Manifest",
   "license": "MIT",
   "homepage": "https://manifest.build",
@@ -20,7 +20,8 @@
     "api",
     "rest",
     "fullstack",
-    "yaml"
+    "yaml",
+    "headless"
   ],
   "scripts": {
     "build": "nest build && cd ../admin && npm run build",
