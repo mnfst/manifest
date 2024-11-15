@@ -1,7 +1,8 @@
 {
   "name": "@repo/json-schema",
   "scripts": {
-    "build": "ts-node scripts/generate-types.ts"
+    "build": "ts-node scripts/generate-types.ts",
+    "lint": "eslint --fix ."
   },
   "dependencies": {
     "json-schema-to-typescript": "^15.0.2",

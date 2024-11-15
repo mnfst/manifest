@@ -1,4 +1,8 @@
 import { ValidationSchema } from './ManifestSchema'
 
-// TODO: Full implementation.
-export interface ValidationManifest extends ValidationSchema {}
+export interface ValidationManifest extends ValidationSchema {
+  /**
+   * Other properties.
+   */
+  [key: string]: unknown
+}
