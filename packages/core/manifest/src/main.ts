@@ -505,6 +505,12 @@ background: #ce107c;
   color: #3b4151
 }
 
+.swagger-ui .responses-inner h4
+{
+  margin: 25px 0 5px;
+  color: #1eb1e8;
+}
+
 .swagger-ui .response-col_status {
   font-size: 14px;
   font-family: Open Sans, sans-serif;
