@@ -57,7 +57,7 @@
             <ng-container *ngIf="relationship.type === 'many-to-many'">
               <ng-container
                 *ngFor="
-                  let relation of item[relationship.name];
+                  let relation of getManyToManyRelations(item, relationship);
                   let last = last
                 "
               >

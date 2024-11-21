@@ -39,28 +39,21 @@ export default class Manifest {
   /**
    * Get the paginated list of items of the entity.
    *
-   * @param paginationParams - Optional pagination parameters. If provided, the function
-   *                           returns a paginated result, otherwise returns all entities.
+   * @param paginationParams - Optional pagination parameters.
+   *
    * @returns A Promise that resolves a Paginator object containing entities of type T, based on the input.
    */
   async find<T>(paginationParams?: {
     page?: number
     perPage?: number
   }): Promise<Paginator<T>> {
-    if (paginationParams) {
-      return this.fetch({
-        path: `/dynamic/${this.slug}`,
-        queryParams: {
-          ...this.queryParams,
-          ...paginationParams
-        }
-      })
-    } else {
-      return this.fetch({
-        path: `/dynamic/${this.slug}`,
-        queryParams: this.queryParams
-      })
-    }
+    return this.fetch({
+      path: `/dynamic/${this.slug}`,
+      queryParams: {
+        ...this.queryParams,
+        ...paginationParams
+      }
+    }) as Promise<Paginator<T>>
   }
 
   /**
@@ -75,7 +68,7 @@ export default class Manifest {
   async findOneById<T>(id: number): Promise<T> {
     return this.fetch({
       path: `/dynamic/${this.slug}/${id}`
-    })
+    }) as Promise<T>
   }
 
   /**
@@ -85,12 +78,12 @@ export default class Manifest {
    *
    * @returns The created item.
    */
-  async create<T>(itemDto: any): Promise<T> {
+  async create<T>(itemDto: unknown): Promise<T> {
     return this.fetch({
       path: `/dynamic/${this.slug}`,
       method: 'POST',
       body: itemDto
-    })
+    }) as Promise<T>
   }
 
   /**
@@ -102,12 +95,12 @@ export default class Manifest {
    * @returns The updated item.
    * @example client.from('cats').update(1, { name: 'updated name' });
    */
-  async update<T>(id: number, itemDto: any): Promise<T> {
+  async update<T>(id: number, itemDto: unknown): Promise<T> {
     return this.fetch({
       path: `/dynamic/${this.slug}/${id}`,
       method: 'PUT',
       body: itemDto
-    })
+    }) as Promise<T>
   }
 
   /**
@@ -217,14 +210,14 @@ export default class Manifest {
     email: string,
     password: string
   ): Promise<boolean> {
-    const response: { token: string } = await this.fetch({
+    const response: { token: string } = (await this.fetch({
       path: `/auth/${entitySlug}/login`,
       method: 'POST',
       body: {
         email,
         password
       }
-    })
+    })) as { token: string }
 
     this.headers['Authorization'] = `Bearer ${response.token}`
 
@@ -254,15 +247,15 @@ export default class Manifest {
     entitySlug: string,
     email: string,
     password: string
-  ): Promise<any> {
-    const response: { token: string } = await this.fetch({
+  ): Promise<boolean> {
+    const response: { token: string } = (await this.fetch({
       path: `/auth/${entitySlug}/signup`,
       method: 'POST',
       body: {
         email,
         password
       }
-    })
+    })) as { token: string }
 
     this.headers['Authorization'] = `Bearer ${response.token}`
 
@@ -276,10 +269,10 @@ export default class Manifest {
    * @example client.from('users').me();
    *
    */
-  async me(): Promise<any> {
+  async me(): Promise<{ email: string }> {
     return this.fetch({
       path: `/auth/${this.slug}/me`
-    })
+    }) as Promise<{ email: string }>
   }
 
   private fetch({
@@ -290,9 +283,9 @@ export default class Manifest {
   }: {
     path: string
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-    body?: any
+    body?: unknown
     queryParams?: Record<string, string | number | boolean>
-  }): Promise<any> {
+  }): Promise<unknown> {
     const url = new URL(this.baseUrl + path)
 
     Object.entries(queryParams || []).forEach(([key, value]) => {

@@ -52,9 +52,26 @@ export class DetailComponent {
           path: `/dynamic/${this.entityManifest.slug}`
         },
         {
-          label: this.item[this.entityManifest.mainProp as keyof BaseEntity]
+          label: this.item[
+            this.entityManifest.mainProp as keyof BaseEntity
+          ] as string
         }
       ])
     })
+  }
+
+  /**
+   * Get the many-to-one relations of an item.
+   *
+   * @param item The item to get the relations from.
+   * @param relationship The relationship manifest.
+   *
+   * @returns The related items as an array.
+   */
+  getManyToManyRelations(
+    item: BaseEntity,
+    relationship: RelationshipManifest
+  ): BaseEntity[] {
+    return item[relationship.name] as BaseEntity[]
   }
 }
