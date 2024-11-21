@@ -60,7 +60,7 @@ entities:
 Simply run this terminal command to add Manifest locally:
 
 ```bash
-npx add-manifest
+npx add-manifest@latest
 ```
 
 > [!NOTE]  
@@ -71,11 +71,10 @@ npx add-manifest
 Our mission is to enable developers of all experience levels to create and share innovative solutions. As an **open source** product, we continuously improve Manifest through community collaboration. After our successful PoC, we are further developing the product with your feedback. Here are the upcoming features:
 
 | Feature          | Description                                                 | Release date | Status        |
-| ---------------- | ----------------------------------------------------------- | ------------ | ------------- |
+| ---------------- | ----------------------------------------------------------- | ------------ | ------------- | -------------------- | ------- | ------------ |
 | **OpenAPI Doc**  | Instant live documentation for your REST API                | July 2024    | ✅ Available  |
 | **Auth**         | Make any entity authenticatable and add rules for endpoints | August 2024  | ✅ Available  |
-| **Validation**   | Custom validation for creating and updating items           | Q4 2024      | ✅ Available  |
-| **Many-to-many** | Advanced relationship management                            | Q4 2024      | ✅ Available  |
+| **Validation**   | Custom validation for creating and updating items           | Q4 2024      | ✅ Available  | >tionship management | Q4 2024 | ✅ Available |
 | **Media upload** | Allow file and image uploads with rules and resizing        | Q4 2024      | ✅ Available  |
 | **Hooks**        | Trigger webhooks at specific events                         | Q4 2024      | 📝 To specify |
 
@@ -91,7 +90,7 @@ Our mission is to enable developers of all experience levels to create and share
 
 We welcome contributions to Manifest, Please see our [Contributing Guidelines](./CONTRIBUTING.md) to get started and join the journey.
 
-Thanks to our first wonderful contributors!
+Thanks to our wonderful contributors!
 
 <a href="https://github.com/mnfst/manifest/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=mnfst/manifest" />

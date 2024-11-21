@@ -3,7 +3,7 @@
 The `add-manifest` command adds [Manifest](https://manifest.build) to your project.
 
 ```bash
-npx add-manifest
+npx add-manifest@latest
 ```
 
 ## Develop
