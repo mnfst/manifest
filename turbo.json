@@ -29,6 +29,7 @@
       "cache": false
     },
     "test": {},
+    "test:ci": {},
     "lint": {
       "outputs": []
     }

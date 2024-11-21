@@ -4,6 +4,7 @@
     "build": "npx turbo run build",
     "dev": "npx turbo run dev",
     "test": "npx turbo run test",
+    "test:ci": "npx turbo run test:ci",
     "lint": "npx turbo run lint",
     "seed": "cd packages/core/manifest && npm run seed",
     "prepare": "husky"
