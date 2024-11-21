@@ -23,7 +23,7 @@ jobs:
       - name: Install root dependencies
         run: npm install
       - name: Install dependencies (workspaces)
-        run: npm ci --workspaces
+        run: npm ci --workspaces --ignore-scripts
       - name: Build App
         run: npm run build
       - name: Run tests
