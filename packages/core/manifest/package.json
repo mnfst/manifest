@@ -35,7 +35,7 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:ci": "npm run test:unit:ci && npm run test:e2e:ci",
     "test:watch": "jest --watch",
-    "test:cov": "npm run test:unit --coverage",
+    "test:cov": "npm run test:unit -- --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./e2e/jest-e2e.config.json",
     "test:e2e:ci": "jest --config ./e2e/jest-e2e.config.json --ci",
