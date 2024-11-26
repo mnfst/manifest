@@ -9,10 +9,11 @@ import { AuthService } from '../auth/auth.service'
 import { DatabaseService } from './services/database.service'
 import { DatabaseController } from './controllers/database.controller'
 import { CollectionController } from './controllers/collection.controller'
+import { SingleController } from './controllers/single.controller'
 
 @Module({
   imports: [EntityModule, ManifestModule, ValidationModule],
-  controllers: [CollectionController, DatabaseController],
+  controllers: [CollectionController, DatabaseController, SingleController],
   providers: [CrudService, PaginationService, AuthService, DatabaseService],
   exports: [DatabaseService]
 })

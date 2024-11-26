@@ -8,11 +8,11 @@ describe('Relationship', () => {
   describe('ManyToOne', () => {
     it('can create a many to one relationship and query it from child to parent', async () => {
       const createResponse = await global.request
-        .post('/dynamic/posts')
+        .post('/collections/posts')
         .send(dummyPost)
 
       const fetchedPost = await global.request.get(
-        `/dynamic/posts/${createResponse.body.id}?relations=author`
+        `/collections/posts/${createResponse.body.id}?relations=author`
       )
 
       expect(createResponse.status).toBe(201)
@@ -22,11 +22,11 @@ describe('Relationship', () => {
 
     it('can query a many to one relationship from parent to child', async () => {
       const createResponse = await global.request
-        .post('/dynamic/posts')
+        .post('/collections/posts')
         .send(dummyPost)
 
       const fetchedAuthor = await global.request.get(
-        `/dynamic/authors/${dummyPost.authorId}?relations=posts`
+        `/collections/authors/${dummyPost.authorId}?relations=posts`
       )
 
       expect(createResponse.status).toBe(201)
@@ -37,13 +37,15 @@ describe('Relationship', () => {
     })
 
     it('many to one relationship is nullable', async () => {
-      const createResponse = await global.request.post('/dynamic/posts').send({
-        title: 'Post without author',
-        content: 'Post content'
-      })
+      const createResponse = await global.request
+        .post('/collections/posts')
+        .send({
+          title: 'Post without author',
+          content: 'Post content'
+        })
 
       const fetchedPost = await global.request.get(
-        `/dynamic/posts/${createResponse.body.id}?relations=author`
+        `/collections/posts/${createResponse.body.id}?relations=author`
       )
 
       expect(createResponse.status).toBe(201)
@@ -52,7 +54,7 @@ describe('Relationship', () => {
     })
 
     it('eager many to one relations are loaded by default', async () => {
-      const fetchedNote = await global.request.get('/dynamic/notes/1')
+      const fetchedNote = await global.request.get('/collections/notes/1')
 
       expect(fetchedNote.status).toBe(200)
       expect(fetchedNote.body.author.id).toEqual(expect.any(Number))
@@ -65,20 +67,20 @@ describe('Relationship', () => {
       const veryBigNumber = '9999'
 
       const createAuthorResponse = await global.request
-        .post('/dynamic/authors')
+        .post('/collections/authors')
         .send(newAuthor)
 
-      await global.request.post('/dynamic/posts').send({
+      await global.request.post('/collections/posts').send({
         title: 'Post title',
         content: 'Post content',
         authorId: createAuthorResponse.body.id
       })
 
       const filteredResponse = await global.request.get(
-        `/dynamic/posts?relations=author&author.id_eq=${createAuthorResponse.body.id}`
+        `/collections/posts?relations=author&author.id_eq=${createAuthorResponse.body.id}`
       )
       const nonExistentAuthorResponse = await global.request.get(
-        `/dynamic/posts?relations=author&author.id_eq=${veryBigNumber}`
+        `/collections/posts?relations=author&author.id_eq=${veryBigNumber}`
       )
 
       expect(filteredResponse.status).toBe(200)
@@ -95,20 +97,20 @@ describe('Relationship', () => {
       }
 
       const createAuthorResponse = await global.request
-        .post('/dynamic/authors')
+        .post('/collections/authors')
         .send(newAuthor)
 
-      await global.request.post('/dynamic/posts').send({
+      await global.request.post('/collections/posts').send({
         title: 'Post title',
         content: 'Post content',
         authorId: createAuthorResponse.body.id
       })
 
       const listResponse = await global.request.get(
-        `/dynamic/posts?relations=author,author.university`
+        `/collections/posts?relations=author,author.university`
       )
       const detailResponse = await global.request.get(
-        `/dynamic/posts/1?relations=author,author.university`
+        `/collections/posts/1?relations=author,author.university`
       )
 
       expect(listResponse.status).toBe(200)
@@ -130,11 +132,11 @@ describe('Relationship', () => {
       }
 
       const createAuthorResponse = await global.request
-        .post('/dynamic/authors')
+        .post('/collections/authors')
         .send(newAuthor)
 
       const createPostResponse = await global.request
-        .post('/dynamic/posts')
+        .post('/collections/posts')
         .send({
           title: 'Post title',
           content: 'Post content',
@@ -142,7 +144,7 @@ describe('Relationship', () => {
         })
 
       const fetchedUniversity = await global.request.get(
-        `/dynamic/universities/${dummyUniversityId}?relations=authors,authors.posts`
+        `/collections/universities/${dummyUniversityId}?relations=authors,authors.posts`
       )
 
       expect(fetchedUniversity.status).toBe(200)
@@ -155,19 +157,19 @@ describe('Relationship', () => {
 
     it('restrict delete on parent entity with children', async () => {
       const createAuthorResponse = await global.request
-        .post('/dynamic/authors')
+        .post('/collections/authors')
         .send({
           name: 'Author name'
         })
 
-      await global.request.post('/dynamic/posts').send({
+      await global.request.post('/collections/posts').send({
         title: 'Post title',
         content: 'Post content',
         authorId: createAuthorResponse.body.id
       })
 
       const deleteResponse = await global.request.delete(
-        `/dynamic/authors/${createAuthorResponse.body.id}`
+        `/collections/authors/${createAuthorResponse.body.id}`
       )
 
       expect(deleteResponse.status).toBe(400)
@@ -177,14 +179,16 @@ describe('Relationship', () => {
   describe('ManyToMany', () => {
     it('can create a many to many relationship', async () => {
       const dummyTagIds = [1, 3]
-      const createResponse = await global.request.post('/dynamic/posts').send({
-        title: 'My new post',
-        content: 'Post content',
-        tagIds: dummyTagIds
-      })
+      const createResponse = await global.request
+        .post('/collections/posts')
+        .send({
+          title: 'My new post',
+          content: 'Post content',
+          tagIds: dummyTagIds
+        })
 
       const fetchedPost = await global.request.get(
-        `/dynamic/posts/${createResponse.body.id}?relations=tags`
+        `/collections/posts/${createResponse.body.id}?relations=tags`
       )
 
       expect(createResponse.status).toBe(201)
@@ -197,20 +201,22 @@ describe('Relationship', () => {
       const dummyTagIds = [1, 3]
       const otherTagIds = [2, 4, 5]
 
-      const createResponse = await global.request.post('/dynamic/posts').send({
-        title: 'Post title',
-        content: 'Post content',
-        tagIds: dummyTagIds
-      })
+      const createResponse = await global.request
+        .post('/collections/posts')
+        .send({
+          title: 'Post title',
+          content: 'Post content',
+          tagIds: dummyTagIds
+        })
 
       const updateResponse = await global.request
-        .put(`/dynamic/posts/${createResponse.body.id}`)
+        .put(`/collections/posts/${createResponse.body.id}`)
         .send({
           tagIds: otherTagIds
         })
 
       const fetchedPost = await global.request.get(
-        `/dynamic/posts/${createResponse.body.id}?relations=tags`
+        `/collections/posts/${createResponse.body.id}?relations=tags`
       )
 
       expect(updateResponse.status).toBe(200)
@@ -221,20 +227,22 @@ describe('Relationship', () => {
     it('can remove a many to many relationship', async () => {
       const dummyTagIds = [1, 3]
 
-      const createResponse = await global.request.post('/dynamic/posts').send({
-        title: 'Post title',
-        content: 'Post content',
-        tagIds: dummyTagIds
-      })
+      const createResponse = await global.request
+        .post('/collections/posts')
+        .send({
+          title: 'Post title',
+          content: 'Post content',
+          tagIds: dummyTagIds
+        })
 
       const updateResponse = await global.request
-        .put(`/dynamic/posts/${createResponse.body.id}`)
+        .put(`/collections/posts/${createResponse.body.id}`)
         .send({
           tagIds: []
         })
 
       const fetchedPost = await global.request.get(
-        `/dynamic/posts/${createResponse.body.id}?relations=tags`
+        `/collections/posts/${createResponse.body.id}?relations=tags`
       )
 
       expect(updateResponse.status).toBe(200)
@@ -246,7 +254,7 @@ describe('Relationship', () => {
       const dummyTagIds = [1, 3]
 
       const createPostResponse = await global.request
-        .post('/dynamic/posts')
+        .post('/collections/posts')
         .send({
           title: 'Post title',
           content: 'Post content',
@@ -254,11 +262,11 @@ describe('Relationship', () => {
         })
 
       const fetchedPost = await global.request.get(
-        `/dynamic/posts/${createPostResponse.body.id}?relations=tags`
+        `/collections/posts/${createPostResponse.body.id}?relations=tags`
       )
 
       const fetchedTag = await global.request.get(
-        `/dynamic/tags/${dummyTagIds[0]}?relations=posts`
+        `/collections/tags/${dummyTagIds[0]}?relations=posts`
       )
 
       expect(createPostResponse.status).toBe(201)
@@ -276,7 +284,7 @@ describe('Relationship', () => {
       const dummyAuthorId = 4
 
       const createPostResponse = await global.request
-        .post('/dynamic/posts')
+        .post('/collections/posts')
         .send({
           title: 'Post title',
           content: 'Post content',
@@ -285,7 +293,7 @@ describe('Relationship', () => {
         })
 
       const fetchedAuthor = await global.request.get(
-        `/dynamic/authors/${dummyAuthorId}?relations=posts,posts.tags`
+        `/collections/authors/${dummyAuthorId}?relations=posts,posts.tags`
       )
 
       expect(createPostResponse.status).toBe(201)
@@ -301,14 +309,14 @@ describe('Relationship', () => {
       const dummyTagIds = [1, 3]
 
       const createTweetResponse = await global.request
-        .post('/dynamic/tweets')
+        .post('/collections/tweets')
         .send({
           text: 'Tweet content',
           customTagNameIds: dummyTagIds
         })
 
       const fetchedTweet = await global.request.get(
-        `/dynamic/tweets/${createTweetResponse.body.id}`
+        `/collections/tweets/${createTweetResponse.body.id}`
       )
 
       expect(createTweetResponse.status).toBe(201)
@@ -320,23 +328,23 @@ describe('Relationship', () => {
 
     it('can filter by a many to many relationship', async () => {
       const createTagResponse = await global.request
-        .post('/dynamic/tags')
+        .post('/collections/tags')
         .send({
           name: 'Tag name'
         })
 
-      await global.request.post('/dynamic/posts').send({
+      await global.request.post('/collections/posts').send({
         title: 'Post title',
         content: 'Post content',
         tagIds: [createTagResponse.body.id]
       })
 
       const filteredResponse = await global.request.get(
-        `/dynamic/posts?relations=tags&tags.id_eq=${createTagResponse.body.id}`
+        `/collections/posts?relations=tags&tags.id_eq=${createTagResponse.body.id}`
       )
 
       const nonExistentTagResponse = await global.request.get(
-        `/dynamic/posts?relations=tags&tags.id_eq=9999`
+        `/collections/posts?relations=tags&tags.id_eq=9999`
       )
 
       expect(filteredResponse.status).toBe(200)

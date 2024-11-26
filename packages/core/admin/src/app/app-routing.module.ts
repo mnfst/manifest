@@ -16,7 +16,7 @@ const routes: Routes = [
       import('./modules/auth/auth.module').then((m) => m.AuthModule)
   },
   {
-    path: 'dynamic',
+    path: 'collections',
     loadChildren: () =>
       import('./modules/crud/crud.module').then((m) => m.CrudModule),
     canActivate: [AuthGuard]

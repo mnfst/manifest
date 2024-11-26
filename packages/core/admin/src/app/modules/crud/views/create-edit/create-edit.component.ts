@@ -73,11 +73,11 @@ export class CreateEditComponent {
         this.breadcrumbService.breadcrumbLinks.next([
           {
             label: this.entityManifest.namePlural,
-            path: `/dynamic/${this.entityManifest.slug}`
+            path: `/collections/${this.entityManifest.slug}`
           },
           {
             label: this.item[this.entityManifest.mainProp],
-            path: `/dynamic/${this.entityManifest.slug}/${this.item.id}`
+            path: `/collections/${this.entityManifest.slug}/${this.item.id}`
           },
           {
             label: 'Edit'
@@ -87,7 +87,7 @@ export class CreateEditComponent {
         this.breadcrumbService.breadcrumbLinks.next([
           {
             label: this.entityManifest.namePlural,
-            path: `/dynamic/${this.entityManifest.slug}`
+            path: `/collections/${this.entityManifest.slug}`
           },
           {
             label: `Create a new ${this.entityManifest.nameSingular}`
@@ -166,7 +166,7 @@ export class CreateEditComponent {
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been updated`
           )
-          this.router.navigate(['/dynamic', this.entityManifest.slug])
+          this.router.navigate(['/collections', this.entityManifest.slug])
         })
         .catch((err: HttpErrorResponse) => {
           if (err.status === 400) {
@@ -187,7 +187,7 @@ export class CreateEditComponent {
             `The ${this.entityManifest.nameSingular} has been created successfully`
           )
           this.router.navigate([
-            '/dynamic',
+            '/collections',
             this.entityManifest.slug,
             createdItem.id
           ])

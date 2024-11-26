@@ -15,15 +15,17 @@ describe('CRUD (e2e)', () => {
     location: { lat: 12, lng: 13 }
   }
 
-  it('POST /dynamic/:entity', async () => {
-    const response = await global.request.post('/dynamic/dogs').send(dummyDog)
+  it('POST /collections/:entity', async () => {
+    const response = await global.request
+      .post('/collections/dogs')
+      .send(dummyDog)
 
     expect(response.status).toBe(201)
   })
 
-  describe('GET /dynamic/:entity', () => {
+  describe('GET /collections/:entity', () => {
     it('should return all items', async () => {
-      const response = await global.request.get('/dynamic/dogs')
+      const response = await global.request.get('/collections/dogs')
 
       expect(response.status).toBe(200)
       expect(response.body).toMatchObject<Paginator<any>>({
@@ -40,7 +42,7 @@ describe('CRUD (e2e)', () => {
 
     it('should filter items by field', async () => {
       const response = await global.request.get(
-        `/dynamic/dogs?name_eq=${dummyDog.name}`
+        `/collections/dogs?name_eq=${dummyDog.name}`
       )
 
       expect(response.status).toBe(200)
@@ -51,7 +53,7 @@ describe('CRUD (e2e)', () => {
       const bigNumber: number = 999
 
       const response = await global.request.get(
-        `/dynamic/dogs?relations=owner&owner.id_eq=${bigNumber}`
+        `/collections/dogs?relations=owner&owner.id_eq=${bigNumber}`
       )
 
       expect(response.status).toBe(200)
@@ -60,15 +62,17 @@ describe('CRUD (e2e)', () => {
 
     it('should return a 400 error if the filter field does not exist', async () => {
       const response = await global.request.get(
-        `/dynamic/dogs?invalidField_eq=${dummyDog.name}`
+        `/collections/dogs?invalidField_eq=${dummyDog.name}`
       )
 
       expect(response.status).toBe(400)
     })
   })
 
-  it('GET /dynamic/:entity/select-options', async () => {
-    const response = await global.request.get('/dynamic/dogs/select-options')
+  it('GET /collections/:entity/select-options', async () => {
+    const response = await global.request.get(
+      '/collections/dogs/select-options'
+    )
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchObject<SelectOption[]>([
@@ -79,23 +83,23 @@ describe('CRUD (e2e)', () => {
     ])
   })
 
-  it('GET /dynamic/:entity/:id', async () => {
-    const response = await global.request.get('/dynamic/dogs/1')
+  it('GET /collections/:entity/:id', async () => {
+    const response = await global.request.get('/collections/dogs/1')
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchObject(dummyDog)
   })
 
-  it('PUT /dynamic/:entity/:id', async () => {
+  it('PUT /collections/:entity/:id', async () => {
     const newName = 'Rex'
 
-    const response = await global.request.put('/dynamic/dogs/1').send({
+    const response = await global.request.put('/collections/dogs/1').send({
       name: newName
     })
 
     expect(response.status).toBe(200)
 
-    const updatedResponse = await global.request.get('/dynamic/dogs/1')
+    const updatedResponse = await global.request.get('/collections/dogs/1')
 
     expect(updatedResponse.status).toBe(200)
     expect(updatedResponse.body).toMatchObject({
@@ -104,12 +108,12 @@ describe('CRUD (e2e)', () => {
     })
   })
 
-  it('DELETE /dynamic/:entity/:id', async () => {
-    const response = await global.request.delete('/dynamic/dogs/1')
+  it('DELETE /collections/:entity/:id', async () => {
+    const response = await global.request.delete('/collections/dogs/1')
 
     expect(response.status).toBe(200)
 
-    const updatedResponse = await global.request.get('/dynamic/dogs/1')
+    const updatedResponse = await global.request.get('/collections/dogs/1')
 
     expect(updatedResponse.status).toBe(404)
   })

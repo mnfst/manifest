@@ -4,12 +4,13 @@ import { firstValueFrom } from 'rxjs'
 
 import { BaseEntity, Paginator, SelectOption } from '@repo/types'
 import { environment } from '../../../../environments/environment'
+import { Params } from '@angular/router'
 
 @Injectable({
   providedIn: 'root'
 })
 export class CrudService {
-  baseUrl = environment.apiBaseUrl + '/dynamic'
+  baseUrl = environment.apiBaseUrl + '/collections'
 
   constructor(private http: HttpClient) {}
 
@@ -17,9 +18,7 @@ export class CrudService {
     entitySlug: string,
     options?: { filters?: { [k: string]: string }; relations?: string[] }
   ): Promise<Paginator<BaseEntity>> {
-    const queryParams: {
-      [key: string]: any
-    } = {
+    const queryParams: Params = {
       page: options.filters?.['page'] || 1,
       perPage: 20
     }
@@ -64,13 +63,13 @@ export class CrudService {
     )
   }
 
-  create(entitySlug: string, data: any): Promise<{ id: number }> {
+  create(entitySlug: string, data: unknown): Promise<{ id: number }> {
     return firstValueFrom(
       this.http.post<{ id: number }>(`${this.baseUrl}/${entitySlug}`, data)
     )
   }
 
-  update(entitySlug: string, id: number, data: any): Promise<BaseEntity> {
+  update(entitySlug: string, id: number, data: unknown): Promise<BaseEntity> {
     return firstValueFrom(
       this.http.put<BaseEntity>(`${this.baseUrl}/${entitySlug}/${id}`, data)
     )

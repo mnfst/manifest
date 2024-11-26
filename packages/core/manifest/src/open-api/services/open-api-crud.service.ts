@@ -19,13 +19,13 @@ export class OpenApiCrudService {
     entityManifests
       .filter((entityManifest: EntityManifest) => !entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/api/dynamic/${entityManifest.slug}`] = {
+        paths[`/api/collections/${entityManifest.slug}`] = {
           ...this.generateListPath(entityManifest),
           ...this.generateCreatePath(entityManifest)
         }
-        paths[`/api/dynamic/${entityManifest.slug}/select-options`] =
+        paths[`/api/collections/${entityManifest.slug}/select-options`] =
           this.generateListSelectOptionsPath(entityManifest)
-        paths[`/api/dynamic/${entityManifest.slug}/{id}`] = {
+        paths[`/api/collections/${entityManifest.slug}/{id}`] = {
           ...this.generateDetailPath(entityManifest),
           ...this.generateUpdatePath(entityManifest),
           ...this.generateDeletePath(entityManifest)

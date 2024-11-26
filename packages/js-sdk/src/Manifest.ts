@@ -48,7 +48,7 @@ export default class Manifest {
     perPage?: number
   }): Promise<Paginator<T>> {
     return this.fetch({
-      path: `/dynamic/${this.slug}`,
+      path: `/collections/${this.slug}`,
       queryParams: {
         ...this.queryParams,
         ...paginationParams
@@ -67,7 +67,7 @@ export default class Manifest {
    **/
   async findOneById<T>(id: number): Promise<T> {
     return this.fetch({
-      path: `/dynamic/${this.slug}/${id}`
+      path: `/collections/${this.slug}/${id}`
     }) as Promise<T>
   }
 
@@ -80,7 +80,7 @@ export default class Manifest {
    */
   async create<T>(itemDto: unknown): Promise<T> {
     return this.fetch({
-      path: `/dynamic/${this.slug}`,
+      path: `/collections/${this.slug}`,
       method: 'POST',
       body: itemDto
     }) as Promise<T>
@@ -97,7 +97,7 @@ export default class Manifest {
    */
   async update<T>(id: number, itemDto: unknown): Promise<T> {
     return this.fetch({
-      path: `/dynamic/${this.slug}/${id}`,
+      path: `/collections/${this.slug}/${id}`,
       method: 'PUT',
       body: itemDto
     }) as Promise<T>
@@ -114,7 +114,7 @@ export default class Manifest {
    */
   async delete(id: number): Promise<number> {
     return this.fetch({
-      path: `/dynamic/${this.slug}/${id}`,
+      path: `/collections/${this.slug}/${id}`,
       method: 'DELETE'
     }).then(() => id)
   }

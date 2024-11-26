@@ -49,7 +49,7 @@ export class DetailComponent {
       this.breadcrumbService.breadcrumbLinks.next([
         {
           label: this.entityManifest.namePlural,
-          path: `/dynamic/${this.entityManifest.slug}`
+          path: `/collections/${this.entityManifest.slug}`
         },
         {
           label: this.item[

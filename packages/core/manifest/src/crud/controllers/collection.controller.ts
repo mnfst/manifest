@@ -20,7 +20,7 @@ import { Request } from 'express'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 import { Rule } from '../../auth/decorators/rule.decorator'
 
-@Controller('dynamic')
+@Controller('collections')
 @UseGuards(AuthorizationGuard)
 export class CollectionController {
   constructor(
