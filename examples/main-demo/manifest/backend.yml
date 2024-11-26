@@ -1,13 +1,3 @@
-# 🦚 WELCOME TO MANIFEST 🦚 - A complete backend in 1 single file
-# Read more at https://manifest.build/docs
-
-# ******************************************
-# *       ADMIN PANEL CREDENTIALS          *
-# *                                        *
-# *  EMAIL:    admin@manifest.build        *
-# *  PASSWORD: admin                       *
-# ******************************************
-
 name: Healthcare application 👩🏾‍⚕️
 
 entities:

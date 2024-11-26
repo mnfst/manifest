@@ -9,7 +9,7 @@ import { ImageSizesObject, RelationshipManifest } from '@repo/types'
  * @returns key
  */
 export function getRecordKeyByValue<
-  T extends Record<string, any>,
+  T extends Record<string, string>,
   V extends T[keyof T]
 >(record: T, value: V): string | undefined {
   for (const [key, val] of Object.entries(record)) {
