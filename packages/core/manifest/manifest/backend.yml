@@ -23,6 +23,7 @@ entities:
       age: { min: 20 } # Gets overridden by the property definition.
 
   Food:
+    single: false
     properties:
       - name
       - { name: expirationDate, type: date }
@@ -33,3 +34,11 @@ entities:
     authenticable: true
     properties:
       - name
+
+  HomeContent:
+    single: true
+    slug: home
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+      - { name: image, type: image }
