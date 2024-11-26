@@ -11,7 +11,6 @@ import { camelize, getRecordKeyByValue } from '@repo/helpers'
 import {
   DeleteResult,
   EntityMetadata,
-  InsertResult,
   Repository,
   SelectQueryBuilder
 } from 'typeorm'
@@ -84,7 +83,7 @@ export class CrudService {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entityMetadata })
 
-    let query: SelectQueryBuilder<BaseEntity> =
+    const query: SelectQueryBuilder<BaseEntity> =
       entityRepository.createQueryBuilder('entity')
 
     // Select only visible props.
@@ -159,7 +158,7 @@ export class CrudService {
 
     return items.data.map((item: BaseEntity) => ({
       id: item.id,
-      label: item[entityManifest.mainProp]
+      label: item[entityManifest.mainProp] as string
     }))
   }
 
@@ -212,8 +211,11 @@ export class CrudService {
     return item
   }
 
-  async store(entitySlug: string, itemDto: any): Promise<InsertResult> {
-    const entityRepository: Repository<any> =
+  async store(
+    entitySlug: string,
+    itemDto: Partial<BaseEntity>
+  ): Promise<BaseEntity> {
+    const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
 
     const entityManifest: EntityManifest =
@@ -250,7 +252,7 @@ export class CrudService {
   async update(
     entitySlug: string,
     id: number,
-    itemDto: any
+    itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
     const entityManifest: EntityManifest =
       this.manifestService.getEntityManifest({
@@ -334,7 +336,9 @@ export class CrudService {
     // Throw an error if the item has related items in a one-to-many relationship.
     if (oneToManyRelationships.length) {
       oneToManyRelationships.forEach((relationship: RelationshipManifest) => {
-        const relatedItems = item[relationship.name]
+        const relatedItems: BaseEntity[] = item[
+          relationship.name
+        ] as BaseEntity[]
 
         if (relatedItems.length) {
           throw new HttpException(
@@ -481,7 +485,7 @@ export class CrudService {
   }): SelectQueryBuilder<BaseEntity> {
     Object.entries(queryParams || {})
       .filter(
-        ([key, _value]: [string, string | string[]]) =>
+        ([key]: [string, string | string[]]) =>
           !QUERY_PARAMS_RESERVED_WORDS.includes(key)
       )
       .forEach(([key, value]: [string, string]) => {

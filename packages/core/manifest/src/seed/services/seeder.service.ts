@@ -30,7 +30,7 @@ import { StorageService } from '../../storage/services/storage/storage.service'
 
 @Injectable()
 export class SeederService {
-  seededFiles: { [key: string]: string | Object } = {}
+  seededFiles: { [key: string]: string | object } = {}
 
   constructor(
     private entityService: EntityService,

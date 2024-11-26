@@ -15,7 +15,8 @@ import {
   RelationshipSchema,
   AccessPolicy,
   RelationshipManifest,
-  PolicySchema
+  PolicySchema,
+  ValidationManifest
 } from '@repo/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
@@ -441,7 +442,8 @@ export class ManifestService {
         name: propSchema,
         type: PropType.String,
         hidden: false,
-        validation: entitySchema.validation?.[propSchema] || {}
+        validation:
+          (entitySchema.validation?.[propSchema] as ValidationManifest) || {}
       }
     }
 
@@ -455,7 +457,8 @@ export class ManifestService {
           ? { sizes: DEFAULT_IMAGE_SIZES }
           : {}),
       validation: Object.assign(
-        entitySchema.validation?.[propSchema.name] || {},
+        (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
+          {},
         propSchema.validation
       )
     }
