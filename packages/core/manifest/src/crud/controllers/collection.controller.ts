@@ -22,7 +22,7 @@ import { Rule } from '../../auth/decorators/rule.decorator'
 
 @Controller('dynamic')
 @UseGuards(AuthorizationGuard)
-export class CrudController {
+export class CollectionController {
   constructor(
     private readonly crudService: CrudService,
     private readonly authService: AuthService

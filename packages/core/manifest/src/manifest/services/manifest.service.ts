@@ -168,9 +168,6 @@ export class ManifestService {
         nameSingular:
           entitySchema.nameSingular ||
           pluralize.singular(entitySchema.className || className).toLowerCase(),
-        namePlural:
-          entitySchema.namePlural ||
-          pluralize.plural(entitySchema.className || className).toLowerCase(),
         slug:
           entitySchema.slug ||
           slugify(
@@ -242,6 +239,9 @@ export class ManifestService {
     return {
       ...partialEntityManifest,
       properties: partialEntityManifest.properties,
+      namePlural:
+        entitySchema.namePlural ||
+        pluralize.plural(partialEntityManifest.className).toLowerCase(),
       mainProp:
         entitySchema.mainProp ||
         partialEntityManifest.properties.find(

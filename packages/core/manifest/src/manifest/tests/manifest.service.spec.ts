@@ -81,6 +81,7 @@ describe('ManifestService', () => {
     expect(entityManifests[0].relationships.length).toBe(0)
     expect(entityManifests[0]).not.toHaveProperty('seedCount')
     expect(entityManifests[0]).not.toHaveProperty('mainProp')
+    expect(entityManifests[0]).not.toHaveProperty('namePlural')
     expect(entityManifests[0]).not.toHaveProperty('authenticable')
     expect(entityManifests[0]).not.toHaveProperty('belongsTo')
     expect(entityManifests[0]).not.toHaveProperty('belongsToMany')
