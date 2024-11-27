@@ -35,17 +35,13 @@ entities:
     properties:
       - name
 
-  HomeContent:
+  ContactPage:
     single: true
-    slug: home
+    nameSingular: Contact
+    slug: contact
     properties:
       - { name: title, type: string }
       - { name: content, type: text }
       - { name: image, type: image }
-
-  AboutContent:
-    single: true
-    nameSingular: About content
-    slug: about
-    properties:
-      - { name: content, type: text }
+    validation:
+      title: { required: true }

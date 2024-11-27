@@ -1,6 +1,6 @@
 import { Paginator, SelectOption } from '@repo/types'
 
-describe('CRUD (e2e)', () => {
+describe('Collection CRUD (e2e)', () => {
   const dummyDog = {
     name: 'Fido',
     age: 5,

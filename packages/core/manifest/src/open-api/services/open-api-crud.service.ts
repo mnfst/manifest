@@ -1,6 +1,7 @@
 import { EntityManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import { upperCaseFirstLetter } from '@repo/helpers'
 
 @Injectable()
 export class OpenApiCrudService {
@@ -16,6 +17,7 @@ export class OpenApiCrudService {
   ): Record<string, PathItemObject> {
     const paths: Record<string, PathItemObject> = {}
 
+    // Collection paths.
     entityManifests
       .filter((entityManifest: EntityManifest) => !entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
@@ -32,7 +34,15 @@ export class OpenApiCrudService {
         }
       })
 
-    // TODO: Create a path for single types.
+    // Single paths.
+    entityManifests
+      .filter((entityManifest: EntityManifest) => entityManifest.single)
+      .forEach((entityManifest: EntityManifest) => {
+        paths[`/api/singles/${entityManifest.slug}`] = {
+          ...this.generateDetailPath(entityManifest, true),
+          ...this.generateUpdatePath(entityManifest, true)
+        }
+      })
 
     return paths
   }
@@ -49,7 +59,7 @@ export class OpenApiCrudService {
       get: {
         summary: `List ${entityManifest.namePlural}`,
         description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/rest-api#filters`,
-        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
+        tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         parameters: [
           {
             name: 'page',
@@ -132,7 +142,7 @@ export class OpenApiCrudService {
       get: {
         summary: `List ${entityManifest.namePlural} for select options`,
         description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'.`,
-        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
+        tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         responses: {
           '200': {
             description: `List of ${entityManifest.namePlural} for select options`,
@@ -165,7 +175,7 @@ export class OpenApiCrudService {
       post: {
         summary: `Create a new ${entityManifest.nameSingular}`,
         description: `Creates a new ${entityManifest.nameSingular} passing the properties in the request body as JSON.`,
-        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
+        tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         requestBody: {
           content: {
             'application/json': {
@@ -191,26 +201,37 @@ export class OpenApiCrudService {
    * Generates the path for retrieving the details of an entity.
    *
    * @param entityManifest The entity manifest.
+   * @param single Whether the entity is a single entity (defaults to false -> collection).
+   *
    * @returns The path item object.
    *
    */
-  generateDetailPath(entityManifest: EntityManifest): PathItemObject {
+  generateDetailPath(
+    entityManifest: EntityManifest,
+    single?: boolean
+  ): PathItemObject {
     return {
       get: {
         summary: `Get a single ${entityManifest.nameSingular}`,
         description: `Retrieves the details of a single ${entityManifest.nameSingular} by its ID.`,
-        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            description: `The ID of the ${entityManifest.nameSingular}`,
-            required: true,
-            schema: {
-              type: 'integer'
-            }
-          }
+        tags: [
+          upperCaseFirstLetter(
+            entityManifest.namePlural || entityManifest.nameSingular
+          )
         ],
+        parameters: single
+          ? []
+          : [
+              {
+                name: 'id',
+                in: 'path',
+                description: `The ID of the ${entityManifest.nameSingular}`,
+                required: true,
+                schema: {
+                  type: 'integer'
+                }
+              }
+            ],
         responses: {
           '200': {
             description: `OK`,
@@ -234,15 +255,24 @@ export class OpenApiCrudService {
    * Generates the path for updating an entity.
    *
    * @param entityManifest The entity manifest.
+   * @param single Whether the entity is a single entity (defaults to false -> collection).
+   *
    * @returns The path item object.
    *
    */
-  generateUpdatePath(entityManifest: EntityManifest): PathItemObject {
+  generateUpdatePath(
+    entityManifest: EntityManifest,
+    single?: boolean
+  ): PathItemObject {
     return {
       put: {
         summary: `Update an existing ${entityManifest.nameSingular}`,
         description: `Updates a single ${entityManifest.nameSingular} by its ID. The properties to update are passed in the request body as JSON.`,
-        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
+        tags: [
+          upperCaseFirstLetter(
+            entityManifest.namePlural || entityManifest.nameSingular
+          )
+        ],
         requestBody: {
           content: {
             'application/json': {
@@ -252,17 +282,19 @@ export class OpenApiCrudService {
             }
           }
         },
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            description: `The ID of the ${entityManifest.nameSingular}`,
-            required: true,
-            schema: {
-              type: 'integer'
-            }
-          }
-        ],
+        parameters: single
+          ? []
+          : [
+              {
+                name: 'id',
+                in: 'path',
+                description: `The ID of the ${entityManifest.nameSingular}`,
+                required: true,
+                schema: {
+                  type: 'integer'
+                }
+              }
+            ],
         responses: {
           '200': {
             description: `OK`,
@@ -294,7 +326,7 @@ export class OpenApiCrudService {
       delete: {
         summary: `Delete an existing ${entityManifest.nameSingular}`,
         description: `Deletes a single ${entityManifest.nameSingular} by its ID.`,
-        tags: [this.capitalizeFirstLetter(entityManifest.namePlural)],
+        tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         parameters: [
           {
             name: 'id',
@@ -316,10 +348,5 @@ export class OpenApiCrudService {
         }
       }
     }
-  }
-
-  private capitalizeFirstLetter(str: string) {
-    if (str.length === 0) return str // Handle empty string case
-    return str.charAt(0).toUpperCase() + str.slice(1)
   }
 }
