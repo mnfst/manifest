@@ -6,10 +6,26 @@ export default class Manifest {
    */
   baseUrl: string
 
+  /**
+   * The slug of the entity to query.
+   */
   private slug: string
+
+  /**
+   * A flag to determine if the entity is a single entity or a collection.
+   */
+  isSingleEntity: boolean = false
+
+  /**
+   * The headers of the request.
+   */
   private headers: Record<string, string> = {
     'Content-Type': 'application/json'
   }
+
+  /**
+   * The query parameters of the request.
+   */
   private queryParams: { [key: string]: string } = {}
 
   /**
@@ -32,8 +48,54 @@ export default class Manifest {
    */
   from(slug: string): this {
     this.slug = slug
+    this.isSingleEntity = false
     this.queryParams = {}
     return this
+  }
+
+  /**
+   * Set the slug of the single entity to query.
+   *
+   * @param slug The slug of the single entity to query.
+   *
+   * @returns an object containing the methods to get and update the single entity.
+   *
+   * @example client.single('about').get()
+   * @example client.single('home').update({ title: 'New title' })
+   */
+  single(slug: string): {
+    get: <T>() => Promise<T>
+    update: <T>(data: unknown) => Promise<T>
+  } {
+    this.slug = slug
+    this.isSingleEntity = true
+    this.queryParams = {}
+
+    return {
+      /**
+       * Fetches a single entity by slug.
+       *
+       * @returns A Promise resolving to the single entity.
+       */
+      get: async <T>(): Promise<T> => {
+        return this.fetch({
+          path: `/singles/${this.slug}`
+        }) as Promise<T>
+      },
+      /**
+       * Updates a single entity by slug.
+       *
+       * @param data The data to update the single entity with.
+       * @returns A Promise resolving to the updated single entity.
+       */
+      update: async <T>(data: unknown): Promise<T> => {
+        return this.fetch({
+          path: `/singles/${this.slug}`,
+          method: 'PUT',
+          body: data
+        }) as Promise<T>
+      }
+    }
   }
 
   /**
