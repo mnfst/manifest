@@ -35,9 +35,9 @@ export class DetailComponent {
         this.router.navigate(['/404'])
       }
 
-      // Get the item.
       this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
 
+      // Get the item.
       if (this.singleMode) {
         this.item = await this.crudService.showSingle(this.entityManifest.slug)
       } else {

@@ -101,6 +101,20 @@ export class CrudService {
     )
   }
 
+  /**
+   * Update a single type record.
+   *
+   * @param entitySlug The entity slug.
+   * @param data The data to update.
+   *
+   * @returns The updated record.
+   */
+  updateSingle(entitySlug: string, data: unknown): Promise<BaseEntity> {
+    return firstValueFrom(
+      this.http.put<BaseEntity>(`${this.singleBaseUrl}/${entitySlug}`, data)
+    )
+  }
+
   delete(entitySlug: string, id: number): Promise<any> {
     return firstValueFrom(
       this.http.delete(`${this.collectionBaseUrl}/${entitySlug}/${id}`)
