@@ -1,11 +1,26 @@
-import { Body, Controller, Get, Param, Put, Req } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Put,
+  Req,
+  UseGuards
+} from '@nestjs/common'
 import { Rule } from '../../auth/decorators/rule.decorator'
 import { AuthService } from '../../auth/auth.service'
 
 import { Request } from 'express'
 import { CrudService } from '../services/crud.service'
 import { BaseEntity } from '@repo/types'
+import { IsSingleGuard } from '../guards/is-single.guard'
+import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 
+/**
+ * Controller for single type entities.
+ */
+@UseGuards(AuthorizationGuard, IsSingleGuard)
 @Controller('singles')
 export class SingleController {
   constructor(
@@ -21,11 +36,21 @@ export class SingleController {
   ): Promise<BaseEntity> {
     const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
 
-    return this.crudService.findOne({
-      entitySlug,
-      id: 1,
-      fullVersion: isAdmin
-    })
+    let singleItem: BaseEntity
+
+    try {
+      singleItem = await this.crudService.findOne({
+        entitySlug,
+        id: 1,
+        fullVersion: isAdmin
+      })
+    } catch (e) {
+      if (e instanceof NotFoundException) {
+        singleItem = await this.crudService.storeEmpty(entitySlug)
+      }
+    }
+
+    return singleItem
   }
 
   @Put(':entity')

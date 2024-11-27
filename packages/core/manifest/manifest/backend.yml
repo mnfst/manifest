@@ -42,3 +42,10 @@ entities:
       - { name: title, type: string }
       - { name: content, type: text }
       - { name: image, type: image }
+
+  AboutContent:
+    single: true
+    nameSingular: About content
+    slug: about
+    properties:
+      - { name: content, type: text }
