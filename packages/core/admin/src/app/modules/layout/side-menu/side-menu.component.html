@@ -7,7 +7,21 @@
     </a>
   </div>
   <ul class="menu-list">
-    <li *ngIf="entityManifests">
+    <!-- Singles -->
+    <ng-container *ngIf="singles?.length">
+      <li *ngFor="let single of singles">
+        <a
+          [routerLink]="['/singles', single.slug]"
+          routerLinkActive="is-active"
+        >
+          <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
+        </a>
+      </li>
+      <hr />
+    </ng-container>
+
+    <!-- Collections -->
+    <li *ngIf="collections">
       <a
         (click)="isCollectionsOpen = !isCollectionsOpen"
         class="has-submenu is-flex is-justify-content-space-between"
@@ -22,15 +36,15 @@
         <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
       </a>
       <ul *ngIf="isCollectionsOpen">
-        <li *ngFor="let entity of entityManifests">
+        <li *ngFor="let collection of collections">
           <a
-            [routerLink]="['/collections', entity.slug]"
+            [routerLink]="['/collections', collection.slug]"
             routerLinkActive="is-active"
           >
-            <span>{{ entity.namePlural | capitalizeFirstLetter }}</span>
+            <span>{{ collection.namePlural | capitalizeFirstLetter }}</span>
           </a>
         </li>
-        <li *ngIf="entityManifests.length === 0">
+        <li *ngIf="collections.length === 0">
           <a
             style="pointer-events: none"
             class="has-background-white-bis has-text-grey"
@@ -39,6 +53,9 @@
         </li>
       </ul>
     </li>
+
+    <hr />
+
     <li>
       <a
         (click)="isSettingsOpen = !isSettingsOpen"

@@ -14,6 +14,8 @@ export class DetailComponent {
   item: BaseEntity
   entityManifest: EntityManifest
 
+  singleMode: boolean
+
   constructor(
     private crudService: CrudService,
     private manifestService: ManifestService,
@@ -34,16 +36,22 @@ export class DetailComponent {
       }
 
       // Get the item.
-      this.item = await this.crudService.show(
-        this.entityManifest.slug,
-        params['id'],
-        {
-          relations: this.entityManifest.relationships
-            ?.filter((r) => r.type !== 'one-to-many')
-            .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-            .map((relationship: RelationshipManifest) => relationship.name)
-        }
-      )
+      this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
+
+      if (this.singleMode) {
+        this.item = await this.crudService.showSingle(this.entityManifest.slug)
+      } else {
+        this.item = await this.crudService.show(
+          this.entityManifest.slug,
+          params['id'],
+          {
+            relations: this.entityManifest.relationships
+              ?.filter((r) => r.type !== 'one-to-many')
+              .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+              .map((relationship: RelationshipManifest) => relationship.name)
+          }
+        )
+      }
 
       // Set the breadcrumbs.
       this.breadcrumbService.breadcrumbLinks.next([

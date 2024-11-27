@@ -10,7 +10,8 @@ import { Params } from '@angular/router'
   providedIn: 'root'
 })
 export class CrudService {
-  baseUrl = environment.apiBaseUrl + '/collections'
+  collectionBaseUrl = environment.apiBaseUrl + '/collections'
+  singleBaseUrl = environment.apiBaseUrl + '/singles'
 
   constructor(private http: HttpClient) {}
 
@@ -35,16 +36,19 @@ export class CrudService {
     }
 
     return firstValueFrom(
-      this.http.get<Paginator<BaseEntity>>(`${this.baseUrl}/${entitySlug}`, {
-        params: queryParams
-      })
+      this.http.get<Paginator<BaseEntity>>(
+        `${this.collectionBaseUrl}/${entitySlug}`,
+        {
+          params: queryParams
+        }
+      )
     )
   }
 
   listSelectOptions(entitySlug: string): Promise<SelectOption[]> {
     return firstValueFrom(
       this.http.get<SelectOption[]>(
-        `${this.baseUrl}/${entitySlug}/select-options`
+        `${this.collectionBaseUrl}/${entitySlug}/select-options`
       )
     )
   }
@@ -55,29 +59,51 @@ export class CrudService {
     options?: { relations?: string[] }
   ): Promise<BaseEntity> {
     return firstValueFrom(
-      this.http.get<BaseEntity>(`${this.baseUrl}/${entitySlug}/${id}`, {
-        params: {
-          relations: options?.relations?.join(',')
+      this.http.get<BaseEntity>(
+        `${this.collectionBaseUrl}/${entitySlug}/${id}`,
+        {
+          params: {
+            relations: options?.relations?.join(',')
+          }
         }
-      })
+      )
+    )
+  }
+
+  /**
+   * Fetch a single type record.
+   *
+   * @param entitySlug The entity slug.
+   *
+   * @returns The record.
+   */
+  showSingle(entitySlug: string): Promise<BaseEntity> {
+    return firstValueFrom(
+      this.http.get<BaseEntity>(`${this.singleBaseUrl}/${entitySlug}`)
     )
   }
 
   create(entitySlug: string, data: unknown): Promise<{ id: number }> {
     return firstValueFrom(
-      this.http.post<{ id: number }>(`${this.baseUrl}/${entitySlug}`, data)
+      this.http.post<{ id: number }>(
+        `${this.collectionBaseUrl}/${entitySlug}`,
+        data
+      )
     )
   }
 
   update(entitySlug: string, id: number, data: unknown): Promise<BaseEntity> {
     return firstValueFrom(
-      this.http.put<BaseEntity>(`${this.baseUrl}/${entitySlug}/${id}`, data)
+      this.http.put<BaseEntity>(
+        `${this.collectionBaseUrl}/${entitySlug}/${id}`,
+        data
+      )
     )
   }
 
   delete(entitySlug: string, id: number): Promise<any> {
     return firstValueFrom(
-      this.http.delete(`${this.baseUrl}/${entitySlug}/${id}`)
+      this.http.delete(`${this.collectionBaseUrl}/${entitySlug}/${id}`)
     )
   }
 }
