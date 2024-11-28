@@ -10,6 +10,7 @@ entities:
       - { name: hiddenProp, type: boolean, hidden: true }
       - { name: certificate, type: file }
       - { name: photo, type: image }
+      - { name: description, type: richText, validation: { required: true } }
     belongsTo:
       - { name: owner, entity: User }
     policies:

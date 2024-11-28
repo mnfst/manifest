@@ -4,6 +4,7 @@
 export enum PropType {
   String = 'string',
   Text = 'text',
+  RichText = 'richText',
   Number = 'number',
   Link = 'link',
   Money = 'money',

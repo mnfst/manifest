@@ -34,7 +34,7 @@
         <thead>
           <tr>
             <th
-              *ngFor="let prop of entityManifest.properties"
+              *ngFor="let prop of properties"
               [ngClass]="{
                 'has-text-right':
                   prop.type === PropType.Money ||
@@ -63,7 +63,7 @@
         <tbody *ngIf="paginator?.data?.length">
           <tr *ngFor="let item of paginator.data">
             <td
-              *ngFor="let prop of entityManifest.properties"
+              *ngFor="let prop of properties"
               [ngClass]="{
                 'has-text-right':
                   prop.type === PropType.Money ||
@@ -146,7 +146,7 @@
         </tbody>
         <tbody *ngIf="paginator?.data?.length === 0">
           <tr>
-            <td [attr.colspan]="entityManifest.properties.length">
+            <td [attr.colspan]="properties.length">
               There is no {{ entityManifest.nameSingular }}.
             </td>
           </tr>

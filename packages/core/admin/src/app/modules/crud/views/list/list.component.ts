@@ -4,6 +4,7 @@ import {
   EntityManifest,
   Paginator,
   PropType,
+  PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
@@ -23,6 +24,7 @@ export class ListComponent implements OnInit {
   itemToDelete: { [key: string]: any }
 
   entityManifest: EntityManifest
+  properties: PropertyManifest[]
 
   queryParams: Params
   PropType = PropType
@@ -53,6 +55,12 @@ export class ListComponent implements OnInit {
         this.router.navigate(['/404'])
         return
       }
+
+      // Do not display columns for password and rich text fields as they are not suitable for list view.
+      this.properties = this.entityManifest.properties.filter(
+        (prop) =>
+          prop.type !== PropType.Password && prop.type !== PropType.RichText
+      )
 
       this.breadcrumbService.breadcrumbLinks.next([
         {
