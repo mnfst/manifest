@@ -15,6 +15,7 @@ import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yie
 import { TextYieldComponent } from './text-yield/text-yield.component'
 import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.component'
 import { ImageYieldComponent } from './image-yield/image-yield.component'
+import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -32,7 +33,8 @@ import { ImageYieldComponent } from './image-yield/image-yield.component'
     LabelYieldComponent,
     ProgressBarYieldComponent,
     LocationYieldComponent,
-    ImageYieldComponent
+    ImageYieldComponent,
+    RichTextYieldComponent
   ],
   template: `
     <app-text-yield
@@ -40,6 +42,11 @@ import { ImageYieldComponent } from './image-yield/image-yield.component'
       [value]="value"
       [compact]="compact"
     ></app-text-yield>
+    <app-rich-text-yield
+      *ngIf="prop.type === PropType.RichText"
+      [value]="value"
+    >
+    </app-rich-text-yield>
     <app-number-yield
       *ngIf="prop.type === PropType.Number"
       [value]="value"

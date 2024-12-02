@@ -7,6 +7,7 @@ export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Number]: 'decimal',
   [PropType.Link]: 'varchar',
   [PropType.Text]: 'text',
+  [PropType.RichText]: 'text',
   [PropType.Money]: 'decimal',
   [PropType.Date]: 'date',
   [PropType.Timestamp]: 'integer',

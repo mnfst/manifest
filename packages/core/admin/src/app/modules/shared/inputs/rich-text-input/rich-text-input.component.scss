@@ -1,0 +1,7 @@
+@use 'sass:math';
+@use '../../../../../styles/variables/all' as va;
+@use 'bulma/sass/utilities/mixins';
+
+.control {
+  min-height: 200px;
+}

@@ -28,6 +28,10 @@
       "persistent": true,
       "cache": false
     },
-    "test": {}
+    "test": {},
+    "test:ci": {},
+    "lint": {
+      "outputs": []
+    }
   }
 }

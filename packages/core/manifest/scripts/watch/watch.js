@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 // This script is used to watch for changes from the project root directory where Manifest is installed.
 const path = require('path')
 const os = require('os')

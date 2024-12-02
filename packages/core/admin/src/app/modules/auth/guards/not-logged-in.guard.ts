@@ -7,6 +7,7 @@ import { TOKEN_KEY } from '../../../../constants'
 })
 export class NotLoggedInGuard {
   constructor(private router: Router) {}
+
   canActivate(): boolean {
     if (!localStorage.getItem(TOKEN_KEY)) {
       return true

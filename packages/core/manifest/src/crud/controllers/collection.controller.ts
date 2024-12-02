@@ -13,16 +13,17 @@ import {
 } from '@nestjs/common'
 
 import { BaseEntity, Paginator, SelectOption } from '@repo/types'
-import { DeleteResult, InsertResult } from 'typeorm'
+import { DeleteResult } from 'typeorm'
 import { CrudService } from '../services/crud.service'
 import { AuthService } from '../../auth/auth.service'
 import { Request } from 'express'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 import { Rule } from '../../auth/decorators/rule.decorator'
+import { IsCollectionGuard } from '../guards/is-collection.guard'
 
-@Controller('dynamic')
-@UseGuards(AuthorizationGuard)
-export class CrudController {
+@Controller('collections')
+@UseGuards(AuthorizationGuard, IsCollectionGuard)
+export class CollectionController {
   constructor(
     private readonly crudService: CrudService,
     private readonly authService: AuthService
@@ -78,8 +79,8 @@ export class CrudController {
   @Rule('create')
   store(
     @Param('entity') entity: string,
-    @Body() entityDto: any
-  ): Promise<InsertResult> {
+    @Body() entityDto: Partial<BaseEntity>
+  ): Promise<BaseEntity> {
     return this.crudService.store(entity, entityDto)
   }
 
@@ -88,7 +89,7 @@ export class CrudController {
   update(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number,
-    @Body() entityDto: any
+    @Body() entityDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
     return this.crudService.update(entity, id, entityDto)
   }

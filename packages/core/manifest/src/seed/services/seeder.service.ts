@@ -30,7 +30,7 @@ import { StorageService } from '../../storage/services/storage/storage.service'
 
 @Injectable()
 export class SeederService {
-  seededFiles: { [key: string]: string | Object } = {}
+  seededFiles: { [key: string]: string | object } = {}
 
   constructor(
     private entityService: EntityService,
@@ -176,11 +176,13 @@ export class SeederService {
    * @param propertyManifest The property manifest.
    *
    * @returns The seeded value.
+   *
+   * @todo can this be moved to a separate service ? Beware of functions and context.
    */
   private seedProperty(
     propertyManifest: PropertyManifest,
     entityManifest: EntityManifest
-  ): any {
+  ): string | number | boolean | object | unknown {
     switch (propertyManifest.type) {
       case PropType.String:
         return faker.commerce.product()
@@ -190,6 +192,18 @@ export class SeederService {
         return 'https://manifest.build'
       case PropType.Text:
         return faker.commerce.productDescription()
+      case PropType.RichText:
+        return `
+          <h1>${faker.commerce.productName()}</h1>
+          <p>This is a dummy HTML content with <a href="https://manifest.build">links</a> and <strong>bold text</strong></p>
+          <ul>
+            <li>${faker.commerce.productAdjective()}</li>
+            <li>${faker.commerce.productAdjective()}</li>
+            <li>${faker.commerce.productAdjective()}</li>
+          </ul>
+          <h2>${faker.commerce.productName()}</h2>
+          <p>${faker.commerce.productDescription()}<p>
+        `
       case PropType.Money:
         return faker.finance.amount({
           min: 1,
@@ -208,7 +222,7 @@ export class SeederService {
         return SHA3('manifest').toString()
       case PropType.Choice:
         return faker.helpers.arrayElement(
-          propertyManifest.options.values as any[]
+          propertyManifest.options.values as unknown[]
         )
       case PropType.Location:
         return {

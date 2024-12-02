@@ -1,66 +1,81 @@
-<div class="side-menu-wrapper is-flex is-flex-direction-column is-justify-content-space-between">
+<div
+  class="side-menu-wrapper is-flex is-flex-direction-column is-justify-content-space-between"
+>
   <div class="logo-wrapper is-hidden-touch">
     <a class="logo" routerLink="/">
-      <img 
-    src="/assets/images/logo.svg" class="logo--image" width="155"/>
+      <img src="/assets/images/logo.svg" class="logo--image" width="155" />
     </a>
   </div>
   <ul class="menu-list">
-    
-
-  <li *ngIf="entityManifests" >
-    <a
-      (click)="isCollectionsOpen = !isCollectionsOpen"
-      class="has-submenu is-flex is-justify-content-space-between"
-    >
-      <span
-        class="is-inline-flex is-align-items-center is-justify-content-space-between"
-      >
-        <i class="icon mr-2 icon-database is-size-4"></i>
-        <span class="pl-1">Collections</span>
-      </span>
-      <i class="icon icon-chevron-down" *ngIf="!isCollectionsOpen"></i>
-      <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
-    </a>
-    <ul *ngIf="isCollectionsOpen">
-      <li *ngFor="let entity of entityManifests">
+    <!-- Singles -->
+    <ng-container *ngIf="singles?.length">
+      <li *ngFor="let single of singles">
         <a
-          [routerLink]="['/dynamic', entity.slug]"
+          [routerLink]="['/singles', single.slug]"
           routerLinkActive="is-active"
         >
-          <span>{{ entity.namePlural | capitalizeFirstLetter }}</span>
+          <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
         </a>
       </li>
-      <li *ngIf="entityManifests.length === 0">
-        <a
-          style="pointer-events: none"
-          class="has-background-white-bis has-text-grey"
-          ><span>No collection yet</span></a
-        >
-      </li>
-    </ul>
-  </li>
-  <li>
-    <a
-      (click)="isSettingsOpen = !isSettingsOpen"
-      class="has-submenu is-flex is-justify-content-space-between"
-    >
-      <span
-        class="is-inline-flex is-align-items-center is-justify-content-space-between"
+      <hr />
+    </ng-container>
+
+    <!-- Collections -->
+    <li *ngIf="collections">
+      <a
+        (click)="isCollectionsOpen = !isCollectionsOpen"
+        class="has-submenu is-flex is-justify-content-space-between"
       >
-        <i class="icon mr-2 icon-sliders is-size-4"></i>
-        <span class="pl-1">Settings</span>
-      </span>
-      <i class="icon icon-chevron-down" *ngIf="!isSettingsOpen"></i>
-      <i class="icon icon-chevron-up" *ngIf="isSettingsOpen"></i>
-    </a>
-    <ul *ngIf="isSettingsOpen">
-      <li>
-        <a routerLink="/dynamic/admins">Admins</a>
-      </li>
-    </ul>
-  </li>
+        <span
+          class="is-inline-flex is-align-items-center is-justify-content-space-between"
+        >
+          <i class="icon mr-2 icon-database is-size-4"></i>
+          <span class="pl-1">Collections</span>
+        </span>
+        <i class="icon icon-chevron-down" *ngIf="!isCollectionsOpen"></i>
+        <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
+      </a>
+      <ul *ngIf="isCollectionsOpen">
+        <li *ngFor="let collection of collections">
+          <a
+            [routerLink]="['/collections', collection.slug]"
+            routerLinkActive="is-active"
+          >
+            <span>{{ collection.namePlural | capitalizeFirstLetter }}</span>
+          </a>
+        </li>
+        <li *ngIf="collections.length === 0">
+          <a
+            style="pointer-events: none"
+            class="has-background-white-bis has-text-grey"
+            ><span>No collection yet</span></a
+          >
+        </li>
+      </ul>
+    </li>
+
+    <hr />
+
+    <li>
+      <a
+        (click)="isSettingsOpen = !isSettingsOpen"
+        class="has-submenu is-flex is-justify-content-space-between"
+      >
+        <span
+          class="is-inline-flex is-align-items-center is-justify-content-space-between"
+        >
+          <i class="icon mr-2 icon-sliders is-size-4"></i>
+          <span class="pl-1">Settings</span>
+        </span>
+        <i class="icon icon-chevron-down" *ngIf="!isSettingsOpen"></i>
+        <i class="icon icon-chevron-up" *ngIf="isSettingsOpen"></i>
+      </a>
+      <ul *ngIf="isSettingsOpen">
+        <li>
+          <a routerLink="/collections/admins">Admins</a>
+        </li>
+      </ul>
+    </li>
   </ul>
   <app-user-menu-item></app-user-menu-item>
-
 </div>

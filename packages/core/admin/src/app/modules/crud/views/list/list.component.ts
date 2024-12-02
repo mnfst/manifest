@@ -4,6 +4,7 @@ import {
   EntityManifest,
   Paginator,
   PropType,
+  PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
@@ -23,6 +24,7 @@ export class ListComponent implements OnInit {
   itemToDelete: { [key: string]: any }
 
   entityManifest: EntityManifest
+  properties: PropertyManifest[]
 
   queryParams: Params
   PropType = PropType
@@ -54,10 +56,16 @@ export class ListComponent implements OnInit {
         return
       }
 
+      // Do not display columns for password and rich text fields as they are not suitable for list view.
+      this.properties = this.entityManifest.properties.filter(
+        (prop) =>
+          prop.type !== PropType.Password && prop.type !== PropType.RichText
+      )
+
       this.breadcrumbService.breadcrumbLinks.next([
         {
           label: this.entityManifest.namePlural,
-          path: `/dynamic/${this.entityManifest.slug}`
+          path: `/collections/${this.entityManifest.slug}`
         }
       ])
 
@@ -113,7 +121,7 @@ export class ListComponent implements OnInit {
   }
 
   goToDetailPage(id: number): void {
-    this.router.navigate(['/dynamic', this.entityManifest.slug, id])
+    this.router.navigate(['/collections', this.entityManifest.slug, id])
   }
 
   toggleDeleteModal(itemToDelete?: any): void {

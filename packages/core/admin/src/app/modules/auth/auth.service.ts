@@ -85,8 +85,8 @@ export class AuthService {
     if (!this.currentUserPromise) {
       this.currentUserPromise = firstValueFrom(
         this.http.get(`${environment.apiBaseUrl}/auth/admins/me`)
-      ).catch((err) => {
-        this.logout
+      ).catch(() => {
+        this.logout()
         this.router.navigate(['/auth/login'])
         this.flashMessageService.error(
           'You must be logged in to view that page.'
