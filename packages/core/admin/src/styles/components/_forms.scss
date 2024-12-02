@@ -286,11 +286,16 @@ quill-editor {
 .ql-container.ql-snow {
   border-color: $white-bis;
   background-color: $white;
+
+  .is-danger & {
+    border-color: $danger;
+  }
 }
 .ql-toolbar.ql-snow {
   border-top-left-radius: $radius;
   border-top-right-radius: $radius;
   border-bottom: 0;
+
   + .ql-container.ql-snow {
     min-height: 158px;
     border-bottom-left-radius: $radius;
