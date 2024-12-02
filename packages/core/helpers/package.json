@@ -1,0 +1,7 @@
+{
+  "name": "@repo/helpers",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint --fix ."
+  }
+}

@@ -38,8 +38,9 @@ async function bootstrap() {
   }
 
   const adminPanelFolder: string = configService.get('paths').adminPanelFolder
-
   app.use(express.static(adminPanelFolder))
+
+  app.use('/storage', express.static('public/storage'))
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {
@@ -50,14 +51,13 @@ async function bootstrap() {
     }
   })
 
-  if (!isProduction) {
-    const openApiService: OpenApiService = app.get(OpenApiService)
+  const openApiService: OpenApiService = app.get(OpenApiService)
 
-    SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
-      customfavIcon: 'assets/images/open-api/favicon.ico',
-      customSiteTitle: 'Manifest API Doc',
+  SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
+    customfavIcon: 'assets/images/open-api/favicon.ico',
+    customSiteTitle: 'Manifest API Doc',
 
-      customCss: `
+    customCss: `
         
 .swagger-ui html {
   box-sizing: border-box;
@@ -503,6 +503,12 @@ background: #ce107c;
   margin: 10px 0 5px;
   font-family: Open Sans, sans-serif;
   color: #3b4151
+}
+
+.swagger-ui .responses-inner h4
+{
+  margin: 25px 0 5px;
+  color: #1eb1e8;
 }
 
 .swagger-ui .response-col_status {
@@ -1631,7 +1637,7 @@ background: #ce107c;
 
  .swagger-ui .opblock.opblock-post .opblock-summary-method {
    background: transparent;
-   color: #AD7A03;  
+   color: #AD7A03;
  }
 
  .swagger-ui .opblock.opblock-post .opblock-summary {
@@ -1767,8 +1773,7 @@ background: #ce107c;
    fill: #535356;
  }
 `
-    })
-  }
+  })
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
 }

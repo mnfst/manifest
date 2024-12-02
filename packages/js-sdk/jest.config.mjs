@@ -3,10 +3,10 @@ export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': 'ts-jest'
   },
-  testPathIgnorePatterns: ['/example'],
   moduleNameMapper: {
-    '^@repo/types$': '<rootDir>/../core/types/src',
-  },
+    '^@repo/types$': '<rootDir>/../core/types/src/index.ts',
+    '^@repo/helpers$': '<rootDir>/../core/helpers/src/index.ts'
+  }
 }

@@ -4,9 +4,9 @@
   "description": "Demo project for Manifest",
   "scripts": {
     "manifest": "node node_modules/manifest/scripts/watch/watch.js",
-    "manifest:seed": "node node_modules/manifest/dist/seed/seed.js"
+    "manifest:seed": "node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js"
   },
   "dependencies": {
-    "manifest": "^4.0.0-beta"
+    "manifest": "^4.0.2"
   }
 }

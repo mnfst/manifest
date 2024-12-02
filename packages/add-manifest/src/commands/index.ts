@@ -28,11 +28,12 @@ export class MyCommand extends Command {
    * 5. Update the .vscode/settings.json file with the recommended settings.
    * 6. Update the .gitignore file with the recommended settings.
    * 7. Update the .env file with the environment variables.
-   * 8. Install the new packages.
-   * 9. Serve the new app.
-   * 10. Wait for the server to start.
-   * 11. Seed the database.
-   * 12. Open the browser.
+   * 8. If no README.md file exists, create one.
+   * 9. Install the new packages.
+   * 10. Serve the new app.
+   * 11. Wait for the server to start.
+   * 12. Seed the database.
+   * 13. Open the browser.
    */
   async run(): Promise<void> {
     const folderName = 'manifest'
@@ -42,6 +43,7 @@ export class MyCommand extends Command {
 
     const spinner = ora('Add Manifest to your project...').start()
 
+    // * 1. Create a folder with the name `manifest`.
     // Construct the folder path. This example creates the folder in the current working directory.
     const folderPath = path.join(process.cwd(), folderName)
 
@@ -56,6 +58,7 @@ export class MyCommand extends Command {
     // Create the folder
     fs.mkdirSync(folderPath)
 
+    // * 2. Create a file inside the folder with the name `manifest.yml`.
     // Path where the new file should be created
     const newFilePath = path.join(folderPath, initialFileName)
 
@@ -91,11 +94,12 @@ export class MyCommand extends Command {
       updatePackageJsonFile({
         fileContent: packageJson,
         newPackages: {
-          manifest: '^4.0.0-beta'
+          manifest: '^4.0.5'
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',
-          'manifest:seed': 'node node_modules/manifest/dist/seed/seed.js'
+          'manifest:seed':
+            'node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js'
         }
       })
     )
@@ -154,7 +158,7 @@ export class MyCommand extends Command {
       })
     )
 
-    // Update the .gitignore file with the recommended settings.
+    // * 7. Update the .env file with the environment variables.
     const gitignorePath = path.join(process.cwd(), '.gitignore')
     let gitignoreContent = ''
 
@@ -162,14 +166,32 @@ export class MyCommand extends Command {
       gitignoreContent = fs.readFileSync(gitignorePath, 'utf8')
     }
 
-    if (!gitignoreContent.includes('node_modules')) {
-      gitignoreContent += '\nnode_modules'
-      gitignoreContent += '\n.env'
-    }
+    const newGitignoreLines: string[] = [
+      'node_modules',
+      '.env',
+      'public',
+      'manifest/backend.db'
+    ]
+    newGitignoreLines.forEach((line) => {
+      if (!gitignoreContent.includes(line)) {
+        gitignoreContent += `\n${line}`
+      }
+    })
 
     fs.writeFileSync(gitignorePath, gitignoreContent)
 
     spinner.succeed()
+
+    // * 8. Add a README.md file if it doesn't exist.
+    const readmeFilePath = path.join(process.cwd(), 'README.md')
+    if (!fs.existsSync(readmeFilePath)) {
+      fs.writeFileSync(
+        readmeFilePath,
+        fs.readFileSync(path.join(assetFolderPath, 'README.md'), 'utf8')
+      )
+    }
+
+    // * 9. Install the new packages.
     spinner.start('Install dependencies...')
 
     // Install deps.

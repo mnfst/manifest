@@ -1,6 +1,10 @@
+# Warning: This file is used for testing purposes only.
+# All entities and properties in this files are used somewhere in the e2e tests.
+#
+# Please do not modify it unless you know what you are doing.
+
 name: 'mock-backend-for-e2e-tests'
 entities:
-  # Default entity with only a name and email property.
   Owner:
     properties:
       - name
@@ -25,6 +29,9 @@ entities:
           options: { values: [ball, bone, frisbee] }
         }
       - { name: location, type: location }
+      - { name: certificate, type: file }
+      - { name: photo, type: image }
+
     belongsTo:
       - Owner
 
@@ -117,3 +124,58 @@ entities:
               isJSON: false
             }
         }
+
+  # Testing relationships with the Post, Author, and Tags entities.
+  Post:
+    properties:
+      - title
+      - { name: content, type: text }
+    belongsTo:
+      - Author
+    belongsToMany:
+      - Tag
+
+  Note:
+    properties:
+      - title
+    belongsTo:
+      - { name: author, entity: Author, eager: true }
+
+  Tweet:
+    properties:
+      - text
+    belongsToMany:
+      - { name: customTagNames, entity: Tag, eager: true }
+
+  Author:
+    properties:
+      - name
+    belongsTo:
+      - University
+
+  University:
+    properties:
+      - name
+
+  Tag:
+    properties:
+      - name
+
+  # Testing uploads
+  Company:
+    properties:
+      - name
+      - {
+          name: logo,
+          type: image,
+          options:
+            {
+              sizes:
+                {
+                  small: { width: 100, height: 100 },
+                  medium: { width: 200, height: 200 },
+                  large: { width: 300, height: 300 }
+                }
+            }
+        }
+      - { name: document, type: file }

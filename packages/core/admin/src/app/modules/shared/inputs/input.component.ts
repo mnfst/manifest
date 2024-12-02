@@ -4,10 +4,14 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  Output,
-  SimpleChanges
+  Output
 } from '@angular/core'
-import { PropType, PropertyManifest, RelationshipManifest } from '@repo/types'
+import {
+  EntityManifest,
+  PropType,
+  PropertyManifest,
+  RelationshipManifest
+} from '@repo/types'
 
 import { BooleanInputComponent } from './boolean-input/boolean-input.component'
 import { CurrencyInputComponent } from './currency-input/currency-input.component'
@@ -22,6 +26,8 @@ import { TextInputComponent } from './text-input/text-input.component'
 import { TextareaInputComponent } from './textarea-input/textarea-input.component'
 import { UrlInputComponent } from './url-input/url-input.component'
 import { TimestampInputComponent } from './timestamp-input/timestamp-input.component'
+import { FileInputComponent } from './file-input/file-input.component'
+import { ImageInputComponent } from './image-input/image-input.component'
 
 @Component({
   selector: 'app-input',
@@ -40,7 +46,9 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
     SelectInputComponent,
     TextareaInputComponent,
     TextInputComponent,
-    LocationInputComponent
+    LocationInputComponent,
+    FileInputComponent,
+    ImageInputComponent
   ],
   template: `
     <app-text-input
@@ -77,9 +85,19 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="prop?.type === PropType.Choice || relationship"
+      *ngIf="
+        prop?.type === PropType.Choice || relationship?.type === 'many-to-one'
+      "
     >
     </app-select-input>
+    <app-multi-select-input
+      [prop]="prop"
+      [relationship]="relationship"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="relationship?.type === 'many-to-many'"
+    ></app-multi-select-input>
     <app-currency-input
       [prop]="prop"
       [value]="value"
@@ -136,6 +154,24 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
       (valueChanged)="onChange($event)"
       *ngIf="prop?.type === PropType.Location"
     ></app-location-input>
+    <app-file-input
+      [prop]="prop"
+      [entitySlug]="entityManifest.slug"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop?.type === PropType.File"
+    >
+    </app-file-input>
+    <app-image-input
+      [prop]="prop"
+      [entitySlug]="entityManifest.slug"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop?.type === PropType.Image"
+    >
+    </app-image-input>
 
     <!-- Error messages -->
     <ul *ngIf="errors?.length">
@@ -145,6 +181,7 @@ import { TimestampInputComponent } from './timestamp-input/timestamp-input.compo
 })
 export class InputComponent implements OnChanges {
   @Input() prop: PropertyManifest
+  @Input() entityManifest: EntityManifest
   @Input() relationship: RelationshipManifest
   @Input() value: any
   @Input() errors: string[]
@@ -157,7 +194,7 @@ export class InputComponent implements OnChanges {
     this.valueChanged.emit(event)
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.isError = !!this.errors?.length
   }
 }

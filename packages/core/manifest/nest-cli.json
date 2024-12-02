@@ -4,6 +4,7 @@
   "sourceRoot": "src",
   "entryFile": "manifest/src/main",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "assets": ["assets"]
   }
 }

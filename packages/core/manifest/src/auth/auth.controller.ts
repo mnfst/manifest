@@ -14,6 +14,7 @@ import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 import { Rule } from './decorators/rule.decorator'
 import { AuthorizationGuard } from './guards/authorization.guard'
+import { IsDbEmptyGuard } from './guards/is-db-empty.guard'
 
 @Controller('auth')
 @UseGuards(AuthorizationGuard)
@@ -28,6 +29,16 @@ export class AuthController {
     token: string
   }> {
     return this.authService.createToken(entity, signupUserDto)
+  }
+
+  @Post('admins/signup')
+  @UseGuards(IsDbEmptyGuard)
+  public async signupAdmin(
+    @Body() signupUserDto: SignupAuthenticableEntityDto
+  ): Promise<{
+    token: string
+  }> {
+    return this.authService.signup('admins', signupUserDto, true)
   }
 
   @Post(':entity/signup')
@@ -48,5 +59,12 @@ export class AuthController {
     @Req() req: Request
   ): Promise<AuthenticableEntity> {
     return (await this.authService.getUserFromRequest(req)).user
+  }
+
+  @Get('admins/default-exists')
+  public async isDefaultAdminExists(): Promise<{
+    exists: boolean
+  }> {
+    return this.authService.isDefaultAdminExists()
   }
 }

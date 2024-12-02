@@ -1,16 +1,18 @@
 {
   "name": "@mnfst/sdk",
-  "version": "0.1.0-beta",
-  "description": "Manifest Javascript SDK",
+  "version": "1.0.5",
+  "description": "Manifest JavaScript SDK",
   "author": "Manifest",
   "homepage": "https://manifest.build",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "dist/js-sdk/src/index.js",
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "dev": "tsc -w",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/add-extensions.cjs",
     "test": "jest",
-    "test:ci": "jest --ci"
+    "test:ci": "jest --ci",
+    "prepare": "ts-patch install -s"
   },
   "files": [
     "dist/",
@@ -18,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/casejs/case-client.git"
+    "url": "git+https://github.com/mnfst/manifest.git"
   },
   "keywords": [
     "manifest",
@@ -41,15 +43,14 @@
     "crud"
   ],
   "bugs": {
-    "url": "https://github.com/casejs/case-client/issues"
-  },
-  "dependencies": {
-    "@repo/types": "*"
+    "bugs": "https://github.com/mnfst/manifest/issues"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "fetch-mock": "^10.1.0",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.5"
+    "ts-jest": "^29.1.5",
+    "ts-patch": "^3.2.1",
+    "typescript-transform-paths": "^3.5.1"
   }
 }

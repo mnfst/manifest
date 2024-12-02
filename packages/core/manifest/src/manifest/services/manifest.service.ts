@@ -1,26 +1,29 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { SchemaService } from './schema.service'
 import { YamlService } from './yaml.service'
-import { AUTHENTICABLE_PROPS } from '../../constants'
+import { AUTHENTICABLE_PROPS, DEFAULT_IMAGE_SIZES } from '../../constants'
 
 import {
   AppManifest,
   Manifest,
   EntityManifest,
   EntitySchema,
-  PolicySchema,
   PolicyManifest,
   PropType,
   PropertyManifest,
   PropertySchema,
-  RelationshipManifest,
   RelationshipSchema,
-  AccessPolicy
+  AccessPolicy,
+  RelationshipManifest,
+  PolicySchema,
+  ValidationManifest
 } from '@repo/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
+
 import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from '../../constants'
+import { camelize } from '@repo/helpers'
 
 @Injectable()
 export class ManifestService {
@@ -50,7 +53,20 @@ export class ManifestService {
     // Add Admin entity.
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
-    const appManifest: AppManifest = this.transformAppManifest(manifestSchema)
+    const appManifest: AppManifest = {
+      ...manifestSchema,
+      version: manifestSchema.version || '0.0.1',
+      entities: this.transformEntityManifests(manifestSchema.entities).reduce(
+        (acc, entityManifest: EntityManifest) => {
+          acc[entityManifest.className] = entityManifest
+          return acc
+        },
+        {}
+      )
+    }
+
+    // Add the Admin entity to the manifest.
+    manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
     if (!options?.fullVersion) {
       return this.hideSensitiveInformation(appManifest)
@@ -74,10 +90,7 @@ export class ManifestService {
     // Add Admin entity.
     manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
 
-    return Object.entries(manifestSchema.entities).map(
-      ([className, entity]: [string, EntitySchema]) =>
-        this.transformEntityManifest(className, entity)
-    )
+    return this.transformEntityManifests(manifestSchema.entities)
   }
 
   /**
@@ -130,105 +143,114 @@ export class ManifestService {
   }
 
   /**
-   * Transform an Manifest into an AppManifest ensuring that undefined properties are filled in with defaults.
    *
-   * @param manifestSchema the manifest schema to transform.
-   * @returns the manifest with defaults filled in and short form properties transformed into long form.
-   */
-  transformAppManifest(manifestSchema: Manifest): AppManifest {
-    manifestSchema.version = manifestSchema.version || '0.0.1'
-    manifestSchema.entities = manifestSchema.entities || {}
-
-    // Add the Admin entity to the manifest.
-    manifestSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
-
-    return {
-      ...manifestSchema,
-      entities: Object.entries(manifestSchema.entities).reduce(
-        (
-          acc: { [k: string]: EntityManifest },
-          [className, entitySchema]: [string, EntitySchema]
-        ) => {
-          acc[className] = this.transformEntityManifest(className, entitySchema)
-          return acc
-        },
-        {}
-      )
-    } as AppManifest
-  }
-
-  /**
-   *
-   * Transform an EntitySchema into an EntityManifest ensuring that undefined properties are filled in with defaults
+   * Transform an entityObject into an EntityManifest array ensuring that undefined properties are filled in with defaults
    * and short form properties are transformed into long form.
    *
-   * @param className the class name of the entity.
-   * @param entityManifest the entity manifest to transform.
+   * @param an object with the class name as key and the EntitySchema as value.
    *
-   * @returns the entity manifest with defaults filled in and short form properties transformed into long form.
+   * @returns the entity manifests with defaults filled in and short form properties transformed into long form.
    */
-  transformEntityManifest(
-    className: string,
-    entitySchema: EntitySchema
-  ): EntityManifest {
-    const properties: PropertyManifest[] = (entitySchema.properties || []).map(
-      (propManifest: PropertySchema) =>
-        this.transformProperty(propManifest, entitySchema)
+  transformEntityManifests(entityObject: {
+    [keyof: string]: EntitySchema
+  }): EntityManifest[] {
+    const entityManifests: EntityManifest[] = Object.entries(entityObject).map(
+      ([className, entitySchema]: [string, EntitySchema]) => {
+        const properties: PropertyManifest[] = (
+          entitySchema.properties || []
+        ).map((propManifest: PropertySchema) =>
+          this.transformProperty(propManifest, entitySchema)
+        )
+
+        if (entitySchema.authenticable) {
+          properties.push(...AUTHENTICABLE_PROPS)
+        }
+
+        const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
+
+        return {
+          className: entitySchema.className || className,
+          nameSingular:
+            entitySchema.nameSingular ||
+            pluralize
+              .singular(entitySchema.className || className)
+              .toLowerCase(),
+          namePlural:
+            entitySchema.namePlural ||
+            pluralize.plural(entitySchema.className || className).toLowerCase(),
+          slug:
+            entitySchema.slug ||
+            slugify(
+              dasherize(
+                pluralize.plural(entitySchema.className || className)
+              ).toLowerCase()
+            ),
+          // First "string" property found in the entity if exists, otherwise "id".
+          mainProp:
+            entitySchema.mainProp ||
+            properties.find((prop) => prop.type === PropType.String)?.name ||
+            'id',
+          seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
+          relationships: [
+            ...(entitySchema.belongsTo || []).map(
+              (relationship: RelationshipSchema) =>
+                this.transformRelationship(relationship, 'many-to-one')
+            ),
+            ...(entitySchema.belongsToMany || []).map(
+              (relationship: RelationshipSchema) =>
+                this.transformRelationship(
+                  relationship,
+                  'many-to-many',
+                  entitySchema.className || className
+                )
+            )
+          ],
+          authenticable: entitySchema.authenticable || false,
+          properties,
+          policies: {
+            create:
+              entitySchema.policies?.create?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            read:
+              entitySchema.policies?.read?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            update:
+              entitySchema.policies?.update?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            delete:
+              entitySchema.policies?.delete?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            signup:
+              entitySchema.policies?.signup?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy
+          }
+        }
+      }
     )
 
-    if (entitySchema.authenticable) {
-      properties.push(...AUTHENTICABLE_PROPS)
-    }
+    // Generate the OneToMany relationships from the opposite ManyToOne relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.relationships.push(
+        ...this.getOneToManyRelationships(entityManifests, entityManifest)
+      )
+    })
 
-    const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
+    // Generate the ManyToMany relationships from the opposite ManyToMany relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.relationships.push(
+        ...this.getOppositeManyToManyRelationships(
+          entityManifests,
+          entityManifest
+        )
+      )
+    })
 
-    const entityManifest: EntityManifest = {
-      className: entitySchema.className || className,
-      nameSingular:
-        entitySchema.nameSingular ||
-        pluralize.singular(entitySchema.className || className).toLowerCase(),
-      namePlural:
-        entitySchema.namePlural ||
-        pluralize.plural(entitySchema.className || className).toLowerCase(),
-      slug:
-        entitySchema.slug ||
-        slugify(
-          dasherize(
-            pluralize.plural(entitySchema.className || className)
-          ).toLowerCase()
-        ),
-      // First "string" property found in the entity if exists, otherwise "id".
-      mainProp:
-        entitySchema.mainProp ||
-        properties.find((prop) => prop.type === PropType.String)?.name ||
-        'id',
-      seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
-      belongsTo: (entitySchema.belongsTo || []).map(
-        (relationship: RelationshipSchema) =>
-          this.transformRelationship(relationship)
-      ),
-      authenticable: entitySchema.authenticable || false,
-      properties,
-      policies: {
-        create:
-          entitySchema.policies?.create?.map((p) => this.transformPolicy(p)) ||
-          publicPolicy,
-        read:
-          entitySchema.policies?.read?.map((p) => this.transformPolicy(p)) ||
-          publicPolicy,
-        update:
-          entitySchema.policies?.update?.map((p) => this.transformPolicy(p)) ||
-          publicPolicy,
-        delete:
-          entitySchema.policies?.delete?.map((p) => this.transformPolicy(p)) ||
-          publicPolicy,
-        signup:
-          entitySchema.policies?.signup?.map((p) => this.transformPolicy(p)) ||
-          publicPolicy
-      }
-    }
-
-    return entityManifest
+    return entityManifests
   }
 
   /**
@@ -236,23 +258,167 @@ export class ManifestService {
    * Transform the short form of the relationship into the long form.
    *
    * @param relationship the relationship that can include short form properties.
+   * @param type the type of the relationship.
+   * @param entityClassName the class name of the entity to which the relationship belongs (only for many-to-many relationships).
+   *
    * @returns the relationship with the short form properties transformed into long form.
    */
   transformRelationship(
-    relationship: RelationshipSchema
+    relationship: RelationshipSchema,
+    type: 'many-to-one' | 'many-to-many',
+    entityClassName?: string
   ): RelationshipManifest {
-    if (typeof relationship === 'string') {
+    if (type === 'many-to-one') {
+      if (typeof relationship === 'string') {
+        return {
+          name: camelize(relationship),
+          entity: relationship,
+          eager: false,
+          type
+        }
+      }
       return {
-        name: relationship.toLowerCase(),
-        entity: relationship,
-        eager: false
+        name: camelize(relationship.name || relationship.entity),
+        entity: relationship.entity,
+        eager: relationship.eager || false,
+        type
+      }
+    } else {
+      // Many-to-many.
+      if (typeof relationship === 'string') {
+        return {
+          name: pluralize(camelize(relationship)),
+          entity: relationship,
+          eager: false,
+          type,
+          owningSide: true,
+          inverseSide: pluralize(camelize(entityClassName))
+        }
+      }
+      return {
+        name: pluralize(camelize(relationship.name || relationship.entity)),
+        entity: relationship.entity,
+        eager: relationship.eager || false,
+        type,
+        owningSide: true,
+        inverseSide: pluralize(camelize(entityClassName))
       }
     }
-    return {
-      name: relationship.name || relationship.entity.toLowerCase(),
-      entity: relationship.entity,
-      eager: relationship.eager || false
-    }
+  }
+
+  /**
+   * Generate the OneToMany relationships from the opposite ManyToOne relationships.
+   *
+   * @param entityManifests The entity manifests.
+   * @param currentEntityManifest The entity manifest for which to generate the OneToMany relationships.
+   *
+   * @returns The OneToMany relationships.
+   */
+  getOneToManyRelationships(
+    entityManifests: EntityManifest[],
+    currentEntityManifest: EntityManifest
+  ): RelationshipManifest[] {
+    // We need to get the entities that have ManyToOne relationships to the current entity to create the opposite OneToMany relationships.
+    const oppositeRelationships: {
+      entity: EntityManifest
+      relationship: RelationshipManifest
+    }[] = entityManifests
+      .filter(
+        (otherEntityManifest: EntityManifest) =>
+          otherEntityManifest.className !== currentEntityManifest.className
+      )
+      .reduce((acc, otherEntityManifest: EntityManifest) => {
+        const oppositeRelationship: RelationshipManifest =
+          otherEntityManifest.relationships.find(
+            (relationship: RelationshipManifest) =>
+              relationship.entity === currentEntityManifest.className &&
+              relationship.type === 'many-to-one'
+          )
+
+        if (oppositeRelationship) {
+          acc.push({
+            entity: otherEntityManifest,
+            relationship: oppositeRelationship
+          })
+        }
+
+        return acc
+      }, [])
+
+    return oppositeRelationships.map(
+      (oppositeRelationship: {
+        entity: EntityManifest
+        relationship: RelationshipManifest
+      }) => {
+        const relationship: RelationshipManifest = {
+          name: camelize(oppositeRelationship.entity.namePlural),
+          entity: oppositeRelationship.entity.className,
+          eager: false,
+          type: 'one-to-many',
+          inverseSide: oppositeRelationship.relationship.name
+        }
+
+        return relationship
+      }
+    )
+  }
+
+  /**
+   * Generate the ManyToMany relationships from the opposite ManyToMany relationships.
+   *
+   * @param entityManifests The entity manifests.
+   * @param currentEntityManifest The entity manifest for which to generate the ManyToMany relationships.
+   *
+   * @returns The ManyToMany relationships.
+   */
+  getOppositeManyToManyRelationships(
+    entityManifests: EntityManifest[],
+    currentEntityManifest: EntityManifest
+  ): RelationshipManifest[] {
+    // We need to get the entities that have ManyToMany relationships to the current entity to create the opposite ManyToMany relationships.
+    const oppositeRelationships: {
+      entity: EntityManifest
+      relationship: RelationshipManifest
+    }[] = entityManifests
+      .filter(
+        (otherEntityManifest: EntityManifest) =>
+          otherEntityManifest.className !== currentEntityManifest.className
+      )
+      .reduce((acc, otherEntityManifest: EntityManifest) => {
+        const oppositeRelationship: RelationshipManifest =
+          otherEntityManifest.relationships.find(
+            (relationship: RelationshipManifest) =>
+              relationship.entity === currentEntityManifest.className &&
+              relationship.type === 'many-to-many'
+          )
+
+        if (oppositeRelationship) {
+          acc.push({
+            entity: otherEntityManifest,
+            relationship: oppositeRelationship
+          })
+        }
+
+        return acc
+      }, [])
+
+    return oppositeRelationships.map(
+      (oppositeRelationship: {
+        entity: EntityManifest
+        relationship: RelationshipManifest
+      }) => {
+        const relationship: RelationshipManifest = {
+          name: pluralize(camelize(oppositeRelationship.entity.namePlural)),
+          entity: oppositeRelationship.entity.className,
+          eager: false,
+          type: 'many-to-many',
+          owningSide: false,
+          inverseSide: oppositeRelationship.relationship.name
+        }
+
+        return relationship
+      }
+    )
   }
 
   /**
@@ -276,7 +442,8 @@ export class ManifestService {
         name: propSchema,
         type: PropType.String,
         hidden: false,
-        validation: entitySchema.validation?.[propSchema] || {}
+        validation:
+          (entitySchema.validation?.[propSchema] as ValidationManifest) || {}
       }
     }
 
@@ -284,9 +451,14 @@ export class ManifestService {
       name: propSchema.name,
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
-      options: propSchema.options,
+      options:
+        propSchema.options ||
+        (propSchema.type === PropType.Image
+          ? { sizes: DEFAULT_IMAGE_SIZES }
+          : {}),
       validation: Object.assign(
-        entitySchema.validation?.[propSchema.name] || {},
+        (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
+          {},
         propSchema.validation
       )
     }

@@ -18,6 +18,8 @@ import { HealthModule } from './health/health.module'
 import { OpenApiModule } from './open-api/open-api.module'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { ValidationModule } from './validation/validation.module'
+import { UploadModule } from './upload/upload.module'
+import { StorageModule } from './storage/storage.module'
 
 @Module({
   imports: [
@@ -49,7 +51,9 @@ import { ValidationModule } from './validation/validation.module'
     LoggerModule,
     HealthModule,
     OpenApiModule,
-    ValidationModule
+    ValidationModule,
+    UploadModule,
+    StorageModule
   ]
 })
 export class AppModule {
@@ -62,9 +66,8 @@ export class AppModule {
   private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
     const isTest: boolean = process.env.NODE_ENV === 'test'
-    const isProduction: boolean = process.env.NODE_ENV === 'production'
 
-    if (!isSeed && !isTest && !isProduction) {
+    if (!isSeed && !isTest) {
       this.loggerService.initMessage()
     }
   }

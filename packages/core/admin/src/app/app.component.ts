@@ -11,13 +11,18 @@ export class AppComponent implements OnInit {
   currentUser: Admin
   isLogin = true
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.router.events.subscribe((routeChanged) => {
       if (routeChanged instanceof NavigationEnd) {
         window.scrollTo(0, 0)
-        this.isLogin = routeChanged.url.includes('/auth/login')
+        this.isLogin =
+          routeChanged.url.includes('/auth/login') ||
+          routeChanged.url.includes('/auth/welcome')
 
         if (this.isLogin) {
           this.currentUser = null

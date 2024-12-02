@@ -11,8 +11,11 @@
     "strict": true,
     "skipLibCheck": true,
     "paths": {
-      "@repo/types": ["../core/types/src"]
-    }
+      "@repo/types": ["../core/types/src"],
+      "@repo/helpers": ["../core/helpers/src"]
+    },
+    "resolveJsonModule": true,
+    "allowJs": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "example"]

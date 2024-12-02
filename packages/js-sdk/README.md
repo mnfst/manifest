@@ -1,4 +1,4 @@
-# Manifest Javascript SDK
+# Manifest JavaScript SDK
 
 - Website: https://manifest.build
 - Documentation: https://manifest.build/docs
