@@ -1,4 +1,15 @@
+@use 'sass:math';
+@import '../../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
 .wrapper {
-  border: 1px solid black;
-  background-color: lightgray;
+  border: 1px solid $border;
+  background-color: $white;
+  padding: $gap;
+  border-radius: $radius;
+}
+
+.content blockquote {
+  border-left: 4px solid $link;
+  background-color: $white;
 }

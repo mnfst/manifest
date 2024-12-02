@@ -1,7 +1,11 @@
+@use 'sass:math';
+@import '../../../../../styles/variables/all';
+@import 'bulma/sass/utilities/mixins';
+
 .control {
   min-height: 200px;
 }
 
 .is-danger {
-  border: 1px solid red;
+  border: 1px solid $danger;
 }

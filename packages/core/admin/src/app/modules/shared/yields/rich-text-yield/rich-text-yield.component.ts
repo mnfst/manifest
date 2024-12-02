@@ -6,7 +6,9 @@ import { Component, Input } from '@angular/core'
   imports: [],
   template: `
     <div class="wrapper">
-      <div [innerHTML]="value"></div>
+      <div class="content is-normal">
+        <div [innerHTML]="value"></div>
+      </div>
     </div>
   `,
   styleUrl: './rich-text-yield.component.scss'
