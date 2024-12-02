@@ -23,6 +23,7 @@ entities:
       age: { min: 20 } # Gets overridden by the property definition.
 
   Food:
+    single: false
     properties:
       - name
       - { name: expirationDate, type: date }
@@ -33,3 +34,25 @@ entities:
     authenticable: true
     properties:
       - name
+
+  ContactPage:
+    single: true
+    nameSingular: Contact
+    slug: contact
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+      - { name: image, type: image }
+    validation:
+      title: { required: true }
+
+    # Testing single entity with the ContactPage entity.
+  AboutPage:
+    single: true
+    nameSingular: About content
+    slug: about-content
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+    validation:
+      title: { required: true }

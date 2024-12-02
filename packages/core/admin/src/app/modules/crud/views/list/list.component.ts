@@ -57,7 +57,7 @@ export class ListComponent implements OnInit {
       this.breadcrumbService.breadcrumbLinks.next([
         {
           label: this.entityManifest.namePlural,
-          path: `/dynamic/${this.entityManifest.slug}`
+          path: `/collections/${this.entityManifest.slug}`
         }
       ])
 
@@ -113,7 +113,7 @@ export class ListComponent implements OnInit {
   }
 
   goToDetailPage(id: number): void {
-    this.router.navigate(['/dynamic', this.entityManifest.slug, id])
+    this.router.navigate(['/collections', this.entityManifest.slug, id])
   }
 
   toggleDeleteModal(itemToDelete?: any): void {

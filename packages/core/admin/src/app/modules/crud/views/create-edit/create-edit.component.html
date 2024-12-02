@@ -5,8 +5,17 @@
     >
       <div class="left-part">
         <h1 class="title is-2 has-text-weight-light">
-          {{ edit ? 'Edit an existing' : 'Create a new' }}
-          {{ entityManifest.nameSingular }}
+          <ng-container *ngIf="edit">
+            <ng-container *ngIf="singleMode"
+              >Edit {{ entityManifest.nameSingular }}</ng-container
+            >
+            <ng-container *ngIf="!singleMode"
+              >Edit an existing {{ entityManifest.nameSingular }}</ng-container
+            >
+          </ng-container>
+          <ng-container *ngIf="!edit">
+            Create a new {{ entityManifest.nameSingular }}
+          </ng-container>
         </h1>
       </div>
       <div class="right-part">
@@ -33,7 +42,7 @@
       <div class="card is-shadowless p-4">
         <div class="columns">
           <div
-            class="column is-6-desktop is-offset-3-desktop is-4-fullhd is-offset-4-fullhd"
+            class="column is-12-touch is-8-desktop is-offset-2-desktop is-6-widescreen is-offset-3-widescreen is-6-fullhd is-offset-3-fullhd"
           >
             <div class="form-group">
               <div

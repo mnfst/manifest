@@ -1,4 +1,4 @@
-name: CI-CD Core Manifest
+name: CI-CD Manifest
 
 on:
   pull_request:

@@ -110,13 +110,17 @@ export interface EntitySchema {
    */
   seedCount?: number
   /**
-   * The properties of the entity. Doc: https://manifest.build/docs/entities
-   */
-  properties?: PropertySchema[]
-  /**
    * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
    */
   authenticable?: boolean
+  /**
+   * Whether the entity is a single type instead of a collection. Doc: https://manifest.build/docs/entities#singles
+   */
+  single?: boolean
+  /**
+   * The properties of the entity. Doc: https://manifest.build/docs/entities
+   */
+  properties?: PropertySchema[]
   /**
    * The ManyToOne relationships of the entity. Doc: https://manifest.build/docs/relations
    */

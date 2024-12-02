@@ -249,6 +249,20 @@ export class CrudService {
     return entityRepository.save({ ...newItem, ...relationItems })
   }
 
+  /**
+   * Creates an empty item bypassing validation.
+   *
+   * @param entitySlug the entity slug.
+   *
+   * @returns the created item.
+   */
+  async storeEmpty(entitySlug: string): Promise<BaseEntity> {
+    const entityRepository: Repository<BaseEntity> =
+      this.entityService.getEntityRepository({ entitySlug })
+
+    return entityRepository.save({})
+  }
+
   async update(
     entitySlug: string,
     id: number,
