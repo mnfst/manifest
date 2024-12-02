@@ -20,6 +20,7 @@ export type PropertySchema =
       type?:
         | 'string'
         | 'text'
+        | 'richText'
         | 'number'
         | 'link'
         | 'money'

@@ -17,6 +17,7 @@
           "enum": [
             "string",
             "text",
+            "richText",
             "number",
             "link",
             "money",

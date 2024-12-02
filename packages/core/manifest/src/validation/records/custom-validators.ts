@@ -27,7 +27,7 @@ import { ValidationManifest } from '@repo/types'
  */
 export const customValidators: Record<
   keyof ValidationManifest,
-  (value: any, context: any) => string | null
+  (value: unknown, context: unknown) => string | null
 > = {
   min: (propValue: any, minValue: number) =>
     min(propValue, minValue)
@@ -94,27 +94,27 @@ export const customValidators: Record<
       ? null
       : 'The value must contain only ASCII characters',
 
-  isEmail: (propValue: any, isFilterActive: boolean) =>
+  isEmail: (propValue: string, isFilterActive: boolean) =>
     !isFilterActive || isEmail(propValue)
       ? null
       : 'The value must be a valid email address',
 
-  isJSON: (propValue: any, isFilterActive: boolean) =>
+  isJSON: (propValue: unknown, isFilterActive: boolean) =>
     !isFilterActive || isJSON(propValue)
       ? null
       : 'The value must be a valid JSON string',
 
-  minLength: (propValue: any, min: number) =>
+  minLength: (propValue: unknown, min: number) =>
     minLength(propValue, min)
       ? null
       : `The value must be at least ${min} characters long`,
 
-  maxLength: (propValue: any, max: number) =>
+  maxLength: (propValue: unknown, max: number) =>
     maxLength(propValue, max)
       ? null
       : `The value must be at most ${max} characters long`,
 
-  matches: (propValue: any, pattern: RegExp) =>
+  matches: (propValue: string, pattern: RegExp) =>
     matches(propValue, pattern)
       ? null
       : `The value must match the pattern ${pattern}`,

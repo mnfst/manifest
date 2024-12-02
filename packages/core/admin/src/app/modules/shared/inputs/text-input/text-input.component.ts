@@ -29,7 +29,7 @@ export class TextInputComponent implements OnInit {
   @Input() value: string
   @Input() isError: boolean
 
-  @Output() valueChanged: EventEmitter<number> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 
   @ViewChild('input', { static: true }) input: ElementRef
 
