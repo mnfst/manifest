@@ -4,7 +4,11 @@
   >
     <div class="left-part">
       <h1 class="title is-2 has-text-weight-light">
-        {{ item[entityManifest.mainProp] }}
+        {{
+          singleMode
+            ? entityManifest.nameSingular
+            : item[entityManifest.mainProp]
+        }}
       </h1>
     </div>
     <div class="right-part is-flex is-flex-direction-row">

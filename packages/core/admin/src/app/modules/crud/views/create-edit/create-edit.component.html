@@ -5,8 +5,17 @@
     >
       <div class="left-part">
         <h1 class="title is-2 has-text-weight-light">
-          {{ edit ? 'Edit an existing' : 'Create a new' }}
-          {{ entityManifest.nameSingular }}
+          <ng-container *ngIf="edit">
+            <ng-container *ngIf="singleMode"
+              >Edit {{ entityManifest.nameSingular }}</ng-container
+            >
+            <ng-container *ngIf="!singleMode"
+              >Edit an existing {{ entityManifest.nameSingular }}</ng-container
+            >
+          </ng-container>
+          <ng-container *ngIf="!edit">
+            Create a new {{ entityManifest.nameSingular }}
+          </ng-container>
         </h1>
       </div>
       <div class="right-part">

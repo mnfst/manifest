@@ -7,3 +7,14 @@
     margin-top: $column-gap;
   }
 }
+
+.card.is-single-card {
+  @include desktop {
+    padding-right: 25% !important;
+    padding-left: 25% !important;
+  }
+  @include fullhd {
+    padding-right: 33% !important;
+    padding-left: 33% !important;
+  }
+}

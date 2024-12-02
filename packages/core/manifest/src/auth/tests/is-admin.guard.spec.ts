@@ -3,6 +3,7 @@ import { IsAdminGuard } from '../guards/is-admin.guard'
 import { AuthService } from '../auth.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { AuthenticableEntity } from '@repo/types'
+import { ExecutionContext } from '@nestjs/common'
 
 describe('IsAdminGuard', () => {
   let authService: AuthService
@@ -42,7 +43,7 @@ describe('IsAdminGuard', () => {
     )
 
     const isAdminGuard = new IsAdminGuard(authService)
-    const res = await isAdminGuard.canActivate(context as any)
+    const res = await isAdminGuard.canActivate(context as ExecutionContext)
 
     expect(res).toBe(true)
   })
@@ -56,7 +57,7 @@ describe('IsAdminGuard', () => {
     )
 
     const isAdminGuard = new IsAdminGuard(authService)
-    const res = await isAdminGuard.canActivate(context as any)
+    const res = await isAdminGuard.canActivate(context as ExecutionContext)
 
     expect(res).toBe(false)
   })

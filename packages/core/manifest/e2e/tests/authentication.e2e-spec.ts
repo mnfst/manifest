@@ -129,7 +129,7 @@ describe('Authentication (e2e)', () => {
         .post('/auth/dogs/signup')
         .send(newUserData)
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(403)
     })
   })
 })

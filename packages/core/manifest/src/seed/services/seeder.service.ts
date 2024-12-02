@@ -182,7 +182,7 @@ export class SeederService {
   private seedProperty(
     propertyManifest: PropertyManifest,
     entityManifest: EntityManifest
-  ): any {
+  ): string | number | boolean | object | unknown {
     switch (propertyManifest.type) {
       case PropType.String:
         return faker.commerce.product()
@@ -222,7 +222,7 @@ export class SeederService {
         return SHA3('manifest').toString()
       case PropType.Choice:
         return faker.helpers.arrayElement(
-          propertyManifest.options.values as any[]
+          propertyManifest.options.values as unknown[]
         )
       case PropType.Location:
         return {

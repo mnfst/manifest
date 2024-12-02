@@ -144,7 +144,7 @@ export class AuthService {
         token?.replace('Bearer ', ''),
         this.configService.get('TOKEN_SECRET_KEY')
       ) as jwt.JwtPayload
-    } catch (e) {
+    } catch {
       return Promise.resolve({ user: null, entitySlug: null })
     }
     if (!decoded) {

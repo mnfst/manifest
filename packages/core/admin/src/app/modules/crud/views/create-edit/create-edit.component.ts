@@ -2,6 +2,7 @@ import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
 import {
+  BaseEntity,
   EntityManifest,
   PropType,
   PropertyManifest,
@@ -28,6 +29,7 @@ export class CreateEditComponent {
   entityManifest: EntityManifest
   errors: { [propName: string]: string[] } = {}
 
+  singleMode: boolean
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
   loading: boolean
@@ -58,26 +60,34 @@ export class CreateEditComponent {
         this.router.navigate(['/404'])
       }
 
+      this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
+
       if (this.edit) {
-        this.item = await this.crudService.show(
-          this.entityManifest.slug,
-          params['id'],
-          {
-            relations: this.entityManifest.relationships
-              .filter((r) => r.type !== 'one-to-many')
-              .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-              .map((r) => r.name)
-          }
-        )
+        if (this.singleMode) {
+          this.item = await this.crudService.showSingle(
+            this.entityManifest.slug
+          )
+        } else {
+          this.item = await this.crudService.show(
+            this.entityManifest.slug,
+            params['id'],
+            {
+              relations: this.entityManifest.relationships
+                .filter((r) => r.type !== 'one-to-many')
+                .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+                .map((r) => r.name)
+            }
+          )
+        }
 
         this.breadcrumbService.breadcrumbLinks.next([
           {
             label: this.entityManifest.namePlural,
-            path: `/dynamic/${this.entityManifest.slug}`
+            path: `/collections/${this.entityManifest.slug}`
           },
           {
             label: this.item[this.entityManifest.mainProp],
-            path: `/dynamic/${this.entityManifest.slug}/${this.item.id}`
+            path: `/collections/${this.entityManifest.slug}/${this.item.id}`
           },
           {
             label: 'Edit'
@@ -87,7 +97,7 @@ export class CreateEditComponent {
         this.breadcrumbService.breadcrumbLinks.next([
           {
             label: this.entityManifest.namePlural,
-            path: `/dynamic/${this.entityManifest.slug}`
+            path: `/collections/${this.entityManifest.slug}`
           },
           {
             label: `Create a new ${this.entityManifest.nameSingular}`
@@ -159,14 +169,27 @@ export class CreateEditComponent {
   submit(): void {
     this.loading = true
     if (this.edit) {
-      this.crudService
-        .update(this.entityManifest.slug, this.item.id, this.form.value)
+      const updateAction: Promise<BaseEntity> = this.singleMode
+        ? this.crudService.updateSingle(
+            this.entityManifest.slug,
+            this.form.value
+          )
+        : this.crudService.update(
+            this.entityManifest.slug,
+            this.item.id,
+            this.form.value
+          )
+
+      updateAction
         .then(() => {
           this.loading = false
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been updated`
           )
-          this.router.navigate(['/dynamic', this.entityManifest.slug])
+          this.router.navigate([
+            this.singleMode ? '/singles' : '/collections',
+            this.entityManifest.slug
+          ])
         })
         .catch((err: HttpErrorResponse) => {
           if (err.status === 400) {
@@ -187,7 +210,7 @@ export class CreateEditComponent {
             `The ${this.entityManifest.nameSingular} has been created successfully`
           )
           this.router.navigate([
-            '/dynamic',
+            '/collections',
             this.entityManifest.slug,
             createdItem.id
           ])

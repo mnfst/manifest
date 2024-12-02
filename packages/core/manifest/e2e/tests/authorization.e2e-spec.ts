@@ -32,14 +32,14 @@ describe('Authorization (e2e)', () => {
 
   describe('Rules', () => {
     it('should have public access by default', async () => {
-      const listResponse = await global.request.get('/dynamic/owners')
+      const listResponse = await global.request.get('/collections/owners')
 
       expect(listResponse.status).toBe(200)
     })
 
     it('should allow access to public rules to everyone', async () => {
-      const listResponse = await global.request.get('/dynamic/cats')
-      const showResponse = await global.request.get('/dynamic/cats/1')
+      const listResponse = await global.request.get('/collections/cats')
+      const showResponse = await global.request.get('/collections/cats/1')
 
       expect(listResponse.status).toBe(200)
       expect(showResponse.status).toBe(200)
@@ -47,14 +47,14 @@ describe('Authorization (e2e)', () => {
 
     it('should allow access to restricted rules to all logged in users if no entity is provided', async () => {
       const restrictedCreateResponseAsUser = await global.request
-        .post('/dynamic/birds')
+        .post('/collections/birds')
         .send({
           name: 'lala'
         })
         .set('Authorization', 'Bearer ' + userToken)
 
       const restrictedCreateResponseAsContributor = await global.request
-        .post('/dynamic/birds')
+        .post('/collections/birds')
         .send({
           name: 'lala'
         })
@@ -66,14 +66,14 @@ describe('Authorization (e2e)', () => {
 
     it('should allow access to restricted rules to logged in users of a defined entity if provided', async () => {
       const restrictedToUsersUpdateResponse = await global.request
-        .put('/dynamic/birds/1')
+        .put('/collections/birds/1')
         .set('Authorization', 'Bearer ' + userToken)
         .send({ name: 'new name' })
 
       // Policy where 2
       const restrictedToContributorsAndUsersUpdateResponse =
         await global.request
-          .get('/dynamic/birds/1')
+          .get('/collections/birds/1')
           .set('Authorization', 'Bearer ' + userToken)
 
       expect(restrictedToUsersUpdateResponse.status).toBe(200)
@@ -82,14 +82,14 @@ describe('Authorization (e2e)', () => {
 
     it('should allow access to admin rules only to admins', async () => {
       const adminReadResponse = await global.request
-        .get('/dynamic/snakes')
+        .get('/collections/snakes')
         .set('Authorization', 'Bearer ' + adminToken)
 
       const userReadResponse = await global.request
-        .get('/dynamic/snakes')
+        .get('/collections/snakes')
         .set('Authorization', 'Bearer ' + userToken)
 
-      const guestReadResponse = await global.request.get('/dynamic/snakes')
+      const guestReadResponse = await global.request.get('/collections/snakes')
 
       expect(adminReadResponse.status).toBe(200)
       expect(userReadResponse.status).toBe(403)
@@ -98,10 +98,10 @@ describe('Authorization (e2e)', () => {
 
     it('should deny access to restricted rules to guests', async () => {
       const restrictedCreateResponse =
-        await global.request.post('/dynamic/birds')
+        await global.request.post('/collections/birds')
 
       const restrictedToContributorsAndUsersUpdateResponse =
-        await global.request.get('/dynamic/birds/1')
+        await global.request.get('/collections/birds/1')
 
       expect(restrictedCreateResponse.status).toBe(403)
       expect(restrictedToContributorsAndUsersUpdateResponse.status).toBe(403)
@@ -109,7 +109,7 @@ describe('Authorization (e2e)', () => {
 
     it('should deny access to restricted rules to users of other entities if entity is provided', async () => {
       const restrictedToUsersUpdateResponse = await global.request
-        .put('/dynamic/birds/1')
+        .put('/collections/birds/1')
         .set('Authorization', 'Bearer ' + contributorToken)
         .send({ name: 'new name' })
 
@@ -138,11 +138,11 @@ describe('Authorization (e2e)', () => {
 
     it('should work with multiple rules creating and AND logic between rules', async () => {
       const restrictedTwiceDeleteResponseAsUser = await global.request
-        .delete('/dynamic/birds/1')
+        .delete('/collections/birds/1')
         .set('Authorization', 'Bearer ' + userToken)
 
       const restrictedTwiceDeleteResponseAsContributor = await global.request
-        .delete('/dynamic/birds/1')
+        .delete('/collections/birds/1')
         .set('Authorization', 'Bearer ' + contributorToken)
 
       expect(restrictedTwiceDeleteResponseAsUser.status).toBe(403)
@@ -150,14 +150,15 @@ describe('Authorization (e2e)', () => {
     })
 
     it('should work with emojis shortcodes', async () => {
-      const publicResponseUsingEmoji = await global.request.get('/dynamic/cats')
+      const publicResponseUsingEmoji =
+        await global.request.get('/collections/cats')
       const restrictedResponseUsingEmoji = await global.request
-        .post('/dynamic/cats')
+        .post('/collections/cats')
         .send({
           name: 'new cat'
         })
       const forbiddenResponseUsingEmoji = await global.request
-        .delete('/dynamic/cats/1')
+        .delete('/collections/cats/1')
         .set('Authorization', 'Bearer ' + adminToken)
 
       expect(publicResponseUsingEmoji.status).toBe(200)
@@ -169,15 +170,16 @@ describe('Authorization (e2e)', () => {
   describe('Admin role', () => {
     it('admins are only visible to other admins', async () => {
       const adminReadResponseAsAdmin = await global.request
-        .get('/dynamic/admins')
+        .get('/collections/admins')
         .set('Authorization', 'Bearer ' + adminToken)
 
       const userReadResponseAsAdmin = await global.request
-        .get('/dynamic/admins')
+        .get('/collections/admins')
         .set('Authorization', 'Bearer ' + userToken)
 
-      const guestReadResponseAsAdmin =
-        await global.request.get('/dynamic/admins')
+      const guestReadResponseAsAdmin = await global.request.get(
+        '/collections/admins'
+      )
 
       expect(adminReadResponseAsAdmin.status).toBe(200)
       expect(userReadResponseAsAdmin.status).toBe(403)
@@ -191,17 +193,17 @@ describe('Authorization (e2e)', () => {
       }
 
       const adminCreateAdminResponse = await global.request
-        .post('/dynamic/admins')
+        .post('/collections/admins')
         .send(newAdmin)
         .set('Authorization', 'Bearer ' + adminToken)
 
       const userCreateAdminResponse = await global.request
-        .post('/dynamic/admins')
+        .post('/collections/admins')
         .send(newAdmin)
         .set('Authorization', 'Bearer ' + userToken)
 
       const guestCreateAdminResponse = await global.request
-        .post('/dynamic/admins')
+        .post('/collections/admins')
         .send(newAdmin)
 
       expect(adminCreateAdminResponse.status).toBe(201)
@@ -211,14 +213,14 @@ describe('Authorization (e2e)', () => {
 
     it('hidden properties of entities are only visible to admins', async () => {
       const responseAsAdmin = await global.request
-        .get('/dynamic/cats/1')
+        .get('/collections/cats/1')
         .set('Authorization', 'Bearer ' + adminToken)
 
       const responseAsUser = await global.request
-        .get('/dynamic/cats/1')
+        .get('/collections/cats/1')
         .set('Authorization', 'Bearer ' + userToken)
 
-      const responseAsGuest = await global.request.get('/dynamic/cats/1')
+      const responseAsGuest = await global.request.get('/collections/cats/1')
 
       expect(responseAsAdmin.body).toMatchObject({
         name: expect.any(String),

@@ -12,13 +12,13 @@
     <div class="right-part is-flex">
       <a
         class="button is-dark ml-5 is-hidden-touch"
-        [routerLink]="['/dynamic', entityManifest.slug, 'create']"
+        [routerLink]="['/collections', entityManifest.slug, 'create']"
         >Create a new {{ entityManifest.nameSingular }}</a
       >
 
       <a
         class="button is-circle is-link ml-5 is-hidden-desktop"
-        [routerLink]="['/dynamic', entityManifest.slug, 'create']"
+        [routerLink]="['/collections', entityManifest.slug, 'create']"
         ><i class="icon icon-plus"></i
       ></a>
     </div>
@@ -118,7 +118,7 @@
                   class="button is-light is-small is-circle"
                   [routerLink]="[
                     '/',
-                    'dynamic',
+                    'collections',
                     entityManifest.slug,
                     item['id']
                   ]"
@@ -128,7 +128,7 @@
                 <a
                   class="button is-light is-small is-circle mx-2"
                   [routerLink]="[
-                    '/dynamic',
+                    '/collections',
                     entityManifest.slug,
                     item['id'],
                     'edit'

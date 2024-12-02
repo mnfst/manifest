@@ -16,9 +16,22 @@ const routes: Routes = [
       import('./modules/auth/auth.module').then((m) => m.AuthModule)
   },
   {
-    path: 'dynamic',
+    path: 'collections',
     loadChildren: () =>
-      import('./modules/crud/crud.module').then((m) => m.CrudModule),
+      import('./modules/crud/crud-collection.module').then(
+        (m) => m.CrudCollectionModule
+      ),
+    canActivate: [AuthGuard],
+    data: {
+      mode: 'collection'
+    }
+  },
+  {
+    path: 'singles',
+    loadChildren: () =>
+      import('./modules/crud/crud-single.module').then(
+        (m) => m.CrudSingleModule
+      ),
     canActivate: [AuthGuard]
   },
   {

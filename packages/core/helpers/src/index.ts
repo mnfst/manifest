@@ -66,6 +66,17 @@ export function lowerCaseFirstLetter(str: string): string {
 }
 
 /**
+ * Uppercase the first letter of a string.
+ *
+ * @param str The string to uppercase the first letter of.
+ *
+ * @returns The string with the first letter in uppercase.
+ */
+export function upperCaseFirstLetter(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+/**
  * Get a random integer while excluding some values.
  */
 export function getRandomIntExcluding({

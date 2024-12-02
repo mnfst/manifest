@@ -19,10 +19,11 @@ import { AuthService } from '../../auth/auth.service'
 import { Request } from 'express'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 import { Rule } from '../../auth/decorators/rule.decorator'
+import { IsCollectionGuard } from '../guards/is-collection.guard'
 
-@Controller('dynamic')
-@UseGuards(AuthorizationGuard)
-export class CrudController {
+@Controller('collections')
+@UseGuards(AuthorizationGuard, IsCollectionGuard)
+export class CollectionController {
   constructor(
     private readonly crudService: CrudService,
     private readonly authService: AuthService
