@@ -24,59 +24,69 @@
       </a>
     </div>
   </div>
-  <div
-    class="card p-0 mb-6 is-shadowless"
-    [ngClass]="{ 'is-single-card': singleMode }"
-  >
+  <div class="card p-0 mb-6 is-shadowless">
     <div class="card-content">
-      <div class="properties" *ngFor="let prop of entityManifest.properties">
-        <p
-          class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+      <div class="columns">
+        <div
+          class="column is-12-touch is-8-desktop is-offset-2-desktop is-6-widescreen is-offset-3-widescreen is-6-fullhd is-offset-3-fullhd"
         >
-          {{ prop.name }}
-        </p>
-        <p class="is-property-value">
-          <app-yield [value]="item[prop.name]" [prop]="prop"></app-yield>
-        </p>
-      </div>
-      <div
-        class="relations"
-        *ngFor="let relationship of entityManifest.relationships"
-      >
-        <ng-container
-          *ngIf="
-            relationship.type === 'many-to-one' ||
-            (relationship.type === 'many-to-many' && relationship.owningSide)
-          "
-        >
-          <p
-            class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+          <div
+            class="properties"
+            *ngFor="let prop of entityManifest.properties"
           >
-            {{ relationship.name }}
-          </p>
-          <p class="is-property-value">
-            <app-relation-yield
-              [item]="item[relationship.name]"
-              [relationship]="relationship"
-              *ngIf="relationship.type === 'many-to-one'"
-            ></app-relation-yield>
-
-            <ng-container *ngIf="relationship.type === 'many-to-many'">
-              <ng-container
-                *ngFor="
-                  let relation of getManyToManyRelations(item, relationship);
-                  let last = last
-                "
+            <p
+              class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+            >
+              {{ prop.name }}
+            </p>
+            <p class="is-property-value">
+              <app-yield [value]="item[prop.name]" [prop]="prop"></app-yield>
+            </p>
+          </div>
+          <div
+            class="relations"
+            *ngFor="let relationship of entityManifest.relationships"
+          >
+            <ng-container
+              *ngIf="
+                relationship.type === 'many-to-one' ||
+                (relationship.type === 'many-to-many' &&
+                  relationship.owningSide)
+              "
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
               >
+                {{ relationship.name }}
+              </p>
+              <p class="is-property-value">
                 <app-relation-yield
-                  [item]="relation"
+                  [item]="item[relationship.name]"
                   [relationship]="relationship"
+                  *ngIf="relationship.type === 'many-to-one'"
                 ></app-relation-yield>
-                <ng-container *ngIf="!last">, </ng-container>
-              </ng-container>
+
+                <ng-container *ngIf="relationship.type === 'many-to-many'">
+                  <ng-container
+                    *ngFor="
+                      let relation of getManyToManyRelations(
+                        item,
+                        relationship
+                      );
+                      let last = last
+                    "
+                  >
+                    <app-relation-yield
+                      [item]="relation"
+                      [relationship]="relationship"
+                    ></app-relation-yield>
+                    <ng-container *ngIf="!last">, </ng-container>
+                  </ng-container>
+                </ng-container>
+              </p>
             </ng-container>
-          </p>
-        </ng-container>
+          </div>
+        </div>
       </div>
     </div>
     <div class="table-container">
