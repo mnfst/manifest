@@ -265,7 +265,7 @@ export class SeederService {
         this.seededFiles[`${entityManifest.slug}.${propertyManifest.name}`] =
           images
 
-        return 'test'
+        return images
     }
   }
 
