@@ -102,7 +102,7 @@ describe('AuthService', () => {
 
       const { jwtToken, entitySlug } = jwt.sign(
         'nonexistent@email.com',
-        configService.get('TOKEN_SECRET_KEY')
+        configService.get('tokenSecretKey')
       )
 
       expect(await authService.getUserFromToken(jwtToken)).toMatchObject({
