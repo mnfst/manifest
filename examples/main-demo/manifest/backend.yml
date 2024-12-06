@@ -1,50 +1,19 @@
-# 🦚 WELCOME TO MANIFEST 🦚 - A complete backend in 1 single file
-# Read more at https://manifest.build/docs
+name: Pokemon app 🐣
 
-# ******************************************
-# *       ADMIN PANEL CREDENTIALS          *
-# *                                        *
-# *  EMAIL:    admin@manifest.build        *
-# *  PASSWORD: admin                       *
-# ******************************************
-
-name: Simple Invoicing App
-
-entities: # Define your entities here.
-  📄 Invoice:
-    properties:
-      - { name: date, type: date }
-      - { name: invoiceNumber, type: number }
-      - { name: amount, type: money, options: { currency: USD } }
-      - { name: payed, type: boolean }
-    belongsTo:
-      - Project # A simple relationship between Invoice and Project
-
-  🛠️ Project:
+entities:
+  Pokemon 🐉:
     properties:
       - name
-      - description
-      - { name: deadline, type: date }
-      - { name: budget, type: money, options: { currency: USD } }
       - {
           name: type,
           type: choice,
-          options: { values: ['Service', 'Product', 'Retail'] }
+          options: { values: [Fire, Water, Grass, Electric] }
         }
-      - { name: finished, type: boolean }
-      # Checkout all available real-world types: https://manifest.build/docs/properties#property-types
+      - { name: level, type: number }
     belongsTo:
-      - Customer
+      - Trainer
 
-  🧾 Customer:
+  Trainer 🧑‍🎤:
     properties:
-      - { name: name, type: string }
-      - { name: email, type: email }
-      - { name: billingAddress, type: text }
-      - { name: location, type: location }
-      - {
-          name: industry,
-          type: choice,
-          options:
-            { values: ['Retail', 'Services', 'Manufacturing', 'Technology'] }
-        }
+      - name
+      - { name: isChampion, type: boolean }

@@ -1,5 +1,6 @@
 import { Command } from '@oclif/core'
 import axios from 'axios'
+import { parse } from 'jsonc-parser'
 import { PromiseWithChild, exec as execCp } from 'node:child_process'
 import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
@@ -8,7 +9,6 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import ora from 'ora'
 import treeKill from 'tree-kill'
-import { parse } from 'jsonc-parser'
 
 import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
 import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
@@ -91,7 +91,7 @@ export class MyCommand extends Command {
       updatePackageJsonFile({
         fileContent: packageJson,
         newPackages: {
-          manifest: '^4.0.0-beta'
+          manifest: '^4.1.2'
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',
