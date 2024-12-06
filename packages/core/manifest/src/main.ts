@@ -7,7 +7,7 @@ import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 import { AppModule } from './app.module'
-import { DEFAULT_PORT } from './constants'
+import { DEFAULT_PORT, DEFAULT_TOKEN_SECRET_KEY } from './constants'
 import { OpenApiService } from './open-api/services/open-api.service'
 
 async function bootstrap() {
@@ -25,6 +25,15 @@ async function bootstrap() {
   // Live reload.
   const isProduction: boolean = configService.get('NODE_ENV') === 'production'
   const isTest: boolean = configService.get('NODE_ENV') === 'test'
+
+  if (
+    isProduction &&
+    configService.get('tokenSecretKey') === DEFAULT_TOKEN_SECRET_KEY
+  ) {
+    throw new Error(
+      'Token secret key not defined. Please set a custom token secret key to run in production environment adding TOKEN_SECRET_KEY in your env file.'
+    )
+  }
 
   // Reload the browser when server files change.
   if (!isProduction && !isTest) {
