@@ -11,7 +11,7 @@ import {
 } from 'class-validator'
 
 /**
- * This is a mapping of prop types to validation functions. Each prop type has a built-in corresponding validation function.
+ * This is a mapping of prop types to validation functions.
  *
  * @param value The value to validate.
  *
@@ -32,9 +32,6 @@ export const typeValidators: Record<
     isURL(value) ? null : 'The value must be a valid URL',
 
   [PropType.Text]: (value: string) =>
-    isString(value) ? null : 'The value must be a string',
-
-  [PropType.RichText]: (value: string) =>
     isString(value) ? null : 'The value must be a string',
 
   // Custom validation for money: The value must be a number with up to 2 decimal places.
@@ -66,7 +63,7 @@ export const typeValidators: Record<
   [PropType.Password]: (value: string) =>
     isString(value) ? null : 'The value must be a string', // TODO: Manage updates
 
-  [PropType.Choice]: (value: string, options: { values: string[] }) =>
+  [PropType.Choice]: (value: any, options: { values: any[] }) =>
     isIn(value, options.values)
       ? null
       : 'The value must be one of the available choices',
@@ -76,8 +73,5 @@ export const typeValidators: Record<
     typeof value.lng !== 'undefined' &&
     isLatLong(`${value.lat},${value.lng}`)
       ? null
-      : 'The value must be a valid latitude and longitude',
-
-  [PropType.File]: () => null, // TODO: Type validators for files
-  [PropType.Image]: () => null // TODO: Type validators for images
+      : 'The value must be a valid latitude and longitude'
 }

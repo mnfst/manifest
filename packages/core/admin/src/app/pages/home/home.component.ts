@@ -10,8 +10,7 @@ import { ManifestService } from '../../modules/shared/services/manifest.service'
 })
 export class HomeComponent implements OnInit {
   appManifest: AppManifest
-  collections: EntityManifest[]
-  singles: EntityManifest[]
+  entityManifests: EntityManifest[]
 
   constructor(
     private breadcrumbService: BreadcrumbService,
@@ -22,12 +21,7 @@ export class HomeComponent implements OnInit {
     this.breadcrumbService.breadcrumbLinks.next([])
     this.manifestService.getManifest().then((res: AppManifest) => {
       this.appManifest = res
-      this.collections = Object.values(res.entities || {}).filter(
-        (entity) => !entity.single
-      )
-      this.singles = Object.values(res.entities || {}).filter(
-        (entity) => entity.single
-      )
+      this.entityManifests = Object.values(res.entities || {})
     })
   }
 }

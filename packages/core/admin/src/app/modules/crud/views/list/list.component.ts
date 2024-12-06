@@ -4,7 +4,6 @@ import {
   EntityManifest,
   Paginator,
   PropType,
-  PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
@@ -24,7 +23,6 @@ export class ListComponent implements OnInit {
   itemToDelete: { [key: string]: any }
 
   entityManifest: EntityManifest
-  properties: PropertyManifest[]
 
   queryParams: Params
   PropType = PropType
@@ -56,26 +54,19 @@ export class ListComponent implements OnInit {
         return
       }
 
-      // Do not display columns for password and rich text fields as they are not suitable for list view.
-      this.properties = this.entityManifest.properties.filter(
-        (prop) =>
-          prop.type !== PropType.Password && prop.type !== PropType.RichText
-      )
-
       this.breadcrumbService.breadcrumbLinks.next([
         {
           label: this.entityManifest.namePlural,
-          path: `/collections/${this.entityManifest.slug}`
+          path: `/dynamic/${this.entityManifest.slug}`
         }
       ])
 
       this.loadingPaginator = true
       this.paginator = await this.crudService.list(this.entityManifest.slug, {
         filters: this.queryParams,
-        relations: this.entityManifest.relationships
-          ?.filter((r) => r.type !== 'one-to-many')
-          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-          .map((relation: RelationshipManifest) => relation.name)
+        relations: this.entityManifest.belongsTo.map(
+          (relation: RelationshipManifest) => relation.name
+        )
       })
       this.loadingPaginator = false
     })
@@ -95,33 +86,21 @@ export class ListComponent implements OnInit {
     })
   }
 
-  /**
-   * Delete an item
-   *
-   * @param id The ID of the item to delete
-   *
-   * @returns void
-   */
   delete(id: number): void {
-    this.crudService
-      .delete(this.entityManifest.slug, id)
-      .then(() => {
-        this.itemToDelete = null
-        this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
-        this.flashMessageService.success(
-          `The ${this.entityManifest.nameSingular} has been deleted.`
-        )
-        this.paginator.data = this.paginator.data.filter(
-          (item: any) => item.id !== id
-        )
-      })
-      .catch((err) => {
-        this.flashMessageService.error(err.error.message)
-      })
+    this.crudService.delete(this.entityManifest.slug, id).then((res) => {
+      this.itemToDelete = null
+      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+      this.flashMessageService.success(
+        `The ${this.entityManifest.nameSingular} has been deleted.`
+      )
+      this.paginator.data = this.paginator.data.filter(
+        (item: any) => item.id !== id
+      )
+    })
   }
 
   goToDetailPage(id: number): void {
-    this.router.navigate(['/collections', this.entityManifest.slug, id])
+    this.router.navigate(['/dynamic', this.entityManifest.slug, id])
   }
 
   toggleDeleteModal(itemToDelete?: any): void {

@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "noEmit": true,
-    "baseUrl": "./",
-    "paths": {
-      "@repo/types": ["../types/src"]
-    }
-  }
-}

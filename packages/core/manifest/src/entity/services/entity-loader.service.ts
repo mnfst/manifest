@@ -1,21 +1,25 @@
-import { EntityManifest, PropertyManifest } from '@repo/types'
+import {
+  EntityManifest,
+  PropertyManifest,
+  RelationshipManifest
+} from '@repo/types'
 import { Injectable } from '@nestjs/common'
-import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
+import {
+  EntitySchema,
+  EntitySchemaColumnOptions,
+  EntitySchemaRelationOptions
+} from 'typeorm'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { baseEntity } from '../core-entities/base-entity'
 import { propTypeColumnTypes } from '../records/prop-type-column-types'
 import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
-import { RelationshipService } from './relationship.service'
 
 @Injectable()
 export class EntityLoaderService {
-  constructor(
-    private manifestService: ManifestService,
-    private relationshipService: RelationshipService
-  ) {}
+  constructor(private manifestService: ManifestService) {}
 
   /**
-   * Get entities from Manifest services file and convert into TypeORM entities.
+   * Load entities from YML file and convert into TypeORM entities.
    *
    * @returns EntitySchema[] the entities
    *
@@ -39,7 +43,7 @@ export class EntityLoaderService {
               acc[propManifest.name] = {
                 name: propManifest.name,
                 type: propTypeColumnTypes[propManifest.type],
-                nullable: true // Everything is nullable on the database (validation is done on the application layer).
+                nullable: true // Everything is nullable yet.
               }
 
               return acc
@@ -49,10 +53,23 @@ export class EntityLoaderService {
               ? { ...baseAuthenticableEntity }
               : { ...baseEntity }
           ) as { [key: string]: EntitySchemaColumnOptions },
-          relations:
-            this.relationshipService.getEntitySchemaRelationOptions(
-              entityManifest
-            ),
+
+          // Convert belongsTo relationships to many-to-one relations.
+          relations: entityManifest.belongsTo.reduce(
+            (
+              acc: { [key: string]: EntitySchemaRelationOptions },
+              belongsToRelationShip: RelationshipManifest
+            ) => {
+              acc[belongsToRelationShip.name] = {
+                target: belongsToRelationShip.entity,
+                type: 'many-to-one',
+                eager: !!belongsToRelationShip.eager
+              }
+
+              return acc
+            },
+            {}
+          ),
           uniques: entityManifest.authenticable ? [{ columns: ['email'] }] : []
         })
 

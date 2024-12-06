@@ -37,7 +37,7 @@
                         </p>
                       </figure>
                       <div
-                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
                       >
                         <!-- TODO: review the doc once changed -->
                         <div class="content">
@@ -48,7 +48,7 @@
                         </div>
                       </div>
                       <figure
-                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
                       >
                         <i class="icon icon-arrow-right"></i>
                       </figure>
@@ -63,7 +63,7 @@
                 Feedback & Support
               </p>
             </div>
-            <div class="column is-6">
+            <div class="column is-12">
               <a
                 class="card-link"
                 href="https://github.com/mnfst/manifest/discussions/categories/feedback"
@@ -80,7 +80,7 @@
                         </p>
                       </figure>
                       <div
-                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
                       >
                         <div class="content">
                           <p class="is-size-5 has-text-weight-bold mb-0">
@@ -90,7 +90,7 @@
                         </div>
                       </div>
                       <figure
-                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
                       >
                         <i class="icon icon-arrow-right"></i>
                       </figure>
@@ -99,7 +99,7 @@
                 </div>
               </a>
             </div>
-            <div class="column is-6">
+            <div class="column is-12">
               <a
                 class="card-link"
                 href="https://discord.com/invite/FepAked3W7"
@@ -116,7 +116,7 @@
                         </p>
                       </figure>
                       <div
-                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
                       >
                         <div class="content">
                           <p class="is-size-5 has-text-weight-bold mb-0">
@@ -126,7 +126,7 @@
                         </div>
                       </div>
                       <figure
-                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                        class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
                       >
                         <i class="icon icon-arrow-right"></i>
                       </figure>
@@ -137,18 +137,16 @@
             </div>
           </div>
         </ng-container>
-
-        <!-- Collections -->
-        <div class="columns is-multiline" *ngIf="collections?.length">
+        <div class="columns is-multiline">
           <div class="column is-12 pb-0">
             <hr />
             <p class="is-uppercase has-text-dark has-text-weight-medium">
-              Start navigating through your collections
+              Start navigating through the app
             </p>
           </div>
-          <div class="column is-6" *ngFor="let entity of collections">
+          <div class="column is-6" *ngFor="let entity of entityManifests">
             <a
-              [routerLink]="['/collections', entity.slug]"
+              [routerLink]="['/dynamic', entity.slug]"
               routerLinkActive="is-active"
               class="card-link"
             >
@@ -158,7 +156,7 @@
                 <div class="card-content p-0">
                   <article class="media is-flex is-align-items-center">
                     <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-3 is-fullheight"
                     >
                       <div class="content">
                         <p class="is-size-5 has-text-weight-bold mb-0">
@@ -169,49 +167,7 @@
                       </div>
                     </div>
                     <figure
-                      class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
-                    >
-                      <i class="icon icon-arrow-right"></i>
-                    </figure>
-                  </article>
-                </div>
-              </div>
-            </a>
-          </div>
-        </div>
-
-        <!-- Singles -->
-        <div class="columns is-multiline" *ngIf="singles?.length">
-          <div class="column is-12 pb-0">
-            <hr />
-            <p class="is-uppercase has-text-dark has-text-weight-medium">
-              Edit your single entities
-            </p>
-          </div>
-          <div class="column is-6" *ngFor="let entity of singles">
-            <a
-              [routerLink]="['/singles', entity.slug, 'edit']"
-              routerLinkActive="is-active"
-              class="card-link"
-            >
-              <div
-                class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
-              >
-                <div class="card-content p-0">
-                  <article class="media is-flex is-align-items-center">
-                    <div
-                      class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
-                    >
-                      <div class="content">
-                        <p class="is-size-5 has-text-weight-bold mb-0">
-                          <span>{{
-                            entity.nameSingular | capitalizeFirstLetter
-                          }}</span>
-                        </p>
-                      </div>
-                    </div>
-                    <figure
-                      class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                      class="media-right my-0 mx-1 is-inline-flex is-justify-content-center"
                     >
                       <i class="icon icon-arrow-right"></i>
                     </figure>

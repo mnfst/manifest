@@ -7,21 +7,7 @@
     </a>
   </div>
   <ul class="menu-list">
-    <!-- Singles -->
-    <ng-container *ngIf="singles?.length">
-      <li *ngFor="let single of singles">
-        <a
-          [routerLink]="['/singles', single.slug]"
-          routerLinkActive="is-active"
-        >
-          <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
-        </a>
-      </li>
-      <hr />
-    </ng-container>
-
-    <!-- Collections -->
-    <li *ngIf="collections">
+    <li *ngIf="entityManifests">
       <a
         (click)="isCollectionsOpen = !isCollectionsOpen"
         class="has-submenu is-flex is-justify-content-space-between"
@@ -36,15 +22,15 @@
         <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
       </a>
       <ul *ngIf="isCollectionsOpen">
-        <li *ngFor="let collection of collections">
+        <li *ngFor="let entity of entityManifests">
           <a
-            [routerLink]="['/collections', collection.slug]"
+            [routerLink]="['/dynamic', entity.slug]"
             routerLinkActive="is-active"
           >
-            <span>{{ collection.namePlural | capitalizeFirstLetter }}</span>
+            <span>{{ entity.namePlural | capitalizeFirstLetter }}</span>
           </a>
         </li>
-        <li *ngIf="collections.length === 0">
+        <li *ngIf="entityManifests.length === 0">
           <a
             style="pointer-events: none"
             class="has-background-white-bis has-text-grey"
@@ -53,9 +39,6 @@
         </li>
       </ul>
     </li>
-
-    <hr />
-
     <li>
       <a
         (click)="isSettingsOpen = !isSettingsOpen"
@@ -72,10 +55,31 @@
       </a>
       <ul *ngIf="isSettingsOpen">
         <li>
-          <a routerLink="/collections/admins">Admins</a>
+          <a routerLink="/dynamic/admins">Admins</a>
         </li>
       </ul>
     </li>
   </ul>
+  <div class="ad">
+    <div class="card is-bordered is-shadowless has-background-primary">
+      <div class="card-content is-size-6">
+        <div class="content">
+          <h4 class="title is-4 has-text-light">
+            Want to shape the future of Manifest?
+          </h4>
+          <p class="subtitle is-5 has-text-light">
+            Be one of 50 developers for a quick video call and shape the product
+            with your insights!
+          </p>
+          <a
+            href="https://forms.gle/yKgUTYhuEacgx8i26"
+            target="_blank"
+            class="button is-small is-success"
+            >Get involved</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
   <app-user-menu-item></app-user-menu-item>
 </div>

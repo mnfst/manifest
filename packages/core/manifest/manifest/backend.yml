@@ -4,16 +4,15 @@ entities:
   Cat 😺:
     properties:
       - name
-      - { name: age, type: number, validation: { min: 3 } }
+      - { name: age, type: number, validation: { min: 3, isOptional: true } }
       - { name: birthdate, type: date }
       - { name: aquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }
-      - { name: certificate, type: file }
-      - { name: photo, type: image }
-      - { name: description, type: richText, validation: { required: true } }
     belongsTo:
       - { name: owner, entity: User }
     policies:
+      read:
+        - access: restricted
       create:
         - access: public
       update:
@@ -21,39 +20,9 @@ entities:
       delete:
         - { access: 🔒, allow: [User] }
     validation:
-      age: { min: 20 } # Gets overridden by the property definition.
-
-  Food:
-    single: false
-    properties:
-      - name
-      - { name: expirationDate, type: date }
-    belongsToMany:
-      - { name: cats, entity: Cat }
+      age: { min: 20 } # Gets overriden by the property definition.
 
   User:
     authenticable: true
     properties:
       - name
-
-  ContactPage:
-    single: true
-    nameSingular: Contact
-    slug: contact
-    properties:
-      - { name: title, type: string }
-      - { name: content, type: text }
-      - { name: image, type: image }
-    validation:
-      title: { required: true }
-
-    # Testing single entity with the ContactPage entity.
-  AboutPage:
-    single: true
-    nameSingular: About content
-    slug: about-content
-    properties:
-      - { name: title, type: string }
-      - { name: content, type: text }
-    validation:
-      title: { required: true }

@@ -9,9 +9,7 @@ import { ManifestService } from '../../shared/services/manifest.service'
   styleUrls: ['./side-menu.component.scss']
 })
 export class SideMenuComponent implements OnInit {
-  collections: EntityManifest[]
-  singles: EntityManifest[]
-
+  entityManifests: EntityManifest[]
   isCollectionsOpen = false
   isSettingsOpen = false
 
@@ -19,15 +17,9 @@ export class SideMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.manifestService.getManifest().then((res: AppManifest) => {
-      this.collections = Object.values(res.entities || {})
-        .filter(
-          (entityManifest: EntityManifest) =>
-            entityManifest.className !== ADMIN_CLASS_NAME
-        )
-        .filter((entityManifest: EntityManifest) => !entityManifest.single)
-
-      this.singles = Object.values(res.entities || {}).filter(
-        (entityManifest: EntityManifest) => entityManifest.single
+      this.entityManifests = Object.values(res.entities || {}).filter(
+        (entityManifest: EntityManifest) =>
+          entityManifest.className !== ADMIN_CLASS_NAME
       )
     })
   }

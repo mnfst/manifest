@@ -3,7 +3,7 @@
 The `add-manifest` command adds [Manifest](https://manifest.build) to your project.
 
 ```bash
-npx add-manifest@latest
+npx add-manifest
 ```
 
 ## Develop
@@ -14,10 +14,8 @@ npm install
 # Run from a test folder to prevent messing with project files.
 mkdir test-folder
 cd test-folder
-../bin/dev.js
+../bin/dev.js create
 ```
-
-However due to the monorepo workspace structure, the launch script will fail as the path to the node modules folder is different than when served.
 
 ## Publish
 

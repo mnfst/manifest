@@ -50,15 +50,6 @@ describe('Authentication (e2e)', () => {
 
       expect(response.status).toBe(403)
     })
-
-    it('returns true if the default user admin is in the database', async () => {
-      const response = await global.request.get('/auth/admins/default-exists')
-
-      expect(response.status).toBe(200)
-      expect(response.body).toMatchObject({
-        exists: true
-      })
-    })
   })
 
   describe('Authenticable entity', () => {
@@ -129,7 +120,7 @@ describe('Authentication (e2e)', () => {
         .post('/auth/dogs/signup')
         .send(newUserData)
 
-      expect(response.status).toBe(403)
+      expect(response.status).toBe(400)
     })
   })
 })

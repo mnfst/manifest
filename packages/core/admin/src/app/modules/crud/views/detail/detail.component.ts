@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
+import { BaseEntity, EntityManifest } from '@repo/types'
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
@@ -13,8 +13,6 @@ import { CrudService } from '../../services/crud.service'
 export class DetailComponent {
   item: BaseEntity
   entityManifest: EntityManifest
-
-  singleMode: boolean
 
   constructor(
     private crudService: CrudService,
@@ -35,51 +33,22 @@ export class DetailComponent {
         this.router.navigate(['/404'])
       }
 
-      this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
-
       // Get the item.
-      if (this.singleMode) {
-        this.item = await this.crudService.showSingle(this.entityManifest.slug)
-      } else {
-        this.item = await this.crudService.show(
-          this.entityManifest.slug,
-          params['id'],
-          {
-            relations: this.entityManifest.relationships
-              ?.filter((r) => r.type !== 'one-to-many')
-              .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-              .map((relationship: RelationshipManifest) => relationship.name)
-          }
-        )
-      }
+      this.item = await this.crudService.show(
+        this.entityManifest.slug,
+        params['id']
+      )
 
       // Set the breadcrumbs.
       this.breadcrumbService.breadcrumbLinks.next([
         {
           label: this.entityManifest.namePlural,
-          path: `/collections/${this.entityManifest.slug}`
+          path: `/dynamic/${this.entityManifest.slug}`
         },
         {
-          label: this.item[
-            this.entityManifest.mainProp as keyof BaseEntity
-          ] as string
+          label: this.item[this.entityManifest.mainProp as keyof BaseEntity]
         }
       ])
     })
-  }
-
-  /**
-   * Get the many-to-one relations of an item.
-   *
-   * @param item The item to get the relations from.
-   * @param relationship The relationship manifest.
-   *
-   * @returns The related items as an array.
-   */
-  getManyToManyRelations(
-    item: BaseEntity,
-    relationship: RelationshipManifest
-  ): BaseEntity[] {
-    return item[relationship.name] as BaseEntity[]
   }
 }

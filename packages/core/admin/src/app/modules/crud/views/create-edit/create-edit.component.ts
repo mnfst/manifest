@@ -2,15 +2,12 @@ import { Component } from '@angular/core'
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
 import {
-  BaseEntity,
   EntityManifest,
   PropType,
   PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
-
-import { getDtoPropertyNameFromRelationship } from '@repo/helpers'
 
 import { HttpErrorResponse } from '@angular/common/http'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
@@ -29,7 +26,6 @@ export class CreateEditComponent {
   entityManifest: EntityManifest
   errors: { [propName: string]: string[] } = {}
 
-  singleMode: boolean
   form: FormGroup = this.formBuilder.group({})
   edit: boolean
   loading: boolean
@@ -60,34 +56,20 @@ export class CreateEditComponent {
         this.router.navigate(['/404'])
       }
 
-      this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
-
       if (this.edit) {
-        if (this.singleMode) {
-          this.item = await this.crudService.showSingle(
-            this.entityManifest.slug
-          )
-        } else {
-          this.item = await this.crudService.show(
-            this.entityManifest.slug,
-            params['id'],
-            {
-              relations: this.entityManifest.relationships
-                .filter((r) => r.type !== 'one-to-many')
-                .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-                .map((r) => r.name)
-            }
-          )
-        }
+        this.item = await this.crudService.show(
+          this.entityManifest.slug,
+          params['id']
+        )
 
         this.breadcrumbService.breadcrumbLinks.next([
           {
             label: this.entityManifest.namePlural,
-            path: `/collections/${this.entityManifest.slug}`
+            path: `/dynamic/${this.entityManifest.slug}`
           },
           {
             label: this.item[this.entityManifest.mainProp],
-            path: `/collections/${this.entityManifest.slug}/${this.item.id}`
+            path: `/dynamic/${this.entityManifest.slug}/${this.item.id}`
           },
           {
             label: 'Edit'
@@ -97,7 +79,7 @@ export class CreateEditComponent {
         this.breadcrumbService.breadcrumbLinks.next([
           {
             label: this.entityManifest.namePlural,
-            path: `/collections/${this.entityManifest.slug}`
+            path: `/dynamic/${this.entityManifest.slug}`
           },
           {
             label: `Create a new ${this.entityManifest.nameSingular}`
@@ -118,78 +100,31 @@ export class CreateEditComponent {
         this.form.addControl(prop.name, new FormControl(value))
       })
 
-      this.entityManifest.relationships
-        .filter((r) => r.type !== 'one-to-many')
-        .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-        .forEach((relationship: RelationshipManifest) => {
-          let value: number | number[] = null
+      this.entityManifest.belongsTo.forEach(
+        (relationship: RelationshipManifest) => {
+          const value: number = this.item ? this.item[relationship.name] : null
 
-          if (relationship.type === 'many-to-one') {
-            value = this.item ? this.item[relationship.name]?.id : null
-          } else if (relationship.type === 'many-to-many') {
-            value = this.item
-              ? this.item[relationship.name].map((item: any) => item.id)
-              : []
-          }
-
-          this.form.addControl(
-            getDtoPropertyNameFromRelationship(relationship),
-            new FormControl(value)
-          )
-        })
+          this.form.addControl(relationship.name, new FormControl(value))
+        }
+      )
     })
   }
 
-  /**
-   * Change event handler for form controls.
-   *
-   * @param params the new value and the property name
-   *
-   */
   onChange(params: { newValue: any; propName: string }): void {
     this.form.controls[params.propName].setValue(params.newValue)
-  }
-
-  /**
-   * Change event handler for relationship form controls.
-   *
-   * @param params the new value and the relationship manifest
-   *
-   */
-  onRelationChange(params: {
-    newValue: any
-    relationship: RelationshipManifest
-  }): void {
-    return this.onChange({
-      newValue: params.newValue,
-      propName: getDtoPropertyNameFromRelationship(params.relationship)
-    })
   }
 
   submit(): void {
     this.loading = true
     if (this.edit) {
-      const updateAction: Promise<BaseEntity> = this.singleMode
-        ? this.crudService.updateSingle(
-            this.entityManifest.slug,
-            this.form.value
-          )
-        : this.crudService.update(
-            this.entityManifest.slug,
-            this.item.id,
-            this.form.value
-          )
-
-      updateAction
+      this.crudService
+        .update(this.entityManifest.slug, this.item.id, this.form.value)
         .then(() => {
           this.loading = false
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been updated`
           )
-          this.router.navigate([
-            this.singleMode ? '/singles' : '/collections',
-            this.entityManifest.slug
-          ])
+          this.router.navigate(['/dynamic', this.entityManifest.slug])
         })
         .catch((err: HttpErrorResponse) => {
           if (err.status === 400) {
@@ -204,15 +139,15 @@ export class CreateEditComponent {
     } else {
       this.crudService
         .create(this.entityManifest.slug, this.form.value)
-        .then((createdItem: { id: number }) => {
+        .then((res: { identifiers: { id: number }[] }) => {
           this.loading = false
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been created successfully`
           )
           this.router.navigate([
-            '/collections',
+            '/dynamic',
             this.entityManifest.slug,
-            createdItem.id
+            res.identifiers[0].id
           ])
         })
         .catch((err: HttpErrorResponse) => {

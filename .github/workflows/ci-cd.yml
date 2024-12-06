@@ -1,4 +1,4 @@
-name: CI-CD Manifest
+name: CI-CD Core Manifest
 
 on:
   pull_request:
@@ -10,9 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    env:
-      HUSKY: 0
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -23,8 +20,8 @@ jobs:
       - name: Install root dependencies
         run: npm install
       - name: Install dependencies (workspaces)
-        run: npm ci --workspaces --ignore-scripts
+        run: npm ci --workspaces
       - name: Build App
         run: npm run build
       - name: Run tests
-        run: npm run test:ci
+        run: npm run test

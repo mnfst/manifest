@@ -14,7 +14,7 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
 })
 export class LabelYieldComponent implements OnInit {
   @Input() value: string
-  @Input() values: string[] | any
+  @Input() values: any | string[]
   index: number
 
   ngOnInit(): void {

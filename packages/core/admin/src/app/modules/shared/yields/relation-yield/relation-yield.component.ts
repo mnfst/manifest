@@ -9,7 +9,7 @@ import { ManifestService } from '../../services/manifest.service'
   standalone: true,
   imports: [RouterModule, CommonModule],
   template: ` <a
-      [routerLink]="['/', 'collections', entityManifest.slug, item.id]"
+      [routerLink]="['/', 'dynamic', entityManifest.slug, item.id]"
       *ngIf="item && entityManifest"
     >
       <span>{{ item[entityManifest.mainProp] }}</span>
@@ -23,12 +23,12 @@ export class RelationYieldComponent implements OnInit {
   constructor(private manifestService: ManifestService) {}
 
   @Input() item: any
-  @Input() relationship: RelationshipManifest
+  @Input() relation: RelationshipManifest
 
   ngOnInit(): void {
     this.manifestService
       .getEntityManifest({
-        className: this.relationship.entity
+        className: this.relation.entity
       })
       .then((entityManifest) => {
         this.entityManifest = entityManifest

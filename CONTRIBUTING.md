@@ -17,6 +17,8 @@ There are several ways to contribute to Manifest other than developing:
 
 Otherwise, you also can offer your help by talking to a team member on our [Discord](https://discord.com/invite/FepAked3W7) 🤗.
 
+
+
 ## Packages and repositories
 
 Before coding it is important to understand where the functionality you want to change is located.
@@ -28,7 +30,8 @@ Manifest is a set of several packages and [repositories](https://github.com/orgs
 | Manifest       | Manifest core                              | NestJS / Express / TypeORM | [manifest](https://github.com/mnfst/manifest) | [manifest](https://www.npmjs.com/package/manifest)         |
 | Manifest Admin | Official Admin Panel                       | Angular                    | [manifest](https://github.com/mnfst/manifest) | -                                                          |
 | Add Manifest   | NPX install script                         | OCLIF                      | [manifest](https://github.com/mnfst/manifest) | [add-manifest](https://www.npmjs.com/package/add-manifest) |
-| JS SDK         | Client JavaScript SDK                      | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)     |
+| JS SDK         | JavaScript SDK                             | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)     |
+| Manifest Types | Utility types                              | TypeScript                 | [manifest](https://github.com/mnfst/manifest) | -                                                          |
 | Website        | Official website: https://manifest.build   | NextJS                     | [website](https://github.com/mnfst/website)   | -                                                          |
 | Docs           | Documentation: https://manifest.build/docs | Markdown / Docusaurus      | [docs](https://github.com/mnfst/docs)         | -                                                          |
 
@@ -43,7 +46,7 @@ Manifest is a set of several packages and [repositories](https://github.com/orgs
 ### Before you start
 
 - Manifest is built on the concept of simplicity, contributions should go in that direction
-- Each PR code quality is checked with CodeFactor
+- Each PR is linted with Prettier, and code quality is checked with CodeFactor
 - Commit labels should be made using the [Conventional Commits convention](https://www.conventionalcommits.org/en/v1.0.0/)
 - Please create only one thing per pull request as it is easier to validate and merge
 

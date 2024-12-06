@@ -4,7 +4,6 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 import { PaginationService } from '../services/pagination.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { ValidationService } from '../../validation/services/validation.service'
-import { RelationshipService } from '../../entity/services/relationship.service'
 
 describe('CrudService', () => {
   let service: CrudService
@@ -35,12 +34,6 @@ describe('CrudService', () => {
           provide: ValidationService,
           useValue: {
             validate: jest.fn()
-          }
-        },
-        {
-          provide: RelationshipService,
-          useValue: {
-            fetchRelationItemsFromDto: jest.fn()
           }
         }
       ]

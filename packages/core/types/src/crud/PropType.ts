@@ -4,7 +4,6 @@
 export enum PropType {
   String = 'string',
   Text = 'text',
-  RichText = 'richText',
   Number = 'number',
   Link = 'link',
   Money = 'money',
@@ -14,7 +13,5 @@ export enum PropType {
   Boolean = 'boolean',
   Password = 'password',
   Choice = 'choice',
-  Location = 'location',
-  File = 'file',
-  Image = 'image'
+  Location = 'location'
 }

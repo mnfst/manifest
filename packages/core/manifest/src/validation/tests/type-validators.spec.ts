@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { PropType } from '@repo/types'
+import { PropType } from '../../../../types/src'
 import { ValidationService } from '../services/validation.service'
 
 describe('Validators for property types', () => {

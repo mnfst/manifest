@@ -14,8 +14,6 @@ import { NumberYieldComponent } from './number-yield/number-yield.component'
 import { ProgressBarYieldComponent } from './progress-bar-yield/progress-bar-yield.component'
 import { TextYieldComponent } from './text-yield/text-yield.component'
 import { TimestampYieldComponent } from './timestamp-yield/timestamp-yield.component'
-import { ImageYieldComponent } from './image-yield/image-yield.component'
-import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.component'
 
 @Component({
   selector: 'app-yield',
@@ -32,9 +30,7 @@ import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.compon
     TextYieldComponent,
     LabelYieldComponent,
     ProgressBarYieldComponent,
-    LocationYieldComponent,
-    ImageYieldComponent,
-    RichTextYieldComponent
+    LocationYieldComponent
   ],
   template: `
     <app-text-yield
@@ -42,19 +38,13 @@ import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.compon
       [value]="value"
       [compact]="compact"
     ></app-text-yield>
-    <app-rich-text-yield
-      *ngIf="prop.type === PropType.RichText"
-      [value]="value"
-    >
-    </app-rich-text-yield>
     <app-number-yield
       *ngIf="prop.type === PropType.Number"
       [value]="value"
     ></app-number-yield>
     <app-link-yield
-      *ngIf="prop.type === PropType.Link || prop.type === PropType.File"
+      *ngIf="prop.type === PropType.Link"
       [value]="value"
-      [external]="prop.type === PropType.Link"
       [compact]="compact"
     ></app-link-yield>
     <app-boolean-yield
@@ -100,12 +90,6 @@ import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.compon
       *ngIf="prop.type === PropType.Location"
       [value]="value"
     ></app-location-yield>
-
-    <app-image-yield
-      *ngIf="prop.type === PropType.Image"
-      [value]="value"
-      [sizes]="prop.options?.['sizes']"
-    ></app-image-yield>
   `
 })
 export class YieldComponent {

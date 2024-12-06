@@ -7,9 +7,11 @@ import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
-import { ADMIN_ENTITY_MANIFEST, DEFAULT_ADMIN_CREDENTIALS } from '../constants'
+import { ADMIN_ENTITY_MANIFEST } from '../constants'
 import { ManifestService } from '../manifest/services/manifest.service'
 import { validate } from 'class-validator'
+
+// import { EntityMetaService } from '../crud/services/entity-meta.service'
 
 @Injectable()
 export class AuthService {
@@ -78,17 +80,15 @@ export class AuthService {
    * @param entitySlug The slug of the AuthenticableEntity where the user is going to be created
    * @param email The email of the user
    * @param password The password of the user
-   * @param byPassAdminCheck If true, the method will not check if the entity is an admin
    *
    * @returns A JWT token of the created user
    *
    */
   async signup(
     entitySlug: string,
-    signupUserDto: SignupAuthenticableEntityDto,
-    byPassAdminCheck = false
+    signupUserDto: SignupAuthenticableEntityDto
   ): Promise<{ token: string }> {
-    if (entitySlug === ADMIN_ENTITY_MANIFEST.slug && !byPassAdminCheck) {
+    if (entitySlug === ADMIN_ENTITY_MANIFEST.slug) {
       throw new HttpException(
         'Admins cannot be created with this method.',
         HttpStatus.BAD_REQUEST
@@ -144,7 +144,7 @@ export class AuthService {
         token?.replace('Bearer ', ''),
         this.configService.get('TOKEN_SECRET_KEY')
       ) as jwt.JwtPayload
-    } catch {
+    } catch (e) {
       return Promise.resolve({ user: null, entitySlug: null })
     }
     if (!decoded) {
@@ -196,26 +196,5 @@ export class AuthService {
       (res: { user: AuthenticableEntity; entitySlug: string }) =>
         !!res?.user && res?.entitySlug === ADMIN_ENTITY_MANIFEST.slug
     )
-  }
-
-  /**
-   * Returns whether the default admin exists.
-   *
-   * @returns A promise that resolves to an object with the key 'exists' that is true if the default admin exists, and false otherwise.
-   * */
-  async isDefaultAdminExists(): Promise<{ exists: boolean }> {
-    const entityRepository: Repository<AuthenticableEntity> =
-      this.entityService.getEntityRepository({
-        entitySlug: ADMIN_ENTITY_MANIFEST.slug
-      }) as Repository<AuthenticableEntity>
-
-    return {
-      exists: await entityRepository.exists({
-        where: {
-          email: DEFAULT_ADMIN_CREDENTIALS.email,
-          password: SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
-        }
-      })
-    }
   }
 }

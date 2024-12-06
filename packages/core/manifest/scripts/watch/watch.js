@@ -1,27 +1,16 @@
 #!/usr/bin/env node
 
-/* eslint-disable @typescript-eslint/no-require-imports */
-
 // This script is used to watch for changes from the project root directory where Manifest is installed.
+const { spawn } = require('child_process')
 const path = require('path')
-const os = require('os')
-const spawn = require('cross-spawn')
 
-// Determine the appropriate nodemon path
-const nodemonExecutable = os.platform() === 'win32' ? 'nodemon.cmd' : 'nodemon'
-const nodemonPath = path.join(
-  process.cwd(),
-  'node_modules',
-  '.bin',
-  nodemonExecutable
-)
+const nodemonPath = path.join(process.cwd(), 'node_modules', '.bin', 'nodemon')
 
 const nodemon = spawn(
   nodemonPath,
   ['.', '--config', `${__dirname}/nodemon.json`],
   {
-    stdio: 'inherit',
-    shell: true
+    stdio: 'inherit'
   }
 )
 nodemon.on('close', (code) => {

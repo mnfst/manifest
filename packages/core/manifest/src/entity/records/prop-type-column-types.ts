@@ -7,7 +7,6 @@ export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Number]: 'decimal',
   [PropType.Link]: 'varchar',
   [PropType.Text]: 'text',
-  [PropType.RichText]: 'text',
   [PropType.Money]: 'decimal',
   [PropType.Date]: 'date',
   [PropType.Timestamp]: 'integer',
@@ -15,7 +14,5 @@ export const propTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Boolean]: 'boolean',
   [PropType.Password]: 'varchar',
   [PropType.Choice]: 'simple-enum',
-  [PropType.Location]: 'json',
-  [PropType.File]: 'varchar',
-  [PropType.Image]: 'json'
+  [PropType.Location]: 'json'
 }

@@ -12,13 +12,13 @@
     <div class="right-part is-flex">
       <a
         class="button is-dark ml-5 is-hidden-touch"
-        [routerLink]="['/collections', entityManifest.slug, 'create']"
+        [routerLink]="['/dynamic', entityManifest.slug, 'create']"
         >Create a new {{ entityManifest.nameSingular }}</a
       >
 
       <a
         class="button is-circle is-link ml-5 is-hidden-desktop"
-        [routerLink]="['/collections', entityManifest.slug, 'create']"
+        [routerLink]="['/dynamic', entityManifest.slug, 'create']"
         ><i class="icon icon-plus"></i
       ></a>
     </div>
@@ -34,36 +34,23 @@
         <thead>
           <tr>
             <th
-              *ngFor="let prop of properties"
+              *ngFor="let prop of entityManifest.properties"
               [ngClass]="{
-                'has-text-right':
-                  prop.type === PropType.Money ||
-                  prop.type === PropType.Number ||
-                  prop.type === PropType.Date
-              }"
+                'has-text-right':prop.type === PropType.Money || prop.type === PropType.Number || prop.type === PropType.Date,
+                }"
             >
               {{ prop.name }}
             </th>
-            <ng-container
-              *ngFor="let relationship of entityManifest.relationships"
-            >
-              <th
-                *ngIf="
-                  relationship.type === 'many-to-one' ||
-                  (relationship.type === 'many-to-many' &&
-                    relationship.owningSide)
-                "
-              >
-                {{ relationship.name }}
-              </th>
-            </ng-container>
+            <th *ngFor="let relation of entityManifest.belongsTo">
+              {{ relation.name }}
+            </th>
             <th></th>
           </tr>
         </thead>
         <tbody *ngIf="paginator?.data?.length">
           <tr *ngFor="let item of paginator.data">
             <td
-              *ngFor="let prop of properties"
+              *ngFor="let prop of entityManifest.properties"
               [ngClass]="{
                 'has-text-right':
                   prop.type === PropType.Money ||
@@ -83,70 +70,42 @@
                 [compact]="true"
               ></app-yield>
             </td>
-            <td *ngFor="let relationship of entityManifest.relationships">
-              <ng-container
-                *ngIf="
-                  relationship.type === 'many-to-one' ||
-                  (relationship.type === 'many-to-many' &&
-                    relationship.owningSide)
-                "
-              >
-                <app-relation-yield
-                  [item]="item[relationship.name]"
-                  [relationship]="relationship"
-                  *ngIf="relationship.type === 'many-to-one'"
-                ></app-relation-yield>
-                <ng-container *ngIf="relationship.type === 'many-to-many'">
-                  <ng-container
-                    *ngFor="
-                      let relation of item[relationship.name];
-                      let last = last
-                    "
-                  >
-                    <app-relation-yield
-                      [item]="relation"
-                      [relationship]="relationship"
-                    ></app-relation-yield>
-                    <ng-container *ngIf="!last">, </ng-container>
-                  </ng-container>
-                </ng-container>
-              </ng-container>
+            <td *ngFor="let relation of entityManifest.belongsTo">
+              <app-relation-yield
+                [item]="item[relation.name]"
+                [relation]="relation"
+              ></app-relation-yield>
             </td>
             <td class="has-text-right is-nowrap">
               <div class="is-flex is-justify-content-flex-end">
-                <a
-                  class="button is-light is-small is-circle"
-                  [routerLink]="[
-                    '/',
-                    'collections',
-                    entityManifest.slug,
-                    item['id']
-                  ]"
-                  ><i class="icon icon-eye"></i
-                ></a>
+              <a
+                class="button is-light is-small is-circle"
+                [routerLink]="['/', 'dynamic', entityManifest.slug, item['id']]"
+                ><i class="icon icon-eye"></i
+              ></a>
 
-                <a
-                  class="button is-light is-small is-circle mx-2"
-                  [routerLink]="[
-                    '/collections',
-                    entityManifest.slug,
-                    item['id'],
-                    'edit'
-                  ]"
-                  ><i class="icon icon-edit"></i
-                ></a>
-                <a
-                  class="button is-light is-small is-circle"
-                  (click)="toggleDeleteModal(item)"
-                  ><i class="icon icon-trash-2"></i
-                ></a>
-              </div>
+              <a
+              class="button is-light is-small is-circle mx-2"
+                [routerLink]="[
+                  '/dynamic',
+                  entityManifest.slug,
+                  item['id'],
+                  'edit'
+                ]"
+                ><i class="icon icon-edit"></i
+              ></a>
+              <a
+              class="button is-light is-small is-circle"
+                (click)="toggleDeleteModal(item)"
+                ><i class="icon icon-trash-2"></i
+              ></a>
+            </div>
             </td>
           </tr>
         </tbody>
         <tbody *ngIf="paginator?.data?.length === 0">
           <tr>
-            <td [attr.colspan]="properties.length">
+            <td [attr.colspan]="entityManifest.properties.length">
               There is no {{ entityManifest.nameSingular }}.
             </td>
           </tr>
@@ -189,8 +148,8 @@
         {{ entityManifest.nameSingular }} ? This action cannot be undone.
       </p>
       <p>
-        If {{ itemToDelete[entityManifest.mainProp] }} has related items, you
-        should delete them first.
+        If {{ itemToDelete[entityManifest.mainProp] }} has related items, they
+        will be deleted too.
       </p>
       <div
         class="is-flex is-align-items-center is-justify-content-space-between mt-6"

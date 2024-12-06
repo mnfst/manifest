@@ -20,7 +20,6 @@ export type PropertySchema =
       type?:
         | 'string'
         | 'text'
-        | 'richText'
         | 'number'
         | 'link'
         | 'money'
@@ -32,8 +31,6 @@ export type PropertySchema =
         | 'password'
         | 'choice'
         | 'location'
-        | 'file'
-        | 'image'
       validation?: ValidationSchema
       /**
        * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
@@ -111,25 +108,17 @@ export interface EntitySchema {
    */
   seedCount?: number
   /**
-   * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
-   */
-  authenticable?: boolean
-  /**
-   * Whether the entity is a single type instead of a collection. Doc: https://manifest.build/docs/entities#singles
-   */
-  single?: boolean
-  /**
    * The properties of the entity. Doc: https://manifest.build/docs/entities
    */
   properties?: PropertySchema[]
   /**
-   * The ManyToOne relationships of the entity. Doc: https://manifest.build/docs/relations
+   * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
+   */
+  authenticable?: boolean
+  /**
+   * The belongsTo relationships of the entity. Doc: https://manifest.build/docs/relations
    */
   belongsTo?: RelationshipSchema[]
-  /**
-   * The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/relations
-   */
-  belongsToMany?: RelationshipSchema[]
   policies?: PoliciesSchema
   /**
    * Validation object for the properties. Doc: https://manifest.build/docs/validation

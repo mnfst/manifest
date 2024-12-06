@@ -4,14 +4,10 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  Output
+  Output,
+  SimpleChanges
 } from '@angular/core'
-import {
-  EntityManifest,
-  PropType,
-  PropertyManifest,
-  RelationshipManifest
-} from '@repo/types'
+import { PropType, PropertyManifest, RelationshipManifest } from '@repo/types'
 
 import { BooleanInputComponent } from './boolean-input/boolean-input.component'
 import { CurrencyInputComponent } from './currency-input/currency-input.component'
@@ -26,9 +22,6 @@ import { TextInputComponent } from './text-input/text-input.component'
 import { TextareaInputComponent } from './textarea-input/textarea-input.component'
 import { UrlInputComponent } from './url-input/url-input.component'
 import { TimestampInputComponent } from './timestamp-input/timestamp-input.component'
-import { FileInputComponent } from './file-input/file-input.component'
-import { ImageInputComponent } from './image-input/image-input.component'
-import { RichTextInputComponent } from './rich-text-input/rich-text-input.component'
 
 @Component({
   selector: 'app-input',
@@ -47,10 +40,7 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
     SelectInputComponent,
     TextareaInputComponent,
     TextInputComponent,
-    LocationInputComponent,
-    FileInputComponent,
-    ImageInputComponent,
-    RichTextInputComponent
+    LocationInputComponent
   ],
   template: `
     <app-text-input
@@ -60,15 +50,6 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
       (valueChanged)="onChange($event)"
       *ngIf="prop?.type === PropType.String"
     ></app-text-input>
-    <app-rich-text-input
-      [prop]="prop"
-      [value]="value"
-      [isError]="isError"
-      (valueChanged)="onChange($event)"
-      *ngIf="prop?.type === PropType.RichText"
-    >
-    </app-rich-text-input>
-
     <app-number-input
       [prop]="prop"
       [value]="value"
@@ -96,19 +77,9 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
       [value]="value"
       [isError]="isError"
       (valueChanged)="onChange($event)"
-      *ngIf="
-        prop?.type === PropType.Choice || relationship?.type === 'many-to-one'
-      "
+      *ngIf="prop?.type === PropType.Choice || relationship"
     >
     </app-select-input>
-    <app-multi-select-input
-      [prop]="prop"
-      [relationship]="relationship"
-      [value]="value"
-      [isError]="isError"
-      (valueChanged)="onChange($event)"
-      *ngIf="relationship?.type === 'many-to-many'"
-    ></app-multi-select-input>
     <app-currency-input
       [prop]="prop"
       [value]="value"
@@ -165,24 +136,6 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
       (valueChanged)="onChange($event)"
       *ngIf="prop?.type === PropType.Location"
     ></app-location-input>
-    <app-file-input
-      [prop]="prop"
-      [entitySlug]="entityManifest.slug"
-      [value]="value"
-      [isError]="isError"
-      (valueChanged)="onChange($event)"
-      *ngIf="prop?.type === PropType.File"
-    >
-    </app-file-input>
-    <app-image-input
-      [prop]="prop"
-      [entitySlug]="entityManifest.slug"
-      [value]="value"
-      [isError]="isError"
-      (valueChanged)="onChange($event)"
-      *ngIf="prop?.type === PropType.Image"
-    >
-    </app-image-input>
 
     <!-- Error messages -->
     <ul *ngIf="errors?.length">
@@ -192,7 +145,6 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
 })
 export class InputComponent implements OnChanges {
   @Input() prop: PropertyManifest
-  @Input() entityManifest: EntityManifest
   @Input() relationship: RelationshipManifest
   @Input() value: any
   @Input() errors: string[]
@@ -205,7 +157,7 @@ export class InputComponent implements OnChanges {
     this.valueChanged.emit(event)
   }
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
     this.isError = !!this.errors?.length
   }
 }

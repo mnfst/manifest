@@ -2,30 +2,33 @@
 
 [Manifest](https://manifest.build) is the simplest **BaaS (Backend As A Service)** you will find.
 
-It provides a complete backend to your client app without the hassle that comes with it. It actually fits into **a single YAML file**.
+It provides a complete backend to your client app without the hassle that comes with it. It actually fits into **a single YAML file** that generates a complete backend.
 
 Here is an example of a complete Manifest app:
 
 ```yaml
-name: Pokemon app 🐣
+# manifest/backend.yml
+name: Healthcare application
 
 entities:
-  Pokemon 🐉:
+  👩🏾‍⚕️ Doctor:
     properties:
-      - name
-      - {
-          name: type,
-          type: choice,
-          options: { values: [Fire, Water, Grass, Electric] }
-        }
-      - { name: level, type: number }
+      - fullName
+      - avatar
+      - { name: price, type: money, options: { currency: EUR } }
     belongsTo:
-      - Trainer
+      - City
 
-  Trainer 🧑‍🎤:
+  🤒 Patient:
+    properties:
+      - fullName
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Doctor
+
+  🌍 City:
     properties:
       - name
-      - { name: isChampion, type: boolean }
 ```
 
 ## Install
@@ -33,7 +36,7 @@ entities:
 Simply run this command on your terminal from the root of your project:
 
 ```bash
-npx add-manifest@latest
+npx add-manifest
 ```
 
 ## Test

@@ -19,7 +19,7 @@
   color: $input-placeholder-color !important;
 }
 
-input[type='datetime-local'] {
+input[type="datetime-local"] {
   display: block;
   padding-right: 12px;
 }
@@ -118,6 +118,7 @@ case-select-input {
       box-shadow: $checkbox-box-shadow-width $input-disabled-border-color inset;
     }
   }
+
 }
 
 // Checkbox & radio
@@ -147,14 +148,9 @@ case-select-input {
 
 // File
 .file-cta {
+
   &.file-remove {
     border: 0;
-
-    a {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-    }
   }
 
   @each $name, $pair in $colors {
@@ -211,6 +207,7 @@ label.radio {
   &:hover input.is-checked ~ .checkmark {
     box-shadow: $checkbox-box-shadow-width $link inset;
   }
+
 
   &.is-disabled {
     cursor: not-allowed;
@@ -274,47 +271,5 @@ label.radio {
     font-weight: normal;
     text-transform: none;
     line-height: 1.5;
-  }
-}
-
-quill-editor {
-  width: 100%;
-  height: 100%;
-}
-
-.ql-toolbar.ql-snow,
-.ql-container.ql-snow {
-  border-color: $white-bis;
-  background-color: $white;
-
-  .is-danger & {
-    border-color: $danger;
-  }
-}
-.ql-toolbar.ql-snow {
-  border-top-left-radius: $radius;
-  border-top-right-radius: $radius;
-  border-bottom: 0;
-
-  + .ql-container.ql-snow {
-    min-height: 158px;
-    border-bottom-left-radius: $radius;
-    border-bottom-right-radius: $radius;
-  }
-
-  .ql-picker-options {
-    box-shadow: none;
-  }
-}
-.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
-  border-color: $white-ter;
-}
-.ql-editor {
-  min-height: 158px;
-  font-size: 1.6rem;
-  font-family: 'Rubik', sans-serif !important;
-
-  blockquote {
-    border-left: 4px solid $link !important;
   }
 }

@@ -26,22 +26,6 @@ export class OpenApiAuthService {
       .filter((entity: EntityManifest) => entity.authenticable)
       .concat(ADMIN_ENTITY_MANIFEST)
 
-    const successfulAuthResponse = {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            token: {
-              type: 'string'
-            }
-          }
-        },
-        example: {
-          token: '12345'
-        }
-      }
-    }
-
     authenticableEntities.forEach((entity: EntityManifest) => {
       // Login.
       paths[`/api/auth/${entity.slug}/login`] = {
@@ -74,7 +58,21 @@ export class OpenApiAuthService {
           responses: {
             '200': {
               description: 'Successful login',
-              content: successfulAuthResponse
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      token: {
+                        type: 'string'
+                      }
+                    }
+                  },
+                  example: {
+                    token: '12345'
+                  }
+                }
+              }
             },
             '401': {
               description: 'Invalid credentials',
@@ -231,7 +229,21 @@ export class OpenApiAuthService {
             responses: {
               '200': {
                 description: 'Successful signup',
-                content: successfulAuthResponse
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        token: {
+                          type: 'string'
+                        }
+                      }
+                    },
+                    example: {
+                      token: '12345'
+                    }
+                  }
+                }
               },
               '400': {
                 description: 'Bad request',

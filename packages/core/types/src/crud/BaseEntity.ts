@@ -26,5 +26,5 @@ export interface BaseEntity {
   /**
    * Any other properties.
    */
-  [key: string]: unknown
+  [key: string]: any
 }
