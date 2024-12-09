@@ -94,7 +94,7 @@ export class MyCommand extends Command {
       updatePackageJsonFile({
         fileContent: packageJson,
         newPackages: {
-          manifest: '^4.1.4'
+          manifest: '^4.1.5'
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',
