@@ -81,7 +81,7 @@ nav.navbar {
     height: 0;
     border-style: solid;
     border-width: 0 6px 6px;
-    border-color: transparent transparent rgba($sidenav-item-color, 0.1) transparent;
+    border-color: rgba($sidenav-item-color, 0.1) transparent;
   }
 
   &:before {
@@ -93,7 +93,7 @@ nav.navbar {
     height: 0;
     border-style: solid;
     border-width: 0 6px 6px;
-    border-color: transparent transparent rgba($sidenav-item-color, 0.1) transparent;
+    border-color: rgba($sidenav-item-color, 0.1) transparent;
   }
 }
 

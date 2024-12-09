@@ -60,11 +60,11 @@
 
   &:after {
     top: -5px;
-    border-color: transparent transparent $light transparent;
+    border-color: transparent $light;
   }
 
   &:before {
     top: -6px;
-    border-color: transparent transparent $grey-lighter transparent;
+    border-color: transparent $grey-lighter;
   }
 }
