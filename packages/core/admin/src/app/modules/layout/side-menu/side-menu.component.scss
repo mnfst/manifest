@@ -19,12 +19,14 @@
   overflow-x: hidden;
 
   @include mixins.desktop {
-    height: calc(100vh - var(--logo-height) - var(--footer-height) + 1px);
+    height: calc(
+      100vh - var(--logo-height) - var(--footer-height) + 1px - 220px
+    );
   }
 
   @include mixins.touch {
     height: calc(
-      100vh - #{all.$navbar-height-touch} - var(--footer-height) + 1px
+      100vh - #{all.$navbar-height-touch} - var(--footer-height) + 1px - 220px
     );
   }
 
@@ -107,7 +109,6 @@ app-user-menu-item {
   @include mixins.tablet {
     position: fixed;
     bottom: 0;
-    left: 0;
   }
 }
 
