@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.1.4",
+  "version": "4.1.5",
   "description": "A complete backend that fits into 1 YAML file",
   "author": "Manifest",
   "license": "MIT",

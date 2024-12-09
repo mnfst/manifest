@@ -69,6 +69,10 @@ When contributing, please follow this branch naming convention:
 
 This rule applies to all repositories.
 
+### Tags
+
+Each merge on the `master` branch that updates a **package** should be tagged by the name of the package, "@" and the version number. Ex: `add-manifest@4.0.0`
+
 ### Getting started
 
 From the root of the repository, run:
