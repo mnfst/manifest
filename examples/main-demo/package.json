@@ -7,6 +7,6 @@
     "manifest:seed": "node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js"
   },
   "dependencies": {
-    "manifest": "^4.1.4"
+    "manifest": "^4.1.5"
   }
 }

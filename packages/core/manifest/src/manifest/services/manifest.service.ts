@@ -159,41 +159,84 @@ export class ManifestService {
   transformEntityManifests(entitySchemaObject: {
     [keyof: string]: EntitySchema
   }): EntityManifest[] {
-    const entityManifests: EntityManifest[] = Object.entries(
-      entitySchemaObject
-    ).map(([className, entitySchema]: [string, EntitySchema]) => {
-      // Build the partial entity manifest with common properties of both collection and single entities.
-      const partialEntityManifest: Partial<EntityManifest> = {
-        className: entitySchema.className || className,
-        nameSingular:
-          entitySchema.nameSingular ||
-          pluralize.singular(entitySchema.className || className).toLowerCase(),
-        slug:
-          entitySchema.slug ||
-          slugify(
-            dasherize(
-              pluralize.plural(entitySchema.className || className)
-            ).toLowerCase()
-          ),
-        single: entitySchema.single || false,
-        properties: (entitySchema.properties || []).map(
-          (propManifest: PropertySchema) =>
-            this.transformProperty(propManifest, entitySchema)
+    const entityManifests: EntityManifest[] = Object.entries(entityObject).map(
+      ([className, entitySchema]: [string, EntitySchema]) => {
+        const properties: PropertyManifest[] = (
+          entitySchema.properties || []
+        ).map((propManifest: PropertySchema) =>
+          this.transformProperty(propManifest, entitySchema)
         )
-      }
 
-      if (entitySchema.single) {
-        return this.getSingleEntityManifestProps(
-          partialEntityManifest,
-          entitySchema
-        )
-      }
+        if (entitySchema.authenticable) {
+          properties.push(...AUTHENTICABLE_PROPS)
+        }
 
-      return this.getCollectionEntityManifestProps(
-        partialEntityManifest,
-        entitySchema
-      )
-    })
+        const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
+
+        return {
+          className: entitySchema.className || className,
+          nameSingular:
+            entitySchema.nameSingular ||
+            pluralize
+              .singular(entitySchema.className || className)
+              .toLowerCase(),
+          namePlural:
+            entitySchema.namePlural ||
+            pluralize.plural(entitySchema.className || className).toLowerCase(),
+          slug:
+            entitySchema.slug ||
+            slugify(
+              dasherize(
+                pluralize.plural(entitySchema.className || className)
+              ).toLowerCase()
+            ),
+          // First "string" property found in the entity if exists, otherwise "id".
+          mainProp:
+            entitySchema.mainProp ||
+            properties.find((prop) => prop.type === PropType.String)?.name ||
+            'id',
+          seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
+          relationships: [
+            ...(entitySchema.belongsTo || []).map(
+              (relationship: RelationshipSchema) =>
+                this.transformRelationship(relationship, 'many-to-one')
+            ),
+            ...(entitySchema.belongsToMany || []).map(
+              (relationship: RelationshipSchema) =>
+                this.transformRelationship(
+                  relationship,
+                  'many-to-many',
+                  entitySchema.className || className
+                )
+            )
+          ],
+          authenticable: entitySchema.authenticable || false,
+          properties,
+          policies: {
+            create:
+              entitySchema.policies?.create?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            read:
+              entitySchema.policies?.read?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            update:
+              entitySchema.policies?.update?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            delete:
+              entitySchema.policies?.delete?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            signup:
+              entitySchema.policies?.signup?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy
+          }
+        }
+      }
+    )
 
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
@@ -217,110 +260,6 @@ export class ManifestService {
     })
 
     return entityManifests
-  }
-
-  /**
-   * Returns the entity manifest with the collection entity properties.
-   *
-   * @param partialEntityManifest the partial entity manifest.
-   * @param entitySchema the entity schema to which the entity belongs.
-   *
-   * @returns the complete entity manifest with the collection entity properties.
-   *
-   */
-  private getCollectionEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
-    entitySchema: EntitySchema
-  ): EntityManifest {
-    if (entitySchema.authenticable) {
-      partialEntityManifest.properties.push(...AUTHENTICABLE_PROPS)
-    }
-
-    return {
-      ...partialEntityManifest,
-      properties: partialEntityManifest.properties,
-      namePlural:
-        entitySchema.namePlural ||
-        pluralize.plural(partialEntityManifest.className).toLowerCase(),
-      mainProp:
-        entitySchema.mainProp ||
-        partialEntityManifest.properties.find(
-          (prop) => prop.type === PropType.String
-        )?.name ||
-        'id',
-      seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
-      relationships: [
-        ...(entitySchema.belongsTo || []).map(
-          (relationship: RelationshipSchema) =>
-            this.transformRelationship(relationship, 'many-to-one')
-        ),
-        ...(entitySchema.belongsToMany || []).map(
-          (relationship: RelationshipSchema) =>
-            this.transformRelationship(
-              relationship,
-              'many-to-many',
-              partialEntityManifest.className
-            )
-        )
-      ],
-      authenticable: entitySchema.authenticable || false,
-      policies: {
-        create: this.transformPolicies(
-          entitySchema.policies?.create,
-          publicAccessPolicy
-        ),
-        read: this.transformPolicies(
-          entitySchema.policies?.read,
-          publicAccessPolicy
-        ),
-        update: this.transformPolicies(
-          entitySchema.policies?.update,
-          publicAccessPolicy
-        ),
-        delete: this.transformPolicies(
-          entitySchema.policies?.delete,
-          publicAccessPolicy
-        ),
-        signup: entitySchema.authenticable
-          ? this.transformPolicies(
-              entitySchema.policies?.signup,
-              publicAccessPolicy
-            )
-          : [forbiddenAccessPolicy]
-      }
-    }
-  }
-
-  /**
-   * Returns the entity manifest with the single entity properties.
-   *
-   * @param partialEntityManifest the partial entity manifest.
-   * @param entitySchema the entity schema to which the entity belongs.
-   *
-   * @returns the complete entity manifest with the single entity properties.
-   */
-  private getSingleEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
-    entitySchema: EntitySchema
-  ): EntityManifest {
-    return {
-      ...partialEntityManifest,
-      properties: partialEntityManifest.properties,
-      relationships: [],
-      policies: {
-        create: [forbiddenAccessPolicy],
-        read: this.transformPolicies(
-          entitySchema.policies?.read,
-          publicAccessPolicy
-        ),
-        update: this.transformPolicies(
-          entitySchema.policies?.update,
-          adminAccessPolicy
-        ),
-        delete: [forbiddenAccessPolicy],
-        signup: [forbiddenAccessPolicy]
-      }
-    }
   }
 
   /**
