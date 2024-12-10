@@ -35,12 +35,12 @@ body {
   font-size: $size-7;
 }
 
-.wrapper {
+app-root > .wrapper {
   padding: 0 #{$column-gap};
   width: 100vw;
 }
 
-.wrapper,
+app-root > .wrapper,
 .aside {
   min-height: calc(100vh - #{$navbar-height} + #{$column-gap});
 

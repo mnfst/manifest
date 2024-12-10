@@ -66,9 +66,8 @@ export class AppModule {
   private async init() {
     const isSeed: boolean = process.argv[1].includes('seed')
     const isTest: boolean = process.env.NODE_ENV === 'test'
-    const isProduction: boolean = process.env.NODE_ENV === 'production'
 
-    if (!isSeed && !isTest && !isProduction) {
+    if (!isSeed && !isTest) {
       this.loggerService.initMessage()
     }
   }

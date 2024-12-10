@@ -15,7 +15,8 @@ import {
   RelationshipSchema,
   AccessPolicy,
   RelationshipManifest,
-  PolicySchema
+  PolicySchema,
+  ValidationManifest
 } from '@repo/types'
 import dasherize from 'dasherize'
 import pluralize from 'pluralize'
@@ -23,6 +24,11 @@ import slugify from 'slugify'
 
 import { ADMIN_ENTITY_MANIFEST, DEFAULT_SEED_COUNT } from '../../constants'
 import { camelize } from '@repo/helpers'
+import {
+  adminAccessPolicy,
+  forbiddenAccessPolicy,
+  publicAccessPolicy
+} from '../utils/policy-manifests'
 
 @Injectable()
 export class ManifestService {
@@ -150,15 +156,92 @@ export class ManifestService {
    *
    * @returns the entity manifests with defaults filled in and short form properties transformed into long form.
    */
-  transformEntityManifests(entityObject: {
+  transformEntityManifests(entitySchemaObject: {
     [keyof: string]: EntitySchema
   }): EntityManifest[] {
     const entityManifests: EntityManifest[] = Object.entries(entityObject).map(
-      ([className, entitySchema]: [string, EntitySchema]) => this.createEntityManifest(className, entitySchema)
+      ([className, entitySchema]: [string, EntitySchema]) => {
+        const properties: PropertyManifest[] = (
+          entitySchema.properties || []
+        ).map((propManifest: PropertySchema) =>
+          this.transformProperty(propManifest, entitySchema)
+        )
+
+        if (entitySchema.authenticable) {
+          properties.push(...AUTHENTICABLE_PROPS)
+        }
+
+        const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
+
+        return {
+          className: entitySchema.className || className,
+          nameSingular:
+            entitySchema.nameSingular ||
+            pluralize
+              .singular(entitySchema.className || className)
+              .toLowerCase(),
+          namePlural:
+            entitySchema.namePlural ||
+            pluralize.plural(entitySchema.className || className).toLowerCase(),
+          slug:
+            entitySchema.slug ||
+            slugify(
+              dasherize(
+                pluralize.plural(entitySchema.className || className)
+              ).toLowerCase()
+            ),
+          // First "string" property found in the entity if exists, otherwise "id".
+          mainProp:
+            entitySchema.mainProp ||
+            properties.find((prop) => prop.type === PropType.String)?.name ||
+            'id',
+          seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
+          relationships: [
+            ...(entitySchema.belongsTo || []).map(
+              (relationship: RelationshipSchema) =>
+                this.transformRelationship(relationship, 'many-to-one')
+            ),
+            ...(entitySchema.belongsToMany || []).map(
+              (relationship: RelationshipSchema) =>
+                this.transformRelationship(
+                  relationship,
+                  'many-to-many',
+                  entitySchema.className || className
+                )
+            )
+          ],
+          authenticable: entitySchema.authenticable || false,
+          properties,
+          policies: {
+            create:
+              entitySchema.policies?.create?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            read:
+              entitySchema.policies?.read?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            update:
+              entitySchema.policies?.update?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            delete:
+              entitySchema.policies?.delete?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy,
+            signup:
+              entitySchema.policies?.signup?.map((p) =>
+                this.transformPolicy(p)
+              ) || publicPolicy
+          }
+        }
+      }
     )
 
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
+      if (entityManifest.single) return
+
       entityManifest.relationships.push(
         ...this.getOneToManyRelationships(entityManifests, entityManifest)
       )
@@ -166,6 +249,8 @@ export class ManifestService {
 
     // Generate the ManyToMany relationships from the opposite ManyToMany relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
+      if (entityManifest.single) return
+
       entityManifest.relationships.push(
         ...this.getOppositeManyToManyRelationships(
           entityManifests,
@@ -176,90 +261,6 @@ export class ManifestService {
 
     return entityManifests
   }
-
-  private createEntityManifest(className: string, entitySchema: EntitySchema){
-    const properties: PropertyManifest[] = (
-      entitySchema.properties || []
-    ).map((propManifest: PropertySchema) =>
-      this.transformProperty(propManifest, entitySchema)
-    )
-
-    if (entitySchema.authenticable) {
-      properties.push(...AUTHENTICABLE_PROPS)
-    }
-
-    const publicPolicy: PolicyManifest[] = [{ access: 'public' }]
-
-    return {
-      className: entitySchema.className || className,
-      nameSingular: this.getSingularName(entitySchema, className),
-      namePlural: this.getPluralName(entitySchema, className),
-      slug: this.getSlug(entitySchema, className),
-      // First "string" property found in the entity if exists, otherwise "id".
-      mainProp: this.getMainProp(entitySchema, properties),
-      seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
-      relationships: this.getRelationShip(entitySchema, className),
-      authenticable: entitySchema.authenticable || false,
-      properties,
-      policies: {
-        create: this.transformPoliciesList(entitySchema.policies?.create, publicPolicy),
-        read: this.transformPoliciesList(entitySchema.policies?.read, publicPolicy),
-        update: this.transformPoliciesList(entitySchema.policies?.update, publicPolicy),
-        delete: this.transformPoliciesList(entitySchema.policies?.delete, publicPolicy),
-        signup: this.transformPoliciesList(entitySchema.policies?.signup, publicPolicy)
-      }
-    }
-  }
-
-
-  private getSingularName(entitySchema: EntitySchema, className: string){
-    return  entitySchema.nameSingular ||
-    pluralize
-      .singular(entitySchema.className || className)
-      .toLowerCase()
-  }
-
-  private getPluralName(entitySchema: EntitySchema, className: string){
-    return entitySchema.namePlural ||
-    pluralize.plural(entitySchema.className || className).toLowerCase()
-  }
-
-  private getSlug(entitySchema: EntitySchema, className: string){
-    return entitySchema.slug ||
-    slugify(
-      dasherize(
-        pluralize.plural(entitySchema.className || className)
-      ).toLowerCase()
-    )
-  }
-
-  private getMainProp(entitySchema: EntitySchema, properties){
-    return entitySchema.mainProp ||
-    properties.find((prop) => prop.type === PropType.String)?.name ||
-    'id'
-  }
-
-  private getRelationShip(entitySchema: EntitySchema, className: string){
-    return [
-      ...(entitySchema.belongsTo || []).map(
-        (relationship: RelationshipSchema) =>
-          this.transformRelationship(relationship, 'many-to-one')
-      ),
-      ...(entitySchema.belongsToMany || []).map(
-        (relationship: RelationshipSchema) =>
-          this.transformRelationship(
-            relationship,
-            'many-to-many',
-            entitySchema.className || className
-          )
-      )
-    ]
-  }
-  
-  private transformPoliciesList(policyList: PolicySchema[], defaultPolicy: PolicyManifest[]): PolicyManifest[] {
-    return policyList?.map((p) => this.transformPolicy(p)) || defaultPolicy;
-  }
-  
 
   /**
    *
@@ -450,7 +451,8 @@ export class ManifestService {
         name: propSchema,
         type: PropType.String,
         hidden: false,
-        validation: entitySchema.validation?.[propSchema] || {}
+        validation:
+          (entitySchema.validation?.[propSchema] as ValidationManifest) || {}
       }
     }
 
@@ -464,52 +466,63 @@ export class ManifestService {
           ? { sizes: DEFAULT_IMAGE_SIZES }
           : {}),
       validation: Object.assign(
-        entitySchema.validation?.[propSchema.name] || {},
+        (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
+          {},
         propSchema.validation
       )
     }
   }
 
   /**
-   * Transform the short form of a policy into the long form.
+   * Transform an array of short form policies of into an array of long form policies.
    *
-   * @param policySchema the policy that can be in short form.
+   * @param policySchemas the policies that can be in short form.
+   * @param defaultPolicy the default policy to use if the policy is not provided.
    *
    * @returns the policy with the short form properties transformed into long form.
    */
-  transformPolicy(policySchema: PolicySchema): PolicyManifest {
-    let access: AccessPolicy
-
-    // Transform emojis into long form.
-    switch (policySchema.access) {
-      case '🌐':
-        access = 'public'
-        break
-      case '🔒':
-        access = 'restricted'
-        break
-      case '️👨🏻‍💻':
-        access = 'admin'
-        break
-      case '🚫':
-        access = 'forbidden'
-        break
-      default:
-        access = policySchema.access as AccessPolicy
+  transformPolicies(
+    policySchemas: PolicySchema[],
+    defaultPolicy: PolicyManifest
+  ): PolicyManifest[] {
+    if (!policySchemas) {
+      return [defaultPolicy]
     }
 
-    const policyManifest: PolicyManifest = {
-      access
-    }
+    return policySchemas.map((policySchema: PolicySchema) => {
+      let access: AccessPolicy
 
-    if (policySchema.allow) {
-      policyManifest.allow =
-        typeof policySchema.allow === 'string'
-          ? [policySchema.allow]
-          : policySchema.allow
-    }
+      // Transform emojis into long form.
+      switch (policySchema.access) {
+        case '🌐':
+          access = 'public'
+          break
+        case '🔒':
+          access = 'restricted'
+          break
+        case '️👨🏻‍💻':
+          access = 'admin'
+          break
+        case '🚫':
+          access = 'forbidden'
+          break
+        default:
+          access = policySchema.access as AccessPolicy
+      }
 
-    return policyManifest
+      const policyManifest: PolicyManifest = {
+        access
+      }
+
+      if (policySchema.allow) {
+        policyManifest.allow =
+          typeof policySchema.allow === 'string'
+            ? [policySchema.allow]
+            : policySchema.allow
+      }
+
+      return policyManifest
+    })
   }
 
   /**
@@ -525,7 +538,7 @@ export class ManifestService {
       ...manifest,
       entities: Object.entries(manifest.entities)
         .filter(
-          ([className, _entitySchema]: [string, EntitySchema]) =>
+          ([className]: [string, EntitySchema]) =>
             className !== ADMIN_ENTITY_MANIFEST.className
         )
         .reduce(
@@ -533,7 +546,7 @@ export class ManifestService {
             acc: { [k: string]: EntityManifest },
             [className, entity]: [string, EntityManifest]
           ) => {
-            const { seedCount, ...publicEntity } = entity
+            const { ...publicEntity } = entity
 
             acc[className] = this.hideEntitySensitiveInformation(publicEntity)
             return acc

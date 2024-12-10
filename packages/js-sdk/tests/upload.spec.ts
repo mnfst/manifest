@@ -50,4 +50,17 @@ describe('Upload', () => {
 
     expect(response).toEqual(true)
   })
+
+  it('should generate the URL of the image', async () => {
+    const imageValue: { [key: string]: string } = {
+      medium: 'posts/hero-image/Oct2024/8dab46tnm2j4j0ni-medium.jpg',
+      thumbnail: 'posts/hero-image/Oct2024/8dab46tnm2j4j0ni-thumbnail.jpg'
+    }
+
+    const manifest = new Manifest()
+
+    const url = manifest.imageUrl(imageValue, 'medium')
+
+    expect(url).toEqual(`http://localhost:1111/storage/${imageValue.medium}`)
+  })
 })

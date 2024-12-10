@@ -33,7 +33,7 @@ export class ManifestService {
    *
    * @returns A Promise of the EntityManifest.
    **/
-  getEntityManifest({
+  async getEntityManifest({
     slug,
     className
   }: {

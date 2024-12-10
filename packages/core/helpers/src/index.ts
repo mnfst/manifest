@@ -9,7 +9,7 @@ import { ImageSizesObject, RelationshipManifest } from '@repo/types'
  * @returns key
  */
 export function getRecordKeyByValue<
-  T extends Record<string, any>,
+  T extends Record<string, string>,
   V extends T[keyof T]
 >(record: T, value: V): string | undefined {
   for (const [key, val] of Object.entries(record)) {
@@ -63,6 +63,17 @@ export function kebabize(str: string): string {
  */
 export function lowerCaseFirstLetter(str: string): string {
   return str.charAt(0).toLowerCase() + str.slice(1)
+}
+
+/**
+ * Uppercase the first letter of a string.
+ *
+ * @param str The string to uppercase the first letter of.
+ *
+ * @returns The string with the first letter in uppercase.
+ */
+export function upperCaseFirstLetter(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 /**
@@ -135,12 +146,12 @@ export function forceNumberArray(
   if (typeof value === 'number') {
     return [value]
   } else if (typeof value === 'string') {
-    return [parseInt(value)]
+    return [parseInt(value, 10)]
   } else if (typeof value === 'undefined' || value === null) {
     return []
   }
 
-  return value.map((v) => (typeof v === 'string' ? parseInt(v) : v))
+  return value.map((v) => (typeof v === 'string' ? parseInt(v, 10) : v))
 }
 
 /**

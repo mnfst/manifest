@@ -1,14 +1,22 @@
-name: My pet app
+name: My pet app 🐾
 entities:
-  😃 Owner:
+  Owner:
     properties:
       - name
-      - { name: email, type: email }
+      - { name: birthdate, type: date }
 
-  😺 Cat:
+  Cat:
     properties:
       - name
       - { name: age, type: number }
       - { name: birthdate, type: date }
     belongsTo:
       - Owner
+
+  Homepage:
+    nameSingular: Home content
+    single: true
+    properties:
+      - title
+      - { name: description, type: richText }
+      - { name: cover, type: image }

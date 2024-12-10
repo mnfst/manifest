@@ -276,3 +276,45 @@ label.radio {
     line-height: 1.5;
   }
 }
+
+quill-editor {
+  width: 100%;
+  height: 100%;
+}
+
+.ql-toolbar.ql-snow,
+.ql-container.ql-snow {
+  border-color: $white-bis;
+  background-color: $white;
+
+  .is-danger & {
+    border-color: $danger;
+  }
+}
+.ql-toolbar.ql-snow {
+  border-top-left-radius: $radius;
+  border-top-right-radius: $radius;
+  border-bottom: 0;
+
+  + .ql-container.ql-snow {
+    min-height: 158px;
+    border-bottom-left-radius: $radius;
+    border-bottom-right-radius: $radius;
+  }
+
+  .ql-picker-options {
+    box-shadow: none;
+  }
+}
+.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  border-color: $white-ter;
+}
+.ql-editor {
+  min-height: 158px;
+  font-size: 1.6rem;
+  font-family: 'Rubik', sans-serif !important;
+
+  blockquote {
+    border-left: 4px solid $link !important;
+  }
+}

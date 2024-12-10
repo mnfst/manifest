@@ -15,7 +15,7 @@ export class EntityLoaderService {
   ) {}
 
   /**
-   * Load entities from YML file and convert into TypeORM entities.
+   * Get entities from Manifest services file and convert into TypeORM entities.
    *
    * @returns EntitySchema[] the entities
    *
@@ -39,7 +39,7 @@ export class EntityLoaderService {
               acc[propManifest.name] = {
                 name: propManifest.name,
                 type: propTypeColumnTypes[propManifest.type],
-                nullable: true // Everything is nullable yet.
+                nullable: true // Everything is nullable on the database (validation is done on the application layer).
               }
 
               return acc

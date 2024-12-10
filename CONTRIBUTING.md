@@ -43,7 +43,7 @@ Manifest is a set of several packages and [repositories](https://github.com/orgs
 ### Before you start
 
 - Manifest is built on the concept of simplicity, contributions should go in that direction
-- Each PR is linted with Prettier, and code quality is checked with CodeFactor
+- Each PR code quality is checked with CodeFactor
 - Commit labels should be made using the [Conventional Commits convention](https://www.conventionalcommits.org/en/v1.0.0/)
 - Please create only one thing per pull request as it is easier to validate and merge
 
@@ -68,6 +68,10 @@ When contributing, please follow this branch naming convention:
 - `hotfix/x` branches create a hotfix and the PR should be done to the `master` branch
 
 This rule applies to all repositories.
+
+### Tags
+
+Each merge on the `master` branch that updates a **package** should be tagged by the name of the package, "@" and the version number. Ex: `add-manifest@4.0.0`
 
 ### Getting started
 

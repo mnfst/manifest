@@ -3,7 +3,7 @@ import { ValidationError } from 'class-validator'
 describe('Validation (e2e)', () => {
   describe('Validation behavior', () => {
     it('nothing is mandatory by default', async () => {
-      const response = await global.request.post('/dynamic/dogs').send({})
+      const response = await global.request.post('/collections/dogs').send({})
       expect(response.status).toBe(201)
     })
 
@@ -23,7 +23,7 @@ describe('Validation (e2e)', () => {
       }
 
       const response = await global.request
-        .post('/dynamic/dogs')
+        .post('/collections/dogs')
         .send(dogWithAllValuesOfWrongType)
 
       expect(response.status).toBe(400)
@@ -39,7 +39,7 @@ describe('Validation (e2e)', () => {
         year: 1500
       }
 
-      const response = await global.request.post('/dynamic/cars').send(car)
+      const response = await global.request.post('/collections/cars').send(car)
 
       expect(response.status).toBe(400)
       expect(response.body.length).toBe(Object.keys(car).length)
@@ -52,7 +52,7 @@ describe('Validation (e2e)', () => {
       }
 
       const response = await global.request
-        .post('/dynamic/cars')
+        .post('/collections/cars')
         .send(carWithoutYear)
 
       expect(response.status).toBe(201)
@@ -65,7 +65,7 @@ describe('Validation (e2e)', () => {
         year: 2000
       }
 
-      const response = await global.request.post('/dynamic/cars').send(car)
+      const response = await global.request.post('/collections/cars').send(car)
 
       expect(response.status).toBe(201)
     })
@@ -84,10 +84,10 @@ describe('Validation (e2e)', () => {
       }
 
       const goodResponse = await global.request
-        .put('/dynamic/cars/1')
+        .put('/collections/cars/1')
         .send(goodCar)
       const badResponse = await global.request
-        .put('/dynamic/cars/1')
+        .put('/collections/cars/1')
         .send(badCar)
 
       expect(goodResponse.status).toBe(200)
@@ -100,7 +100,7 @@ describe('Validation (e2e)', () => {
       }
 
       const response = await global.request
-        .post('/dynamic/super-users')
+        .post('/collections/super-users')
         .send(superUserWithoutEmailAndPassword)
 
       expect(response.status).toBe(400)
@@ -123,7 +123,7 @@ describe('Validation (e2e)', () => {
       }
 
       const response = await global.request
-        .post('/dynamic/super-users')
+        .post('/collections/super-users')
         .send(superUserWithoutName)
 
       expect(response.status).toBe(400)
@@ -142,7 +142,7 @@ describe('Validation (e2e)', () => {
       }
 
       const response = await global.request
-        .post('/dynamic/super-users')
+        .post('/collections/super-users')
         .send(superUser)
 
       expect(response.status).toBe(201)
@@ -155,15 +155,15 @@ describe('Validation (e2e)', () => {
       }
 
       const badCreateResponse = await global.request
-        .post('/dynamic/super-users')
+        .post('/collections/super-users')
         .send(superUserWithoutPassword)
 
       const goodCreateResponse = await global.request
-        .post('/dynamic/super-users')
+        .post('/collections/super-users')
         .send({ ...superUserWithoutPassword, password: 'password' })
 
       const updateResponse = await global.request
-        .put('/dynamic/super-users/1')
+        .put('/collections/super-users/1')
         .send({ name: 'new name' })
 
       expect(badCreateResponse.status).toBe(400)

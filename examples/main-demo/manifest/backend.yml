@@ -1,36 +1,19 @@
-# 🦚 WELCOME TO MANIFEST 🦚 - A complete backend in 1 single file
-# Read more at https://manifest.build/docs
-
-# ******************************************
-# *       ADMIN PANEL CREDENTIALS          *
-# *                                        *
-# *  EMAIL:    admin@manifest.build        *
-# *  PASSWORD: admin                       *
-# ******************************************
-
-name: Healthcare application 👩🏾‍⚕️
+name: Pokemon app 🐣
 
 entities:
-  Doctor:
+  Pokemon 🐉:
     properties:
-      - fullName
-      - { name: avatar, type: image }
-      - { name: price, type: money, options: { currency: EUR } }
+      - name
       - {
           name: type,
           type: choice,
-          options: { values: ['Generalist', 'Specialist', 'Intern'] }
+          options: { values: [Fire, Water, Grass, Electric] }
         }
+      - { name: level, type: number }
     belongsTo:
-      - City
+      - Trainer
 
-  Patient:
-    properties:
-      - fullName
-      - { name: birthdate, type: date }
-    belongsTo:
-      - Doctor
-
-  City:
+  Trainer 🧑‍🎤:
     properties:
       - name
+      - { name: isChampion, type: boolean }

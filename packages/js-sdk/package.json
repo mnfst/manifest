@@ -1,6 +1,6 @@
 {
   "name": "@mnfst/sdk",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Manifest JavaScript SDK",
   "author": "Manifest",
   "homepage": "https://manifest.build",
@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsc -w",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/add-extensions.cjs",
+    "test": "jest",
     "test:ci": "jest --ci",
     "prepare": "ts-patch install -s"
   },

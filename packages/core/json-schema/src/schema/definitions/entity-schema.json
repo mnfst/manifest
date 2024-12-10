@@ -29,16 +29,21 @@
       "description": "The number of entities to seed when running the seed command. Default: 50.",
       "type": "integer"
     },
+    "authenticable": {
+      "description": "Whether the entity is authenticable. Doc: https://manifest.build/docs/auth",
+      "type": "boolean"
+    },
+    "single": {
+      "description": "Whether the entity is a single type instead of a collection. Doc: https://manifest.build/docs/entities#singles",
+      "type": "boolean",
+      "default": false
+    },
     "properties": {
       "description": "The properties of the entity. Doc: https://manifest.build/docs/entities",
       "type": "array",
       "items": {
         "$ref": "property-schema.json"
       }
-    },
-    "authenticable": {
-      "description": "Whether the entity is authenticable. Doc: https://manifest.build/docs/auth",
-      "type": "boolean"
     },
     "belongsTo": {
       "description": "The ManyToOne relationships of the entity. Doc: https://manifest.build/docs/relations",
@@ -65,6 +70,44 @@
       "properties": {
         "*": {
           "$ref": "./validation-schema.json"
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "single": {
+        "const": true
+      }
+    },
+    "required": ["single"]
+  },
+  "then": {
+    "not": {
+      "anyOf": [
+        { "required": ["authenticable"] },
+        { "required": ["mainProp"] },
+        { "required": ["belongsTo"] },
+        { "required": ["belongsToMany"] },
+        { "required": ["seedCount"] }
+      ]
+    }
+  },
+  "else": {
+    "properties": {
+      "authenticable": { "type": "boolean" },
+      "seedCount": { "type": "integer" },
+      "mainProp": { "type": "string" },
+      "belongsTo": {
+        "type": "array",
+        "items": {
+          "$ref": "relationship-schema.json"
+        }
+      },
+      "belongsToMany": {
+        "type": "array",
+        "items": {
+          "$ref": "relationship-schema.json"
         }
       }
     }

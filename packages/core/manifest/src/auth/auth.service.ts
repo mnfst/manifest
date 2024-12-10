@@ -66,7 +66,7 @@ export class AuthService {
     return {
       token: jwt.sign(
         { email: signupUserDto.email, entitySlug },
-        this.configService.get('TOKEN_SECRET_KEY')
+        this.configService.get('tokenSecretKey')
       )
     }
   }
@@ -78,15 +78,17 @@ export class AuthService {
    * @param entitySlug The slug of the AuthenticableEntity where the user is going to be created
    * @param email The email of the user
    * @param password The password of the user
+   * @param byPassAdminCheck If true, the method will not check if the entity is an admin
    *
    * @returns A JWT token of the created user
    *
    */
   async signup(
     entitySlug: string,
-    signupUserDto: SignupAuthenticableEntityDto
+    signupUserDto: SignupAuthenticableEntityDto,
+    byPassAdminCheck = false
   ): Promise<{ token: string }> {
-    if (entitySlug === ADMIN_ENTITY_MANIFEST.slug) {
+    if (entitySlug === ADMIN_ENTITY_MANIFEST.slug && !byPassAdminCheck) {
       throw new HttpException(
         'Admins cannot be created with this method.',
         HttpStatus.BAD_REQUEST
@@ -140,9 +142,9 @@ export class AuthService {
     try {
       decoded = jwt.verify(
         token?.replace('Bearer ', ''),
-        this.configService.get('TOKEN_SECRET_KEY')
+        this.configService.get('tokenSecretKey')
       ) as jwt.JwtPayload
-    } catch (e) {
+    } catch {
       return Promise.resolve({ user: null, entitySlug: null })
     }
     if (!decoded) {

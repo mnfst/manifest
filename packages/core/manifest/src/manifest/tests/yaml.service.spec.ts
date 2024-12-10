@@ -35,4 +35,22 @@ describe('YamlService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
+
+  describe('ignore emojis', () => {
+    it('should remove emojis from the file content', () => {
+      const result = service.ignoreEmojis('test😊')
+
+      expect(result).toBe('test')
+    })
+
+    it('should remove emojis from the file content with surrounding spaces', () => {
+      const result = service.ignoreEmojis('test 😊')
+      const result2 = service.ignoreEmojis('😊 test')
+      const result3 = service.ignoreEmojis('😊 test 😊')
+
+      expect(result).toBe('test')
+      expect(result2).toBe('test')
+      expect(result3).toBe('test')
+    })
+  })
 })

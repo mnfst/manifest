@@ -179,3 +179,25 @@ entities:
             }
         }
       - { name: document, type: file }
+
+    # Testing single entity with the ContactPage entity.
+  ContactPage:
+    single: true
+    nameSingular: Contact
+    slug: contact
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+    validation:
+      title: { required: true }
+
+    # Testing single entity with the ContactPage entity.
+  AboutPage:
+    single: true
+    nameSingular: About content
+    slug: about-content
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+    validation:
+      title: { required: true }

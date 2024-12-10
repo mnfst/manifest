@@ -28,6 +28,7 @@ import { UrlInputComponent } from './url-input/url-input.component'
 import { TimestampInputComponent } from './timestamp-input/timestamp-input.component'
 import { FileInputComponent } from './file-input/file-input.component'
 import { ImageInputComponent } from './image-input/image-input.component'
+import { RichTextInputComponent } from './rich-text-input/rich-text-input.component'
 
 @Component({
   selector: 'app-input',
@@ -48,7 +49,8 @@ import { ImageInputComponent } from './image-input/image-input.component'
     TextInputComponent,
     LocationInputComponent,
     FileInputComponent,
-    ImageInputComponent
+    ImageInputComponent,
+    RichTextInputComponent
   ],
   template: `
     <app-text-input
@@ -58,6 +60,15 @@ import { ImageInputComponent } from './image-input/image-input.component'
       (valueChanged)="onChange($event)"
       *ngIf="prop?.type === PropType.String"
     ></app-text-input>
+    <app-rich-text-input
+      [prop]="prop"
+      [value]="value"
+      [isError]="isError"
+      (valueChanged)="onChange($event)"
+      *ngIf="prop?.type === PropType.RichText"
+    >
+    </app-rich-text-input>
+
     <app-number-input
       [prop]="prop"
       [value]="value"

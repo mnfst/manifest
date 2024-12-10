@@ -9,7 +9,7 @@ import { ManifestService } from '../../services/manifest.service'
   standalone: true,
   imports: [RouterModule, CommonModule],
   template: ` <a
-      [routerLink]="['/', 'dynamic', entityManifest.slug, item.id]"
+      [routerLink]="['/', 'collections', entityManifest.slug, item.id]"
       *ngIf="item && entityManifest"
     >
       <span>{{ item[entityManifest.mainProp] }}</span>

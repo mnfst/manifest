@@ -7,7 +7,7 @@ import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 import { AppModule } from './app.module'
-import { DEFAULT_PORT } from './constants'
+import { DEFAULT_PORT, DEFAULT_TOKEN_SECRET_KEY } from './constants'
 import { OpenApiService } from './open-api/services/open-api.service'
 
 async function bootstrap() {
@@ -25,6 +25,15 @@ async function bootstrap() {
   // Live reload.
   const isProduction: boolean = configService.get('NODE_ENV') === 'production'
   const isTest: boolean = configService.get('NODE_ENV') === 'test'
+
+  if (
+    isProduction &&
+    configService.get('tokenSecretKey') === DEFAULT_TOKEN_SECRET_KEY
+  ) {
+    throw new Error(
+      'Token secret key not defined. Please set a custom token secret key to run in production environment adding TOKEN_SECRET_KEY in your env file.'
+    )
+  }
 
   // Reload the browser when server files change.
   if (!isProduction && !isTest) {
@@ -51,14 +60,13 @@ async function bootstrap() {
     }
   })
 
-  if (!isProduction) {
-    const openApiService: OpenApiService = app.get(OpenApiService)
+  const openApiService: OpenApiService = app.get(OpenApiService)
 
-    SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
-      customfavIcon: 'assets/images/open-api/favicon.ico',
-      customSiteTitle: 'Manifest API Doc',
+  SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
+    customfavIcon: 'assets/images/open-api/favicon.ico',
+    customSiteTitle: 'Manifest API Doc',
 
-      customCss: `
+    customCss: `
         
 .swagger-ui html {
   box-sizing: border-box;
@@ -504,6 +512,12 @@ background: #ce107c;
   margin: 10px 0 5px;
   font-family: Open Sans, sans-serif;
   color: #3b4151
+}
+
+.swagger-ui .responses-inner h4
+{
+  margin: 25px 0 5px;
+  color: #1eb1e8;
 }
 
 .swagger-ui .response-col_status {
@@ -1791,8 +1805,7 @@ background: #ce107c;
    fill: #535356;
  }
 `
-    })
-  }
+  })
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
 }
