@@ -2,15 +2,15 @@
 
 <p align="center">
   <a href="https://manifest.build/#gh-light-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - A backend so simple that it fits in a YAML file" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - The 1-file Headless CMS" />
   </a>
   <a href="https://manifest.build/#gh-dark-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - A complete backend that it fits in 1 YAML file" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - The 1-file Headless CMS" />
   </a>
 </p>
 
 <p align='center'>
-<strong>A complete backend that it fits in 1 YAML file</strong>
+<strong>The 1-file Headless CMS</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
   <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
@@ -46,18 +46,17 @@ entities:
 
 ## Why Manifest?
 
-Manifest aims to end the polarized "from scratch" vs "low-code/no-code" debate bringing you the best of both worlds: A hassle-free backend packed with built-in features without trading off quality or DX.
+80% of CMS-powered websites and apps only use the most basic CMS features. Using over-engineered solutions lead to unnecessary costs and complexity.
 
-Our goal is to empower developers to create and share backends effortlessly.
+Manifest keeps it simple, delivering only the essential backend features and smoothly integrating in your project like any other file in your codebase.
 
 ## Use cases
 
-Manifest fits great in those projects:
+Manifest fits great in those type of projects:
 
+- 🌐 Making any website dynamic: corporate, portfolios, blogs, landing pages
+- 🏭 CRUD-heavy apps: mobile apps, directories, PIMs, E-shops
 - 🛠️ Rapid prototyping, Proof-of-Concepts (POCs), Minimum Viable Products (MVPs)
-- 🏭 CRUD-heavy apps with resource management
-- 🌐 Making any website or app dynamic
-- 🧩 Micro-services and tiny backends
 
 ## Key features
 
@@ -72,7 +71,7 @@ npx add-manifest@latest
 ```
 
 > [!NOTE]  
-> Manifest is currently in BETA. We would love to have your feedback! If something does not work as expected, please [open a Github issue](https://github.com/mnfst/manifest/issues/new/choose). For any other thing, let us know through [The Manifest Discord channel](https://discord.com/invite/FepAked3W7).
+> Manifest is currently in BETA, use it at your own risk. It is stable enough to power small projects, prototypes and MVPs but we do not recommend to use it on critical platforms.
 
 ## Community & Resources
 
