@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.manifest.build/schema.json",
   "title": "Manifest",
-  "description": "A complete backend in a single file",
+  "description": "The 1-file Headless CMS",
   "type": "object",
   "properties": {
     "name": {

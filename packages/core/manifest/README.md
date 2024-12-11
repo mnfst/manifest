@@ -1,6 +1,6 @@
 # Manifest
 
-[Manifest](https://manifest.build) is the simplest **BaaS (Backend As A Service)** you will find.
+[Manifest](https://manifest.build) is the simplest **Headless CMS** you will find.
 
 It provides a complete backend to your client app without the hassle that comes with it. It actually fits into **a single YAML file**.
 
