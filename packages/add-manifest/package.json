@@ -72,10 +72,8 @@
   "bugs": "https://github.com/mnfst/manifest/issues",
   "keywords": [
     "manifest",
-    "backend",
-    "backend-as-a-service",
-    "bass",
-    "api",
+    "headless-cms",
+    "install",
     "rest"
   ],
   "types": "dist/index.d.ts",

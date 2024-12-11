@@ -64,7 +64,7 @@ export type RelationshipSchema =
   | string
 
 /**
- * A complete backend in a single file
+ * The 1-file Headless CMS
  */
 export interface Manifest {
   /**
