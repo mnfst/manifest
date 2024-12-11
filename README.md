@@ -44,6 +44,8 @@ entities:
       - { name: isChampion, type: boolean }
 ```
 
+<a href="https://manifest.new" target="_blank"><img alt="Open in StackBlitz" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"></a>
+
 ## Why Manifest?
 
 80% of CMS-powered websites and apps only use the most basic CMS features. Using over-engineered solutions lead to unnecessary costs and complexity.
