@@ -1,0 +1,22 @@
+name: Invoice Management System 🗂️
+
+entities:
+  User 👩🏻‍💼:
+    authenticable: true
+
+  Accountant 👔:
+    authenticable: true
+
+  Invoice 🧾:
+    properties:
+      - number
+      - { name: amount, type: money, options: { currency: 'EUR' } }
+    policies:
+      create:
+        - { access: restricted, allow: Accountant }
+      read:
+        - { access: restricted, allow: [Accountant, User] }
+      update:
+        - access: admin
+      delete:
+        - access: forbidden

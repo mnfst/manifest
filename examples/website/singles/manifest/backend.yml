@@ -1,0 +1,16 @@
+name: Corporate website 🌐
+
+entities:
+  Homepage:
+    single: true
+    properties:
+      - { name: title, type: string }
+      - { name: description, type: richText }
+      - { name: coverImage, type: image }
+
+  Footer:
+    single: true
+    properties:
+      - { name: githubLink, type: link }
+      - { name: linkedinLink, type: link }
+      - { name: copyright, type: string }
