@@ -502,7 +502,7 @@ export class CrudService {
         ([key]: [string, string | string[]]) =>
           !QUERY_PARAMS_RESERVED_WORDS.includes(key)
       )
-      .forEach(([key, value]: [string, string]) => {
+      .forEach(([key, value]: [string, string], index: number) => {
         // Check if the key includes one of the available operator suffixes. We reverse array as some suffixes are substrings of others (ex: _gt and _gte).
         const suffix: WhereKeySuffix = Object.values(WhereKeySuffix)
           .reverse()
@@ -556,16 +556,15 @@ export class CrudService {
           }
         }
 
-        // Finally and the where query. "In" is a bit special as it expects an array of values.
+        // "In" is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          query.where(`${whereKey} ${operator} (:...value)`, {
-            value: JSON.parse(`[${value}]`)
-          })
-        } else {
-          query.where(`${whereKey} ${operator} :value`, {
-            value
-          })
+          value = JSON.parse(`[${value}]`)
         }
+
+        // Finally and the where query.
+        query.andWhere(`${whereKey} ${operator} :value_${index}`, {
+          [`value_${index}`]: value
+        })
       })
 
     return query
