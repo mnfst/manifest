@@ -510,7 +510,7 @@ export class CrudService {
 
         if (!suffix) {
           throw new HttpException(
-            'Query param key should include an operator suffix',
+            'Query param key should include an operator suffix like _eq, _gt, _lt, _in, etc.',
             HttpStatus.BAD_REQUEST
           )
         }
