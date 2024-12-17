@@ -10,6 +10,8 @@ export default (): {
     port: process.env.PORT || DEFAULT_PORT,
     nodeEnv: process.env.NODE_ENV || 'development',
     tokenSecretKey: process.env.TOKEN_SECRET_KEY || DEFAULT_TOKEN_SECRET_KEY,
-    baseUrl: process.env.BASE_URL || 'http://localhost:1111'
+    baseUrl:
+      process.env.BASE_URL ||
+      `http://localhost:${process.env.PORT || DEFAULT_PORT}`
   }
 }
