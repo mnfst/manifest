@@ -1,0 +1,20 @@
+name: Code coverage
+on: [pull_request]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./packages/core/manifest
+      - name: Run tests and collect coverage
+        run: npm run test:cov
+        working-directory: ./packages/core/manifest
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
