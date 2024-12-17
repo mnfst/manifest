@@ -162,6 +162,17 @@ export class CrudService {
     }))
   }
 
+  /**
+   * Returns a single entity.
+   *
+   * @param entitySlug the entity slug.
+   * @param id the entity id.
+   * @param queryParams the filter and pagination query params.
+   * @param fullVersion whether to return the full version of the entity.
+   *
+   * @returns the entity.
+   */
+
   async findOne({
     entitySlug,
     id,

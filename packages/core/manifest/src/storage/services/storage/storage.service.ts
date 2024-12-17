@@ -8,10 +8,11 @@ import sharp from 'sharp'
 import uniqid from 'uniqid'
 import { ImageSizesObject } from '@repo/types'
 import slugify from 'slugify'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class StorageService {
-  constructor() {}
+  constructor(private configService: ConfigService) {}
 
   /**
    * Store a file.
@@ -33,7 +34,8 @@ export class StorageService {
     const filePath: string = `${folder}/${uniqid()}-${slugify(file.originalname)}`
 
     fs.writeFileSync(`${STORAGE_PATH}/${filePath}`, file.buffer)
-    return filePath
+
+    return this.prependStorageUrl(filePath)
   }
 
   /**
@@ -72,7 +74,7 @@ export class StorageService {
             return imagePath
           })
 
-        imagePaths[sizeName] = imagePath
+        imagePaths[sizeName] = this.prependStorageUrl(imagePath)
       }
     )
 
@@ -96,5 +98,15 @@ export class StorageService {
     mkdirp.sync(`${STORAGE_PATH}/${folder}`)
 
     return folder
+  }
+
+  /**
+   * Prepends the storage URL to the given value.
+   *
+   * @param value The value to prepend the storage URL to.
+   * @returns The value with the storage URL prepended.
+   */
+  prependStorageUrl(value: string): string {
+    return `${this.configService.get('baseUrl')}/storage/${value}`
   }
 }

@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core'
 
-import { environment } from '../../../../../environments/environment'
 import { NgIf } from '@angular/common'
 import { ImageSizesObject } from '@repo/types'
 import { getSmallestImageSize } from '@repo/helpers'
@@ -24,7 +23,7 @@ export class ImageYieldComponent implements OnInit {
   ngOnInit(): void {
     if (this.value) {
       const smallestSize: string = getSmallestImageSize(this.sizes)
-      this.image = `${environment.storageBaseUrl}/${this.value[smallestSize]}`
+      this.image = this.value[smallestSize]
     }
   }
 }

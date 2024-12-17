@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { StorageService } from '../storage/storage.service'
 import { DEFAULT_IMAGE_SIZES } from '../../../constants'
 import { ImageSizesObject } from '../../../../../types/src'
+import { ConfigService } from '@nestjs/config'
 
 const fs = require('fs')
 const mkdirp = require('mkdirp')
@@ -20,20 +21,25 @@ describe('StorageService', () => {
     buffer: Buffer.from('file'),
     originalname: 'file.jpg'
   }
+  const baseUrl: string = 'http://localhost:3333'
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [StorageService]
+      providers: [
+        StorageService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue(baseUrl)
+          }
+        }
+      ]
     }).compile()
 
     service = module.get<StorageService>(StorageService)
 
     fs.writeFileSync = jest.fn()
     mkdirp.sync = jest.fn()
-  })
-
-  it('should be defined', () => {
-    expect(service).toBeDefined()
   })
 
   it('should store a file', () => {
@@ -80,5 +86,20 @@ describe('StorageService', () => {
     expect(filePaths).toBeDefined()
     expect(Object.keys(filePaths).length).toBe(2)
     expect(Object.keys(filePaths)).toMatchObject(Object.keys(imageSizes))
+  })
+
+  it('should prepend the storage url before the path', () => {
+    const filePath: string = service.store(entity, property, file)
+    const imagePaths: { [key: string]: string } = service.storeImage(
+      entity,
+      property,
+      file,
+      DEFAULT_IMAGE_SIZES
+    )
+
+    expect(filePath).toContain(baseUrl)
+    Object.keys(imagePaths).forEach((key: string) => {
+      expect(imagePaths[key]).toContain(baseUrl)
+    })
   })
 })
