@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { kebabize } from '../../../../../helpers/src'
+import { kebabize } from '@repo/helpers'
 import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../../constants'
 
 import * as fs from 'fs'
@@ -7,6 +7,7 @@ import * as mkdirp from 'mkdirp'
 import sharp from 'sharp'
 import uniqid from 'uniqid'
 import { ImageSizesObject } from '@repo/types'
+import slugify from 'slugify'
 
 @Injectable()
 export class StorageService {
@@ -22,10 +23,14 @@ export class StorageService {
    * @returns The file path.
    *
    */
-  store(entity: string, property: string, file: any): string {
+  store(
+    entity: string,
+    property: string,
+    file: { buffer: Buffer; originalname: string }
+  ): string {
     const folder: string = this.createUploadFolder(entity, property)
 
-    const filePath: string = `${folder}/${uniqid()}-${file.originalname}`
+    const filePath: string = `${folder}/${uniqid()}-${slugify(file.originalname)}`
 
     fs.writeFileSync(`${STORAGE_PATH}/${filePath}`, file.buffer)
     return filePath
@@ -45,7 +50,7 @@ export class StorageService {
   storeImage(
     entity: string,
     property: string,
-    image: any,
+    image: { buffer: Buffer; originalname: string },
     imageSizes: ImageSizesObject
   ): { [key: string]: string } {
     const folder: string = this.createUploadFolder(entity, property)
