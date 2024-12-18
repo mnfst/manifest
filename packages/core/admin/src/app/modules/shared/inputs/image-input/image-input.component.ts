@@ -8,12 +8,11 @@ import {
   ViewChild
 } from '@angular/core'
 
-import { environment } from '../../../../../environments/environment'
 import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { ImageSizesObject, PropertyManifest } from '@repo/types'
 import { NgClass, NgIf } from '@angular/common'
-import { getSmallestImageSize } from '../../../../../../../helpers/src'
+import { getSmallestImageSize } from '@repo/helpers'
 
 @Component({
   selector: 'app-image-input',
@@ -24,10 +23,11 @@ import { getSmallestImageSize } from '../../../../../../../helpers/src'
 export class ImageInputComponent implements OnInit {
   @Input() prop: PropertyManifest
   @Input() entitySlug: string
-  @Input() value: ImageSizesObject
+  @Input() value: { [key: string]: string }
   @Input() isError: boolean
 
-  @Output() valueChanged: EventEmitter<ImageSizesObject> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<{ [key: string]: string }> =
+    new EventEmitter()
 
   @ViewChild('imageInput', { static: false }) imageInputEl: ElementRef
 
@@ -45,7 +45,7 @@ export class ImageInputComponent implements OnInit {
         this.prop.options?.['sizes'] as ImageSizesObject
       )
 
-      this.displayedImage = `${environment.storageBaseUrl}/${this.value[smallestSize]}`
+      this.displayedImage = this.value[smallestSize]
     }
   }
 
@@ -59,13 +59,13 @@ export class ImageInputComponent implements OnInit {
         fileContent: this.imageInputEl.nativeElement.files.item(0)
       })
       .then(
-        (res: ImageSizesObject) => {
+        (res: { [key: string]: string }) => {
           this.loading = false
           this.value = res
 
           // Sometimes the image is not available directly after upload. Waiting a bit works.
           setTimeout(() => {
-            this.displayedImage = `${environment.storageBaseUrl}/${res[Object.keys(res)[0]]}`
+            this.displayedImage = res[Object.keys(res)[0]]
 
             this.valueChanged.emit(this.value)
           }, 100)

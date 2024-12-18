@@ -7,7 +7,6 @@ import {
   ViewChild
 } from '@angular/core'
 
-import { environment } from '../../../../../environments/environment'
 import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { NgClass, NgIf } from '@angular/common'
@@ -28,8 +27,6 @@ export class FileInputComponent {
   @Output() valueChanged: EventEmitter<string> = new EventEmitter()
 
   @ViewChild('fileInput', { static: false }) fileInputEl: ElementRef
-
-  storageBaseUrl = environment.storageBaseUrl
 
   loading: boolean
 

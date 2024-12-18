@@ -162,6 +162,17 @@ export class CrudService {
     }))
   }
 
+  /**
+   * Returns a single entity.
+   *
+   * @param entitySlug the entity slug.
+   * @param id the entity id.
+   * @param queryParams the filter and pagination query params.
+   * @param fullVersion whether to return the full version of the entity.
+   *
+   * @returns the entity.
+   */
+
   async findOne({
     entitySlug,
     id,
@@ -502,7 +513,7 @@ export class CrudService {
         ([key]: [string, string | string[]]) =>
           !QUERY_PARAMS_RESERVED_WORDS.includes(key)
       )
-      .forEach(([key, value]: [string, string]) => {
+      .forEach(([key, value]: [string, string], index: number) => {
         // Check if the key includes one of the available operator suffixes. We reverse array as some suffixes are substrings of others (ex: _gt and _gte).
         const suffix: WhereKeySuffix = Object.values(WhereKeySuffix)
           .reverse()
@@ -510,7 +521,7 @@ export class CrudService {
 
         if (!suffix) {
           throw new HttpException(
-            'Query param key should include an operator suffix',
+            'Query param key should include an operator suffix like _eq, _gt, _lt, _in, etc.',
             HttpStatus.BAD_REQUEST
           )
         }
@@ -556,16 +567,15 @@ export class CrudService {
           }
         }
 
-        // Finally and the where query. "In" is a bit special as it expects an array of values.
+        // "In" is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          query.where(`${whereKey} ${operator} (:...value)`, {
-            value: JSON.parse(`[${value}]`)
-          })
-        } else {
-          query.where(`${whereKey} ${operator} :value`, {
-            value
-          })
+          value = JSON.parse(`[${value}]`)
         }
+
+        // Finally and the where query.
+        query.andWhere(`${whereKey} ${operator} :value_${index}`, {
+          [`value_${index}`]: value
+        })
       })
 
     return query

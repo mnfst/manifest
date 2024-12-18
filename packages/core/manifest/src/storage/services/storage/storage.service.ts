@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { kebabize } from '../../../../../helpers/src'
+import { kebabize } from '@repo/helpers'
 import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../../constants'
 
 import * as fs from 'fs'
@@ -7,10 +7,12 @@ import * as mkdirp from 'mkdirp'
 import sharp from 'sharp'
 import uniqid from 'uniqid'
 import { ImageSizesObject } from '@repo/types'
+import slugify from 'slugify'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class StorageService {
-  constructor() {}
+  constructor(private configService: ConfigService) {}
 
   /**
    * Store a file.
@@ -22,13 +24,18 @@ export class StorageService {
    * @returns The file path.
    *
    */
-  store(entity: string, property: string, file: any): string {
+  store(
+    entity: string,
+    property: string,
+    file: { buffer: Buffer; originalname: string }
+  ): string {
     const folder: string = this.createUploadFolder(entity, property)
 
-    const filePath: string = `${folder}/${uniqid()}-${file.originalname}`
+    const filePath: string = `${folder}/${uniqid()}-${slugify(file.originalname)}`
 
     fs.writeFileSync(`${STORAGE_PATH}/${filePath}`, file.buffer)
-    return filePath
+
+    return this.prependStorageUrl(filePath)
   }
 
   /**
@@ -45,7 +52,7 @@ export class StorageService {
   storeImage(
     entity: string,
     property: string,
-    image: any,
+    image: { buffer: Buffer; originalname: string },
     imageSizes: ImageSizesObject
   ): { [key: string]: string } {
     const folder: string = this.createUploadFolder(entity, property)
@@ -67,7 +74,7 @@ export class StorageService {
             return imagePath
           })
 
-        imagePaths[sizeName] = imagePath
+        imagePaths[sizeName] = this.prependStorageUrl(imagePath)
       }
     )
 
@@ -91,5 +98,15 @@ export class StorageService {
     mkdirp.sync(`${STORAGE_PATH}/${folder}`)
 
     return folder
+  }
+
+  /**
+   * Prepends the storage URL to the given value.
+   *
+   * @param value The value to prepend the storage URL to.
+   * @returns The value with the storage URL prepended.
+   */
+  prependStorageUrl(value: string): string {
+    return `${this.configService.get('baseUrl')}/storage/${value}`
   }
 }
