@@ -10,7 +10,7 @@
 </p>
 
 <p align='center'>
-<strong>The 1-file Headless CMS</strong>
+<strong>The 1-file Micro-backend</strong>
 <br><br>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
   <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
@@ -48,7 +48,7 @@ entities:
 
 ## Why Manifest?
 
-80% of CMS-powered websites and apps only use the most basic CMS features. Using over-engineered solutions lead to unnecessary costs and complexity.
+80% of websites and apps only use the most basic backend features. Using over-engineered solutions lead to unnecessary costs and complexity.
 
 Manifest keeps it simple, delivering only the essential backend features and smoothly integrating in your project like any other file in your codebase.
 
