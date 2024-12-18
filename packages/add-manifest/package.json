@@ -72,7 +72,9 @@
   "bugs": "https://github.com/mnfst/manifest/issues",
   "keywords": [
     "manifest",
-    "headless-cms",
+    "micro-backend",
+    "backend",
+    "headless",
     "install",
     "rest"
   ],
