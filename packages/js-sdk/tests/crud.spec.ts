@@ -36,7 +36,7 @@ describe('CRUD operations', () => {
 
     it('should filter the items by query parameters', async () => {
       fetchMock.mock(
-        `${collectionBaseUrl}/cats?name_eq=Tom&age_gt=50&wealth_gte=1000&problems_lt=5&friends_lte=10&nickName_like=tommy&eyeColor_in=brown%2Cblue%2Cgreen`,
+        `${collectionBaseUrl}/cats?name_eq=Tom&name_neq=Jerry&age_gt=50&wealth_gte=1000&problems_lt=5&friends_lte=10&nickName_like=tommy&eyeColor_in=brown%2Cblue%2Cgreen`,
         dummyResponse
       )
 
@@ -44,6 +44,7 @@ describe('CRUD operations', () => {
       const paginator = await manifest
         .from('cats')
         .where('name = Tom')
+        .where('name != Jerry')
         .andWhere('age > 50')
         .andWhere('wealth >= 1000')
         .andWhere('problems < 5')
@@ -58,7 +59,7 @@ describe('CRUD operations', () => {
     it('should fail if the where operator is not valid', async () => {
       const manifest = new Manifest()
 
-      expect(() => manifest.from('cats').where('name != Tom')).toThrow()
+      expect(() => manifest.from('cats').where('name !! Tom')).toThrow()
       expect(() => manifest.from('cats').where('notValid')).toThrow()
     })
 

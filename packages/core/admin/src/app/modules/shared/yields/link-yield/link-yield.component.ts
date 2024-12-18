@@ -1,15 +1,14 @@
 import { NgClass, NgIf } from '@angular/common'
 import { Component, Input } from '@angular/core'
 import { TruncatePipe } from '../../pipes/truncate.pipe'
-import { environment } from '../../../../../environments/environment'
 
 @Component({
   selector: 'app-link-yield',
   standalone: true,
   imports: [NgIf, NgClass, TruncatePipe],
   template: ` <a
-      [href]="external ? value : storageBaseUrl + '/' + value"
-      [download]="!external"
+      [href]="value"
+      [download]="isDownload"
       target="_blank"
       class="is-inline-flex is-align-items-center"
       *ngIf="value"
@@ -17,8 +16,8 @@ import { environment } from '../../../../../environments/environment'
       <i
         class="icon icon-external-link mr-1"
         [ngClass]="{
-          'icon-external-link': external,
-          'icon-download': !external
+          'icon-external-link': !isDownload,
+          'icon-download': isDownload
         }"
       ></i>
       <span *ngIf="compact">{{ value | truncate: 44 }}</span>
@@ -30,7 +29,5 @@ import { environment } from '../../../../../environments/environment'
 export class LinkYieldComponent {
   @Input() value: string
   @Input() compact: boolean = true
-  @Input() external: boolean = true
-
-  storageBaseUrl = environment.storageBaseUrl
+  @Input() isDownload: boolean = false
 }

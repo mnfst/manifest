@@ -45,7 +45,7 @@ export class UploadService {
    *
    * @returns The path of the uploaded file.
    */
-  uploadFile({
+  async uploadFile({
     entity,
     property,
     fileContent
@@ -62,7 +62,7 @@ export class UploadService {
     })
   }
 
-  private upload({
+  private async upload({
     type,
     entity,
     property,
@@ -81,6 +81,8 @@ export class UploadService {
 
     return firstValueFrom(
       this.http.post(`${environment.apiBaseUrl}/upload/${type}`, formData)
-    )
+    ).catch((err) => {
+      throw new Error(err.error.message)
+    })
   }
 }

@@ -6,6 +6,7 @@ import { WhereOperator } from './WhereOperator'
  */
 export const whereOperatorKeySuffix: Record<WhereOperator, WhereKeySuffix> = {
   [WhereOperator.Equal]: WhereKeySuffix.Equal,
+  [WhereOperator.NotEqual]: WhereKeySuffix.NotEqual,
   [WhereOperator.GreaterThan]: WhereKeySuffix.GreaterThan,
   [WhereOperator.GreaterThanOrEqual]: WhereKeySuffix.GreaterThanOrEqual,
   [WhereOperator.LessThan]: WhereKeySuffix.LessThan,

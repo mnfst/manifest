@@ -54,7 +54,7 @@ import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.compon
     <app-link-yield
       *ngIf="prop.type === PropType.Link || prop.type === PropType.File"
       [value]="value"
-      [external]="prop.type === PropType.Link"
+      [isDownload]="prop.type === PropType.File"
       [compact]="compact"
     ></app-link-yield>
     <app-boolean-yield

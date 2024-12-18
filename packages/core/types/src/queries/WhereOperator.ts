@@ -3,6 +3,7 @@
  */
 export enum WhereOperator {
   Equal = '=',
+  NotEqual = '!=',
   GreaterThan = '>',
   GreaterThanOrEqual = '>=',
   LessThan = '<',
