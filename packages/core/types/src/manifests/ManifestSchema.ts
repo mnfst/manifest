@@ -64,7 +64,7 @@ export type RelationshipSchema =
   | string
 
 /**
- * The 1-file Headless CMS
+ * The 1-file Micro-backend
  */
 export interface Manifest {
   /**
@@ -252,7 +252,15 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  access:
+    | 'public'
+    | 'restricted'
+    | 'forbidden'
+    | 'admin'
+    | '🌐'
+    | '🚫'
+    | '🔒'
+    | '️👨🏻‍💻'
   allow?: string | string[]
 }
 /**
