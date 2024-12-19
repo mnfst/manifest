@@ -24,9 +24,9 @@ import {
   DUMMY_FILE_NAME,
   DUMMY_IMAGE_NAME
 } from '../../constants'
-import { ManifestService } from '../../manifest/services/manifest.service'
 
 import { StorageService } from '../../storage/services/storage/storage.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class SeederService {
@@ -35,7 +35,7 @@ export class SeederService {
   constructor(
     private entityService: EntityService,
     private relationshipService: RelationshipService,
-    private manifestService: ManifestService,
+    private entityManifestService: EntityManifestService,
     private storageService: StorageService,
     private dataSource: DataSource
   ) {}
@@ -91,7 +91,7 @@ export class SeederService {
       }
 
       const entityManifest: EntityManifest =
-        this.manifestService.getEntityManifest({
+        this.entityManifestService.getEntityManifest({
           className: entityMetadata.name,
           fullVersion: true
         })
@@ -138,7 +138,7 @@ export class SeederService {
 
     for (const entityMetadata of entityMetadatas) {
       const entityManifest: EntityManifest =
-        this.manifestService.getEntityManifest({
+        this.entityManifestService.getEntityManifest({
           className: entityMetadata.name,
           fullVersion: true
         })

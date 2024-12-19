@@ -1,16 +1,16 @@
 import { EntityManifest, PropertyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { baseEntity } from '../core-entities/base-entity'
 import { propTypeColumnTypes } from '../records/prop-type-column-types'
 import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
 import { RelationshipService } from './relationship.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class EntityLoaderService {
   constructor(
-    private manifestService: ManifestService,
+    private entityManifestService: EntityManifestService,
     private relationshipService: RelationshipService
   ) {}
 
@@ -22,7 +22,7 @@ export class EntityLoaderService {
    **/
   loadEntities(): EntitySchema[] {
     const entityManifests: EntityManifest[] =
-      this.manifestService.getEntityManifests()
+      this.entityManifestService.getEntityManifests({ fullVersion: true })
 
     // Convert Manifest Entities to TypeORM Entities.
     const entitySchemas: EntitySchema[] = entityManifests.map(

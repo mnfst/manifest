@@ -36,6 +36,26 @@ describe('YamlService', () => {
     expect(service).toBeDefined()
   })
 
+  describe('load', () => {
+    it('should load the manifest from the file path', async () => {
+      await service.load('mocked manifest path')
+
+      expect(service.manifest).toEqual({
+        entities: {},
+        paths: {}
+      })
+    })
+
+    it('should load the manifest from a URL', async () => {
+      await service.load('http://mocked-manifest-url.com')
+
+      expect(service.manifest).toEqual({
+        entities: {},
+        paths: {}
+      })
+    })
+  }
+
   describe('ignore emojis', () => {
     it('should remove emojis from the file content', () => {
       const result = service.ignoreEmojis('test😊')

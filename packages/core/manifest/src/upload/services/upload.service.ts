@@ -3,13 +3,13 @@ import { StorageService } from '../../storage/services/storage/storage.service'
 
 import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
 
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class UploadService {
   constructor(
     private readonly storageService: StorageService,
-    private readonly manifestService: ManifestService
+    private readonly entityManifestService: EntityManifestService
   ) {}
 
   /**
@@ -26,7 +26,7 @@ export class UploadService {
     entity,
     property
   }: {
-    file: any
+    file: { buffer: Buffer; originalname: string }
     entity: string
     property: string
   }): string {
@@ -49,7 +49,7 @@ export class UploadService {
     entity,
     property
   }: {
-    image: any
+    image: { buffer: Buffer; originalname: string }
     entity: string
     property: string
   }): { [key: string]: string } {
@@ -65,7 +65,7 @@ export class UploadService {
     }
 
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entity
       })
 

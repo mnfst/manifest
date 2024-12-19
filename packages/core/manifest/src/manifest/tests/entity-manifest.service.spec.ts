@@ -1,40 +1,39 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ManifestService } from '../services/manifest.service'
-import { YamlService } from '../services/yaml.service'
-import { SchemaService } from '../services/schema.service'
-import { EntityManifest, EntitySchema, PropType } from '@repo/types'
+import { EntityManifestService } from '../services/entity-manifest.service'
 
-describe('ManifestService', () => {
-  let service: ManifestService
+describe('EntityManifestService', () => {
+  let service: EntityManifestService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ManifestService,
-        {
-          provide: YamlService,
-          useValue: {
-            load: jest.fn()
-          }
-        },
-        {
-          provide: SchemaService,
-          useValue: {
-            validate: jest.fn()
-          }
-        }
-      ]
+      providers: [EntityManifestService]
     }).compile()
 
-    service = module.get<ManifestService>(ManifestService)
+    service = module.get<EntityManifestService>(EntityManifestService)
   })
 
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
 
-  describe('TransformEntityManifests', () => {
-    it('should transform entity schemas into entity manifests', () => {
+  describe('Get', () => {
+    it('should get the entity manifests from the manifest service', () => {})
+
+    it('should not get the entity manifests full version unless the parameter is passed', () => {})
+
+    it('should get the entity manifest by name', () => {})
+
+    it('should get the entity manifest by slug', () => {})
+
+    it('should not get the entity manifest full version unless the parameter is passed', () => {})
+
+    it('should fail if no className and no slug is provided', () => {})
+
+    it('should fail if no entity manifest is found', () => {})
+  })
+
+  describe('Transform', () => {
+    it('should transform collection entity schemas into entity manifests', () => {
       const entitySchemaObject: { [keyof: string]: EntitySchema } = {
         Cat: {
           seedCount: 10,
@@ -85,41 +84,5 @@ describe('ManifestService', () => {
     expect(entityManifests[0]).not.toHaveProperty('authenticable')
     expect(entityManifests[0]).not.toHaveProperty('belongsTo')
     expect(entityManifests[0]).not.toHaveProperty('belongsToMany')
-  })
-
-  describe('hideEntitySensitiveInformation', () => {
-    it('should remove hidden properties', () => {
-      const dummyEntityManifest: EntityManifest = {
-        nameSingular: 'Cat',
-        namePlural: 'Cats',
-        slug: 'cats',
-        seedCount: 10,
-        properties: [
-          {
-            name: 'name',
-            type: PropType.String
-          },
-          {
-            name: 'password',
-            type: PropType.Password,
-            hidden: true
-          }
-        ],
-        relationships: [],
-        policies: {
-          create: [],
-          read: [],
-          update: [],
-          delete: [],
-          signup: []
-        }
-      }
-
-      const hiddenEntityManifest: EntityManifest =
-        service.hideEntitySensitiveInformation(dummyEntityManifest)
-
-      expect(hiddenEntityManifest.properties.length).toBe(1)
-      expect(hiddenEntityManifest.properties[0].name).toBe('name')
-    })
   })
 })

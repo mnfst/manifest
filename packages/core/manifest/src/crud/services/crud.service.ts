@@ -18,7 +18,6 @@ import {
 import { BaseEntity } from '@repo/types'
 import { ValidationError } from 'class-validator'
 import { EntityService } from '../../entity/services/entity.service'
-import { ManifestService } from '../../manifest/services/manifest.service'
 
 import {
   EntityManifest,
@@ -40,12 +39,13 @@ import {
 import { PaginationService } from './pagination.service'
 import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class CrudService {
   constructor(
     private readonly entityService: EntityService,
-    private readonly manifestService: ManifestService,
+    private readonly entityManifestService: EntityManifestService,
     private readonly paginationService: PaginationService,
     private readonly validationService: ValidationService,
     private readonly relationshipService: RelationshipService
@@ -69,7 +69,7 @@ export class CrudService {
     fullVersion?: boolean
   }) {
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug,
         fullVersion
       })
@@ -152,7 +152,7 @@ export class CrudService {
     })
 
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug
       })
 
@@ -185,7 +185,7 @@ export class CrudService {
     fullVersion?: boolean
   }) {
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug,
         fullVersion
       })
@@ -230,7 +230,7 @@ export class CrudService {
       this.entityService.getEntityRepository({ entitySlug })
 
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug,
         fullVersion: true
       })
@@ -280,7 +280,7 @@ export class CrudService {
     itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug,
         fullVersion: true
       })
@@ -343,11 +343,12 @@ export class CrudService {
         entitySlug
       })
 
-    const oneToManyRelationships: RelationshipManifest[] = this.manifestService
-      .getEntityManifest({
-        slug: entitySlug
-      })
-      .relationships.filter((r) => r.type === 'one-to-many')
+    const oneToManyRelationships: RelationshipManifest[] =
+      this.entityManifestService
+        .getEntityManifest({
+          slug: entitySlug
+        })
+        .relationships.filter((r) => r.type === 'one-to-many')
 
     const item = await entityRepository.findOne({
       where: { id },
@@ -447,7 +448,7 @@ export class CrudService {
       query.leftJoin(`${alias}.${relationMetadata.propertyName}`, aliasName)
 
       const relationEntityManifest: EntityManifest =
-        this.manifestService.getEntityManifest({
+        this.entityManifestService.getEntityManifest({
           className: relationMetadata.inverseEntityMetadata.targetName
         })
 

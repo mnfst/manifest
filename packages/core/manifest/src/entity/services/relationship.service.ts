@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
 import { Inject, Injectable, forwardRef } from '@nestjs/common'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
 import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
 import { EntityService } from './entity.service'
@@ -13,11 +12,12 @@ import {
   camelize
 } from '@repo/helpers'
 import pluralize from 'pluralize'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class RelationshipService {
   constructor(
-    private manifestService: ManifestService,
+    private entityManifestService: EntityManifestService,
     @Inject(forwardRef(() => EntityService))
     private entityService: EntityService
   ) {}
@@ -34,7 +34,7 @@ export class RelationshipService {
     relationshipManifest: RelationshipManifest
   ): number | { id: number }[] {
     const relatedEntity: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         className: relationshipManifest.entity
       })
 

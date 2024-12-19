@@ -4,38 +4,62 @@ import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
 import { Manifest } from '@repo/types'
-import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class YamlService {
-  constructor(private readonly configService: ConfigService) {}
-
   /**
    *
-   * Load the manifest from the YML file and transform it into a AppManifest object.
+   * Load the manifest from the YML file, transform it into a Manifest object and store it in the service.
    *
-   * @returns AppManifest the manifest
+   * @param manifestFilePath the path to the manifest file
+   *
+   * @returns void
    *
    **/
-  load(): Manifest {
-    const fileContent: string = fs.readFileSync(
-      this.configService.get('paths').manifestFile,
-      'utf8'
-    )
+  async load(manifestFilePath: string): Promise<Manifest> {
+    let fileContent: string
 
-    const manifest: Manifest = yaml.load(fileContent) as Manifest
+    if (manifestFilePath.startsWith('http')) {
+      fileContent = await this.loadManifestFromUrl(manifestFilePath)
+    } else {
+      fileContent = fs.readFileSync(manifestFilePath, 'utf8')
+    }
+
+    const manifestSchema: Manifest = yaml.load(fileContent) as Manifest
 
     // Remove emojis from entity keys.
-    Object.keys(manifest.entities).forEach((key) => {
+    Object.keys(manifestSchema.entities).forEach((key) => {
       const newKey: string = this.ignoreEmojis(key)
 
       if (newKey !== key) {
-        manifest.entities[newKey] = manifest.entities[key]
-        delete manifest.entities[key]
+        manifestSchema.entities[newKey] = manifestSchema.entities[key]
+        delete manifestSchema.entities[key]
       }
     })
 
-    return manifest
+    return manifestSchema
+  }
+
+  /**
+   *
+   * Load the manifest from a URL.
+   *
+   * @param url
+   * @returns string the file content
+   *
+   **/
+  async loadManifestFromUrl(url: string): Promise<string> {
+    console.log(`Fetching the manifest from ${url}`)
+
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch the manifest from ${url}`)
+    }
+
+    const text = await response.text()
+
+    return text
   }
 
   /**
