@@ -49,12 +49,12 @@ export class EntityManifestService {
    * @returns The entity manifests.
    *
    * */
-  getEntityManifests(options: { fullVersion?: boolean }): EntityManifest[] {
+  getEntityManifests(options?: { fullVersion?: boolean }): EntityManifest[] {
     const entities: EntityManifest[] = Object.values(
-      this.manifestService.getAppManifest().entities
+      this.manifestService.getAppManifest({ fullVersion: true }).entities
     )
 
-    if (!options.fullVersion) {
+    if (!options?.fullVersion) {
       return entities.map((entity) =>
         this.hideEntitySensitiveInformation(entity)
       )

@@ -1,16 +1,16 @@
 // TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 import { Test, TestingModule } from '@nestjs/testing'
 import { StorageService } from '../../storage/services/storage/storage.service'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { SeederService } from '../services/seeder.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
 import { DataSource } from 'typeorm'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('SeederService', () => {
   let service: SeederService
   let storageService: StorageService
-  let manifestService: ManifestService
+  let entityManifestService: EntityManifestService
   let entityService: EntityService
   let relationshipService: RelationshipService
   let dataSource: DataSource
@@ -38,7 +38,7 @@ describe('SeederService', () => {
           }
         },
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -54,7 +54,9 @@ describe('SeederService', () => {
 
     service = module.get<SeederService>(SeederService)
     storageService = module.get<StorageService>(StorageService)
-    manifestService = module.get<ManifestService>(ManifestService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
     entityService = module.get<EntityService>(EntityService)
     relationshipService = module.get<RelationshipService>(RelationshipService)
     dataSource = module.get<DataSource>(DataSource)

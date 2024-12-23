@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { RelationshipService } from '../services/relationship.service'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { RelationshipManifest } from '@repo/types'
 import { EntityService } from '../services/entity.service'
 import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('RelationshipService', () => {
   let service: RelationshipService
@@ -20,7 +20,7 @@ describe('RelationshipService', () => {
       providers: [
         RelationshipService,
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn().mockReturnValue({
               seedCount: mockSeedCount

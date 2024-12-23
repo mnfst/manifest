@@ -1,32 +1,38 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { YamlService } from '../services/yaml.service'
 import * as fs from 'fs'
-import { ConfigService } from '@nestjs/config'
+import { Manifest } from '../../../../types/src'
 
 jest.mock('fs')
+global.fetch = jest.fn()
 
 describe('YamlService', () => {
   let service: YamlService
 
+  const dummyAppSchema: Manifest = {
+    name: 'mocked manifest',
+    entities: {}
+  }
+
+  const dummyRemoteAppSchema: Manifest = {
+    name: 'mocked remote manifest',
+    entities: {}
+  }
+
   beforeAll(() => {
     ;(fs.readFileSync as jest.Mock).mockImplementation(
-      () => 'mocked file content'
+      jest.fn().mockReturnValue(JSON.stringify(dummyAppSchema))
+    )
+    ;(global.fetch as jest.Mock).mockImplementation(() =>
+      Promise.resolve({
+        text: () => Promise.resolve(JSON.stringify(dummyRemoteAppSchema))
+      })
     )
   })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        YamlService,
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(() => ({
-              database: 'mocked database path'
-            }))
-          }
-        }
-      ]
+      providers: [YamlService]
     }).compile()
 
     service = module.get<YamlService>(YamlService)
@@ -37,24 +43,20 @@ describe('YamlService', () => {
   })
 
   describe('load', () => {
-    it('should load the manifest from the file path', async () => {
-      await service.load('mocked manifest path')
+    it('should load the manifest  file from the file path', async () => {
+      const appSchema: Manifest = await service.load('mocked manifest path')
 
-      expect(service.manifest).toEqual({
-        entities: {},
-        paths: {}
-      })
+      expect(appSchema).toEqual(dummyAppSchema)
     })
 
-    it('should load the manifest from a URL', async () => {
-      await service.load('http://mocked-manifest-url.com')
+    it('should load the manifest file from a URL', async () => {
+      const dummyUrl: string = 'http://mocked-manifest-url.com'
 
-      expect(service.manifest).toEqual({
-        entities: {},
-        paths: {}
-      })
+      const remoteAppSchema: Manifest = await service.load(dummyUrl)
+
+      expect(remoteAppSchema).toEqual(dummyRemoteAppSchema)
     })
-  }
+  })
 
   describe('ignore emojis', () => {
     it('should remove emojis from the file content', () => {

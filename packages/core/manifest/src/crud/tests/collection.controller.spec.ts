@@ -3,7 +3,8 @@ import { CollectionController } from '../controllers/collection.controller'
 import { AuthService } from '../../auth/auth.service'
 import { CrudService } from '../services/crud.service'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('CollectionController', () => {
   let controller: CollectionController
@@ -32,7 +33,13 @@ describe('CollectionController', () => {
           }
         },
         {
-          provide: ManifestService,
+          provide: AuthorizationGuard,
+          useValue: {
+            canActivate: jest.fn()
+          }
+        },
+        {
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }

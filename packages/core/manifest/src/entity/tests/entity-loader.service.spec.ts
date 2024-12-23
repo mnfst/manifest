@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EntityLoaderService } from '../services/entity-loader.service'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { RelationshipService } from '../services/relationship.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('EntityLoaderService', () => {
   let service: EntityLoaderService
@@ -11,7 +11,7 @@ describe('EntityLoaderService', () => {
       providers: [
         EntityLoaderService,
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }

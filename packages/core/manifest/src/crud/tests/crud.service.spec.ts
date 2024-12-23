@@ -1,11 +1,10 @@
 import { CrudService } from '../services/crud.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { PaginationService } from '../services/pagination.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
-
 describe('CrudService', () => {
   let service: CrudService
 
@@ -14,7 +13,7 @@ describe('CrudService', () => {
       providers: [
         CrudService,
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityRepository: jest.fn()
           }

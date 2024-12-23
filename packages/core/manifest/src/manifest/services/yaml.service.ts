@@ -28,7 +28,7 @@ export class YamlService {
     const manifestSchema: Manifest = yaml.load(fileContent) as Manifest
 
     // Remove emojis from entity keys.
-    Object.keys(manifestSchema.entities).forEach((key) => {
+    Object.keys(manifestSchema.entities || []).forEach((key) => {
       const newKey: string = this.ignoreEmojis(key)
 
       if (newKey !== key) {
@@ -49,11 +49,9 @@ export class YamlService {
    *
    **/
   async loadManifestFromUrl(url: string): Promise<string> {
-    console.log(`Fetching the manifest from ${url}`)
-
     const response = await fetch(url)
 
-    if (!response.ok) {
+    if (!response) {
       throw new Error(`Failed to fetch the manifest from ${url}`)
     }
 

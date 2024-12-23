@@ -4,13 +4,12 @@ import { AuthService } from '../../auth/auth.service'
 import { CrudService } from '../services/crud.service'
 import { IsSingleGuard } from '../guards/is-single.guard'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { NotFoundException } from '@nestjs/common'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('SingleController', () => {
   let controller: SingleController
   let crudService: CrudService
-  let authService: AuthService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,7 +42,7 @@ describe('SingleController', () => {
           }
         },
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -53,7 +52,6 @@ describe('SingleController', () => {
 
     controller = module.get<SingleController>(SingleController)
     crudService = module.get<CrudService>(CrudService)
-    authService = module.get<AuthService>(AuthService)
   })
 
   it('should be defined', () => {

@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { UploadService } from '../services/upload.service'
 import { StorageService } from '../../storage/services/storage/storage.service'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('UploadService', () => {
   let service: UploadService
   let storageService: StorageService
-  let manifestService: ManifestService
+  let entityManifestService: EntityManifestService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,7 +19,7 @@ describe('UploadService', () => {
           }
         },
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -29,7 +29,9 @@ describe('UploadService', () => {
 
     service = module.get<UploadService>(UploadService)
     storageService = module.get<StorageService>(StorageService)
-    manifestService = module.get<ManifestService>(ManifestService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   it('should be defined', () => {

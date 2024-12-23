@@ -56,9 +56,6 @@ export class ManifestService {
 
     this.schemaService.validate(appSchema)
 
-    // Add Admin entity.
-    appSchema.entities.Admin = ADMIN_ENTITY_MANIFEST
-
     const appManifest: AppManifest = {
       ...appSchema,
       version: appSchema.version || '0.0.1',
@@ -70,9 +67,10 @@ export class ManifestService {
         }, {})
     }
 
-    this.appManifest = appManifest
+    // Add Admin entity.
+    appManifest.entities.Admin = ADMIN_ENTITY_MANIFEST
 
-    console.log('Manifest loaded', this.appManifest)
+    this.appManifest = appManifest
   }
 
   /**

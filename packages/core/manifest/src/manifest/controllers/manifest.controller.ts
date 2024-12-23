@@ -16,7 +16,7 @@ export class ManifestController {
   ) {}
 
   @Get()
-  async getManifest(@Req() req: Request): Promise<AppManifest> {
+  async getAppManifest(@Req() req: Request): Promise<AppManifest> {
     const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
 
     return this.manifestService.getAppManifest({ fullVersion: isAdmin })

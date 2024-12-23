@@ -1,18 +1,18 @@
 import { Test } from '@nestjs/testing'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { IsSingleGuard } from '../guards/is-single.guard'
 import { EntityManifest } from '@repo/types'
 import { ExecutionContext } from '@nestjs/common'
 
 describe('IsSingleGuard', () => {
-  let manifestService: ManifestService
+  let entityManifestService: EntityManifestService
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         IsSingleGuard,
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -20,19 +20,21 @@ describe('IsSingleGuard', () => {
       ]
     }).compile()
 
-    manifestService = module.get<ManifestService>(ManifestService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   it('should be defined', () => {
-    expect(new IsSingleGuard(manifestService)).toBeDefined()
+    expect(new IsSingleGuard(entityManifestService)).toBeDefined()
   })
 
   it('should return true if the entity is a single', () => {
-    jest.spyOn(manifestService, 'getEntityManifest').mockReturnValue({
+    jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
       single: true
     } as EntityManifest)
 
-    const isSingleGuard = new IsSingleGuard(manifestService)
+    const isSingleGuard = new IsSingleGuard(entityManifestService)
     const res = isSingleGuard.canActivate({
       getArgs: () => [{ params: { entity: 'test' } }]
     } as ExecutionContext)
@@ -41,11 +43,11 @@ describe('IsSingleGuard', () => {
   })
 
   it('should return false if the entity is not a single', () => {
-    jest.spyOn(manifestService, 'getEntityManifest').mockReturnValue({
+    jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
       single: false
     } as EntityManifest)
 
-    const isSingleGuard = new IsSingleGuard(manifestService)
+    const isSingleGuard = new IsSingleGuard(entityManifestService)
     const res = isSingleGuard.canActivate({
       getArgs: () => [{ params: { entity: 'test' } }]
     } as ExecutionContext)

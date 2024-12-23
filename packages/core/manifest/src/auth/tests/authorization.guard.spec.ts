@@ -1,14 +1,14 @@
 import { Test } from '@nestjs/testing'
 import { AuthorizationGuard } from '../guards/authorization.guard'
 import { Reflector } from '@nestjs/core'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { AuthService } from '../auth.service'
 import { EntityManifest } from '@repo/types'
 
 describe('AuthorizationGuard', () => {
   let authorizationGuard: AuthorizationGuard
   let reflector: Reflector
-  let manifestService: ManifestService
+  let entityManifestService: EntityManifestService
 
   const context: any = {
     getHandler: jest.fn(() => 'handler'),
@@ -38,7 +38,7 @@ describe('AuthorizationGuard', () => {
           }
         },
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -54,7 +54,9 @@ describe('AuthorizationGuard', () => {
 
     authorizationGuard = module.get<AuthorizationGuard>(AuthorizationGuard)
     reflector = module.get<Reflector>(Reflector)
-    manifestService = module.get<ManifestService>(ManifestService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   it('should be defined', () => {
@@ -69,7 +71,7 @@ describe('AuthorizationGuard', () => {
 
   it('should return true if rule is defined and all policies pass', async () => {
     jest.spyOn(reflector, 'get').mockReturnValue('read')
-    jest.spyOn(manifestService, 'getEntityManifest').mockReturnValue({
+    jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
       policies: {
         read: [{ access: 'public' }]
       }
@@ -82,7 +84,7 @@ describe('AuthorizationGuard', () => {
 
   it('should return false if rule is defined and at least one policy fails', async () => {
     jest.spyOn(reflector, 'get').mockReturnValue('read')
-    jest.spyOn(manifestService, 'getEntityManifest').mockReturnValue({
+    jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
       policies: {
         read: [{ access: 'public' }, { access: 'forbidden' }]
       }
