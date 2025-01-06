@@ -17,7 +17,7 @@ cd test-folder
 ../bin/dev.js
 ```
 
-However due to the monorepo workspace structure, the launch script will fail as the path to the node modules folder is different than when served.
+However due to the monorepo workspace structure, the launch script will fail as the path to the node modules folder is different than when served. This is normal.
 
 ## Publish
 
