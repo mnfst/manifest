@@ -19,8 +19,7 @@
 <a href="https://opencollective.com/mnfst"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
 <a href="https://codecov.io/gh/mnfst/manifest" > 
  <img src="https://codecov.io/gh/mnfst/manifest/graph/badge.svg?token=9URG40MEWY"/> 
- </a>
-<a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
+ </a><a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
 <br>
 
 </p>
