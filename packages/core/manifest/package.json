@@ -1,7 +1,7 @@
 {
   "name": "manifest",
   "version": "4.1.6",
-  "description": "The 1-file Micro-backend",
+  "description": "The 1-file micro-backend",
   "author": "Manifest",
   "license": "MIT",
   "homepage": "https://manifest.build",
