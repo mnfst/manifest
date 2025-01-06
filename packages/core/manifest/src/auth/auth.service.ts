@@ -8,15 +8,15 @@ import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 import { ADMIN_ENTITY_MANIFEST, DEFAULT_ADMIN_CREDENTIALS } from '../constants'
-import { ManifestService } from '../manifest/services/manifest.service'
 import { validate } from 'class-validator'
+import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly entityService: EntityService,
-    private readonly manifestService: ManifestService
+    private readonly entityManifestService: EntityManifestService
   ) {}
   /**
    * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.
@@ -35,7 +35,7 @@ export class AuthService {
     token: string
   }> {
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug
       })
 
@@ -96,7 +96,7 @@ export class AuthService {
     }
 
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({
+      this.entityManifestService.getEntityManifest({
         slug: entitySlug
       })
 

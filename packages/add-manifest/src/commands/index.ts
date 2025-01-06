@@ -13,6 +13,7 @@ import { parse } from 'jsonc-parser'
 import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
 import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
 import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
+import { getLatestPackageVersion } from '../utils/GetLatestPackageVersion.js'
 
 const exec = promisify(execCp)
 
@@ -89,12 +90,15 @@ export class MyCommand extends Command {
       )
     }
 
+    const manifestLatestVersion: string =
+      await getLatestPackageVersion('manifest')
+
     fs.writeFileSync(
       packagePath,
       updatePackageJsonFile({
         fileContent: packageJson,
         newPackages: {
-          manifest: '^4.1.6'
+          manifest: `^${manifestLatestVersion}`
         },
         newScripts: {
           manifest: 'node node_modules/manifest/scripts/watch/watch.js',

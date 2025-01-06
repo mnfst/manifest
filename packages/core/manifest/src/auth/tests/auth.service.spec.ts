@@ -5,13 +5,13 @@ import * as jwt from 'jsonwebtoken'
 import { AuthService } from '../auth.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('AuthService', () => {
   let authService: AuthService
   let configService: ConfigService
   let entityService: EntityService
-  let manifestService: ManifestService
+  let entityManifestService: EntityManifestService
 
   const mockUser = {
     email: 'testEmail',
@@ -37,7 +37,7 @@ describe('AuthService', () => {
           }
         },
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn().mockReturnValue(ADMIN_ENTITY_MANIFEST)
           }
@@ -48,7 +48,9 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService)
     configService = module.get<ConfigService>(ConfigService)
     entityService = module.get<EntityService>(EntityService)
-    manifestService = module.get<ManifestService>(ManifestService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   describe('createToken', () => {

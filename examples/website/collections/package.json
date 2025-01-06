@@ -1,5 +1,6 @@
 {
-  "name": "my-manifest-project",
+  "name": "manifest-collections-demo",
+  "private": true,
   "version": "0.1.0",
   "description": "A project made with Manifest",
   "scripts": {
@@ -7,6 +8,6 @@
     "manifest:seed": "node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js"
   },
   "dependencies": {
-    "manifest": "^4.1.6"
+    "manifest": "^4.3.0"
   }
 }

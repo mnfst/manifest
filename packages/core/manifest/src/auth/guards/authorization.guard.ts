@@ -1,17 +1,17 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Rule } from '../types/rule.type'
-import { ManifestService } from '../../manifest/services/manifest.service'
 import { EntityManifest, PolicyManifest } from '@repo/types'
 import { AuthService } from '../auth.service'
 import { Request } from 'express'
 import { policies } from '../policies/policies'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly manifestService: ManifestService,
+    private readonly entityManifestService: EntityManifestService,
     private readonly authService: AuthService
   ) {}
 
@@ -24,7 +24,7 @@ export class AuthorizationGuard implements CanActivate {
 
     const entitySlug: string = context.getArgs()[0].params.entity
     const entityManifest: EntityManifest =
-      this.manifestService.getEntityManifest({ slug: entitySlug })
+      this.entityManifestService.getEntityManifest({ slug: entitySlug })
 
     const rulePolicies: PolicyManifest[] = entityManifest.policies[rule]
 
@@ -35,7 +35,7 @@ export class AuthorizationGuard implements CanActivate {
 
     let userEntityManifest: EntityManifest
     if (userEntitySlug) {
-      userEntityManifest = this.manifestService.getEntityManifest({
+      userEntityManifest = this.entityManifestService.getEntityManifest({
         slug: userEntitySlug
       })
     } else {

@@ -4,17 +4,19 @@ import { Request } from 'express'
 import { AuthService } from '../../auth/auth.service'
 import { ManifestService } from '../services/manifest.service'
 import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
+import { EntityManifestService } from '../services/entity-manifest.service'
 
 @Controller('manifest')
 @UseGuards(IsAdminGuard)
 export class ManifestController {
   constructor(
     private manifestService: ManifestService,
+    private entityManifestService: EntityManifestService,
     private authService: AuthService
   ) {}
 
   @Get()
-  async getManifest(@Req() req: Request): Promise<AppManifest> {
+  async getAppManifest(@Req() req: Request): Promise<AppManifest> {
     const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
 
     return this.manifestService.getAppManifest({ fullVersion: isAdmin })
@@ -27,7 +29,7 @@ export class ManifestController {
   ): Promise<EntityManifest> {
     const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
 
-    return this.manifestService.getEntityManifest({
+    return this.entityManifestService.getEntityManifest({
       slug,
       fullVersion: isAdmin
     })

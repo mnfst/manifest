@@ -1,5 +1,6 @@
 {
   "name": "@repo/types",
+  "private": true,
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint --fix ."

@@ -89,7 +89,7 @@ Then you can play around with your [backend.yml](https://manifest.build/docs/man
 - Admin panel `http://localhost:4200`
 - API Doc `http://localhost:3000/api`
 
-Don't forget to seed to generate an _admin_ user and dummy data:
+Once the app is running, don't forget to seed to generate an _admin_ user and dummy data:
 
 ```
 npm run seed

@@ -2,13 +2,13 @@ import { BaseEntity } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, Repository } from 'typeorm'
 import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class EntityService {
   constructor(
     private dataSource: DataSource,
-    private manifestService: ManifestService
+    private entityManifestService: EntityManifestService
   ) {}
 
   /**
@@ -41,12 +41,10 @@ export class EntityService {
     }
 
     if (slug) {
-      // Admins are not in the manifest.
-      if (slug === 'admins') {
-        className = 'Admin'
-      } else {
-        className = this.manifestService.getEntityManifest({ slug }).className
-      }
+      className = this.entityManifestService.getEntityManifest({
+        slug,
+        fullVersion: true
+      }).className
     }
 
     const entityMetadata: EntityMetadata = this.dataSource.entityMetadatas.find(
