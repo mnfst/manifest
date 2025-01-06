@@ -20,6 +20,7 @@ import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionO
 import { ValidationModule } from './validation/validation.module'
 import { UploadModule } from './upload/upload.module'
 import { StorageModule } from './storage/storage.module'
+import { ManifestService } from './manifest/services/manifest.service'
 
 @Module({
   imports: [
@@ -29,19 +30,23 @@ import { StorageModule } from './storage/storage.module'
       load: [generalConfig, databaseConfig, pathsConfig]
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, EntityModule],
-      useFactory: (
+      imports: [ConfigModule, EntityModule, ManifestModule],
+      useFactory: async (
         configService: ConfigService,
-        entityLoaderService: EntityLoaderService
+        entityLoaderService: EntityLoaderService,
+        manifestService: ManifestService
       ) => {
         const databaseConfig: SqliteConnectionOptions =
           configService.get('database')
 
+        await manifestService.loadManifest(
+          configService.get('paths').manifestFile
+        )
         const entities: EntitySchema[] = entityLoaderService.loadEntities()
 
         return Object.assign(databaseConfig, { entities })
       },
-      inject: [ConfigService, EntityLoaderService]
+      inject: [ConfigService, EntityLoaderService, ManifestService]
     }),
     ManifestModule,
     EntityModule,

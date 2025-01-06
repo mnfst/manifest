@@ -2,94 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { ManifestService } from '../services/manifest.service'
 import { YamlService } from '../services/yaml.service'
 import { SchemaService } from '../services/schema.service'
-import { EntityManifest, EntitySchema, PropType } from '@repo/types'
+import { AppManifest, PropType } from '@repo/types'
+import { EntityManifestService } from '../services/entity-manifest.service'
+import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 
 describe('ManifestService', () => {
   let service: ManifestService
+  let schemaService: SchemaService
+  let entityManifestService: EntityManifestService
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ManifestService,
-        {
-          provide: YamlService,
-          useValue: {
-            load: jest.fn()
-          }
-        },
-        {
-          provide: SchemaService,
-          useValue: {
-            validate: jest.fn()
-          }
-        }
-      ]
-    }).compile()
-
-    service = module.get<ManifestService>(ManifestService)
-  })
-
-  it('should be defined', () => {
-    expect(service).toBeDefined()
-  })
-
-  describe('TransformEntityManifests', () => {
-    it('should transform entity schemas into entity manifests', () => {
-      const entitySchemaObject: { [keyof: string]: EntitySchema } = {
-        Cat: {
-          seedCount: 10,
-          properties: [
-            {
-              name: 'name'
-            }
-          ]
-        }
-      }
-
-      const entityManifests: EntityManifest[] =
-        service.transformEntityManifests(entitySchemaObject)
-
-      expect(entityManifests.length).toBe(1)
-      expect(entityManifests[0].seedCount).toBe(10)
-      expect(entityManifests[0].properties.length).toBe(1)
-      expect(entityManifests[0].single).toBe(false)
-    })
-  })
-
-  it('should transform single entity schemas into entity manifests', () => {
-    const entitySchemaObject: { [keyof: string]: EntitySchema } = {
-      HomeContent: {
-        single: true,
-        properties: [
-          {
-            name: 'title'
-          },
-          {
-            name: 'coverImage',
-            type: 'image'
-          }
-        ]
-      }
-    }
-
-    const entityManifests: EntityManifest[] =
-      service.transformEntityManifests(entitySchemaObject)
-
-    expect(entityManifests.length).toBe(1)
-    expect(entityManifests[0].properties.length).toBe(2)
-    expect(entityManifests[0].single).toBe(true)
-    expect(entityManifests[0].relationships.length).toBe(0)
-    expect(entityManifests[0]).not.toHaveProperty('seedCount')
-    expect(entityManifests[0]).not.toHaveProperty('mainProp')
-    expect(entityManifests[0]).not.toHaveProperty('namePlural')
-    expect(entityManifests[0]).not.toHaveProperty('authenticable')
-    expect(entityManifests[0]).not.toHaveProperty('belongsTo')
-    expect(entityManifests[0]).not.toHaveProperty('belongsToMany')
-  })
-
-  describe('hideEntitySensitiveInformation', () => {
-    it('should remove hidden properties', () => {
-      const dummyEntityManifest: EntityManifest = {
+  const dummyManifest: AppManifest = {
+    name: 'my app',
+    entities: {
+      Cat: {
         nameSingular: 'Cat',
         namePlural: 'Cats',
         slug: 'cats',
@@ -98,11 +23,6 @@ describe('ManifestService', () => {
           {
             name: 'name',
             type: PropType.String
-          },
-          {
-            name: 'password',
-            type: PropType.Password,
-            hidden: true
           }
         ],
         relationships: [],
@@ -114,12 +34,123 @@ describe('ManifestService', () => {
           signup: []
         }
       }
+    }
+  }
 
-      const hiddenEntityManifest: EntityManifest =
-        service.hideEntitySensitiveInformation(dummyEntityManifest)
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ManifestService,
+        {
+          provide: YamlService,
+          useValue: {
+            load: jest.fn(() => Promise.resolve(dummyManifest))
+          }
+        },
+        {
+          provide: SchemaService,
+          useValue: {
+            validate: jest.fn()
+          }
+        },
+        {
+          provide: EntityManifestService,
+          useValue: {
+            getEntityManifest: jest.fn(),
+            hideEntitySensitiveInformation: jest.fn(),
+            transformEntityManifests: jest.fn(() => [
+              dummyManifest.entities.Cat
+            ])
+          }
+        }
+      ]
+    }).compile()
 
-      expect(hiddenEntityManifest.properties.length).toBe(1)
-      expect(hiddenEntityManifest.properties[0].name).toBe('name')
+    service = module.get<ManifestService>(ManifestService)
+    schemaService = module.get<SchemaService>(SchemaService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
+
+    // Set private property.
+    ;(service as any).appManifest = dummyManifest
+  })
+
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
+
+  describe('get app manifest', () => {
+    it('should get the manifest', () => {
+      const manifest = service.getAppManifest()
+
+      expect(manifest).toBeDefined()
+    })
+
+    it('should get the full version only if the parameter is passed', () => {
+      const fullManifest: AppManifest = service.getAppManifest({
+        fullVersion: true
+      })
+      const publicManifest: AppManifest = service.getAppManifest()
+
+      expect(fullManifest).toEqual(dummyManifest)
+      expect(publicManifest).not.toEqual(dummyManifest)
+
+      expect(publicManifest.entities).not.toHaveProperty('Admin')
+      expect(publicManifest.entities).toHaveProperty('Cat')
+      expect(
+        entityManifestService.hideEntitySensitiveInformation
+      ).toHaveBeenCalled()
+    })
+
+    it('should throw an error if the manifest is not loaded', () => {
+      // Set private property.
+      ;(service as any).appManifest = undefined
+
+      expect(() => {
+        service.getAppManifest()
+      }).toThrow()
+    })
+  })
+
+  describe('load manifest', () => {
+    it('should load the manifest and store it in the service', async () => {
+      ;(service as any).appManifest = undefined
+
+      await service.loadManifest('mocked manifest path')
+
+      expect((service as any).appManifest).toBeDefined()
+      expect((service as any).appManifest.name).toBe(dummyManifest.name)
+    })
+
+    it('should add the admin entity o the manifest', async () => {
+      ;(service as any).appManifest = undefined
+
+      await service.loadManifest('mocked manifest path')
+
+      expect((service as any).appManifest.entities).toHaveProperty(
+        ADMIN_ENTITY_MANIFEST.className
+      )
+    })
+
+    it('should transform the entity schemas into entity manifests', async () => {
+      ;(service as any).appManifest = undefined
+
+      await service.loadManifest('mocked manifest path')
+
+      expect(
+        entityManifestService.transformEntityManifests
+      ).toHaveBeenCalledTimes(Object.keys(dummyManifest.entities).length)
+    })
+
+    it('should throw an error if the manifest is not valid', () => {
+      jest.spyOn(schemaService, 'validate').mockImplementation(() => {
+        throw new Error('Invalid schema')
+      })
+
+      service.loadManifest('mocked manifest path').catch((error) => {
+        expect(error.message).toBe('Invalid schema')
+      })
     })
   })
 })

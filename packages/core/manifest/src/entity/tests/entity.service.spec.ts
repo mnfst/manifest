@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EntityService } from '../services/entity.service'
-import { ManifestService } from '../../manifest/services/manifest.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { DataSource } from 'typeorm'
 
 describe('EntityService', () => {
@@ -12,7 +12,7 @@ describe('EntityService', () => {
       providers: [
         EntityService,
         {
-          provide: ManifestService,
+          provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
           }
