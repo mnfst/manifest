@@ -1,5 +1,6 @@
 {
   "name": "@repo/json-schema",
+  "private": true,
   "scripts": {
     "build": "ts-node scripts/generate-types.ts",
     "lint": "eslint --fix ."

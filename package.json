@@ -7,7 +7,8 @@
     "test:ci": "npx turbo run test:ci",
     "lint": "npx turbo run lint",
     "seed": "cd packages/core/manifest && npm run seed",
-    "prepare": "husky"
+    "prepare": "husky",
+    "publish-packages": "turbo run build lint test && changeset version && changeset publish"
   },
   "workspaces": [
     "packages/**/*"
@@ -21,5 +22,8 @@
     "turbo": "^2.1.1",
     "typescript-eslint": "^8.14.0"
   },
-  "packageManager": "npm@10.7.0"
+  "packageManager": "npm@10.7.0",
+  "dependencies": {
+    "@changesets/cli": "^2.27.11"
+  }
 }
