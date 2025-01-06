@@ -6,13 +6,14 @@ const { execSync } = require('child_process')
 
 const MAIN_PACKAGE = 'manifest'
 const FOLDERS = [
-  'examples/main-demo',
-  'examples/website/auth',
-  'examples/website/collections',
-  'examples/website/relations',
-  'examples/website/singles',
-  'examples/website/storage',
-  'examples/website/validation'
+  // Paths are relative to the root of the "manifest" package where this script is executed.
+  '../../../examples/main-demo',
+  '../../../examples/website/auth',
+  '../../../examples/website/collections',
+  '../../../examples/website/relations',
+  '../../../examples/website/singles',
+  '../../../examples/website/storage',
+  '../../../examples/website/validation'
 ]
 
 function updatePackage() {
