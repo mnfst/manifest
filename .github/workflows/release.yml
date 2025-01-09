@@ -30,7 +30,7 @@ jobs:
       - name: Create Release Pull Request
         uses: changesets/action@v1
         with:
-          publish: publish-packages
+          publish: npm run publish-packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
