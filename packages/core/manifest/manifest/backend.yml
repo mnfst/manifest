@@ -46,14 +46,3 @@ entities:
       - { name: image, type: image }
     validation:
       title: { required: true }
-
-    # Testing single entity with the ContactPage entity.
-  AboutPage:
-    single: true
-    nameSingular: About content
-    slug: about-content
-    properties:
-      - { name: title, type: string }
-      - { name: content, type: text }
-    validation:
-      title: { required: true }

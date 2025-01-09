@@ -113,4 +113,27 @@ describe('AuthService', () => {
       })
     })
   })
+
+  describe('getUserFromRequest', () => {
+    it('should extract the token from the request and return the user', async () => {
+      jest.spyOn(authService, 'getUserFromToken')
+
+      const { token } = await authService.createToken(
+        ADMIN_ENTITY_MANIFEST.slug,
+        mockUser
+      )
+
+      const req = {
+        headers: {
+          authorization: `Bearer ${token}`
+        }
+      }
+
+      await authService.getUserFromRequest(req as any)
+
+      expect(authService.getUserFromToken).toHaveBeenCalledWith(
+        `Bearer ${token}`
+      )
+    })
+  })
 })
