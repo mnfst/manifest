@@ -28,3 +28,5 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm run test:ci
+      - name: Changeset
+        run: npx changeset status
