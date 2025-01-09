@@ -4,7 +4,7 @@ import { StorageService } from '../../storage/services/storage/storage.service'
 import { SeederService } from '../services/seeder.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
-import { DataSource } from 'typeorm'
+import { DataSource, EntityMetadata } from 'typeorm'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('SeederService', () => {
@@ -15,6 +15,19 @@ describe('SeederService', () => {
   let relationshipService: RelationshipService
   let dataSource: DataSource
 
+  const dummyEntityMetadatas: EntityMetadata[] = [
+    {
+      tableName: 'table1'
+    },
+    {
+      tableName: 'table2'
+    }
+  ] as EntityMetadata[]
+
+  const queryRunner: any = {
+    query: jest.fn(() => Promise.resolve())
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,7 +35,8 @@ describe('SeederService', () => {
         {
           provide: EntityService,
           useValue: {
-            createEntity: jest.fn()
+            createEntity: jest.fn(),
+            getEntityMetadatas: jest.fn(() => dummyEntityMetadatas)
           }
         },
         {
@@ -46,7 +60,8 @@ describe('SeederService', () => {
         {
           provide: DataSource,
           useValue: {
-            getRepository: jest.fn()
+            getRepository: jest.fn(),
+            createQueryRunner: jest.fn(() => queryRunner)
           }
         }
       ]
@@ -64,5 +79,19 @@ describe('SeederService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined()
+  })
+
+  describe('seed', () => {
+    it('should truncate all tables escaping table names', async () => {
+      jest.spyOn(dataSource, 'createQueryRunner').mockReturnValue(queryRunner)
+
+      await service.seed()
+
+      dummyEntityMetadatas.forEach((entityMetadata) => {
+        expect(queryRunner.query).toHaveBeenCalledWith(
+          `DELETE FROM [${entityMetadata.tableName}]`
+        )
+      })
+    })
   })
 })
