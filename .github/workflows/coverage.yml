@@ -2,7 +2,7 @@ name: Code coverage
 
 on:
   pull_request:
-    branches: [master, develop]
+    branches: [master]
   push:
     branches: [master]
 
