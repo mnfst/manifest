@@ -60,11 +60,12 @@ export class SeederService {
 
     // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
+
     await queryRunner.query('PRAGMA foreign_keys = OFF')
     await Promise.all(
       entityMetadatas.map(async (entity: EntityMetadata) =>
         queryRunner
-          .query(`DELETE FROM ${entity.tableName}`)
+          .query(`DELETE FROM [${entity.tableName}]`)
           .then(() =>
             queryRunner.query(
               `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
