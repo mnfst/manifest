@@ -33,8 +33,6 @@ describe('Custom validators', () => {
       })
     )
 
-    console.log(goodValidations, badValidations)
-
     expect(goodValidations.every((validation) => validation.length === 0)).toBe(
       true
     )
