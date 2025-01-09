@@ -2,7 +2,7 @@ name: CI-CD Manifest
 
 on:
   pull_request:
-    branches: [master, develop]
+    branches: [master]
   push:
     branches: [master]
 
