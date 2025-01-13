@@ -10,19 +10,10 @@
 
 <p align='center'>
 <strong>A backend so simple that it fits into 1 YAML file</strong>
-<br><br>
-  <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
-  <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
-  <a href="https://discord.com/invite/FepAked3W7" target="_blank"><img alt="Discord" src="https://img.shields.io/discord/1089907785178812499?label=discord"></a>
-  <a href="https://opencollective.com/mnfst"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://www.codetriage.com/mnfst/manifest" target="_blank"><img alt="CodeTriage" src="https://www.codetriage.com/mnfst/manifest/badges/users.svg"></a>
-  <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
-  <br>
-</p>
 
 ## Description
 
-This project was made with [Manifest](https://github.com/mnfst/manifest).
+Welcome to your [Manifest](https://github.com/mnfst/manifest) project ! Feel free to replace this README by your own.
 
 ## Installation
 
