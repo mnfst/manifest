@@ -48,11 +48,11 @@ export type PropertySchema =
 export type RelationshipSchema =
   | {
       /**
-       * The name of the relation
+       * The name of the relation.
        */
       name?: string
       /**
-       * The class name of the entity that the relationship is with
+       * The class name of the entity that the relationship is with.
        */
       entity: string
       /**
@@ -62,17 +62,43 @@ export type RelationshipSchema =
       eager?: boolean
     }
   | string
+/**
+ * A hook related to an event the entity records. Doc: https://manifest.build/docs/hooks
+ */
+export type HookSchema =
+  | {
+      /**
+       * The URL to send the request to.
+       */
+      url: string
+      /**
+       * The HTTP method to use, defaults to POST.
+       */
+      method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+      /**
+       * The headers to send with the request
+       */
+      headers?: {
+        [k: string]: unknown
+      }
+    }
+  | {
+      /**
+       * The name of the handler file located in the "hooks" folder. Docs: https://manifest.build/docs/hooks#handlers
+       */
+      handler: string
+    }
 
 /**
  * The 1-file Micro-backend
  */
 export interface Manifest {
   /**
-   * The name of your app
+   * The name of your app.
    */
   name: string
   /**
-   * The version of your app
+   * The version of your app.
    */
   version?: string
   /**
@@ -138,6 +164,7 @@ export interface EntitySchema {
     '*'?: ValidationSchema1
     [k: string]: unknown
   }
+  hooks?: HooksSchema
 }
 /**
  * Validation object for the property.
@@ -347,4 +374,33 @@ export interface ValidationSchema1 {
    * Checks if string matches the pattern.
    */
   matches?: string
+}
+/**
+ * The hooks related to entity records events. Doc: https://manifest.build/docs/hooks
+ */
+export interface HooksSchema {
+  /**
+   * Hooks to run before creating a record. Doc: https://manifest.build/docs/hooks#events
+   */
+  beforeCreate?: HookSchema[]
+  /**
+   * Hooks to run after creating a record. Doc: https://manifest.build/docs/hooks#events
+   */
+  afterCreate?: HookSchema[]
+  /**
+   * Hooks to run before updating a record. Doc: https://manifest.build/docs/hooks#events
+   */
+  beforeUpdate?: HookSchema[]
+  /**
+   * Hooks to run after updating a record. Doc: https://manifest.build/docs/hooks#events
+   */
+  afterUpdate?: HookSchema[]
+  /**
+   * Hooks to run before deleting a record. Doc: https://manifest.build/docs/hooks#events
+   */
+  beforeDelete?: HookSchema[]
+  /**
+   * Hooks to run after deleting a record. Doc: https://manifest.build/docs/hooks#events
+   */
+  afterDelete?: HookSchema[]
 }

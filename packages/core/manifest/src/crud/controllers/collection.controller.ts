@@ -9,7 +9,8 @@ import {
   Put,
   Query,
   Req,
-  UseGuards
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common'
 
 import { BaseEntity, Paginator, SelectOption } from '@repo/types'
@@ -20,9 +21,11 @@ import { Request } from 'express'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 import { Rule } from '../../auth/decorators/rule.decorator'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
+import { HookInterceptor } from '../../hook/hook.interceptor'
 
 @Controller('collections')
 @UseGuards(AuthorizationGuard, IsCollectionGuard)
+@UseInterceptors(HookInterceptor)
 export class CollectionController {
   constructor(
     private readonly crudService: CrudService,

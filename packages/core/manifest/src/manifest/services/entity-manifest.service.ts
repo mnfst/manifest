@@ -9,6 +9,8 @@ import {
   AccessPolicy,
   EntityManifest,
   EntitySchema,
+  HookManifest,
+  HookSchema,
   PolicyManifest,
   PolicySchema,
   PropType,
@@ -144,7 +146,8 @@ export class EntityManifestService {
         properties: (entitySchema.properties || []).map(
           (propManifest: PropertySchema) =>
             this.transformProperty(propManifest, entitySchema)
-        )
+        ),
+        hooks: this.transformHookObject(entitySchema.hooks)
       }
 
       if (entitySchema.single) {
@@ -387,6 +390,20 @@ export class EntityManifestService {
 
       return policyManifest
     })
+  }
+
+  /**
+   * Transform EntitySchema hook object into an array of HookManifest
+   *
+   * @param hookObject
+   *
+   * @returns an array of hooks
+   */
+  transformHookObject(hookObject: {
+    [key: string]: HookSchema
+  }): HookManifest[] {
+    // TODO; implementation
+    return []
   }
 
   /**
