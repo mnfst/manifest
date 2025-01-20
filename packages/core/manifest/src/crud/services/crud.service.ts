@@ -330,7 +330,7 @@ export class CrudService {
       })
     }
 
-    const updatedItem: BaseEntity = entityRepository.create(itemDto)
+    const updatedItem: BaseEntity = entityRepository.create({ id, ...itemDto })
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {

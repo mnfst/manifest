@@ -103,8 +103,33 @@ describe('Collection CRUD (e2e)', () => {
 
     expect(updatedResponse.status).toBe(200)
     expect(updatedResponse.body).toMatchObject({
-      ...dummyDog,
       name: newName
+    })
+  })
+
+  it('PATCH /collections/:entity/:id', async () => {
+    const postResponse = await global.request
+      .post('/collections/dogs')
+      .send(dummyDog)
+
+    const newAge = 6
+
+    const response = await global.request
+      .patch(`/collections/dogs/${postResponse.body.id}`)
+      .send({
+        age: newAge
+      })
+
+    expect(response.status).toBe(200)
+
+    const updatedResponse = await global.request.get(
+      `/collections/dogs/${postResponse.body.id}`
+    )
+
+    expect(updatedResponse.status).toBe(200)
+    expect(updatedResponse.body).toMatchObject({
+      ...dummyDog,
+      age: newAge
     })
   })
 
