@@ -137,7 +137,9 @@ export class EntityManifestService {
           entitySchema.slug ||
           slugify(
             dasherize(
-              pluralize.plural(entitySchema.className || className)
+              entitySchema.single
+                ? entitySchema.className || className
+                : pluralize.plural(entitySchema.className || className)
             ).toLowerCase()
           ),
         single: entitySchema.single || false,
