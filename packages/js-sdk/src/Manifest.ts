@@ -149,7 +149,7 @@ export default class Manifest {
   }
 
   /**
-   * Update an item of the entity.
+   * Update an item of the entity doing a full replace. Leaving blank fields and relations will remove them. Use patch for partial updates.
    *
    * @param id The id of the item to update.
    * @param itemDto The DTO of the item to update.
@@ -161,6 +161,23 @@ export default class Manifest {
     return this.fetch({
       path: `/collections/${this.slug}/${id}`,
       method: 'PUT',
+      body: itemDto
+    }) as Promise<T>
+  }
+
+  /**
+   * Partially update an item of the entity. Leaving blank fields and relations will not remove them. Use update for full replaces.
+   *
+   * @param id The id of the item to update.
+   * @param itemDto The DTO of the item to update.
+   *
+   * @returns The updated item.
+   * @example client.from('cats').update(1, { name: 'updated name' });
+   */
+  async patch<T>(id: number, itemDto: unknown): Promise<T> {
+    return this.fetch({
+      path: `/collections/${this.slug}/${id}`,
+      method: 'PATCH',
       body: itemDto
     }) as Promise<T>
   }
@@ -337,14 +354,14 @@ export default class Manifest {
     }) as Promise<{ email: string }>
   }
 
-  private fetch({
+  private async fetch({
     path,
     method,
     body,
     queryParams
   }: {
     path: string
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     body?: unknown
     queryParams?: Record<string, string | number | boolean>
   }): Promise<unknown> {
