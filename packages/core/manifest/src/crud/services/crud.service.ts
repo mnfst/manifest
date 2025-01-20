@@ -274,6 +274,15 @@ export class CrudService {
     return entityRepository.save({})
   }
 
+  /*
+   * Updates an item doing a FULL REPLACEMENT of the item.
+   *
+   * @param entitySlug the entity slug.
+   * @param id the item id.
+   * @param itemDto the item dto.
+   *
+   * @returns the updated item.
+   */
   async update(
     entitySlug: string,
     id: number,
@@ -290,6 +299,10 @@ export class CrudService {
 
     const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
+    if (!item) {
+      throw new NotFoundException('Item not found')
+    }
+
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto(
         itemDto,
@@ -298,14 +311,7 @@ export class CrudService {
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       )
 
-    if (!item) {
-      throw new NotFoundException('Item not found')
-    }
-
-    const updatedItem: BaseEntity = entityRepository.create({
-      ...item,
-      ...itemDto
-    } as BaseEntity)
+    const updatedItem: BaseEntity = entityRepository.create(itemDto)
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {

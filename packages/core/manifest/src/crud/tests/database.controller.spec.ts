@@ -24,4 +24,9 @@ describe('DatabaseController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined()
   })
+
+  it('should return true if the database is empty', async () => {
+    const res = await controller.isDbEmpty()
+    expect(res).toEqual({ empty: true })
+  })
 })
