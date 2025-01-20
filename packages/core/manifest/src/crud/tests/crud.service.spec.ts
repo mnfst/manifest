@@ -80,17 +80,17 @@ describe('CrudService', () => {
     it('should update an entity', async () => {
       const entitySlug = 'test'
       const id = 1
-      const data = { name: 'test' }
+      const itemDto = { name: 'test' }
 
-      const result = await service.update(entitySlug, id, data)
+      const result = await service.update({ entitySlug, id, itemDto })
 
-      expect(result).toEqual(data)
+      expect(result).toEqual(itemDto)
     })
 
     it('should throw an error if the entity is not found', async () => {
       const entitySlug = 'test'
       const id = 1
-      const data = { name: 'test' }
+      const itemDto = { name: 'test' }
 
       jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
         findOne: jest.fn(() => Promise.resolve(null)),
@@ -98,27 +98,29 @@ describe('CrudService', () => {
         save: jest.fn((item) => item)
       } as any)
 
-      await expect(service.update(entitySlug, id, data)).rejects.toThrow()
+      await expect(
+        service.update({ entitySlug, id, itemDto })
+      ).rejects.toThrow()
     })
 
     it('should update relationships', async () => {
       const entitySlug = 'test'
       const id = 1
-      const data = { mentor: { id: 2 } }
+      const itemDto = { mentor: { id: 2 } }
 
-      const result = await service.update(entitySlug, id, data)
+      const result = await service.update({ entitySlug, id, itemDto })
 
-      expect(result.mentor).toEqual(data.mentor)
+      expect(result.mentor).toEqual(itemDto.mentor)
     })
 
     it('should do a full replacement of properties', async () => {
       const entitySlug = 'test'
       const id = 1
-      const data = { name: 'test' }
+      const itemDto = { name: 'test' }
 
-      const result = await service.update(entitySlug, id, data)
+      const result = await service.update({ entitySlug, id, itemDto })
 
-      expect(result.name).toEqual(data.name)
+      expect(result.name).toEqual(itemDto.name)
       expect(result.age).toBeUndefined()
     })
 
@@ -128,16 +130,16 @@ describe('CrudService', () => {
       const itemWithoutRelation = {}
       const itemWithNewRelation = { mentor: { id: 2 } }
 
-      const resultWithoutRelation = await service.update(
+      const resultWithoutRelation = await service.update({
         entitySlug,
         id,
-        itemWithoutRelation
-      )
-      const resultWithNewRelation = await service.update(
+        itemDto: itemWithoutRelation
+      })
+      const resultWithNewRelation = await service.update({
         entitySlug,
         id,
-        itemWithNewRelation
-      )
+        itemDto: itemWithNewRelation
+      })
 
       expect(resultWithoutRelation.mentor).toEqual(
         itemWithoutRelation['mentor']
@@ -157,23 +159,54 @@ describe('CrudService', () => {
 
       const entitySlug = 'test'
       const id = 1
-      const data = { name: '' }
+      const itemDto = { name: '' }
 
-      expect(service.update(entitySlug, id, data)).rejects.toThrow()
+      expect(service.update({ entitySlug, id, itemDto })).rejects.toThrow()
     })
-  })
 
-  describe('patch', () => {
-    it('should patch an entity', async () => {})
+    describe('update (partial replacement)', () => {
+      it('should do a partial replacement of properties', async () => {
+        const entitySlug = 'test'
+        const id = 1
+        const itemDto = { name: 'test' }
 
-    it('should throw an error if the entity is not found', async () => {})
+        const result = await service.update({
+          entitySlug,
+          id,
+          itemDto,
+          partialReplacement: true
+        })
 
-    it('should patch relationships', async () => {})
+        expect(result.name).toEqual(itemDto.name)
+        expect(result.age).toEqual(dummyItem.age)
+      })
 
-    it('should do a partial replacement of properties', async () => {})
+      it('should replace relations only if specified', async () => {
+        const entitySlug = 'test'
+        const id = 1
+        const itemDto = { mentor: { id: 2 } }
+        const itemWithoutRelation = { name: 'test' }
 
-    it('should do a partial replacement of relationships', async () => {})
+        const result = await service.update({
+          entitySlug,
+          id,
+          itemDto,
+          partialReplacement: true
+        })
 
-    it('should throw an error if validation fails', async () => {})
+        const resultWithoutRelation = await service.update({
+          entitySlug,
+          id,
+          itemDto: itemWithoutRelation,
+          partialReplacement: true
+        })
+
+        expect(result.mentor).toEqual(itemDto.mentor)
+        expect(result.name).toEqual(dummyItem.name)
+
+        expect(resultWithoutRelation.mentor).toEqual(dummyItem.mentor)
+        expect(resultWithoutRelation.name).toEqual(itemWithoutRelation.name)
+      })
+    })
   })
 })

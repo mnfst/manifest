@@ -275,19 +275,26 @@ export class CrudService {
   }
 
   /*
-   * Updates an item doing a FULL REPLACEMENT of the item.
+   * Updates an item doing a FULL REPLACEMENT of the item properties and relations unless partialReplacement is set to true.
    *
    * @param entitySlug the entity slug.
    * @param id the item id.
    * @param itemDto the item dto.
+   * @param partialReplacement whether to do a partial replacement.
    *
    * @returns the updated item.
    */
-  async update(
-    entitySlug: string,
-    id: number,
+  async update({
+    entitySlug,
+    id,
+    itemDto,
+    partialReplacement
+  }: {
+    entitySlug: string
+    id: number
     itemDto: Partial<BaseEntity>
-  ): Promise<BaseEntity> {
+    partialReplacement?: boolean
+  }): Promise<BaseEntity> {
     const entityManifest: EntityManifest =
       this.entityManifestService.getEntityManifest({
         slug: entitySlug,
@@ -310,6 +317,18 @@ export class CrudService {
           .filter((r) => r.type !== 'one-to-many')
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       )
+
+    // On partial replacement, only update the provided props.
+    if (partialReplacement) {
+      itemDto = { ...item, ...itemDto }
+
+      // Remove undefined values to keep the existing values.
+      Object.keys(relationItems).forEach((key: string) => {
+        if (relationItems[key] === undefined) {
+          delete relationItems[key]
+        }
+      })
+    }
 
     const updatedItem: BaseEntity = entityRepository.create(itemDto)
 
