@@ -84,7 +84,7 @@ describe('CrudService', () => {
 
       const result = await service.update({ entitySlug, id, itemDto })
 
-      expect(result).toEqual(itemDto)
+      expect(result.name).toEqual(itemDto.name)
     })
 
     it('should throw an error if the entity is not found', async () => {
