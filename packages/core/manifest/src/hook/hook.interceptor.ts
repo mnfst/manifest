@@ -4,49 +4,82 @@ import {
   Injectable,
   NestInterceptor
 } from '@nestjs/common'
-import { Observable, tap } from 'rxjs'
+import { Observable, forkJoin, lastValueFrom, tap } from 'rxjs'
 import { hookEvents } from './hook-events'
-import { EntityManifest } from '@repo/types'
+import { EntityManifest, HookEventName, HookManifest } from '@repo/types'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
+import { HookService } from './hook.service'
 
 @Injectable()
 export class HookInterceptor implements NestInterceptor {
-  constructor(private readonly entityManifestService: EntityManifestService) {}
+  constructor(
+    private readonly entityManifestService: EntityManifestService,
+    private readonly hookService: HookService
+  ) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const eventName: string = hookEvents.find(
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler
+  ): Promise<Observable<any>> {
+    // Get related "before" hook event.
+    const event: HookEventName = hookEvents.find(
       (event) =>
         event.relatedFunction === context.getHandler().name &&
         event.moment === 'before'
     )?.name
 
-    if (eventName) {
-      console.log(eventName)
-
+    if (event) {
       const request = context.switchToHttp().getRequest()
       const entitySlug: string = request.params.entity
+      const id: string = request.params.id
+      let payload: object = request.body
+
+      // On "delete" event, there is no payload so we get the id from the request to pass it to the hook.
+      if (!payload && id) {
+        payload = { id }
+      }
 
       const entityManifest: EntityManifest =
         this.entityManifestService.getEntityManifest({
           slug: context.getArgs()[0].params.entity
         })
 
-      // Get related webhooks.
-      console.log(entityManifest.hooks.beforeCreate)
-
-      // Trigger sequentially.
+      // Trigger hooks.
+      await lastValueFrom(
+        forkJoin(
+          entityManifest.hooks[event].map((hook: HookManifest) =>
+            this.hookService.triggerWebhook(hook, entitySlug, payload)
+          )
+        )
+      )
     }
 
     return next.handle().pipe(
-      tap(() => {
-        const eventName: string = hookEvents.find(
+      tap(async (data) => {
+        // Get related "after" hook event.
+        const event: HookEventName = hookEvents.find(
           (event) =>
             event.relatedFunction === context.getHandler().name &&
             event.moment === 'after'
         )?.name
 
-        if (eventName) {
-          console.log(eventName)
+        if (event) {
+          const request = context.switchToHttp().getRequest()
+          const entitySlug: string = request.params.entity
+
+          const entityManifest: EntityManifest =
+            this.entityManifestService.getEntityManifest({
+              slug: context.getArgs()[0].params.entity
+            })
+
+          // Trigger hooks.
+          await lastValueFrom(
+            forkJoin(
+              entityManifest.hooks[event].map((hook: HookManifest) =>
+                this.hookService.triggerWebhook(hook, entitySlug, data)
+              )
+            )
+          )
         }
       })
     )

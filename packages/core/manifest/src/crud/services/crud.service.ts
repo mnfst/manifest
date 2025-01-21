@@ -8,12 +8,7 @@ import {
 
 import { camelize, getRecordKeyByValue } from '@repo/helpers'
 
-import {
-  DeleteResult,
-  EntityMetadata,
-  Repository,
-  SelectQueryBuilder
-} from 'typeorm'
+import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
 
 import { BaseEntity } from '@repo/types'
 import { ValidationError } from 'class-validator'
@@ -335,9 +330,9 @@ export class CrudService {
    * @param entitySlug the entity slug.
    * @param id the item id.
    *
-   * @returns the delete result.
+   * @returns the deleted item.
    */
-  async delete(entitySlug: string, id: number): Promise<DeleteResult> {
+  async delete(entitySlug: string, id: number): Promise<BaseEntity> {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({
         entitySlug
@@ -375,7 +370,9 @@ export class CrudService {
       })
     }
 
-    return entityRepository.delete(id)
+    await entityRepository.delete(id)
+
+    return item
   }
 
   /**

@@ -7,6 +7,6 @@ export interface HookManifest {
   url: string
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   headers: {
-    [k: string]: unknown
+    [k: string]: string
   }
 }

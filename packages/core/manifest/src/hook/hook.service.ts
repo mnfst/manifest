@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { HookEventName, HookManifest, HookSchema } from '../../../types/src'
+import {
+  HookEventName,
+  HookManifest,
+  HookSchema,
+  WebhookPayload
+} from '@repo/types'
 
 @Injectable()
 export class HookService {
@@ -28,10 +33,33 @@ export class HookService {
    * Triggers a webhook.
    *
    * @param hookManifest The hook manifest.
+   * @param entity The entity slug.
    *
    * @returns A promise that resolves when the webhook is triggered.
    */
-  async triggerWebhook(hookManifest: HookManifest): Promise<void> {
-    // TODO: Implement webhook trigger.
+  async triggerWebhook(
+    hookManifest: HookManifest,
+    entity: string,
+    record: object
+  ): Promise<void> {
+    const headers = Object.assign(
+      {
+        'Content-Type': 'application/json'
+      },
+      hookManifest.headers
+    )
+
+    const payload: WebhookPayload = {
+      event: hookManifest.event,
+      createdAt: new Date(),
+      entity,
+      record
+    }
+
+    await fetch(hookManifest.url, {
+      method: hookManifest.method,
+      headers,
+      body: hookManifest.method !== 'GET' ? JSON.stringify(payload) : undefined // GET requests don't have a body.
+    })
   }
 }

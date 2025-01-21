@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common'
 
 import { BaseEntity, Paginator, SelectOption } from '@repo/types'
-import { DeleteResult } from 'typeorm'
 import { CrudService } from '../services/crud.service'
 import { AuthService } from '../../auth/auth.service'
 import { Request } from 'express'
@@ -102,7 +101,7 @@ export class CollectionController {
   delete(
     @Param('entity') entity: string,
     @Param('id', ParseIntPipe) id: number
-  ): Promise<DeleteResult> {
+  ): Promise<BaseEntity> {
     return this.crudService.delete(entity, id)
   }
 }

@@ -394,6 +394,6 @@ export interface HookSchema {
    * The headers to send with the request
    */
   headers?: {
-    [k: string]: unknown
+    [k: string]: string
   }
 }
