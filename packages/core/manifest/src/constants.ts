@@ -50,6 +50,14 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
     update: [{ access: 'admin' }],
     delete: [{ access: 'admin' }],
     signup: [{ access: 'forbidden' }]
+  },
+  hooks: {
+    beforeCreate: [],
+    afterCreate: [],
+    beforeUpdate: [],
+    afterUpdate: [],
+    beforeDelete: [],
+    afterDelete: []
   }
 }
 

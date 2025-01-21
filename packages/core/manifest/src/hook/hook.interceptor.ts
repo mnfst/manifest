@@ -26,15 +26,13 @@ export class HookInterceptor implements NestInterceptor {
       const request = context.switchToHttp().getRequest()
       const entitySlug: string = request.params.entity
 
-      console.log(entitySlug)
-
       const entityManifest: EntityManifest =
         this.entityManifestService.getEntityManifest({
           slug: context.getArgs()[0].params.entity
         })
 
       // Get related webhooks.
-      console.log(entityManifest)
+      console.log(entityManifest.hooks.beforeCreate)
 
       // Trigger sequentially.
     }

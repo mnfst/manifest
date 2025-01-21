@@ -9,8 +9,9 @@ import {
   AccessPolicy,
   EntityManifest,
   EntitySchema,
+  HookEventName,
   HookManifest,
-  HookSchema,
+  HooksSchema,
   PolicyManifest,
   PolicySchema,
   PropType,
@@ -34,13 +35,15 @@ import {
   publicAccessPolicy
 } from '../utils/policy-manifests'
 import { ManifestService } from './manifest.service'
+import { HookService } from '../../hook/hook.service'
 
 @Injectable()
 export class EntityManifestService {
   constructor(
     private relationshipManifestService: RelationshipManifestService,
     @Inject(forwardRef(() => ManifestService))
-    private manifestService: ManifestService
+    private manifestService: ManifestService,
+    private hookService: HookService
   ) {}
 
   /**
@@ -210,6 +213,7 @@ export class EntityManifestService {
     return {
       ...partialEntityManifest,
       properties: partialEntityManifest.properties,
+      hooks: partialEntityManifest.hooks,
       namePlural:
         entitySchema.namePlural ||
         pluralize.plural(partialEntityManifest.className).toLowerCase(),
@@ -280,6 +284,7 @@ export class EntityManifestService {
     return {
       ...partialEntityManifest,
       properties: partialEntityManifest.properties,
+      hooks: partialEntityManifest.hooks,
       relationships: [],
       policies: {
         create: [forbiddenAccessPolicy],
@@ -393,17 +398,33 @@ export class EntityManifestService {
   }
 
   /**
-   * Transform EntitySchema hook object into an array of HookManifest
+   * Transform EntitySchema hook object into an array of HookManifest.
    *
    * @param hookObject
    *
    * @returns an array of hooks
    */
-  transformHookObject(hookObject: {
-    [key: string]: HookSchema
-  }): HookManifest[] {
-    // TODO; implementation
-    return []
+  transformHookObject(
+    hookSchema: HooksSchema
+  ): Record<HookEventName, HookManifest[]> {
+    const events: HookEventName[] = [
+      'beforeCreate',
+      'afterCreate',
+      'beforeUpdate',
+      'afterUpdate',
+      'beforeDelete',
+      'afterDelete'
+    ]
+
+    return events.reduce(
+      (acc, event: HookEventName) => {
+        acc[event] = (hookSchema?.[event] || []).map((hook) =>
+          this.hookService.transformHookSchemaIntoHookManifest(hook, event)
+        )
+        return acc
+      },
+      {} as Record<HookEventName, HookManifest[]>
+    )
   }
 
   /**

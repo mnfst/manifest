@@ -4,37 +4,22 @@
   "title": "Hook Schema",
   "description": "A hook related to an event the entity records. Doc: https://manifest.build/docs/hooks",
   "type": "object",
-  "oneOf": [
-    {
-      "type": "object",
-      "properties": {
-        "url": {
-          "description": "The URL to send the request to.",
-          "type": "string"
-        },
-        "method": {
-          "type": "string",
-          "description": "The HTTP method to use, defaults to POST.",
-          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
-        },
-        "headers": {
-          "type": "object",
-          "description": "The headers to send with the request"
-        }
-      },
-      "required": ["url"],
-      "additionalProperties": false
+
+  "properties": {
+    "url": {
+      "description": "The URL to send the request to.",
+      "type": "string"
     },
-    {
+    "method": {
+      "type": "string",
+      "description": "The HTTP method to use, defaults to POST.",
+      "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    },
+    "headers": {
       "type": "object",
-      "properties": {
-        "handler": {
-          "type": "string",
-          "description": "The name of the handler file located in the \"hooks\" folder. Docs: https://manifest.build/docs/hooks#handlers"
-        }
-      },
-      "required": ["handler"],
-      "additionalProperties": false
+      "description": "The headers to send with the request"
     }
-  ]
+  },
+  "required": ["url"],
+  "additionalProperties": false
 }

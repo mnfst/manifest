@@ -62,32 +62,6 @@ export type RelationshipSchema =
       eager?: boolean
     }
   | string
-/**
- * A hook related to an event the entity records. Doc: https://manifest.build/docs/hooks
- */
-export type HookSchema =
-  | {
-      /**
-       * The URL to send the request to.
-       */
-      url: string
-      /**
-       * The HTTP method to use, defaults to POST.
-       */
-      method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-      /**
-       * The headers to send with the request
-       */
-      headers?: {
-        [k: string]: unknown
-      }
-    }
-  | {
-      /**
-       * The name of the handler file located in the "hooks" folder. Docs: https://manifest.build/docs/hooks#handlers
-       */
-      handler: string
-    }
 
 /**
  * The 1-file Micro-backend
@@ -403,4 +377,23 @@ export interface HooksSchema {
    * Hooks to run after deleting a record. Doc: https://manifest.build/docs/hooks#events
    */
   afterDelete?: HookSchema[]
+}
+/**
+ * A hook related to an event the entity records. Doc: https://manifest.build/docs/hooks
+ */
+export interface HookSchema {
+  /**
+   * The URL to send the request to.
+   */
+  url: string
+  /**
+   * The HTTP method to use, defaults to POST.
+   */
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  /**
+   * The headers to send with the request
+   */
+  headers?: {
+    [k: string]: unknown
+  }
 }
