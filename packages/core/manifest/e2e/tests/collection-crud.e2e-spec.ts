@@ -15,12 +15,14 @@ describe('Collection CRUD (e2e)', () => {
     location: { lat: 12, lng: 13 }
   }
 
-  it('POST /collections/:entity', async () => {
-    const response = await global.request
-      .post('/collections/dogs')
-      .send(dummyDog)
+  describe('POST /collections/:entity', () => {
+    it('should create an item', async () => {
+      const response = await global.request
+        .post('/collections/dogs')
+        .send(dummyDog)
 
-    expect(response.status).toBe(201)
+      expect(response.status).toBe(201)
+    })
   })
 
   describe('GET /collections/:entity', () => {
@@ -69,77 +71,115 @@ describe('Collection CRUD (e2e)', () => {
     })
   })
 
-  it('GET /collections/:entity/select-options', async () => {
-    const response = await global.request.get(
-      '/collections/dogs/select-options'
-    )
+  describe('GET /collections/:entity/select-options', () => {
+    it('should get select options', async () => {
+      const response = await global.request.get(
+        '/collections/dogs/select-options'
+      )
 
-    expect(response.status).toBe(200)
-    expect(response.body).toMatchObject<SelectOption[]>([
-      {
-        label: dummyDog.name,
-        id: 1
-      }
-    ])
-  })
-
-  it('GET /collections/:entity/:id', async () => {
-    const response = await global.request.get('/collections/dogs/1')
-
-    expect(response.status).toBe(200)
-    expect(response.body).toMatchObject(dummyDog)
-  })
-
-  it('PUT /collections/:entity/:id', async () => {
-    const newName = 'Rex'
-
-    const response = await global.request.put('/collections/dogs/1').send({
-      name: newName
-    })
-
-    expect(response.status).toBe(200)
-
-    const updatedResponse = await global.request.get('/collections/dogs/1')
-
-    expect(updatedResponse.status).toBe(200)
-    expect(updatedResponse.body).toMatchObject({
-      name: newName
+      expect(response.status).toBe(200)
+      expect(response.body).toMatchObject<SelectOption[]>([
+        {
+          label: dummyDog.name,
+          id: 1
+        }
+      ])
     })
   })
 
-  it('PATCH /collections/:entity/:id', async () => {
-    const postResponse = await global.request
-      .post('/collections/dogs')
-      .send(dummyDog)
+  describe('GET /collections/:entity/:id', () => {
+    it('should return an item', async () => {
+      const response = await global.request.get('/collections/dogs/1')
 
-    const newAge = 6
+      expect(response.status).toBe(200)
+      expect(response.body).toMatchObject(dummyDog)
+    })
+  })
 
-    const response = await global.request
-      .patch(`/collections/dogs/${postResponse.body.id}`)
-      .send({
-        age: newAge
+  describe('PUT /collections/:entity/:id', () => {
+    it('should fully update an item', async () => {
+      const newName = 'Rex'
+
+      const response = await global.request.put('/collections/dogs/1').send({
+        name: newName
       })
 
-    expect(response.status).toBe(200)
+      expect(response.status).toBe(200)
 
-    const updatedResponse = await global.request.get(
-      `/collections/dogs/${postResponse.body.id}`
-    )
+      const updatedResponse = await global.request.get('/collections/dogs/1')
 
-    expect(updatedResponse.status).toBe(200)
-    expect(updatedResponse.body).toMatchObject({
-      ...dummyDog,
-      age: newAge
+      expect(updatedResponse.status).toBe(200)
+      expect(updatedResponse.body).toMatchObject({
+        name: newName
+      })
     })
   })
 
-  it('DELETE /collections/:entity/:id', async () => {
-    const response = await global.request.delete('/collections/dogs/1')
+  describe('PATCH /collections/:entity/:id', () => {
+    it('should patch an item', async () => {
+      const postResponse = await global.request
+        .post('/collections/dogs')
+        .send(dummyDog)
 
-    expect(response.status).toBe(200)
+      const newAge = 6
 
-    const updatedResponse = await global.request.get('/collections/dogs/1')
+      const response = await global.request
+        .patch(`/collections/dogs/${postResponse.body.id}`)
+        .send({
+          age: newAge
+        })
 
-    expect(updatedResponse.status).toBe(404)
+      expect(response.status).toBe(200)
+
+      const updatedResponse = await global.request.get(
+        `/collections/dogs/${postResponse.body.id}`
+      )
+
+      expect(updatedResponse.status).toBe(200)
+      expect(updatedResponse.body).toMatchObject({
+        ...dummyDog,
+        age: newAge
+      })
+    })
+
+    it('should keep relations if not provided', async () => {
+      const dogWithOwner = {
+        name: 'Charlie',
+        ownerId: 1
+      }
+
+      const createResponse = await global.request
+        .post('/collections/dogs')
+        .send(dogWithOwner)
+
+      expect(createResponse.status).toBe(201)
+
+      const updateResponse = await global.request
+        .patch(`/collections/dogs/${createResponse.body.id}`)
+        .send({
+          name: 'Charlie 2'
+        })
+
+      expect(updateResponse.status).toBe(200)
+
+      const fetchResponse = await global.request.get(
+        `/collections/dogs/${createResponse.body.id}?relations=owner`
+      )
+
+      expect(fetchResponse.status).toBe(200)
+      expect(fetchResponse.body?.owner?.id).toEqual(1)
+    })
+  })
+
+  describe('DELETE /collections/:entity/:id', () => {
+    it('should delete an item', async () => {
+      const response = await global.request.delete('/collections/dogs/1')
+
+      expect(response.status).toBe(200)
+
+      const updatedResponse = await global.request.get('/collections/dogs/1')
+
+      expect(updatedResponse.status).toBe(404)
+    })
   })
 })
