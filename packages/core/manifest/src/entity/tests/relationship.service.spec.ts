@@ -90,8 +90,6 @@ describe('RelationshipService', () => {
         relationships: [dummyRelationManifest]
       })
 
-      console.log(relationItems)
-
       expect(relationItems.owner['id']).toBe(itemDto.ownerId)
     })
 
