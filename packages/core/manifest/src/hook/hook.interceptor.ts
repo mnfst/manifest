@@ -45,13 +45,15 @@ export class HookInterceptor implements NestInterceptor {
         })
 
       // Trigger hooks.
-      await lastValueFrom(
-        forkJoin(
-          entityManifest.hooks[event].map((hook: HookManifest) =>
-            this.hookService.triggerWebhook(hook, entitySlug, payload)
+      if (entityManifest.hooks[event].length) {
+        await lastValueFrom(
+          forkJoin(
+            entityManifest.hooks[event].map((hook: HookManifest) =>
+              this.hookService.triggerWebhook(hook, entitySlug, payload)
+            )
           )
         )
-      )
+      }
     }
 
     return next.handle().pipe(
@@ -73,13 +75,15 @@ export class HookInterceptor implements NestInterceptor {
             })
 
           // Trigger hooks.
-          await lastValueFrom(
-            forkJoin(
-              entityManifest.hooks[event].map((hook: HookManifest) =>
-                this.hookService.triggerWebhook(hook, entitySlug, data)
+          if (entityManifest.hooks[event].length) {
+            await lastValueFrom(
+              forkJoin(
+                entityManifest.hooks[event].map((hook: HookManifest) =>
+                  this.hookService.triggerWebhook(hook, entitySlug, data)
+                )
               )
             )
-          )
+          }
         }
       })
     )
