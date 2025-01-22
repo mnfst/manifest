@@ -237,12 +237,12 @@ export class CrudService {
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
-      await this.relationshipService.fetchRelationItemsFromDto(
+      await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
-        entityManifest.relationships
+        relationships: entityManifest.relationships
           .filter((r) => r.type !== 'one-to-many')
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-      )
+      })
 
     if (entityManifest.authenticable && itemDto.password) {
       newItem.password = SHA3(newItem.password).toString()
@@ -311,12 +311,13 @@ export class CrudService {
     }
 
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
-      await this.relationshipService.fetchRelationItemsFromDto(
+      await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
-        entityManifest.relationships
+        relationships: entityManifest.relationships
           .filter((r) => r.type !== 'one-to-many')
-          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-      )
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide),
+        emptyMissing: !partialReplacement
+      })
 
     // On partial replacement, only update the provided props.
     if (partialReplacement) {
@@ -324,7 +325,10 @@ export class CrudService {
 
       // Remove undefined values to keep the existing values.
       Object.keys(relationItems).forEach((key: string) => {
-        if (relationItems[key] === undefined) {
+        if (
+          relationItems[key] === undefined ||
+          relationItems[key]?.length === 0
+        ) {
           delete relationItems[key]
         }
       })

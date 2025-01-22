@@ -143,9 +143,15 @@ describe('Collection CRUD (e2e)', () => {
     })
 
     it('should keep relations if not provided', async () => {
+      const createOwnerResponse = await global.request
+        .post('/collections/owners')
+        .send({
+          name: 'John Doe'
+        })
+
       const dogWithOwner = {
         name: 'Charlie',
-        ownerId: 1
+        ownerId: createOwnerResponse.body.id
       }
 
       const createResponse = await global.request

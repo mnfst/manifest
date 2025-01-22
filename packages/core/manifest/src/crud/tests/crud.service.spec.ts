@@ -14,11 +14,7 @@ describe('CrudService', () => {
     name: 'Superman',
     age: 30,
     color: 'blue',
-    mentor: {
-      name: 'Batman',
-      age: 40,
-      color: 'black'
-    }
+    mentorId: 3
   }
 
   beforeEach(async () => {
@@ -59,9 +55,15 @@ describe('CrudService', () => {
         {
           provide: RelationshipService,
           useValue: {
-            fetchRelationItemsFromDto: jest.fn((itemDto) => ({
-              mentor: itemDto.mentor
-            }))
+            fetchRelationItemsFromDto: jest.fn(({ itemDto, emptyMissing }) => {
+              if (itemDto.mentorId) {
+                return { mentor: { id: itemDto.mentorId } }
+              }
+              if (emptyMissing) {
+                return { mentor: null }
+              }
+              return {}
+            })
           }
         }
       ]
@@ -106,11 +108,11 @@ describe('CrudService', () => {
     it('should update relationships', async () => {
       const entitySlug = 'test'
       const id = 1
-      const itemDto = { mentor: { id: 2 } }
+      const itemDto = { mentorId: 2 }
 
-      const result = await service.update({ entitySlug, id, itemDto })
+      const result: any = await service.update({ entitySlug, id, itemDto })
 
-      expect(result.mentor).toEqual(itemDto.mentor)
+      expect(result.mentor.id).toEqual(itemDto.mentorId)
     })
 
     it('should do a full replacement of properties', async () => {
@@ -128,7 +130,7 @@ describe('CrudService', () => {
       const entitySlug = 'test'
       const id = 1
       const itemWithoutRelation = {}
-      const itemWithNewRelation = { mentor: { id: 2 } }
+      const itemWithNewRelation = { mentorId: 2 }
 
       const resultWithoutRelation = await service.update({
         entitySlug,
@@ -141,10 +143,10 @@ describe('CrudService', () => {
         itemDto: itemWithNewRelation
       })
 
-      expect(resultWithoutRelation.mentor).toEqual(
-        itemWithoutRelation['mentor']
+      expect(resultWithoutRelation.mentor).toBeNull()
+      expect(resultWithNewRelation.mentor['id']).toEqual(
+        itemWithNewRelation.mentorId
       )
-      expect(resultWithNewRelation.mentor).toEqual(itemWithNewRelation.mentor)
     })
 
     it('should throw an error if validation fails', async () => {
@@ -184,8 +186,8 @@ describe('CrudService', () => {
       it('should replace relations only if specified', async () => {
         const entitySlug = 'test'
         const id = 1
-        const itemDto = { mentor: { id: 2 } }
-        const itemWithoutRelation = { name: 'test' }
+        const itemDto = { mentorId: 2 }
+        const itemWithoutRelationDto = { name: 'test' }
 
         const result = await service.update({
           entitySlug,
@@ -197,15 +199,15 @@ describe('CrudService', () => {
         const resultWithoutRelation = await service.update({
           entitySlug,
           id,
-          itemDto: itemWithoutRelation,
+          itemDto: itemWithoutRelationDto,
           partialReplacement: true
         })
 
-        expect(result.mentor).toEqual(itemDto.mentor)
+        expect(result.mentor['id']).toEqual(itemDto.mentorId)
         expect(result.name).toEqual(dummyItem.name)
 
-        expect(resultWithoutRelation.mentor).toEqual(dummyItem.mentor)
-        expect(resultWithoutRelation.name).toEqual(itemWithoutRelation.name)
+        expect(resultWithoutRelation.mentor).toBeUndefined()
+        expect(resultWithoutRelation.name).toEqual(itemWithoutRelationDto.name)
       })
     })
   })
