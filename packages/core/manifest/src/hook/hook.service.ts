@@ -56,10 +56,17 @@ export class HookService {
       record
     }
 
-    await fetch(hookManifest.url, {
-      method: hookManifest.method,
-      headers,
-      body: hookManifest.method !== 'GET' ? JSON.stringify(payload) : undefined // GET requests don't have a body.
-    })
+    try {
+      await fetch(hookManifest.url, {
+        method: hookManifest.method,
+        headers,
+        body:
+          hookManifest.method !== 'GET' ? JSON.stringify(payload) : undefined // GET requests don't have a body.
+      })
+    } catch {
+      console.error(
+        `Failed to trigger webhook "${hookManifest.url}" for event "${hookManifest.event}" (entity: "${entity}").`
+      )
+    }
   }
 }
