@@ -6,6 +6,8 @@ import { IsSingleGuard } from '../guards/is-single.guard'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 import { NotFoundException } from '@nestjs/common'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { HookInterceptor } from '../../hook/hook.interceptor'
+import { HookService } from '../../hook/hook.service'
 
 describe('SingleController', () => {
   let controller: SingleController
@@ -45,6 +47,18 @@ describe('SingleController', () => {
           provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
+          }
+        },
+        {
+          provide: HookInterceptor,
+          useValue: {
+            intercept: jest.fn()
+          }
+        },
+        {
+          provide: HookService,
+          useValue: {
+            triggerWebhook: jest.fn()
           }
         }
       ]

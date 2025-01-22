@@ -8,6 +8,7 @@ import {
 } from '../../../../types/src'
 import { RelationshipManifestService } from '../services/relationship-manifest.service'
 import { ManifestService } from '../services/manifest.service'
+import { HookService } from '../../hook/hook.service'
 
 describe('EntityManifestService', () => {
   let service: EntityManifestService
@@ -33,6 +34,14 @@ describe('EntityManifestService', () => {
             hidden: true
           }
         ],
+        hooks: {
+          beforeCreate: [],
+          afterCreate: [],
+          beforeUpdate: [],
+          afterUpdate: [],
+          beforeDelete: [],
+          afterDelete: []
+        },
         relationships: [],
         policies: {
           create: [],
@@ -62,6 +71,12 @@ describe('EntityManifestService', () => {
           provide: ManifestService,
           useValue: {
             getAppManifest: jest.fn(() => dummyManifest)
+          }
+        },
+        {
+          provide: HookService,
+          useValue: {
+            transformHookSchemaIntoHookManifest: jest.fn()
           }
         }
       ]
