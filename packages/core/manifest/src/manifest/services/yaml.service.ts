@@ -25,6 +25,8 @@ export class YamlService {
       fileContent = fs.readFileSync(manifestFilePath, 'utf8')
     }
 
+    fileContent = this.interpolateDotEnvVariables(fileContent)
+
     const manifestSchema: Manifest = yaml.load(fileContent) as Manifest
 
     // Remove emojis from entity keys.
@@ -66,7 +68,6 @@ export class YamlService {
    *
    * @param fileContent
    * @returns string the file content without emojis
-   *
    */
   ignoreEmojis(fileContent: string): string {
     const emojiWithSurroundingSpacesRegex =
@@ -76,5 +77,21 @@ export class YamlService {
       .replace(emojiWithSurroundingSpacesRegex, '')
       .replace(/[^\w]/g, '')
       .trim()
+  }
+
+  /**
+   * Interpolates environment variables in a YAML string.
+   *
+   * @param {string} yamlContent - The YAML content with placeholders.
+   * @returns {string} - The YAML content with placeholders replaced by environment variables.
+   */
+  interpolateDotEnvVariables(yamlContent: string): string {
+    return yamlContent.replace(/\$\{\s*(\w+)\s*}/g, (match, varName) => {
+      const value = process.env[varName]
+      if (value === undefined) {
+        console.warn(`Warning: Environment variable ${varName} is not defined.`)
+      }
+      return value || match
+    })
   }
 }

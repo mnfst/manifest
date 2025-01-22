@@ -75,4 +75,20 @@ describe('YamlService', () => {
       expect(result3).toBe('test')
     })
   })
+
+  describe('interpolateDotEnvVariables', () => {
+    it('should replace the .env variables with their values', () => {
+      process.env.TEST = 'test'
+      const result = service.interpolateDotEnvVariables('test ${TEST}')
+
+      expect(result).toBe('test test')
+    })
+
+    it('should replace the .env variables with their values when they are surrounded by spaces', () => {
+      process.env.TEST = 'test'
+      const result = service.interpolateDotEnvVariables('test ${ TEST }')
+
+      expect(result).toBe('test test')
+    })
+  })
 })
