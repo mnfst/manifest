@@ -4,6 +4,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Put,
   Req,
   UseGuards
@@ -55,10 +56,24 @@ export class SingleController {
 
   @Put(':entity')
   @Rule('update')
-  update(
-    @Param('entity') entity: string,
-    @Body() entityDto: Partial<BaseEntity>
+  put(
+    @Param('entity') entitySlug: string,
+    @Body() itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
-    return this.crudService.update(entity, 1, entityDto)
+    return this.crudService.update({ entitySlug, id: 1, itemDto })
+  }
+
+  @Patch(':entity')
+  @Rule('update')
+  patch(
+    @Param('entity') entitySlug: string,
+    @Body() itemDto: Partial<BaseEntity>
+  ): Promise<BaseEntity> {
+    return this.crudService.update({
+      entitySlug,
+      id: 1,
+      itemDto,
+      partialReplacement: true
+    })
   }
 }

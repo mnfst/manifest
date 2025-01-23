@@ -156,13 +156,19 @@ export class RelationshipService {
    *
    * @param itemDto The DTO to fetch the related items for.
    * @param relationships The relationships to fetch the related items for.
+   * @param emptyMissing If true, missing relationships will be emptied from the DTO by returning null or an empty array.
    *
    * @returns A "relationItems" object with the related items.
    * */
-  async fetchRelationItemsFromDto(
-    itemDto: object,
+  async fetchRelationItemsFromDto({
+    itemDto,
+    relationships,
+    emptyMissing
+  }: {
+    itemDto: object
     relationships: RelationshipManifest[]
-  ): Promise<{ [key: string]: BaseEntity | BaseEntity[] }> {
+    emptyMissing?: boolean
+  }): Promise<{ [key: string]: BaseEntity | BaseEntity[] }> {
     const fetchPromises: { [key: string]: Promise<BaseEntity | BaseEntity[]> } =
       {}
 
@@ -187,17 +193,19 @@ export class RelationshipService {
                 id: In(relationIds)
               })
       } else {
-        fetchPromises[relationship.name] =
-          relationship.type === 'many-to-one'
-            ? Promise.resolve(null)
-            : Promise.resolve([])
+        if (emptyMissing) {
+          fetchPromises[relationship.name] =
+            relationship.type === 'many-to-one'
+              ? Promise.resolve(null)
+              : Promise.resolve([])
+        }
       }
     })
 
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } = {}
 
-    for (const [key, value] of Object.entries(fetchPromises)) {
-      relationItems[key] = await value
+    for (const [key, fetchPromise] of Object.entries(fetchPromises)) {
+      relationItems[key] = await fetchPromise
     }
 
     return relationItems

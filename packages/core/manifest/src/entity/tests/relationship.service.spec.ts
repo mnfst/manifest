@@ -14,6 +14,7 @@ describe('RelationshipService', () => {
     entity: 'User',
     type: 'many-to-one'
   }
+  const dummyUserIds: number[] = [1, 2, 3]
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +31,11 @@ describe('RelationshipService', () => {
         {
           provide: EntityService,
           useValue: {
-            getEntityRepository: jest.fn()
+            getEntityRepository: jest.fn(() => ({
+              findOneBy: jest.fn(({ id }) => Promise.resolve({ id })),
+              findBy: jest.fn(() => dummyUserIds.map((id) => ({ id })))
+            })),
+            getEntityMetadata: jest.fn(() => ({ target: 'Owner' }))
           }
         }
       ]
@@ -72,5 +77,68 @@ describe('RelationshipService', () => {
         expect(relation.id).toBeLessThanOrEqual(mockSeedCount)
       })
     })
+  })
+
+  describe('fetchRelationItemsFromDto', () => {
+    it('should return an object with the relation items', async () => {
+      const itemDto = {
+        ownerId: 1
+      }
+
+      const relationItems = await service.fetchRelationItemsFromDto({
+        itemDto,
+        relationships: [dummyRelationManifest]
+      })
+
+      expect(relationItems.owner['id']).toBe(itemDto.ownerId)
+    })
+
+    it('should retrun an object with the relation items for many-to-many relationships', async () => {
+      const manyToManyRelationManifest: RelationshipManifest = {
+        name: 'users',
+        entity: 'User',
+        type: 'many-to-many',
+        owningSide: true
+      }
+
+      const itemDto = {
+        userIds: dummyUserIds
+      }
+
+      const relationItems = (await service.fetchRelationItemsFromDto({
+        itemDto,
+        relationships: [manyToManyRelationManifest]
+      })) as any
+      console.log(relationItems)
+
+      expect(relationItems.users.length).toBe(3)
+
+      relationItems.users.forEach((user, index) => {
+        expect(user['id']).toBe(itemDto.userIds[index])
+      })
+    })
+  })
+
+  it('should empty missing relationships if emptyMissing is true', async () => {
+    const itemDto = {}
+
+    const relationItems = await service.fetchRelationItemsFromDto({
+      itemDto,
+      relationships: [dummyRelationManifest],
+      emptyMissing: true
+    })
+
+    expect(relationItems.owner).toBeNull()
+  })
+
+  it('should not empty missing relationships by default', async () => {
+    const itemDto = {}
+
+    const relationItems = await service.fetchRelationItemsFromDto({
+      itemDto,
+      relationships: [dummyRelationManifest]
+    })
+
+    expect(relationItems.owner).toBeUndefined()
   })
 })

@@ -237,12 +237,12 @@ export class CrudService {
 
     const newItem: BaseEntity = entityRepository.create(itemDto)
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
-      await this.relationshipService.fetchRelationItemsFromDto(
+      await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
-        entityManifest.relationships
+        relationships: entityManifest.relationships
           .filter((r) => r.type !== 'one-to-many')
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-      )
+      })
 
     if (entityManifest.authenticable && itemDto.password) {
       newItem.password = SHA3(newItem.password).toString()
@@ -274,11 +274,27 @@ export class CrudService {
     return entityRepository.save({})
   }
 
-  async update(
-    entitySlug: string,
-    id: number,
+  /*
+   * Updates an item doing a FULL REPLACEMENT of the item properties and relations unless partialReplacement is set to true.
+   *
+   * @param entitySlug the entity slug.
+   * @param id the item id.
+   * @param itemDto the item dto.
+   * @param partialReplacement whether to do a partial replacement.
+   *
+   * @returns the updated item.
+   */
+  async update({
+    entitySlug,
+    id,
+    itemDto,
+    partialReplacement
+  }: {
+    entitySlug: string
+    id: number
     itemDto: Partial<BaseEntity>
-  ): Promise<BaseEntity> {
+    partialReplacement?: boolean
+  }): Promise<BaseEntity> {
     const entityManifest: EntityManifest =
       this.entityManifestService.getEntityManifest({
         slug: entitySlug,
@@ -290,22 +306,35 @@ export class CrudService {
 
     const item: BaseEntity = await entityRepository.findOne({ where: { id } })
 
-    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
-      await this.relationshipService.fetchRelationItemsFromDto(
-        itemDto,
-        entityManifest.relationships
-          .filter((r) => r.type !== 'one-to-many')
-          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-      )
-
     if (!item) {
       throw new NotFoundException('Item not found')
     }
 
-    const updatedItem: BaseEntity = entityRepository.create({
-      ...item,
-      ...itemDto
-    } as BaseEntity)
+    const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
+      await this.relationshipService.fetchRelationItemsFromDto({
+        itemDto,
+        relationships: entityManifest.relationships
+          .filter((r) => r.type !== 'one-to-many')
+          .filter((r) => r.type !== 'many-to-many' || r.owningSide),
+        emptyMissing: !partialReplacement
+      })
+
+    // On partial replacement, only update the provided props.
+    if (partialReplacement) {
+      itemDto = { ...item, ...itemDto }
+
+      // Remove undefined values to keep the existing values.
+      Object.keys(relationItems).forEach((key: string) => {
+        if (
+          relationItems[key] === undefined ||
+          relationItems[key]?.length === 0
+        ) {
+          delete relationItems[key]
+        }
+      })
+    }
+
+    const updatedItem: BaseEntity = entityRepository.create({ id, ...itemDto })
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {

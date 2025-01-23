@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -86,12 +87,27 @@ export class CollectionController {
 
   @Put(':entity/:id')
   @Rule('update')
-  update(
-    @Param('entity') entity: string,
+  put(
+    @Param('entity') entitySlug: string,
     @Param('id', ParseIntPipe) id: number,
-    @Body() entityDto: Partial<BaseEntity>
+    @Body() itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
-    return this.crudService.update(entity, id, entityDto)
+    return this.crudService.update({ entitySlug, id, itemDto })
+  }
+
+  @Patch(':entity/:id')
+  @Rule('update')
+  patch(
+    @Param('entity') entitySlug: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() itemDto: Partial<BaseEntity>
+  ): Promise<BaseEntity> {
+    return this.crudService.update({
+      entitySlug,
+      id,
+      itemDto,
+      partialReplacement: true
+    })
   }
 
   @Delete(':entity/:id')

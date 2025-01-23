@@ -145,7 +145,8 @@ export class RelationshipManifestService {
           otherEntityManifest.relationships.find(
             (relationship: RelationshipManifest) =>
               relationship.entity === currentEntityManifest.className &&
-              relationship.type === 'many-to-many'
+              relationship.type === 'many-to-many' &&
+              relationship.owningSide === true
           )
 
         if (oppositeRelationship) {
