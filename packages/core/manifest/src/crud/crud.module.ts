@@ -10,9 +10,10 @@ import { DatabaseService } from './services/database.service'
 import { DatabaseController } from './controllers/database.controller'
 import { CollectionController } from './controllers/collection.controller'
 import { SingleController } from './controllers/single.controller'
+import { HookModule } from '../hook/hook.module'
 
 @Module({
-  imports: [EntityModule, ManifestModule, ValidationModule],
+  imports: [EntityModule, ManifestModule, ValidationModule, HookModule],
   controllers: [CollectionController, DatabaseController, SingleController],
   providers: [CrudService, PaginationService, AuthService, DatabaseService],
   exports: [DatabaseService]

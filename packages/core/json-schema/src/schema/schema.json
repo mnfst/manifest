@@ -6,11 +6,11 @@
   "type": "object",
   "properties": {
     "name": {
-      "description": "The name of your app",
+      "description": "The name of your app.",
       "type": "string"
     },
     "version": {
-      "description": "The version of your app",
+      "description": "The version of your app.",
       "type": "string"
     },
     "entities": {

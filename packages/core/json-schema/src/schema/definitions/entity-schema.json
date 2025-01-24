@@ -72,6 +72,11 @@
           "$ref": "./validation-schema.json"
         }
       }
+    },
+    "hooks": {
+      "description": "The hooks related to entity records events. Doc: https://manifest.build/docs/hooks",
+      "type": "object",
+      "$ref": "./hooks/hooks-schema.json"
     }
   },
   "if": {

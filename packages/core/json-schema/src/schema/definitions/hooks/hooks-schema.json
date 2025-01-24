@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/hooks/hooks-schema.json",
+  "title": "Hooks Schema",
+  "description": "The hooks related to events the entity records. Doc: https://manifest.build/docs/hooks",
+  "type": "object",
+  "properties": {
+    "beforeCreate": {
+      "type": "array",
+      "description": "Hooks to run before creating a record. Doc: https://manifest.build/docs/hooks#events",
+      "items": {
+        "$ref": "hook-schema.json"
+      }
+    },
+    "afterCreate": {
+      "type": "array",
+      "description": "Hooks to run after creating a record. Doc: https://manifest.build/docs/hooks#events",
+      "items": {
+        "$ref": "hook-schema.json"
+      }
+    },
+    "beforeUpdate": {
+      "type": "array",
+      "description": "Hooks to run before updating a record. Doc: https://manifest.build/docs/hooks#events",
+      "items": {
+        "$ref": "hook-schema.json"
+      }
+    },
+    "afterUpdate": {
+      "type": "array",
+      "description": "Hooks to run after updating a record. Doc: https://manifest.build/docs/hooks#events",
+      "items": {
+        "$ref": "hook-schema.json"
+      }
+    },
+    "beforeDelete": {
+      "type": "array",
+      "description": "Hooks to run before deleting a record. Doc: https://manifest.build/docs/hooks#events",
+      "items": {
+        "$ref": "hook-schema.json"
+      }
+    },
+    "afterDelete": {
+      "type": "array",
+      "description": "Hooks to run after deleting a record. Doc: https://manifest.build/docs/hooks#events",
+      "items": {
+        "$ref": "hook-schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

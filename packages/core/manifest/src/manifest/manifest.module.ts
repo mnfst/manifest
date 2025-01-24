@@ -7,6 +7,7 @@ import { AuthModule } from '../auth/auth.module'
 import { EntityManifestService } from './services/entity-manifest.service'
 import { RelationshipManifestService } from './services/relationship-manifest.service'
 import { ManifestService } from './services/manifest.service'
+import { HookModule } from '../hook/hook.module'
 
 /**
  *
@@ -16,7 +17,11 @@ import { ManifestService } from './services/manifest.service'
  */
 
 @Module({
-  imports: [forwardRef(() => EntityModule), forwardRef(() => AuthModule)],
+  imports: [
+    forwardRef(() => EntityModule),
+    forwardRef(() => AuthModule),
+    HookModule
+  ],
   providers: [
     ManifestService,
     YamlService,

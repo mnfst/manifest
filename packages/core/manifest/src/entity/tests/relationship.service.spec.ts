@@ -109,7 +109,6 @@ describe('RelationshipService', () => {
         itemDto,
         relationships: [manyToManyRelationManifest]
       })) as any
-      console.log(relationItems)
 
       expect(relationItems.users.length).toBe(3)
 

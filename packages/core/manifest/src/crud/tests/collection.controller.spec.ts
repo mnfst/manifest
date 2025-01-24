@@ -5,6 +5,8 @@ import { CrudService } from '../services/crud.service'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { HookInterceptor } from '../../hook/hook.interceptor'
+import { HookService } from '../../hook/hook.service'
 
 describe('CollectionController', () => {
   let controller: CollectionController
@@ -47,6 +49,18 @@ describe('CollectionController', () => {
           provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn()
+          }
+        },
+        {
+          provide: HookInterceptor,
+          useValue: {
+            intercept: jest.fn()
+          }
+        },
+        {
+          provide: HookService,
+          useValue: {
+            triggerWebhook: jest.fn()
           }
         }
       ]

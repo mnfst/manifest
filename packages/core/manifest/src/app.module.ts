@@ -21,6 +21,7 @@ import { ValidationModule } from './validation/validation.module'
 import { UploadModule } from './upload/upload.module'
 import { StorageModule } from './storage/storage.module'
 import { ManifestService } from './manifest/services/manifest.service'
+import { HookModule } from './hook/hook.module';
 
 @Module({
   imports: [
@@ -58,7 +59,8 @@ import { ManifestService } from './manifest/services/manifest.service'
     OpenApiModule,
     ValidationModule,
     UploadModule,
-    StorageModule
+    StorageModule,
+    HookModule
   ]
 })
 export class AppModule {

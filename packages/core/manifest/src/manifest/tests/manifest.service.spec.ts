@@ -25,6 +25,14 @@ describe('ManifestService', () => {
             type: PropType.String
           }
         ],
+        hooks: {
+          beforeCreate: [],
+          afterCreate: [],
+          beforeUpdate: [],
+          afterUpdate: [],
+          beforeDelete: [],
+          afterDelete: []
+        },
         relationships: [],
         policies: {
           create: [],

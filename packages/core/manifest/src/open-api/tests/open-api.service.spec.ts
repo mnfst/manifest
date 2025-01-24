@@ -30,6 +30,14 @@ describe('OpenApiService', () => {
           update: [],
           delete: [],
           signup: []
+        },
+        hooks: {
+          beforeCreate: [],
+          afterCreate: [],
+          beforeUpdate: [],
+          afterUpdate: [],
+          beforeDelete: [],
+          afterDelete: []
         }
       }
     }
@@ -60,8 +68,8 @@ describe('OpenApiService', () => {
         {
           provide: OpenApiAuthService,
           useValue: {
-            generateAuthPaths: jest.fn((appManifest: AppManifest) => {}),
-            getSecuritySchemes: jest.fn((appManifest: AppManifest) => {})
+            generateAuthPaths: jest.fn(() => {}),
+            getSecuritySchemes: jest.fn(() => {})
           }
         }
       ]

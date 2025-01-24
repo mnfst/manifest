@@ -7,7 +7,8 @@ import {
   Patch,
   Put,
   Req,
-  UseGuards
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common'
 import { Rule } from '../../auth/decorators/rule.decorator'
 import { AuthService } from '../../auth/auth.service'
@@ -17,11 +18,13 @@ import { CrudService } from '../services/crud.service'
 import { BaseEntity } from '@repo/types'
 import { IsSingleGuard } from '../guards/is-single.guard'
 import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { HookInterceptor } from '../../hook/hook.interceptor'
 
 /**
  * Controller for single type entities.
  */
 @UseGuards(AuthorizationGuard, IsSingleGuard)
+@UseInterceptors(HookInterceptor)
 @Controller('singles')
 export class SingleController {
   constructor(

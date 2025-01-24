@@ -59,6 +59,14 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   properties: AUTHENTICABLE_PROPS,
   relationships: [],
   belongsToMany: [],
+  hooks: {
+    beforeCreate: [],
+    afterCreate: [],
+    beforeUpdate: [],
+    afterUpdate: [],
+    beforeDelete: [],
+    afterDelete: []
+  },
   policies: {
     create: [{ access: 'admin' }],
     read: [{ access: 'admin' }],
