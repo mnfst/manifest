@@ -4,37 +4,37 @@ import { SingleController } from '../crud/controllers/single.controller'
 
 export const hookEvents: {
   name: HookEventName
-  relatedFunction: keyof CollectionController | keyof SingleController
+  relatedFunctions: (keyof CollectionController | keyof SingleController)[]
   moment: 'before' | 'after'
 }[] = [
   {
     name: 'beforeCreate',
-    relatedFunction: 'store',
+    relatedFunctions: ['store'],
     moment: 'before'
   },
   {
     name: 'afterCreate',
-    relatedFunction: 'store',
+    relatedFunctions: ['store'],
     moment: 'after'
   },
   {
     name: 'beforeUpdate',
-    relatedFunction: 'update',
+    relatedFunctions: ['put', 'patch'],
     moment: 'before'
   },
   {
     name: 'afterUpdate',
-    relatedFunction: 'update',
+    relatedFunctions: ['put', 'patch'],
     moment: 'after'
   },
   {
     name: 'beforeDelete',
-    relatedFunction: 'delete',
+    relatedFunctions: ['delete'],
     moment: 'before'
   },
   {
     name: 'afterDelete',
-    relatedFunction: 'delete',
+    relatedFunctions: ['delete'],
     moment: 'after'
   }
 ]

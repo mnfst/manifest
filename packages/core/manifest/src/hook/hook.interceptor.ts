@@ -9,6 +9,8 @@ import { hookEvents } from './hook-events'
 import { EntityManifest, HookEventName, HookManifest } from '@repo/types'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 import { HookService } from './hook.service'
+import { SingleController } from '../crud/controllers/single.controller'
+import { CollectionController } from '../crud/controllers/collection.controller'
 
 @Injectable()
 export class HookInterceptor implements NestInterceptor {
@@ -22,9 +24,14 @@ export class HookInterceptor implements NestInterceptor {
     next: CallHandler
   ): Promise<Observable<any>> {
     // Get related "before" hook event.
+    const functionCalled: keyof CollectionController | keyof SingleController =
+      context.getHandler().name as
+        | keyof CollectionController
+        | keyof SingleController
+
     const event: HookEventName = hookEvents.find(
       (event) =>
-        event.relatedFunction === context.getHandler().name &&
+        event.relatedFunctions.includes(functionCalled) &&
         event.moment === 'before'
     )?.name
 
@@ -61,7 +68,7 @@ export class HookInterceptor implements NestInterceptor {
         // Get related "after" hook event.
         const event: HookEventName = hookEvents.find(
           (event) =>
-            event.relatedFunction === context.getHandler().name &&
+            event.relatedFunctions.includes(functionCalled) &&
             event.moment === 'after'
         )?.name
 
