@@ -1,5 +1,11 @@
 # manifest
 
+## 4.5.0
+
+### Minor Changes
+
+- 41e699e: Added webhooks
+
 ## 4.4.0
 
 ### Minor Changes
