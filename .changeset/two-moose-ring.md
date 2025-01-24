@@ -1,5 +1,0 @@
----
-'manifest': minor
----
-
-Added webhooks
