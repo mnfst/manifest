@@ -48,7 +48,7 @@ describe('Single CRUD (e2e)', () => {
     })
   })
 
-  describe('PUT /collections/:entity', () => {
+  describe('PUT /singles/:entity', () => {
     it('can update a single entity', async () => {
       const newTitle: string = 'Contact Us'
 

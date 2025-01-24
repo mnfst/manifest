@@ -41,7 +41,8 @@ describe('RelationshipManifestService', () => {
           {
             name: 'friends',
             entity: 'Dog',
-            type: 'many-to-many'
+            type: 'many-to-many',
+            owningSide: true
           }
         ],
         policies: {

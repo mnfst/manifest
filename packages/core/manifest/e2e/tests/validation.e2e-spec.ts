@@ -164,7 +164,7 @@ describe('Validation (e2e)', () => {
 
       const updateResponse = await global.request
         .put('/collections/super-users/1')
-        .send({ name: 'new name' })
+        .send({ name: 'new name', email: 'example2@manifest.build' })
 
       expect(badCreateResponse.status).toBe(400)
       expect(

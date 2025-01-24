@@ -1,5 +1,17 @@
 # manifest
 
+## 4.4.0
+
+### Minor Changes
+
+- 2dc8679: Added PATCH requests for item update
+
+## 4.3.3
+
+### Patch Changes
+
+- 01aed5b: fixed admins cannot be managed in admin panel
+
 ## 4.3.2
 
 ### Patch Changes

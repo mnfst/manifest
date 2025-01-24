@@ -30,6 +30,7 @@ export class OpenApiCrudService {
         paths[`/api/collections/${entityManifest.slug}/{id}`] = {
           ...this.generateDetailPath(entityManifest),
           ...this.generateUpdatePath(entityManifest),
+          ...this.generatePatchPath(entityManifest),
           ...this.generateDeletePath(entityManifest)
         }
       })
@@ -40,7 +41,8 @@ export class OpenApiCrudService {
       .forEach((entityManifest: EntityManifest) => {
         paths[`/api/singles/${entityManifest.slug}`] = {
           ...this.generateDetailPath(entityManifest, true),
-          ...this.generateUpdatePath(entityManifest, true)
+          ...this.generateUpdatePath(entityManifest, true),
+          ...this.generatePatchPath(entityManifest, true)
         }
       })
 
@@ -266,8 +268,70 @@ export class OpenApiCrudService {
   ): PathItemObject {
     return {
       put: {
-        summary: `Update an existing ${entityManifest.nameSingular}`,
-        description: `Updates a single ${entityManifest.nameSingular} by its ID. The properties to update are passed in the request body as JSON.`,
+        summary: `Update an existing ${entityManifest.nameSingular} (full replace)`,
+        description: `Updates a single ${entityManifest.nameSingular} by its ID. The properties to update are passed in the request body as JSON. This operation fully replaces the entity and its relations. Leaving a property out will remove it.`,
+        tags: [
+          upperCaseFirstLetter(
+            entityManifest.namePlural || entityManifest.nameSingular
+          )
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object'
+              }
+            }
+          }
+        },
+        parameters: single
+          ? []
+          : [
+              {
+                name: 'id',
+                in: 'path',
+                description: `The ID of the ${entityManifest.nameSingular}`,
+                required: true,
+                schema: {
+                  type: 'integer'
+                }
+              }
+            ],
+        responses: {
+          '200': {
+            description: `OK`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object'
+                }
+              }
+            }
+          },
+          '404': {
+            description: `Not found`
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Generates the path for partially updating an entity.
+   *
+   * @param entityManifest The entity manifest.
+   * @param single Whether the entity is a single entity (defaults to false -> collection).
+   *
+   * @returns The path item object.
+   */
+  generatePatchPath(
+    entityManifest: EntityManifest,
+    single?: boolean
+  ): PathItemObject {
+    return {
+      patch: {
+        summary: `Update an existing ${entityManifest.nameSingular} (partial update)`,
+        description: `Updates a single ${entityManifest.nameSingular} by its ID. The properties to update are passed in the request body as JSON. This operation partially updates the entity and its relations. Leaving a property out will not remove it.`,
         tags: [
           upperCaseFirstLetter(
             entityManifest.namePlural || entityManifest.nameSingular

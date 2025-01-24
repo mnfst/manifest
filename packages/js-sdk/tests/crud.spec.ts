@@ -164,6 +164,28 @@ describe('CRUD operations', () => {
       expect(item).toMatchObject(dummyItem)
     })
 
+    it('should patch an item', async () => {
+      const id: number = 1
+
+      fetchMock.mock(
+        {
+          url: `${collectionBaseUrl}/cats/${id}`,
+          method: 'PATCH',
+          body: {
+            name: 'Tom'
+          }
+        },
+        dummyItem
+      )
+
+      const manifest = new Manifest()
+      const item = await manifest.from('cats').patch(id, {
+        name: 'Tom'
+      })
+
+      expect(item).toMatchObject(dummyItem)
+    })
+
     it('should delete an item', async () => {
       const id: number = 1
 

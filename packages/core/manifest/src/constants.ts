@@ -29,38 +29,6 @@ export const DEFAULT_IMAGE_SIZES: ImageSizesObject = {
   }
 }
 
-// Admin entity.
-export const DEFAULT_ADMIN_CREDENTIALS = {
-  email: 'admin@manifest.build',
-  password: 'admin'
-}
-export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
-  className: 'Admin',
-  mainProp: 'email',
-  slug: 'admins',
-  authenticable: true,
-  nameSingular: 'admin',
-  namePlural: 'admins',
-  properties: [],
-  relationships: [],
-  belongsToMany: [],
-  policies: {
-    create: [{ access: 'admin' }],
-    read: [{ access: 'admin' }],
-    update: [{ access: 'admin' }],
-    delete: [{ access: 'admin' }],
-    signup: [{ access: 'forbidden' }]
-  },
-  hooks: {
-    beforeCreate: [],
-    afterCreate: [],
-    beforeUpdate: [],
-    afterUpdate: [],
-    beforeDelete: [],
-    afterDelete: []
-  }
-}
-
 export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
   {
     name: 'email',
@@ -75,6 +43,38 @@ export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
     validation: { isNotEmpty: true }
   }
 ]
+
+// Admin entity.
+export const DEFAULT_ADMIN_CREDENTIALS = {
+  email: 'admin@manifest.build',
+  password: 'admin'
+}
+export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
+  className: 'Admin',
+  mainProp: 'email',
+  slug: 'admins',
+  authenticable: true,
+  nameSingular: 'admin',
+  namePlural: 'admins',
+  properties: AUTHENTICABLE_PROPS,
+  relationships: [],
+  belongsToMany: [],
+  hooks: {
+    beforeCreate: [],
+    afterCreate: [],
+    beforeUpdate: [],
+    afterUpdate: [],
+    beforeDelete: [],
+    afterDelete: []
+  },
+  policies: {
+    create: [{ access: 'admin' }],
+    read: [{ access: 'admin' }],
+    update: [{ access: 'admin' }],
+    delete: [{ access: 'admin' }],
+    signup: [{ access: 'forbidden' }]
+  }
+}
 
 // Reserved words that are not considered as filters.
 export const QUERY_PARAMS_RESERVED_WORDS = [

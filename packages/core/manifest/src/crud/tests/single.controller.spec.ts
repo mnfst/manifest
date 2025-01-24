@@ -108,4 +108,35 @@ describe('SingleController', () => {
       expect(res).toEqual(emptyRecord)
     })
   })
+
+  describe('PUT :entity', () => {
+    it('should call crudService.update with ID 1', async () => {
+      const entitySlug = 'test'
+      const itemDto = { name: 'test' }
+
+      await controller.put(entitySlug, itemDto as any)
+
+      expect(crudService.update).toHaveBeenCalledWith({
+        entitySlug,
+        id: 1,
+        itemDto
+      })
+    })
+  })
+
+  describe('PATCH :entity', () => {
+    it('should call crudService.update with ID 1 and partialReplacement true', async () => {
+      const entitySlug = 'test'
+      const itemDto = { name: 'test' }
+
+      await controller.patch(entitySlug, itemDto as any)
+
+      expect(crudService.update).toHaveBeenCalledWith({
+        entitySlug,
+        id: 1,
+        itemDto,
+        partialReplacement: true
+      })
+    })
+  })
 })
