@@ -11,6 +11,7 @@ import policiesSchema from './schema/definitions/policies/policies-schema.json'
 import policySchema from './schema/definitions/policies/policy-schema.json'
 import hooksSchema from './schema/definitions/hooks/hooks-schema.json'
 import hookSchema from './schema/definitions/hooks/hook-schema.json'
+import endpointSchema from './schema/definitions/endpoint-schema.json'
 
 export default [
   manifestSchema,
@@ -31,5 +32,8 @@ export default [
 
   // Hooks.
   hooksSchema,
-  hookSchema
+  hookSchema,
+
+  // Endpoints.
+  endpointSchema
 ]

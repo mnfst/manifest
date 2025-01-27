@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/endpoint-schema.json",
+  "title": "Endpoint Schema",
+  "description": "Defines a custom endpoint in Manifest: https://manifest.build/docs/endpoints",
+  "type": "object",
+  "properties": {
+    "path": {
+      "description": "The URL path of the endpoint. Must start with a '/'.",
+      "type": "string",
+      "pattern": "^/.*"
+    },
+    "method": {
+      "description": "The HTTP method for the endpoint.",
+      "type": "string",
+      "enum": ["GET", "POST", "PATCH", "PUT", "DELETE"]
+    },
+    "handler": {
+      "description": "The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints#handlers",
+      "type": "string"
+    },
+    "params": {
+      "description": "Optional parameters for the handler method. Doc: https://manifest.build/docs/endpoints#handlers",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "policies": {
+      "description": "An optional array of policies applied to the endpoint.",
+      "type": "array",
+      "items": {
+        "$ref": "https://schema.manifest.build/definitions/policies/policy-schema.json"
+      }
+    }
+  },
+  "required": ["path", "method", "handler"],
+  "additionalProperties": false
+}

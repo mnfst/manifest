@@ -19,6 +19,13 @@
       "additionalProperties": {
         "$ref": "./definitions/entity-schema.json"
       }
+    },
+    "endpoints": {
+      "description": "The endpoints in your app. Doc: https://manifest.build/docs/endpoints",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "./definitions/endpoint-schema.json"
+      }
     }
   },
   "required": ["name"],

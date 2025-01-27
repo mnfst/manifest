@@ -81,9 +81,15 @@ export interface Manifest {
   entities?: {
     [k: string]: EntitySchema
   }
+  /**
+   * The endpoints in your app. Doc: https://manifest.build/docs/endpoints
+   */
+  endpoints?: {
+    [k: string]: EndpointSchema
+  }
 }
 /**
- * An entity in your system: https://manifest.build/docs/entities
+ * An entity in your system. Doc: https://manifest.build/docs/entities
  */
 export interface EntitySchema {
   /**
@@ -396,4 +402,38 @@ export interface HookSchema {
   headers?: {
     [k: string]: string
   }
+}
+/**
+ * Defines a custom endpoint in Manifest: https://manifest.build/docs/endpoints
+ */
+export interface EndpointSchema {
+  /**
+   * The URL path of the endpoint. Must start with a '/'.
+   */
+  path: string
+  /**
+   * The HTTP method for the endpoint.
+   */
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+  /**
+   * The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints#handlers
+   */
+  handler: string
+  /**
+   * Optional parameters for the handler method. Doc: https://manifest.build/docs/endpoints#handlers
+   */
+  params?: {
+    [k: string]: unknown
+  }
+  /**
+   * An optional array of policies applied to the endpoint.
+   */
+  policies?: PolicySchema1[]
+}
+/**
+ * The policies of the entity. Doc: https://manifest.build/docs/policies
+ */
+export interface PolicySchema1 {
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  allow?: string | string[]
 }
