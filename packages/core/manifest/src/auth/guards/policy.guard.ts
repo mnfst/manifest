@@ -8,7 +8,7 @@ import { policies } from '../policies/policies'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
-export class AuthorizationGuard implements CanActivate {
+export class PolicyGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly entityManifestService: EntityManifestService,

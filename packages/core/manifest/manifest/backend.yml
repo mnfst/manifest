@@ -50,7 +50,7 @@ entities:
 endpoints:
   createCat:
     path: /cats
-    method: POST
+    method: GET
     handler: createCat
     policies:
       - access: 🔒

@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { EndpointService } from './endpoint.service'
 import { EndpointController } from './endpoint.controller'
 import { ManifestModule } from '../manifest/manifest.module'
+import { MatchEndpointMiddleware } from './middlewares/match-endpoint.middleware'
 
 @Module({
   imports: [ManifestModule],
@@ -9,4 +10,8 @@ import { ManifestModule } from '../manifest/manifest.module'
   controllers: [EndpointController],
   exports: [EndpointService]
 })
-export class EndpointModule {}
+export class EndpointModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MatchEndpointMiddleware).forRoutes(EndpointController)
+  }
+}

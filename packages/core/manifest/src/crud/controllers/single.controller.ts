@@ -17,13 +17,13 @@ import { Request } from 'express'
 import { CrudService } from '../services/crud.service'
 import { BaseEntity } from '@repo/types'
 import { IsSingleGuard } from '../guards/is-single.guard'
-import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { PolicyGuard } from '../../auth/guards/policy.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 
 /**
  * Controller for single type entities.
  */
-@UseGuards(AuthorizationGuard, IsSingleGuard)
+@UseGuards(PolicyGuard, IsSingleGuard)
 @UseInterceptors(HookInterceptor)
 @Controller('singles')
 export class SingleController {

@@ -9,17 +9,13 @@ import {
   Req
 } from '@nestjs/common'
 import { EndpointService } from './endpoint.service'
-import { EndpointManifest, HttpMethod } from '../../../types/src'
 import { Request } from 'express'
-import { ManifestService } from '../manifest/services/manifest.service'
-import { API_PATH, ENDPOINTS_PATH } from '../constants'
+import { ENDPOINTS_PATH } from '../constants'
 
 @Controller(ENDPOINTS_PATH)
+// TODO: Add Policy Guard here and adapt function as we have policies attached here.
 export class EndpointController {
-  constructor(
-    private readonly endpointService: EndpointService,
-    private readonly manifestService: ManifestService
-  ) {}
+  constructor(private readonly endpointService: EndpointService) {}
 
   @Get('*')
   @Post('*')
@@ -27,25 +23,12 @@ export class EndpointController {
   @Patch('*')
   @Delete('*')
   triggerEndpoint(@Req() req: Request) {
-    // Get endpoints.
-    const endpoints: EndpointManifest[] =
-      this.manifestService.getAppManifest().endpoints
-
-    // Match route path.
-    const { endpoint, params } = this.endpointService.matchRoutePath({
-      path: req.path.replace(`/${API_PATH}/${ENDPOINTS_PATH}`, ''),
-      method: req.method as HttpMethod,
-      endpoints
-    })
-
-    console.log(endpoint, params)
+    console.log(req['endpoint'], req['params'])
 
     // If no endpoint is found, return 404.
-    if (!endpoint) {
+    if (!req['endpoint']) {
       throw new HttpException('Route not found', 404)
     }
-
-    // Validate policies.
 
     // Locate handler.
 

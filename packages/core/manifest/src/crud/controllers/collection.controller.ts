@@ -18,13 +18,13 @@ import { BaseEntity, Paginator, SelectOption } from '@repo/types'
 import { CrudService } from '../services/crud.service'
 import { AuthService } from '../../auth/auth.service'
 import { Request } from 'express'
-import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { PolicyGuard } from '../../auth/guards/policy.guard'
 import { Rule } from '../../auth/decorators/rule.decorator'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 
 @Controller('collections')
-@UseGuards(AuthorizationGuard, IsCollectionGuard)
+@UseGuards(PolicyGuard, IsCollectionGuard)
 @UseInterceptors(HookInterceptor)
 export class CollectionController {
   constructor(

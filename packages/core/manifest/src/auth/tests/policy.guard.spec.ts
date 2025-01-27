@@ -1,12 +1,12 @@
 import { Test } from '@nestjs/testing'
-import { AuthorizationGuard } from '../guards/authorization.guard'
+import { PolicyGuard } from '../guards/policy.guard'
 import { Reflector } from '@nestjs/core'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { AuthService } from '../auth.service'
 import { EntityManifest } from '@repo/types'
 
-describe('AuthorizationGuard', () => {
-  let authorizationGuard: AuthorizationGuard
+describe('PolicyGuard', () => {
+  let authorizationGuard: PolicyGuard
   let reflector: Reflector
   let entityManifestService: EntityManifestService
 
@@ -30,7 +30,7 @@ describe('AuthorizationGuard', () => {
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        AuthorizationGuard,
+        PolicyGuard,
         {
           provide: Reflector,
           useValue: {
@@ -52,7 +52,7 @@ describe('AuthorizationGuard', () => {
       ]
     }).compile()
 
-    authorizationGuard = module.get<AuthorizationGuard>(AuthorizationGuard)
+    authorizationGuard = module.get<PolicyGuard>(PolicyGuard)
     reflector = module.get<Reflector>(Reflector)
     entityManifestService = module.get<EntityManifestService>(
       EntityManifestService

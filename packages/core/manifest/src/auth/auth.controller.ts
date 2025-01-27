@@ -13,11 +13,11 @@ import { Request } from 'express'
 import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
 import { Rule } from './decorators/rule.decorator'
-import { AuthorizationGuard } from './guards/authorization.guard'
+import { PolicyGuard } from './guards/policy.guard'
 import { IsDbEmptyGuard } from './guards/is-db-empty.guard'
 
 @Controller('auth')
-@UseGuards(AuthorizationGuard)
+@UseGuards(PolicyGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
