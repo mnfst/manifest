@@ -5,6 +5,11 @@ import {
   ImageSizesObject
 } from '@repo/types'
 
+// Paths.
+export const STORAGE_PATH: string = 'public/storage'
+export const API_PATH: string = 'api'
+export const ENDPOINTS_PATH: string = 'endpoints'
+
 // Default values.
 export const DEFAULT_PORT: number = 1111
 export const DEFAULT_RESULTS_PER_PAGE: number = 20
@@ -17,7 +22,6 @@ export const DUMMY_IMAGE_NAME: string = 'dummy-image.jpg'
 export const DEFAULT_TOKEN_SECRET_KEY: string = 'REPLACE_ME'
 
 // Uploads.
-export const STORAGE_PATH: string = 'public/storage'
 export const DEFAULT_IMAGE_SIZES: ImageSizesObject = {
   thumbnail: {
     width: 80,

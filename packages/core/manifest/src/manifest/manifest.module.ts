@@ -8,6 +8,7 @@ import { EntityManifestService } from './services/entity-manifest.service'
 import { RelationshipManifestService } from './services/relationship-manifest.service'
 import { ManifestService } from './services/manifest.service'
 import { HookModule } from '../hook/hook.module'
+import { EndpointService } from '../endpoint/endpoint.service'
 
 /**
  *
@@ -27,7 +28,8 @@ import { HookModule } from '../hook/hook.module'
     YamlService,
     SchemaService,
     EntityManifestService,
-    RelationshipManifestService
+    RelationshipManifestService,
+    EndpointService
   ],
   controllers: [ManifestController],
   exports: [ManifestService, EntityManifestService, RelationshipManifestService]

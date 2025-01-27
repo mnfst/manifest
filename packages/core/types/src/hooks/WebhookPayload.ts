@@ -1,6 +1,8 @@
 import { HookEventName } from '../crud'
 
-// The payload of a webhook.
+/**
+ * Represents a webhook payload.
+ */
 export interface WebhookPayload {
   event: HookEventName
   createdAt: Date

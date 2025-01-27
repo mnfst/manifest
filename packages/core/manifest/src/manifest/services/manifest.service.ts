@@ -11,6 +11,7 @@ import {
 
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from './entity-manifest.service'
+import { EndpointService } from '../../endpoint/endpoint.service'
 
 @Injectable()
 export class ManifestService {
@@ -20,13 +21,14 @@ export class ManifestService {
     private yamlService: YamlService,
     private schemaService: SchemaService,
     @Inject(forwardRef(() => EntityManifestService))
-    private entityManifestService: EntityManifestService
+    private entityManifestService: EntityManifestService,
+    private endpointService: EndpointService
   ) {}
 
   /**
    * Get the manifest.
    *
-   * @param publicVersion Whether to return the public version of the manifest.THe public version is the one that is exposed to the client: it hides settings and the hidden properties.
+   * @param fullVersion Whether to return the public version of the manifest.THe public version is the one that is exposed to the client: it hides settings and the hidden properties.
    *
    * @returns The manifest.
    *
@@ -64,7 +66,10 @@ export class ManifestService {
         .reduce((acc, entityManifest: EntityManifest) => {
           acc[entityManifest.className] = entityManifest
           return acc
-        }, {})
+        }, {}),
+      endpoints: this.endpointService.transformEndpointsSchemaObject(
+        appSchema.endpoints
+      )
     }
 
     // Add Admin entity.

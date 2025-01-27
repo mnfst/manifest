@@ -21,7 +21,7 @@
       }
     },
     "endpoints": {
-      "description": "The endpoints in your app. Doc: https://manifest.build/docs/endpoints",
+      "description": "The endpoints in your app. Create your own endpoints linking a path and an HTTP method to a handler function. Doc: https://manifest.build/docs/endpoints",
       "type": "object",
       "additionalProperties": {
         "$ref": "./definitions/endpoint-schema.json"

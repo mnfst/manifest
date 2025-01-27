@@ -7,7 +7,7 @@ import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 import { AppModule } from './app.module'
-import { DEFAULT_PORT, DEFAULT_TOKEN_SECRET_KEY } from './constants'
+import { API_PATH, DEFAULT_PORT, DEFAULT_TOKEN_SECRET_KEY } from './constants'
 import { OpenApiService } from './open-api/services/open-api.service'
 
 async function bootstrap() {
@@ -18,7 +18,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService)
 
-  app.setGlobalPrefix('api')
+  app.setGlobalPrefix(API_PATH)
   app.use(express.urlencoded({ limit: '50mb', extended: true }))
   app.useGlobalPipes(new ValidationPipe())
 
@@ -53,7 +53,7 @@ async function bootstrap() {
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {
-    if (req.url.startsWith('/api') || req.url.startsWith('/storage')) {
+    if (req.url.startsWith(`/${API_PATH}`) || req.url.startsWith('/storage')) {
       next()
     } else {
       res.sendFile(join(adminPanelFolder, 'index.html'))
@@ -62,7 +62,7 @@ async function bootstrap() {
 
   const openApiService: OpenApiService = app.get(OpenApiService)
 
-  SwaggerModule.setup('api', app, openApiService.generateOpenApiObject(), {
+  SwaggerModule.setup(API_PATH, app, openApiService.generateOpenApiObject(), {
     customfavIcon: 'assets/images/open-api/favicon.ico',
     customSiteTitle: 'Manifest API Doc',
 
