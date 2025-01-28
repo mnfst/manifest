@@ -1,5 +1,11 @@
 # manifest
 
+## 4.5.1
+
+### Patch Changes
+
+- 6f85624: fixed admin files duplicate in bundle
+
 ## 4.5.0
 
 ### Minor Changes
