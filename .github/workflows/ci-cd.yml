@@ -34,5 +34,11 @@ jobs:
         working-directory: ./packages/core/manifest
       - name: Run tests
         run: npm run test:ci
+      - name: Upload coverage reports to Codecov (Manifest package)
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: mnfst/manifest
+          directory: ./packages/core/manifest/coverage
       - name: Changeset
         run: npx changeset status --since=master
