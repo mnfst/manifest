@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.5.0",
+  "version": "4.5.1",
   "description": "The 1-file micro-backend",
   "author": "Manifest",
   "license": "MIT",
@@ -30,7 +30,8 @@
     "storage"
   ],
   "scripts": {
-    "build": "nest build && cd ../admin && npm run build",
+    "create-dist": "mkdir dist",
+    "build": "rm -fr ./dist && npm run create-dist && nest build && cd ../admin && npm run build-admin-in-bundle",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nodemon",
@@ -41,12 +42,12 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:ci": "npm run test:unit:ci && npm run test:e2e:ci",
     "test:watch": "jest --watch",
-    "test:cov": "npm run test:unit -- --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./e2e/jest-e2e.config.json",
     "test:e2e:ci": "jest --config ./e2e/jest-e2e.config.json --ci",
     "test:unit": "jest --config ./jest.config.json",
-    "test:unit:ci": "jest --config ./jest.config.json --ci",
+    "test:unit:ci": "jest --config ./jest.config.json --ci --coverage",
+    "postbuild": "rm -fr ./dist/admin/dist",
     "postpublish": "node ../../../scripts/update-package.js"
   },
   "files": [
@@ -88,6 +89,7 @@
     "url": "^0.11.3"
   },
   "devDependencies": {
+    "@codecov/bundle-analyzer": "^1.8.0",
     "@nestjs/cli": "^10.4.7",
     "@nestjs/schematics": "^10.2.3",
     "@nestjs/testing": "^10.4.8",
