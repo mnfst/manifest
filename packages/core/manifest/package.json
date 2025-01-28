@@ -88,6 +88,7 @@
     "url": "^0.11.3"
   },
   "devDependencies": {
+    "@codecov/bundle-analyzer": "^1.8.0",
     "@nestjs/cli": "^10.4.7",
     "@nestjs/schematics": "^10.2.3",
     "@nestjs/testing": "^10.4.8",

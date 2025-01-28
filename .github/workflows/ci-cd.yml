@@ -22,13 +22,16 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: '18.x'
+          node-version: "18.x"
       - name: Install root dependencies
         run: npm install
       - name: Install dependencies (workspaces)
         run: npm ci --workspaces --ignore-scripts
       - name: Build App
         run: npm run build
+      - name: Bundle analysis
+        run: npx @codecov/bundle-analyzer ./dist --bundle-name=manifest --upload-token=${{ secrets.CODECOV_TOKEN }}
+        working-directory: ./packages/core/manifest
       - name: Run tests
         run: npm run test:ci
       - name: Changeset
