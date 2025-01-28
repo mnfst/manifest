@@ -39,7 +39,7 @@ If applicable, add screenshots to help explain your problem.
  - Version [e.g. 22]
 
 **Code snippets**
-If possible, show extracts from your code to help us better understand the issuse.
+If possible, show extracts from your code to help us better understand the issue.
 
 **Additional context**
 Add any other context about the problem here.
