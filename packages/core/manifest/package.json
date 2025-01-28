@@ -47,6 +47,7 @@
     "test:e2e:ci": "jest --config ./e2e/jest-e2e.config.json --ci",
     "test:unit": "jest --config ./jest.config.json",
     "test:unit:ci": "jest --config ./jest.config.json --ci --coverage",
+    "postbuild": "rm -fr ./dist/admin/dist",
     "postpublish": "node ../../../scripts/update-package.js"
   },
   "files": [
