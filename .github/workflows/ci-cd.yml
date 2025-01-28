@@ -39,5 +39,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: mnfst/manifest
+          directory: ./packages/core/manifest/coverage
       - name: Changeset
         run: npx changeset status --since=master
