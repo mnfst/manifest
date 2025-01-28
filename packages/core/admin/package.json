@@ -9,7 +9,7 @@
     "ng": "ng",
     "start": "ng serve",
     "dev": "ng serve",
-    "build": "ng build --configuration production && cp -r ./dist ../manifest/dist/admin",
+    "build-admin-in-bundle": "ng build --configuration production && cp -r ./dist ../manifest/dist/admin",
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {
