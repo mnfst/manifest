@@ -22,15 +22,14 @@ import slugify from 'slugify'
 import dasherize from 'dasherize'
 import { RelationshipManifestService } from './relationship-manifest.service'
 import {
+  ADMIN_ACCESS_POLICY,
   AUTHENTICABLE_PROPS,
   DEFAULT_IMAGE_SIZES,
-  DEFAULT_SEED_COUNT
+  DEFAULT_SEED_COUNT,
+  FORBIDDEN_ACCESS_POLICY,
+  PUBLIC_ACCESS_POLICY
 } from '../../constants'
-import {
-  adminAccessPolicy,
-  forbiddenAccessPolicy,
-  publicAccessPolicy
-} from '../utils/policy-manifests'
+
 import { ManifestService } from './manifest.service'
 import { HookService } from '../../hook/hook.service'
 import { PolicyService } from '../../policy/policy.service'
@@ -246,26 +245,26 @@ export class EntityManifestService {
       policies: {
         create: this.policyService.transformPolicies(
           entitySchema.policies?.create,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
         read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
         update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
         delete: this.policyService.transformPolicies(
           entitySchema.policies?.delete,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
         signup: entitySchema.authenticable
           ? this.policyService.transformPolicies(
               entitySchema.policies?.signup,
-              publicAccessPolicy
+              PUBLIC_ACCESS_POLICY
             )
-          : [forbiddenAccessPolicy]
+          : [FORBIDDEN_ACCESS_POLICY]
       }
     }
   }
@@ -288,17 +287,17 @@ export class EntityManifestService {
       hooks: partialEntityManifest.hooks,
       relationships: [],
       policies: {
-        create: [forbiddenAccessPolicy],
+        create: [FORBIDDEN_ACCESS_POLICY],
         read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
         update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
-          adminAccessPolicy
+          ADMIN_ACCESS_POLICY
         ),
-        delete: [forbiddenAccessPolicy],
-        signup: [forbiddenAccessPolicy]
+        delete: [FORBIDDEN_ACCESS_POLICY],
+        signup: [FORBIDDEN_ACCESS_POLICY]
       }
     }
   }

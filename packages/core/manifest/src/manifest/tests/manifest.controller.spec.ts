@@ -5,7 +5,7 @@ import { AuthService } from '../../auth/auth.service'
 import { EntityManifestService } from '../services/entity-manifest.service'
 import { AppManifest, EntityManifest, Manifest } from '@repo/types'
 import { Request } from 'express'
-import { publicAccessPolicy } from '../utils/policy-manifests'
+import { PUBLIC_ACCESS_POLICY } from '../../constants'
 
 describe('ManifestController', () => {
   let controller: ManifestController
@@ -19,7 +19,7 @@ describe('ManifestController', () => {
 
   const dummyEntityManifest: EntityManifest = {
     name: 'Test Entity',
-    policies: [publicAccessPolicy]
+    policies: [PUBLIC_ACCESS_POLICY]
   } as any
 
   beforeEach(async () => {

@@ -5,6 +5,7 @@ import { EntityManifest, PolicyManifest } from '@repo/types'
 import { AuthService } from '../auth/auth.service'
 import { Request } from 'express'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
+import { policies } from './policies'
 
 @Injectable()
 export class PolicyGuard implements CanActivate {
@@ -24,18 +25,16 @@ export class PolicyGuard implements CanActivate {
     const req: Request = context.switchToHttp().getRequest()
 
     console.log('endpoint', req['endpoint'])
-    let policies: PolicyManifest[]
+    let routePolicies: PolicyManifest[]
 
     if (rule === 'dynamic-endpoint') {
-      policies = req['endpoint'].policies
+      routePolicies = req['endpoint'].policies
     } else {
-      policies = await this.getCrudPolicies(
+      routePolicies = await this.getCrudPolicies(
         rule,
         context.getArgs()[0].params.entity
       )
     }
-
-    console.log('policies', policies)
 
     const { user, entitySlug: userEntitySlug }: any =
       (await this.authService.getUserFromRequest(req)) || {}
@@ -49,7 +48,7 @@ export class PolicyGuard implements CanActivate {
       userEntityManifest = null
     }
 
-    return policies.every((policy: PolicyManifest) => {
+    return routePolicies.every((policy: PolicyManifest) => {
       const policyFn = policies[policy.access]
 
       // Execute the policy function that returns a boolean.

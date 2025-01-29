@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { EndpointSchema, EndpointManifest, HttpMethod } from '@repo/types'
 import { match } from 'path-to-regexp'
+import { PolicyService } from '../policy/policy.service'
+import { PUBLIC_ACCESS_POLICY } from '../constants'
 
 @Injectable()
 export class EndpointService {
+  constructor(private readonly policyService: PolicyService) {}
+
   /**
    * Transforms an endpoint schema into a endpoint manifest.
    *
@@ -22,7 +26,10 @@ export class EndpointService {
         path: endpointSchema.path,
         params: endpointSchema.params || {},
         method: endpointSchema.method,
-        policies: [], // TODO: Implement policies
+        policies: this.policyService.transformPolicies(
+          endpointSchema.policies,
+          PUBLIC_ACCESS_POLICY
+        ),
         handler: endpointSchema.handler as any // TODO: Implement handler
       }
     })

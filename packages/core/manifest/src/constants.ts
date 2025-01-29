@@ -2,7 +2,8 @@ import {
   EntityManifest,
   PropType,
   PropertyManifest,
-  ImageSizesObject
+  ImageSizesObject,
+  PolicyManifest
 } from '@repo/types'
 
 // Paths.
@@ -88,3 +89,8 @@ export const QUERY_PARAMS_RESERVED_WORDS = [
   'orderBy',
   'relations'
 ]
+
+// Policies.
+export const ADMIN_ACCESS_POLICY: PolicyManifest = { access: 'admin' }
+export const PUBLIC_ACCESS_POLICY: PolicyManifest = { access: 'public' }
+export const FORBIDDEN_ACCESS_POLICY: PolicyManifest = { access: 'forbidden' }
