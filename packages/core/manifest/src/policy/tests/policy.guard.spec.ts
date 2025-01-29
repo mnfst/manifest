@@ -1,8 +1,8 @@
 import { Test } from '@nestjs/testing'
-import { PolicyGuard } from '../guards/policy.guard'
+import { PolicyGuard } from '../policy.guard'
 import { Reflector } from '@nestjs/core'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
-import { AuthService } from '../auth.service'
+import { AuthService } from '../../auth/auth.service'
 import { EntityManifest } from '@repo/types'
 
 describe('PolicyGuard', () => {

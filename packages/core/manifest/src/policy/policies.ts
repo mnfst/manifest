@@ -1,5 +1,5 @@
 import { AccessPolicy, AuthenticableEntity, EntityManifest } from '@repo/types'
-import { ADMIN_ENTITY_MANIFEST } from '../../constants'
+import { ADMIN_ENTITY_MANIFEST } from '../constants'
 
 export const policies: Record<
   AccessPolicy,

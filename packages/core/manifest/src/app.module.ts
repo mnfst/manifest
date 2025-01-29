@@ -21,8 +21,9 @@ import { ValidationModule } from './validation/validation.module'
 import { UploadModule } from './upload/upload.module'
 import { StorageModule } from './storage/storage.module'
 import { ManifestService } from './manifest/services/manifest.service'
-import { HookModule } from './hook/hook.module';
-import { EndpointModule } from './endpoint/endpoint.module';
+import { HookModule } from './hook/hook.module'
+import { EndpointModule } from './endpoint/endpoint.module'
+import { PolicyModule } from './policy/policy.module'
 
 @Module({
   imports: [
@@ -62,7 +63,8 @@ import { EndpointModule } from './endpoint/endpoint.module';
     UploadModule,
     StorageModule,
     HookModule,
-    EndpointModule
+    EndpointModule,
+    PolicyModule
   ]
 })
 export class AppModule {

@@ -10,14 +10,14 @@ import {
   UseGuards,
   UseInterceptors
 } from '@nestjs/common'
-import { Rule } from '../../auth/decorators/rule.decorator'
+import { Rule } from '../../policy/decorators/rule.decorator'
 import { AuthService } from '../../auth/auth.service'
 
 import { Request } from 'express'
 import { CrudService } from '../services/crud.service'
 import { BaseEntity } from '@repo/types'
 import { IsSingleGuard } from '../guards/is-single.guard'
-import { PolicyGuard } from '../../auth/guards/policy.guard'
+import { PolicyGuard } from '../../policy/policy.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 
 /**

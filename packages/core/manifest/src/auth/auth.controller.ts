@@ -12,8 +12,8 @@ import { AuthenticableEntity } from '@repo/types'
 import { Request } from 'express'
 import { AuthService } from './auth.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
-import { Rule } from './decorators/rule.decorator'
-import { PolicyGuard } from './guards/policy.guard'
+import { Rule } from '../policy/decorators/rule.decorator'
+import { PolicyGuard } from '../policy/policy.guard'
 import { IsDbEmptyGuard } from './guards/is-db-empty.guard'
 
 @Controller('auth')

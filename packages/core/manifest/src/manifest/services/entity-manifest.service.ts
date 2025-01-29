@@ -6,14 +6,11 @@ import {
   forwardRef
 } from '@nestjs/common'
 import {
-  AccessPolicy,
   EntityManifest,
   EntitySchema,
   HookEventName,
   HookManifest,
   HooksSchema,
-  PolicyManifest,
-  PolicySchema,
   PropType,
   PropertyManifest,
   PropertySchema,
@@ -36,6 +33,7 @@ import {
 } from '../utils/policy-manifests'
 import { ManifestService } from './manifest.service'
 import { HookService } from '../../hook/hook.service'
+import { PolicyService } from '../../policy/policy.service'
 
 @Injectable()
 export class EntityManifestService {
@@ -43,7 +41,8 @@ export class EntityManifestService {
     private relationshipManifestService: RelationshipManifestService,
     @Inject(forwardRef(() => ManifestService))
     private manifestService: ManifestService,
-    private hookService: HookService
+    private hookService: HookService,
+    private policyService: PolicyService
   ) {}
 
   /**
@@ -245,24 +244,24 @@ export class EntityManifestService {
       ],
       authenticable: entitySchema.authenticable || false,
       policies: {
-        create: this.transformPolicies(
+        create: this.policyService.transformPolicies(
           entitySchema.policies?.create,
           publicAccessPolicy
         ),
-        read: this.transformPolicies(
+        read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
           publicAccessPolicy
         ),
-        update: this.transformPolicies(
+        update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
           publicAccessPolicy
         ),
-        delete: this.transformPolicies(
+        delete: this.policyService.transformPolicies(
           entitySchema.policies?.delete,
           publicAccessPolicy
         ),
         signup: entitySchema.authenticable
-          ? this.transformPolicies(
+          ? this.policyService.transformPolicies(
               entitySchema.policies?.signup,
               publicAccessPolicy
             )
@@ -290,11 +289,11 @@ export class EntityManifestService {
       relationships: [],
       policies: {
         create: [forbiddenAccessPolicy],
-        read: this.transformPolicies(
+        read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
           publicAccessPolicy
         ),
-        update: this.transformPolicies(
+        update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
           adminAccessPolicy
         ),
@@ -345,58 +344,6 @@ export class EntityManifestService {
         propSchema.validation
       )
     }
-  }
-
-  /**
-   * Transform an array of short form policies of into an array of long form policies.
-   *
-   * @param policySchemas the policies that can be in short form.
-   * @param defaultPolicy the default policy to use if the policy is not provided.
-   *
-   * @returns the policy with the short form properties transformed into long form.
-   */
-  transformPolicies(
-    policySchemas: PolicySchema[],
-    defaultPolicy: PolicyManifest
-  ): PolicyManifest[] {
-    if (!policySchemas) {
-      return [defaultPolicy]
-    }
-
-    return policySchemas.map((policySchema: PolicySchema) => {
-      let access: AccessPolicy
-
-      // Transform emojis into long form.
-      switch (policySchema.access) {
-        case '🌐':
-          access = 'public'
-          break
-        case '🔒':
-          access = 'restricted'
-          break
-        case '️👨🏻‍💻':
-          access = 'admin'
-          break
-        case '🚫':
-          access = 'forbidden'
-          break
-        default:
-          access = policySchema.access as AccessPolicy
-      }
-
-      const policyManifest: PolicyManifest = {
-        access
-      }
-
-      if (policySchema.allow) {
-        policyManifest.allow =
-          typeof policySchema.allow === 'string'
-            ? [policySchema.allow]
-            : policySchema.allow
-      }
-
-      return policyManifest
-    })
   }
 
   /**

@@ -7,7 +7,7 @@ import { ManifestModule } from '../manifest/manifest.module'
 import { DatabaseService } from '../crud/services/database.service'
 
 @Module({
-  imports: [EntityModule, forwardRef(() => ManifestModule)],
+  imports: [forwardRef(() => EntityModule), forwardRef(() => ManifestModule)],
   controllers: [AuthController],
   providers: [AuthService, DatabaseService],
   exports: [AuthService]

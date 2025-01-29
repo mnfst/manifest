@@ -1,11 +1,12 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, forwardRef } from '@nestjs/common'
 import { EndpointService } from './endpoint.service'
 import { EndpointController } from './endpoint.controller'
-import { ManifestModule } from '../manifest/manifest.module'
 import { MatchEndpointMiddleware } from './middlewares/match-endpoint.middleware'
+import { ManifestModule } from '../manifest/manifest.module'
+import { AuthModule } from '../auth/auth.module'
 
 @Module({
-  imports: [ManifestModule],
+  imports: [forwardRef(() => ManifestModule), forwardRef(() => AuthModule)],
   providers: [EndpointService],
   controllers: [EndpointController],
   exports: [EndpointService]
