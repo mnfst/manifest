@@ -24,6 +24,7 @@ import { ManifestService } from './manifest/services/manifest.service'
 import { HookModule } from './hook/hook.module'
 import { EndpointModule } from './endpoint/endpoint.module'
 import { PolicyModule } from './policy/policy.module'
+import { HandlerModule } from './handler/handler.module';
 
 @Module({
   imports: [
@@ -64,7 +65,8 @@ import { PolicyModule } from './policy/policy.module'
     StorageModule,
     HookModule,
     EndpointModule,
-    PolicyModule
+    PolicyModule,
+    HandlerModule
   ]
 })
 export class AppModule {

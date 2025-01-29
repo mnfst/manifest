@@ -24,7 +24,6 @@ export class PolicyGuard implements CanActivate {
 
     const req: Request = context.switchToHttp().getRequest()
 
-    console.log('endpoint', req['endpoint'])
     let routePolicies: PolicyManifest[]
 
     if (rule === 'dynamic-endpoint') {
