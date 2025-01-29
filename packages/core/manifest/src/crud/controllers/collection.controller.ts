@@ -22,8 +22,9 @@ import { PolicyGuard } from '../../policy/policy.guard'
 import { Rule } from '../../policy/decorators/rule.decorator'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
+import { COLLECTIONS_PATH } from '../../constants'
 
-@Controller('collections')
+@Controller(COLLECTIONS_PATH)
 @UseGuards(PolicyGuard, IsCollectionGuard)
 @UseInterceptors(HookInterceptor)
 export class CollectionController {

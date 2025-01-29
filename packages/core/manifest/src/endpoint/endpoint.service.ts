@@ -58,11 +58,12 @@ export class EndpointService {
       const matcher = match(endpoint.path)
       const result = matcher(path)
 
-      if (result && endpoint.method === method)
+      if (result && endpoint.method === method) {
         return {
           endpoint,
           params: result?.params || {}
         }
+      }
     }
 
     return { endpoint: null, params: {} }

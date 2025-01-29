@@ -22,16 +22,46 @@ export class EndpointController {
   constructor(private readonly handlerService: HandlerService) {}
 
   @Get('*')
-  @Post('*')
-  @Put('*')
-  @Patch('*')
-  @Delete('*')
   @Rule('dynamic-endpoint') // The dynamic-endpoint rule is based on policies individually set for each endpoint.
-  triggerEndpoint(@Req() req: Request, @Res() res: Response): unknown {
+  triggerGetEndpoint(@Req() req: Request, @Res() res: Response): unknown {
+    return this.handleRoute(req, res)
+  }
+
+  @Post('*')
+  @Rule('dynamic-endpoint')
+  triggerPostEndpoint(@Req() req: Request, @Res() res: Response): unknown {
+    return this.handleRoute(req, res)
+  }
+
+  @Put('*')
+  @Rule('dynamic-endpoint')
+  triggerPutEndpoint(@Req() req: Request, @Res() res: Response): unknown {
+    return this.handleRoute(req, res)
+  }
+
+  @Patch('*')
+  @Rule('dynamic-endpoint')
+  triggerPatchEndpoint(@Req() req: Request, @Res() res: Response): unknown {
+    return this.handleRoute(req, res)
+  }
+
+  @Delete('*')
+  @Rule('dynamic-endpoint')
+  triggerDeleteEndpoint(@Req() req: Request, @Res() res: Response): unknown {
+    return this.handleRoute(req, res)
+  }
+
+  /**
+   * All the routes lead to Rome.
+   */
+  private handleRoute(req: Request, res: Response): unknown {
     // If no endpoint is found, return 404.
     if (!req['endpoint']) {
       throw new HttpException('Route not found', 404)
     }
+
+    // We overwrite the original params (that are irrelevant) with the dynamic params that we have extracted.
+    req['params'] = req['dynamicParams']
 
     return this.handlerService.trigger(req['endpoint'].handler, req, res)
   }

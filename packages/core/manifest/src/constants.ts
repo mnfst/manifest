@@ -9,6 +9,8 @@ import {
 // Paths.
 export const STORAGE_PATH: string = 'public/storage'
 export const API_PATH: string = 'api'
+export const COLLECTIONS_PATH: string = 'collections'
+export const SINGLES_PATH: string = 'singles'
 export const ENDPOINTS_PATH: string = 'endpoints'
 
 // Default values.

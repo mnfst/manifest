@@ -23,7 +23,9 @@ export class MatchEndpointMiddleware implements NestMiddleware {
     })
 
     req['endpoint'] = endpoint
-    req['params'] = params as any
+
+    // We can't store the params directly in req.params because it's a read-only object, we temporarily store it in req['dynamicParams'] and then overwrite req.params later.
+    req['dynamicParams'] = params
 
     next()
   }

@@ -19,13 +19,14 @@ import { BaseEntity } from '@repo/types'
 import { IsSingleGuard } from '../guards/is-single.guard'
 import { PolicyGuard } from '../../policy/policy.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
+import { SINGLES_PATH } from '../../constants'
 
 /**
  * Controller for single type entities.
  */
 @UseGuards(PolicyGuard, IsSingleGuard)
 @UseInterceptors(HookInterceptor)
-@Controller('singles')
+@Controller(SINGLES_PATH)
 export class SingleController {
   constructor(
     private readonly authService: AuthService,
