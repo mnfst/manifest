@@ -27,7 +27,7 @@ export class PolicyGuard implements CanActivate {
     let routePolicies: PolicyManifest[]
 
     if (rule === 'dynamic-endpoint') {
-      routePolicies = req['endpoint'].policies
+      routePolicies = req['endpoint']?.policies || []
     } else {
       routePolicies = await this.getCrudPolicies(
         rule,

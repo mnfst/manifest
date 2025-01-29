@@ -30,7 +30,7 @@ export class EndpointService {
           endpointSchema.policies,
           PUBLIC_ACCESS_POLICY
         ),
-        handler: endpointSchema.handler as any // TODO: Implement handler
+        handler: endpointSchema.handler
       }
     })
   }
@@ -61,7 +61,7 @@ export class EndpointService {
       if (result && endpoint.method === method)
         return {
           endpoint,
-          params: result ? result : {}
+          params: result?.params || {}
         }
     }
 

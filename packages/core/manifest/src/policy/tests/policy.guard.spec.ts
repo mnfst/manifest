@@ -27,6 +27,17 @@ describe('PolicyGuard', () => {
     }))
   }
 
+  const endpointContext: any = {
+    getHandler: jest.fn(() => 'handler'),
+    switchToHttp: jest.fn(() => ({
+      getRequest: jest.fn(() => ({
+        endpoint: {
+          policies: [{ access: 'public' }]
+        }
+      }))
+    }))
+  }
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -69,29 +80,69 @@ describe('PolicyGuard', () => {
     expect(result).toBe(true)
   })
 
-  it('should return true if rule is defined and all policies pass', async () => {
-    jest.spyOn(reflector, 'get').mockReturnValue('read')
-    jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
-      policies: {
-        read: [{ access: 'public' }]
-      }
-    } as EntityManifest)
+  describe('Policies on CRUD operations', () => {
+    it('should return true if rule is defined and all policies pass', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('read')
+      jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
+        policies: {
+          read: [{ access: 'public' }]
+        }
+      } as EntityManifest)
 
-    const result = await authorizationGuard.canActivate(context)
+      const result = await authorizationGuard.canActivate(context)
 
-    expect(result).toBe(true)
+      expect(result).toBe(true)
+    })
+
+    it('should return false if rule is defined and at least one policy fails', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('delete')
+      jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
+        policies: {
+          delete: [{ access: 'public' }, { access: 'forbidden' }]
+        }
+      } as EntityManifest)
+
+      const result = await authorizationGuard.canActivate(context)
+
+      expect(result).toBe(false)
+    })
   })
 
-  it('should return false if rule is defined and at least one policy fails', async () => {
-    jest.spyOn(reflector, 'get').mockReturnValue('read')
-    jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
-      policies: {
-        read: [{ access: 'public' }, { access: 'forbidden' }]
-      }
-    } as EntityManifest)
+  describe('Policies on dynamic endpoints', () => {
+    it('should return true if no policies', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('dynamic-endpoint')
+      const result = await authorizationGuard.canActivate(context)
 
-    const result = await authorizationGuard.canActivate(context)
+      expect(result).toBe(true)
+    })
 
-    expect(result).toBe(false)
+    it('should return true if all policies pass', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('dynamic-endpoint')
+
+      const result = await authorizationGuard.canActivate(endpointContext)
+
+      expect(result).toBe(true)
+    })
+
+    it('should return false if at least one policy fails', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('dynamic-endpoint')
+
+      const failingEndpointContext = {
+        getHandler: jest.fn(() => 'handler'),
+        switchToHttp: jest.fn(() => ({
+          getRequest: jest.fn(() => ({
+            endpoint: {
+              policies: [{ access: 'forbidden' }]
+            }
+          }))
+        }))
+      } as any
+
+      const result = await authorizationGuard.canActivate(
+        failingEndpointContext
+      )
+
+      expect(result).toBe(false)
+    })
   })
 })
