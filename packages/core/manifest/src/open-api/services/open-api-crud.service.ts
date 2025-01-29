@@ -2,6 +2,7 @@ import { EntityManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { upperCaseFirstLetter } from '@repo/helpers'
+import { API_PATH, COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
 
 @Injectable()
 export class OpenApiCrudService {
@@ -21,25 +22,27 @@ export class OpenApiCrudService {
     entityManifests
       .filter((entityManifest: EntityManifest) => !entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/api/collections/${entityManifest.slug}`] = {
+        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {
           ...this.generateListPath(entityManifest),
           ...this.generateCreatePath(entityManifest)
         }
-        paths[`/api/collections/${entityManifest.slug}/select-options`] =
-          this.generateListSelectOptionsPath(entityManifest)
-        paths[`/api/collections/${entityManifest.slug}/{id}`] = {
-          ...this.generateDetailPath(entityManifest),
-          ...this.generateUpdatePath(entityManifest),
-          ...this.generatePatchPath(entityManifest),
-          ...this.generateDeletePath(entityManifest)
-        }
+        paths[
+          `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
+        ] = this.generateListSelectOptionsPath(entityManifest)
+        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] =
+          {
+            ...this.generateDetailPath(entityManifest),
+            ...this.generateUpdatePath(entityManifest),
+            ...this.generatePatchPath(entityManifest),
+            ...this.generateDeletePath(entityManifest)
+          }
       })
 
     // Single paths.
     entityManifests
       .filter((entityManifest: EntityManifest) => entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/api/singles/${entityManifest.slug}`] = {
+        paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
           ...this.generateDetailPath(entityManifest, true),
           ...this.generateUpdatePath(entityManifest, true),
           ...this.generatePatchPath(entityManifest, true)
