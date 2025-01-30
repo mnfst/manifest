@@ -53,7 +53,7 @@ export const typeValidators: Record<
     typeof value === 'number' &&
     Number.isInteger(value) &&
     value > 0 &&
-    value <= Date.now()
+    isFinite(value)
       ? null
       : 'The value must be a valid timestamp',
 

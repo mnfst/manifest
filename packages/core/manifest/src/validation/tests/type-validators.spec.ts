@@ -234,7 +234,11 @@ describe('Validators for property types', () => {
   })
 
   it('timestamp type expects a timestamp', async () => {
-    const goodValues = [new Date().getTime(), 1631355097]
+    const goodValues = [
+      new Date().getTime(),
+      new Date('2030-01-01').getTime(),
+      1631355097
+    ]
     const badValues = [
       new Date(),
       '2012-04-23',
