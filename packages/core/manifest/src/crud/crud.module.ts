@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 
 import { EntityModule } from '../entity/entity.module'
 import { ManifestModule } from '../manifest/manifest.module'
@@ -14,14 +14,14 @@ import { AuthModule } from '../auth/auth.module'
 
 @Module({
   imports: [
-    EntityModule,
-    ManifestModule,
+    forwardRef(() => EntityModule),
+    forwardRef(() => ManifestModule),
+    forwardRef(() => AuthModule),
     ValidationModule,
-    HookModule,
-    AuthModule
+    HookModule
   ],
   controllers: [CollectionController, DatabaseController, SingleController],
   providers: [CrudService, PaginationService, DatabaseService],
-  exports: [DatabaseService]
+  exports: [DatabaseService, CrudService]
 })
 export class CrudModule {}

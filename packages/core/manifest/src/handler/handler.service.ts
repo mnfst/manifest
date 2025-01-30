@@ -3,10 +3,14 @@ import { Request, Response } from 'express'
 import path from 'path'
 import fs from 'fs'
 import { ConfigService } from '@nestjs/config'
+import { BackendSDK } from '../sdk/backend-sdk'
 
 @Injectable()
 export class HandlerService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private readonly sdk: BackendSDK
+  ) {}
 
   /**
    * Trigger the handler function and return the response.
@@ -20,7 +24,7 @@ export class HandlerService {
   async trigger(path: string, req: Request, res: Response): Promise<unknown> {
     const handlerFn = await this.importHandler(path)
 
-    return handlerFn(req, res)
+    return handlerFn(req, res, this.sdk)
   }
 
   /**

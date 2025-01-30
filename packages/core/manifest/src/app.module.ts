@@ -25,6 +25,7 @@ import { HookModule } from './hook/hook.module'
 import { EndpointModule } from './endpoint/endpoint.module'
 import { PolicyModule } from './policy/policy.module'
 import { HandlerModule } from './handler/handler.module';
+import { SdkModule } from './sdk/sdk.module';
 
 @Module({
   imports: [
@@ -66,7 +67,8 @@ import { HandlerModule } from './handler/handler.module';
     HookModule,
     EndpointModule,
     PolicyModule,
-    HandlerModule
+    HandlerModule,
+    SdkModule
   ]
 })
 export class AppModule {
