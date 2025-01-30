@@ -82,7 +82,7 @@ export interface Manifest {
     [k: string]: EntitySchema
   }
   /**
-   * The endpoints in your app. Doc: https://manifest.build/docs/endpoints
+   * The endpoints in your app. Create your own endpoints linking a path and an HTTP method to a handler function. Doc: https://manifest.build/docs/endpoints
    */
   endpoints?: {
     [k: string]: EndpointSchema
@@ -420,11 +420,9 @@ export interface EndpointSchema {
    */
   handler: string
   /**
-   * Optional parameters for the handler method. Doc: https://manifest.build/docs/endpoints#handlers
+   * An optional endpoint description. Doc: https://manifest.build/docs/endpoints
    */
-  params?: {
-    [k: string]: unknown
-  }
+  description?: string
   /**
    * An optional array of policies applied to the endpoint.
    */

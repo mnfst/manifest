@@ -18,16 +18,18 @@ export class OpenApiEndpointService {
       paths[path] = {
         [endpoint.method.toLowerCase()]: {
           summary: endpoint.name,
-          description: `Endpoint for ${endpoint.name}`,
+          description: endpoint.description,
           tags: ['Dynamic endpoints'],
-          parameters: Object.keys(endpoint.params).map((paramName) => ({
-            in: 'path',
+          parameters: Object.keys(
+            this.extractRouteParams(endpoint.path) || {}
+          ).map((paramName) => ({
             name: paramName,
+            in: 'path',
             required: true,
             schema: {
               type: 'string'
             }
-          })) // TODO: Remove the params from handler as ambiguous. Use the path params instead.
+          }))
         }
       }
     })
@@ -45,5 +47,17 @@ export class OpenApiEndpointService {
    */
   private convertRouteParams(route: string): string {
     return route.replace(/:(\w+)/g, '{$1}')
+  }
+
+  private extractRouteParams(route: string): Record<string, string> {
+    const params: Record<string, string> = {}
+    const regex = /:(\w+)/g
+    let match
+
+    while ((match = regex.exec(route)) !== null) {
+      params[match[1]] = 'string'
+    }
+
+    return params
   }
 }

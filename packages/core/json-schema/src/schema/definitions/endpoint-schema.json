@@ -19,10 +19,9 @@
       "description": "The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints#handlers",
       "type": "string"
     },
-    "params": {
-      "description": "Optional parameters for the handler method. Doc: https://manifest.build/docs/endpoints#handlers",
-      "type": "object",
-      "additionalProperties": true
+    "description": {
+      "description": "An optional endpoint description. Doc: https://manifest.build/docs/endpoints",
+      "type": "string"
     },
     "policies": {
       "description": "An optional array of policies applied to the endpoint.",

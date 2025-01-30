@@ -24,7 +24,8 @@ export class EndpointService {
       return {
         name: endpointName,
         path: endpointSchema.path,
-        params: endpointSchema.params || {},
+        description:
+          endpointSchema.description || `Endpoint for ${endpointName} handler`,
         method: endpointSchema.method,
         policies: this.policyService.transformPolicies(
           endpointSchema.policies,

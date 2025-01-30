@@ -8,7 +8,7 @@ export interface EndpointManifest {
   name: string
   path: string
   method: HttpMethod
-  params?: object
+  description: string
   handler: string
   policies: PolicyManifest[]
 }
