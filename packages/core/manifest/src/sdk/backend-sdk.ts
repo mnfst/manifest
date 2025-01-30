@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import { UploadService } from '../upload/services/upload.service'
 import { CrudService } from '../crud/services/crud.service'
+import { SDK } from '@repo/types'
 
 /*
- * The BackendSDK class is a service that provides a way to interact with the Manifest backend from the dynamic handlers. It shares the same interface as the Frontend JavaScript SDK (https://www.npmjs.com/package/@mnfst/sdk).
+ * The BackendSDK class is a service that provides a way to interact with the Manifest backend from the dynamic handlers.
+ *
+ * It shares the same interface as the Frontend JavaScript SDK (https://www.npmjs.com/package/@mnfst/sdk).
  */
-// TODO: Interface same as JS SDK
+
 @Injectable()
-export class BackendSDK {
+export class BackendSDK implements SDK {
   constructor(
     private readonly uploadService: UploadService,
     private crudService: CrudService

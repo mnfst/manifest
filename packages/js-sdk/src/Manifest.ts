@@ -1,6 +1,7 @@
 import { Paginator, WhereOperator, whereOperatorKeySuffix } from '@repo/types'
+import { SDK } from '@repo/types'
 
-export default class Manifest {
+export default class Manifest implements SDK {
   /**
    * The Manifest backend base URL (Without ending slash).
    */
