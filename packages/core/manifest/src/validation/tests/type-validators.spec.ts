@@ -65,6 +65,32 @@ describe('Validators for property types', () => {
     )
   })
 
+  it('richtext type expects a string value', async () => {
+    const goodValues = ['test', '']
+    const badValues = [1, true]
+
+    const goodValidations = goodValues.map((value) =>
+      service.validateProperty(value, {
+        name: 'test',
+        type: PropType.RichText
+      })
+    )
+
+    const badValidations = badValues.map((value) =>
+      service.validateProperty(value, {
+        name: 'test',
+        type: PropType.RichText
+      })
+    )
+
+    expect(goodValidations.every((validation) => validation.length === 0)).toBe(
+      true
+    )
+    expect(badValidations.every((validation) => validation.length === 1)).toBe(
+      true
+    )
+  })
+
   it('password type expects a mandatory string value', async () => {
     const goodValues = ['test', '']
     const badValues = [1, true]
