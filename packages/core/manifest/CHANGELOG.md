@@ -1,5 +1,11 @@
 # manifest
 
+## 4.5.2
+
+### Patch Changes
+
+- bf5fd5d: fixed timestamp type validation fail for future dates. Thanks @levinside
+
 ## 4.5.1
 
 ### Patch Changes
