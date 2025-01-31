@@ -6,7 +6,7 @@ import {
   NotFoundException
 } from '@nestjs/common'
 
-import { camelize, getRecordKeyByValue } from '@repo/helpers'
+import { camelize, getRecordKeyByValue } from '@repo/common'
 
 import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
 

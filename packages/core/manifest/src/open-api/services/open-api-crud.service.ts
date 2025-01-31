@@ -1,7 +1,7 @@
 import { EntityManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
-import { upperCaseFirstLetter } from '@repo/helpers'
+import { upperCaseFirstLetter } from '@repo/common'
 import { API_PATH, COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
 
 @Injectable()

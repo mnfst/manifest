@@ -26,7 +26,7 @@
     "lib": ["ES2022", "dom"],
     "paths": {
       "@repo/types": ["../types/src"],
-      "@repo/helpers": ["../helpers/src"]
+      "@repo/common": ["../common/src"]
     }
   },
   "angularCompilerOptions": {

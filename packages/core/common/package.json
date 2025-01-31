@@ -1,5 +1,5 @@
 {
-  "name": "@repo/helpers",
+  "name": "@repo/common",
   "private": true,
   "scripts": {
     "build": "tsc --noEmit",

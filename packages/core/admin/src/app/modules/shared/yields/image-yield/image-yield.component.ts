@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core'
 
 import { NgIf } from '@angular/common'
 import { ImageSizesObject } from '@repo/types'
-import { getSmallestImageSize } from '@repo/helpers'
+import { getSmallestImageSize } from '@repo/common'
 
 @Component({
   selector: 'app-image-yield',
