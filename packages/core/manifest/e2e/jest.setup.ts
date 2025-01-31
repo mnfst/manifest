@@ -8,6 +8,7 @@ import fs from 'fs'
 import { SwaggerModule } from '@nestjs/swagger'
 import { OpenApiService } from '../src/open-api/services/open-api.service'
 import { SeederService } from '../src/seed/services/seeder.service'
+import path from 'path'
 
 let app: INestApplication
 
@@ -17,6 +18,11 @@ beforeAll(async () => {
   process.env.DB_DATABASE = ':memory:'
   process.env.DB_DROP_SCHEMA = 'true'
   process.env.TOKEN_SECRET_KEY = 'test'
+  process.env.MANIFEST_HANDLERS_FOLDER = path.join(
+    __dirname,
+    'assets',
+    'handlers'
+  )
 
   // Start the NestJS application mocking some services.
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,6 +38,10 @@ beforeAll(async () => {
           )
         )
     })
+    // .overrideProvider(HandlerService)
+    // .useValue({
+    //   trigger: jest.fn()
+    // })
     .compile()
 
   app = moduleFixture.createNestApplication()

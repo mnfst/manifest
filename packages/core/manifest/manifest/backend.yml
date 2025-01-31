@@ -52,10 +52,3 @@ endpoints:
     path: /cats
     method: GET
     handler: createCat
-    policies:
-      - access: 🔒
-
-  upvoteCat:
-    path: /cats/:id/upvote
-    method: POST
-    handler: upvoteCat

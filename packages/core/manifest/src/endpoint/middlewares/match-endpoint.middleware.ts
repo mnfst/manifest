@@ -17,7 +17,9 @@ export class MatchEndpointMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: () => void) {
     const { endpoint, params } = this.endpointService.matchRoutePath({
-      path: req.path.replace(`/${API_PATH}/${ENDPOINTS_PATH}`, ''),
+      path: req.path
+        .replace(`/${API_PATH}`, '')
+        .replace(`/${ENDPOINTS_PATH}`, ''),
       method: req.method as HttpMethod,
       endpoints: this.manifestService.getAppManifest().endpoints
     })
