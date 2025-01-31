@@ -19,21 +19,24 @@ export class EndpointService {
   transformEndpointsSchemaObject(endpointSchemaObject: {
     [k: string]: EndpointSchema
   }): EndpointManifest[] {
-    return Object.keys(endpointSchemaObject).map((endpointName: string) => {
-      const endpointSchema = endpointSchemaObject[endpointName]
-      return {
-        name: endpointName,
-        path: endpointSchema.path,
-        description:
-          endpointSchema.description || `Endpoint for ${endpointName} handler`,
-        method: endpointSchema.method,
-        policies: this.policyService.transformPolicies(
-          endpointSchema.policies,
-          PUBLIC_ACCESS_POLICY
-        ),
-        handler: endpointSchema.handler
+    return Object.keys(endpointSchemaObject || []).map(
+      (endpointName: string) => {
+        const endpointSchema = endpointSchemaObject[endpointName]
+        return {
+          name: endpointName,
+          path: endpointSchema.path,
+          description:
+            endpointSchema.description ||
+            `Endpoint for ${endpointName} handler`,
+          method: endpointSchema.method,
+          policies: this.policyService.transformPolicies(
+            endpointSchema.policies,
+            PUBLIC_ACCESS_POLICY
+          ),
+          handler: endpointSchema.handler
+        }
       }
-    })
+    )
   }
 
   /**
