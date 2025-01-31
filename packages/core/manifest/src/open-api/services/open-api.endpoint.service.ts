@@ -5,6 +5,13 @@ import { API_PATH, ENDPOINTS_PATH } from '../../constants'
 
 @Injectable()
 export class OpenApiEndpointService {
+  /**
+   * Generates the dynamic endpoint paths for the OpenAPI document from an Endpoint Manifest.
+   *
+   * @param endpoints Endpoint Manifest
+   *
+   * @returns Dynamic endpoint paths
+   */
   generateEndpointPaths(
     endpoints: EndpointManifest[]
   ): Record<string, PathItemObject> {

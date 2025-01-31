@@ -49,6 +49,6 @@ describe('MatchEndpointMiddleware', () => {
     middleware.use(req, {} as any, () => {})
 
     expect(req['endpoint']).toEqual(dummyEndpoint)
-    expect(req['params']).toEqual(dummyParams)
+    expect(req['dynamicParams']).toEqual(dummyParams)
   })
 })

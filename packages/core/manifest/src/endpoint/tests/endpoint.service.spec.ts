@@ -33,8 +33,7 @@ describe('EndpointService', () => {
           path: '/test',
           method: 'GET',
           handler: 'handler',
-          policies: [],
-          params: {}
+          policies: []
         }
       } as any
 
@@ -48,8 +47,7 @@ describe('EndpointService', () => {
         path: '/test',
         method: 'GET',
         handler: 'handler',
-        policies: [],
-        params: {}
+        policies: []
       })
     })
   })
@@ -58,6 +56,7 @@ describe('EndpointService', () => {
     it('should match the route path', () => {
       const dummyEndpoint: EndpointManifest = {
         name: 'test',
+        description: 'test',
         path: '/test',
         method: 'GET',
         handler: 'handler',
@@ -78,6 +77,7 @@ describe('EndpointService', () => {
   it('should extract parameters from the path', () => {
     const dummyEndpoint: EndpointManifest = {
       name: 'test',
+      description: 'test',
       path: '/author/:authorId/book/:bookId',
       method: 'POST',
       handler: 'handler',

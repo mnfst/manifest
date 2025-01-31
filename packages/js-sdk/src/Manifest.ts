@@ -5,7 +5,7 @@ export default class Manifest extends BaseSDK {
   /**
    * The Manifest backend base URL (Without ending slash).
    */
-  private baseUrl: string
+  baseUrl: string = 'http://localhost:1111/api'
 
   /**
    * The headers of the request.
@@ -19,9 +19,12 @@ export default class Manifest extends BaseSDK {
    *
    * @param baseUrl The Manifest backend URL address (Without ending slash). Default: http://localhost:1111
    */
-  constructor(baseUrl: string = 'http://localhost:1111') {
-    this.baseUrl = baseUrl + '/api'
-    this.slug = ''
+  constructor(baseUrl?: string) {
+    super()
+
+    if (baseUrl) {
+      this.baseUrl = baseUrl + '/api'
+    }
   }
 
   /**
@@ -310,10 +313,12 @@ export default class Manifest extends BaseSDK {
       headers: {
         Authorization: this.headers['Authorization']
       }
-    }).catch((err) => {
-      console.error(err)
-      return {}
-    }) as Promise<{ path: string }>
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err)
+        return {}
+      }) as Promise<{ path: string }>
   }
 
   /**

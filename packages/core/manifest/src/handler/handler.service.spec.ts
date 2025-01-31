@@ -2,12 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { HandlerService } from './handler.service'
 import { ConfigService } from '@nestjs/config'
 import * as fs from 'fs'
+import { BackendSDK } from '../sdk/backend-sdk'
 
 jest.mock('fs')
 global.fetch = jest.fn()
 
 describe('HandlerService', () => {
   let service: HandlerService
+
+  const dummySdk = {}
 
   beforeAll(() => {
     ;(fs.existsSync as jest.Mock).mockReturnValue(true)
@@ -24,6 +27,10 @@ describe('HandlerService', () => {
               handlersFolder: './'
             }))
           }
+        },
+        {
+          provide: BackendSDK,
+          useValue: dummySdk
         }
       ]
     }).compile()
@@ -60,7 +67,7 @@ describe('HandlerService', () => {
 
       await service.trigger('handler', req, res)
 
-      expect(handler).toHaveBeenCalledWith(req, res)
+      expect(handler).toHaveBeenCalledWith(req, res, dummySdk)
     })
   })
 

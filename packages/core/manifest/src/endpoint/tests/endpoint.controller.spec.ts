@@ -49,7 +49,7 @@ describe('EndpointController', () => {
     expect(controller).toBeDefined()
   })
 
-  it('should trigger the endpoint', async () => {
+  it('should trigger the endpoint on GET, POST, PUT, PATCH and DELETE methods', async () => {
     const req = {
       endpoint: {
         handler: 'test'
@@ -58,16 +58,24 @@ describe('EndpointController', () => {
 
     const res = {} as any
 
-    const result = await controller.triggerEndpoint(req, res)
+    const getResult = await controller.triggerGetEndpoint(req, res)
+    const postResult = await controller.triggerPostEndpoint(req, res)
+    const putResult = await controller.triggerPutEndpoint(req, res)
+    const patchResult = await controller.triggerPatchEndpoint(req, res)
+    const deleteResult = await controller.triggerDeleteEndpoint(req, res)
 
-    expect(result).toEqual({ status: 200 })
+    expect(getResult).toEqual({ status: 200 })
+    expect(postResult).toEqual({ status: 200 })
+    expect(putResult).toEqual({ status: 200 })
+    expect(patchResult).toEqual({ status: 200 })
+    expect(deleteResult).toEqual({ status: 200 })
   })
 
   it('should throw an error if no endpoint is found', () => {
     const req = {} as Partial<Request>
 
     expect(() =>
-      controller.triggerEndpoint(req as Request, {} as any)
+      controller.triggerGetEndpoint(req as Request, {} as any)
     ).toThrow()
   })
 })
