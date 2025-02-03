@@ -1,5 +1,11 @@
 # manifest
 
+## 4.5.3
+
+### Patch Changes
+
+- e48e221: reduced bundle size, thanks @nicholas-codecov
+
 ## 4.5.2
 
 ### Patch Changes
