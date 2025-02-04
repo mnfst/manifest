@@ -37,27 +37,8 @@ label:not(.file-label):not(.checkbox):not(.image-label):not(.radio) {
   }
 }
 
-select,
 .select {
   font-size: $size-normal;
-
-  &.is-small {
-    border-radius: $control-radius-small;
-    font-size: $size-small;
-  }
-
-  &.is-medium {
-    font-size: $size-medium;
-  }
-
-  &.is-large {
-    font-size: $size-large;
-  }
-}
-
-case-input,
-.select,
-case-select-input {
   width: 100%;
 }
 
@@ -119,8 +100,7 @@ case-select-input {
   }
 }
 
-// Radio
-
+// Quill editor
 quill-editor {
   width: 100%;
   height: 100%;

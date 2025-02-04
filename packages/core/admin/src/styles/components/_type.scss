@@ -2,6 +2,10 @@
   letter-spacing: 0.4px;
 }
 
+.is-small {
+  font-size: $size-small;
+}
+
 th {
   font-weight: $weight-bold;
 }
@@ -125,7 +129,6 @@ a {
   }
 
   .main & {
-
     span {
       position: relative;
 
