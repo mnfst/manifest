@@ -2,6 +2,10 @@
   letter-spacing: 0.4px;
 }
 
+.is-small {
+  font-size: $size-small;
+}
+
 th {
   font-weight: $weight-bold;
 }
@@ -125,19 +129,8 @@ a {
   }
 
   .main & {
-
     span {
-      position: relative;
-
-      &:before {
-        content: '';
-        display: inline-block;
-        position: absolute;
-        background-color: $primary;
-        bottom: -1px;
-        width: 100%;
-        height: 1px;
-      }
+      @include underlined-text;
     }
   }
 }
@@ -203,4 +196,13 @@ a {
 
 .is-nowrap {
   white-space: nowrap;
+}
+
+app-link-yield {
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }

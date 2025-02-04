@@ -56,7 +56,6 @@
     border-color: $input-focus-border-color;
   }
 
-
   @each $name, $pair in $colors {
     $color: nth($pair, 1);
     &.is-#{$name} {
@@ -70,9 +69,6 @@
     }
   }
 
-  &.is-small {
-    font-size: $size-small;
-  }
   &.is-medium {
     font-size: $size-medium;
   }

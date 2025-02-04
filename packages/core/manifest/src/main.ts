@@ -866,41 +866,18 @@ background: #ce107c;
   background: #feebeb
 }
 
-@-webkit-keyframes shake {
-  10%, 90% {
-    -webkit-transform: translate3d(-1px, 0, 0);
-    transform: translate3d(-1px, 0, 0)
-  }
-  20%, 80% {
-    -webkit-transform: translate3d(2px, 0, 0);
-    transform: translate3d(2px, 0, 0)
-  }
-  30%, 50%, 70% {
-    -webkit-transform: translate3d(-4px, 0, 0);
-    transform: translate3d(-4px, 0, 0)
-  }
-  40%, 60% {
-    -webkit-transform: translate3d(4px, 0, 0);
-    transform: translate3d(4px, 0, 0)
-  }
-}
-
 @keyframes shake {
   10%, 90% {
-    -webkit-transform: translate3d(-1px, 0, 0);
-    transform: translate3d(-1px, 0, 0)
+    transform: translate3d(-1px, 0, 0);
   }
   20%, 80% {
-    -webkit-transform: translate3d(2px, 0, 0);
-    transform: translate3d(2px, 0, 0)
+    transform: translate3d(2px, 0, 0);
   }
   30%, 50%, 70% {
-    -webkit-transform: translate3d(-4px, 0, 0);
-    transform: translate3d(-4px, 0, 0)
+    transform: translate3d(-4px, 0, 0);
   }
   40%, 60% {
-    -webkit-transform: translate3d(4px, 0, 0);
-    transform: translate3d(4px, 0, 0)
+    transform: translate3d(4px, 0, 0);
   }
 }
 

@@ -1,61 +1,8 @@
 @import '../../../../../styles/variables/all';
 @import 'bulma/sass/utilities/mixins';
-
-.container {
-  max-width: 100%;
-  width: 100%;
-}
-
-.hero.is-fullheight {
-  min-height: calc(100vh - 64px);
-
-  @include touch {
-    min-height: calc(100vh - 64px);
-  }
-}
-
-.notification {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  border-radius: 0;
-  bottom: unset;
-}
+@import '../../../../../styles/layout/auth';
 
 .col-welcome {
-  position: fixed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: $white;
-  left: 0;
-  top: 0;
+  @extend .auth-column;
   width: 100vw;
-  height: 100vh;
-
-  > div {
-    margin: auto;
-
-    @include widescreen {
-      max-width: 482px;
-      min-width: 382px;
-    }
-
-    @include desktop {
-      max-width: 424px;
-      min-width: 360px;
-    }
-
-    @include tablet {
-      max-width: 424px;
-      min-width: 320px;
-    }
-
-    @include mobile {
-      min-width: 50%;
-      max-width: 380px;
-    }
-  }
 }

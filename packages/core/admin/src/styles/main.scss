@@ -14,13 +14,10 @@
 @import './helpers/helpers';
 
 // Components
-@import './components/address-input';
 @import './components/analog-progress-bar';
 @import './components/avatar';
 @import './components/buttons';
 @import './components/cards';
-@import './components/colorpicker';
-@import './components/datepicker';
 @import './components/dropdown';
 @import './components/forms';
 @import './components/generic';
@@ -36,8 +33,7 @@
 @import './components/pagination';
 @import './components/progress-bar';
 @import './components/rich-text';
-@import './components/spinner';
-@import './components/switch-yield';
+
 @import './components/table';
 @import './components/tabs';
 @import './components/type';
