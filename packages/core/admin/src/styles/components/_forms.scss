@@ -32,11 +32,6 @@ label:not(.file-label):not(.checkbox):not(.image-label):not(.is-boxed) {
   color: $label-color;
   display: inline-block;
 
-  case-switch-yield & {
-    display: flex;
-    padding-bottom: 0;
-  }
-
   @include touch {
     margin-top: $column-gap;
   }
