@@ -73,16 +73,6 @@ th {
   color: $primary;
 
   span {
-    position: relative;
-
-    &::before {
-      content: '';
-      display: inline-block;
-      position: absolute;
-      background-color: $primary;
-      bottom: -1px;
-      width: 100%;
-      height: 1px;
-    }
+    @include underlined-text;
   }
 }

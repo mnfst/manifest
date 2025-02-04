@@ -27,7 +27,6 @@ nav.navbar {
     margin-right: $navbar-height-touch;
   }
 
-
   .navbar-burger {
     height: $navbar-height-touch;
     width: 8rem;
@@ -43,22 +42,6 @@ nav.navbar {
       color: $sidenav-item-color;
     }
   }
-
-  .header-right {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: $navbar-height-touch;
-    width: $navbar-height-touch;
-  }
-}
-
-.dashboard-title {
-  display: inline-block;
-  padding-left: 20px;
-  font-size: 15px;
-  font-family: 'Georgia', 'Times New Roman', sans-serif;
-  color: $dark;
 }
 
 .navbar-item img {
@@ -66,36 +49,6 @@ nav.navbar {
 }
 
 //_ Dropdown
-
-.drop--down {
-  left: unset;
-  right: 0;
-  top: 30px;
-
-  &:after {
-    content: '';
-    position: absolute;
-    top: -1px;
-    right: 30px;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 6px 6px;
-    border-color: transparent transparent rgba($sidenav-item-color, 0.1) transparent;
-  }
-
-  &:before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    right: 30px;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 6px 6px;
-    border-color: transparent transparent rgba($sidenav-item-color, 0.1) transparent;
-  }
-}
 
 .buttons {
   padding-right: 110px;
@@ -136,12 +89,6 @@ nav.navbar {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
-  .menu-list--bottom {
-    li:last-child {
-      border-top: 1px solid rgba($sidenav-item-color, 0.1);
-    }
-  }
 }
 
 .hiding-layer {
@@ -155,12 +102,16 @@ nav.navbar {
   visibility: hidden;
   height: calc(100vh - #{$navbar-height-touch});
   background: $dark;
-  transition: opacity 0.16s ease-in-out, visibility 0.01s linear 0.16s;
+  transition:
+    opacity 0.16s ease-in-out,
+    visibility 0.01s linear 0.16s;
 
   .is-open & {
     opacity: 0.2;
     visibility: visible;
-    transition: opacity 0.16s ease-in-out 0.01s, visibility 0.01s linear;
+    transition:
+      opacity 0.16s ease-in-out 0.01s,
+      visibility 0.01s linear;
   }
 }
 

@@ -1,7 +1,9 @@
+// Box shadow
 @mixin shadow($shadow-color: $black) {
   box-shadow: 0 42px 64px rgba($shadow-color, 0.16);
 }
 
+// Checkboxes and radio buttons
 @mixin checkbox-radio-styles {
   display: block;
   position: relative;
@@ -52,5 +54,65 @@
     &.is-checked:hover .checkmark {
       box-shadow: $disabled-checkbox-shadow;
     }
+  }
+}
+
+// Ttpography deceorations
+@mixin underlined-text {
+  position: relative;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    background-color: $primary;
+    bottom: -1px;
+    width: 100%;
+    height: 1px;
+  }
+}
+
+// Dynamic width management
+@mixin aside-width {
+  @include tablet {
+    width: $aside-width-tablet;
+  }
+  @include desktop {
+    width: $aside-width-desktop;
+  }
+  @include widescreen {
+    width: $aside-width-widescreen;
+  }
+  @include fullhd {
+    width: $aside-width-fullhd;
+  }
+}
+
+// Navbar display
+@mixin navbar-display {
+  position: absolute;
+  content: '';
+  top: 0;
+  height: 100%;
+  border-bottom: 1px solid $border-color;
+
+  @include mobile {
+    width: 100%;
+  }
+  @include tablet {
+    left: calc(#{$aside-width-tablet} + #{$aside-border-width});
+    width: calc(100% - #{$aside-width-tablet} - #{$aside-border-width});
+  }
+  @include desktop {
+    left: calc(#{$aside-width-desktop} + #{$aside-border-width});
+    width: calc(100% - #{$aside-width-desktop} - #{$aside-border-width});
+  }
+  @include widescreen {
+    left: calc(#{$aside-width-widescreen} + #{$aside-border-width});
+    width: calc(100% - #{$aside-width-widescreen} - #{$aside-border-width});
+  }
+  @include fullhd {
+    left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
+    width: calc(100% - #{$aside-width-fullhd} - #{$aside-border-width});
   }
 }

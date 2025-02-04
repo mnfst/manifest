@@ -1,73 +1,16 @@
 .aside {
   background: $sidenav-background-color;
   flex: none;
+  @include aside-width;
+}
 
-  @include tablet {
-    width: $aside-width-tablet;
-  }
-
-  @include desktop {
-    width: $aside-width-desktop;
-  }
-
-  @include widescreen {
-    width: $aside-width-widescreen;
-  }
-
-  @include fullhd {
-    width: $aside-width-fullhd;
-  }
+.sidebar {
+  float: left;
 }
 
 .dropdown-trigger:after {
   @extend %icon;
   @extend .icon-chevron-down;
-}
-
-.navbar {
-  position: relative;
-
-  &:before {
-    position: absolute;
-    content: '';
-    top: 0;
-    height: 100%;
-    border-bottom: 1px solid $border-color;
-
-    @include mobile {
-      width: 100%;
-    }
-
-    @include tablet {
-      left: calc(#{$aside-width-tablet} + #{$aside-border-width});
-      width: calc(100% - #{$aside-width-tablet} - #{$aside-border-width});
-    }
-
-    @include desktop {
-      left: calc(#{$aside-width-desktop} + #{$aside-border-width});
-      width: calc(100% - #{$aside-width-desktop} - #{$aside-border-width});
-    }
-
-    @include widescreen {
-      left: calc(#{$aside-width-widescreen} + #{$aside-border-width});
-      width: calc(100% - #{$aside-width-widescreen} - #{$aside-border-width});
-    }
-
-    @include fullhd {
-      left: calc(#{$aside-width-fullhd} + #{$aside-border-width});
-      width: calc(100% - #{$aside-width-fullhd} - #{$aside-border-width});
-    }
-  }
-
-  > div:first-child {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-}
-
-.sidebar {
-  float: left;
 }
 
 a {
@@ -92,32 +35,10 @@ aside .has-submenu + ul {
   }
 }
 
-.navbar-burger {
-  @include desktop {
-    display: block;
-    margin: unset;
-  }
-}
-
 app-user-menu-item,
 .ad {
   background-color: $white;
-
-  @include tablet-only {
-    width: 260px;
-  }
-
-  @include desktop {
-    width: $aside-width-desktop;
-  }
-
-  @include widescreen {
-    width: $aside-width-widescreen;
-  }
-
-  @include fullhd {
-    width: $aside-width-fullhd;
-  }
+  @include aside-width;
 }
 
 .ad {
