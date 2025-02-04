@@ -1,5 +1,11 @@
 # manifest
 
+## 4.5.4
+
+### Patch Changes
+
+- 990ae12: Simplofoed and optimized SCSS files, including login styles, spinners and navbar. Remove unused images and scss
+
 ## 4.5.3
 
 ### Patch Changes
