@@ -197,3 +197,12 @@ a {
 .is-nowrap {
   white-space: nowrap;
 }
+
+app-link-yield {
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
