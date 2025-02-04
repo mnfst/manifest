@@ -23,7 +23,10 @@ $input-focus-box-shadow-size: 0 0 5px 0 !default;
 $input-disabled-color: $grey !default;
 $input-disabled-background-color: $grey-light !default;
 $input-disabled-border-color: $grey-light !default;
-$input-disabled-placeholder-color: bulmaRgba($input-disabled-color, 0.3) !default;
+$input-disabled-placeholder-color: bulmaRgba(
+  $input-disabled-color,
+  0.3
+) !default;
 
 $label-color: $grey !default;
 
@@ -39,3 +42,5 @@ $border: $grey-light !default;
 $checkbox-spacing: 35px !default;
 $checkbox-box-shadow-width: 0 0 0 4px !default;
 $select-font-size: 1.5rem !default;
+$disabled-checkbox-shadow: $checkbox-box-shadow-width
+  $input-disabled-border-color inset;
