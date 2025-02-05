@@ -1,5 +1,11 @@
 # manifest
 
+## 4.5.5
+
+### Patch Changes
+
+- dcc1115: Refactor: reduce font-icon size removing unused icons on the admin panel
+
 ## 4.5.4
 
 ### Patch Changes
