@@ -1,5 +1,11 @@
 # manifest
 
+## 4.6.0
+
+### Minor Changes
+
+- 7f3c127: Added custom endpoints
+
 ## 4.5.5
 
 ### Patch Changes
