@@ -1,5 +1,11 @@
 # manifest
 
+## 4.6.1
+
+### Patch Changes
+
+- 880265f: Add route to 404 page if item not found in detail page or edit page
+
 ## 4.6.0
 
 ### Minor Changes
