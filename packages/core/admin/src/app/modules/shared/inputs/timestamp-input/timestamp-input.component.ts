@@ -25,7 +25,7 @@ import { PropertyManifest } from '@repo/types'
 })
 export class TimestampInputComponent {
   @Input() prop: PropertyManifest
-  @Input() value: string
+  @Input() value: number
   @Input() isError: boolean
 
   @Output() valueChanged: EventEmitter<number> = new EventEmitter()
@@ -39,6 +39,7 @@ export class TimestampInputComponent {
   }
 
   onChange(event: any) {
-    this.valueChanged.emit(event.target.value)
+    const valueDate = event.target.value ? new Date(event.target.value) : null
+    this.valueChanged.emit(valueDate?.getTime())
   }
 }
