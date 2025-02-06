@@ -1,11 +1,12 @@
 // TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 import { Test, TestingModule } from '@nestjs/testing'
-import { StorageService } from '../../storage/services/storage/storage.service'
+
 import { SeederService } from '../services/seeder.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
 import { DataSource, EntityMetadata } from 'typeorm'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { StorageService } from '../../storage/services/storage.service'
 
 describe('SeederService', () => {
   let service: SeederService

@@ -5,6 +5,7 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 import { AppManifest } from '@repo/types'
 import { OpenApiManifestService } from './open-api-manifest.service'
 import { OpenApiAuthService } from './open-api-auth.service'
+import { OpenApiEndpointService } from './open-api.endpoint.service'
 
 @Injectable()
 export class OpenApiService {
@@ -12,7 +13,8 @@ export class OpenApiService {
     private readonly manifestService: ManifestService,
     private readonly openApiCrudService: OpenApiCrudService,
     private readonly openApiManifestService: OpenApiManifestService,
-    private readonly openApiAuthService: OpenApiAuthService
+    private readonly openApiAuthService: OpenApiAuthService,
+    private readonly openApiEndpointService: OpenApiEndpointService
   ) {}
 
   /**
@@ -28,14 +30,17 @@ export class OpenApiService {
       openapi: '3.1.0',
       info: {
         title: appManifest.name,
-        version: '' // Version is not supported yet.
+        version: appManifest.version
       },
       paths: {
         ...this.openApiCrudService.generateEntityPaths(
           Object.values(appManifest.entities)
         ),
         ...this.openApiManifestService.generateManifestPaths(appManifest),
-        ...this.openApiAuthService.generateAuthPaths(appManifest)
+        ...this.openApiAuthService.generateAuthPaths(appManifest),
+        ...this.openApiEndpointService.generateEndpointPaths(
+          appManifest.endpoints
+        )
       },
       components: {
         schemas: {

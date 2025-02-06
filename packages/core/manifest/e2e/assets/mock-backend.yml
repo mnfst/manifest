@@ -3,7 +3,7 @@
 #
 # Please do not modify it unless you know what you are doing.
 
-name: 'mock-backend-for-e2e-tests'
+name: "mock-backend-for-e2e-tests"
 entities:
   Owner:
     properties:
@@ -100,7 +100,7 @@ entities:
       - brand
       - { name: year, type: number, validation: { min: 2000 } }
     validation:
-      model: { contains: 'turbo' }
+      model: { contains: "turbo" }
       brand: { minLength: 3, maxLength: 20 }
       year: { min: 2023, max: 2024, isOptional: true }
 
@@ -201,3 +201,17 @@ entities:
       - { name: content, type: text }
     validation:
       title: { required: true }
+
+# Testing endpoints
+endpoints:
+  basicEndpoint:
+    path: /basic
+    description: A basic endpoint that returns a simple message.
+    method: GET
+    handler: basicEndpoint
+
+  createDog:
+    path: /create-dog
+    description: A basic endpoint that creates a dog with the backend SDK.
+    method: POST
+    handler: createDog

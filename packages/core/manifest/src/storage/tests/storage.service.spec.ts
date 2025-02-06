@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { StorageService } from '../storage/storage.service'
-import { DEFAULT_IMAGE_SIZES } from '../../../constants'
-import { ImageSizesObject } from '../../../../../types/src'
+import { DEFAULT_IMAGE_SIZES } from '../../constants'
+import { ImageSizesObject } from '../../../../types/src'
 import { ConfigService } from '@nestjs/config'
+import { StorageService } from '../services/storage.service'
 
 const fs = require('fs')
 const mkdirp = require('mkdirp')

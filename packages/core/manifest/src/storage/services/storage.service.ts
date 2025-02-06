@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { kebabize } from '@repo/helpers'
-import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../../constants'
+import { kebabize } from '@repo/common'
+import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../constants'
 
 import * as fs from 'fs'
 import * as mkdirp from 'mkdirp'

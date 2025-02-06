@@ -10,7 +10,7 @@ import {
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
 
-import { getDtoPropertyNameFromRelationship } from '@repo/helpers'
+import { getDtoPropertyNameFromRelationship } from '@repo/common'
 
 import { HttpErrorResponse } from '@angular/common/http'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'

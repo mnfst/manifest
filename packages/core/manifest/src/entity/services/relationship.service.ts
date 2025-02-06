@@ -10,7 +10,7 @@ import {
   getDtoPropertyNameFromRelationship,
   forceNumberArray,
   camelize
-} from '@repo/helpers'
+} from '@repo/common'
 import pluralize from 'pluralize'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 

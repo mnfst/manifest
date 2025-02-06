@@ -1,7 +1,7 @@
+import { EndpointManifest } from '../endpoints'
 import { EntityManifest } from './EntityManifest'
-import { Manifest } from './ManifestSchema'
 
-export interface AppManifest extends Manifest {
+export interface AppManifest {
   /**
    * The name of the app.
    */
@@ -18,4 +18,9 @@ export interface AppManifest extends Manifest {
   entities?: {
     [k: string]: EntityManifest
   }
+
+  /**
+   * The endpoints of the app.
+   */
+  endpoints?: EndpointManifest[]
 }

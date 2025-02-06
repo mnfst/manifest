@@ -58,13 +58,15 @@ Manifest keeps it simple, delivering only the essential backend features and smo
 
 Manifest fits great in those type of projects:
 
-- 🌐 Making any website dynamic: corporate, portfolios, blogs, landing pages
+- 🛠️ Rapid prototyping: POCs and MVPs
+- 🧩 Micro services: notification, payment, logging, file services...
 - 🏭 CRUD-heavy apps: mobile apps, directories, PIMs, E-shops
-- 🛠️ Rapid prototyping, Proof-of-Concepts (POCs), Minimum Viable Products (MVPs)
+- 🌐 Headless CMS: dynamic corporate websites, portfolios, blogs...
 
 ## Key features
 
-<a href="https://manifest.build/docs/authentication" target="_blank">Auth</a> | <a href="https://manifest.build/docs/validation" target="_blank">Validation</a> | <a href="https://manifest.build/docs/upload#upload-a-file" target="_blank">Storage</a> | <a href="https://manifest.build/docs/upload#upload-an-image" target="_blank">Image resizing</a> | <a href="https://manifest.build/docs/install" target="_blank">Admin panel</a> | <a href="https://manifest.build/docs/rest-api" target="_blank">REST API</a> | <a href="https://manifest.build/docs/javascript-sdk" target="_blank">JS SDK</a>
+<a href="https://manifest.build/docs/authentication" target="_blank">Auth</a> | <a href="https://manifest.build/docs/validation" target="_blank">Validation</a> | <a href="https://manifest.build/docs/upload#upload-a-file" target="_blank">Storage</a> | <a href="https://manifest.build/docs/upload#upload-an-image" target="_blank">Image resizing</a> | <a href="https://manifest.build/docs/install" target="_blank">Admin panel</a> | <a href="https://manifest.build/docs/endpoints" target="_blank">Dynamic endpoints</a> |
+<a href="https://manifest.build/docs/rest-api" target="_blank">REST API</a> | <a href="https://manifest.build/docs/javascript-sdk" target="_blank">JS SDK</a> | <a href="https://manifest.build/docs/webhooks" target="_blank">Webhooks</a>
 
 ## Getting started
 
