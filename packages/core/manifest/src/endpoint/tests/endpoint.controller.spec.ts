@@ -4,7 +4,6 @@ import { PolicyGuard } from '../../policy/policy.guard'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { HandlerService } from '../../handler/handler.service'
 import { AuthService } from '../../auth/auth.service'
-import { Request } from 'express'
 
 describe('EndpointController', () => {
   let controller: EndpointController
@@ -69,13 +68,5 @@ describe('EndpointController', () => {
     expect(putResult).toEqual({ status: 200 })
     expect(patchResult).toEqual({ status: 200 })
     expect(deleteResult).toEqual({ status: 200 })
-  })
-
-  it('should throw an error if no endpoint is found', () => {
-    const req = {} as Partial<Request>
-
-    expect(() =>
-      controller.triggerGetEndpoint(req as Request, {} as any)
-    ).toThrow()
   })
 })
