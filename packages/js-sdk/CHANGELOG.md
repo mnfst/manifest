@@ -1,5 +1,11 @@
 # @mnfst/sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- 7f3c127: Added custom endpoints
+
 ## 1.1.0
 
 ### Minor Changes

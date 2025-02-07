@@ -10,7 +10,7 @@
   "setupFilesAfterEnv": ["./jest.setup.ts"],
   "moduleNameMapper": {
     "^@repo/types$": "<rootDir>/../../types/src",
-    "^@repo/helpers$": "<rootDir>/../../helpers/src",
+    "^@repo/common$": "<rootDir>/../../common/src",
     "^@repo/json-schema$": "<rootDir>/../../json-schema/src"
   }
 }

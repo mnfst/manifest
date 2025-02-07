@@ -1,6 +1,6 @@
 import fetchMock from 'fetch-mock'
 import Manifest from '../src/Manifest'
-import { base64ToBlob } from '@repo/helpers'
+import { base64ToBlob } from '@repo/common'
 
 describe('Upload', () => {
   const baseUrl: string = 'http://localhost:1111/api'

@@ -5,6 +5,7 @@ import { SchemaService } from '../services/schema.service'
 import { AppManifest, PropType } from '@repo/types'
 import { EntityManifestService } from '../services/entity-manifest.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
+import { EndpointService } from '../../endpoint/endpoint.service'
 
 describe('ManifestService', () => {
   let service: ManifestService
@@ -69,6 +70,12 @@ describe('ManifestService', () => {
             transformEntityManifests: jest.fn(() => [
               dummyManifest.entities.Cat
             ])
+          }
+        },
+        {
+          provide: EndpointService,
+          useValue: {
+            transformEndpointsSchemaObject: jest.fn()
           }
         }
       ]

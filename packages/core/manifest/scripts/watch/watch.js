@@ -7,7 +7,7 @@ const path = require('path')
 const os = require('os')
 const spawn = require('cross-spawn')
 
-// Determine the appropriate nodemon path
+// Determine the appropriate nodemon path.
 const nodemonExecutable = os.platform() === 'win32' ? 'nodemon.cmd' : 'nodemon'
 const nodemonPath = path.join(
   process.cwd(),

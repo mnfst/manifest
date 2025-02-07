@@ -1,9 +1,9 @@
 import { HttpException, Injectable } from '@nestjs/common'
-import { StorageService } from '../../storage/services/storage/storage.service'
 
 import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
 
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { StorageService } from '../../storage/services/storage.service'
 
 @Injectable()
 export class UploadService {

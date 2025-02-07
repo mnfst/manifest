@@ -19,6 +19,13 @@
       "additionalProperties": {
         "$ref": "./definitions/entity-schema.json"
       }
+    },
+    "endpoints": {
+      "description": "The endpoints in your app. Create your own endpoints linking a path and an HTTP method to a handler function. Doc: https://manifest.build/docs/endpoints",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "./definitions/endpoint-schema.json"
+      }
     }
   },
   "required": ["name"],

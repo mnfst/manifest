@@ -21,7 +21,11 @@ import { ValidationModule } from './validation/validation.module'
 import { UploadModule } from './upload/upload.module'
 import { StorageModule } from './storage/storage.module'
 import { ManifestService } from './manifest/services/manifest.service'
-import { HookModule } from './hook/hook.module';
+import { HookModule } from './hook/hook.module'
+import { EndpointModule } from './endpoint/endpoint.module'
+import { PolicyModule } from './policy/policy.module'
+import { HandlerModule } from './handler/handler.module';
+import { SdkModule } from './sdk/sdk.module';
 
 @Module({
   imports: [
@@ -60,7 +64,11 @@ import { HookModule } from './hook/hook.module';
     ValidationModule,
     UploadModule,
     StorageModule,
-    HookModule
+    HookModule,
+    EndpointModule,
+    PolicyModule,
+    HandlerModule,
+    SdkModule
   ]
 })
 export class AppModule {

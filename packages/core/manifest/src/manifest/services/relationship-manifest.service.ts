@@ -4,7 +4,7 @@ import {
   RelationshipManifest,
   RelationshipSchema
 } from '../../../../types/src'
-import { camelize } from '../../../../helpers/src'
+import { camelize } from '@repo/common'
 import pluralize from 'pluralize'
 
 @Injectable()

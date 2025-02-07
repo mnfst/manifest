@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { UploadService } from '../services/upload.service'
-import { StorageService } from '../../storage/services/storage/storage.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { StorageService } from '../../storage/services/storage.service'
 
 describe('UploadService', () => {
   let service: UploadService

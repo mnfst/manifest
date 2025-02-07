@@ -3,7 +3,7 @@ import { CollectionController } from '../controllers/collection.controller'
 import { AuthService } from '../../auth/auth.service'
 import { CrudService } from '../services/crud.service'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
-import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { PolicyGuard } from '../../policy/policy.guard'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
@@ -40,7 +40,7 @@ describe('CollectionController', () => {
           }
         },
         {
-          provide: AuthorizationGuard,
+          provide: PolicyGuard,
           useValue: {
             canActivate: jest.fn()
           }

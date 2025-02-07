@@ -1,7 +1,11 @@
 import path from 'path'
 
 export default (): {
-  paths: { adminPanelFolder: string; manifestFile: string }
+  paths: {
+    adminPanelFolder: string
+    manifestFile: string
+    handlersFolder: string
+  }
 } => {
   return {
     paths: {
@@ -11,7 +15,10 @@ export default (): {
           : `${process.cwd()}/node_modules/manifest/dist/admin`,
       manifestFile:
         process.env.MANIFEST_FILE_PATH ||
-        `${process.cwd()}/manifest/backend.yml`
+        `${process.cwd()}/manifest/backend.yml`,
+      handlersFolder:
+        process.env.MANIFEST_HANDLERS_FOLDER ||
+        path.join(process.cwd(), 'manifest', 'handlers')
     }
   }
 }

@@ -1,5 +1,5 @@
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
-import { policies } from '../policies/policies'
+import { policies } from '../../policy/policies'
 
 describe('Policies', () => {
   const user = { email: 'admin@testfr' } as any

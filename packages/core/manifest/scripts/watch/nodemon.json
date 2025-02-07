@@ -1,5 +1,5 @@
 {
-  "watch": ["manifest/*.yml"],
-  "ext": "yml",
+  "watch": ["manifest/*.yml", "manifest/handlers/*.js"],
+  "ext": "yml,js",
   "exec": "node node_modules/manifest/dist/manifest/src/main.js"
 }

@@ -1,4 +1,4 @@
-import { base64ToBlob } from '@repo/helpers'
+import { base64ToBlob } from '@repo/common'
 
 // TODO: We should mock the file system to avoid writing to the disk.
 describe('Upload (e2e)', () => {

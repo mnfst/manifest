@@ -1,5 +1,23 @@
 # manifest
 
+## 4.6.1
+
+### Patch Changes
+
+- 880265f: Add route to 404 page if item not found in detail page or edit page
+
+## 4.6.0
+
+### Minor Changes
+
+- 7f3c127: Added custom endpoints
+
+## 4.5.5
+
+### Patch Changes
+
+- dcc1115: Refactor: reduce font-icon size removing unused icons on the admin panel
+
 ## 4.5.4
 
 ### Patch Changes

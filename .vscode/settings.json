@@ -52,6 +52,14 @@
     "manifest": "server",
     "core/manifest": "meta",
     "js-sdk": "javascript",
-    "json-schema": "json"
+    "json-schema": "json",
+    "logger": "log",
+    "storage": "import",
+    "policy": "secure",
+    "open-api": "docs",
+    "crud": "class",
+    "endpoint": "target",
+    "entity": "database",
+    "health": "favicon"
   }
 }

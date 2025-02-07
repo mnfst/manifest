@@ -10,7 +10,7 @@ import {
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
 
-import { getDtoPropertyNameFromRelationship } from '@repo/helpers'
+import { getDtoPropertyNameFromRelationship } from '@repo/common'
 
 import { HttpErrorResponse } from '@angular/common/http'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
@@ -63,21 +63,25 @@ export class CreateEditComponent {
       this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
 
       if (this.edit) {
-        if (this.singleMode) {
-          this.item = await this.crudService.showSingle(
-            this.entityManifest.slug
-          )
-        } else {
-          this.item = await this.crudService.show(
-            this.entityManifest.slug,
-            params['id'],
-            {
-              relations: this.entityManifest.relationships
-                .filter((r) => r.type !== 'one-to-many')
-                .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-                .map((r) => r.name)
-            }
-          )
+        try {
+          if (this.singleMode) {
+            this.item = await this.crudService.showSingle(
+              this.entityManifest.slug
+            )
+          } else {
+            this.item = await this.crudService.show(
+              this.entityManifest.slug,
+              params['id'],
+              {
+                relations: this.entityManifest.relationships
+                  .filter((r) => r.type !== 'one-to-many')
+                  .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+                  .map((r) => r.name)
+              }
+            )
+          }
+        } catch (err) {
+          this.router.navigate(['/404'])
         }
 
         this.breadcrumbService.breadcrumbLinks.next([

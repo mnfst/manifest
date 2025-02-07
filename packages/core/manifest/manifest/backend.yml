@@ -46,3 +46,9 @@ entities:
       - { name: image, type: image }
     validation:
       title: { required: true }
+
+endpoints:
+  createCat:
+    path: /cats
+    method: GET
+    handler: createCat

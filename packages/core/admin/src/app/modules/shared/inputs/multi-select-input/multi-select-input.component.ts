@@ -16,7 +16,7 @@ import {
 } from '@repo/types'
 import { ManifestService } from '../../services/manifest.service'
 import { CrudService } from '../../../crud/services/crud.service'
-import { forceNumberArray } from '@repo/helpers'
+import { forceNumberArray } from '@repo/common'
 
 @Component({
   selector: 'app-multi-select-input',

@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "paths": {
       "@repo/types": ["../core/types/src"],
-      "@repo/helpers": ["../core/helpers/src"]
+      "@repo/common": ["../core/common/src"]
     },
     "resolveJsonModule": true,
     "allowJs": true

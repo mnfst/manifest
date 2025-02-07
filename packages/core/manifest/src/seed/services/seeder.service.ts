@@ -25,7 +25,7 @@ import {
   DUMMY_IMAGE_NAME
 } from '../../constants'
 
-import { StorageService } from '../../storage/services/storage/storage.service'
+import { StorageService } from '../../storage/services/storage.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()

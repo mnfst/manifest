@@ -3,9 +3,9 @@ import { ManifestController } from '../controllers/manifest.controller'
 import { ManifestService } from '../services/manifest.service'
 import { AuthService } from '../../auth/auth.service'
 import { EntityManifestService } from '../services/entity-manifest.service'
-import { AppManifest, EntityManifest, Manifest } from '@repo/types'
+import { AppManifest, EntityManifest } from '@repo/types'
 import { Request } from 'express'
-import { publicAccessPolicy } from '../utils/policy-manifests'
+import { PUBLIC_ACCESS_POLICY } from '../../constants'
 
 describe('ManifestController', () => {
   let controller: ManifestController
@@ -19,7 +19,7 @@ describe('ManifestController', () => {
 
   const dummyEntityManifest: EntityManifest = {
     name: 'Test Entity',
-    policies: [publicAccessPolicy]
+    policies: [PUBLIC_ACCESS_POLICY]
   } as any
 
   beforeEach(async () => {
@@ -60,7 +60,7 @@ describe('ManifestController', () => {
   })
 
   it('should get the app manifest', async () => {
-    const manifest: Manifest = await controller.getAppManifest({} as Request)
+    const manifest: any = await controller.getAppManifest({} as Request)
 
     expect(manifest).toEqual(dummyManifest)
   })
@@ -68,7 +68,7 @@ describe('ManifestController', () => {
   it('should get the full version of the app manifest if the user is an admin', async () => {
     jest.spyOn(authService, 'isReqUserAdmin').mockResolvedValue(true)
 
-    const manifest: Manifest = await controller.getAppManifest({} as Request)
+    const manifest: any = await controller.getAppManifest({} as Request)
 
     expect(manifest).toEqual(dummyManifest)
     expect(manifestService.getAppManifest).toHaveBeenCalledWith({

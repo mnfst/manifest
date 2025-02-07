@@ -9,6 +9,7 @@ import {
 import { RelationshipManifestService } from '../services/relationship-manifest.service'
 import { ManifestService } from '../services/manifest.service'
 import { HookService } from '../../hook/hook.service'
+import { PolicyService } from '../../policy/policy.service'
 
 describe('EntityManifestService', () => {
   let service: EntityManifestService
@@ -77,6 +78,12 @@ describe('EntityManifestService', () => {
           provide: HookService,
           useValue: {
             transformHookSchemaIntoHookManifest: jest.fn()
+          }
+        },
+        {
+          provide: PolicyService,
+          useValue: {
+            transformPolicies: jest.fn()
           }
         }
       ]
