@@ -13,6 +13,62 @@ describe('Custom validators', () => {
     service = module.get<ValidationService>(ValidationService)
   })
 
+  it('equals type expects a value equal to that of comparing', async () => {
+    const goodValues = [3]
+    const badValues = [1]
+
+    const goodValidations = goodValues.map((value) =>
+      service.validateProperty(value, {
+        name: 'test',
+        type: PropType.Number,
+        validation: { equals: 3 }
+      })
+    )
+
+    const badValidations = badValues.map((value) =>
+      service.validateProperty(value, {
+        name: 'test',
+        type: PropType.Number,
+        validation: { equals: 3 }
+      })
+    )
+
+    expect(goodValidations.every((validation) => validation.length === 0)).toBe(
+      true
+    )
+    expect(badValidations.every((validation) => validation.length === 1)).toBe(
+      true
+    )
+  })
+
+  it('notEquals type expects a value not equal to that of comparing', async () => {
+    const goodValues = [1]
+    const badValues = [3]
+
+    const goodValidations = goodValues.map((value) =>
+      service.validateProperty(value, {
+        name: 'test',
+        type: PropType.Number,
+        validation: { notEquals: 3 }
+      })
+    )
+
+    const badValidations = badValues.map((value) =>
+      service.validateProperty(value, {
+        name: 'test',
+        type: PropType.Number,
+        validation: { notEquals: 3 }
+      })
+    )
+
+    expect(goodValidations.every((validation) => validation.length === 0)).toBe(
+      true
+    )
+    expect(badValidations.every((validation) => validation.length === 1)).toBe(
+      true
+    )
+  })
+
   it('min type expects a value greater than or equal to the min value', async () => {
     const goodValues = [3, 4, 5]
     const badValues = [1, 2]

@@ -1,7 +1,7 @@
 import { PropType } from '../crud'
 import { ValidationManifest } from './ValidationManifest'
 
-export type PropertyManifest = {
+export type PropertyManifest<T = unknown> = {
   /**
    * The name of the property.
    */
@@ -27,5 +27,5 @@ export type PropertyManifest = {
   /**
    * Validation rules for the property.
    */
-  validation?: ValidationManifest
+  validation?: ValidationManifest<T>
 }
