@@ -86,6 +86,8 @@ describe('StorageService', () => {
     expect(filePaths).toBeDefined()
     expect(Object.keys(filePaths).length).toBe(2)
     expect(Object.keys(filePaths)).toMatchObject(Object.keys(imageSizes))
+    expect(sharp.prototype.resize).toHaveBeenCalledTimes(2)
+    expect(sharp.prototype.toFile).toHaveBeenCalledTimes(2)
   })
 
   it('should prepend the storage url before the path', () => {
