@@ -1,5 +1,11 @@
 # manifest
 
+## 4.6.2
+
+### Patch Changes
+
+- e05bd4d: added dynamic path for db and public folder
+
 ## 4.6.1
 
 ### Patch Changes
