@@ -60,21 +60,43 @@ export class SeederService {
 
     // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
+    const isPostgres = this.dataSource.options.type === 'postgres'
 
-    await queryRunner.query('PRAGMA foreign_keys = OFF')
-    await Promise.all(
-      entityMetadatas.map(async (entity: EntityMetadata) =>
-        queryRunner
-          .query(`DELETE FROM [${entity.tableName}]`)
-          .then(() =>
-            queryRunner.query(
-              `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
-            )
-          )
+    if (isPostgres) {
+      // Disable foreign key checks for Postgres by using CASCADE
+      await Promise.all(
+        entityMetadatas.map(async (entity: EntityMetadata) =>
+          queryRunner.query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`)
+        )
       )
-    )
-    await queryRunner.query('PRAGMA foreign_keys = ON')
 
+      // Reset auto-increment sequences
+      await Promise.all(
+        entityMetadatas.map(
+          async (entity: EntityMetadata) =>
+            queryRunner
+              .query(
+                `ALTER SEQUENCE "${entity.tableName}_id_seq" RESTART WITH 1`
+              )
+              .catch(() => {}) // Ignore if sequence doesn't exist
+        )
+      )
+    } else {
+      // SQLite-specific logic
+      await queryRunner.query('PRAGMA foreign_keys = OFF')
+      await Promise.all(
+        entityMetadatas.map(async (entity: EntityMetadata) =>
+          queryRunner
+            .query(`DELETE FROM [${entity.tableName}]`)
+            .then(() =>
+              queryRunner.query(
+                `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
+              )
+            )
+        )
+      )
+      await queryRunner.query('PRAGMA foreign_keys = ON')
+    }
     // Keep only regular tables for seeding.
     entityMetadatas = entityMetadatas.filter(
       (entity: EntityMetadata) => entity.tableType === 'regular'
