@@ -211,6 +211,8 @@ export default class Manifest extends BaseSDK {
       }
     })) as { token: string }
 
+    if (!response.token) { return false }
+    
     this.headers['Authorization'] = `Bearer ${response.token}`
 
     return true
