@@ -2,7 +2,7 @@ import { PropType } from '@repo/types'
 import { ColumnType } from 'typeorm'
 
 // This is a mapping of prop types to column types in sqlite.
-export const propTypeColumnTypes: Record<PropType, ColumnType> = {
+export const sqlitePropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.String]: 'varchar',
   [PropType.Number]: 'decimal',
   [PropType.Link]: 'varchar',

@@ -16,7 +16,6 @@ import { ManifestModule } from './manifest/manifest.module'
 import { SeedModule } from './seed/seed.module'
 import { HealthModule } from './health/health.module'
 import { OpenApiModule } from './open-api/open-api.module'
-import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { ValidationModule } from './validation/validation.module'
 import { UploadModule } from './upload/upload.module'
 import { StorageModule } from './storage/storage.module'
@@ -24,8 +23,10 @@ import { ManifestService } from './manifest/services/manifest.service'
 import { HookModule } from './hook/hook.module'
 import { EndpointModule } from './endpoint/endpoint.module'
 import { PolicyModule } from './policy/policy.module'
-import { HandlerModule } from './handler/handler.module';
-import { SdkModule } from './sdk/sdk.module';
+import { HandlerModule } from './handler/handler.module'
+import { SdkModule } from './sdk/sdk.module'
+import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 
 @Module({
   imports: [
@@ -41,13 +42,22 @@ import { SdkModule } from './sdk/sdk.module';
         entityLoaderService: EntityLoaderService,
         manifestService: ManifestService
       ) => {
-        const databaseConfig: SqliteConnectionOptions =
-          configService.get('database')
+        const isPostgres: boolean =
+          configService.get('DB_CONNECTION') === 'postgres'
+
+        let databaseConfig: SqliteConnectionOptions | PostgresConnectionOptions
+
+        if (isPostgres) {
+          databaseConfig = configService.get('database').postgres
+        } else {
+          databaseConfig = configService.get('database').sqlite
+        }
 
         await manifestService.loadManifest(
           configService.get('paths').manifestFile
         )
-        const entities: EntitySchema[] = entityLoaderService.loadEntities()
+        const entities: EntitySchema[] =
+          entityLoaderService.loadEntities(isPostgres)
 
         return Object.assign(databaseConfig, { entities })
       },

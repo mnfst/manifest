@@ -78,6 +78,7 @@
     "mock-fs": "^5.4.1",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.1.7",
+    "pg": "^8.13.1",
     "pluralize": "^8.0.0",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
