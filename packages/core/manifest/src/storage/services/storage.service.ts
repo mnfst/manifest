@@ -33,7 +33,10 @@ export class StorageService {
 
     const filePath: string = `${folder}/${uniqid()}-${slugify(file.originalname)}`
 
-    fs.writeFileSync(`${STORAGE_PATH}/${filePath}`, file.buffer)
+    fs.writeFileSync(
+      `${this.configService.get('paths').publicFolder}/${STORAGE_PATH}/${filePath}`,
+      file.buffer
+    )
 
     return this.prependStorageUrl(filePath)
   }
@@ -70,9 +73,12 @@ export class StorageService {
           .resize(imageSizes[sizeName].width, imageSizes[sizeName].height, {
             fit: imageSizes[sizeName].fit
           })
-          .toFile(`${STORAGE_PATH}/${imagePath}`, () => {
-            return imagePath
-          })
+          .toFile(
+            `${this.configService.get('paths').publicFolder}/${STORAGE_PATH}/${imagePath}`,
+            () => {
+              return imagePath
+            }
+          )
 
         imagePaths[sizeName] = this.prependStorageUrl(imagePath)
       }
@@ -95,18 +101,20 @@ export class StorageService {
 
     const folder: string = `${kebabize(entity)}/${kebabize(property)}/${dateString}`
 
-    mkdirp.sync(`${STORAGE_PATH}/${folder}`)
+    mkdirp.sync(
+      `${this.configService.get('paths').publicFolder}/${STORAGE_PATH}/${folder}`
+    )
 
     return folder
   }
 
   /**
-   * Prepends the storage URL to the given value.
+   * Prepends the storage absolute URL to the given value.
    *
    * @param value The value to prepend the storage URL to.
    * @returns The value with the storage URL prepended.
    */
   prependStorageUrl(value: string): string {
-    return `${this.configService.get('baseUrl')}/storage/${value}`
+    return `${this.configService.get('baseUrl')}/${STORAGE_PATH}/${value}`
   }
 }

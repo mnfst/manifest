@@ -7,7 +7,7 @@ import {
 } from '@repo/types'
 
 // Paths.
-export const STORAGE_PATH: string = 'public/storage'
+export const STORAGE_PATH: string = 'storage'
 export const API_PATH: string = 'api'
 export const COLLECTIONS_PATH: string = 'collections'
 export const SINGLES_PATH: string = 'singles'

@@ -7,7 +7,12 @@ import * as express from 'express'
 import * as livereload from 'livereload'
 import { join } from 'path'
 import { AppModule } from './app.module'
-import { API_PATH, DEFAULT_PORT, DEFAULT_TOKEN_SECRET_KEY } from './constants'
+import {
+  API_PATH,
+  DEFAULT_PORT,
+  DEFAULT_TOKEN_SECRET_KEY,
+  STORAGE_PATH
+} from './constants'
 import { OpenApiService } from './open-api/services/open-api.service'
 
 async function bootstrap() {
@@ -49,24 +54,34 @@ async function bootstrap() {
   const adminPanelFolder: string = configService.get('paths').adminPanelFolder
   app.use(express.static(adminPanelFolder))
 
-  app.use('/storage', express.static('public/storage'))
+  const publicFolder: string = configService.get('paths').publicFolder
+  const storagePath = join(publicFolder, STORAGE_PATH)
+
+  app.use(`/${STORAGE_PATH}`, express.static(storagePath))
 
   // Redirect all requests to the client app index.
   app.use((req, res, next) => {
-    if (req.url.startsWith(`/${API_PATH}`) || req.url.startsWith('/storage')) {
+    if (
+      req.url.startsWith(`/${API_PATH}`) ||
+      req.url.startsWith(`/${STORAGE_PATH}`)
+    ) {
       next()
     } else {
       res.sendFile(join(adminPanelFolder, 'index.html'))
     }
   })
 
-  const openApiService: OpenApiService = app.get(OpenApiService)
+  // Open API documentation.
+  const showOpenApi: boolean = process.env.OPEN_API_DOCS !== 'false'
 
-  SwaggerModule.setup(API_PATH, app, openApiService.generateOpenApiObject(), {
-    customfavIcon: 'assets/images/open-api/favicon.ico',
-    customSiteTitle: 'Manifest API Doc',
+  if (showOpenApi) {
+    const openApiService: OpenApiService = app.get(OpenApiService)
 
-    customCss: `
+    SwaggerModule.setup(API_PATH, app, openApiService.generateOpenApiObject(), {
+      customfavIcon: 'assets/images/open-api/favicon.ico',
+      customSiteTitle: 'Manifest API Doc',
+
+      customCss: `
         
 .swagger-ui html {
   box-sizing: border-box;
@@ -1782,7 +1797,8 @@ background: #ce107c;
    fill: #535356;
  }
 `
-  })
+    })
+  }
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
 }
