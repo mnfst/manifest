@@ -1,5 +1,6 @@
 // TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 import { Test, TestingModule } from '@nestjs/testing'
+import { SHA3 } from 'crypto-js'
 
 import { SeederService } from '../services/seeder.service'
 import { EntityService } from '../../entity/services/entity.service'
@@ -7,7 +8,10 @@ import { RelationshipService } from '../../entity/services/relationship.service'
 import { DataSource, EntityMetadata } from 'typeorm'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { StorageService } from '../../storage/services/storage.service'
+import { DEFAULT_ADMIN_CREDENTIALS, DEFAULT_IMAGE_SIZES } from '../../constants'
+import { PropType } from '../../../../types/src'
 
+jest.mock('fs')
 describe('SeederService', () => {
   let service: SeederService
   let storageService: StorageService
@@ -24,6 +28,12 @@ describe('SeederService', () => {
       tableName: 'table2'
     }
   ] as EntityMetadata[]
+
+  const dummyFilePath = 'test.pdf'
+
+  const dummyImage: { [key: string]: string } = {
+    thumbnail: 'test.jpg'
+  }
 
   const queryRunner: any = {
     query: jest.fn(() => Promise.resolve())
@@ -49,7 +59,8 @@ describe('SeederService', () => {
         {
           provide: StorageService,
           useValue: {
-            store: jest.fn()
+            store: jest.fn(() => dummyFilePath),
+            storeImage: jest.fn(() => dummyImage)
           }
         },
         {
@@ -61,6 +72,7 @@ describe('SeederService', () => {
         {
           provide: DataSource,
           useValue: {
+            options: { type: 'sqlite' },
             getRepository: jest.fn(),
             createQueryRunner: jest.fn(() => queryRunner)
           }
@@ -93,6 +105,192 @@ describe('SeederService', () => {
           `DELETE FROM [${entityMetadata.tableName}]`
         )
       })
+    })
+  })
+
+  describe('seedProperty', () => {
+    it('should seed a string', () => {
+      const result = service.seedProperty(
+        { type: PropType.String } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('string')
+    })
+
+    it('should seed a number', () => {
+      const result = service.seedProperty(
+        { type: PropType.Number } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('number')
+    })
+
+    it('should seed a link', () => {
+      const result = service.seedProperty(
+        { type: PropType.Link } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('string')
+      expect(result).toContain('http')
+    })
+
+    it('should seed a text', () => {
+      const result = service.seedProperty(
+        { type: PropType.Text } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('string')
+    })
+
+    it('should seed a rich text', () => {
+      const result = service.seedProperty(
+        { type: PropType.RichText } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('string')
+      expect(result).toContain('<p>')
+    })
+
+    it('should seed a money', () => {
+      const result = service.seedProperty(
+        { type: PropType.Money } as any,
+        {} as any
+      ) as string
+
+      expect(typeof result).toBe('string')
+      expect(result.split('.')[1].length).toBe(2)
+    })
+
+    it('should seed a date', () => {
+      const result = service.seedProperty(
+        { type: PropType.Date } as any,
+        {} as any
+      )
+
+      expect(result).toBeInstanceOf(Date)
+    })
+
+    it('should seed a timestamp', () => {
+      const result = service.seedProperty(
+        { type: PropType.Timestamp } as any,
+        {} as any
+      )
+
+      expect(result).toBeInstanceOf(Date)
+    })
+    it('should seed an email', () => {
+      const result = service.seedProperty(
+        { type: PropType.Email } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('string')
+      expect(result).toContain('@')
+    })
+    it('should seed a boolean', () => {
+      const result = service.seedProperty(
+        { type: PropType.Boolean } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('boolean')
+    })
+    it('should seed the "manifest" password', () => {
+      const result = service.seedProperty(
+        { type: PropType.Password } as any,
+        {} as any
+      )
+
+      expect(typeof result).toBe('string')
+      expect(result).toBe(SHA3('manifest').toString())
+    })
+    it('should seed a choice', () => {
+      const result = service.seedProperty(
+        { type: PropType.Choice, options: { values: ['a', 'b', 'c'] } } as any,
+        {} as any
+      )
+
+      expect(result).toMatch(/a|b|c/)
+    })
+    it('should seed a location', () => {
+      const result = service.seedProperty(
+        { type: PropType.Location } as any,
+        {} as any
+      )
+
+      expect(result).toMatchObject({
+        lat: expect.any(Number),
+        lng: expect.any(Number)
+      })
+    })
+
+    it('should seed a file', () => {
+      jest.spyOn(service, 'seedFile').mockReturnValue(dummyFilePath)
+
+      const result = service.seedProperty(
+        { type: PropType.File, name: 'file' } as any,
+        { slug: 'dogs' } as any
+      )
+
+      expect(service.seedFile).toHaveBeenCalledWith('dogs', 'file')
+      expect(result).toBe(dummyFilePath)
+    })
+
+    it('should seed an image', () => {
+      jest.spyOn(service, 'seedImage').mockReturnValue(dummyImage)
+
+      const result = service.seedProperty(
+        {
+          type: PropType.Image,
+          name: 'photo',
+          options: { sizes: DEFAULT_IMAGE_SIZES }
+        } as any,
+        { slug: 'dogs' } as any
+      )
+
+      expect(service.seedImage).toHaveBeenCalledWith(
+        'dogs',
+        'photo',
+        DEFAULT_IMAGE_SIZES
+      )
+      expect(result).toBe(dummyImage)
+    })
+  })
+
+  describe('seedAdmin', () => {
+    it('should seed the admin user', async () => {
+      const dummyRepository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn()
+      } as any
+
+      await service.seedAdmin(dummyRepository)
+
+      expect(dummyRepository.save).toHaveBeenCalledWith({
+        email: DEFAULT_ADMIN_CREDENTIALS.email,
+        password: SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
+      })
+    })
+  })
+
+  describe('seedFile', () => {
+    it('should seed the dummy file', async () => {
+      const result = service.seedFile('invoice', 'file')
+
+      expect(result).toBe(dummyFilePath)
+    })
+  })
+
+  describe('seedImage', () => {
+    it('should seed the dummy image', async () => {
+      const result = service.seedImage('dogs', 'photo')
+
+      expect(result).toBe(dummyImage)
     })
   })
 })

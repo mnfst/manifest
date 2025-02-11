@@ -202,7 +202,7 @@ export class SeederService {
    *
    * @todo can this be moved to a separate service ? Beware of functions and context.
    */
-  private seedProperty(
+  seedProperty(
     propertyManifest: PropertyManifest,
     entityManifest: EntityManifest
   ): string | number | boolean | object | unknown {
@@ -297,7 +297,7 @@ export class SeederService {
    *
    * @param repository The repository for the Admin entity.
    */
-  private async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
+  async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email

@@ -9,7 +9,7 @@ describe('Collection CRUD (e2e)', () => {
     birthdate: '2024-01-01',
     price: 100,
     isGoodBoy: true,
-    acquiredAt: new Date().getTime(),
+    acquiredAt: new Date().toISOString(),
     email: 'test@example.com',
     favoriteToy: 'ball',
     location: { lat: 12, lng: 13 }

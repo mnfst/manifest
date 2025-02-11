@@ -60,6 +60,15 @@ export class EntityLoaderService {
                 }
               }
 
+              // Ensure it returns strings for timestamps (SQLite returns Date objects by default).
+              if (propManifest.type === PropType.Timestamp) {
+                transformer = {
+                  from: (value: Date | string) =>
+                    value instanceof Date ? value.toISOString() : value,
+                  to: (value: string) => value // Store as string
+                }
+              }
+
               acc[propManifest.name] = {
                 name: propManifest.name,
                 type: columns[propManifest.type],
