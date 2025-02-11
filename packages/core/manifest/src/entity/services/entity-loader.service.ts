@@ -1,6 +1,11 @@
 import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
-import { ColumnType, EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
+import {
+  ColumnType,
+  EntitySchema,
+  EntitySchemaColumnOptions,
+  ValueTransformer
+} from 'typeorm'
 import { baseEntity } from '../core-entities/base-entity'
 import { sqlitePropTypeColumnTypes } from '../records/sqlite-prop-type-column-types'
 import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
@@ -43,9 +48,19 @@ export class EntityLoaderService {
               acc: { [key: string]: EntitySchemaColumnOptions },
               propManifest: PropertyManifest
             ) => {
+              // Set transformer for number properties (Postgres stores numbers as strings).
+              let transformer: ValueTransformer | undefined = undefined
+              if (propManifest.type === PropType.Number) {
+                transformer = {
+                  from: (value: string | number) => Number(value),
+                  to: (value: string | number) => value
+                }
+              }
+
               acc[propManifest.name] = {
                 name: propManifest.name,
                 type: columns[propManifest.type],
+                transformer,
                 nullable: true // Everything is nullable on the database (validation is done on the application layer).
               }
 
