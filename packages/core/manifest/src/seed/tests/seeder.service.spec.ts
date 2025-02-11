@@ -106,6 +106,24 @@ describe('SeederService', () => {
         )
       })
     })
+
+    it('should restart auto-increment sequences on postgres', async () => {
+      ;(dataSource.options as any).type = 'postgres'
+
+      await service.seed()
+
+      dummyEntityMetadatas.forEach((entityMetadata) => {
+        expect(queryRunner.query).toHaveBeenCalledWith(
+          `TRUNCATE TABLE "${entityMetadata.tableName}" CASCADE`
+        )
+      })
+
+      dummyEntityMetadatas.forEach((entityMetadata) => {
+        expect(queryRunner.query).toHaveBeenCalledWith(
+          `ALTER SEQUENCE "${entityMetadata.tableName}_id_seq" RESTART WITH 1`
+        )
+      })
+    })
   })
 
   describe('seedProperty', () => {
