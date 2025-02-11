@@ -18,7 +18,6 @@ import { PropertyManifest } from '@repo/types'
       class="input"
       [ngClass]="{ 'is-danger': isError }"
       type="datetime-local"
-      [value]="value"
       (change)="onChange($event)"
       #input
     />`
@@ -34,11 +33,14 @@ export class TimestampInputComponent {
 
   ngOnInit(): void {
     if (this.value !== undefined) {
-      this.input.nativeElement.value = this.value
+      this.input.nativeElement.value = new Date(this.value)
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 19)
     }
   }
 
   onChange(event: any) {
-    this.valueChanged.emit(event.target.value)
+    this.valueChanged.emit(new Date(event.target.value).getTime())
   }
 }
