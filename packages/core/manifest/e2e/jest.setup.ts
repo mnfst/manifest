@@ -15,7 +15,8 @@ let app: INestApplication
 beforeAll(async () => {
   // Set environment variables for testing.
   process.env.NODE_ENV = 'test'
-  process.env.DB_DATABASE = ':memory:'
+  process.env.DB_CONNECTION = 'sqlite'
+  process.env.DATABASE_PATH = ':memory:'
   process.env.DB_DROP_SCHEMA = 'true'
   process.env.TOKEN_SECRET_KEY = 'test'
   process.env.MANIFEST_HANDLERS_FOLDER = path.join(
