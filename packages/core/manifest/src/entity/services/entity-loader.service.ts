@@ -50,7 +50,10 @@ export class EntityLoaderService {
             ) => {
               // Set transformer for number properties (Postgres stores numbers as strings).
               let transformer: ValueTransformer | undefined = undefined
-              if (propManifest.type === PropType.Number) {
+              if (
+                propManifest.type === PropType.Number ||
+                propManifest.type === PropType.Money
+              ) {
                 transformer = {
                   from: (value: string | number) => Number(value),
                   to: (value: string | number) => value

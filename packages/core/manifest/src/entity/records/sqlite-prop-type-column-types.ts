@@ -10,7 +10,7 @@ export const sqlitePropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.RichText]: 'text',
   [PropType.Money]: 'decimal',
   [PropType.Date]: 'date',
-  [PropType.Timestamp]: 'integer',
+  [PropType.Timestamp]: 'datetime',
   [PropType.Email]: 'varchar',
   [PropType.Boolean]: 'boolean',
   [PropType.Password]: 'varchar',

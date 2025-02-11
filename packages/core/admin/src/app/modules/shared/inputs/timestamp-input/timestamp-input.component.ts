@@ -27,20 +27,22 @@ export class TimestampInputComponent {
   @Input() value: string
   @Input() isError: boolean
 
-  @Output() valueChanged: EventEmitter<number> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<Date> = new EventEmitter()
 
   @ViewChild('input', { static: true }) input: ElementRef
 
   ngOnInit(): void {
-    if (this.value !== undefined) {
+    if (this.value !== null) {
       this.input.nativeElement.value = new Date(this.value)
         .toISOString()
         .replace('T', ' ')
         .substring(0, 19)
+    } else {
+      this.input.nativeElement.value = ''
     }
   }
 
   onChange(event: any) {
-    this.valueChanged.emit(new Date(event.target.value).getTime())
+    this.valueChanged.emit(new Date(event.target.value))
   }
 }
