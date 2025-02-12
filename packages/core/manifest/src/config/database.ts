@@ -24,9 +24,7 @@ export default (): {
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'manifest',
         dropSchema: process.env.DB_DROP_SCHEMA === 'true' || false,
-        ssl: {
-          rejectUnauthorized: false
-        },
+        ssl: process.env.DB_SSL === 'true' || false,
         synchronize: true
       }
     }
