@@ -1,5 +1,11 @@
 # manifest
 
+## 4.7.0
+
+### Minor Changes
+
+- de762de: added Postgres compatibility, asked by @ToxesFoxes, @dotku
+
 ## 4.6.2
 
 ### Patch Changes
