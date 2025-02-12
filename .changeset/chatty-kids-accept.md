@@ -2,4 +2,4 @@
 'manifest': minor
 ---
 
-added Postgres compatibility
+added Postgres compatibility, asked by @ToxesFoxes, @dotku
