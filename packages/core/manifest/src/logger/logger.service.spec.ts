@@ -24,7 +24,11 @@ describe('LoggerService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockReturnValue(port)
+            get: jest.fn((prop: string) => {
+              if (prop === 'baseUrl') return `http://localhost:${port}`
+              if (prop === 'nodeEnv') return 'development'
+              if (prop === 'showOpenApiDocs') return true
+            })
           }
         }
       ]
@@ -44,6 +48,46 @@ describe('LoggerService', () => {
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining(`http://localhost:${port}`)
+    )
+  })
+
+  it('should console log the URL of the API doc if openApiDocs is true', () => {
+    const consoleLogSpy = jest.spyOn(console, 'log')
+
+    service.initMessage()
+
+    expect(consoleLogSpy).toHaveBeenNthCalledWith(
+      5,
+      expect.stringContaining(`http://localhost:${port}/api`)
+    )
+  })
+
+  it('should not console log the URL of the API doc if openApiDocs is false', async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        LoggerService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((prop: string) => {
+              if (prop === 'baseUrl') return `http://localhost:${port}`
+              if (prop === 'nodeEnv') return 'development'
+              if (prop === 'showOpenApiDocs') return false
+            })
+          }
+        }
+      ]
+    }).compile()
+
+    service = module.get<LoggerService>(LoggerService)
+
+    const consoleLogSpy = jest.spyOn(console, 'log')
+
+    service.initMessage()
+
+    expect(consoleLogSpy).not.toHaveBeenNthCalledWith(
+      5,
+      expect.stringContaining(`http://localhost:${port}/api`)
     )
   })
 })

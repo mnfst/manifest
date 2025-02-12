@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 import chalk from 'chalk'
+import { API_PATH } from '../constants'
 
 @Injectable()
 export class LoggerService {
@@ -13,14 +14,12 @@ export class LoggerService {
    *
    */
   initMessage(): void {
-    const port: number = this.configService.get('port')
+    const baseUrl: string = this.configService.get('baseUrl')
     const nodeEnv: string = this.configService.get('nodeEnv')
 
     // On contribution mode, we use the watch mode of the admin panel.
     const adminUrl =
-      nodeEnv === 'contribution'
-        ? 'http://localhost:4200'
-        : `http://localhost:${port}`
+      nodeEnv === 'contribution' ? 'http://localhost:4200' : `${baseUrl}`
 
     console.log()
 
@@ -28,12 +27,16 @@ export class LoggerService {
     console.log()
 
     console.log(chalk.blue('🖥️  Admin Panel: ', chalk.underline.blue(adminUrl)))
-    console.log(
-      chalk.blue(
-        '📚 API Doc: ',
-        chalk.underline.blue(`http://localhost:${port}/api`)
+
+    if (this.configService.get('showOpenApiDocs')) {
+      console.log(
+        chalk.blue(
+          '📚 API Doc: ',
+          chalk.underline.blue(`${baseUrl}/${API_PATH}`)
+        )
       )
-    )
+    }
+
     console.log()
   }
 }

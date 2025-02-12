@@ -23,7 +23,7 @@ beforeAll(async () => {
   )
 
   process.env.DB_CONNECTION = 'sqlite'
-  process.env.DATABASE_PATH = ':memory:'
+  process.env.DB_PATH = ':memory:'
   process.env.DB_DROP_SCHEMA = 'true'
 
   // Start the NestJS application mocking some services.

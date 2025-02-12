@@ -11,8 +11,7 @@ export default (): {
     database: {
       sqlite: {
         type: 'sqlite',
-        database:
-          process.env.DATABASE_PATH || `${process.cwd()}/manifest/backend.db`,
+        database: process.env.DB_PATH || `${process.cwd()}/manifest/backend.db`,
         dropSchema: process.env.DB_DROP_SCHEMA === 'true' || false,
         synchronize: true
       },
