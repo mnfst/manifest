@@ -7,7 +7,7 @@
     "^.+\\.ts$": "ts-jest"
   },
   "maxWorkers": 1,
-  "setupFilesAfterEnv": ["./jest.setup.ts"],
+  "setupFilesAfterEnv": ["./jest.pg-setup.ts"],
   "moduleNameMapper": {
     "^@repo/types$": "<rootDir>/../../types/src",
     "^@repo/common$": "<rootDir>/../../common/src",
