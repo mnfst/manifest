@@ -82,7 +82,7 @@ export class SeederService {
         )
       )
     } else {
-      // SQLite-specific logic
+      // SQLite-specific logic.
       await queryRunner.query('PRAGMA foreign_keys = OFF')
       await Promise.all(
         entityMetadatas.map(async (entity: EntityMetadata) =>
