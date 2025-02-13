@@ -12,12 +12,6 @@ describe('SchemaService', () => {
     service = module.get<SchemaService>(SchemaService)
   })
 
-  it('should be defined', () => {
-    expect(service).toBeDefined()
-  })
-
-  it('should validate the schema', () => {})
-
   it('should throw an error if the schema is invalid', () => {})
 
   describe('custom logic validation', () => {
