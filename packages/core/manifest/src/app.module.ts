@@ -6,6 +6,7 @@ import { EntitySchema } from 'typeorm'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
 import generalConfig from './config/general'
+import storageConfig from './config/storage'
 import pathsConfig from './config/paths'
 import { CrudModule } from './crud/crud.module'
 import { EntityModule } from './entity/entity.module'
@@ -33,7 +34,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.contribution'],
-      load: [generalConfig, databaseConfig, pathsConfig]
+      load: [generalConfig, databaseConfig, pathsConfig, storageConfig]
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, EntityModule, ManifestModule],
