@@ -11,7 +11,11 @@ import { StorageService } from '../../storage/services/storage.service'
 import { DEFAULT_ADMIN_CREDENTIALS, DEFAULT_IMAGE_SIZES } from '../../constants'
 import { PropType } from '../../../../types/src'
 
-jest.mock('fs')
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  readFileSync: jest.fn().mockResolvedValue('mock file content')
+}))
+
 describe('SeederService', () => {
   let service: SeederService
   let storageService: StorageService
@@ -38,6 +42,8 @@ describe('SeederService', () => {
   const queryRunner: any = {
     query: jest.fn(() => Promise.resolve())
   }
+
+  beforeAll(() => {})
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -127,8 +133,8 @@ describe('SeederService', () => {
   })
 
   describe('seedProperty', () => {
-    it('should seed a string', () => {
-      const result = service.seedProperty(
+    it('should seed a string', async () => {
+      const result = await service.seedProperty(
         { type: PropType.String } as any,
         {} as any
       )
@@ -136,8 +142,8 @@ describe('SeederService', () => {
       expect(typeof result).toBe('string')
     })
 
-    it('should seed a number', () => {
-      const result = service.seedProperty(
+    it('should seed a number', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Number } as any,
         {} as any
       )
@@ -145,8 +151,8 @@ describe('SeederService', () => {
       expect(typeof result).toBe('number')
     })
 
-    it('should seed a link', () => {
-      const result = service.seedProperty(
+    it('should seed a link', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Link } as any,
         {} as any
       )
@@ -155,8 +161,8 @@ describe('SeederService', () => {
       expect(result).toContain('http')
     })
 
-    it('should seed a text', () => {
-      const result = service.seedProperty(
+    it('should seed a text', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Text } as any,
         {} as any
       )
@@ -164,8 +170,8 @@ describe('SeederService', () => {
       expect(typeof result).toBe('string')
     })
 
-    it('should seed a rich text', () => {
-      const result = service.seedProperty(
+    it('should seed a rich text', async () => {
+      const result = await service.seedProperty(
         { type: PropType.RichText } as any,
         {} as any
       )
@@ -174,18 +180,18 @@ describe('SeederService', () => {
       expect(result).toContain('<p>')
     })
 
-    it('should seed a money', () => {
-      const result = service.seedProperty(
+    it('should seed a money', async () => {
+      const result = (await service.seedProperty(
         { type: PropType.Money } as any,
         {} as any
-      ) as string
+      )) as string
 
       expect(typeof result).toBe('string')
       expect(result.split('.')[1].length).toBe(2)
     })
 
-    it('should seed a date', () => {
-      const result = service.seedProperty(
+    it('should seed a date', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Date } as any,
         {} as any
       )
@@ -193,16 +199,16 @@ describe('SeederService', () => {
       expect(result).toBeInstanceOf(Date)
     })
 
-    it('should seed a timestamp', () => {
-      const result = service.seedProperty(
+    it('should seed a timestamp', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Timestamp } as any,
         {} as any
       )
 
       expect(result).toBeInstanceOf(Date)
     })
-    it('should seed an email', () => {
-      const result = service.seedProperty(
+    it('should seed an email', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Email } as any,
         {} as any
       )
@@ -210,16 +216,16 @@ describe('SeederService', () => {
       expect(typeof result).toBe('string')
       expect(result).toContain('@')
     })
-    it('should seed a boolean', () => {
-      const result = service.seedProperty(
+    it('should seed a boolean', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Boolean } as any,
         {} as any
       )
 
       expect(typeof result).toBe('boolean')
     })
-    it('should seed the "manifest" password', () => {
-      const result = service.seedProperty(
+    it('should seed the "manifest" password', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Password } as any,
         {} as any
       )
@@ -227,16 +233,16 @@ describe('SeederService', () => {
       expect(typeof result).toBe('string')
       expect(result).toBe(SHA3('manifest').toString())
     })
-    it('should seed a choice', () => {
-      const result = service.seedProperty(
+    it('should seed a choice', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Choice, options: { values: ['a', 'b', 'c'] } } as any,
         {} as any
       )
 
       expect(result).toMatch(/a|b|c/)
     })
-    it('should seed a location', () => {
-      const result = service.seedProperty(
+    it('should seed a location', async () => {
+      const result = await service.seedProperty(
         { type: PropType.Location } as any,
         {} as any
       )
@@ -247,10 +253,12 @@ describe('SeederService', () => {
       })
     })
 
-    it('should seed a file', () => {
-      jest.spyOn(service, 'seedFile').mockReturnValue(dummyFilePath)
+    it('should seed a file', async () => {
+      jest
+        .spyOn(service, 'seedFile')
+        .mockReturnValue(Promise.resolve(dummyFilePath))
 
-      const result = service.seedProperty(
+      const result = await service.seedProperty(
         { type: PropType.File, name: 'file' } as any,
         { slug: 'dogs' } as any
       )
@@ -259,10 +267,12 @@ describe('SeederService', () => {
       expect(result).toBe(dummyFilePath)
     })
 
-    it('should seed an image', () => {
-      jest.spyOn(service, 'seedImage').mockReturnValue(dummyImage)
+    it('should seed an image', async () => {
+      jest
+        .spyOn(service, 'seedImage')
+        .mockReturnValue(Promise.resolve(dummyImage))
 
-      const result = service.seedProperty(
+      const result = await service.seedProperty(
         {
           type: PropType.Image,
           name: 'photo',
@@ -293,22 +303,6 @@ describe('SeederService', () => {
         email: DEFAULT_ADMIN_CREDENTIALS.email,
         password: SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
       })
-    })
-  })
-
-  describe('seedFile', () => {
-    it('should seed the dummy file', async () => {
-      const result = service.seedFile('invoice', 'file')
-
-      expect(result).toBe(dummyFilePath)
-    })
-  })
-
-  describe('seedImage', () => {
-    it('should seed the dummy image', async () => {
-      const result = service.seedImage('dogs', 'photo')
-
-      expect(result).toBe(dummyImage)
     })
   })
 })

@@ -22,7 +22,7 @@ export class StorageService {
   private s3SecretAccessKey: string
 
   constructor(private configService: ConfigService) {
-    this.isS3Enabled = !!this.configService.get('storage').s3Bucket
+    this.isS3Enabled = !!this.configService.get('storage.s3Bucket')
     this.s3Endpoint = this.configService.get('storage.s3Endpoint')
     this.s3Bucket = this.configService.get('storage.s3Bucket')
     this.s3Region = this.configService.get('storage.s3Region')
@@ -63,10 +63,8 @@ export class StorageService {
     if (this.isS3Enabled) {
       return this.uploadToS3(filePath, file.buffer)
     } else {
-      mkdirp.sync(folder)
-
       fs.writeFileSync(
-        `${this.configService.get('paths').publicFolder}/${STORAGE_PATH}/${filePath}`,
+        `${this.configService.get('paths.publicFolder')}/${STORAGE_PATH}/${filePath}`,
         file.buffer
       )
       return Promise.resolve(this.prependStorageUrl(filePath))
@@ -108,7 +106,7 @@ export class StorageService {
         imagePaths[sizeName] = await this.uploadToS3(imagePath, resizedImage)
       } else {
         fs.writeFileSync(
-          `${this.configService.get('paths').publicFolder}/${STORAGE_PATH}/${imagePath}`,
+          `${this.configService.get('paths.publicFolder')}/${STORAGE_PATH}/${imagePath}`,
           resizedImage
         )
         imagePaths[sizeName] = this.prependStorageUrl(imagePath)
