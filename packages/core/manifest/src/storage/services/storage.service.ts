@@ -20,6 +20,7 @@ export class StorageService {
   private s3Region: string
   private s3AccessKeyId: string
   private s3SecretAccessKey: string
+  private s3provider: string
 
   constructor(private configService: ConfigService) {
     this.isS3Enabled = !!this.configService.get('storage.s3Bucket')
@@ -28,6 +29,11 @@ export class StorageService {
     this.s3Region = this.configService.get('storage.s3Region')
     this.s3AccessKeyId = this.configService.get('storage.s3AccessKeyId')
     this.s3SecretAccessKey = this.configService.get('storage.s3SecretAccessKey')
+    this.s3provider = this.s3Endpoint.includes('amazon')
+      ? 'aws'
+      : this.s3Endpoint.includes('digitalocean')
+        ? 'digitalocean'
+        : 'other'
 
     if (this.isS3Enabled) {
       this.s3Client = new S3Client({
@@ -162,7 +168,8 @@ export class StorageService {
         Bucket: this.s3Bucket,
         Key: `${STORAGE_PATH}/${key}`,
         Body: buffer,
-        ChecksumAlgorithm: undefined
+        ChecksumAlgorithm: undefined,
+        ACL: this.s3provider === 'digitalocean' ? 'public-read' : undefined
       })
     )
     return `${this.s3Endpoint}/${this.s3Bucket}/${STORAGE_PATH}/${key}`
