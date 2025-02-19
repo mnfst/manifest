@@ -133,14 +133,12 @@ export class SeederService {
           entityManifest.properties.push(...AUTHENTICABLE_PROPS)
         }
 
-        entityManifest.properties.forEach(
-          (propertyManifest: PropertyManifest) => {
-            newRecord[propertyManifest.name] = this.seedProperty(
-              propertyManifest,
-              entityManifest
-            )
-          }
-        )
+        for (const propertyManifest of entityManifest.properties) {
+          newRecord[propertyManifest.name] = await this.seedProperty(
+            propertyManifest,
+            entityManifest
+          )
+        }
 
         entityManifest.relationships
           .filter(
