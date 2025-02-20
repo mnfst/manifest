@@ -104,3 +104,13 @@ Thanks to our wonderful contributors!
 <a href="https://github.com/mnfst/manifest/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=mnfst/manifest" />
 </a>
+
+## Sponsors
+
+Manifest is an MIT-licensed open-source project. If you find it useful and want to support its development, consider [becoming a sponsor](https://opencollective.com/mnfst).
+
+<h3 align="center">Backers</h3>
+
+![manifest-backers](https://github.com/user-attachments/assets/4ab3d33e-6e44-4368-b0d3-e2de988f28f5)
+
+
