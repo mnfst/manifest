@@ -198,7 +198,7 @@ export class BackendSDK extends BaseSDK {
   upload(
     property: string,
     file: { buffer: Buffer; originalname: string }
-  ): string {
+  ): Promise<string> {
     return this.uploadService.storeFile({
       file,
       property,

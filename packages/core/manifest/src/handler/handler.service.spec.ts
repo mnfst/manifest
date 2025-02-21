@@ -1,20 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { HandlerService } from './handler.service'
 import { ConfigService } from '@nestjs/config'
-import * as fs from 'fs'
 import { BackendSDK } from '../sdk/backend-sdk'
 
-jest.mock('fs')
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  existsSync: jest.fn().mockReturnValue(true)
+}))
 global.fetch = jest.fn()
 
 describe('HandlerService', () => {
   let service: HandlerService
 
   const dummySdk = {}
-
-  beforeAll(() => {
-    ;(fs.existsSync as jest.Mock).mockReturnValue(true)
-  })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

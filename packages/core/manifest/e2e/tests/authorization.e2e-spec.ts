@@ -155,7 +155,8 @@ describe('Authorization (e2e)', () => {
       const restrictedResponseUsingEmoji = await global.request
         .post('/collections/cats')
         .send({
-          name: 'new cat'
+          name: 'new cat',
+          hiddenProp: true
         })
       const forbiddenResponseUsingEmoji = await global.request
         .delete('/collections/cats/1')
@@ -222,16 +223,13 @@ describe('Authorization (e2e)', () => {
 
       const responseAsGuest = await global.request.get('/collections/cats/1')
 
-      expect(responseAsAdmin.body).toMatchObject({
-        name: expect.any(String),
-        hiddenProp: expect.any(Boolean)
-      })
-      expect(responseAsUser.body).not.toMatchObject({
-        hiddenProp: expect.any(Boolean)
-      })
-      expect(responseAsGuest.body).not.toMatchObject({
-        hiddenProp: expect.any(Boolean)
-      })
+      expect(responseAsAdmin.body.name).toBeDefined()
+      expect(responseAsUser.body.name).toBeDefined()
+      expect(responseAsGuest.body.name).toBeDefined()
+
+      expect(responseAsAdmin.body.hiddenProp).toBeDefined()
+      expect(responseAsUser.body.hiddenProp).not.toBeDefined()
+      expect(responseAsGuest.body.hiddenProp).not.toBeDefined()
     })
   })
 })

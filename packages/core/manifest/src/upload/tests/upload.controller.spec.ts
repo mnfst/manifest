@@ -29,7 +29,7 @@ describe('UploadController', () => {
   })
 
   describe('uploadFile', () => {
-    it('should return the path of the uploaded file', () => {
+    it('should return the path of the uploaded file', async () => {
       const file = {
         buffer: Buffer.from('file content'),
         originalname: 'file.txt'
@@ -39,9 +39,13 @@ describe('UploadController', () => {
       const property = 'property'
       const path = 'path'
 
-      jest.spyOn(uploadService, 'storeFile').mockReturnValue(path)
+      jest
+        .spyOn(uploadService, 'storeFile')
+        .mockReturnValue(Promise.resolve(path))
 
-      expect(controller.uploadFile(file, entity, property)).toEqual({ path })
+      expect(await controller.uploadFile(file, entity, property)).toEqual({
+        path
+      })
 
       expect(uploadService.storeFile).toHaveBeenCalledWith({
         file,
@@ -51,7 +55,7 @@ describe('UploadController', () => {
     })
   })
   describe('uploadImage', () => {
-    it('should upload an image', () => {
+    it('should upload an image', async () => {
       const image = {
         buffer: Buffer.from('image content'),
         originalname: 'image.jpg'
@@ -61,9 +65,11 @@ describe('UploadController', () => {
       const property = 'property'
       const imagePaths = { thumbnail: 'path', medium: 'path' }
 
-      jest.spyOn(uploadService, 'storeImage').mockReturnValue(imagePaths)
+      jest
+        .spyOn(uploadService, 'storeImage')
+        .mockReturnValue(Promise.resolve(imagePaths))
 
-      expect(controller.uploadImage(image, entity, property)).toEqual(
+      expect(await controller.uploadImage(image, entity, property)).toEqual(
         imagePaths
       )
 

@@ -60,7 +60,7 @@ describe('UploadService', () => {
   })
 
   describe('storeFile', () => {
-    it('should store a file', () => {
+    it('should store a file', async () => {
       const file = {
         buffer: Buffer.from('file content'),
         originalname: 'file.txt'
@@ -70,9 +70,9 @@ describe('UploadService', () => {
       const property = 'property'
       const path = 'path'
 
-      jest.spyOn(storageService, 'store').mockReturnValue(path)
+      jest.spyOn(storageService, 'store').mockReturnValue(Promise.resolve(path))
 
-      expect(service.storeFile({ file, entity, property })).toEqual(path)
+      expect(await service.storeFile({ file, entity, property })).toEqual(path)
 
       expect(storageService.store).toHaveBeenCalledWith(entity, property, file)
     })
