@@ -72,6 +72,38 @@ describe('HandlerService', () => {
   })
 
   describe('importHandler', () => {
-    // TODO: Find out how to implement this test (dynamic "import") in Jest.
+    it('should throw an exception if the handler file does not exist', async () => {
+      ;(fs.existsSync as jest.Mock).mockReturnValue(false)
+
+      await expect(service.importHandler('handler')).rejects.toThrow(
+        'Handler not found'
+      )
+    })
+
+    it('should throw an exception if the handler default export is not a function', async () => {
+      jest.spyOn(service, 'dynamicImport').mockResolvedValue(
+        Promise.resolve({
+          default: 'not a function'
+        })
+      )
+
+      await expect(service.importHandler('handler')).rejects.toThrow(
+        'Handler is invalid'
+      )
+    })
+
+    it('should return the default export of the handler file', async () => {
+      const handler = jest.fn()
+
+      jest.spyOn(service, 'dynamicImport').mockResolvedValue(
+        Promise.resolve({
+          default: handler
+        })
+      )
+
+      const result = await service.importHandler('handler')
+
+      expect(result).toEqual(handler)
+    })
   })
 })
