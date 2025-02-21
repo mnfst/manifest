@@ -1,5 +1,11 @@
 # manifest
 
+## 4.7.1
+
+### Patch Changes
+
+- 2ad5da3: added PNPM support
+
 ## 4.7.0
 
 ### Minor Changes
