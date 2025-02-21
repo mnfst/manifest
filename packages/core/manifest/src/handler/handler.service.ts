@@ -44,12 +44,23 @@ export class HandlerService {
     }
 
     // Import the handler.
-    const module = await import(handlerPath)
+    const module = await this.dynamicImport(handlerPath)
 
     if (typeof module.default !== 'function') {
       throw new HttpException('Handler is invalid', 404)
     }
 
     return module.default
+  }
+
+  /**
+   * Dynamically import a module.
+   *
+   * @param path Module path
+   *
+   * @returns Imported module
+   */
+  async dynamicImport(path: string): Promise<any> {
+    return import(path)
   }
 }
