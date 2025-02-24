@@ -88,7 +88,7 @@ describe('HandlerService', () => {
       )
 
       await expect(service.importHandler('handler')).rejects.toThrow(
-        'Handler is invalid'
+        'Handler not found'
       )
     })
 
@@ -100,6 +100,7 @@ describe('HandlerService', () => {
           default: handler
         })
       )
+      ;(fs.existsSync as jest.Mock).mockReturnValue(true)
 
       const result = await service.importHandler('handler')
 
