@@ -114,9 +114,9 @@ Manifest is an MIT-licensed open-source project. If you find it useful and want 
 
 <h3 align="center">Partners</h3>
 <div align="center" style="display:flex; width:100%; flex-wrap:wrap; align-items: center; justify-content: space-between">
+<br>
 
-
-[![kreezalid-partner-logo](https://github.com/user-attachments/assets/7576273c-7468-4f98-afb5-00fb71af6ade)](kreezalid.com/)
+[![kreezalid-partner-logo](https://github.com/user-attachments/assets/7576273c-7468-4f98-afb5-00fb71af6ade)](https://kreezalid.com/)
 
 [![rise-work-parneter-logo](https://github.com/user-attachments/assets/e89e2b0e-91eb-4a24-8c3f-39e0a77e8285)](https://rise.work/)
 
