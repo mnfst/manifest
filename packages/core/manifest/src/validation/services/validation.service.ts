@@ -52,9 +52,9 @@ export class ValidationService {
    * @returns A promise of an array of validation errors.
    *
    */
-  validateProperty(
-    propValue: any,
-    propertyManifest: PropertyManifest
+  validateProperty<T>(
+    propValue: T,
+    propertyManifest: PropertyManifest<T>
   ): ValidationError[] {
     const errors: ValidationError[] = []
 

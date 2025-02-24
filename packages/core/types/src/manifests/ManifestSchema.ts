@@ -149,7 +149,7 @@ export interface EntitySchema {
 /**
  * Validation object for the property.
  */
-export interface ValidationSchema {
+export interface ValidationSchema<T = unknown> {
   /**
    * Checks if value is defined (!== undefined, !== null).
    */
@@ -161,15 +161,11 @@ export interface ValidationSchema {
   /**
    * Checks if value equals ("===") comparison.
    */
-  equals?: {
-    [k: string]: unknown
-  }
+  equals?: T
   /**
    * Checks if value not equal ("!==") comparison.
    */
-  notEquals?: {
-    [k: string]: unknown
-  }
+  notEquals?: T
   /**
    * Indicates whether the property can be empty.
    */
@@ -185,11 +181,11 @@ export interface ValidationSchema {
   /**
    * Checks if value is in an array of allowed values.
    */
-  isIn?: unknown[]
+  isIn?: T[]
   /**
    * Checks if value not in an array of disallowed values.
    */
-  isNotIn?: unknown[]
+  isNotIn?: T[]
   /**
    * The minimum value or length allowed for the property.
    */
@@ -277,15 +273,11 @@ export interface ValidationSchema1 {
   /**
    * Checks if value equals ("===") comparison.
    */
-  equals?: {
-    [k: string]: unknown
-  }
+  equals?: unknown
   /**
    * Checks if value not equal ("!==") comparison.
    */
-  notEquals?: {
-    [k: string]: unknown
-  }
+  notEquals?: unknown
   /**
    * Indicates whether the property can be empty.
    */
