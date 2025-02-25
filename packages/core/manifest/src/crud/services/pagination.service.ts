@@ -28,7 +28,7 @@ export class PaginationService {
     const total: number = await query.getCount()
     const results: BaseEntity[] = await query
       .skip(offset)
-      .take(resultsPerPage)
+      .take(resultsPerPage === -1 ? total : resultsPerPage)
       .getMany()
 
     return {

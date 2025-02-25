@@ -72,9 +72,8 @@ async function bootstrap() {
   })
 
   // Open API documentation.
-  const showOpenApi: boolean = process.env.OPEN_API_DOCS !== 'false'
 
-  if (showOpenApi) {
+  if (configService.get('showOpenApiDocs')) {
     const openApiService: OpenApiService = app.get(OpenApiService)
 
     SwaggerModule.setup(API_PATH, app, openApiService.generateOpenApiObject(), {

@@ -71,4 +71,124 @@ describe('OpenApiCrudService', () => {
     expect(service.generatePatchPath).toHaveBeenCalled()
     expect(service.generateDeletePath).toHaveBeenCalled()
   })
+
+  it('should generate list path with a success response', () => {
+    const path = service.generateListPath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      get: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        parameters: expect.any(Array),
+        responses: {
+          '200': expect.any(Object)
+        }
+      }
+    })
+  })
+
+  it('should generate list select options path with a success response', () => {
+    const path = service.generateListSelectOptionsPath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      get: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        responses: {
+          '200': expect.any(Object)
+        }
+      }
+    })
+  })
+
+  it('should generate create path with a success response', () => {
+    const path = service.generateCreatePath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      post: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        requestBody: expect.any(Object),
+        responses: {
+          '201': expect.any(Object)
+        }
+      }
+    })
+  })
+
+  it('should generate detail path with a success response', () => {
+    const path = service.generateDetailPath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      get: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        parameters: expect.any(Array),
+        responses: {
+          '200': expect.any(Object)
+        }
+      }
+    })
+  })
+
+  it('should generate update path with a success response', () => {
+    const path = service.generateUpdatePath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      put: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        parameters: expect.any(Array),
+        requestBody: expect.any(Object),
+        responses: {
+          '200': expect.any(Object)
+        }
+      }
+    })
+  })
+
+  it('should generate patch path with a success response', () => {
+    const path = service.generatePatchPath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      patch: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        parameters: expect.any(Array),
+        requestBody: expect.any(Object),
+        responses: {
+          '200': expect.any(Object)
+        }
+      }
+    })
+  })
+
+  it('should generate delete path with a success response', () => {
+    const path = service.generateDeletePath(dummyEntityManifest)
+
+    expect(path).toBeDefined()
+    expect(path).toMatchObject({
+      delete: {
+        summary: expect.any(String),
+        description: expect.any(String),
+        tags: [expect.any(String)],
+        parameters: expect.any(Array),
+        responses: {
+          '200': expect.any(Object)
+        }
+      }
+    })
+  })
 })

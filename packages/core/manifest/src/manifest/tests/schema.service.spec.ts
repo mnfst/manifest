@@ -4,6 +4,11 @@ import { SchemaService } from '../services/schema.service'
 describe('SchemaService', () => {
   let service: SchemaService
 
+  const manifest: any = {
+    name: 'test app',
+    entities: {}
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [SchemaService]
@@ -16,13 +21,7 @@ describe('SchemaService', () => {
     expect(service).toBeDefined()
   })
 
-  it('should validate the schema', () => {})
-
-  it('should throw an error if the schema is invalid', () => {})
-
-  describe('custom logic validation', () => {
-    it('should check that all entities in relationships are valid', () => {})
-
-    it('should check that all entities in policies are valid', () => {})
+  it('should validate a manifest', () => {
+    expect(service.validate(manifest)).toBe(true)
   })
 })
