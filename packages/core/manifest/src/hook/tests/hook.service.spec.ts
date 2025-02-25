@@ -45,7 +45,9 @@ describe('HookService', () => {
     expect(service).toBeDefined()
   })
 
-  describe('transformHookSchemaIntoHookManifest', () => {})
+  describe('transformHookSchemaIntoHookManifest', () => {
+    // TODO: implement tests.
+  })
 
   describe('triggerWebhook', () => {
     it('should make an HTTP request with the correct URL', async () => {

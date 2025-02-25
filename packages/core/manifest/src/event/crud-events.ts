@@ -1,6 +1,6 @@
 import { CrudEventName } from '@repo/types'
-import { CollectionController } from './controllers/collection.controller'
-import { SingleController } from './controllers/single.controller'
+import { CollectionController } from '../crud/controllers/collection.controller'
+import { SingleController } from '../crud/controllers/single.controller'
 
 export const crudEvents: {
   name: CrudEventName

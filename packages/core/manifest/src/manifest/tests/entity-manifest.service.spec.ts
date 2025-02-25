@@ -35,14 +35,6 @@ describe('EntityManifestService', () => {
             hidden: true
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [],
         policies: {
           create: [],

@@ -15,8 +15,9 @@ import {
   PropertyManifest,
   PropertySchema,
   RelationshipSchema,
-  ValidationManifest
-} from '../../../../types/src'
+  ValidationManifest,
+  EntityManifestCommonFields
+} from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
 import dasherize from 'dasherize'
@@ -131,7 +132,7 @@ export class EntityManifestService {
       entitySchemaObject
     ).map(([className, entitySchema]: [string, EntitySchema]) => {
       // Build the partial entity manifest with common properties of both collection and single entities.
-      const partialEntityManifest: Partial<EntityManifest> = {
+      const partialEntityManifest: EntityManifestCommonFields = {
         className: entitySchema.className || className,
         nameSingular:
           entitySchema.nameSingular ||
@@ -203,7 +204,7 @@ export class EntityManifestService {
    *
    */
   private getCollectionEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
+    partialEntityManifest: EntityManifestCommonFields,
     entitySchema: EntitySchema
   ): EntityManifest {
     if (entitySchema.authenticable) {
@@ -278,11 +279,14 @@ export class EntityManifestService {
    * @returns the complete entity manifest with the single entity properties.
    */
   private getSingleEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
+    partialEntityManifest: EntityManifestCommonFields,
     entitySchema: EntitySchema
   ): EntityManifest {
     return {
       ...partialEntityManifest,
+      namePlural: partialEntityManifest.nameSingular,
+      authenticable: false,
+      mainProp: null,
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
       relationships: [],

@@ -15,7 +15,7 @@ entities:
     belongsTo:
       - { name: owner, entity: User }
     middlewares:
-      beforeCreate:
+      beforeUpdate:
         - { handler: setAcquiredAt }
     policies:
       create:

@@ -18,14 +18,6 @@ describe('OpenApiManifestService', () => {
         seedCount: 50,
         belongsTo: [],
         relationships: [],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         properties: [
           {
             name: 'name',

@@ -28,6 +28,7 @@ import { SdkModule } from './sdk/sdk.module'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { MiddlewareModule } from './middleware/middleware.module'
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -80,7 +81,8 @@ import { MiddlewareModule } from './middleware/middleware.module'
     PolicyModule,
     HandlerModule,
     SdkModule,
-    MiddlewareModule
+    MiddlewareModule,
+    EventModule
   ]
 })
 export class AppModule {

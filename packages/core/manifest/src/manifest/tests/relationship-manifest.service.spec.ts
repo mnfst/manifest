@@ -24,14 +24,6 @@ describe('RelationshipManifestService', () => {
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [
           {
             name: 'owner',
@@ -65,14 +57,6 @@ describe('RelationshipManifestService', () => {
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [],
         policies: {
           create: [],
@@ -94,14 +78,6 @@ describe('RelationshipManifestService', () => {
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [],
         policies: {
           create: [],
