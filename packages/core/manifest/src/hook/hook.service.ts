@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import {
-  HookEventName,
+  CrudEventName,
   HookManifest,
   HookSchema,
   WebhookPayload
@@ -18,7 +18,7 @@ export class HookService {
    */
   transformHookSchemaIntoHookManifest(
     hookSchema: HookSchema,
-    event: HookEventName
+    event: CrudEventName
   ): HookManifest {
     return {
       event,

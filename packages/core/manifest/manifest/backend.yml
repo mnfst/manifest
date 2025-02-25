@@ -6,13 +6,17 @@ entities:
       - name
       - { name: age, type: number, validation: { min: 3 } }
       - { name: birthdate, type: date }
-      - { name: aquiredAt, type: timestamp }
+      - { name: acquiredAt, type: timestamp }
       - { name: hiddenProp, type: boolean, hidden: true }
       - { name: certificate, type: file }
       - { name: photo, type: image }
       - { name: description, type: richText, validation: { required: true } }
+
     belongsTo:
       - { name: owner, entity: User }
+    middlewares:
+      beforeCreate:
+        - { handler: setAcquiredAt }
     policies:
       create:
         - access: public

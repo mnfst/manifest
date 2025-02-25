@@ -5,8 +5,8 @@ import {
   NestInterceptor
 } from '@nestjs/common'
 import { Observable, forkJoin, lastValueFrom, tap } from 'rxjs'
-import { hookEvents } from './hook-events'
-import { EntityManifest, HookEventName, HookManifest } from '@repo/types'
+import { crudEvents } from '../crud/crud-events'
+import { EntityManifest, CrudEventName, HookManifest } from '@repo/types'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 import { HookService } from './hook.service'
 import { SingleController } from '../crud/controllers/single.controller'
@@ -29,7 +29,7 @@ export class HookInterceptor implements NestInterceptor {
         | keyof CollectionController
         | keyof SingleController
 
-    const event: HookEventName = hookEvents.find(
+    const event: CrudEventName = crudEvents.find(
       (event) =>
         event.relatedFunctions.includes(functionCalled) &&
         event.moment === 'before'
@@ -66,7 +66,7 @@ export class HookInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(async (data) => {
         // Get related "after" hook event.
-        const event: HookEventName = hookEvents.find(
+        const event: CrudEventName = crudEvents.find(
           (event) =>
             event.relatedFunctions.includes(functionCalled) &&
             event.moment === 'after'

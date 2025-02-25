@@ -77,6 +77,11 @@
       "description": "The hooks related to entity records events. Doc: https://manifest.build/docs/hooks",
       "type": "object",
       "$ref": "./hooks/hooks-schema.json"
+    },
+    "middlewares": {
+      "description": "The middlewares related to entity records events. Doc: https://manifest.build/docs/middlewares",
+      "type": "object",
+      "$ref": "./middlewares/middlewares-schema.json"
     }
   },
   "if": {

@@ -1,4 +1,4 @@
-export type HookEventName =
+export type CrudEventName =
   | 'beforeCreate'
   | 'afterCreate'
   | 'beforeUpdate'

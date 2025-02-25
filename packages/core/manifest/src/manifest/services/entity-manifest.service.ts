@@ -8,7 +8,7 @@ import {
 import {
   EntityManifest,
   EntitySchema,
-  HookEventName,
+  CrudEventName,
   HookManifest,
   HooksSchema,
   PropType,
@@ -354,8 +354,8 @@ export class EntityManifestService {
    */
   transformHookObject(
     hookSchema: HooksSchema
-  ): Record<HookEventName, HookManifest[]> {
-    const events: HookEventName[] = [
+  ): Record<CrudEventName, HookManifest[]> {
+    const events: CrudEventName[] = [
       'beforeCreate',
       'afterCreate',
       'beforeUpdate',
@@ -365,13 +365,13 @@ export class EntityManifestService {
     ]
 
     return events.reduce(
-      (acc, event: HookEventName) => {
+      (acc, event: CrudEventName) => {
         acc[event] = (hookSchema?.[event] || []).map((hook) =>
           this.hookService.transformHookSchemaIntoHookManifest(hook, event)
         )
         return acc
       },
-      {} as Record<HookEventName, HookManifest[]>
+      {} as Record<CrudEventName, HookManifest[]>
     )
   }
 
