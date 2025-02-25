@@ -1,5 +1,11 @@
 # manifest
 
+## 4.8.0
+
+### Minor Changes
+
+- 0d3feb2: added S3 storage @Blaise1030
+
 ## 4.7.1
 
 ### Patch Changes
