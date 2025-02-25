@@ -78,6 +78,10 @@ export class EndpointController {
     // We overwrite the original params (that are irrelevant) with the dynamic params that we have extracted.
     req['params'] = req['dynamicParams']
 
-    return this.handlerService.trigger(req['endpoint'].handler, req, res)
+    return this.handlerService.trigger({
+      path: req['endpoint'].handler,
+      req,
+      res
+    })
   }
 }

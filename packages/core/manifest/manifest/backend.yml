@@ -17,6 +17,8 @@ entities:
     middlewares:
       beforeUpdate:
         - { handler: setAcquiredAt }
+      afterUpdate:
+        - { handler: sendNotification }
     policies:
       create:
         - access: public

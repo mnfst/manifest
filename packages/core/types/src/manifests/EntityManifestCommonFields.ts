@@ -5,5 +5,11 @@ import { EntityManifest } from './EntityManifest'
 export interface EntityManifestCommonFields
   extends Pick<
     EntityManifest,
-    'className' | 'nameSingular' | 'slug' | 'single' | 'properties' | 'hooks'
+    | 'className'
+    | 'nameSingular'
+    | 'slug'
+    | 'single'
+    | 'properties'
+    | 'hooks'
+    | 'middlewares'
   > {}

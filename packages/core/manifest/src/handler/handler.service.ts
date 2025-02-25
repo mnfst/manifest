@@ -21,7 +21,15 @@ export class HandlerService {
    *
    * @returns Handler response
    */
-  async trigger(path: string, req: Request, res: Response): Promise<unknown> {
+  async trigger({
+    path,
+    req,
+    res
+  }: {
+    path: string
+    req: Request
+    res: Response
+  }): Promise<unknown> {
     const handlerFn = await this.importHandler(path)
 
     return handlerFn(req, res, this.sdk)
@@ -40,14 +48,14 @@ export class HandlerService {
     )
 
     if (!fs.existsSync(handlerPath)) {
-      throw new HttpException('Handler not found', 404)
+      throw new HttpException('Handler not found', 500)
     }
 
     // Import the handler.
     const module = await this.dynamicImport(handlerPath)
 
     if (typeof module.default !== 'function') {
-      throw new HttpException('Handler is invalid', 404)
+      throw new HttpException('Handler is invalid', 500)
     }
 
     return module.default
@@ -60,7 +68,7 @@ export class HandlerService {
    *
    * @returns Imported module
    */
-  async dynamicImport(path: string): Promise<any> {
+  private async dynamicImport(path: string): Promise<any> {
     return import(path)
   }
 }

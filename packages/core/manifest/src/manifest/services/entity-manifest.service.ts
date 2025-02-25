@@ -16,7 +16,10 @@ import {
   PropertySchema,
   RelationshipSchema,
   ValidationManifest,
-  EntityManifestCommonFields
+  EntityManifestCommonFields,
+  crudEventNames,
+  MiddlewaresSchema,
+  MiddlewareManifest
 } from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
@@ -151,7 +154,8 @@ export class EntityManifestService {
           (propManifest: PropertySchema) =>
             this.transformProperty(propManifest, entitySchema)
         ),
-        hooks: this.transformHookObject(entitySchema.hooks)
+        hooks: this.transformHookObject(entitySchema.hooks),
+        middlewares: entitySchema.middlewares || {}
       }
 
       if (entitySchema.single) {
@@ -357,25 +361,38 @@ export class EntityManifestService {
    * @returns an array of hooks
    */
   transformHookObject(
-    hookSchema: HooksSchema
+    hooksSchema: HooksSchema
   ): Record<CrudEventName, HookManifest[]> {
-    const events: CrudEventName[] = [
-      'beforeCreate',
-      'afterCreate',
-      'beforeUpdate',
-      'afterUpdate',
-      'beforeDelete',
-      'afterDelete'
-    ]
-
-    return events.reduce(
+    return crudEventNames.reduce(
       (acc, event: CrudEventName) => {
-        acc[event] = (hookSchema?.[event] || []).map((hook) =>
+        acc[event] = (hooksSchema?.[event] || []).map((hook) =>
           this.hookService.transformHookSchemaIntoHookManifest(hook, event)
         )
         return acc
       },
       {} as Record<CrudEventName, HookManifest[]>
+    )
+  }
+
+  /** Transform MiddlewareSchema object into an array of MiddlewareManifest.
+   *
+   * @param middlewareSchema The middleware schema.
+   *
+   * @returns an array of middlewares
+   *
+   */
+  transformMiddlewareObject(
+    middlewareSchema: MiddlewaresSchema
+  ): Record<CrudEventName, MiddlewareManifest[]> {
+    return crudEventNames.reduce(
+      (acc, event: CrudEventName) => {
+        acc[event] = (middlewareSchema?.[event] || []).map((middleware) => ({
+          event,
+          handler: middleware.handler
+        }))
+        return acc
+      },
+      {} as Record<CrudEventName, MiddlewareManifest[]>
     )
   }
 
