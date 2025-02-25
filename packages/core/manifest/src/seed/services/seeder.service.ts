@@ -133,14 +133,12 @@ export class SeederService {
           entityManifest.properties.push(...AUTHENTICABLE_PROPS)
         }
 
-        entityManifest.properties.forEach(
-          (propertyManifest: PropertyManifest) => {
-            newRecord[propertyManifest.name] = this.seedProperty(
-              propertyManifest,
-              entityManifest
-            )
-          }
-        )
+        for (const propertyManifest of entityManifest.properties) {
+          newRecord[propertyManifest.name] = await this.seedProperty(
+            propertyManifest,
+            entityManifest
+          )
+        }
 
         entityManifest.relationships
           .filter(
@@ -202,10 +200,10 @@ export class SeederService {
    *
    * @todo can this be moved to a separate service ? Beware of functions and context.
    */
-  seedProperty(
+  async seedProperty(
     propertyManifest: PropertyManifest,
     entityManifest: EntityManifest
-  ): string | number | boolean | object | unknown {
+  ): Promise<string | number | boolean | object | unknown> {
     switch (propertyManifest.type) {
       case PropType.String:
         return faker.commerce.product()
@@ -262,7 +260,7 @@ export class SeederService {
           ]
         }
 
-        const filePath: string = this.seedFile(
+        const filePath: string = await this.seedFile(
           entityManifest.slug,
           propertyManifest.name
         )
@@ -280,7 +278,7 @@ export class SeederService {
           ]
         }
 
-        const images: { [key: string]: string } = this.seedImage(
+        const images: { [key: string]: string } = await this.seedImage(
           entityManifest.slug,
           propertyManifest.name,
           propertyManifest.options?.['sizes'] as ImageSizesObject
@@ -314,12 +312,12 @@ export class SeederService {
    *
    * @returns The file path.
    * */
-  seedFile(entity: string, property: string): string {
+  async seedFile(entity: string, property: string): Promise<string> {
     const dummyFileContent = fs.readFileSync(
       path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_FILE_NAME)
     )
 
-    const filePath: string = this.storageService.store(entity, property, {
+    const filePath: string = await this.storageService.store(entity, property, {
       originalname: DUMMY_FILE_NAME,
       buffer: dummyFileContent
     })
@@ -340,7 +338,7 @@ export class SeederService {
     entity: string,
     property: string,
     sizes?: ImageSizesObject
-  ): { [key: string]: string } {
+  ): Promise<{ [key: string]: string }> {
     const dummyImageContent = fs.readFileSync(
       path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_IMAGE_NAME)
     )
