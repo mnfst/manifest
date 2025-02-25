@@ -18,6 +18,7 @@ describe('RelationshipManifestService', () => {
         namePlural: 'Cats',
         slug: 'cats',
         seedCount: 10,
+        mainProp: 'name',
         properties: [
           {
             name: 'name',
@@ -51,6 +52,7 @@ describe('RelationshipManifestService', () => {
         namePlural: 'Owners',
         slug: 'owners',
         seedCount: 10,
+        mainProp: 'name',
         properties: [
           {
             name: 'name',
@@ -70,6 +72,7 @@ describe('RelationshipManifestService', () => {
         className: 'Dog',
         nameSingular: 'Dog',
         namePlural: 'Dogs',
+        mainProp: 'name',
         slug: 'dogs',
         seedCount: 10,
         properties: [

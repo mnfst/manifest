@@ -30,9 +30,7 @@ describe('Manifest (e2e)', () => {
         properties: expect.any(Array)
       })
 
-      if (entity.belongsTo !== undefined) {
-        expect(entity.belongsTo).toEqual(expect.any(Array))
-      }
+      expect(entity.relationships).toEqual(expect.any(Array))
     })
   })
 

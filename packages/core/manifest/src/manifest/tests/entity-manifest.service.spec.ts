@@ -22,6 +22,7 @@ describe('EntityManifestService', () => {
         className: 'Cat',
         nameSingular: 'Cat',
         namePlural: 'Cats',
+        mainProp: 'name',
         slug: 'cats',
         seedCount: 10,
         properties: [
@@ -201,10 +202,10 @@ describe('EntityManifestService', () => {
     expect(entityManifests[0].properties.length).toBe(2)
     expect(entityManifests[0].single).toBe(true)
     expect(entityManifests[0].relationships.length).toBe(0)
+    expect(entityManifests[0].mainProp).toBe(null) // No main prop for single entities.
+    expect(entityManifests[0].namePlural).toBe('homecontent')
+    expect(entityManifests[0].authenticable).toBe(false)
     expect(entityManifests[0]).not.toHaveProperty('seedCount')
-    expect(entityManifests[0]).not.toHaveProperty('mainProp')
-    expect(entityManifests[0]).not.toHaveProperty('namePlural')
-    expect(entityManifests[0]).not.toHaveProperty('authenticable')
     expect(entityManifests[0]).not.toHaveProperty('belongsTo')
     expect(entityManifests[0]).not.toHaveProperty('belongsToMany')
   })

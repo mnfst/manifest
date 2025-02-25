@@ -16,6 +16,8 @@ describe('ManifestService', () => {
     name: 'my app',
     entities: {
       Cat: {
+        className: 'Cat',
+        mainProp: 'name',
         nameSingular: 'Cat',
         namePlural: 'Cats',
         slug: 'cats',

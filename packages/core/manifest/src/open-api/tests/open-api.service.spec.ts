@@ -34,7 +34,7 @@ describe('OpenApiService', () => {
           delete: [],
           signup: []
         }
-      }
+      } as any
     }
   }
 

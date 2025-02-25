@@ -24,6 +24,8 @@ export class HookInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler
   ): Promise<Observable<any>> {
+    let entityManifest: EntityManifest
+
     const beforeRequestEvent: CrudEventName =
       this.eventService.getRelatedCrudEvent(
         context.getHandler().name as
@@ -32,14 +34,23 @@ export class HookInterceptor implements NestInterceptor {
         'before'
       )
 
-    if (beforeRequestEvent) {
-      const entityManifest: EntityManifest =
-        this.entityManifestService.getEntityManifest({
-          slug: context.getArgs()[0].params.entity
-        })
+    const afterRequestEvent: CrudEventName =
+      this.eventService.getRelatedCrudEvent(
+        context.getHandler().name as
+          | keyof CollectionController
+          | keyof SingleController,
+        'after'
+      )
 
+    if (beforeRequestEvent || afterRequestEvent) {
+      entityManifest = this.entityManifestService.getEntityManifest({
+        slug: context.getArgs()[0].params.entity
+      })
+    }
+
+    if (beforeRequestEvent) {
       // Trigger hooks.
-      if (entityManifest.hooks[beforeRequestEvent].length) {
+      if (entityManifest.hooks?.[beforeRequestEvent]?.length) {
         const request = context.switchToHttp().getRequest()
         const entitySlug: string = request.params.entity
         const id: string = request.params.id
@@ -52,8 +63,9 @@ export class HookInterceptor implements NestInterceptor {
 
         await lastValueFrom(
           forkJoin(
-            entityManifest.hooks[beforeRequestEvent].map((hook: HookManifest) =>
-              this.hookService.triggerWebhook(hook, entitySlug, payload)
+            (entityManifest.hooks?.[beforeRequestEvent] || []).map(
+              (hook: HookManifest) =>
+                this.hookService.triggerWebhook(hook, entitySlug, payload)
             )
           )
         )
@@ -63,28 +75,16 @@ export class HookInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(async (data) => {
         // Get related "after" hook event.
-        const afterRequestEvent: CrudEventName =
-          this.eventService.getRelatedCrudEvent(
-            context.getHandler().name as
-              | keyof CollectionController
-              | keyof SingleController,
-            'after'
-          )
 
         if (afterRequestEvent) {
-          const entityManifest: EntityManifest =
-            this.entityManifestService.getEntityManifest({
-              slug: context.getArgs()[0].params.entity
-            })
-
           // Trigger hooks.
-          if (entityManifest.hooks[afterRequestEvent].length) {
+          if (entityManifest.hooks?.[afterRequestEvent]?.length) {
             const request = context.switchToHttp().getRequest()
             const entitySlug: string = request.params.entity
 
             await lastValueFrom(
               forkJoin(
-                entityManifest.hooks[afterRequestEvent].map(
+                (entityManifest.hooks?.[afterRequestEvent] || []).map(
                   (hook: HookManifest) =>
                     this.hookService.triggerWebhook(hook, entitySlug, data)
                 )

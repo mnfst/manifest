@@ -68,7 +68,7 @@ export class HandlerService {
    *
    * @returns Imported module
    */
-  private async dynamicImport(path: string): Promise<any> {
+  async dynamicImport(path: string): Promise<any> {
     return import(path)
   }
 }

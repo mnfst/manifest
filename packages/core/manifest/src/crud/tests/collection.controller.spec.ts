@@ -7,6 +7,8 @@ import { PolicyGuard } from '../../policy/policy.guard'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
+import { EventService } from '../../event/event.service'
+import { HandlerService } from '../../handler/handler.service'
 
 describe('CollectionController', () => {
   let controller: CollectionController
@@ -61,6 +63,18 @@ describe('CollectionController', () => {
           provide: HookService,
           useValue: {
             triggerWebhook: jest.fn()
+          }
+        },
+        {
+          provide: EventService,
+          useValue: {
+            getRelatedCrudEvent: jest.fn()
+          }
+        },
+        {
+          provide: HandlerService,
+          useValue: {
+            trigger: jest.fn()
           }
         }
       ]

@@ -32,7 +32,7 @@ export interface EntityManifest {
   /**
    * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
    */
-  authenticable: boolean
+  authenticable?: boolean
   /**
    * Whether the entity is a single type instead of a collection. Doc: https://manifest.build/docs/entities#singles
    */

@@ -50,7 +50,9 @@ describe('HandlerService', () => {
         }))
       )
 
-      const result = await service.trigger('handler', {} as any, {} as any)
+      const req = { test: 'req' } as any
+      const res = { test: 'res' } as any
+      const result = await service.trigger({ path: 'handler', req, res })
 
       expect(result).toEqual({ status: 200 })
     })
@@ -65,7 +67,7 @@ describe('HandlerService', () => {
       const req = { test: 'req' } as any
       const res = { test: 'res' } as any
 
-      await service.trigger('handler', req, res)
+      await service.trigger({ path: 'handler', req, res })
 
       expect(handler).toHaveBeenCalledWith(req, res, dummySdk)
     })

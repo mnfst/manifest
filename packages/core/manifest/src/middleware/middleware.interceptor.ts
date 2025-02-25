@@ -49,8 +49,9 @@ export class MiddlewareInterceptor implements NestInterceptor {
     }
 
     if (beforeRequestEvent) {
-      for (const middleware of entityManifest.middlewares[beforeRequestEvent] ||
-        []) {
+      for (const middleware of entityManifest.middlewares?.[
+        beforeRequestEvent
+      ] || []) {
         await this.handlerService.trigger({
           path: middleware.handler,
           req: context.switchToHttp().getRequest(),
@@ -62,7 +63,7 @@ export class MiddlewareInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(async () => {
         if (afterRequestEvent) {
-          for (const middleware of entityManifest.middlewares[
+          for (const middleware of entityManifest.middlewares?.[
             afterRequestEvent
           ] || []) {
             await this.handlerService.trigger({

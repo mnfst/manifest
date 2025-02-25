@@ -3,11 +3,13 @@ import { EntityManifestService } from '../../manifest/services/entity-manifest.s
 import { HookInterceptor } from '../hook.interceptor'
 import { HookService } from '../hook.service'
 import { EntityManifest } from '../../../../types/src'
+import { EventService } from '../../event/event.service'
 
 describe('HookInterceptor', () => {
   let interceptor: HookInterceptor
   let entityManifestService: EntityManifestService
   let hookService: HookService
+  let eventService: EventService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,6 +37,12 @@ describe('HookInterceptor', () => {
           useValue: {
             triggerWebhook: jest.fn(() => Promise.resolve())
           }
+        },
+        {
+          provide: EventService,
+          useValue: {
+            getRelatedCrudEvent: jest.fn(() => 'beforeCreate')
+          }
         }
       ]
     }).compile()
@@ -44,11 +52,12 @@ describe('HookInterceptor', () => {
       EntityManifestService
     )
     hookService = module.get<HookService>(HookService)
+    eventService = module.get<EventService>(EventService)
   })
 
   it('should be defined', () => {
     expect(
-      new HookInterceptor(entityManifestService, hookService)
+      new HookInterceptor(entityManifestService, hookService, eventService)
     ).toBeDefined()
   })
 

@@ -16,7 +16,6 @@ describe('OpenApiManifestService', () => {
         slug: 'cats',
         mainProp: 'name',
         seedCount: 50,
-        belongsTo: [],
         relationships: [],
         properties: [
           {
