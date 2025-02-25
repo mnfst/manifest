@@ -139,7 +139,9 @@ export class StorageService {
 
     // Create the folder on local storage if S3 is not enabled.
     if (!this.isS3Enabled) {
-      mkdirp.sync(folder)
+      mkdirp.sync(
+        `${this.configService.get('paths.publicFolder')}/${STORAGE_PATH}/${folder}`
+      )
     }
 
     return folder
