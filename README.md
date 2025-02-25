@@ -120,4 +120,7 @@ Manifest is an MIT-licensed open-source project. If you find it useful and want 
 
 [![rise-work-parneter-logo](https://github.com/user-attachments/assets/e89e2b0e-91eb-4a24-8c3f-39e0a77e8285)](https://rise.work/)
 
+[![feature_logo 1](https://github.com/user-attachments/assets/da69e2cb-10e1-4cb5-8809-ea51f490d2ad)](https://feature.sh/)
+
+
 </div>
