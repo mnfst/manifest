@@ -4,6 +4,10 @@ import {
   AppManifest,
   EntityManifest,
   EntitySchema,
+  HookManifest,
+  HooksSchema,
+  MiddlewareManifest,
+  MiddlewaresSchema,
   PropType
 } from '../../../../types/src'
 import { RelationshipManifestService } from '../services/relationship-manifest.service'
@@ -14,6 +18,7 @@ import { PolicyService } from '../../policy/policy.service'
 describe('EntityManifestService', () => {
   let service: EntityManifestService
   let manifestService: ManifestService
+  let hookService: HookService
 
   const dummyManifest: AppManifest = {
     name: 'my app',
@@ -48,6 +53,14 @@ describe('EntityManifestService', () => {
     }
   }
 
+  const dummyHookManifest: HookManifest = {
+    event: 'beforeCreate',
+    type: 'webhook',
+    url: 'https://test.com',
+    method: 'POST',
+    headers: {}
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -70,7 +83,9 @@ describe('EntityManifestService', () => {
         {
           provide: HookService,
           useValue: {
-            transformHookSchemaIntoHookManifest: jest.fn()
+            transformHookSchemaIntoHookManifest: jest.fn(
+              () => dummyHookManifest
+            )
           }
         },
         {
@@ -84,6 +99,7 @@ describe('EntityManifestService', () => {
 
     service = module.get<EntityManifestService>(EntityManifestService)
     manifestService = module.get<ManifestService>(ManifestService)
+    hookService = module.get<HookService>(HookService)
   })
 
   it('should be defined', () => {
@@ -208,5 +224,44 @@ describe('EntityManifestService', () => {
     expect(entityManifests[0]).not.toHaveProperty('seedCount')
     expect(entityManifests[0]).not.toHaveProperty('belongsTo')
     expect(entityManifests[0]).not.toHaveProperty('belongsToMany')
+  })
+
+  describe('TransformHookObject', () => {
+    it('should transform the hook object into a record of hooks', () => {
+      const hookObject: HooksSchema = {
+        beforeCreate: [
+          {
+            url: 'https://test.com',
+            method: 'POST'
+          }
+        ]
+      }
+
+      const hooks: Record<string, HookManifest[]> =
+        service.transformHookObject(hookObject)
+
+      expect(
+        hookService.transformHookSchemaIntoHookManifest
+      ).toHaveBeenCalledWith(hookObject.beforeCreate[0], 'beforeCreate')
+
+      expect(hooks.beforeCreate).toBeDefined()
+      expect(hooks.beforeCreate[0]).toMatchObject(dummyHookManifest)
+    })
+  })
+
+  describe('TransformMiddlewareObject', () => {
+    it('should transform the middleware object into a record of middlewares', () => {
+      const middlewareObject: MiddlewaresSchema = {
+        beforeCreate: [{ handler: 'test' }]
+      }
+
+      const middlewares: Record<string, MiddlewareManifest[]> =
+        service.transformMiddlewareObject(middlewareObject)
+
+      expect(middlewares.beforeCreate).toBeDefined()
+      expect(middlewares.beforeCreate[0]).toMatchObject({
+        handler: 'test'
+      })
+    })
   })
 })
