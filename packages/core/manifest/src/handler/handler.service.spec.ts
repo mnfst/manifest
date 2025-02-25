@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { HandlerService } from './handler.service'
 import { ConfigService } from '@nestjs/config'
 import { BackendSDK } from '../sdk/backend-sdk'
+import * as fs from 'fs'
 
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),

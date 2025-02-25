@@ -29,9 +29,9 @@ export class StorageService {
     this.s3Region = this.configService.get('storage.s3Region')
     this.s3AccessKeyId = this.configService.get('storage.s3AccessKeyId')
     this.s3SecretAccessKey = this.configService.get('storage.s3SecretAccessKey')
-    this.s3provider = this.s3Endpoint.includes('amazon')
+    this.s3provider = this.s3Endpoint?.includes('amazon')
       ? 'aws'
-      : this.s3Endpoint.includes('digitalocean')
+      : this.s3Endpoint?.includes('digitalocean')
         ? 'digitalocean'
         : 'other'
 
