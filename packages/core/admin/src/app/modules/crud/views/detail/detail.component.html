@@ -3,6 +3,13 @@
     class="is-flex is-justify-content-space-between is-align-items-center mb-5"
   >
     <div class="left-part">
+      <!-- TODO: Style this button -->
+      <a
+        [routerLink]="['/collections', entityManifest.namePlural]"
+        *ngIf="!entityManifest.single"
+        >Back</a
+      >
+
       <h1 class="title is-2 has-text-weight-light">
         {{
           singleMode
