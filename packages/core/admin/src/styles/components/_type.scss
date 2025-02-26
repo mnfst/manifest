@@ -206,3 +206,7 @@ app-link-yield {
   white-space: nowrap;
   max-width: 100%;
 }
+
+.has-first-letter-capitalized {
+  text-transform: capitalize;
+}
