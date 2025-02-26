@@ -8,10 +8,12 @@ import {
   RelationshipManifest
 } from '@repo/types'
 import { combineLatest } from 'rxjs'
-import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
+
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
+import { MetaService } from '../../../shared/services/meta.service'
+import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
 
 @Component({
   selector: 'app-list',
@@ -34,7 +36,7 @@ export class ListComponent implements OnInit {
     private manifestService: ManifestService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private breadcrumbService: BreadcrumbService,
+    private metaService: MetaService,
     private flashMessageService: FlashMessageService,
     private renderer: Renderer2
   ) {}
@@ -62,12 +64,11 @@ export class ListComponent implements OnInit {
           prop.type !== PropType.Password && prop.type !== PropType.RichText
       )
 
-      this.breadcrumbService.breadcrumbLinks.next([
-        {
-          label: this.entityManifest.namePlural,
-          path: `/collections/${this.entityManifest.slug}`
-        }
-      ])
+      this.metaService.setTitle(
+        new CapitalizeFirstLetterPipe().transform(
+          this.entityManifest.namePlural
+        )
+      )
 
       this.loadingPaginator = true
       this.paginator = await this.crudService.list(this.entityManifest.slug, {

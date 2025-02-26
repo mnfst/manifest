@@ -1,9 +1,10 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
-import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
+import { MetaService } from '../../../shared/services/meta.service'
+import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
 
 @Component({
   selector: 'app-detail',
@@ -20,7 +21,7 @@ export class DetailComponent {
     private crudService: CrudService,
     private manifestService: ManifestService,
     private activatedRoute: ActivatedRoute,
-    private breadcrumbService: BreadcrumbService,
+    private metaService: MetaService,
     private router: Router
   ) {}
 
@@ -40,7 +41,9 @@ export class DetailComponent {
       // Get the item.
       try {
         if (this.singleMode) {
-          this.item = await this.crudService.showSingle(this.entityManifest.slug)
+          this.item = await this.crudService.showSingle(
+            this.entityManifest.slug
+          )
         } else {
           this.item = await this.crudService.show(
             this.entityManifest.slug,
@@ -57,18 +60,11 @@ export class DetailComponent {
         this.router.navigate(['/404'])
       }
 
-      // Set the breadcrumbs.
-      this.breadcrumbService.breadcrumbLinks.next([
-        {
-          label: this.entityManifest.namePlural,
-          path: `/collections/${this.entityManifest.slug}`
-        },
-        {
-          label: this.item[
-            this.entityManifest.mainProp as keyof BaseEntity
-          ] as string
-        }
-      ])
+      this.metaService.setTitle(
+        new CapitalizeFirstLetterPipe().transform(
+          this.entityManifest.nameSingular
+        )
+      )
     })
   }
 
