@@ -1,5 +1,11 @@
 # manifest
 
+## 4.8.2
+
+### Patch Changes
+
+- 88b7edb: improved admin panel for production usage, thanks @larbikhounti
+
 ## 4.8.1
 
 ### Patch Changes
