@@ -14,11 +14,14 @@ export class SideMenuComponent implements OnInit {
 
   isCollectionsOpen = false
   isSettingsOpen = false
+  production: boolean
 
   constructor(private manifestService: ManifestService) {}
 
   ngOnInit(): void {
     this.manifestService.getManifest().then((res: AppManifest) => {
+      this.production = res.production
+
       this.collections = Object.values(res.entities || {})
         .filter(
           (entityManifest: EntityManifest) =>

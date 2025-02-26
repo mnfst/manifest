@@ -13,6 +13,11 @@ export interface AppManifest {
   version?: string
 
   /**
+   * Whether the app is in production.
+   */
+  production: boolean
+
+  /**
    * The entities of the app.
    */
   entities?: {
