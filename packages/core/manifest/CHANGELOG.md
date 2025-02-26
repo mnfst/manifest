@@ -1,5 +1,11 @@
 # manifest
 
+## 4.9.0
+
+### Minor Changes
+
+- a44651a: added middlewares
+
 ## 4.8.2
 
 ### Patch Changes
