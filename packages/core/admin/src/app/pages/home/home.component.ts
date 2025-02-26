@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core'
 import { AppManifest, EntityManifest } from '@repo/types'
-import { BreadcrumbService } from '../../modules/shared/services/breadcrumb.service'
+
 import { ManifestService } from '../../modules/shared/services/manifest.service'
+import { MetaService } from '../../modules/shared/services/meta.service'
 
 @Component({
   selector: 'app-home',
@@ -14,12 +15,11 @@ export class HomeComponent implements OnInit {
   singles: EntityManifest[]
 
   constructor(
-    private breadcrumbService: BreadcrumbService,
-    private manifestService: ManifestService
+    private manifestService: ManifestService,
+    private metaService: MetaService
   ) {}
 
   ngOnInit(): void {
-    this.breadcrumbService.breadcrumbLinks.next([])
     this.manifestService.getManifest().then((res: AppManifest) => {
       this.appManifest = res
       this.collections = Object.values(res.entities || {}).filter(
@@ -28,6 +28,8 @@ export class HomeComponent implements OnInit {
       this.singles = Object.values(res.entities || {}).filter(
         (entity) => entity.single
       )
+
+      this.metaService.setTitle('Admin panel')
     })
   }
 }

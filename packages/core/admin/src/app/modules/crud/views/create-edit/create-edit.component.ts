@@ -14,10 +14,10 @@ import { getDtoPropertyNameFromRelationship } from '@repo/common'
 
 import { HttpErrorResponse } from '@angular/common/http'
 import { ValidationError } from '../../../../typescript/interfaces/validation-error.interface'
-import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
+import { MetaService } from '../../../shared/services/meta.service'
 
 @Component({
   selector: 'app-create-edit',
@@ -41,7 +41,7 @@ export class CreateEditComponent {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private formBuilder: FormBuilder,
-    private breadcrumbService: BreadcrumbService,
+    private metaService: MetaService,
     private flashMessageService: FlashMessageService
   ) {}
 
@@ -83,30 +83,11 @@ export class CreateEditComponent {
         } catch (err) {
           this.router.navigate(['/404'])
         }
-
-        this.breadcrumbService.breadcrumbLinks.next([
-          {
-            label: this.entityManifest.namePlural,
-            path: `/collections/${this.entityManifest.slug}`
-          },
-          {
-            label: this.item[this.entityManifest.mainProp],
-            path: `/collections/${this.entityManifest.slug}/${this.item.id}`
-          },
-          {
-            label: 'Edit'
-          }
-        ])
+        this.metaService.setTitle(`Edit ${this.entityManifest.nameSingular}`)
       } else {
-        this.breadcrumbService.breadcrumbLinks.next([
-          {
-            label: this.entityManifest.namePlural,
-            path: `/collections/${this.entityManifest.slug}`
-          },
-          {
-            label: `Create a new ${this.entityManifest.nameSingular}`
-          }
-        ])
+        this.metaService.setTitle(
+          `Create a new ${this.entityManifest.nameSingular}`
+        )
       }
 
       this.entityManifest.properties.forEach((prop: PropertyManifest) => {

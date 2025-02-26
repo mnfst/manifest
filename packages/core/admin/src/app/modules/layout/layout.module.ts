@@ -5,7 +5,6 @@ import { SharedModule } from '../shared/shared.module'
 import { FlashMessageComponent } from './flash-message/flash-message.component'
 import { FooterComponent } from './footer/footer.component'
 import { SideMenuComponent } from './side-menu/side-menu.component'
-import { TopMenuComponent } from './top-menu/top-menu.component'
 import { TouchMenuComponent } from './touch-menu/touch-menu.component'
 import { UserMenuItemComponent } from './user-menu-item/user-menu-item.component'
 
@@ -14,7 +13,6 @@ import { UserMenuItemComponent } from './user-menu-item/user-menu-item.component
     FlashMessageComponent,
     FooterComponent,
     SideMenuComponent,
-    TopMenuComponent,
     TouchMenuComponent,
     UserMenuItemComponent
   ],
@@ -23,7 +21,6 @@ import { UserMenuItemComponent } from './user-menu-item/user-menu-item.component
     FlashMessageComponent,
     FooterComponent,
     SideMenuComponent,
-    TopMenuComponent,
     TouchMenuComponent,
     UserMenuItemComponent
   ]
