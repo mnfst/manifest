@@ -1,5 +1,11 @@
 # manifest
 
+## 4.8.1
+
+### Patch Changes
+
+- 70bb1a0: fix PostgreSQL SSL connections not working with local certificate
+
 ## 4.8.0
 
 ### Minor Changes
