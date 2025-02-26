@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-improved admin panel for production usage
+improved admin panel for production usage, thanks @larbikhounti
