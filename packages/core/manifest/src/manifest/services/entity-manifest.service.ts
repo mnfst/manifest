@@ -8,15 +8,19 @@ import {
 import {
   EntityManifest,
   EntitySchema,
-  HookEventName,
+  CrudEventName,
   HookManifest,
   HooksSchema,
   PropType,
   PropertyManifest,
   PropertySchema,
   RelationshipSchema,
-  ValidationManifest
-} from '../../../../types/src'
+  ValidationManifest,
+  EntityManifestCommonFields,
+  crudEventNames,
+  MiddlewaresSchema,
+  MiddlewareManifest
+} from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
 import dasherize from 'dasherize'
@@ -131,7 +135,7 @@ export class EntityManifestService {
       entitySchemaObject
     ).map(([className, entitySchema]: [string, EntitySchema]) => {
       // Build the partial entity manifest with common properties of both collection and single entities.
-      const partialEntityManifest: Partial<EntityManifest> = {
+      const partialEntityManifest: EntityManifestCommonFields = {
         className: entitySchema.className || className,
         nameSingular:
           entitySchema.nameSingular ||
@@ -150,7 +154,8 @@ export class EntityManifestService {
           (propManifest: PropertySchema) =>
             this.transformProperty(propManifest, entitySchema)
         ),
-        hooks: this.transformHookObject(entitySchema.hooks)
+        hooks: this.transformHookObject(entitySchema.hooks),
+        middlewares: entitySchema.middlewares || {}
       }
 
       if (entitySchema.single) {
@@ -203,7 +208,7 @@ export class EntityManifestService {
    *
    */
   private getCollectionEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
+    partialEntityManifest: EntityManifestCommonFields,
     entitySchema: EntitySchema
   ): EntityManifest {
     if (entitySchema.authenticable) {
@@ -278,11 +283,14 @@ export class EntityManifestService {
    * @returns the complete entity manifest with the single entity properties.
    */
   private getSingleEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
+    partialEntityManifest: EntityManifestCommonFields,
     entitySchema: EntitySchema
   ): EntityManifest {
     return {
       ...partialEntityManifest,
+      namePlural: partialEntityManifest.nameSingular,
+      authenticable: false,
+      mainProp: null,
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
       relationships: [],
@@ -353,25 +361,38 @@ export class EntityManifestService {
    * @returns an array of hooks
    */
   transformHookObject(
-    hookSchema: HooksSchema
-  ): Record<HookEventName, HookManifest[]> {
-    const events: HookEventName[] = [
-      'beforeCreate',
-      'afterCreate',
-      'beforeUpdate',
-      'afterUpdate',
-      'beforeDelete',
-      'afterDelete'
-    ]
-
-    return events.reduce(
-      (acc, event: HookEventName) => {
-        acc[event] = (hookSchema?.[event] || []).map((hook) =>
+    hooksSchema: HooksSchema
+  ): Record<CrudEventName, HookManifest[]> {
+    return crudEventNames.reduce(
+      (acc, event: CrudEventName) => {
+        acc[event] = (hooksSchema?.[event] || []).map((hook) =>
           this.hookService.transformHookSchemaIntoHookManifest(hook, event)
         )
         return acc
       },
-      {} as Record<HookEventName, HookManifest[]>
+      {} as Record<CrudEventName, HookManifest[]>
+    )
+  }
+
+  /** Transform MiddlewareSchema object into an array of MiddlewareManifest.
+   *
+   * @param middlewareSchema The middleware schema.
+   *
+   * @returns an array of middlewares
+   *
+   */
+  transformMiddlewareObject(
+    middlewareSchema: MiddlewaresSchema
+  ): Record<CrudEventName, MiddlewareManifest[]> {
+    return crudEventNames.reduce(
+      (acc, event: CrudEventName) => {
+        acc[event] = (middlewareSchema?.[event] || []).map((middleware) => ({
+          event,
+          handler: middleware.handler
+        }))
+        return acc
+      },
+      {} as Record<CrudEventName, MiddlewareManifest[]>
     )
   }
 

@@ -145,6 +145,7 @@ export interface EntitySchema {
     [k: string]: unknown
   }
   hooks?: HooksSchema
+  middlewares?: MiddlewaresSchema
 }
 /**
  * Validation object for the property.
@@ -402,6 +403,44 @@ export interface HookSchema {
   headers?: {
     [k: string]: string
   }
+}
+/**
+ * The middlewares related to entity records events. Doc: https://manifest.build/docs/middlewares
+ */
+export interface MiddlewaresSchema {
+  /**
+   * Middlewares to run before creating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  beforeCreate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run after creating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  afterCreate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run before updating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  beforeUpdate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run after updating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  afterUpdate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run before deleting a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  beforeDelete?: MiddlewareSchema[]
+  /**
+   * Middlewares to run after deleting a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  afterDelete?: MiddlewareSchema[]
+}
+/**
+ * A middleware related to an event the entity records. Doc: https://manifest.build/docs/middlewares
+ */
+export interface MiddlewareSchema {
+  /**
+   * The name of the handler function for this middleware. Doc: https://manifest.build/docs/middlewares#handlers
+   */
+  handler: string
 }
 /**
  * Defines a custom endpoint in Manifest: https://manifest.build/docs/endpoints

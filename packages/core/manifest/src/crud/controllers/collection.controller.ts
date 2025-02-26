@@ -23,10 +23,11 @@ import { Rule } from '../../policy/decorators/rule.decorator'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 import { COLLECTIONS_PATH } from '../../constants'
+import { MiddlewareInterceptor } from '../../middleware/middleware.interceptor'
 
 @Controller(COLLECTIONS_PATH)
 @UseGuards(PolicyGuard, IsCollectionGuard)
-@UseInterceptors(HookInterceptor)
+@UseInterceptors(HookInterceptor, MiddlewareInterceptor)
 export class CollectionController {
   constructor(
     private readonly crudService: CrudService,

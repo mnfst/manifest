@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { BackendSDK } from './backend-sdk'
-import { CrudService } from '../crud/services/crud.service'
-import { UploadService } from '../upload/services/upload.service'
-import { base64ToBlob } from '../../../common/src'
+import { BackendSDK } from '../backend-sdk'
+import { CrudService } from '../../crud/services/crud.service'
+import { UploadService } from '../../upload/services/upload.service'
+import { base64ToBlob } from '../../../../common/src'
 
 describe('SdkService', () => {
   let sdk: BackendSDK

@@ -1,5 +1,6 @@
 export * from './AppManifest'
 export * from './EntityManifest'
+export * from './EntityManifestCommonFields'
 export * from './ManifestSchema'
 export * from './PropertyManifest'
 export * from './RelationshipManifest'

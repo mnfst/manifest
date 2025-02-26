@@ -1,30 +1,36 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
-import { HookInterceptor } from '../hook.interceptor'
-import { HookService } from '../hook.service'
-import { EntityManifest } from '../../../../types/src'
 import { EventService } from '../../event/event.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { MiddlewareInterceptor } from '../middleware.interceptor'
+import { HandlerService } from '../../handler/handler.service'
+import { EntityManifest } from '../../../../types/src'
 
-describe('HookInterceptor', () => {
-  let interceptor: HookInterceptor
-  let entityManifestService: EntityManifestService
-  let hookService: HookService
+describe('MiddlewareInterceptor', () => {
+  let interceptor: MiddlewareInterceptor
   let eventService: EventService
+  let entityManifestService: EntityManifestService
+  let handlerService: HandlerService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        HookInterceptor,
+        MiddlewareInterceptor,
+        {
+          provide: EventService,
+          useValue: {
+            getRelatedCrudEvent: jest.fn(() => 'beforeCreate')
+          }
+        },
         {
           provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn(
               () =>
                 ({
-                  hooks: {
+                  middlewares: {
                     beforeCreate: [
                       {
-                        url: 'http://web.hook'
+                        handler: 'my-handler'
                       }
                     ]
                   }
@@ -33,47 +39,38 @@ describe('HookInterceptor', () => {
           }
         },
         {
-          provide: HookService,
+          provide: HandlerService,
           useValue: {
-            triggerWebhook: jest.fn(() => Promise.resolve())
-          }
-        },
-        {
-          provide: EventService,
-          useValue: {
-            getRelatedCrudEvent: jest.fn(() => 'beforeCreate')
+            trigger: jest.fn()
           }
         }
       ]
     }).compile()
 
-    interceptor = module.get<HookInterceptor>(HookInterceptor)
+    interceptor = module.get<MiddlewareInterceptor>(MiddlewareInterceptor)
+    eventService = module.get<EventService>(EventService)
     entityManifestService = module.get<EntityManifestService>(
       EntityManifestService
     )
-    hookService = module.get<HookService>(HookService)
-    eventService = module.get<EventService>(EventService)
+    handlerService = module.get<HandlerService>(HandlerService)
   })
 
   it('should be defined', () => {
     expect(
-      new HookInterceptor(entityManifestService, hookService, eventService)
+      new MiddlewareInterceptor(
+        eventService,
+        entityManifestService,
+        handlerService
+      )
     ).toBeDefined()
   })
 
-  it('should trigger webhooks', () => {
+  it('should trigger handlers', () => {
     const context = {
       getHandler: jest.fn(() => ({ name: 'store' })),
       switchToHttp: jest.fn(() => ({
-        getRequest: jest.fn(() => ({
-          params: {
-            entity: 'users',
-            id: '1'
-          },
-          body: {
-            name: 'John Doe'
-          }
-        }))
+        getRequest: jest.fn(() => {}),
+        getResponse: jest.fn(() => {})
       })),
       getArgs: jest.fn(() => [
         {
@@ -95,14 +92,10 @@ describe('HookInterceptor', () => {
       )
     })
 
-    expect(hookService.triggerWebhook).toHaveBeenCalledWith(
-      {
-        url: 'http://web.hook'
-      },
-      'users',
-      {
-        name: 'John Doe'
-      }
-    )
+    expect(handlerService.trigger).toHaveBeenCalledWith({
+      path: 'my-handler',
+      req: context.switchToHttp().getRequest(),
+      res: context.switchToHttp().getResponse()
+    })
   })
 })

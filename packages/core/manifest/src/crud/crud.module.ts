@@ -11,6 +11,7 @@ import { CollectionController } from './controllers/collection.controller'
 import { SingleController } from './controllers/single.controller'
 import { HookModule } from '../hook/hook.module'
 import { AuthModule } from '../auth/auth.module'
+import { MiddlewareModule } from '../middleware/middleware.module'
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { AuthModule } from '../auth/auth.module'
     forwardRef(() => ManifestModule),
     forwardRef(() => AuthModule),
     ValidationModule,
-    HookModule
+    HookModule,
+    MiddlewareModule
   ],
   controllers: [CollectionController, DatabaseController, SingleController],
   providers: [CrudService, PaginationService, DatabaseService],

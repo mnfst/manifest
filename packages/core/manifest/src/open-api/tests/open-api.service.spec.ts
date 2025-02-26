@@ -33,16 +33,8 @@ describe('OpenApiService', () => {
           update: [],
           delete: [],
           signup: []
-        },
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
         }
-      }
+      } as any
     }
   }
 
