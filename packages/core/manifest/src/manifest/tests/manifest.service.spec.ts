@@ -6,6 +6,7 @@ import { AppManifest, PropType } from '@repo/types'
 import { EntityManifestService } from '../services/entity-manifest.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EndpointService } from '../../endpoint/endpoint.service'
+import { ConfigService } from '@nestjs/config'
 
 describe('ManifestService', () => {
   let service: ManifestService
@@ -70,6 +71,12 @@ describe('ManifestService', () => {
           provide: EndpointService,
           useValue: {
             transformEndpointsSchemaObject: jest.fn()
+          }
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(() => 'production')
           }
         }
       ]

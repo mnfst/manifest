@@ -15,7 +15,7 @@ export interface AppManifest {
   /**
    * Whether the app is in production.
    */
-  production: boolean
+  production?: boolean
 
   /**
    * The entities of the app.
