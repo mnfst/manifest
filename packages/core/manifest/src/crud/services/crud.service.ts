@@ -436,7 +436,7 @@ export class CrudService {
     const newItem: BaseEntity = repository.create(itemDto)
 
     entityManifest.properties.forEach((prop: PropertyManifest) => {
-      if (prop.default && !itemDto[prop.name]) {
+      if (prop.default && typeof newItem[prop.name] === 'undefined') {
         newItem[prop.name] = prop.default
       }
     })
