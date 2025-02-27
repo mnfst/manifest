@@ -109,7 +109,7 @@ Thanks to our wonderful contributors!
 
 Manifest is an MIT-licensed open-source project. If you find it useful and want to support its development, consider [becoming a sponsor](https://opencollective.com/mnfst).
 
-<h3 align="center">Backers</h3>
+<h3 align="center">Backed by</h3>
 
 ![manifest-backers](https://github.com/user-attachments/assets/4ab3d33e-6e44-4368-b0d3-e2de988f28f5)
 
