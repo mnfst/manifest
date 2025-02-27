@@ -33,7 +33,8 @@ export class SchemaService {
    */
   validateAgainstSchema(manifest: Manifest, schema: any): boolean {
     let validate: any = new Ajv({
-      schemas
+      schemas,
+      allowUnionTypes: true
     })
     validate = validate.getSchema(schema.$id)
 

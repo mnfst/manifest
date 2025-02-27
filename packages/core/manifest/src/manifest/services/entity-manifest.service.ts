@@ -312,9 +312,9 @@ export class EntityManifestService {
 
   /**
    *
-   * Transform the short form of the property into the long form.
+   * Transform  PropertySchema into a PropertyManifest.
    *
-   * @param propSchema the property that can be in short form.
+   * @param propSchema the property schema.
    * @param entitySchema the entity schema to which the property belongs.
    *
    *
@@ -349,7 +349,8 @@ export class EntityManifestService {
         (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
           {},
         propSchema.validation
-      )
+      ),
+      default: propSchema.default
     }
   }
 

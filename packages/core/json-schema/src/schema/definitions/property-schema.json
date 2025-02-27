@@ -25,7 +25,6 @@
             "timestamp",
             "email",
             "boolean",
-            "relation",
             "password",
             "choice",
             "location",
@@ -36,6 +35,10 @@
         "validation": {
           "description": "Validation object for the property.",
           "$ref": "./validation-schema.json"
+        },
+        "default": {
+          "description": "The default value of the property. Doc: https://manifest.build/docs/properties#property-params",
+          "type": ["string", "number", "boolean", "object", "array"]
         },
         "hidden": {
           "description": "If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params",

@@ -35,6 +35,31 @@ entities:
     belongsTo:
       - Owner
 
+  # Testing all default property types with the Sheep entity.
+  Sheep:
+    properties:
+      - { name: name, type: string, default: "Dolly" }
+      - { name: description, type: text, default: "A fluffy sheep." }
+      - { name: age, type: number, default: 5 }
+      - { name: website, type: link, default: "https://example.com" }
+      - { name: price, type: money, options: { currency: EUR }, default: 100 }
+      - { name: birthdate, type: date, default: "2020-01-01" }
+      - { name: isGoodBoy, type: boolean, default: true }
+      - { name: acquiredAt, type: timestamp, default: "2020-01-01T00:00:00Z" }
+      - { name: password, type: password }
+      - { name: email, type: email, default: "test@test.com" }
+      - {
+          name: favoriteToy,
+          type: choice,
+          options: { values: [ball, bone, frisbee] }
+        }
+      - { name: location, type: location }
+      - { name: certificate, type: file }
+      - { name: photo, type: image }
+
+    belongsTo:
+      - Owner
+
   # Testing policies with the Bird entity.
   Bird:
     properties:
