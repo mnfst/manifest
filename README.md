@@ -117,11 +117,8 @@ Manifest is an MIT-licensed open-source project. If you find it useful and want 
 <div align="center" style="display:flex; width:100%; flex-wrap:wrap; align-items: center; justify-content: space-between">
 <br>
 
-[![kreezalid-partner-logo](https://github.com/user-attachments/assets/7576273c-7468-4f98-afb5-00fb71af6ade)](https://kreezalid.com/)
-
-[![rise-work-parneter-logo](https://github.com/user-attachments/assets/e89e2b0e-91eb-4a24-8c3f-39e0a77e8285)](https://rise.work/)
-
-[![feature_logo 1](https://github.com/user-attachments/assets/da69e2cb-10e1-4cb5-8809-ea51f490d2ad)](https://feature.sh/)
+| [![kreezalid-partner-logo](https://github.com/user-attachments/assets/7576273c-7468-4f98-afb5-00fb71af6ade)](https://kreezalid.com/) | [![rise-work-parneter-logo](https://github.com/user-attachments/assets/a63fd6b5-995a-4585-a479-3b693b5ed053)](https://rise.work/) | [![feature_logo 1](https://github.com/user-attachments/assets/698a031d-dbd1-43a2-a137-224bd61e1bb9)](https://feature.sh/) | [![Black_Logo_LambdaTest](https://github.com/user-attachments/assets/8e1a3ec7-15ec-4f80-a1c6-924e9bb84501)](https://www.lambdatest.com/) |
+| --- | --- | --- | --- |
 
 
 </div>
