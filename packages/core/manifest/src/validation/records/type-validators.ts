@@ -51,7 +51,7 @@ export const typeValidators: Record<
       : 'The value must be a valid date',
 
   [PropType.Timestamp]: (value: number) =>
-    isISO8601(value) ? null : 'The value must be a valid timestamp',
+    isISO8601(value) ? null : 'The value must be a valid ISO 8601 timestamp',
 
   [PropType.Email]: (value: string) =>
     isEmail(value) ? null : 'The value must be a valid email address',
