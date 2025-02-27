@@ -1,5 +1,11 @@
 # manifest
 
+## 4.9.1
+
+### Patch Changes
+
+- 9f6157b: fix cannot filter by id, thanks @mindreframer
+
 ## 4.9.0
 
 ### Minor Changes
