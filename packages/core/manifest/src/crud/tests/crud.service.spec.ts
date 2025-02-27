@@ -5,10 +5,45 @@ import { PaginationService } from '../services/pagination.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
+import { EntityManifest, Paginator, PropType } from '../../../../types/src'
+import { SelectQueryBuilder } from 'typeorm'
+
 describe('CrudService', () => {
   let service: CrudService
   let entityService: EntityService
   let validationService: ValidationService
+  let paginationService: PaginationService
+
+  const dummyEntityManifest: Partial<EntityManifest> = {
+    className: 'Test',
+    nameSingular: 'Test',
+    namePlural: 'Tests',
+    slug: 'test',
+    relationships: [],
+    properties: [
+      {
+        name: 'name',
+        type: PropType.String
+      },
+      {
+        name: 'age',
+        type: PropType.Number
+      },
+      {
+        name: 'color',
+        type: PropType.String
+      },
+      {
+        name: 'secretProperty',
+        type: PropType.String,
+        hidden: true
+      },
+      {
+        name: 'password',
+        type: PropType.Password
+      }
+    ]
+  }
 
   const dummyItem = {
     name: 'Superman',
@@ -17,6 +52,22 @@ describe('CrudService', () => {
     mentorId: 3
   }
 
+  const dummyPaginator: Paginator<any> = {
+    data: [dummyItem],
+    currentPage: 1,
+    lastPage: 1,
+    from: 1,
+    to: 1,
+    total: 1,
+    perPage: 1
+  }
+
+  const queryBuilder: SelectQueryBuilder<any> = {
+    where: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis()
+  } as any
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -24,15 +75,13 @@ describe('CrudService', () => {
         {
           provide: EntityManifestService,
           useValue: {
-            getEntityManifest: jest.fn(() => ({
-              relationships: []
-            }))
+            getEntityManifest: jest.fn(() => dummyEntityManifest)
           }
         },
         {
           provide: PaginationService,
           useValue: {
-            paginate: jest.fn()
+            paginate: jest.fn(() => Promise.resolve(dummyPaginator))
           }
         },
         {
@@ -42,7 +91,11 @@ describe('CrudService', () => {
             getEntityRepository: jest.fn(() => ({
               findOne: jest.fn(() => Promise.resolve(dummyItem)),
               create: jest.fn((item) => item),
-              save: jest.fn((item) => item)
+              save: jest.fn((item) => item),
+              createQueryBuilder: jest.fn(() => queryBuilder)
+            })),
+            getEntityMetadata: jest.fn(() => ({
+              relations: []
             }))
           }
         },
@@ -72,10 +125,88 @@ describe('CrudService', () => {
     service = module.get<CrudService>(CrudService)
     entityService = module.get<EntityService>(EntityService)
     validationService = module.get<ValidationService>(ValidationService)
+    paginationService = module.get<PaginationService>(PaginationService)
   })
 
   it('should be defined', () => {
     expect(service).toBeDefined()
+  })
+
+  describe('findAll', () => {
+    it('should return all entities', async () => {
+      const entitySlug = 'test'
+      const result = await service.findAll({ entitySlug })
+      expect(result).toEqual(dummyPaginator)
+    })
+
+    it('should return all entities with pagination', async () => {
+      const entitySlug = 'test'
+      const result = await service.findAll({
+        entitySlug,
+        queryParams: { page: '2', perPage: '1' }
+      })
+
+      expect(result).toEqual(dummyPaginator)
+      expect(paginationService.paginate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentPage: 2,
+          resultsPerPage: 1
+        })
+      )
+    })
+
+    it('should order entities', async () => {
+      const entitySlug = 'test'
+      const result = await service.findAll({
+        entitySlug,
+        queryParams: { orderBy: 'name' }
+      })
+
+      expect(result).toEqual(dummyPaginator)
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('entity.name', 'ASC')
+    })
+
+    it('should fail if the order by property is not in the entity', async () => {
+      const entitySlug = 'test'
+      await expect(
+        service.findAll({
+          entitySlug,
+          queryParams: { orderBy: 'invalid' }
+        })
+      ).rejects.toThrow()
+    })
+
+    it('should be able to order by id', async () => {
+      const entitySlug = 'test'
+      const result = await service.findAll({
+        entitySlug,
+        queryParams: { orderBy: 'id' }
+      })
+
+      expect(result).toEqual(dummyPaginator)
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('entity.id', 'ASC')
+    })
+
+    it('should select only visible properties', async () => {
+      const entitySlug = 'test'
+      const result = await service.findAll({ entitySlug })
+
+      expect(result).toEqual(dummyPaginator)
+
+      const selectFunctionParams: string[] =
+        queryBuilder.select['mock'].calls[0][0]
+
+      expect(selectFunctionParams).not.toContain('entity.secretProperty')
+      expect(selectFunctionParams).not.toContain('entity.password')
+    })
+
+    it('should load relationships', async () => {
+      // TODO: Implement test
+    })
+
+    it('should return all entities with filters', async () => {
+      // TODO: Implement test
+    })
   })
 
   describe('update', () => {

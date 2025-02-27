@@ -107,6 +107,7 @@ export class CrudService {
     // Apply ordering.
     if (queryParams?.orderBy) {
       if (
+        queryParams.orderBy !== 'id' &&
         !entityManifest.properties.find(
           (prop: PropertyManifest) =>
             prop.name === queryParams.orderBy && !prop.hidden
@@ -128,9 +129,9 @@ export class CrudService {
     // Paginate.
     return this.paginationService.paginate({
       query,
-      currentPage: parseInt(queryParams.page as string, 10) || 1,
+      currentPage: parseInt(queryParams?.page as string, 10) || 1,
       resultsPerPage:
-        parseInt(queryParams.perPage as string, 10) || DEFAULT_RESULTS_PER_PAGE
+        parseInt(queryParams?.perPage as string, 10) || DEFAULT_RESULTS_PER_PAGE
     })
   }
 
