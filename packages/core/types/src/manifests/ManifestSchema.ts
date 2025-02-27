@@ -28,13 +28,23 @@ export type PropertySchema =
         | 'timestamp'
         | 'email'
         | 'boolean'
-        | 'relation'
         | 'password'
         | 'choice'
         | 'location'
         | 'file'
         | 'image'
       validation?: ValidationSchema
+      /**
+       * The default value of the property. Doc: https://manifest.build/docs/properties#property-params
+       */
+      default?:
+        | string
+        | number
+        | boolean
+        | {
+            [k: string]: unknown
+          }
+        | unknown[]
       /**
        * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
        */

@@ -4,21 +4,17 @@ entities:
   Cat 😺:
     properties:
       - name
-      - { name: age, type: number, validation: { min: 3 } }
+      - { name: age, type: number, default: 30 }
       - { name: birthdate, type: date }
       - { name: acquiredAt, type: timestamp }
-      - { name: hiddenProp, type: boolean, hidden: true }
+      - { name: hiddenProp, type: boolean, default: true }
       - { name: certificate, type: file }
       - { name: photo, type: image }
       - { name: description, type: richText, validation: { required: true } }
 
     belongsTo:
       - { name: owner, entity: User }
-    middlewares:
-      beforeUpdate:
-        - { handler: setAcquiredAt }
-      afterUpdate:
-        - { handler: sendNotification }
+
     policies:
       create:
         - access: public
@@ -26,8 +22,6 @@ entities:
         - { access: public }
       delete:
         - { access: 🔒, allow: [User] }
-    validation:
-      age: { min: 20 } # Gets overridden by the property definition.
 
   Food:
     single: false

@@ -23,6 +23,23 @@ describe('Collection CRUD (e2e)', () => {
 
       expect(response.status).toBe(201)
     })
+
+    it('should add default values', async () => {
+      const response = await global.request.post('/collections/sheep').send({})
+
+      expect(response.status).toBe(201)
+      expect(response.body).toMatchObject({
+        name: 'Dolly',
+        description: 'A fluffy sheep.',
+        age: 5,
+        website: 'https://example.com',
+        price: 100,
+        birthdate: '2020-01-01',
+        isGoodBoy: true,
+        acquiredAt: '2020-01-01T00:00:00Z',
+        email: 'test@test.com'
+      })
+    })
   })
 
   describe('GET /collections/:entity', () => {
