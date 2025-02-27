@@ -1,3 +1,4 @@
+import { SHA3 } from 'crypto-js'
 import { CrudService } from '../services/crud.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
@@ -6,7 +7,7 @@ import { EntityService } from '../../entity/services/entity.service'
 import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
 import { EntityManifest, Paginator, PropType } from '../../../../types/src'
-import { SelectQueryBuilder } from 'typeorm'
+import { Repository, SelectQueryBuilder } from 'typeorm'
 
 describe('CrudService', () => {
   let service: CrudService
@@ -78,6 +79,13 @@ describe('CrudService', () => {
     getOne: jest.fn().mockReturnValue(Promise.resolve(dummyItem))
   } as any
 
+  const entityRepository: Repository<any> = {
+    findOne: jest.fn(() => Promise.resolve(dummyItem)),
+    create: jest.fn((item) => item),
+    save: jest.fn((item) => item),
+    createQueryBuilder: jest.fn(() => queryBuilder)
+  } as any
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -98,12 +106,7 @@ describe('CrudService', () => {
           provide: EntityService,
           useValue: {
             findOne: jest.fn(),
-            getEntityRepository: jest.fn(() => ({
-              findOne: jest.fn(() => Promise.resolve(dummyItem)),
-              create: jest.fn((item) => item),
-              save: jest.fn((item) => item),
-              createQueryBuilder: jest.fn(() => queryBuilder)
-            })),
+            getEntityRepository: jest.fn(() => entityRepository),
             getEntityMetadata: jest.fn(() => ({
               relations: []
             }))
@@ -264,9 +267,10 @@ describe('CrudService', () => {
 
       const result = await service.store(entitySlug, itemDto)
 
-      console.log(result)
-
       expect(result.name).toEqual(itemDto.name)
+      expect(entityRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining(itemDto)
+      )
     })
 
     it('should fill the default values if not provided', async () => {
@@ -306,8 +310,8 @@ describe('CrudService', () => {
 
       const result = await service.store(entitySlug, itemDto)
 
-      expect(result.password).not.toEqual('password')
-      expect(result.secondPassword).not.toEqual('password')
+      expect(result.password).toEqual(SHA3('password').toString())
+      expect(result.secondPassword).toEqual(SHA3('password').toString())
     })
 
     it('should store relationships', async () => {
