@@ -117,8 +117,31 @@ Manifest is an MIT-licensed open-source project. If you find it useful and want 
 <div align="center" style="display:flex; width:100%; flex-wrap:wrap; align-items: center; justify-content: space-between">
 <br>
 
-| [![kreezalid-partner-logo](https://github.com/user-attachments/assets/7576273c-7468-4f98-afb5-00fb71af6ade)](https://kreezalid.com/) | [![rise-work-parneter-logo](https://github.com/user-attachments/assets/a63fd6b5-995a-4585-a479-3b693b5ed053)](https://rise.work/) | [![feature_logo 1](https://github.com/user-attachments/assets/698a031d-dbd1-43a2-a137-224bd61e1bb9)](https://feature.sh/) | [![Black_Logo_LambdaTest](https://github.com/user-attachments/assets/8e1a3ec7-15ec-4f80-a1c6-924e9bb84501)](https://www.lambdatest.com/) |
-| --- | --- | --- | --- |
+<table>
+  <tr>
+    <td>
+      <a href="https://kreezalid.com/" target="_blank">
+        <img src="https://github.com/user-attachments/assets/7576273c-7468-4f98-afb5-00fb71af6ade" alt="kreezalid-partner-logo">
+      </a>
+    </td>
+    <td>
+      <a href="https://rise.work/" target="_blank">
+        <img src="https://github.com/user-attachments/assets/a63fd6b5-995a-4585-a479-3b693b5ed053" alt="rise-work-partner-logo">
+      </a>
+    </td>
+    <td>
+      <a href="https://feature.sh/" target="_blank">
+        <img src="https://github.com/user-attachments/assets/698a031d-dbd1-43a2-a137-224bd61e1bb9" alt="feature_logo">
+      </a>
+    </td>
+    <td>
+      <a href="https://www.lambdatest.com/" target="_blank">
+        <img src="https://github.com/user-attachments/assets/8e1a3ec7-15ec-4f80-a1c6-924e9bb84501" alt="Black_Logo_LambdaTest">
+      </a>
+    </td>
+  </tr>
+</table>
+
 
 
 </div>
