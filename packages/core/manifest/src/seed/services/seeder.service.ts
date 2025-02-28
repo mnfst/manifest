@@ -314,8 +314,6 @@ export class SeederService {
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
     admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
 
-    console.log(admin.password)
-
     await repository.save(admin)
   }
 

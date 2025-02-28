@@ -210,7 +210,7 @@ export class AuthService {
     const admin: AuthenticableEntity = await this.findUserFromCredentials(
       ADMIN_ENTITY_MANIFEST.slug,
       DEFAULT_ADMIN_CREDENTIALS.email,
-      bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, SALT_ROUNDS)
+      DEFAULT_ADMIN_CREDENTIALS.password
     )
 
     return { exists: !!admin }
