@@ -1,5 +1,11 @@
 # manifest
 
+## 4.9.2
+
+### Patch Changes
+
+- 002d110: replaced SHA3 encryption by bcrypt with salt, thanks @prokofitch @BennySama94
+
 ## 4.9.1
 
 ### Patch Changes
