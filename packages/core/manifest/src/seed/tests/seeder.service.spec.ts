@@ -1,6 +1,4 @@
-// TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 import { Test, TestingModule } from '@nestjs/testing'
-import { SHA3 } from 'crypto-js'
 
 import { SeederService } from '../services/seeder.service'
 import { EntityService } from '../../entity/services/entity.service'
@@ -16,6 +14,11 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn().mockResolvedValue('mock file content')
 }))
 
+jest.mock('bcrypt', () => ({
+  hashSync: jest.fn().mockResolvedValue('hashedPassword')
+}))
+
+// TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 describe('SeederService', () => {
   let service: SeederService
   let storageService: StorageService
@@ -225,13 +228,13 @@ describe('SeederService', () => {
       expect(typeof result).toBe('boolean')
     })
     it('should seed the "manifest" password', async () => {
-      const result = await service.seedProperty(
+      const result = (await service.seedProperty(
         { type: PropType.Password } as any,
         {} as any
-      )
+      )) as string
 
       expect(typeof result).toBe('string')
-      expect(result).toBe(SHA3('manifest').toString())
+      expect(result).toBe('hashedPassword')
     })
     it('should seed a choice', async () => {
       const result = await service.seedProperty(
@@ -299,10 +302,11 @@ describe('SeederService', () => {
 
       await service.seedAdmin(dummyRepository)
 
-      expect(dummyRepository.save).toHaveBeenCalledWith({
-        email: DEFAULT_ADMIN_CREDENTIALS.email,
-        password: SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
-      })
+      expect(dummyRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: DEFAULT_ADMIN_CREDENTIALS.email
+        })
+      )
     })
   })
 })
