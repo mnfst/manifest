@@ -1,4 +1,4 @@
-import { SHA3 } from 'crypto-js'
+import bcrypt from 'bcrypt'
 import {
   HttpException,
   HttpStatus,
@@ -28,7 +28,8 @@ import {
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import {
   DEFAULT_RESULTS_PER_PAGE,
-  QUERY_PARAMS_RESERVED_WORDS
+  QUERY_PARAMS_RESERVED_WORDS,
+  SALT_ROUNDS
 } from '../../constants'
 
 import { PaginationService } from './pagination.service'
@@ -241,7 +242,10 @@ export class CrudService {
       })
 
     if (entityManifest.authenticable && itemDto.password) {
-      newItem.password = SHA3(newItem.password).toString()
+      newItem.password = bcrypt.hashSync(
+        itemDto['password'] as string,
+        SALT_ROUNDS
+      )
     }
 
     const errors: ValidationError[] = this.validationService.validate(
@@ -334,7 +338,10 @@ export class CrudService {
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {
-      updatedItem.password = SHA3(updatedItem.password).toString()
+      updatedItem.password = bcrypt.hashSync(
+        itemDto['password'] as string,
+        SALT_ROUNDS
+      )
     } else if (entityManifest.authenticable && !itemDto.password) {
       delete updatedItem.password
     }

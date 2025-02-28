@@ -17,6 +17,9 @@ export const ENDPOINTS_PATH: string = 'endpoints'
 export const DEFAULT_PORT: number = 1111
 export const DEFAULT_RESULTS_PER_PAGE: number = 20
 
+// Security.
+export const SALT_ROUNDS: number = 10
+
 // Seeder.
 export const DEFAULT_SEED_COUNT: number = 50
 export const DEFAULT_MAX_MANY_TO_MANY_RELATIONS: number = 5
