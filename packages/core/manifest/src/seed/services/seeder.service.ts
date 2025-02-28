@@ -7,7 +7,7 @@ import {
   PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
-import { SHA3 } from 'crypto-js'
+
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../../entity/services/entity.service'
@@ -16,6 +16,7 @@ import { RelationshipService } from '../../entity/services/relationship.service'
 import { faker } from '@faker-js/faker'
 import * as fs from 'fs'
 import * as path from 'path'
+import bcrypt from 'bcrypt'
 
 import {
   ADMIN_ENTITY_MANIFEST,
@@ -121,9 +122,15 @@ export class SeederService {
 
       // Prevent logging during tests.
       if (process.env.NODE_ENV !== 'test') {
-        console.log(
-          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-        )
+        if (entityManifest.single) {
+          console.log(
+            `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
+          )
+        } else {
+          console.log(
+            `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+          )
+        }
       }
 
       for (const _index of Array(entityManifest.seedCount).keys()) {
@@ -240,7 +247,7 @@ export class SeederService {
       case PropType.Boolean:
         return faker.datatype.boolean()
       case PropType.Password:
-        return SHA3('manifest').toString()
+        return bcrypt.hashSync('manifest', 1)
       case PropType.Choice:
         return faker.helpers.arrayElement(
           propertyManifest.options.values as unknown[]
@@ -296,10 +303,16 @@ export class SeederService {
    * @param repository The repository for the Admin entity.
    */
   async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(
+        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password} ...`
+      )
+    }
+
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
-    admin.password = SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
+    admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
 
     await repository.save(admin)
   }
