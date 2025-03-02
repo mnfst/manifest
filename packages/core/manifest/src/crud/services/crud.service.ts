@@ -251,7 +251,7 @@ export class CrudService {
       .filter((prop) => prop.type === PropType.Password)
       .forEach((prop) => {
         if (newItem[prop.name]) {
-          newItem.password = bcrypt.hashSync(
+          newItem[prop.name] = bcrypt.hashSync(
             itemDto['password'] as string,
             SALT_ROUNDS
           )
