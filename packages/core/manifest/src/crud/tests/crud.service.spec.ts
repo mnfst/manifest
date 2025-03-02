@@ -14,6 +14,7 @@ describe('CrudService', () => {
   let validationService: ValidationService
   let paginationService: PaginationService
   let relationshipService: RelationshipService
+  let entityManifestService: EntityManifestService
 
   const dummyEntityManifest: Partial<EntityManifest> = {
     className: 'Test',
@@ -78,6 +79,14 @@ describe('CrudService', () => {
     getOne: jest.fn().mockReturnValue(Promise.resolve(dummyItem))
   } as any
 
+  const entityRepository = {
+    findOne: jest.fn(() => Promise.resolve(dummyItem)),
+    create: jest.fn((item) => item),
+    save: jest.fn((item) => item),
+    createQueryBuilder: jest.fn(() => queryBuilder),
+    delete: jest.fn(() => Promise.resolve({}))
+  } as any
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -98,12 +107,7 @@ describe('CrudService', () => {
           provide: EntityService,
           useValue: {
             findOne: jest.fn(),
-            getEntityRepository: jest.fn(() => ({
-              findOne: jest.fn(() => Promise.resolve(dummyItem)),
-              create: jest.fn((item) => item),
-              save: jest.fn((item) => item),
-              createQueryBuilder: jest.fn(() => queryBuilder)
-            })),
+            getEntityRepository: jest.fn(() => entityRepository),
             getEntityMetadata: jest.fn(() => ({
               relations: []
             }))
@@ -137,6 +141,9 @@ describe('CrudService', () => {
     validationService = module.get<ValidationService>(ValidationService)
     paginationService = module.get<PaginationService>(PaginationService)
     relationshipService = module.get<RelationshipService>(RelationshipService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   it('should be defined', () => {
@@ -465,6 +472,39 @@ describe('CrudService', () => {
         expect(resultWithoutRelation.mentor).toBeUndefined()
         expect(resultWithoutRelation.name).toEqual(itemWithoutRelationDto.name)
       })
+    })
+  })
+
+  describe('delete', () => {
+    it('should delete an entity', async () => {
+      const entitySlug = 'test'
+      const id = 1
+
+      const result = await service.delete(entitySlug, id)
+
+      expect(result).toEqual(dummyItem)
+    })
+
+    it('should throw an error if the entity is not found', async () => {
+      const entitySlug = 'test'
+      const id = 2
+
+      jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
+        delete: jest.fn(() => Promise.resolve(undefined))
+      } as any)
+
+      await expect(service.delete(entitySlug, id)).rejects.toThrow()
+    })
+
+    it('should throw an error if the item has parent one-to-many relationships', async () => {
+      const entitySlug = 'test'
+      const id = 1
+
+      jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
+        relations: [{ name: 'parent', type: 'one-to-many' }]
+      } as any)
+
+      await expect(service.delete(entitySlug, id)).rejects.toThrow()
     })
   })
 })
