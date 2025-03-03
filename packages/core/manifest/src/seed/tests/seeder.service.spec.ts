@@ -14,7 +14,7 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn().mockResolvedValue('mock file content')
 }))
 
-jest.mock('bcrypt', () => ({
+jest.mock('bcryptjs', () => ({
   hashSync: jest.fn().mockResolvedValue('hashedPassword')
 }))
 

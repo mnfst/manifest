@@ -68,7 +68,7 @@
     "@nestjs/swagger": "^7.3.1",
     "@nestjs/typeorm": "^10.0.2",
     "ajv": "^8.17.1",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "chalk": "^4.1.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
