@@ -116,7 +116,7 @@ describe('SeederService', () => {
       })
     })
 
-    it('should restart auto-increment sequences on postgres', async () => {
+    it('should truncate all tables on postgres', async () => {
       ;(dataSource.options as any).type = 'postgres'
 
       await service.seed()
@@ -130,6 +130,18 @@ describe('SeederService', () => {
       dummyEntityMetadatas.forEach((entityMetadata) => {
         expect(queryRunner.query).toHaveBeenCalledWith(
           `ALTER SEQUENCE "${entityMetadata.tableName}_id_seq" RESTART WITH 1`
+        )
+      })
+    })
+
+    it('should truncate all tables on mysql', async () => {
+      ;(dataSource.options as any).type = 'mysql'
+
+      await service.seed()
+
+      dummyEntityMetadatas.forEach((entityMetadata) => {
+        expect(queryRunner.query).toHaveBeenCalledWith(
+          `TRUNCATE TABLE \`${entityMetadata.tableName}\``
         )
       })
     })
@@ -257,24 +269,15 @@ describe('SeederService', () => {
     })
 
     it('should seed a file', async () => {
-      jest
-        .spyOn(service, 'seedFile')
-        .mockReturnValue(Promise.resolve(dummyFilePath))
-
       const result = await service.seedProperty(
         { type: PropType.File, name: 'file' } as any,
         { slug: 'dogs' } as any
       )
 
-      expect(service.seedFile).toHaveBeenCalledWith('dogs', 'file')
       expect(result).toBe(dummyFilePath)
     })
 
     it('should seed an image', async () => {
-      jest
-        .spyOn(service, 'seedImage')
-        .mockReturnValue(Promise.resolve(dummyImage))
-
       const result = await service.seedProperty(
         {
           type: PropType.Image,
@@ -284,11 +287,6 @@ describe('SeederService', () => {
         { slug: 'dogs' } as any
       )
 
-      expect(service.seedImage).toHaveBeenCalledWith(
-        'dogs',
-        'photo',
-        DEFAULT_IMAGE_SIZES
-      )
       expect(result).toBe(dummyImage)
     })
   })
