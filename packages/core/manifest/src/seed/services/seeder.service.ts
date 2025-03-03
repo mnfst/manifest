@@ -324,7 +324,7 @@ export class SeederService {
   async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
     if (process.env.NODE_ENV !== 'test') {
       console.log(
-        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password} ...`
+        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
       )
     }
 
