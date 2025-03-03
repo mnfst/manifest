@@ -18,20 +18,13 @@ describe('RelationshipManifestService', () => {
         namePlural: 'Cats',
         slug: 'cats',
         seedCount: 10,
+        mainProp: 'name',
         properties: [
           {
             name: 'name',
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [
           {
             name: 'owner',
@@ -59,20 +52,13 @@ describe('RelationshipManifestService', () => {
         namePlural: 'Owners',
         slug: 'owners',
         seedCount: 10,
+        mainProp: 'name',
         properties: [
           {
             name: 'name',
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [],
         policies: {
           create: [],
@@ -86,6 +72,7 @@ describe('RelationshipManifestService', () => {
         className: 'Dog',
         nameSingular: 'Dog',
         namePlural: 'Dogs',
+        mainProp: 'name',
         slug: 'dogs',
         seedCount: 10,
         properties: [
@@ -94,14 +81,6 @@ describe('RelationshipManifestService', () => {
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [],
         policies: {
           create: [],

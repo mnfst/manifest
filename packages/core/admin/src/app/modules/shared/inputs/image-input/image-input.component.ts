@@ -12,7 +12,7 @@ import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
 import { ImageSizesObject, PropertyManifest } from '@repo/types'
 import { NgClass, NgIf } from '@angular/common'
-import { getSmallestImageSize } from '@repo/helpers'
+import { getSmallestImageSize } from '@repo/common'
 
 @Component({
   selector: 'app-image-input',

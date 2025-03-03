@@ -21,7 +21,7 @@
     "esModuleInterop": true,
     "paths": {
       "@repo/types": ["../types/src"],
-      "@repo/helpers": ["../helpers/src"],
+      "@repo/common": ["../common/src"],
       "@repo/json-schema": ["../json-schema/src"]
     }
   }

@@ -1,5 +1,83 @@
 # manifest
 
+## 4.10.1
+
+### Patch Changes
+
+- 745c8fb: replaced bcrypt by bcryptjs
+
+## 4.10.0
+
+### Minor Changes
+
+- f24defa: added default values on create item, thanks @ajpiano
+
+## 4.9.2
+
+### Patch Changes
+
+- 002d110: replaced SHA3 encryption by bcrypt with salt, thanks @prokofitch @BennySama94
+
+## 4.9.1
+
+### Patch Changes
+
+- 9f6157b: fix cannot filter by id, thanks @mindreframer
+
+## 4.9.0
+
+### Minor Changes
+
+- a44651a: added middlewares
+
+## 4.8.2
+
+### Patch Changes
+
+- 88b7edb: improved admin panel for production usage, thanks @larbikhounti
+
+## 4.8.1
+
+### Patch Changes
+
+- 70bb1a0: fix PostgreSQL SSL connections not working with local certificate
+
+## 4.8.0
+
+### Minor Changes
+
+- 0d3feb2: added S3 storage @Blaise1030
+
+## 4.7.1
+
+### Patch Changes
+
+- 2ad5da3: added PNPM support
+
+## 4.7.0
+
+### Minor Changes
+
+- de762de: added Postgres compatibility, asked by @ToxesFoxes, @dotku
+
+## 4.6.2
+
+### Patch Changes
+
+- e05bd4d: added dynamic path for db and public folder
+
+## 4.6.1
+
+### Patch Changes
+
+- 880265f: Add route to 404 page if item not found in detail page or edit page
+
+## 4.6.0
+
+### Minor Changes
+
+- 7f3c127: Added custom endpoints
+
 ## 4.5.5
 
 ### Patch Changes

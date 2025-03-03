@@ -7,13 +7,18 @@ import { EntityService } from '../../entity/services/entity.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
+jest.mock('bcryptjs', () => ({
+  compareSync: jest.fn().mockResolvedValue(true),
+  hashSync: jest.fn().mockResolvedValue('testHashedPassword')
+}))
+
 describe('AuthService', () => {
   let authService: AuthService
   let configService: ConfigService
   let entityService: EntityService
   let entityManifestService: EntityManifestService
 
-  const mockUser = {
+  const mockUser: any = {
     email: 'testEmail',
     password: 'testHashedPassword'
   }
@@ -55,6 +60,10 @@ describe('AuthService', () => {
 
   describe('createToken', () => {
     it('should return a valid JWT token if a user is found', async () => {
+      jest
+        .spyOn(authService, 'findUserFromCredentials')
+        .mockResolvedValue(mockUser)
+
       const result = await authService.createToken(
         ADMIN_ENTITY_MANIFEST.slug,
         mockUser
@@ -80,8 +89,50 @@ describe('AuthService', () => {
     })
   })
 
+  describe('signup', () => {
+    it('should throw an exception when the entity is not authenticable', async () => {
+      entityManifestService.getEntityManifest = jest.fn().mockReturnValue({
+        authenticable: false
+      })
+
+      expect(async () => {
+        await authService.signup(ADMIN_ENTITY_MANIFEST.slug, mockUser)
+      }).rejects.toThrow(HttpException)
+    })
+
+    it('should throw an exception if the entity is admin', async () => {
+      entityManifestService.getEntityManifest = jest.fn().mockReturnValue({
+        authenticable: true
+      })
+
+      expect(async () => {
+        await authService.signup(ADMIN_ENTITY_MANIFEST.slug, mockUser)
+      }).rejects.toThrow(HttpException)
+    })
+
+    it('should save a user and return a token if the entity is authenticable', async () => {
+      entityService.getEntityRepository = jest.fn().mockReturnValue({
+        create: jest.fn().mockReturnValue(mockUser),
+        save: jest.fn().mockReturnValue(Promise.resolve(mockUser)),
+        findOne: jest.fn().mockReturnValue(Promise.resolve(mockUser))
+      })
+
+      jest
+        .spyOn(authService, 'findUserFromCredentials')
+        .mockResolvedValue(mockUser)
+
+      const result = await authService.signup('users', mockUser)
+
+      expect(result).toHaveProperty('token')
+    })
+  })
+
   describe('getUserFromToken', () => {
     it('should return a user when the token decodes to a valid email', async () => {
+      jest
+        .spyOn(authService, 'findUserFromCredentials')
+        .mockResolvedValue(mockUser)
+
       entityService.getEntityRepository = jest.fn().mockReturnValue({
         findOne: jest.fn().mockReturnValue(Promise.resolve(mockUser))
       })
@@ -102,7 +153,7 @@ describe('AuthService', () => {
         findOne: jest.fn().mockReturnValue(Promise.resolve(null))
       })
 
-      const { jwtToken, entitySlug } = jwt.sign(
+      const { jwtToken } = jwt.sign(
         'nonexistent@email.com',
         configService.get('tokenSecretKey')
       )
@@ -134,6 +185,90 @@ describe('AuthService', () => {
       expect(authService.getUserFromToken).toHaveBeenCalledWith(
         `Bearer ${token}`
       )
+    })
+
+    it('should return null user and entity slug when no token is found in the request', async () => {
+      const req = {
+        headers: {}
+      }
+
+      const response = await authService.getUserFromRequest(req as any)
+
+      expect(response).toMatchObject({ user: null, entitySlug: null })
+    })
+  })
+
+  describe('isReqUserAdmin', () => {
+    it('should return true if the user is an admin', async () => {
+      jest.spyOn(authService, 'getUserFromRequest').mockResolvedValue(
+        Promise.resolve({
+          user: mockUser,
+          entitySlug: ADMIN_ENTITY_MANIFEST.slug
+        })
+      )
+
+      const result = await authService.isReqUserAdmin({} as any)
+      expect(result).toBe(true)
+    })
+
+    it('should return false if the user is not an admin', async () => {
+      jest.spyOn(authService, 'getUserFromRequest').mockResolvedValue(
+        Promise.resolve({
+          user: mockUser,
+          entitySlug: 'nonAdminEntitySlug'
+        })
+      )
+
+      const result = await authService.isReqUserAdmin({} as any)
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('isDefaultAdminExists', () => {
+    it('should return true if the default admin exists', async () => {
+      jest
+        .spyOn(authService, 'findUserFromCredentials')
+        .mockResolvedValue(mockUser)
+
+      const result = await authService.isDefaultAdminExists()
+      expect(result.exists).toBe(true)
+    })
+
+    it('should return false if the default admin does not exist', async () => {
+      jest.spyOn(authService, 'findUserFromCredentials').mockResolvedValue(null)
+
+      const result = await authService.isDefaultAdminExists()
+      expect(result.exists).toBe(false)
+    })
+  })
+
+  describe('findUserFromCredentials', () => {
+    it('should return a user if the credentials are correct', async () => {
+      entityService.getEntityRepository = jest.fn().mockReturnValue({
+        findOne: jest.fn().mockReturnValue(Promise.resolve(mockUser))
+      })
+
+      const result = await authService.findUserFromCredentials(
+        ADMIN_ENTITY_MANIFEST.slug,
+        mockUser.email,
+        mockUser.password
+      )
+
+      expect(result).toMatchObject(mockUser)
+    })
+
+    it('should return null if the credentials are incorrect', async () => {
+      entityService.getEntityRepository = jest.fn().mockReturnValue({
+        findOne: jest.fn().mockReturnValue(Promise.resolve(null))
+      })
+
+      const result = await authService.findUserFromCredentials(
+        ADMIN_ENTITY_MANIFEST.slug,
+        mockUser.email,
+        'incorrectPassword'
+      )
+
+      expect(result).toBe(null)
     })
   })
 })

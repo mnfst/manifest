@@ -5,7 +5,6 @@ import { ActivatedRoute, Params, Router } from '@angular/router'
 
 import { PropType } from '@repo/types'
 
-import { FlashMessageService } from '../../../shared/services/flash-message.service'
 import { AuthService } from '../../auth.service'
 import { DEFAULT_ADMIN_CREDENTIALS } from '../../../../../constants'
 
@@ -25,8 +24,7 @@ export class LoginComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private flashMessageService: FlashMessageService
+    private activatedRoute: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -64,11 +62,11 @@ export class LoginComponent implements OnInit {
 
   submit() {
     this.authService.login(this.form.value).then(
-      (res) => {
+      () => {
         this.router.navigate(['/'])
       },
       (err: HttpErrorResponse) => {
-        this.flashMessageService.error(
+        alert(
           err.status === 401
             ? `Error: Incorrect username or password.`
             : err.error.message

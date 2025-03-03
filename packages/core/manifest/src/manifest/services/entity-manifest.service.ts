@@ -6,36 +6,37 @@ import {
   forwardRef
 } from '@nestjs/common'
 import {
-  AccessPolicy,
   EntityManifest,
   EntitySchema,
-  HookEventName,
+  CrudEventName,
   HookManifest,
   HooksSchema,
-  PolicyManifest,
-  PolicySchema,
   PropType,
   PropertyManifest,
   PropertySchema,
   RelationshipSchema,
-  ValidationManifest
-} from '../../../../types/src'
+  ValidationManifest,
+  EntityManifestCommonFields,
+  crudEventNames,
+  MiddlewaresSchema,
+  MiddlewareManifest
+} from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
 import dasherize from 'dasherize'
 import { RelationshipManifestService } from './relationship-manifest.service'
 import {
+  ADMIN_ACCESS_POLICY,
   AUTHENTICABLE_PROPS,
   DEFAULT_IMAGE_SIZES,
-  DEFAULT_SEED_COUNT
+  DEFAULT_SEED_COUNT,
+  FORBIDDEN_ACCESS_POLICY,
+  PUBLIC_ACCESS_POLICY
 } from '../../constants'
-import {
-  adminAccessPolicy,
-  forbiddenAccessPolicy,
-  publicAccessPolicy
-} from '../utils/policy-manifests'
+
 import { ManifestService } from './manifest.service'
 import { HookService } from '../../hook/hook.service'
+import { PolicyService } from '../../policy/policy.service'
 
 @Injectable()
 export class EntityManifestService {
@@ -43,7 +44,8 @@ export class EntityManifestService {
     private relationshipManifestService: RelationshipManifestService,
     @Inject(forwardRef(() => ManifestService))
     private manifestService: ManifestService,
-    private hookService: HookService
+    private hookService: HookService,
+    private policyService: PolicyService
   ) {}
 
   /**
@@ -133,7 +135,7 @@ export class EntityManifestService {
       entitySchemaObject
     ).map(([className, entitySchema]: [string, EntitySchema]) => {
       // Build the partial entity manifest with common properties of both collection and single entities.
-      const partialEntityManifest: Partial<EntityManifest> = {
+      const partialEntityManifest: EntityManifestCommonFields = {
         className: entitySchema.className || className,
         nameSingular:
           entitySchema.nameSingular ||
@@ -152,7 +154,8 @@ export class EntityManifestService {
           (propManifest: PropertySchema) =>
             this.transformProperty(propManifest, entitySchema)
         ),
-        hooks: this.transformHookObject(entitySchema.hooks)
+        hooks: this.transformHookObject(entitySchema.hooks),
+        middlewares: entitySchema.middlewares || {}
       }
 
       if (entitySchema.single) {
@@ -205,7 +208,7 @@ export class EntityManifestService {
    *
    */
   private getCollectionEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
+    partialEntityManifest: EntityManifestCommonFields,
     entitySchema: EntitySchema
   ): EntityManifest {
     if (entitySchema.authenticable) {
@@ -245,28 +248,28 @@ export class EntityManifestService {
       ],
       authenticable: entitySchema.authenticable || false,
       policies: {
-        create: this.transformPolicies(
+        create: this.policyService.transformPolicies(
           entitySchema.policies?.create,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
-        read: this.transformPolicies(
+        read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
-        update: this.transformPolicies(
+        update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
-        delete: this.transformPolicies(
+        delete: this.policyService.transformPolicies(
           entitySchema.policies?.delete,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
         signup: entitySchema.authenticable
-          ? this.transformPolicies(
+          ? this.policyService.transformPolicies(
               entitySchema.policies?.signup,
-              publicAccessPolicy
+              PUBLIC_ACCESS_POLICY
             )
-          : [forbiddenAccessPolicy]
+          : [FORBIDDEN_ACCESS_POLICY]
       }
     }
   }
@@ -280,35 +283,38 @@ export class EntityManifestService {
    * @returns the complete entity manifest with the single entity properties.
    */
   private getSingleEntityManifestProps(
-    partialEntityManifest: Partial<EntityManifest>,
+    partialEntityManifest: EntityManifestCommonFields,
     entitySchema: EntitySchema
   ): EntityManifest {
     return {
       ...partialEntityManifest,
+      namePlural: partialEntityManifest.nameSingular,
+      authenticable: false,
+      mainProp: null,
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
       relationships: [],
       policies: {
-        create: [forbiddenAccessPolicy],
-        read: this.transformPolicies(
+        create: [FORBIDDEN_ACCESS_POLICY],
+        read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          publicAccessPolicy
+          PUBLIC_ACCESS_POLICY
         ),
-        update: this.transformPolicies(
+        update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
-          adminAccessPolicy
+          ADMIN_ACCESS_POLICY
         ),
-        delete: [forbiddenAccessPolicy],
-        signup: [forbiddenAccessPolicy]
+        delete: [FORBIDDEN_ACCESS_POLICY],
+        signup: [FORBIDDEN_ACCESS_POLICY]
       }
     }
   }
 
   /**
    *
-   * Transform the short form of the property into the long form.
+   * Transform  PropertySchema into a PropertyManifest.
    *
-   * @param propSchema the property that can be in short form.
+   * @param propSchema the property schema.
    * @param entitySchema the entity schema to which the property belongs.
    *
    *
@@ -343,60 +349,9 @@ export class EntityManifestService {
         (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
           {},
         propSchema.validation
-      )
+      ),
+      default: propSchema.default
     }
-  }
-
-  /**
-   * Transform an array of short form policies of into an array of long form policies.
-   *
-   * @param policySchemas the policies that can be in short form.
-   * @param defaultPolicy the default policy to use if the policy is not provided.
-   *
-   * @returns the policy with the short form properties transformed into long form.
-   */
-  transformPolicies(
-    policySchemas: PolicySchema[],
-    defaultPolicy: PolicyManifest
-  ): PolicyManifest[] {
-    if (!policySchemas) {
-      return [defaultPolicy]
-    }
-
-    return policySchemas.map((policySchema: PolicySchema) => {
-      let access: AccessPolicy
-
-      // Transform emojis into long form.
-      switch (policySchema.access) {
-        case '🌐':
-          access = 'public'
-          break
-        case '🔒':
-          access = 'restricted'
-          break
-        case '️👨🏻‍💻':
-          access = 'admin'
-          break
-        case '🚫':
-          access = 'forbidden'
-          break
-        default:
-          access = policySchema.access as AccessPolicy
-      }
-
-      const policyManifest: PolicyManifest = {
-        access
-      }
-
-      if (policySchema.allow) {
-        policyManifest.allow =
-          typeof policySchema.allow === 'string'
-            ? [policySchema.allow]
-            : policySchema.allow
-      }
-
-      return policyManifest
-    })
   }
 
   /**
@@ -407,25 +362,38 @@ export class EntityManifestService {
    * @returns an array of hooks
    */
   transformHookObject(
-    hookSchema: HooksSchema
-  ): Record<HookEventName, HookManifest[]> {
-    const events: HookEventName[] = [
-      'beforeCreate',
-      'afterCreate',
-      'beforeUpdate',
-      'afterUpdate',
-      'beforeDelete',
-      'afterDelete'
-    ]
-
-    return events.reduce(
-      (acc, event: HookEventName) => {
-        acc[event] = (hookSchema?.[event] || []).map((hook) =>
+    hooksSchema: HooksSchema
+  ): Record<CrudEventName, HookManifest[]> {
+    return crudEventNames.reduce(
+      (acc, event: CrudEventName) => {
+        acc[event] = (hooksSchema?.[event] || []).map((hook) =>
           this.hookService.transformHookSchemaIntoHookManifest(hook, event)
         )
         return acc
       },
-      {} as Record<HookEventName, HookManifest[]>
+      {} as Record<CrudEventName, HookManifest[]>
+    )
+  }
+
+  /** Transform MiddlewareSchema object into an array of MiddlewareManifest.
+   *
+   * @param middlewareSchema The middleware schema.
+   *
+   * @returns an array of middlewares
+   *
+   */
+  transformMiddlewareObject(
+    middlewareSchema: MiddlewaresSchema
+  ): Record<CrudEventName, MiddlewareManifest[]> {
+    return crudEventNames.reduce(
+      (acc, event: CrudEventName) => {
+        acc[event] = (middlewareSchema?.[event] || []).map((middleware) => ({
+          event,
+          handler: middleware.handler
+        }))
+        return acc
+      },
+      {} as Record<CrudEventName, MiddlewareManifest[]>
     )
   }
 

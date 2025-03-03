@@ -3,6 +3,7 @@ import {
   isBoolean,
   isDateString,
   isEmail,
+  isISO8601,
   isIn,
   isLatLong,
   isNumber,
@@ -50,12 +51,7 @@ export const typeValidators: Record<
       : 'The value must be a valid date',
 
   [PropType.Timestamp]: (value: number) =>
-    typeof value === 'number' &&
-    Number.isInteger(value) &&
-    value > 0 &&
-    isFinite(value)
-      ? null
-      : 'The value must be a valid timestamp',
+    isISO8601(value) ? null : 'The value must be a valid ISO 8601 timestamp',
 
   [PropType.Email]: (value: string) =>
     isEmail(value) ? null : 'The value must be a valid email address',

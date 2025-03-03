@@ -1,11 +1,17 @@
-import { EntityManifest, PropertyManifest } from '@repo/types'
+import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
-import { EntitySchema, EntitySchemaColumnOptions } from 'typeorm'
+import {
+  ColumnType,
+  EntitySchema,
+  EntitySchemaColumnOptions,
+  ValueTransformer
+} from 'typeorm'
 import { baseEntity } from '../core-entities/base-entity'
-import { propTypeColumnTypes } from '../records/prop-type-column-types'
+import { sqlitePropTypeColumnTypes } from '../records/sqlite-prop-type-column-types'
 import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
 import { RelationshipService } from './relationship.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { postgresPropTypeColumnTypes } from '../records/postgres-prop-type-column-types copy'
 
 @Injectable()
 export class EntityLoaderService {
@@ -16,13 +22,19 @@ export class EntityLoaderService {
 
   /**
    * Get entities from Manifest services file and convert into TypeORM entities.
+   * @param isPostgres boolean if the database is postgres. Default is false so it is sqlite.
    *
    * @returns EntitySchema[] the entities
    *
    **/
-  loadEntities(): EntitySchema[] {
+  loadEntities(isPostgres: boolean): EntitySchema[] {
     const entityManifests: EntityManifest[] =
       this.entityManifestService.getEntityManifests({ fullVersion: true })
+
+    // Column types for Postgres and SQLite.
+    const columns: Record<PropType, ColumnType> = isPostgres
+      ? postgresPropTypeColumnTypes
+      : sqlitePropTypeColumnTypes
 
     // Convert Manifest Entities to TypeORM Entities.
     const entitySchemas: EntitySchema[] = entityManifests.map(
@@ -36,9 +48,31 @@ export class EntityLoaderService {
               acc: { [key: string]: EntitySchemaColumnOptions },
               propManifest: PropertyManifest
             ) => {
+              // Set transformer for number properties (Postgres stores numbers as strings).
+              let transformer: ValueTransformer | undefined = undefined
+              if (
+                propManifest.type === PropType.Number ||
+                propManifest.type === PropType.Money
+              ) {
+                transformer = {
+                  from: (value: string | number) => Number(value),
+                  to: (value: string | number) => value
+                }
+              }
+
+              // Ensure it returns strings for timestamps (SQLite returns Date objects by default).
+              if (propManifest.type === PropType.Timestamp) {
+                transformer = {
+                  from: (value: Date | string) =>
+                    value instanceof Date ? value.toISOString() : value,
+                  to: (value: string) => value // Store as string
+                }
+              }
+
               acc[propManifest.name] = {
                 name: propManifest.name,
-                type: propTypeColumnTypes[propManifest.type],
+                type: columns[propManifest.type],
+                transformer,
                 nullable: true // Everything is nullable on the database (validation is done on the application layer).
               }
 

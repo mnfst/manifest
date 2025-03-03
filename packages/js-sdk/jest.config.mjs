@@ -7,6 +7,6 @@ export default {
   },
   moduleNameMapper: {
     '^@repo/types$': '<rootDir>/../core/types/src/index.ts',
-    '^@repo/helpers$': '<rootDir>/../core/helpers/src/index.ts'
+    '^@repo/common$': '<rootDir>/../core/common/src/index.ts'
   }
 }

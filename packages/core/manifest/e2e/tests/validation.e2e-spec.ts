@@ -16,7 +16,7 @@ describe('Validation (e2e)', () => {
         birthdate: false,
         price: '100',
         isGoodBoy: 'true',
-        acquiredAt: '2024-01-01',
+        acquiredAt: false,
         email: 123,
         favoriteToy: 123,
         location: '{ lat: 12, lng: 13 }'

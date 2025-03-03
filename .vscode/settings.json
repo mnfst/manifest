@@ -23,7 +23,6 @@
     "statusBarItem.remoteForeground": "#2430F0",
     "commandCenter.border": "#2430F099"
   },
-  "peacock.color": "#fcdc3d",
   "cSpell.words": [
     "authenticable",
     "bugsnag",
@@ -52,6 +51,14 @@
     "manifest": "server",
     "core/manifest": "meta",
     "js-sdk": "javascript",
-    "json-schema": "json"
+    "json-schema": "json",
+    "logger": "log",
+    "storage": "import",
+    "policy": "secure",
+    "open-api": "docs",
+    "crud": "class",
+    "endpoint": "target",
+    "entity": "database",
+    "health": "favicon"
   }
 }

@@ -6,15 +6,22 @@
 const path = require('path')
 const os = require('os')
 const spawn = require('cross-spawn')
+const fs = require('fs')
 
-// Determine the appropriate nodemon path
+// Determine the appropriate nodemon path.
 const nodemonExecutable = os.platform() === 'win32' ? 'nodemon.cmd' : 'nodemon'
-const nodemonPath = path.join(
-  process.cwd(),
-  'node_modules',
-  '.bin',
-  nodemonExecutable
-)
+const isPnpm = fs.existsSync(path.join(process.cwd(), 'pnpm-lock.yaml'))
+
+const nodemonPath = isPnpm
+  ? path.join(
+      process.cwd(),
+      'node_modules',
+      '.pnpm',
+      'node_modules',
+      '.bin',
+      nodemonExecutable
+    )
+  : path.join(process.cwd(), 'node_modules', '.bin', nodemonExecutable)
 
 const nodemon = spawn(
   nodemonPath,

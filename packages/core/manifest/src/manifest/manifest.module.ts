@@ -8,6 +8,8 @@ import { EntityManifestService } from './services/entity-manifest.service'
 import { RelationshipManifestService } from './services/relationship-manifest.service'
 import { ManifestService } from './services/manifest.service'
 import { HookModule } from '../hook/hook.module'
+import { PolicyModule } from '../policy/policy.module'
+import { EndpointModule } from '../endpoint/endpoint.module'
 
 /**
  *
@@ -20,7 +22,9 @@ import { HookModule } from '../hook/hook.module'
   imports: [
     forwardRef(() => EntityModule),
     forwardRef(() => AuthModule),
-    HookModule
+    forwardRef(() => EndpointModule),
+    HookModule,
+    PolicyModule
   ],
   providers: [
     ManifestService,

@@ -7,7 +7,7 @@ import {
   PropertyManifest,
   RelationshipManifest
 } from '@repo/types'
-import { SHA3 } from 'crypto-js'
+
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../../entity/services/entity.service'
@@ -16,6 +16,7 @@ import { RelationshipService } from '../../entity/services/relationship.service'
 import { faker } from '@faker-js/faker'
 import * as fs from 'fs'
 import * as path from 'path'
+import bcrypt from 'bcryptjs'
 
 import {
   ADMIN_ENTITY_MANIFEST,
@@ -25,7 +26,7 @@ import {
   DUMMY_IMAGE_NAME
 } from '../../constants'
 
-import { StorageService } from '../../storage/services/storage/storage.service'
+import { StorageService } from '../../storage/services/storage.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
@@ -60,21 +61,43 @@ export class SeederService {
 
     // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
+    const isPostgres = this.dataSource.options.type === 'postgres'
 
-    await queryRunner.query('PRAGMA foreign_keys = OFF')
-    await Promise.all(
-      entityMetadatas.map(async (entity: EntityMetadata) =>
-        queryRunner
-          .query(`DELETE FROM [${entity.tableName}]`)
-          .then(() =>
-            queryRunner.query(
-              `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
-            )
-          )
+    if (isPostgres) {
+      // Disable foreign key checks for Postgres by using CASCADE
+      await Promise.all(
+        entityMetadatas.map(async (entity: EntityMetadata) =>
+          queryRunner.query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`)
+        )
       )
-    )
-    await queryRunner.query('PRAGMA foreign_keys = ON')
 
+      // Reset auto-increment sequences
+      await Promise.all(
+        entityMetadatas.map(
+          async (entity: EntityMetadata) =>
+            queryRunner
+              .query(
+                `ALTER SEQUENCE "${entity.tableName}_id_seq" RESTART WITH 1`
+              )
+              .catch(() => {}) // Ignore if sequence doesn't exist
+        )
+      )
+    } else {
+      // SQLite-specific logic.
+      await queryRunner.query('PRAGMA foreign_keys = OFF')
+      await Promise.all(
+        entityMetadatas.map(async (entity: EntityMetadata) =>
+          queryRunner
+            .query(`DELETE FROM [${entity.tableName}]`)
+            .then(() =>
+              queryRunner.query(
+                `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
+              )
+            )
+        )
+      )
+      await queryRunner.query('PRAGMA foreign_keys = ON')
+    }
     // Keep only regular tables for seeding.
     entityMetadatas = entityMetadatas.filter(
       (entity: EntityMetadata) => entity.tableType === 'regular'
@@ -99,9 +122,15 @@ export class SeederService {
 
       // Prevent logging during tests.
       if (process.env.NODE_ENV !== 'test') {
-        console.log(
-          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-        )
+        if (entityManifest.single) {
+          console.log(
+            `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
+          )
+        } else {
+          console.log(
+            `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+          )
+        }
       }
 
       for (const _index of Array(entityManifest.seedCount).keys()) {
@@ -111,14 +140,12 @@ export class SeederService {
           entityManifest.properties.push(...AUTHENTICABLE_PROPS)
         }
 
-        entityManifest.properties.forEach(
-          (propertyManifest: PropertyManifest) => {
-            newRecord[propertyManifest.name] = this.seedProperty(
-              propertyManifest,
-              entityManifest
-            )
-          }
-        )
+        for (const propertyManifest of entityManifest.properties) {
+          newRecord[propertyManifest.name] = await this.seedProperty(
+            propertyManifest,
+            entityManifest
+          )
+        }
 
         entityManifest.relationships
           .filter(
@@ -180,10 +207,10 @@ export class SeederService {
    *
    * @todo can this be moved to a separate service ? Beware of functions and context.
    */
-  private seedProperty(
+  async seedProperty(
     propertyManifest: PropertyManifest,
     entityManifest: EntityManifest
-  ): string | number | boolean | object | unknown {
+  ): Promise<string | number | boolean | object | unknown> {
     switch (propertyManifest.type) {
       case PropType.String:
         return faker.commerce.product()
@@ -220,7 +247,7 @@ export class SeederService {
       case PropType.Boolean:
         return faker.datatype.boolean()
       case PropType.Password:
-        return SHA3('manifest').toString()
+        return bcrypt.hashSync('manifest', 1)
       case PropType.Choice:
         return faker.helpers.arrayElement(
           propertyManifest.options.values as unknown[]
@@ -240,7 +267,7 @@ export class SeederService {
           ]
         }
 
-        const filePath: string = this.seedFile(
+        const filePath: string = await this.seedFile(
           entityManifest.slug,
           propertyManifest.name
         )
@@ -258,7 +285,7 @@ export class SeederService {
           ]
         }
 
-        const images: { [key: string]: string } = this.seedImage(
+        const images: { [key: string]: string } = await this.seedImage(
           entityManifest.slug,
           propertyManifest.name,
           propertyManifest.options?.['sizes'] as ImageSizesObject
@@ -275,11 +302,17 @@ export class SeederService {
    *
    * @param repository The repository for the Admin entity.
    */
-  private async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
+  async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(
+        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password} ...`
+      )
+    }
+
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
-    admin.password = SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
+    admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
 
     await repository.save(admin)
   }
@@ -292,12 +325,12 @@ export class SeederService {
    *
    * @returns The file path.
    * */
-  seedFile(entity: string, property: string): string {
+  async seedFile(entity: string, property: string): Promise<string> {
     const dummyFileContent = fs.readFileSync(
       path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_FILE_NAME)
     )
 
-    const filePath: string = this.storageService.store(entity, property, {
+    const filePath: string = await this.storageService.store(entity, property, {
       originalname: DUMMY_FILE_NAME,
       buffer: dummyFileContent
     })
@@ -318,7 +351,7 @@ export class SeederService {
     entity: string,
     property: string,
     sizes?: ImageSizesObject
-  ): { [key: string]: string } {
+  ): Promise<{ [key: string]: string }> {
     const dummyImageContent = fs.readFileSync(
       path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_IMAGE_NAME)
     )

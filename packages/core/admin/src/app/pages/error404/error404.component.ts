@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-// import { BreadcrumbService } from '../../services/breadcrumb.service'
+import { MetaService } from '../../modules/shared/services/meta.service'
 
 @Component({
   selector: 'app-error404',
@@ -7,11 +7,7 @@ import { Component } from '@angular/core'
   styleUrls: ['./error404.component.scss']
 })
 export class Error404Component {
-  // constructor(breadcrumbService: BreadcrumbService) {
-  //   breadcrumbService.breadcrumbLinks.next([
-  //     {
-  //       label: 'Error 404'
-  //     }
-  //   ])
-  // }
+  constructor(metaService: MetaService) {
+    metaService.setTitle('Page not found')
+  }
 }

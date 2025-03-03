@@ -9,7 +9,7 @@ describe('Collection CRUD (e2e)', () => {
     birthdate: '2024-01-01',
     price: 100,
     isGoodBoy: true,
-    acquiredAt: new Date().getTime(),
+    acquiredAt: new Date().toISOString(),
     email: 'test@example.com',
     favoriteToy: 'ball',
     location: { lat: 12, lng: 13 }
@@ -22,6 +22,23 @@ describe('Collection CRUD (e2e)', () => {
         .send(dummyDog)
 
       expect(response.status).toBe(201)
+    })
+
+    it('should add default values', async () => {
+      const response = await global.request.post('/collections/sheep').send({})
+
+      expect(response.status).toBe(201)
+      expect(response.body).toMatchObject({
+        name: 'Dolly',
+        description: 'A fluffy sheep.',
+        age: 5,
+        website: 'https://example.com',
+        price: 100,
+        birthdate: '2020-01-01',
+        isGoodBoy: true,
+        acquiredAt: '2020-01-01T00:00:00Z',
+        email: 'test@test.com'
+      })
     })
   })
 

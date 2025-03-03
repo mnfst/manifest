@@ -2,12 +2,23 @@ import {
   EntityManifest,
   PropType,
   PropertyManifest,
-  ImageSizesObject
+  ImageSizesObject,
+  PolicyManifest
 } from '@repo/types'
+
+// Paths.
+export const STORAGE_PATH: string = 'storage'
+export const API_PATH: string = 'api'
+export const COLLECTIONS_PATH: string = 'collections'
+export const SINGLES_PATH: string = 'singles'
+export const ENDPOINTS_PATH: string = 'endpoints'
 
 // Default values.
 export const DEFAULT_PORT: number = 1111
 export const DEFAULT_RESULTS_PER_PAGE: number = 20
+
+// Security.
+export const SALT_ROUNDS: number = 10
 
 // Seeder.
 export const DEFAULT_SEED_COUNT: number = 50
@@ -17,7 +28,6 @@ export const DUMMY_IMAGE_NAME: string = 'dummy-image.jpg'
 export const DEFAULT_TOKEN_SECRET_KEY: string = 'REPLACE_ME'
 
 // Uploads.
-export const STORAGE_PATH: string = 'public/storage'
 export const DEFAULT_IMAGE_SIZES: ImageSizesObject = {
   thumbnail: {
     width: 80,
@@ -58,15 +68,6 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   namePlural: 'admins',
   properties: AUTHENTICABLE_PROPS,
   relationships: [],
-  belongsToMany: [],
-  hooks: {
-    beforeCreate: [],
-    afterCreate: [],
-    beforeUpdate: [],
-    afterUpdate: [],
-    beforeDelete: [],
-    afterDelete: []
-  },
   policies: {
     create: [{ access: 'admin' }],
     read: [{ access: 'admin' }],
@@ -84,3 +85,8 @@ export const QUERY_PARAMS_RESERVED_WORDS = [
   'orderBy',
   'relations'
 ]
+
+// Policies.
+export const ADMIN_ACCESS_POLICY: PolicyManifest = { access: 'admin' }
+export const PUBLIC_ACCESS_POLICY: PolicyManifest = { access: 'public' }
+export const FORBIDDEN_ACCESS_POLICY: PolicyManifest = { access: 'forbidden' }

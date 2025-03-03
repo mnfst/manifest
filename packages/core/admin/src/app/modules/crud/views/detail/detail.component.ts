@@ -1,9 +1,10 @@
 import { Component } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
-import { BreadcrumbService } from '../../../shared/services/breadcrumb.service'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
+import { MetaService } from '../../../shared/services/meta.service'
+import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
 
 @Component({
   selector: 'app-detail',
@@ -20,7 +21,7 @@ export class DetailComponent {
     private crudService: CrudService,
     private manifestService: ManifestService,
     private activatedRoute: ActivatedRoute,
-    private breadcrumbService: BreadcrumbService,
+    private metaService: MetaService,
     private router: Router
   ) {}
 
@@ -38,33 +39,32 @@ export class DetailComponent {
       this.singleMode = this.activatedRoute.snapshot.data['mode'] === 'single'
 
       // Get the item.
-      if (this.singleMode) {
-        this.item = await this.crudService.showSingle(this.entityManifest.slug)
-      } else {
-        this.item = await this.crudService.show(
-          this.entityManifest.slug,
-          params['id'],
-          {
-            relations: this.entityManifest.relationships
-              ?.filter((r) => r.type !== 'one-to-many')
-              .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-              .map((relationship: RelationshipManifest) => relationship.name)
-          }
-        )
+      try {
+        if (this.singleMode) {
+          this.item = await this.crudService.showSingle(
+            this.entityManifest.slug
+          )
+        } else {
+          this.item = await this.crudService.show(
+            this.entityManifest.slug,
+            params['id'],
+            {
+              relations: this.entityManifest.relationships
+                ?.filter((r) => r.type !== 'one-to-many')
+                .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+                .map((relationship: RelationshipManifest) => relationship.name)
+            }
+          )
+        }
+      } catch (err) {
+        this.router.navigate(['/404'])
       }
 
-      // Set the breadcrumbs.
-      this.breadcrumbService.breadcrumbLinks.next([
-        {
-          label: this.entityManifest.namePlural,
-          path: `/collections/${this.entityManifest.slug}`
-        },
-        {
-          label: this.item[
-            this.entityManifest.mainProp as keyof BaseEntity
-          ] as string
-        }
-      ])
+      this.metaService.setTitle(
+        new CapitalizeFirstLetterPipe().transform(
+          this.entityManifest.nameSingular
+        )
+      )
     })
   }
 

@@ -11,6 +11,8 @@ import {
 
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from './entity-manifest.service'
+import { EndpointService } from '../../endpoint/endpoint.service'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class ManifestService {
@@ -20,13 +22,15 @@ export class ManifestService {
     private yamlService: YamlService,
     private schemaService: SchemaService,
     @Inject(forwardRef(() => EntityManifestService))
-    private entityManifestService: EntityManifestService
+    private entityManifestService: EntityManifestService,
+    private endpointService: EndpointService,
+    private readonly configService: ConfigService
   ) {}
 
   /**
    * Get the manifest.
    *
-   * @param publicVersion Whether to return the public version of the manifest.THe public version is the one that is exposed to the client: it hides settings and the hidden properties.
+   * @param fullVersion Whether to return the public version of the manifest.THe public version is the one that is exposed to the client: it hides settings and the hidden properties.
    *
    * @returns The manifest.
    *
@@ -59,12 +63,16 @@ export class ManifestService {
     const appManifest: AppManifest = {
       ...appSchema,
       version: appSchema.version || '0.0.1',
+      production: this.configService.get('NODE_ENV') === 'production',
       entities: this.entityManifestService
         .transformEntityManifests(appSchema.entities)
         .reduce((acc, entityManifest: EntityManifest) => {
           acc[entityManifest.className] = entityManifest
           return acc
-        }, {})
+        }, {}),
+      endpoints: this.endpointService.transformEndpointsSchemaObject(
+        appSchema.endpoints
+      )
     }
 
     // Add Admin entity.

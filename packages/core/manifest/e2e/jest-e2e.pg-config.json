@@ -1,0 +1,16 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "maxWorkers": 1,
+  "setupFilesAfterEnv": ["./jest.pg-setup.ts"],
+  "moduleNameMapper": {
+    "^@repo/types$": "<rootDir>/../../types/src",
+    "^@repo/common$": "<rootDir>/../../common/src",
+    "^@repo/json-schema$": "<rootDir>/../../json-schema/src"
+  }
+}

@@ -29,19 +29,55 @@ describe('UploadController', () => {
   })
 
   describe('uploadFile', () => {
-    it('should return the path of the uploaded file', () => {})
+    it('should return the path of the uploaded file', async () => {
+      const file = {
+        buffer: Buffer.from('file content'),
+        originalname: 'file.txt'
+      }
 
-    it('creates unique file names', () => {})
+      const entity = 'entity'
+      const property = 'property'
+      const path = 'path'
 
-    it('should return a 400 error if entity name or property is not provided', () => {})
+      jest
+        .spyOn(uploadService, 'storeFile')
+        .mockReturnValue(Promise.resolve(path))
 
-    it('expect the file to be passed as "file" in a multipart/form-data', () => {})
+      expect(await controller.uploadFile(file, entity, property)).toEqual({
+        path
+      })
+
+      expect(uploadService.storeFile).toHaveBeenCalledWith({
+        file,
+        entity,
+        property
+      })
+    })
   })
   describe('uploadImage', () => {
-    it('should upload an image', () => {})
+    it('should upload an image', async () => {
+      const image = {
+        buffer: Buffer.from('image content'),
+        originalname: 'image.jpg'
+      }
 
-    it('should return a 400 error if entity name or property is not provided', () => {})
+      const entity = 'entity'
+      const property = 'property'
+      const imagePaths = { thumbnail: 'path', medium: 'path' }
 
-    it('expect the image to be passed as "image" in a multipart/form-data', () => {})
+      jest
+        .spyOn(uploadService, 'storeImage')
+        .mockReturnValue(Promise.resolve(imagePaths))
+
+      expect(await controller.uploadImage(image, entity, property)).toEqual(
+        imagePaths
+      )
+
+      expect(uploadService.storeImage).toHaveBeenCalledWith({
+        image,
+        entity,
+        property
+      })
+    })
   })
 })

@@ -4,15 +4,17 @@ entities:
   Cat 😺:
     properties:
       - name
-      - { name: age, type: number, validation: { min: 3 } }
+      - { name: age, type: number, default: 30 }
       - { name: birthdate, type: date }
-      - { name: aquiredAt, type: timestamp }
-      - { name: hiddenProp, type: boolean, hidden: true }
+      - { name: acquiredAt, type: timestamp }
+      - { name: hiddenProp, type: boolean, default: true }
       - { name: certificate, type: file }
       - { name: photo, type: image }
       - { name: description, type: richText, validation: { required: true } }
+
     belongsTo:
       - { name: owner, entity: User }
+
     policies:
       create:
         - access: public
@@ -20,8 +22,6 @@ entities:
         - { access: public }
       delete:
         - { access: 🔒, allow: [User] }
-    validation:
-      age: { min: 20 } # Gets overridden by the property definition.
 
   Food:
     single: false
@@ -46,3 +46,9 @@ entities:
       - { name: image, type: image }
     validation:
       title: { required: true }
+
+endpoints:
+  createCat:
+    path: /cats
+    method: GET
+    handler: createCat

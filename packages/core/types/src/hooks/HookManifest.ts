@@ -1,11 +1,12 @@
-import { HookEventName } from '../crud'
+import { HttpMethod } from '../common/HttpMethod'
+import { CrudEventName } from '../crud'
 import { HookType } from './HookType'
 
 export interface HookManifest {
-  event: HookEventName
+  event: CrudEventName
   type: HookType
   url: string
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  method: HttpMethod
   headers: {
     [k: string]: string
   }

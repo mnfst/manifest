@@ -14,13 +14,13 @@ export class UploadController {
 
   @Post('/file')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(
+  async uploadFile(
     @UploadedFile() file: any,
     @Body('entity') entity: string,
     @Body('property') property: string
-  ): { path: string } {
+  ): Promise<{ path: string }> {
     return {
-      path: this.uploadService.storeFile({
+      path: await this.uploadService.storeFile({
         file,
         entity,
         property
@@ -34,7 +34,7 @@ export class UploadController {
     @UploadedFile() image: any,
     @Body('entity') entity: string,
     @Body('property') property: string
-  ): { [key: string]: string } {
+  ): Promise<{ [key: string]: string }> {
     return this.uploadService.storeImage({
       image,
       entity,

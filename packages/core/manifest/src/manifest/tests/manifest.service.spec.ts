@@ -5,6 +5,8 @@ import { SchemaService } from '../services/schema.service'
 import { AppManifest, PropType } from '@repo/types'
 import { EntityManifestService } from '../services/entity-manifest.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
+import { EndpointService } from '../../endpoint/endpoint.service'
+import { ConfigService } from '@nestjs/config'
 
 describe('ManifestService', () => {
   let service: ManifestService
@@ -15,6 +17,8 @@ describe('ManifestService', () => {
     name: 'my app',
     entities: {
       Cat: {
+        className: 'Cat',
+        mainProp: 'name',
         nameSingular: 'Cat',
         namePlural: 'Cats',
         slug: 'cats',
@@ -25,14 +29,6 @@ describe('ManifestService', () => {
             type: PropType.String
           }
         ],
-        hooks: {
-          beforeCreate: [],
-          afterCreate: [],
-          beforeUpdate: [],
-          afterUpdate: [],
-          beforeDelete: [],
-          afterDelete: []
-        },
         relationships: [],
         policies: {
           create: [],
@@ -69,6 +65,18 @@ describe('ManifestService', () => {
             transformEntityManifests: jest.fn(() => [
               dummyManifest.entities.Cat
             ])
+          }
+        },
+        {
+          provide: EndpointService,
+          useValue: {
+            transformEndpointsSchemaObject: jest.fn()
+          }
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(() => 'production')
           }
         }
       ]

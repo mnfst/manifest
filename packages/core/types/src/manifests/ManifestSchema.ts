@@ -28,13 +28,23 @@ export type PropertySchema =
         | 'timestamp'
         | 'email'
         | 'boolean'
-        | 'relation'
         | 'password'
         | 'choice'
         | 'location'
         | 'file'
         | 'image'
       validation?: ValidationSchema
+      /**
+       * The default value of the property. Doc: https://manifest.build/docs/properties#property-params
+       */
+      default?:
+        | string
+        | number
+        | boolean
+        | {
+            [k: string]: unknown
+          }
+        | unknown[]
       /**
        * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
        */
@@ -81,9 +91,15 @@ export interface Manifest {
   entities?: {
     [k: string]: EntitySchema
   }
+  /**
+   * The endpoints in your app. Create your own endpoints linking a path and an HTTP method to a handler function. Doc: https://manifest.build/docs/endpoints
+   */
+  endpoints?: {
+    [k: string]: EndpointSchema
+  }
 }
 /**
- * An entity in your system: https://manifest.build/docs/entities
+ * An entity in your system. Doc: https://manifest.build/docs/entities
  */
 export interface EntitySchema {
   /**
@@ -139,6 +155,7 @@ export interface EntitySchema {
     [k: string]: unknown
   }
   hooks?: HooksSchema
+  middlewares?: MiddlewaresSchema
 }
 /**
  * Validation object for the property.
@@ -396,4 +413,74 @@ export interface HookSchema {
   headers?: {
     [k: string]: string
   }
+}
+/**
+ * The middlewares related to entity records events. Doc: https://manifest.build/docs/middlewares
+ */
+export interface MiddlewaresSchema {
+  /**
+   * Middlewares to run before creating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  beforeCreate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run after creating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  afterCreate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run before updating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  beforeUpdate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run after updating a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  afterUpdate?: MiddlewareSchema[]
+  /**
+   * Middlewares to run before deleting a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  beforeDelete?: MiddlewareSchema[]
+  /**
+   * Middlewares to run after deleting a record. Doc: https://manifest.build/docs/middlewares#events
+   */
+  afterDelete?: MiddlewareSchema[]
+}
+/**
+ * A middleware related to an event the entity records. Doc: https://manifest.build/docs/middlewares
+ */
+export interface MiddlewareSchema {
+  /**
+   * The name of the handler function for this middleware. Doc: https://manifest.build/docs/middlewares#handlers
+   */
+  handler: string
+}
+/**
+ * Defines a custom endpoint in Manifest: https://manifest.build/docs/endpoints
+ */
+export interface EndpointSchema {
+  /**
+   * The URL path of the endpoint. Must start with a '/'.
+   */
+  path: string
+  /**
+   * The HTTP method for the endpoint.
+   */
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+  /**
+   * The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints#handlers
+   */
+  handler: string
+  /**
+   * An optional endpoint description. Doc: https://manifest.build/docs/endpoints
+   */
+  description?: string
+  /**
+   * An optional array of policies applied to the endpoint.
+   */
+  policies?: PolicySchema1[]
+}
+/**
+ * The policies of the entity. Doc: https://manifest.build/docs/policies
+ */
+export interface PolicySchema1 {
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  allow?: string | string[]
 }

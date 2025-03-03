@@ -1,9 +1,9 @@
 import { HttpException, Injectable } from '@nestjs/common'
-import { StorageService } from '../../storage/services/storage/storage.service'
 
 import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
 
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { StorageService } from '../../storage/services/storage.service'
 
 @Injectable()
 export class UploadService {
@@ -29,7 +29,7 @@ export class UploadService {
     file: { buffer: Buffer; originalname: string }
     entity: string
     property: string
-  }): string {
+  }): Promise<string> {
     if (!file) {
       throw new HttpException('File should be provided', 400)
     }
@@ -52,7 +52,7 @@ export class UploadService {
     image: { buffer: Buffer; originalname: string }
     entity: string
     property: string
-  }): { [key: string]: string } {
+  }): Promise<{ [key: string]: string }> {
     if (!image) {
       throw new HttpException('Image should be provided', 400)
     }

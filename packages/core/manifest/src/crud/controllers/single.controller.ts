@@ -10,22 +10,25 @@ import {
   UseGuards,
   UseInterceptors
 } from '@nestjs/common'
-import { Rule } from '../../auth/decorators/rule.decorator'
+import { Rule } from '../../policy/decorators/rule.decorator'
 import { AuthService } from '../../auth/auth.service'
 
 import { Request } from 'express'
 import { CrudService } from '../services/crud.service'
 import { BaseEntity } from '@repo/types'
 import { IsSingleGuard } from '../guards/is-single.guard'
-import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { PolicyGuard } from '../../policy/policy.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
+import { SINGLES_PATH } from '../../constants'
+import { MiddlewareInterceptor } from '../../middleware/middleware.interceptor'
 
 /**
  * Controller for single type entities.
  */
-@UseGuards(AuthorizationGuard, IsSingleGuard)
+@UseGuards(PolicyGuard, IsSingleGuard)
 @UseInterceptors(HookInterceptor)
-@Controller('singles')
+@UseInterceptors(HookInterceptor, MiddlewareInterceptor)
+@Controller(SINGLES_PATH)
 export class SingleController {
   constructor(
     private readonly authService: AuthService,

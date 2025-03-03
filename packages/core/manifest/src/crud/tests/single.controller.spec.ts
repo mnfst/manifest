@@ -3,11 +3,13 @@ import { SingleController } from '../controllers/single.controller'
 import { AuthService } from '../../auth/auth.service'
 import { CrudService } from '../services/crud.service'
 import { IsSingleGuard } from '../guards/is-single.guard'
-import { AuthorizationGuard } from '../../auth/guards/authorization.guard'
+import { PolicyGuard } from '../../policy/policy.guard'
 import { NotFoundException } from '@nestjs/common'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
+import { EventService } from '../../event/event.service'
+import { HandlerService } from '../../handler/handler.service'
 
 describe('SingleController', () => {
   let controller: SingleController
@@ -38,7 +40,7 @@ describe('SingleController', () => {
           }
         },
         {
-          provide: AuthorizationGuard,
+          provide: PolicyGuard,
           useValue: {
             canActivate: jest.fn()
           }
@@ -59,6 +61,18 @@ describe('SingleController', () => {
           provide: HookService,
           useValue: {
             triggerWebhook: jest.fn()
+          }
+        },
+        {
+          provide: EventService,
+          useValue: {
+            getRelatedCrudEvent: jest.fn()
+          }
+        },
+        {
+          provide: HandlerService,
+          useValue: {
+            trigger: jest.fn()
           }
         }
       ]

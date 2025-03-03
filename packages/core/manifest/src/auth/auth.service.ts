@@ -1,13 +1,17 @@
 import { AuthenticableEntity, EntityManifest } from '@repo/types'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { SHA3 } from 'crypto-js'
+import bcrypt from 'bcryptjs'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
-import { ADMIN_ENTITY_MANIFEST, DEFAULT_ADMIN_CREDENTIALS } from '../constants'
+import {
+  ADMIN_ENTITY_MANIFEST,
+  DEFAULT_ADMIN_CREDENTIALS,
+  SALT_ROUNDS
+} from '../constants'
 import { validate } from 'class-validator'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 
@@ -46,17 +50,12 @@ export class AuthService {
       )
     }
 
-    const entityRepository: Repository<AuthenticableEntity> =
-      this.entityService.getEntityRepository({
-        entitySlug
-      }) as Repository<AuthenticableEntity>
+    const user = await this.findUserFromCredentials(
+      entitySlug,
+      signupUserDto.email,
+      signupUserDto.password
+    )
 
-    const user = await entityRepository.findOne({
-      where: {
-        email: signupUserDto.email,
-        password: SHA3(signupUserDto.password).toString()
-      }
-    })
     if (!user) {
       throw new HttpException(
         'Invalid email or password',
@@ -107,11 +106,15 @@ export class AuthService {
       )
     }
 
-    const entityRepository: Repository<any> =
-      this.entityService.getEntityRepository({ entitySlug })
+    const entityRepository: Repository<AuthenticableEntity> =
+      this.entityService.getEntityRepository({
+        entitySlug
+      }) as Repository<AuthenticableEntity>
 
-    const newUser: AuthenticableEntity = entityRepository.create(signupUserDto)
-    newUser.password = SHA3(newUser.password).toString()
+    const newUser: AuthenticableEntity = entityRepository.create({
+      email: signupUserDto.email
+    })
+    newUser.password = bcrypt.hashSync(signupUserDto.password, SALT_ROUNDS)
 
     const errors = await validate(newUser)
     if (errors.length) {
@@ -204,18 +207,44 @@ export class AuthService {
    * @returns A promise that resolves to an object with the key 'exists' that is true if the default admin exists, and false otherwise.
    * */
   async isDefaultAdminExists(): Promise<{ exists: boolean }> {
+    const admin: AuthenticableEntity = await this.findUserFromCredentials(
+      ADMIN_ENTITY_MANIFEST.slug,
+      DEFAULT_ADMIN_CREDENTIALS.email,
+      DEFAULT_ADMIN_CREDENTIALS.password
+    )
+
+    return { exists: !!admin }
+  }
+
+  /**
+   * Find user from credentials.
+   *
+   * @param entitySlug The slug of the entity where the user is going to be searched
+   * @param email The email of the user
+   * @param password The password of the user
+   *
+   * @returns The user found from the credentials, or null if the user is not found.
+   */
+  async findUserFromCredentials(
+    entitySlug: string,
+    email: string,
+    password: string
+  ): Promise<AuthenticableEntity> {
     const entityRepository: Repository<AuthenticableEntity> =
       this.entityService.getEntityRepository({
-        entitySlug: ADMIN_ENTITY_MANIFEST.slug
+        entitySlug
       }) as Repository<AuthenticableEntity>
 
-    return {
-      exists: await entityRepository.exists({
-        where: {
-          email: DEFAULT_ADMIN_CREDENTIALS.email,
-          password: SHA3(DEFAULT_ADMIN_CREDENTIALS.password).toString()
-        }
-      })
+    const user: AuthenticableEntity = await entityRepository.findOne({
+      where: {
+        email
+      }
+    })
+
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+      return null
     }
+
+    return user
   }
 }
