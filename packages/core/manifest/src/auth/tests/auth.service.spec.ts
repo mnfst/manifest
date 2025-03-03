@@ -7,7 +7,7 @@ import { EntityService } from '../../entity/services/entity.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
-jest.mock('bcrypt', () => ({
+jest.mock('bcryptjs', () => ({
   compareSync: jest.fn().mockResolvedValue(true),
   hashSync: jest.fn().mockResolvedValue('testHashedPassword')
 }))

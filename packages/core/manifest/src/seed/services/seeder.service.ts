@@ -16,7 +16,7 @@ import { RelationshipService } from '../../entity/services/relationship.service'
 import { faker } from '@faker-js/faker'
 import * as fs from 'fs'
 import * as path from 'path'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 import {
   ADMIN_ENTITY_MANIFEST,
