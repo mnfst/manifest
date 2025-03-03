@@ -28,4 +28,9 @@ export type PropertyManifest = {
    * Validation rules for the property.
    */
   validation?: ValidationManifest
+
+  /**
+   * Default value for the property.
+   */
+  default?: string | number | boolean | Record<string, unknown> | Array<unknown>
 }
