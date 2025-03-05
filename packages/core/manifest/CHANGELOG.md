@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.0
+
+### Minor Changes
+
+- cc8fef6: added MySQL / MariaDB connection, Thanks @stefanolab
+
 ## 4.10.1
 
 ### Patch Changes
