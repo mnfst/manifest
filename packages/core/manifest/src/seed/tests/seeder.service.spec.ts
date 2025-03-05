@@ -21,11 +21,9 @@ jest.mock('bcryptjs', () => ({
 // TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 describe('SeederService', () => {
   let service: SeederService
-  let storageService: StorageService
-  let entityManifestService: EntityManifestService
-  let entityService: EntityService
-  let relationshipService: RelationshipService
   let dataSource: DataSource
+
+  let originalConsoleLog: any
 
   const dummyEntityMetadatas: EntityMetadata[] = [
     {
@@ -46,7 +44,14 @@ describe('SeederService', () => {
     query: jest.fn(() => Promise.resolve())
   }
 
-  beforeAll(() => {})
+  beforeAll(() => {
+    originalConsoleLog = console.log
+    console.log = jest.fn()
+  })
+
+  afterAll(() => {
+    console.log = originalConsoleLog
+  })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -90,12 +95,6 @@ describe('SeederService', () => {
     }).compile()
 
     service = module.get<SeederService>(SeederService)
-    storageService = module.get<StorageService>(StorageService)
-    entityManifestService = module.get<EntityManifestService>(
-      EntityManifestService
-    )
-    entityService = module.get<EntityService>(EntityService)
-    relationshipService = module.get<RelationshipService>(RelationshipService)
     dataSource = module.get<DataSource>(DataSource)
   })
 
@@ -116,7 +115,7 @@ describe('SeederService', () => {
       })
     })
 
-    it('should restart auto-increment sequences on postgres', async () => {
+    it('should truncate all tables on postgres', async () => {
       ;(dataSource.options as any).type = 'postgres'
 
       await service.seed()
@@ -130,6 +129,18 @@ describe('SeederService', () => {
       dummyEntityMetadatas.forEach((entityMetadata) => {
         expect(queryRunner.query).toHaveBeenCalledWith(
           `ALTER SEQUENCE "${entityMetadata.tableName}_id_seq" RESTART WITH 1`
+        )
+      })
+    })
+
+    it('should truncate all tables on mysql', async () => {
+      ;(dataSource.options as any).type = 'mysql'
+
+      await service.seed()
+
+      dummyEntityMetadatas.forEach((entityMetadata) => {
+        expect(queryRunner.query).toHaveBeenCalledWith(
+          `TRUNCATE TABLE \`${entityMetadata.tableName}\``
         )
       })
     })
@@ -257,24 +268,15 @@ describe('SeederService', () => {
     })
 
     it('should seed a file', async () => {
-      jest
-        .spyOn(service, 'seedFile')
-        .mockReturnValue(Promise.resolve(dummyFilePath))
-
       const result = await service.seedProperty(
         { type: PropType.File, name: 'file' } as any,
         { slug: 'dogs' } as any
       )
 
-      expect(service.seedFile).toHaveBeenCalledWith('dogs', 'file')
       expect(result).toBe(dummyFilePath)
     })
 
     it('should seed an image', async () => {
-      jest
-        .spyOn(service, 'seedImage')
-        .mockReturnValue(Promise.resolve(dummyImage))
-
       const result = await service.seedProperty(
         {
           type: PropType.Image,
@@ -284,11 +286,6 @@ describe('SeederService', () => {
         { slug: 'dogs' } as any
       )
 
-      expect(service.seedImage).toHaveBeenCalledWith(
-        'dogs',
-        'photo',
-        DEFAULT_IMAGE_SIZES
-      )
       expect(result).toBe(dummyImage)
     })
   })

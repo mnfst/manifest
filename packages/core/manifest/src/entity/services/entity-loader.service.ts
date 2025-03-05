@@ -1,4 +1,11 @@
-import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
+import {
+  AuthenticableEntity,
+  BaseEntity,
+  DatabaseConnection,
+  EntityManifest,
+  PropType,
+  PropertyManifest
+} from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import {
   ColumnType,
@@ -6,12 +13,15 @@ import {
   EntitySchemaColumnOptions,
   ValueTransformer
 } from 'typeorm'
-import { baseEntity } from '../core-entities/base-entity'
-import { sqlitePropTypeColumnTypes } from '../records/sqlite-prop-type-column-types'
-import { baseAuthenticableEntity } from '../core-entities/base-authenticable-entity'
+import { sqlitePropTypeColumnTypes } from '../columns/sqlite-prop-type-column-types'
 import { RelationshipService } from './relationship.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
-import { postgresPropTypeColumnTypes } from '../records/postgres-prop-type-column-types copy'
+import { mysqlPropTypeColumnTypes } from '../columns/mysql-prop-type-column-types'
+import { postgresPropTypeColumnTypes } from '../columns/postgres-prop-type-column-types copy'
+import { ColumnService } from './column.service'
+import { BooleanTransformer } from '../transformers/boolean-transformer'
+import { NumberTransformer } from '../transformers/number-transformer'
+import { TimestampTransformer } from '../transformers/timestamp-transformer'
 
 @Injectable()
 export class EntityLoaderService {
@@ -22,19 +32,30 @@ export class EntityLoaderService {
 
   /**
    * Get entities from Manifest services file and convert into TypeORM entities.
-   * @param isPostgres boolean if the database is postgres. Default is false so it is sqlite.
+   *
+   * @param dbConnection The database connection type (mysql, postgres, sqlite).
    *
    * @returns EntitySchema[] the entities
    *
    **/
-  loadEntities(isPostgres: boolean): EntitySchema[] {
+  loadEntities(dbConnection: DatabaseConnection): EntitySchema[] {
     const entityManifests: EntityManifest[] =
       this.entityManifestService.getEntityManifests({ fullVersion: true })
 
-    // Column types for Postgres and SQLite.
-    const columns: Record<PropType, ColumnType> = isPostgres
-      ? postgresPropTypeColumnTypes
-      : sqlitePropTypeColumnTypes
+    // Set column types based on the database connection.
+    let columns: Record<PropType, ColumnType>
+
+    switch (dbConnection) {
+      case 'sqlite':
+        columns = sqlitePropTypeColumnTypes
+        break
+      case 'postgres':
+        columns = postgresPropTypeColumnTypes
+        break
+      case 'mysql':
+        columns = mysqlPropTypeColumnTypes
+        break
+    }
 
     // Convert Manifest Entities to TypeORM Entities.
     const entitySchemas: EntitySchema[] = entityManifests.map(
@@ -54,19 +75,16 @@ export class EntityLoaderService {
                 propManifest.type === PropType.Number ||
                 propManifest.type === PropType.Money
               ) {
-                transformer = {
-                  from: (value: string | number) => Number(value),
-                  to: (value: string | number) => value
-                }
+                transformer = new NumberTransformer()
               }
 
               // Ensure it returns strings for timestamps (SQLite returns Date objects by default).
               if (propManifest.type === PropType.Timestamp) {
-                transformer = {
-                  from: (value: Date | string) =>
-                    value instanceof Date ? value.toISOString() : value,
-                  to: (value: string) => value // Store as string
-                }
+                transformer = new TimestampTransformer()
+              }
+
+              if (propManifest.type === PropType.Boolean) {
+                transformer = new BooleanTransformer(dbConnection)
               }
 
               acc[propManifest.name] = {
@@ -80,8 +98,8 @@ export class EntityLoaderService {
             },
             // Merge with base entities for base columns.
             entityManifest.authenticable
-              ? { ...baseAuthenticableEntity }
-              : { ...baseEntity }
+              ? { ...this.getBaseAuthenticableEntityColumns(dbConnection) }
+              : { ...this.getBaseEntityColumns(dbConnection) }
           ) as { [key: string]: EntitySchemaColumnOptions },
           relations:
             this.relationshipService.getEntitySchemaRelationOptions(
@@ -95,5 +113,74 @@ export class EntityLoaderService {
     )
 
     return entitySchemas
+  }
+
+  /**
+   * Get BaseEntity columns with specific DB connection type. All entities extend from BaseEntity.
+   *
+   * @param dbConnection The database connection type.
+   *
+   * @returns { [key in keyof BaseEntity]: EntitySchemaColumnOptions }
+   */
+  getBaseEntityColumns(dbConnection: DatabaseConnection): {
+    [key in keyof BaseEntity]: EntitySchemaColumnOptions
+  } {
+    let idType: ColumnType
+
+    switch (dbConnection) {
+      case 'sqlite':
+        idType = 'integer'
+        break
+      case 'postgres':
+        idType = 'int'
+        break
+      case 'mysql':
+        idType = 'int'
+        break
+    }
+
+    return {
+      id: {
+        type: idType,
+        primary: true,
+        generated: true
+      },
+      createdAt: {
+        name: 'createdAt',
+        type: ColumnService.getColumnType(dbConnection, PropType.Timestamp),
+        createDate: true,
+        select: false
+      },
+      updatedAt: {
+        name: 'updatedAt',
+        type: ColumnService.getColumnType(dbConnection, PropType.Timestamp),
+        updateDate: true,
+        select: false
+      }
+    }
+  }
+
+  /**
+   * Get BaseAuthenticableEntity columns with specific DB connection type. All authenticable entities extend from BaseAuthenticableEntity.
+   *
+   * @param dbConnection The database connection type.
+   *
+   * @returns { [key in keyof AuthenticableEntity]: EntitySchemaColumnOptions }
+   */
+  getBaseAuthenticableEntityColumns(dbConnection: DatabaseConnection): {
+    [key in keyof AuthenticableEntity]: EntitySchemaColumnOptions
+  } {
+    return Object.assign(this.getBaseEntityColumns(dbConnection), {
+      email: {
+        name: 'email',
+        type: ColumnService.getColumnType(dbConnection, PropType.Email),
+        unique: true
+      },
+      password: {
+        name: 'password',
+        type: ColumnService.getColumnType(dbConnection, PropType.Password),
+        select: false
+      }
+    })
   }
 }

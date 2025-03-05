@@ -1,6 +1,7 @@
 import {
   AuthenticableEntity,
   BaseEntity,
+  DatabaseConnection,
   EntityManifest,
   ImageSizesObject,
   PropType,
@@ -31,7 +32,8 @@ import { EntityManifestService } from '../../manifest/services/entity-manifest.s
 
 @Injectable()
 export class SeederService {
-  seededFiles: { [key: string]: string | object } = {}
+  seededFiles: { [key: string]: string } = {}
+  seededImages: { [key: string]: { [key: string]: string } } = {}
 
   constructor(
     private entityService: EntityService,
@@ -61,42 +63,60 @@ export class SeederService {
 
     // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
-    const isPostgres = this.dataSource.options.type === 'postgres'
 
-    if (isPostgres) {
-      // Disable foreign key checks for Postgres by using CASCADE
-      await Promise.all(
-        entityMetadatas.map(async (entity: EntityMetadata) =>
-          queryRunner.query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`)
+    const dbConnection: DatabaseConnection = this.dataSource.options
+      .type as DatabaseConnection
+
+    switch (dbConnection) {
+      case 'postgres':
+        // Disable foreign key checks for Postgres by using CASCADE
+        await Promise.all(
+          entityMetadatas.map(async (entity: EntityMetadata) =>
+            queryRunner.query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`)
+          )
         )
-      )
 
-      // Reset auto-increment sequences
-      await Promise.all(
-        entityMetadatas.map(
-          async (entity: EntityMetadata) =>
+        // Reset auto-increment sequences
+        await Promise.all(
+          entityMetadatas.map(
+            async (entity: EntityMetadata) =>
+              queryRunner
+                .query(
+                  `ALTER SEQUENCE "${entity.tableName}_id_seq" RESTART WITH 1`
+                )
+                .catch(() => {}) // Ignore if sequence doesn't exist
+          )
+        )
+        break
+
+      case 'mysql':
+        // Disable foreign key checks for MySQL
+        await queryRunner.query('SET FOREIGN_KEY_CHECKS = 0')
+
+        // Truncate tables
+        await Promise.all(
+          entityMetadatas.map(async (entity: EntityMetadata) =>
+            queryRunner.query(`TRUNCATE TABLE \`${entity.tableName}\``)
+          )
+        )
+        break
+
+      case 'sqlite':
+        // SQLite-specific logic.
+        await queryRunner.query('PRAGMA foreign_keys = OFF')
+        await Promise.all(
+          entityMetadatas.map(async (entity: EntityMetadata) =>
             queryRunner
-              .query(
-                `ALTER SEQUENCE "${entity.tableName}_id_seq" RESTART WITH 1`
+              .query(`DELETE FROM [${entity.tableName}]`)
+              .then(() =>
+                queryRunner.query(
+                  `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
+                )
               )
-              .catch(() => {}) // Ignore if sequence doesn't exist
+          )
         )
-      )
-    } else {
-      // SQLite-specific logic.
-      await queryRunner.query('PRAGMA foreign_keys = OFF')
-      await Promise.all(
-        entityMetadatas.map(async (entity: EntityMetadata) =>
-          queryRunner
-            .query(`DELETE FROM [${entity.tableName}]`)
-            .then(() =>
-              queryRunner.query(
-                `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
-              )
-            )
-        )
-      )
-      await queryRunner.query('PRAGMA foreign_keys = ON')
+        await queryRunner.query('PRAGMA foreign_keys = ON')
+        break
     }
     // Keep only regular tables for seeding.
     entityMetadatas = entityMetadatas.filter(
@@ -120,20 +140,17 @@ export class SeederService {
           fullVersion: true
         })
 
-      // Prevent logging during tests.
-      if (process.env.NODE_ENV !== 'test') {
-        if (entityManifest.single) {
-          console.log(
-            `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
-          )
-        } else {
-          console.log(
-            `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-          )
-        }
+      if (entityManifest.single) {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
+        )
+      } else {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+        )
       }
 
-      for (const _index of Array(entityManifest.seedCount).keys()) {
+      for (let i = 0; i < entityManifest.seedCount; i++) {
         const newRecord: BaseEntity = repository.create()
 
         if (entityManifest.authenticable) {
@@ -211,89 +228,120 @@ export class SeederService {
     propertyManifest: PropertyManifest,
     entityManifest: EntityManifest
   ): Promise<string | number | boolean | object | unknown> {
-    switch (propertyManifest.type) {
-      case PropType.String:
-        return faker.commerce.product()
-      case PropType.Number:
-        return faker.number.int({ max: 50 })
-      case PropType.Link:
-        return 'https://manifest.build'
-      case PropType.Text:
-        return faker.commerce.productDescription()
-      case PropType.RichText:
-        return `
-          <h1>${faker.commerce.productName()}</h1>
-          <p>This is a dummy HTML content with <a href="https://manifest.build">links</a> and <strong>bold text</strong></p>
-          <ul>
-            <li>${faker.commerce.productAdjective()}</li>
-            <li>${faker.commerce.productAdjective()}</li>
-            <li>${faker.commerce.productAdjective()}</li>
-          </ul>
-          <h2>${faker.commerce.productName()}</h2>
-          <p>${faker.commerce.productDescription()}<p>
-        `
-      case PropType.Money:
-        return faker.finance.amount({
-          min: 1,
-          max: 500,
-          dec: 2
-        })
-      case PropType.Date:
-        return faker.date.past()
-      case PropType.Timestamp:
-        return faker.date.recent()
-      case PropType.Email:
-        return faker.internet.email()
-      case PropType.Boolean:
-        return faker.datatype.boolean()
-      case PropType.Password:
-        return bcrypt.hashSync('manifest', 1)
-      case PropType.Choice:
-        return faker.helpers.arrayElement(
-          propertyManifest.options.values as unknown[]
-        )
-      case PropType.Location:
-        return {
-          lat: faker.location.latitude(),
-          lng: faker.location.longitude()
-        }
-      case PropType.File:
-        // Prevent seeding the same file multiple times.
-        if (
-          this.seededFiles[`${entityManifest.slug}.${propertyManifest.name}`]
-        ) {
-          return this.seededFiles[
-            `${entityManifest.slug}.${propertyManifest.name}`
-          ]
-        }
+    const typeHandlers: { [key: string]: () => Promise<unknown> } = {
+      [PropType.String]: () => Promise.resolve(faker.commerce.product()),
+      [PropType.Number]: () => Promise.resolve(faker.number.int({ max: 50 })),
+      [PropType.Link]: () => Promise.resolve('https://manifest.build'),
+      [PropType.Text]: () =>
+        Promise.resolve(faker.commerce.productDescription()),
+      [PropType.RichText]: () => Promise.resolve(this.seedRichText()),
+      [PropType.Money]: () =>
+        Promise.resolve(faker.finance.amount({ min: 1, max: 500, dec: 2 })),
+      [PropType.Date]: () => Promise.resolve(faker.date.past()),
+      [PropType.Timestamp]: () => Promise.resolve(faker.date.recent()),
+      [PropType.Email]: () => Promise.resolve(faker.internet.email()),
+      [PropType.Boolean]: () => Promise.resolve(faker.datatype.boolean()),
+      [PropType.Password]: () =>
+        Promise.resolve(bcrypt.hashSync('manifest', 1)),
+      [PropType.Choice]: () =>
+        Promise.resolve(this.seedChoice(propertyManifest)),
+      [PropType.Location]: () => Promise.resolve(this.seedLocation()),
+      [PropType.File]: () => this.seedFile(propertyManifest, entityManifest),
+      [PropType.Image]: () => this.seedImage(propertyManifest, entityManifest)
+    }
 
-        const filePath: string = await this.seedFile(
-          entityManifest.slug,
-          propertyManifest.name
-        )
-        this.seededFiles[`${entityManifest.slug}.${propertyManifest.name}`] =
-          filePath
-        return filePath
+    const handler = typeHandlers[propertyManifest.type]
+    if (handler) {
+      return handler()
+    }
 
-      case PropType.Image:
-        // Prevent seeding the same file multiple times.
-        if (
-          this.seededFiles[`${entityManifest.slug}.${propertyManifest.name}`]
-        ) {
-          return this.seededFiles[
-            `${entityManifest.slug}.${propertyManifest.name}`
-          ]
-        }
+    return Promise.reject(
+      new Error(`Unsupported property type: ${propertyManifest.type}`)
+    )
+  }
 
-        const images: { [key: string]: string } = await this.seedImage(
-          entityManifest.slug,
-          propertyManifest.name,
-          propertyManifest.options?.['sizes'] as ImageSizesObject
-        )
-        this.seededFiles[`${entityManifest.slug}.${propertyManifest.name}`] =
-          images
+  private seedRichText(): string {
+    return `
+      <h1>${faker.commerce.productName()}</h1>
+      <p>This is a dummy HTML content with <a href="https://manifest.build">links</a> and <strong>bold text</strong></p>
+      <ul>
+        <li>${faker.commerce.productAdjective()}</li>
+        <li>${faker.commerce.productAdjective()}</li>
+        <li>${faker.commerce.productAdjective()}</li>
+      </ul>
+      <h2>${faker.commerce.productName()}</h2>
+      <p>${faker.commerce.productDescription()}<p>
+    `
+  }
 
-        return images
+  private seedChoice(propertyManifest: PropertyManifest): unknown {
+    return faker.helpers.arrayElement(
+      propertyManifest.options.values as unknown[]
+    )
+  }
+
+  private async seedFile(
+    propertyManifest: PropertyManifest,
+    entityManifest: EntityManifest
+  ): Promise<string> {
+    const fileKey = `${entityManifest.slug}.${propertyManifest.name}`
+
+    // Return the seeded file if it already exists.
+    if (this.seededFiles[fileKey]) {
+      return this.seededFiles[fileKey]
+    }
+
+    const dummyFileContent = fs.readFileSync(
+      path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_FILE_NAME)
+    )
+
+    const filePath: string = await this.storageService.store(
+      entityManifest.slug,
+      propertyManifest.name,
+      {
+        originalname: DUMMY_FILE_NAME,
+        buffer: dummyFileContent
+      }
+    )
+
+    this.seededFiles[fileKey] = filePath
+    return filePath
+  }
+
+  private async seedImage(
+    propertyManifest: PropertyManifest,
+    entityManifest: EntityManifest
+  ): Promise<{ [key: string]: string }> {
+    const imageKey = `${entityManifest.slug}.${propertyManifest.name}`
+
+    // Return the seeded image if it already exists.
+    if (this.seededImages[imageKey]) {
+      return this.seededImages[imageKey]
+    }
+
+    const dummyImageContent = fs.readFileSync(
+      path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_IMAGE_NAME)
+    )
+
+    const images: { [key: string]: string } =
+      await this.storageService.storeImage(
+        entityManifest.slug,
+        propertyManifest.name,
+        {
+          originalname: DUMMY_FILE_NAME,
+          buffer: dummyImageContent
+        },
+        propertyManifest.options?.['sizes'] as ImageSizesObject
+      )
+
+    this.seededImages[imageKey] = images
+    return images
+  }
+
+  private seedLocation(): { lat: number; lng: number } {
+    return {
+      lat: faker.location.latitude(),
+      lng: faker.location.longitude()
     }
   }
 
@@ -303,11 +351,9 @@ export class SeederService {
    * @param repository The repository for the Admin entity.
    */
   async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
-    if (process.env.NODE_ENV !== 'test') {
-      console.log(
-        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password} ...`
-      )
-    }
+    console.log(
+      `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
+    )
 
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
@@ -315,55 +361,5 @@ export class SeederService {
     admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
 
     await repository.save(admin)
-  }
-
-  /**
-   * Seed a dummy file.
-   *
-   * @param entity The entity name.
-   * @param property The property name.
-   *
-   * @returns The file path.
-   * */
-  async seedFile(entity: string, property: string): Promise<string> {
-    const dummyFileContent = fs.readFileSync(
-      path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_FILE_NAME)
-    )
-
-    const filePath: string = await this.storageService.store(entity, property, {
-      originalname: DUMMY_FILE_NAME,
-      buffer: dummyFileContent
-    })
-
-    return filePath
-  }
-
-  /**
-   * Seed a dummy image.
-   *
-   * @param entity The entity name.
-   * @param property The property name.
-   * @param sizes The image sizes.
-   *
-   * @returns The image path.
-   * */
-  seedImage(
-    entity: string,
-    property: string,
-    sizes?: ImageSizesObject
-  ): Promise<{ [key: string]: string }> {
-    const dummyImageContent = fs.readFileSync(
-      path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_IMAGE_NAME)
-    )
-
-    return this.storageService.storeImage(
-      entity,
-      property,
-      {
-        originalname: DUMMY_FILE_NAME,
-        buffer: dummyImageContent
-      },
-      sizes
-    )
   }
 }

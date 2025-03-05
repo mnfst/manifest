@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { DatabaseConnection } from '@repo/types'
 import { EntitySchema } from 'typeorm'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database'
@@ -29,7 +30,9 @@ import { SdkModule } from './sdk/sdk.module'
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { MiddlewareModule } from './middleware/middleware.module'
-import { EventModule } from './event/event.module';
+import { EventModule } from './event/event.module'
+
+import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions'
 
 @Module({
   imports: [
@@ -45,22 +48,32 @@ import { EventModule } from './event/event.module';
         entityLoaderService: EntityLoaderService,
         manifestService: ManifestService
       ) => {
-        const isPostgres: boolean =
-          configService.get('DB_CONNECTION') === 'postgres'
+        let dbConnection: DatabaseConnection
+        let databaseConfig:
+          | SqliteConnectionOptions
+          | PostgresConnectionOptions
+          | MysqlConnectionOptions
 
-        let databaseConfig: SqliteConnectionOptions | PostgresConnectionOptions
-
-        if (isPostgres) {
-          databaseConfig = configService.get('database').postgres
-        } else {
-          databaseConfig = configService.get('database').sqlite
+        switch (configService.get('DB_CONNECTION')) {
+          case 'postgres':
+            dbConnection = 'postgres'
+            databaseConfig = configService.get('database').postgres
+            break
+          case 'mysql':
+            dbConnection = 'mysql'
+            databaseConfig = configService.get('database').mysql
+            break
+          default:
+            dbConnection = 'sqlite'
+            databaseConfig = configService.get('database').sqlite
+            break
         }
 
         await manifestService.loadManifest(
           configService.get('paths').manifestFile
         )
         const entities: EntitySchema[] =
-          entityLoaderService.loadEntities(isPostgres)
+          entityLoaderService.loadEntities(dbConnection)
 
         return Object.assign(databaseConfig, { entities })
       },
