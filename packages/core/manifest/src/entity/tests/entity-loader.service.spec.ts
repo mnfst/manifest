@@ -140,7 +140,7 @@ describe('EntityLoaderService', () => {
       expect(mysqlResult[0].options.columns['timestamp-prop'].type).toBe(
         'datetime'
       )
-      expect(mysqlResult[0].options.columns['choice-prop'].type).toBe('enum')
+      expect(mysqlResult[0].options.columns['choice-prop'].type).toBe('varchar')
       expect(mysqlResult[0].options.columns['location-prop'].type).toBe('json')
       expect(mysqlResult[0].options.columns['image-prop'].type).toBe('json')
     })

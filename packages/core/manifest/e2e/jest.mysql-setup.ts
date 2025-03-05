@@ -8,15 +8,13 @@ import fs from 'fs'
 import { SwaggerModule } from '@nestjs/swagger'
 import { OpenApiService } from '../src/open-api/services/open-api.service'
 import { SeederService } from '../src/seed/services/seeder.service'
-import {
-  PostgreSqlContainer,
-  StartedPostgreSqlContainer
-} from '@testcontainers/postgresql'
+import { MySqlContainer, StartedMySqlContainer } from '@testcontainers/mysql'
+
 import path from 'path'
 
 let app: INestApplication
 
-jest.setTimeout(30000) // Increase the timeout because the PostgreSQL container takes a while to start.
+jest.setTimeout(30000) // Increase the timeout because the MySQL container takes a while to start.
 
 beforeAll(async () => {
   // Set environment variables for testing.
@@ -28,19 +26,18 @@ beforeAll(async () => {
     'handlers'
   )
 
-  process.env.DB_CONNECTION = 'postgres'
+  process.env.DB_CONNECTION = 'mysql'
   process.env.DB_DROP_SCHEMA = 'true'
 
   // Start a PostgreSQL test container
-  const postgresContainer: StartedPostgreSqlContainer =
-    await new PostgreSqlContainer()
-      .withDatabase('test')
-      .withUsername('test')
-      .withPassword('test')
-      .start()
+  const mysqlContainer: StartedMySqlContainer = await new MySqlContainer()
+    .withDatabase('test')
+    .withUsername('test')
+    .withRootPassword('test')
+    .start()
 
-  process.env.DB_HOST = postgresContainer.getHost()
-  process.env.DB_PORT = postgresContainer.getPort().toString()
+  process.env.DB_HOST = mysqlContainer.getHost()
+  process.env.DB_PORT = mysqlContainer.getPort().toString()
   process.env.DB_USERNAME = 'test'
   process.env.DB_PASSWORD = 'test'
   process.env.DB_DATABASE = 'test'

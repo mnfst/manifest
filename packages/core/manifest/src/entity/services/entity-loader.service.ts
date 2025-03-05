@@ -19,6 +19,9 @@ import { EntityManifestService } from '../../manifest/services/entity-manifest.s
 import { mysqlPropTypeColumnTypes } from '../columns/mysql-prop-type-column-types'
 import { postgresPropTypeColumnTypes } from '../columns/postgres-prop-type-column-types copy'
 import { ColumnService } from './column.service'
+import { BooleanTransformer } from '../transformers/boolean-transformer'
+import { NumberTransformer } from '../transformers/number-transformer'
+import { TimestampTransformer } from '../transformers/timestamp-transformer'
 
 @Injectable()
 export class EntityLoaderService {
@@ -72,19 +75,16 @@ export class EntityLoaderService {
                 propManifest.type === PropType.Number ||
                 propManifest.type === PropType.Money
               ) {
-                transformer = {
-                  from: (value: string | number) => Number(value),
-                  to: (value: string | number) => value
-                }
+                transformer = new NumberTransformer()
               }
 
               // Ensure it returns strings for timestamps (SQLite returns Date objects by default).
               if (propManifest.type === PropType.Timestamp) {
-                transformer = {
-                  from: (value: Date | string) =>
-                    value instanceof Date ? value.toISOString() : value,
-                  to: (value: string) => value // Store as string
-                }
+                transformer = new TimestampTransformer()
+              }
+
+              if (propManifest.type === PropType.Boolean) {
+                transformer = new BooleanTransformer(dbConnection)
               }
 
               acc[propManifest.name] = {
