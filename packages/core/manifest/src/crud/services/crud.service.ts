@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import {
   HttpException,
   HttpStatus,
@@ -223,7 +223,7 @@ export class CrudService {
     entitySlug: string,
     itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
-    const entityRepository: Repository<BaseEntity> =
+    const repository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
 
     const entityManifest: EntityManifest =
@@ -232,7 +232,12 @@ export class CrudService {
         fullVersion: true
       })
 
-    const newItem: BaseEntity = entityRepository.create(itemDto)
+    const newItem: BaseEntity = this.createWithDefaults({
+      repository,
+      entityManifest,
+      itemDto
+    })
+
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
@@ -241,12 +246,17 @@ export class CrudService {
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       })
 
-    if (entityManifest.authenticable && itemDto.password) {
-      newItem.password = bcrypt.hashSync(
-        itemDto['password'] as string,
-        SALT_ROUNDS
-      )
-    }
+    // Hash password if it exists.
+    entityManifest.properties
+      .filter((prop) => prop.type === PropType.Password)
+      .forEach((prop) => {
+        if (newItem[prop.name]) {
+          newItem[prop.name] = bcrypt.hashSync(
+            itemDto['password'] as string,
+            SALT_ROUNDS
+          )
+        }
+      })
 
     const errors: ValidationError[] = this.validationService.validate(
       newItem,
@@ -257,7 +267,7 @@ export class CrudService {
       throw new HttpException(errors, HttpStatus.BAD_REQUEST)
     }
 
-    return entityRepository.save({ ...newItem, ...relationItems })
+    return repository.save({ ...newItem, ...relationItems })
   }
 
   /**
@@ -410,6 +420,35 @@ export class CrudService {
     await entityRepository.delete(id)
 
     return item
+  }
+
+  /**
+   * Creates an item with default values if properties are not provided.
+   *
+   * @param repository the entity repository.
+   * @param entityManifest the entity manifest.
+   * @param itemDto the item dto.
+   *
+   * @returns the created item.
+   */
+  createWithDefaults({
+    repository,
+    entityManifest,
+    itemDto
+  }: {
+    repository: Repository<BaseEntity>
+    entityManifest: EntityManifest
+    itemDto: Partial<BaseEntity>
+  }): BaseEntity {
+    const newItem: BaseEntity = repository.create(itemDto)
+
+    entityManifest.properties.forEach((prop: PropertyManifest) => {
+      if (prop.default && typeof newItem[prop.name] === 'undefined') {
+        newItem[prop.name] = prop.default
+      }
+    })
+
+    return newItem
   }
 
   /**

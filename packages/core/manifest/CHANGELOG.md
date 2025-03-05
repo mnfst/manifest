@@ -1,5 +1,17 @@
 # manifest
 
+## 4.10.1
+
+### Patch Changes
+
+- 745c8fb: replaced bcrypt by bcryptjs
+
+## 4.10.0
+
+### Minor Changes
+
+- f24defa: added default values on create item, thanks @ajpiano
+
 ## 4.9.2
 
 ### Patch Changes

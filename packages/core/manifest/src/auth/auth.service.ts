@@ -1,7 +1,7 @@
 import { AuthenticableEntity, EntityManifest } from '@repo/types'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'

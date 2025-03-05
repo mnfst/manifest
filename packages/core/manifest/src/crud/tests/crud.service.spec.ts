@@ -13,13 +13,17 @@ describe('CrudService', () => {
   let entityService: EntityService
   let validationService: ValidationService
   let paginationService: PaginationService
+  let relationshipService: RelationshipService
+  let entityManifestService: EntityManifestService
 
   const dummyEntityManifest: Partial<EntityManifest> = {
     className: 'Test',
     nameSingular: 'Test',
     namePlural: 'Tests',
+    mainProp: 'name',
     slug: 'test',
     relationships: [],
+    authenticable: true,
     properties: [
       {
         name: 'name',
@@ -27,7 +31,8 @@ describe('CrudService', () => {
       },
       {
         name: 'age',
-        type: PropType.Number
+        type: PropType.Number,
+        default: 18
       },
       {
         name: 'color',
@@ -41,11 +46,16 @@ describe('CrudService', () => {
       {
         name: 'password',
         type: PropType.Password
+      },
+      {
+        name: 'secondPassword',
+        type: PropType.Password
       }
     ]
   }
 
   const dummyItem = {
+    id: 1,
     name: 'Superman',
     age: 30,
     color: 'blue',
@@ -65,7 +75,16 @@ describe('CrudService', () => {
   const queryBuilder: SelectQueryBuilder<any> = {
     where: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis()
+    orderBy: jest.fn().mockReturnThis(),
+    getOne: jest.fn().mockReturnValue(Promise.resolve(dummyItem))
+  } as any
+
+  const entityRepository = {
+    findOne: jest.fn(() => Promise.resolve(dummyItem)),
+    create: jest.fn((item) => item),
+    save: jest.fn((item) => item),
+    createQueryBuilder: jest.fn(() => queryBuilder),
+    delete: jest.fn(() => Promise.resolve({}))
   } as any
 
   beforeEach(async () => {
@@ -88,12 +107,7 @@ describe('CrudService', () => {
           provide: EntityService,
           useValue: {
             findOne: jest.fn(),
-            getEntityRepository: jest.fn(() => ({
-              findOne: jest.fn(() => Promise.resolve(dummyItem)),
-              create: jest.fn((item) => item),
-              save: jest.fn((item) => item),
-              createQueryBuilder: jest.fn(() => queryBuilder)
-            })),
+            getEntityRepository: jest.fn(() => entityRepository),
             getEntityMetadata: jest.fn(() => ({
               relations: []
             }))
@@ -126,6 +140,10 @@ describe('CrudService', () => {
     entityService = module.get<EntityService>(EntityService)
     validationService = module.get<ValidationService>(ValidationService)
     paginationService = module.get<PaginationService>(PaginationService)
+    relationshipService = module.get<RelationshipService>(RelationshipService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   it('should be defined', () => {
@@ -206,6 +224,120 @@ describe('CrudService', () => {
 
     it('should return all entities with filters', async () => {
       // TODO: Implement test
+    })
+  })
+
+  describe('findSelectOptions', () => {
+    it('should return all entities as an array of select options', async () => {
+      jest
+        .spyOn(service, 'findAll')
+        .mockReturnValue(Promise.resolve(dummyPaginator))
+
+      const entitySlug = 'test'
+      const result = await service.findSelectOptions({ entitySlug })
+
+      expect(result).toEqual([
+        { label: dummyItem[dummyEntityManifest.mainProp], id: dummyItem.id }
+      ])
+    })
+  })
+
+  describe('findOne', () => {
+    it('should return an entity', async () => {
+      const entitySlug = 'test'
+      const id = 1
+
+      const result = await service.findOne({ entitySlug, id })
+
+      expect(result).toEqual(dummyItem)
+    })
+
+    it('should throw a 404 error if the entity is not found', async () => {
+      const entitySlug = 'test'
+      const id = 2
+
+      jest
+        .spyOn(queryBuilder, 'getOne')
+        .mockReturnValue(Promise.resolve(undefined))
+
+      await expect(service.findOne({ entitySlug, id })).rejects.toThrow()
+    })
+  })
+
+  describe('store', () => {
+    it('should store an entity', async () => {
+      const entitySlug = 'test'
+      const itemDto = { name: 'test' }
+
+      const result = await service.store(entitySlug, itemDto)
+
+      expect(result.name).toEqual(itemDto.name)
+    })
+
+    it('should fill the default values if not provided', async () => {
+      const entitySlug = 'test'
+      const itemDto = { name: 'test' }
+
+      const result = await service.store(entitySlug, itemDto)
+
+      expect(result.age).toEqual(
+        dummyEntityManifest.properties.find((p) => p.name === 'age').default
+      )
+    })
+
+    it('should throw an error if validation fails', async () => {
+      jest.spyOn(validationService, 'validate').mockReturnValue([
+        {
+          property: 'name',
+          constraints: {
+            isNotEmpty: 'name should not be empty'
+          }
+        }
+      ])
+
+      const entitySlug = 'test'
+      const itemDto = { name: '' }
+
+      expect(service.store(entitySlug, itemDto)).rejects.toThrow()
+    })
+
+    it('should encrypt password properties', async () => {
+      const entitySlug = 'test'
+      const itemDto = {
+        name: 'test',
+        password: 'password',
+        secondPassword: 'password'
+      }
+
+      const result = await service.store(entitySlug, itemDto)
+
+      expect(result.password).not.toEqual('password')
+      expect(result.secondPassword).not.toEqual('password')
+    })
+
+    it('should store relationships', async () => {
+      const dummyRelations = { mentor: { id: 3 } } as any
+
+      jest
+        .spyOn(relationshipService, 'fetchRelationItemsFromDto')
+        .mockReturnValue(Promise.resolve(dummyRelations))
+
+      const entitySlug = 'test'
+      const itemDto = { name: 'test', mentorId: 3 }
+
+      const result = await service.store(entitySlug, itemDto)
+
+      expect(result.mentor['id']).toEqual(3)
+    })
+  })
+
+  describe('storeEmpty', () => {
+    it('should store an entity with empty properties', async () => {
+      const entitySlug = 'test'
+
+      const result = await service.storeEmpty(entitySlug)
+
+      expect(result).toBeDefined()
     })
   })
 
@@ -340,6 +472,39 @@ describe('CrudService', () => {
         expect(resultWithoutRelation.mentor).toBeUndefined()
         expect(resultWithoutRelation.name).toEqual(itemWithoutRelationDto.name)
       })
+    })
+  })
+
+  describe('delete', () => {
+    it('should delete an entity', async () => {
+      const entitySlug = 'test'
+      const id = 1
+
+      const result = await service.delete(entitySlug, id)
+
+      expect(result).toEqual(dummyItem)
+    })
+
+    it('should throw an error if the entity is not found', async () => {
+      const entitySlug = 'test'
+      const id = 2
+
+      jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
+        delete: jest.fn(() => Promise.resolve(undefined))
+      } as any)
+
+      await expect(service.delete(entitySlug, id)).rejects.toThrow()
+    })
+
+    it('should throw an error if the item has parent one-to-many relationships', async () => {
+      const entitySlug = 'test'
+      const id = 1
+
+      jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
+        relations: [{ name: 'parent', type: 'one-to-many' }]
+      } as any)
+
+      await expect(service.delete(entitySlug, id)).rejects.toThrow()
     })
   })
 })
