@@ -21,10 +21,6 @@ jest.mock('bcryptjs', () => ({
 // TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 describe('SeederService', () => {
   let service: SeederService
-  let storageService: StorageService
-  let entityManifestService: EntityManifestService
-  let entityService: EntityService
-  let relationshipService: RelationshipService
   let dataSource: DataSource
 
   const dummyEntityMetadatas: EntityMetadata[] = [
@@ -90,12 +86,6 @@ describe('SeederService', () => {
     }).compile()
 
     service = module.get<SeederService>(SeederService)
-    storageService = module.get<StorageService>(StorageService)
-    entityManifestService = module.get<EntityManifestService>(
-      EntityManifestService
-    )
-    entityService = module.get<EntityService>(EntityService)
-    relationshipService = module.get<RelationshipService>(RelationshipService)
     dataSource = module.get<DataSource>(DataSource)
   })
 
