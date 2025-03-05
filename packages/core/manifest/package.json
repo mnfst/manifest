@@ -4,6 +4,8 @@
   "description": "The 1-file micro-backend",
   "author": "Manifest",
   "license": "MIT",
+  "main": "dist/manifest/main.js",
+  "types": "dist/manifest/main.d.ts",
   "homepage": "https://manifest.build",
   "repository": {
     "type": "git",
