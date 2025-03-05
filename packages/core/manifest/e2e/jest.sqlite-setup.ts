@@ -11,6 +11,16 @@ import { SeederService } from '../src/seed/services/seeder.service'
 import path from 'path'
 
 let app: INestApplication
+let originalConsoleLog: any
+
+beforeAll(() => {
+  originalConsoleLog = console.log
+  console.log = jest.fn()
+})
+
+afterAll(() => {
+  console.log = originalConsoleLog
+})
 
 beforeAll(async () => {
   // Set environment variables for testing.

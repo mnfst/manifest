@@ -15,8 +15,18 @@ import {
 import path from 'path'
 
 let app: INestApplication
+let originalConsoleLog: any
 
 jest.setTimeout(30000) // Increase the timeout because the PostgreSQL container takes a while to start.
+
+beforeAll(() => {
+  originalConsoleLog = console.log
+  console.log = jest.fn()
+})
+
+afterAll(() => {
+  console.log = originalConsoleLog
+})
 
 beforeAll(async () => {
   // Set environment variables for testing.

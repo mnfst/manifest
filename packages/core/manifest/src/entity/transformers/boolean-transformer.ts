@@ -13,15 +13,17 @@ export class BooleanTransformer implements ValueTransformer {
     this.connection = connection
   }
 
-  to(value: boolean): number {
+  to(value: boolean): number | boolean {
     if (this.connection === 'mysql') {
       return value ? 1 : 0
     }
+    return value
   }
 
-  from(value: number): boolean {
+  from(value: number | boolean): boolean {
     if (this.connection === 'mysql') {
       return value === 1
     }
+    return value as boolean
   }
 }
