@@ -23,6 +23,8 @@ describe('SeederService', () => {
   let service: SeederService
   let dataSource: DataSource
 
+  let originalConsoleLog: any
+
   const dummyEntityMetadatas: EntityMetadata[] = [
     {
       tableName: 'table1'
@@ -42,7 +44,14 @@ describe('SeederService', () => {
     query: jest.fn(() => Promise.resolve())
   }
 
-  beforeAll(() => {})
+  beforeAll(() => {
+    originalConsoleLog = console.log
+    console.log = jest.fn()
+  })
+
+  afterAll(() => {
+    console.log = originalConsoleLog
+  })
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

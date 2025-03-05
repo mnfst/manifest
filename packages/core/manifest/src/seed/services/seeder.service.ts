@@ -140,17 +140,14 @@ export class SeederService {
           fullVersion: true
         })
 
-      // Prevent logging during tests.
-      if (process.env.NODE_ENV !== 'test') {
-        if (entityManifest.single) {
-          console.log(
-            `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
-          )
-        } else {
-          console.log(
-            `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-          )
-        }
+      if (entityManifest.single) {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
+        )
+      } else {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+        )
       }
 
       for (let i = 0; i < entityManifest.seedCount; i++) {
@@ -354,11 +351,9 @@ export class SeederService {
    * @param repository The repository for the Admin entity.
    */
   async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
-    if (process.env.NODE_ENV !== 'test') {
-      console.log(
-        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
-      )
-    }
+    console.log(
+      `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
+    )
 
     const admin: AuthenticableEntity =
       repository.create() as AuthenticableEntity
