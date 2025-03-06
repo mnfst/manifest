@@ -147,6 +147,6 @@ Manifest is an MIT-licensed open-source project. If you find it useful and want 
   </tr>
 </table>
 
-
+This project is tested with BrowserStack
 
 </div>
