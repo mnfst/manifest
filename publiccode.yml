@@ -1,0 +1,37 @@
+publiccodeYmlVersion: "0.2"
+name: Manifest
+url: https://github.com/mnfst/manifest
+landingURL: https://manifest.build
+logo: https://manifest.build/assets/images/logotype-white.svg
+inputTypes:
+  - "YAML"
+platforms:
+  - "web"
+  - "windows"
+  - "mac"
+  - "linux"
+categories:
+  - application-development
+  - it-development
+usedBy:
+  - Institut National de Recherche en Informatique et en Automatique (INRIA)
+fundedBy:
+  - name: "Institut National de Recherche en Informatique et en Automatique (INRIA)",
+    url: "https://www.inria.fr"
+softwareType: "standalone/backend"
+description:
+  en:
+    shortDescription: "Manifest is a Backend-a-a-Service (BaaS) platform that fits into a single YAML file."
+    longDescription: "Manifest is a Backend-a-a-Service (BaaS) platform that fits into a single YAML file. It is a tool based on simplicity: with a simple DSL, you define a complete backend without writing a single line of code. It includes key back-end features such as authentication, authorization, data storage, custom endpoints, validation, and more."
+    screenshots:
+      - https://manifest.build/assets/images/stackblitz-demo.svg
+      - https://manifest.build/assets/images/adminpanel.gif
+legal:
+  license: MIT
+maintenance:
+  type: internal
+  contacts:
+    - name: "Bruno Pérez"
+      email: "bruno.perez@inria.fr"
+    - name: "Sébastien Conejo"
+      email: "sebastien.conejo@inria.fr"
