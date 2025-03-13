@@ -124,7 +124,8 @@ export class CollectionController {
     @Req() req: Request
   ): Promise<BaseEntity> {
     const user = await this.authService.getUserFromRequest(req)
-    if (user.user.id === id) {
+    const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
+    if (isAdmin && user.user.id === id) {
       throw new HttpException(
         'An admin cannot delete itself.',
         HttpStatus.FORBIDDEN

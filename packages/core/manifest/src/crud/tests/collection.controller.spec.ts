@@ -196,7 +196,9 @@ describe('CollectionController', () => {
     const id = 2
     const req = {} as any
 
-    await expect(controller.delete(entitySlug, id, req)).rejects.toThrowError(
+    jest.spyOn(controller['authService'], 'isReqUserAdmin').mockResolvedValueOnce(true)
+
+    await expect(controller.delete(entitySlug, id, req)).rejects.toThrow(
       new HttpException('An admin cannot delete itself.', HttpStatus.FORBIDDEN)
     )
   })
