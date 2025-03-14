@@ -16,7 +16,7 @@ categories:
 usedBy:
   - Institut National de Recherche en Informatique et en Automatique (INRIA)
 fundedBy:
-  - name: "Institut National de Recherche en Informatique et en Automatique (INRIA)",
+  - name: "Institut National de Recherche en Informatique et en Automatique (INRIA)"
     url: "https://www.inria.fr"
 softwareType: "standalone/backend"
 description:
