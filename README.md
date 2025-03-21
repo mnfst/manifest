@@ -1,3 +1,7 @@
+<div align="center">
+🚀 Featured on HackerNews – join the momentum & give us a ⭐ if you like it!
+</div>
+
 <br>
 
 <p align="center">
