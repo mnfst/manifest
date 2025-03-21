@@ -9,6 +9,7 @@ import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
 import { EventService } from '../../event/event.service'
 import { HandlerService } from '../../handler/handler.service'
+import { HttpException, HttpStatus } from '@nestjs/common'
 
 describe('CollectionController', () => {
   let controller: CollectionController
@@ -21,7 +22,19 @@ describe('CollectionController', () => {
         {
           provide: AuthService,
           useValue: {
-            isReqUserAdmin: jest.fn(() => Promise.resolve(false))
+            isReqUserAdmin: jest.fn(() => Promise.resolve(false)),
+            getUserFromRequest: jest.fn(() =>
+              Promise.resolve({
+                user: {
+                  id: 2,
+                  email: 'admin@example.com',
+                  password: 'hashedpassword',
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                },
+                entitySlug: 'users'
+              })
+            )
           }
         },
         {
@@ -171,9 +184,22 @@ describe('CollectionController', () => {
   it('should call crudService.delete', async () => {
     const entitySlug = 'cats'
     const id = 1
+    const req = {} as any
 
-    await controller.delete(entitySlug, id)
+    await controller.delete(entitySlug, id, req)
 
     expect(crudService.delete).toHaveBeenCalledWith(entitySlug, id)
+  })
+
+  it('should throw an error if an admin tries to delete itself', async () => {
+    const entitySlug = 'users'
+    const id = 2
+    const req = {} as any
+
+    jest.spyOn(controller['authService'], 'isReqUserAdmin').mockResolvedValueOnce(true)
+
+    await expect(controller.delete(entitySlug, id, req)).rejects.toThrow(
+      new HttpException('An admin cannot delete itself.', HttpStatus.FORBIDDEN)
+    )
   })
 })
