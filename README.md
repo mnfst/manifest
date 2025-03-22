@@ -88,8 +88,8 @@ npx add-manifest@latest
 
 - [Read the Docs](https://manifest.build/docs) to get started
 - [Chat with us](https://discord.gg/FepAked3W7) on our Discord
-- [Report bugs](https://github.com/mnfst/manifest/issues) on Github issues
-- [Suggest new features](https://github.com/mnfst/manifest/discussions/new?category=feature-request) on Github Discussions
+- [Report bugs](https://github.com/mnfst/manifest/issues) on GitHub issues
+- [Suggest new features](https://github.com/mnfst/manifest/discussions/new?category=feature-request) on GitHub Discussions
 
 ## Want to help Manifest grow? 💗
 
