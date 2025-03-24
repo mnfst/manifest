@@ -89,12 +89,8 @@ label:not(.file-label):not(.checkbox):not(.image-label):not(.radio) {
     }
   }
 
-  @each $name, $pair in $colors {
-    $color: nth($pair, 1);
-
-    .file-input.is-#{$name} + & {
-      border-color: $color !important;
-    }
+  .file-input.is-danger + & {
+    border-color: $danger !important;
   }
 }
 
