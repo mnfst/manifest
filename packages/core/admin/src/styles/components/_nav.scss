@@ -39,6 +39,9 @@ app-user-menu-item,
 .ad {
   background-color: $white;
   @include aside-width;
+  @include tablet-only {
+    width: 260px;
+  }
 }
 
 .ad {

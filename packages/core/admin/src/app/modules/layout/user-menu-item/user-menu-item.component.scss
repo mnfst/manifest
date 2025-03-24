@@ -1,11 +1,7 @@
 @use '../../../../styles/variables/all' as all;
-
-@use 'bulma' with (
-  $tablet: all.$tablet,
-  $radius: all.$radius
+@use 'bulma/sass/utilities/mixins' as mixins with (
+  $tablet: all.$tablet
 );
-
-@use 'bulma/sass/utilities/mixins' as mixins;
 
 .dropdown-trigger {
   max-width: 100%;
@@ -20,13 +16,6 @@
       align-items: center;
       justify-content: center;
       margin-right: 32px;
-      // test
-      position: relative;
-      &:after {
-        display: inline-block;
-        position: relative;
-        content: 'tablet is #{all.$tablet}';
-      }
     }
 
     @include mixins.mobile {

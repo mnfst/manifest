@@ -3,6 +3,6 @@
 @import '../../../../../styles/layout/auth';
 
 .col-welcome {
-  @extend .auth-column;
+  @extend %auth-column;
   width: 100vw;
 }
