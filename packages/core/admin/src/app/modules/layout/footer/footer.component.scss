@@ -1,8 +1,8 @@
-@import '../../../../styles/variables/all';
-@import 'bulma/sass/utilities/mixins';
+@use '../../../../styles/variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins;
 
 footer {
-  height: $footer-height;
+  height: all.$footer-height;
 }
 
 img {
