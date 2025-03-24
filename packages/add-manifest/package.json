@@ -38,7 +38,7 @@
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^4",
-    "axios": "^1.6.8",
+    "axios": "^1.8.2",
     "chalk": "^5.3.0",
     "fs": "^0.0.1-security",
     "jsonc-parser": "^3.2.1",
