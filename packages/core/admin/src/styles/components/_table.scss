@@ -1,47 +1,20 @@
+table {
+  border-radius: $card-radius;
+  font-size: $size-7;
+  @include fullhd {
+    font-size: $size-6;
+  }
+}
+
 thead {
   white-space: nowrap;
 }
 
-tr {
-  @each $name, $pair in $colors {
-    $color: nth($pair, 1);
-    $color-invert: nth($pair, 2);
-
-    &.is-#{$name} {
-      background-color: $color-invert;
-      border-left: $border-width-table-row-highlighted solid $color;
-      color: $color;
-    }
-  }
-}
-
 th {
   white-space: nowrap;
+  font-weight: $weight-bold;
+
   text-transform: uppercase;
-}
-
-td {
-  &.is-narrow {
-    padding-top: 0.8em;
-    padding-bottom: 0.8em;
-  }
-}
-
-table {
-  border-radius: $card-radius;
-}
-
-// override
-.table.is-narrow td,
-.table.is-narrow th {
-  padding: $table-cell-padding-narrow;
-}
-
-case-image,
-case-image-yield {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
 }
 
 td,
@@ -54,17 +27,6 @@ th {
 
   &:last-child {
     padding-right: $gap;
-  }
-}
-
-.more {
-  height: 100%;
-  position: relative;
-
-  > span {
-    display: flex;
-    align-items: center;
-    height: 100%;
   }
 }
 

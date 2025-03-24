@@ -14,7 +14,6 @@
 @import './helpers/helpers';
 
 // Components
-@import './components/analog-progress-bar';
 @import './components/avatar';
 @import './components/buttons';
 @import './components/cards';
@@ -26,18 +25,11 @@
 @import './components/layout';
 @import './components/lists';
 @import './components/modals';
-@import './components/multisearch';
 @import './components/multiselect';
 @import './components/nav';
 @import './components/notification';
 @import './components/pagination';
 @import './components/progress-bar';
-@import './components/rich-text';
 
 @import './components/table';
-@import './components/tabs';
 @import './components/type';
-@import './components/yield-file-icon';
-
-// Layouts
-@import './layout/error404';

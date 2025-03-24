@@ -1,4 +1,4 @@
-@import "bulma/sass/utilities/functions";
+@import 'bulma/sass/utilities/functions';
 
 $black: #000 !default; // Overload
 $white: #fff !default; // Overload
@@ -7,19 +7,19 @@ $dark: #303032 !default; // Overload
 
 $black-bis: $dark !default;
 $black-ter: $dark !default;
-$grey-darker: #39393C !default;
+$grey-darker: #39393c !default;
 $grey-dark: #535356;
-$grey: #A0A0A5 !default;
+$grey: #a0a0a5 !default;
 $grey-light: #dddde2 !default;
-$grey-lighter: #EAEAEF !default;
-$white-ter: #F2F2F6 !default;
-$white-bis: #F5F7F9 !default;
+$grey-lighter: #eaeaef !default;
+$white-ter: #f2f2f6 !default;
+$white-bis: #f5f7f9 !default;
 
 $link: $grey-darker !default;
 $link-light: $white-bis !default;
 $link-light-invert: findColorInvert($white-bis) !default;
 
-$primary: #2430F0 !default;
+$primary: #2430f0 !default;
 $primary-light: #f0f1ff !default;
 $primary-light-invert: findColorInvert($primary-light) !default;
 
@@ -49,34 +49,18 @@ $link-alpha03: rgba($link, 0.03) !default;
 $main-background: $white-bis !default;
 $border-color-input: $link-alpha10 !default;
 
-
-$color-0: #F9F54B !default;
-$color-0-invert: findColorInvert($color-0) !default;
-$color-1: #8BE8E5 !default;
-$color-1-invert: findColorInvert($color-1) !default;
-$color-2: #A084E8 !default;
-$color-2-invert: findColorInvert($color-2) !default;
-$color-3: #4F200D !default;
-$color-3-invert: findColorInvert($color-3) !default;
+$color-0: #f9f54b !default;
+$color-1: #8be8e5 !default;
+$color-2: #a084e8 !default;
+$color-3: #4f200d !default;
 $color-4: #ff8080 !default;
-$color-4-invert: findColorInvert($color-4) !default;
-$color-5: #F79BD3 !default;
-$color-5-invert: findColorInvert($color-5) !default;
-$color-6: #FFC6AC !default;
-$color-6-invert: findColorInvert($color-6) !default;
-$color-7: #DFA878 !default;
-$color-7-invert: findColorInvert($color-7) !default;
-$color-8: #F4D160 !default;
-$color-8-invert: findColorInvert($color-8) !default;
-$color-9: #35A29F !default;
-$color-9-invert: findColorInvert($color-9) !default;
-$color-10: #99DBF5 !default;
-$color-10-invert: findColorInvert($color-10) !default;
-$color-11: #E4A5FF !default;
-$color-11-invert: findColorInvert($color-11) !default;
-$color-12: #F29727 !default;
-$color-12-invert: findColorInvert($color-12) !default;
-$color-13: #41644A !default;
-$color-13-invert: findColorInvert($color-13) !default;
-$color-14: #EA1179 !default;
-$color-14-invert: findColorInvert($color-14) !default;
+$color-5: #f79bd3 !default;
+$color-6: #ffc6ac !default;
+$color-7: #dfa878 !default;
+$color-8: #f4d160 !default;
+$color-9: #35a29f !default;
+$color-10: #99dbf5 !default;
+$color-11: #e4a5ff !default;
+$color-12: #f29727 !default;
+$color-13: #41644a !default;
+$color-14: #ea1179 !default;

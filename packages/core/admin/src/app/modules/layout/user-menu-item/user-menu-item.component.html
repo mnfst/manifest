@@ -1,9 +1,10 @@
-<div class="is-flex is-align-items-center is-justify-content-flex-start">
-
-</div>
+<div class="is-flex is-align-items-center is-justify-content-flex-start"></div>
 <div class="dropdown is-up" [ngClass]="{ 'is-active': showUserMenu }">
   <div class="dropdown-trigger">
-    <a (click)="showUserMenu = !showUserMenu" class="is-flex is-align-items-center is-justify-content-flex-start">
+    <a
+      (click)="showUserMenu = !showUserMenu"
+      class="is-flex is-align-items-center is-justify-content-flex-start"
+    >
       <img
         src="/assets/images/avatar-default.svg"
         title="currentUser.name"
@@ -17,7 +18,6 @@
   </div>
   <div class="dropdown-menu is-small" role="menu">
     <div class="dropdown-content">
-      
       <a
         routerLink="/auth/logout"
         class="dropdown-item"

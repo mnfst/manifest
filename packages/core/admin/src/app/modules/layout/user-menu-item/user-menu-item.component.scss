@@ -1,12 +1,14 @@
-@import '../../../../styles/variables/all';
-@import 'bulma/sass/utilities/mixins';
+@use '../../../../styles/variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins with (
+  $tablet: all.$tablet
+);
 
 .dropdown-trigger {
   max-width: 100%;
   min-width: 100%;
 
   > a {
-    @include touch {
+    @include mixins.touch {
       width: 100%;
       height: 100%;
       display: inline-flex;
@@ -16,7 +18,7 @@
       margin-right: 32px;
     }
 
-    @include mobile {
+    @include mixins.mobile {
       margin-right: 30px;
     }
   }
@@ -35,5 +37,5 @@
 }
 
 .avatar {
-  border-radius: $radius;
+  border-radius: all.$radius;
 }

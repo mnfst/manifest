@@ -1,3 +1,6 @@
+@use '../variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins;
+
 .container {
   max-width: 100%;
   width: 100%;
@@ -17,12 +20,12 @@
   bottom: unset;
 }
 
-.auth-column {
+%auth-column {
   position: fixed;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: $white;
+  background-color: all.$white;
   left: 0;
   top: 0;
   height: 100vh;
@@ -30,22 +33,22 @@
   > div {
     margin: auto;
 
-    @include widescreen {
+    @include mixins.widescreen {
       max-width: 482px;
       min-width: 382px;
     }
 
-    @include desktop {
+    @include mixins.desktop {
       max-width: 424px;
       min-width: 360px;
     }
 
-    @include tablet {
+    @include mixins.tablet {
       max-width: 424px;
       min-width: 320px;
     }
 
-    @include mobile {
+    @include mixins.mobile {
       min-width: 50%;
       max-width: 380px;
     }

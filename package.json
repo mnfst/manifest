@@ -1,11 +1,11 @@
 {
   "name": "manifest",
   "scripts": {
-    "build": "npx turbo run build",
-    "dev": "npx turbo run dev",
-    "test": "npx turbo run test",
-    "test:ci": "npx turbo run test:ci",
-    "lint": "npx turbo run lint",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "test:ci": "turbo run test:ci",
+    "lint": "turbo run lint",
     "seed": "cd packages/core/manifest && npm run seed",
     "prepare": "husky",
     "publish-packages": "turbo run build lint test && changeset version && changeset publish"

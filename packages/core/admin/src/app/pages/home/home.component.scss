@@ -1,14 +1,5 @@
-@import '../../../styles/variables/all';
-@import 'bulma/sass/utilities/mixins';
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Roboto&display=swap');
-
-code {
-  display: inline-block;
-  padding: 1em 2em;
-  background-color: #303032;
-  color: #f5f7f9;
-  font-family: 'Fira Code', monospace;
-}
+@use '../../../styles/variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins;
 
 .is-entity-link {
   height: 64px;
@@ -17,16 +8,16 @@ code {
 }
 
 .card-link {
-  border-color: $border;
-  transition: border-color 0.54s $transition-timing;
+  border-color: all.$border;
+  transition: border-color 0.54s all.$transition-timing;
 
   span:before {
     display: none;
   }
 
   &:hover .card {
-    transition: border-color 0.54s $transition-timing;
-    color: $black;
-    border-color: $link;
+    transition: border-color 0.54s all.$transition-timing;
+    color: all.$black;
+    border-color: all.$link;
   }
 }

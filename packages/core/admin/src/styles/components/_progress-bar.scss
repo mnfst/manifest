@@ -1,3 +1,21 @@
+$bullet-colors: (
+  'color-0': $color-0,
+  'color-1': $color-1,
+  'color-2': $color-2,
+  'color-3': $color-3,
+  'color-4': $color-4,
+  'color-5': $color-5,
+  'color-6': $color-6,
+  'color-7': $color-7,
+  'color-8': $color-8,
+  'color-9': $color-9,
+  'color-10': $color-10,
+  'color-11': $color-11,
+  'color-12': $color-12,
+  'color-13': $color-13,
+  'color-14': $color-14
+);
+
 .bullet {
   height: $bullet-width;
   width: $bullet-width;
@@ -6,25 +24,17 @@
   margin-bottom: $margin-bottom;
   display: inline-block;
   border-radius: $bullet-width;
-  background-color:  $link;
+  background-color: $link;
   &:last-child {
     margin-right: 0;
   }
 
-
-  @each $name, $pair in $colors {
-    $color: nth($pair, 1);
+  @each $name, $color in $bullet-colors {
     .is-#{$name} &:not(.is-grey) {
-      background-color:  $color;
+      background-color: $color;
     }
   }
   &.is-grey {
     background-color: $grey-lighter;
   }
-}
-
-.text-status {
-  position: relative;
-  top: -2px;
-  margin-right: 8px;
 }
