@@ -1,60 +1,60 @@
-// TODO: Add theme colors.
-.is-color-1 {
-  color: #fff;
-  background-color: #f44336;
-}
+$label-colors: (
+  color-3: (
+    #f50057,
+    #fff
+  ),
+  color-1: (
+    #ff6d00,
+    #fff
+  ),
+  color-2: (
+    #ffd600,
+    #000
+  ),
+  color-4: (
+    #d500f9,
+    #fff
+  ),
+  color-5: (
+    #651fff,
+    #fff
+  ),
+  color-6: (
+    #3d5afe,
+    #fff
+  ),
+  color-7: (
+    #00b0ff,
+    #fff
+  ),
+  color-8: (
+    #00c853,
+    #fff
+  ),
+  color-9: (
+    #64dd17,
+    #000
+  ),
+  color-10: (
+    #a1887f,
+    #fff
+  ),
+  color-11: (
+    #607d8b,
+    #fff
+  ),
+  color-12: (
+    #9e9e9e,
+    #fff
+  )
+);
 
-.is-color-2 {
-  color: #fff;
-  background-color: #9c27b0;
-}
+@each $name, $pair in $label-colors {
+  $bg: nth($pair, 1);
+  $text: nth($pair, 2);
 
-.is-color-3 {
-  color: #fff;
-  background-color: #3f51b5;
-}
-
-.is-color-4 {
-  color: #fff;
-  background-color: #2196f3;
-}
-
-.is-color-5 {
-  color: #fff;
-  background-color: #009688;
-}
-
-.is-color-6 {
-  color: #fff;
-  background-color: #4caf50;
-}
-
-.is-color-7 {
-  color: #fff;
-  background-color: #ff9800;
-}
-
-.is-color-8 {
-  color: #fff;
-  background-color: #607d8b;
-}
-
-.is-color-9 {
-  color: #fff;
-  background-color: #795548;
-}
-
-.is-color-10 {
-  color: #fff;
-  background-color: #9e9e9e;
-}
-
-.is-color-11 {
-  color: #fff;
-  background-color: #e91e63;
-}
-
-.is-color-12 {
-  color: #fff;
-  background-color: #673ab7;
+  .is-#{$name} {
+    background-color: $bg;
+    color: $text;
+  }
 }

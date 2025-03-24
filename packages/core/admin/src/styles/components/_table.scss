@@ -1,14 +1,20 @@
+table {
+  border-radius: $card-radius;
+  font-size: $size-7;
+  @include fullhd {
+    font-size: $size-6;
+  }
+}
+
 thead {
   white-space: nowrap;
 }
 
 th {
   white-space: nowrap;
-  text-transform: uppercase;
-}
+  font-weight: $weight-bold;
 
-table {
-  border-radius: $card-radius;
+  text-transform: uppercase;
 }
 
 td,
