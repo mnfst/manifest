@@ -1,5 +1,12 @@
 # manifest
 
+## 4.11.1
+
+### Patch Changes
+
+- a100be4: chore: optimize image and PDF assets
+- 3b693dc: refactor scss files replacing import by use and removing unused files
+
 ## 4.11.0
 
 ### Minor Changes
