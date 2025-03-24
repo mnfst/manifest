@@ -1,19 +1,21 @@
-@import '../../../../../styles/variables/all';
-@import 'bulma/sass/utilities/mixins';
-
+@use '../../../../../styles/variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins with (
+  $fullhd: all.$fullhd,
+  $desktop: all.$desktop
+);
 .properties,
 .relations {
   + div {
-    margin-top: $column-gap;
+    margin-top: all.$column-gap;
   }
 }
 
 .card.is-single-card {
-  @include desktop {
+  @include mixins.desktop {
     padding-right: 25% !important;
     padding-left: 25% !important;
   }
-  @include fullhd {
+  @include mixins.fullhd {
     padding-right: 33% !important;
     padding-left: 33% !important;
   }
