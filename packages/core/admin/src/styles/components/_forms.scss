@@ -42,7 +42,6 @@ label:not(.file-label):not(.checkbox):not(.image-label):not(.radio) {
   width: 100%;
 }
 
-//  Checkbox and Radio
 .checkbox {
   @include checkbox-radio-styles;
 }
@@ -79,7 +78,6 @@ label:not(.file-label):not(.checkbox):not(.image-label):not(.radio) {
   }
 }
 
-// File
 .file-cta {
   &.file-remove {
     border: 0;
@@ -107,7 +105,6 @@ label:not(.file-label):not(.checkbox):not(.image-label):not(.radio) {
   white-space: nowrap;
 }
 
-// Quill editor
 quill-editor {
   width: 100%;
   height: 100%;
