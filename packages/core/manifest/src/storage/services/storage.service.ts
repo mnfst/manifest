@@ -3,6 +3,7 @@ import { kebabize } from '@repo/common'
 import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../constants'
 
 import * as fs from 'fs'
+import * as path from 'path'
 import sharp from 'sharp'
 import * as mkdirp from 'mkdirp'
 import uniqid from 'uniqid'
@@ -69,10 +70,24 @@ export class StorageService {
     if (this.isS3Enabled) {
       return this.uploadToS3(filePath, file.buffer)
     } else {
-      fs.writeFileSync(
-        `${this.configService.get('paths.publicFolder')}/${STORAGE_PATH}/${filePath}`,
-        file.buffer
+      const publicFolderPath: string = path.resolve(
+        this.configService.get('paths.publicFolder'),
+        STORAGE_PATH,
+        filePath
       )
+
+      if (
+        !publicFolderPath.startsWith(
+          path.resolve(
+            this.configService.get('paths.publicFolder'),
+            STORAGE_PATH
+          )
+        )
+      ) {
+        throw new Error('Invalid file path')
+      }
+
+      fs.writeFileSync(publicFolderPath, file.buffer)
       return Promise.resolve(this.prependStorageUrl(filePath))
     }
   }
@@ -111,10 +126,23 @@ export class StorageService {
       if (this.isS3Enabled) {
         imagePaths[sizeName] = await this.uploadToS3(imagePath, resizedImage)
       } else {
-        fs.writeFileSync(
-          `${this.configService.get('paths.publicFolder')}/${STORAGE_PATH}/${imagePath}`,
-          resizedImage
+        const publicFolderPath: string = path.resolve(
+          this.configService.get('paths.publicFolder'),
+          STORAGE_PATH,
+          imagePath
         )
+
+        if (
+          !publicFolderPath.startsWith(
+            path.resolve(
+              this.configService.get('paths.publicFolder'),
+              STORAGE_PATH
+            )
+          )
+        ) {
+          throw new Error('Invalid image path')
+        }
+        fs.writeFileSync(publicFolderPath, resizedImage)
         imagePaths[sizeName] = this.prependStorageUrl(imagePath)
       }
     }

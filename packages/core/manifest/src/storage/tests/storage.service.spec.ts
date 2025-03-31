@@ -30,6 +30,7 @@ describe('StorageService', () => {
   }
 
   const baseUrl: string = 'http://localhost:3333'
+  const publicFolder: string = 'public'
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,6 +42,9 @@ describe('StorageService', () => {
             get: jest.fn((setting) => {
               if (setting === 'baseUrl') {
                 return baseUrl
+              }
+              if (setting === 'paths.publicFolder') {
+                return publicFolder
               }
               return null
             })
