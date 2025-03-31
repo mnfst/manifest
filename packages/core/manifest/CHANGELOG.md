@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.2
+
+### Patch Changes
+
+- 9f2bbcb: prevent using uncontrolled data in path
+
 ## 4.11.1
 
 ### Patch Changes
