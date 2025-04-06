@@ -11,6 +11,28 @@ describe('HookInterceptor', () => {
   let hookService: HookService
   let eventService: EventService
 
+  const context = {
+    getHandler: jest.fn(() => ({ name: 'store' })),
+    switchToHttp: jest.fn(() => ({
+      getRequest: jest.fn(() => ({
+        params: {
+          entity: 'users',
+          id: '1'
+        },
+        body: {
+          name: 'John Doe'
+        }
+      }))
+    })),
+    getArgs: jest.fn(() => [
+      {
+        params: {
+          entity: 'users'
+        }
+      }
+    ])
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -25,6 +47,11 @@ describe('HookInterceptor', () => {
                     beforeCreate: [
                       {
                         url: 'http://web.hook'
+                      }
+                    ],
+                    afterCreate: [
+                      {
+                        url: 'http://web2.hook'
                       }
                     ]
                   }
@@ -61,29 +88,7 @@ describe('HookInterceptor', () => {
     ).toBeDefined()
   })
 
-  it('should trigger webhooks', () => {
-    const context = {
-      getHandler: jest.fn(() => ({ name: 'store' })),
-      switchToHttp: jest.fn(() => ({
-        getRequest: jest.fn(() => ({
-          params: {
-            entity: 'users',
-            id: '1'
-          },
-          body: {
-            name: 'John Doe'
-          }
-        }))
-      })),
-      getArgs: jest.fn(() => [
-        {
-          params: {
-            entity: 'users'
-          }
-        }
-      ])
-    }
-
+  it('should trigger "before Create" webhooks', () => {
     interceptor.intercept(context as any, {
       handle: jest.fn(
         () =>
@@ -98,6 +103,32 @@ describe('HookInterceptor', () => {
     expect(hookService.triggerWebhook).toHaveBeenCalledWith(
       {
         url: 'http://web.hook'
+      },
+      'users',
+      {
+        name: 'John Doe'
+      }
+    )
+  })
+
+  it('should trigger "afterCreate" webhooks', () => {
+    jest
+      .spyOn(eventService, 'getRelatedCrudEvent')
+      .mockReturnValue('afterCreate')
+
+    interceptor.intercept(context as any, {
+      handle: jest.fn(
+        () =>
+          ({
+            pipe: jest.fn(() => ({
+              toPromise: jest.fn()
+            }))
+          }) as any
+      )
+    })
+    expect(hookService.triggerWebhook).toHaveBeenCalledWith(
+      {
+        url: 'http://web2.hook'
       },
       'users',
       {

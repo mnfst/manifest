@@ -34,8 +34,11 @@ describe('Transformers', () => {
     it('should always return a string', () => {
       const transformer = new TimestampTransformer()
       const value = new Date()
-      const result = transformer.from(value)
-      expect(typeof result).toBe('string')
+      const fromResult = transformer.from(value)
+      const toResult = transformer.to(new Date().toDateString())
+
+      expect(typeof fromResult).toBe('string')
+      expect(typeof toResult).toBe('string')
     })
   })
 })

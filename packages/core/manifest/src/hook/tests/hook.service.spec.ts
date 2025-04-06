@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { HookService } from '../hook.service'
-import { HookManifest } from '../../../../types/src'
+import { HookManifest, HookSchema } from '../../../../types/src'
 
 describe('HookService', () => {
   let service: HookService
@@ -46,7 +46,26 @@ describe('HookService', () => {
   })
 
   describe('transformHookSchemaIntoHookManifest', () => {
-    // TODO: implement tests.
+    it('should transform a hook schema into a hook manifest', () => {
+      const hookSchema: HookSchema = {
+        url: 'http://example.com/webhook',
+        method: 'POST',
+        headers: {
+          'test-header': 'test-value'
+        }
+      }
+      const result = service.transformHookSchemaIntoHookManifest(
+        hookSchema,
+        'beforeCreate'
+      )
+      expect(result).toEqual({
+        event: 'beforeCreate',
+        type: 'webhook',
+        url: hookSchema.url,
+        method: hookSchema.method,
+        headers: hookSchema.headers
+      })
+    })
   })
 
   describe('triggerWebhook', () => {

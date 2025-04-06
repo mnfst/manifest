@@ -28,6 +28,12 @@ describe('PolicyService', () => {
       {
         access: '🔒',
         allow: 'Contractor'
+      },
+      {
+        access: '️👨🏻‍💻'
+      },
+      {
+        access: '🚫'
       }
     ]
 
@@ -44,6 +50,12 @@ describe('PolicyService', () => {
       {
         access: 'restricted',
         allow: ['Contractor']
+      },
+      {
+        access: 'admin'
+      },
+      {
+        access: 'forbidden'
       }
     ])
   })
