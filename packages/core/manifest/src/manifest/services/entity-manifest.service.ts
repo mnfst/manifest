@@ -150,10 +150,16 @@ export class EntityManifestService {
             ).toLowerCase()
           ),
         single: entitySchema.single || false,
-        properties: (entitySchema.properties || []).map(
-          (propManifest: PropertySchema) =>
-            this.transformProperty(propManifest, entitySchema)
-        ),
+        properties: (entitySchema.properties || [])
+          // Filter out the eventual id property as we are adding it manually.
+          .filter(
+            (propSchema: PropertySchema) =>
+              propSchema !== 'id' &&
+              (propSchema as { name: string }).name !== 'id'
+          )
+          .map((propSchema: PropertySchema) =>
+            this.transformProperty(propSchema, entitySchema)
+          ),
         hooks: this.transformHookObject(entitySchema.hooks),
         middlewares: entitySchema.middlewares || {}
       }
