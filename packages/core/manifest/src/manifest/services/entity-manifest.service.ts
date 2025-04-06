@@ -146,7 +146,8 @@ export class EntityManifestService {
             dasherize(
               entitySchema.single
                 ? entitySchema.className || className
-                : pluralize.plural(entitySchema.className || className)
+                : entitySchema.namePlural ||
+                    pluralize.plural(entitySchema.className || className)
             ).toLowerCase()
           ),
         single: entitySchema.single || false,
