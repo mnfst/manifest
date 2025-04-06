@@ -11,6 +11,21 @@ describe('MiddlewareInterceptor', () => {
   let entityManifestService: EntityManifestService
   let handlerService: HandlerService
 
+  const context = {
+    getHandler: jest.fn(() => ({ name: 'store' })),
+    switchToHttp: jest.fn(() => ({
+      getRequest: jest.fn(() => {}),
+      getResponse: jest.fn(() => {})
+    })),
+    getArgs: jest.fn(() => [
+      {
+        params: {
+          entity: 'users'
+        }
+      }
+    ])
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,6 +46,11 @@ describe('MiddlewareInterceptor', () => {
                     beforeCreate: [
                       {
                         handler: 'my-handler'
+                      }
+                    ],
+                    afterCreate: [
+                      {
+                        handler: 'my-handler-2'
                       }
                     ]
                   }
@@ -65,22 +85,7 @@ describe('MiddlewareInterceptor', () => {
     ).toBeDefined()
   })
 
-  it('should trigger handlers', () => {
-    const context = {
-      getHandler: jest.fn(() => ({ name: 'store' })),
-      switchToHttp: jest.fn(() => ({
-        getRequest: jest.fn(() => {}),
-        getResponse: jest.fn(() => {})
-      })),
-      getArgs: jest.fn(() => [
-        {
-          params: {
-            entity: 'users'
-          }
-        }
-      ])
-    }
-
+  it('should trigger "before request" handlers', () => {
     interceptor.intercept(context as any, {
       handle: jest.fn(
         () =>
@@ -94,6 +99,28 @@ describe('MiddlewareInterceptor', () => {
 
     expect(handlerService.trigger).toHaveBeenCalledWith({
       path: 'my-handler',
+      req: context.switchToHttp().getRequest(),
+      res: context.switchToHttp().getResponse()
+    })
+  })
+
+  it('should trigger "after request" handlers', () => {
+    jest
+      .spyOn(eventService, 'getRelatedCrudEvent')
+      .mockReturnValue('afterCreate')
+    interceptor.intercept(context as any, {
+      handle: jest.fn(
+        () =>
+          ({
+            pipe: jest.fn(() => ({
+              toPromise: jest.fn()
+            }))
+          }) as any
+      )
+    })
+
+    expect(handlerService.trigger).toHaveBeenCalledWith({
+      path: 'my-handler-2',
       req: context.switchToHttp().getRequest(),
       res: context.switchToHttp().getResponse()
     })

@@ -11,7 +11,6 @@ import {
   forceNumberArray,
   camelize
 } from '@repo/common'
-import pluralize from 'pluralize'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
@@ -138,7 +137,7 @@ export class RelationshipService {
           relationship.type === 'one-to-many'
       )
       .forEach((oneToManyRelationship: RelationshipManifest) => {
-        const relationshipName: string = pluralize(oneToManyRelationship.name)
+        const relationshipName: string = oneToManyRelationship.name
 
         relationOptions[relationshipName] = {
           target: oneToManyRelationship.entity,

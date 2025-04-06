@@ -22,7 +22,10 @@ describe('EntityService', () => {
         {
           provide: EntityManifestService,
           useValue: {
-            getEntityManifest: jest.fn()
+            getEntityManifest: jest.fn(() => ({
+              className: 'Entity',
+              slug: 'entity'
+            }))
           }
         },
         {
@@ -103,7 +106,7 @@ describe('EntityService', () => {
   })
 
   describe('getEntityRepository', () => {
-    it('should return a repository', () => {
+    it('should return a repository from an entity metadata', () => {
       const entityMetadata = {
         target: 'Entity'
       } as any
@@ -113,6 +116,10 @@ describe('EntityService', () => {
       })
 
       expect(dataSource.getRepository).toHaveBeenCalledWith('Entity')
+    })
+
+    it('should throw an error if no entity metadata is provided', () => {
+      expect(() => service.getEntityRepository({})).toThrow()
     })
   })
 })
