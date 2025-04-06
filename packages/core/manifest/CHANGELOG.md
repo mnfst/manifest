@@ -1,5 +1,12 @@
 # manifest
 
+## 4.11.3
+
+### Patch Changes
+
+- b4e5adc: Prevent error when adding id property, Thanks @ryuujo1573
+- 7f40b79: fixed namePlural causes errors, thanks @MatFluor
+
 ## 4.11.2
 
 ### Patch Changes
