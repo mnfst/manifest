@@ -117,6 +117,9 @@ export class OpenApiCrudService {
         summary: `List ${entityManifest.namePlural}`,
         description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/rest-api#filters`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.read
+        ),
         parameters: [
           {
             name: 'page',
@@ -200,6 +203,9 @@ export class OpenApiCrudService {
         summary: `List ${entityManifest.namePlural} for select options`,
         description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'.`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.read
+        ),
         responses: {
           '200': {
             description: `List of ${entityManifest.namePlural} for select options`,

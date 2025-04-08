@@ -5,7 +5,7 @@ import { SecurityRequirementObject } from '@nestjs/swagger/dist/interfaces/open-
 @Injectable()
 export class OpenApiUtilsService {
   /**
-   * Retrieves the security requirements from the policies.
+   * Retrieves the security requirements from the policies (auth).
    *
    * @param policies
    * @returns
@@ -27,8 +27,6 @@ export class OpenApiUtilsService {
           [policy.access.charAt(0).toUpperCase() + policy.access.slice(1)]: []
         }
       })
-
-    console.log('Security requirements:', security)
 
     return security
   }
