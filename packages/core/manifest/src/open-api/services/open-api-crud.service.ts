@@ -201,11 +201,13 @@ export class OpenApiCrudService {
     return {
       get: {
         summary: `List ${entityManifest.namePlural} for select options`,
-        description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'.`,
+        description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'. Used in the admin panel to fill select dropdowns.`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
-        security: this.openApiUtilsService.getSecurityRequirements(
-          entityManifest.policies.read
-        ),
+        security: [
+          {
+            Admin: []
+          }
+        ],
         responses: {
           '200': {
             description: `List of ${entityManifest.namePlural} for select options`,
