@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { EndpointManifest } from '../../../../types/src'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { API_PATH, ENDPOINTS_PATH } from '../../constants'
+import { OpenApiUtilsService } from './open-api-utils.service'
 
 @Injectable()
 export class OpenApiEndpointService {
+  constructor(private readonly openApiUtilsService: OpenApiUtilsService) {}
+
   /**
    * Generates the dynamic endpoint paths for the OpenAPI document from an Endpoint Manifest.
    *
@@ -27,6 +30,9 @@ export class OpenApiEndpointService {
           summary: endpoint.name,
           description: endpoint.description,
           tags: ['Dynamic endpoints'],
+          security: this.openApiUtilsService.getSecurityRequirements(
+            endpoint.policies
+          ),
           parameters: Object.keys(
             this.extractRouteParams(endpoint.path) || {}
           ).map((paramName) => ({
@@ -59,7 +65,7 @@ export class OpenApiEndpointService {
   private extractRouteParams(route: string): Record<string, string> {
     const params: Record<string, string> = {}
     const regex = /:(\w+)/g
-    let match
+    let match: RegExpExecArray | null
 
     while ((match = regex.exec(route)) !== null) {
       params[match[1]] = 'string'

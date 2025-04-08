@@ -24,6 +24,7 @@ import { IsCollectionGuard } from '../guards/is-collection.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
 import { COLLECTIONS_PATH } from '../../constants'
 import { MiddlewareInterceptor } from '../../middleware/middleware.interceptor'
+import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 
 @Controller(COLLECTIONS_PATH)
 @UseGuards(PolicyGuard, IsCollectionGuard)
@@ -50,8 +51,17 @@ export class CollectionController {
     })
   }
 
+  /**
+   * Get select options for a specific entity. This is used for select inputs in admin panel forms.
+   * This is why we use the `IsAdminGuard` here.
+   *
+   * @param entitySlug The slug of the entity.
+   * @param queryParams The query parameters to filter the select options.
+   *
+   * @returns The select options for the entity.
+   */
   @Get(':entity/select-options')
-  @Rule('read')
+  @UseGuards(IsAdminGuard)
   findSelectOptions(
     @Param('entity') entitySlug: string,
     @Query() queryParams: { [key: string]: string | string[] }

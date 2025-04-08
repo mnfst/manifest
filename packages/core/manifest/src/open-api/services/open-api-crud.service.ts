@@ -1,11 +1,14 @@
-import { EntityManifest } from '@repo/types'
+import { EntityManifest, PolicyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { upperCaseFirstLetter } from '@repo/common'
 import { API_PATH, COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
+import { OpenApiUtilsService } from './open-api-utils.service'
 
 @Injectable()
 export class OpenApiCrudService {
+  constructor(private readonly openApiUtilsService: OpenApiUtilsService) {}
+
   /**
    * Generates the paths for the entities. For each entity, it generates the paths for listing, creating, updating and deleting.
    *
@@ -22,30 +25,79 @@ export class OpenApiCrudService {
     entityManifests
       .filter((entityManifest: EntityManifest) => !entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {
-          ...this.generateListPath(entityManifest),
-          ...this.generateCreatePath(entityManifest)
-        }
+        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {}
+        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] =
+          {}
         paths[
           `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
-        ] = this.generateListSelectOptionsPath(entityManifest)
-        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] =
-          {
-            ...this.generateDetailPath(entityManifest),
-            ...this.generateUpdatePath(entityManifest),
-            ...this.generatePatchPath(entityManifest),
-            ...this.generateDeletePath(entityManifest)
-          }
+        ] = {}
+
+        // Create.
+        if (this.isNotForbidden(entityManifest.policies.create)) {
+          Object.assign(
+            paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`],
+            this.generateCreatePath(entityManifest)
+          )
+        }
+
+        // Read.
+        if (this.isNotForbidden(entityManifest.policies.read)) {
+          Object.assign(
+            paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`],
+            this.generateListPath(entityManifest)
+          )
+          Object.assign(
+            paths[
+              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
+            ],
+            this.generateDetailPath(entityManifest)
+          )
+          Object.assign(
+            paths[
+              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
+            ],
+            this.generateListSelectOptionsPath(entityManifest)
+          )
+        }
+
+        // Update.
+        if (this.isNotForbidden(entityManifest.policies.update)) {
+          Object.assign(
+            paths[
+              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
+            ],
+            this.generateUpdatePath(entityManifest),
+            this.generatePatchPath(entityManifest)
+          )
+        }
+
+        // Delete.
+        if (this.isNotForbidden(entityManifest.policies.delete)) {
+          Object.assign(
+            paths[
+              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
+            ],
+            this.generateDeletePath(entityManifest)
+          )
+        }
       })
 
     // Single paths.
     entityManifests
       .filter((entityManifest: EntityManifest) => entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
-          ...this.generateDetailPath(entityManifest, true),
-          ...this.generateUpdatePath(entityManifest, true),
-          ...this.generatePatchPath(entityManifest, true)
+        // Read.
+        if (this.isNotForbidden(entityManifest.policies.read)) {
+          paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
+            ...this.generateDetailPath(entityManifest, true)
+          }
+        }
+
+        if (this.isNotForbidden(entityManifest.policies.update)) {
+          paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
+            ...this.generateDetailPath(entityManifest, true),
+            ...this.generatePatchPath(entityManifest, true)
+          }
         }
       })
 
@@ -65,6 +117,9 @@ export class OpenApiCrudService {
         summary: `List ${entityManifest.namePlural}`,
         description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/rest-api#filters`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.read
+        ),
         parameters: [
           {
             name: 'page',
@@ -146,8 +201,13 @@ export class OpenApiCrudService {
     return {
       get: {
         summary: `List ${entityManifest.namePlural} for select options`,
-        description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'.`,
+        description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'. Used in the admin panel to fill select dropdowns.`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
+        security: [
+          {
+            Admin: []
+          }
+        ],
         responses: {
           '200': {
             description: `List of ${entityManifest.namePlural} for select options`,
@@ -190,6 +250,9 @@ export class OpenApiCrudService {
             }
           }
         },
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.create
+        ),
         responses: {
           '201': {
             description: `OK`
@@ -237,6 +300,9 @@ export class OpenApiCrudService {
                 }
               }
             ],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.read
+        ),
         responses: {
           '200': {
             description: `OK`,
@@ -300,6 +366,9 @@ export class OpenApiCrudService {
                 }
               }
             ],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.update
+        ),
         responses: {
           '200': {
             description: `OK`,
@@ -362,6 +431,9 @@ export class OpenApiCrudService {
                 }
               }
             ],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.update
+        ),
         responses: {
           '200': {
             description: `OK`,
@@ -405,6 +477,9 @@ export class OpenApiCrudService {
             }
           }
         ],
+        security: this.openApiUtilsService.getSecurityRequirements(
+          entityManifest.policies.delete
+        ),
         responses: {
           '200': {
             description: `OK`
@@ -415,5 +490,18 @@ export class OpenApiCrudService {
         }
       }
     }
+  }
+
+  /**
+   * Checks if the policies are not forbidden.
+   *
+   * @param policies - The policies to check.
+   *
+   * @returns True if none of the policies are forbidden, false otherwise.
+   */
+  isNotForbidden(policies: PolicyManifest[]): boolean {
+    return policies.every((policy) => {
+      return policy.access !== 'forbidden'
+    })
   }
 }

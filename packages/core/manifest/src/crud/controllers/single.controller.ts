@@ -35,6 +35,15 @@ export class SingleController {
     private readonly crudService: CrudService
   ) {}
 
+  /**
+   * Get a single item of a specific single type entity.
+   * If the item does not exist, it will create a new one.
+   *
+   * @param entitySlug The slug of the entity.
+   * @param req The request object.
+   *
+   * @returns The single item of the entity.
+   */
   @Get(':entity')
   @Rule('read')
   async findOne(
