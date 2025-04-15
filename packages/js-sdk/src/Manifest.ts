@@ -118,7 +118,10 @@ export default class Manifest extends BaseSDK {
    **/
   async findOneById<T>(id: number): Promise<T> {
     return this.fetch({
-      path: `/collections/${this.slug}/${id}`
+      path: `/collections/${this.slug}/${id}`,
+      queryParams: {
+        ...this.queryParams
+      }
     }) as Promise<T>
   }
 
@@ -211,8 +214,10 @@ export default class Manifest extends BaseSDK {
       }
     })) as { token: string }
 
-    if (!response.token) { return false }
-    
+    if (!response.token) {
+      return false
+    }
+
     this.headers['Authorization'] = `Bearer ${response.token}`
 
     return true
@@ -292,7 +297,12 @@ export default class Manifest extends BaseSDK {
       headers: this.headers,
       method: method || 'GET',
       body: body ? JSON.stringify(body) : undefined
-    }).then((res) => res.json())
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err)
+        return {}
+      })
   }
 
   /**

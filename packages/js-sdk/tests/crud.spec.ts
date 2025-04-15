@@ -115,6 +115,23 @@ describe('CRUD operations', () => {
 
       expect(item).toMatchObject(dummyResponse)
     })
+
+    it('should get an item by its id with relations', async () => {
+      const id: number = 1
+
+      fetchMock.mock(
+        `${collectionBaseUrl}/cats/${id}?relations=owner%2Cowner.company`,
+        dummyResponse
+      )
+
+      const manifest = new Manifest()
+      const item = await manifest
+        .from('cats')
+        .with(['owner', 'owner.company'])
+        .findOneById(id)
+
+      expect(item).toMatchObject(dummyResponse)
+    })
   })
 
   describe('Manage items', () => {
