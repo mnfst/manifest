@@ -1,5 +1,11 @@
 # @mnfst/sdk
 
+## 1.2.1
+
+### Patch Changes
+
+- 09a72f9: fix relations not loaded on findOne
+
 ## 1.2.0
 
 ### Minor Changes
