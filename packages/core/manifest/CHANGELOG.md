@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.4
+
+### Patch Changes
+
+- 960f1fc: Removed public access by default for CRUD operations, thanks @lexicality
+
 ## 4.11.3
 
 ### Patch Changes
