@@ -17,10 +17,15 @@ export class OpenApiUtilsService {
       .filter((policy) => policy.access !== 'public')
       .map((policy) => {
         if (policy.access === 'restricted') {
-          return policy.allow?.reduce((acc, entity) => {
-            acc[entity] = []
-            return acc
-          }, {})
+          return policy.allow?.reduce(
+            (acc, entity) => {
+              acc[entity] = []
+              return acc
+            },
+            {
+              Admin: []
+            }
+          )
         }
 
         return {
