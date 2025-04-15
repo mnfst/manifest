@@ -1,54 +1,37 @@
-name: My pet app
-
+name: Personal portfolio
 entities:
-  Cat 😺:
+  Project:
     properties:
-      - name
-      - { name: age, type: number, default: 30 }
-      - { name: birthdate, type: date }
-      - { name: acquiredAt, type: timestamp }
-      - { name: hiddenProp, type: boolean, default: true }
-      - { name: certificate, type: file }
-      - { name: photo, type: image }
-      - { name: description, type: richText, validation: { required: true } }
+      - { name: title, validation: { required: true } }
+      - { name: excerpt, validation: { required: true } }
+      - role
+      - { name: date, type: date }
+      - { name: url, type: link }
+      - {
+          name: photo,
+          type: image,
+          options:
+            {
+              sizes:
+                {
+                  small: { height: 403, width: 805 },
+                  social: { height: 630, width: 1200 },
+                  large: { height: 806, width: 1610 }
+                }
+            }
+        }
+      - { name: description, type: richText }
+      - seoTitle
+      - seoDescription
+    policies:
+      read:
+        - access: public
 
-    belongsTo:
-      - { name: owner, entity: User }
-
+  Contacts:
+    properties:
+      - { name: name, type: string, validation: { required: true } }
+      - { name: email, type: email, validation: { required: true } }
+      - { name: message, type: text, validation: { required: true } }
     policies:
       create:
         - access: public
-      update:
-        - { access: public }
-      delete:
-        - { access: 🔒, allow: [User] }
-
-  Food:
-    single: false
-    properties:
-      - name
-      - { name: expirationDate, type: date }
-    belongsToMany:
-      - { name: cats, entity: Cat }
-
-  User:
-    authenticable: true
-    properties:
-      - name
-
-  ContactPage:
-    single: true
-    nameSingular: Contact
-    slug: contact
-    properties:
-      - { name: title, type: string }
-      - { name: content, type: text }
-      - { name: image, type: image }
-    validation:
-      title: { required: true }
-
-endpoints:
-  createCat:
-    path: /cats
-    method: GET
-    handler: createCat

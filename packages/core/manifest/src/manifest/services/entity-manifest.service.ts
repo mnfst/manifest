@@ -30,8 +30,7 @@ import {
   AUTHENTICABLE_PROPS,
   DEFAULT_IMAGE_SIZES,
   DEFAULT_SEED_COUNT,
-  FORBIDDEN_ACCESS_POLICY,
-  PUBLIC_ACCESS_POLICY
+  FORBIDDEN_ACCESS_POLICY
 } from '../../constants'
 
 import { ManifestService } from './manifest.service'
@@ -257,24 +256,24 @@ export class EntityManifestService {
       policies: {
         create: this.policyService.transformPolicies(
           entitySchema.policies?.create,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         delete: this.policyService.transformPolicies(
           entitySchema.policies?.delete,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         signup: entitySchema.authenticable
           ? this.policyService.transformPolicies(
               entitySchema.policies?.signup,
-              PUBLIC_ACCESS_POLICY
+              ADMIN_ACCESS_POLICY
             )
           : [FORBIDDEN_ACCESS_POLICY]
       }
@@ -305,7 +304,7 @@ export class EntityManifestService {
         create: [FORBIDDEN_ACCESS_POLICY],
         read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
