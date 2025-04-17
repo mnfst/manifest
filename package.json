@@ -4,7 +4,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "test:ci": "turbo run test:ci",
+    "test:ci": "turbo run test:ci --no-cache",
     "lint": "turbo run lint",
     "seed": "cd packages/core/manifest && npm run seed",
     "prepare": "husky",

@@ -53,7 +53,6 @@ export class AuthController {
   }
 
   @Get(':entity/me')
-  @Rule('read')
   public async getCurrentUser(
     @Param('entity') _entity: string,
     @Req() req: Request

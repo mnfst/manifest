@@ -257,19 +257,19 @@ export class EntityManifestService {
       policies: {
         create: this.policyService.transformPolicies(
           entitySchema.policies?.create,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         update: this.policyService.transformPolicies(
           entitySchema.policies?.update,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         delete: this.policyService.transformPolicies(
           entitySchema.policies?.delete,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         signup: entitySchema.authenticable
           ? this.policyService.transformPolicies(
@@ -305,7 +305,7 @@ export class EntityManifestService {
         create: [FORBIDDEN_ACCESS_POLICY],
         read: this.policyService.transformPolicies(
           entitySchema.policies?.read,
-          PUBLIC_ACCESS_POLICY
+          ADMIN_ACCESS_POLICY
         ),
         update: this.policyService.transformPolicies(
           entitySchema.policies?.update,

@@ -1,5 +1,11 @@
 # add-manifest
 
+## 1.1.2
+
+### Patch Changes
+
+- 960f1fc: Removed public access by default for CRUD operations, thanks @lexicality
+
 ## 1.1.1
 
 ### Patch Changes

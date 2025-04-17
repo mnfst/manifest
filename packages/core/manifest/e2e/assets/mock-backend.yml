@@ -34,6 +34,15 @@ entities:
 
     belongsTo:
       - Owner
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   # Testing all default property types with the Sheep entity.
   Sheep:
@@ -59,6 +68,15 @@ entities:
 
     belongsTo:
       - Owner
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   # Testing policies with the Bird entity.
   Bird:
@@ -128,6 +146,15 @@ entities:
       model: { contains: "turbo" }
       brand: { minLength: 3, maxLength: 20 }
       year: { min: 2023, max: 2024, isOptional: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   SuperUser:
     authenticable: true
@@ -149,6 +176,15 @@ entities:
               isJSON: false
             }
         }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   # Testing relationships with the Post, Author, and Tags entities.
   Post:
@@ -159,32 +195,86 @@ entities:
       - Author
     belongsToMany:
       - Tag
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   Note:
     properties:
       - title
     belongsTo:
       - { name: author, entity: Author, eager: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   Tweet:
     properties:
       - text
     belongsToMany:
       - { name: customTagNames, entity: Tag, eager: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   Author:
     properties:
       - name
     belongsTo:
       - University
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   University:
     properties:
       - name
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   Tag:
     properties:
       - name
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   # Testing uploads
   Company:
@@ -215,17 +305,15 @@ entities:
       - { name: content, type: text }
     validation:
       title: { required: true }
-
-    # Testing single entity with the ContactPage entity.
-  AboutPage:
-    single: true
-    nameSingular: About content
-    slug: about-content
-    properties:
-      - { name: title, type: string }
-      - { name: content, type: text }
-    validation:
-      title: { required: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
 # Testing endpoints
 endpoints:

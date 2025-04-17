@@ -2,13 +2,20 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiEndpointService } from '../services/open-api.endpoint.service'
 import { EndpointManifest } from '../../../../types/src'
 import { API_PATH, ENDPOINTS_PATH } from '../../constants'
+import { OpenApiUtilsService } from '../services/open-api-utils.service'
 
 describe('OpenApiEndpointService', () => {
   let service: OpenApiEndpointService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OpenApiEndpointService]
+      providers: [
+        OpenApiEndpointService,
+        {
+          provide: OpenApiUtilsService,
+          useValue: { getSecurityRequirements: jest.fn() }
+        }
+      ]
     }).compile()
 
     service = module.get<OpenApiEndpointService>(OpenApiEndpointService)

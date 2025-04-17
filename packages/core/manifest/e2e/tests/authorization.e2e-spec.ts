@@ -31,10 +31,58 @@ describe('Authorization (e2e)', () => {
   })
 
   describe('Rules', () => {
-    it('should have public access by default', async () => {
+    it('should have admin access by default', async () => {
       const listResponse = await global.request.get('/collections/owners')
+      const createResponse = await global.request
+        .post('/collections/owners')
+        .send({
+          name: 'new owner'
+        })
+      const showResponse = await global.request.get('/collections/owners/1')
 
-      expect(listResponse.status).toBe(200)
+      const updateResponse = await global.request
+        .put('/collections/owners/1')
+        .send({
+          name: 'updated owner'
+        })
+      const deleteResponse = await global.request.delete(
+        '/collections/owners/1'
+      )
+
+      const adminListResponse = await global.request
+        .get('/collections/owners')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      const adminCreateResponse = await global.request
+        .post('/collections/owners')
+        .send({
+          name: 'new owner'
+        })
+        .set('Authorization', 'Bearer ' + adminToken)
+      const adminShowResponse = await global.request
+        .get('/collections/owners/1')
+        .set('Authorization', 'Bearer ' + adminToken)
+      const adminUpdateResponse = await global.request
+        .put('/collections/owners/1')
+        .send({
+          name: 'updated owner'
+        })
+        .set('Authorization', 'Bearer ' + adminToken)
+      const adminDeleteResponse = await global.request
+        .delete('/collections/owners/1')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      expect(listResponse.status).toBe(403)
+      expect(showResponse.status).toBe(403)
+      expect(createResponse.status).toBe(403)
+      expect(updateResponse.status).toBe(403)
+      expect(deleteResponse.status).toBe(403)
+
+      expect(adminListResponse.status).toBe(200)
+      expect(adminShowResponse.status).toBe(200)
+      expect(adminCreateResponse.status).toBe(201)
+      expect(adminUpdateResponse.status).toBe(200)
+      expect(adminDeleteResponse.status).toBe(200)
     })
 
     it('should allow access to public rules to everyone', async () => {
