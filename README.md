@@ -1,9 +1,3 @@
-<div align="center">
-🚀 Featured on HackerNews – join the momentum & give us a ⭐ if you like it!
-</div>
-
-<br>
-
 <p align="center">
   <a href="https://manifest.build/#gh-light-mode-only">
     <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - The 1-file micro-backend" />
@@ -116,7 +110,6 @@ Manifest is an MIT-licensed open-source project. If you find it useful and want 
 <h3 align="center">Sponsors</h3>
 
 [![Frame 1587](https://github.com/user-attachments/assets/5826d2d7-50d1-48e3-a32b-503569b90ebb)](https://opencollective.com/mnfst)
-
 
 <h3 align="center">Backed by</h3>
 

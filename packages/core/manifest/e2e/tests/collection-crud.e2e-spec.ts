@@ -1,4 +1,5 @@
 import { Paginator, SelectOption } from '@repo/types'
+import { DEFAULT_ADMIN_CREDENTIALS } from '../../src/constants'
 
 describe('Collection CRUD (e2e)', () => {
   const dummyDog = {
@@ -14,6 +15,14 @@ describe('Collection CRUD (e2e)', () => {
     favoriteToy: 'ball',
     location: { lat: 12, lng: 13 }
   }
+  let adminToken: string
+
+  beforeAll(async () => {
+    const adminLoginResponse = await global.request
+      .post('/auth/admins/login')
+      .send(DEFAULT_ADMIN_CREDENTIALS)
+    adminToken = adminLoginResponse.body.token
+  })
 
   describe('POST /collections/:entity', () => {
     it('should create an item', async () => {
@@ -89,13 +98,18 @@ describe('Collection CRUD (e2e)', () => {
   })
 
   describe('GET /collections/:entity/select-options', () => {
-    it('should get select options', async () => {
+    it('should get select options only if I am admin', async () => {
       const response = await global.request.get(
         '/collections/dogs/select-options'
       )
 
-      expect(response.status).toBe(200)
-      expect(response.body).toMatchObject<SelectOption[]>([
+      const adminResponse = await global.request
+        .get('/collections/dogs/select-options')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      expect(response.status).toBe(403)
+      expect(adminResponse.status).toBe(200)
+      expect(adminResponse.body).toMatchObject<SelectOption[]>([
         {
           label: dummyDog.name,
           id: 1
@@ -165,6 +179,7 @@ describe('Collection CRUD (e2e)', () => {
         .send({
           name: 'John Doe'
         })
+        .set('Authorization', 'Bearer ' + adminToken)
 
       const dogWithOwner = {
         name: 'Charlie',
@@ -174,6 +189,7 @@ describe('Collection CRUD (e2e)', () => {
       const createResponse = await global.request
         .post('/collections/dogs')
         .send(dogWithOwner)
+        .set('Authorization', 'Bearer ' + adminToken)
 
       expect(createResponse.status).toBe(201)
 
@@ -182,12 +198,13 @@ describe('Collection CRUD (e2e)', () => {
         .send({
           name: 'Charlie 2'
         })
+        .set('Authorization', 'Bearer ' + adminToken)
 
       expect(updateResponse.status).toBe(200)
 
-      const fetchResponse = await global.request.get(
-        `/collections/dogs/${createResponse.body.id}?relations=owner`
-      )
+      const fetchResponse = await global.request
+        .get(`/collections/dogs/${createResponse.body.id}?relations=owner`)
+        .set('Authorization', 'Bearer ' + adminToken)
 
       expect(fetchResponse.status).toBe(200)
       expect(fetchResponse.body?.owner?.id).toEqual(1)
