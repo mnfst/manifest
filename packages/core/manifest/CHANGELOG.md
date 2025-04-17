@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.5
+
+### Patch Changes
+
+- 6bf51d2: fix manifest:seed cmd failing on stackblitz
+
 ## 4.11.4
 
 ### Patch Changes
