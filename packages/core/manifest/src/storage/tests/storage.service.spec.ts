@@ -3,6 +3,8 @@ import { DEFAULT_IMAGE_SIZES } from '../../constants'
 import { ImageSizesObject } from '../../../../types/src'
 import { ConfigService } from '@nestjs/config'
 import { StorageService } from '../services/storage.service'
+import { S3Client, PutObjectCommand, PutObjectCommandOutput } from '@aws-sdk/client-s3'
+import { Command } from '@smithy/smithy-client';
 
 const fs = require('fs')
 const mkdirp = require('mkdirp')
@@ -190,6 +192,105 @@ describe('StorageService', () => {
       expect(uploadToS3Spy).toHaveBeenCalledTimes(2)
       expect(filePaths.tiny).toBe('s3-image-url')
       expect(filePaths.huge).toBe('s3-image-url')
+    })
+  })
+
+  describe('Supabase storage', () => {
+    beforeEach(() => {
+      file.originalname = 'file.jpg'
+      image.originalname = 'test.jpg'
+
+      jest.clearAllMocks()
+
+      jest.spyOn(configService, 'get').mockImplementation((key: string) => {
+        switch (key) {
+          case 'storage.s3Bucket':
+            return 'test-supabase-bucket'
+          case 'storage.s3Endpoint':
+            return 'https://xyz.supabase.co'
+          case 'storage.s3Region':
+            return 'us-west-1'
+          case 'storage.s3AccessKeyId':
+            return 'test-supabase-access-key-id'
+          case 'storage.s3SecretAccessKey':
+            return 'test-supabase-secret-access-key'
+          case 'storage.s3Provider':
+            return 'supabase'
+          default:
+            return null
+        }
+      })
+
+      // Mock S3Client and its send method
+      jest.spyOn(S3Client.prototype, 'send').mockImplementation(
+        async <InputType extends object, OutputType extends object>(
+          command: Command<InputType, OutputType, any>
+        ): Promise<OutputType> => {
+          // Check if the command is PutObjectCommand and return a mock PutObjectCommandOutput
+          if (command instanceof PutObjectCommand) {
+            return Promise.resolve({
+              $metadata: { httpStatusCode: 200 },
+              ETag: 'mock-etag',
+            } as PutObjectCommandOutput as OutputType);
+          }
+          // Return a generic metadata object for unhandled commands
+          return Promise.resolve({ $metadata: {} } as OutputType);
+        }
+      );
+
+      service = new StorageService(configService)
+    })
+
+    it('should initialize the S3 client for Supabase', () => {
+      expect(service['s3Client']).toBeDefined()
+      // Check if forcePathStyle is true for Supabase
+      expect(service['s3Client'].config.forcePathStyle).toBe(true)
+    })
+
+    it('should upload a file to Supabase', async () => {
+      const sendSpy = jest.spyOn(S3Client.prototype, 'send')
+
+      const filePath = await service.store(entity, property, file)
+      expect(sendSpy).toHaveBeenCalledWith(expect.any(PutObjectCommand))
+      // Expect Supabase URL format with date folder and unique ID
+      expect(filePath).toMatch(
+        new RegExp(
+          `^https://xyz\\.supabase\\.co/object/public/test-supabase-bucket/storage/${entity}/${property}/[A-Za-z]{3}\\d{4}/[a-z0-9]+-file\\.jpg$`
+        )
+      )
+    })
+
+    it('should upload an image to Supabase', async () => {
+      const sendSpy = jest.spyOn(S3Client.prototype, 'send')
+
+      const imageSizes: ImageSizesObject = {
+        tiny: {
+          height: 100
+        },
+        huge: {
+          width: 1000
+        }
+      }
+
+      const filePaths = await service.storeImage(
+        entity,
+        property,
+        image,
+        imageSizes
+      )
+      // Expect 2 calls, one for each size
+      expect(sendSpy).toHaveBeenCalledTimes(2)
+      // Expect Supabase URL format with date folder and unique ID
+      expect(filePaths.tiny).toMatch(
+        new RegExp(
+          `^https://xyz\\.supabase\\.co/object/public/test-supabase-bucket/storage/${entity}/${property}/[A-Za-z]{3}\\d{4}/[a-z0-9]+-tiny\\.jpg$`
+        )
+      )
+      expect(filePaths.huge).toMatch(
+        new RegExp(
+          `^https://xyz\\.supabase\\.co/object/public/test-supabase-bucket/storage/${entity}/${property}/[A-Za-z]{3}\\d{4}/[a-z0-9]+-huge\\.jpg$`
+        )
+      )
     })
   })
 })
