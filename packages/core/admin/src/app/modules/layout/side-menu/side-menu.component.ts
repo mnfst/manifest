@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core'
 import { AppManifest, EntityManifest } from '@repo/types'
 import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { ManifestService } from '../../shared/services/manifest.service'
-import { Title } from '@angular/platform-browser'
 
 @Component({
   selector: 'app-side-menu',
@@ -13,16 +12,11 @@ export class SideMenuComponent implements OnInit {
   collections: EntityManifest[]
   singles: EntityManifest[]
 
-  appName = 'Manifest'
-
   isCollectionsOpen = false
   isSettingsOpen = false
   production: boolean
 
-  constructor(
-    private manifestService: ManifestService,
-    private title: Title
-  ) {}
+  constructor(private manifestService: ManifestService) {}
 
   ngOnInit(): void {
     this.manifestService.getManifest().then((res: AppManifest) => {

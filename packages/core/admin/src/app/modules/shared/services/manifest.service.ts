@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { AppManifest, EntityManifest } from '@repo/types'
-import { firstValueFrom } from 'rxjs'
+import { filter, firstValueFrom, switchMap } from 'rxjs'
 import { environment } from '../../../../environments/environment'
+import { AuthService } from '../../auth/auth.service'
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,10 @@ import { environment } from '../../../../environments/environment'
 export class ManifestService {
   private manifestPromise: Promise<AppManifest> | null = null
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private authService: AuthService,
+    private http: HttpClient
+  ) {}
 
   /**
    * Gets the manifest. If the manifest has already been fetched, it returns the cached manifest.
@@ -20,8 +24,16 @@ export class ManifestService {
   getManifest(): Promise<AppManifest> {
     if (!this.manifestPromise) {
       this.manifestPromise = firstValueFrom(
-        this.http.get<AppManifest>(`${environment.apiBaseUrl}/manifest`)
-      )
+        this.authService.currentUser$.pipe(
+          filter((user) => !!user),
+          switchMap(() =>
+            this.http.get<AppManifest>(`${environment.apiBaseUrl}/manifest`)
+          )
+        )
+      ).catch((error) => {
+        this.manifestPromise = null
+        throw error
+      })
     }
     return this.manifestPromise
   }

@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnDestroy, OnInit } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 import { AuthService } from './modules/auth/auth.service'
-import { Admin } from './typescript/interfaces/admin.interface'
+import { TOKEN_KEY } from '../constants'
+import { Subscription } from 'rxjs'
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
-export class AppComponent implements OnInit {
-  currentUser: Admin
+export class AppComponent implements OnInit, OnDestroy {
   isLogin = true
+  private currentUserSubscription: Subscription
 
   constructor(
     private authService: AuthService,
@@ -24,16 +25,20 @@ export class AppComponent implements OnInit {
           routeChanged.url.includes('/auth/login') ||
           routeChanged.url.includes('/auth/welcome')
 
-        if (this.isLogin) {
-          this.currentUser = null
-        } else {
-          if (!this.currentUser) {
-            this.authService.me().then((user) => {
-              this.currentUser = user
-            })
+        this.currentUserSubscription = this.authService.currentUser$.subscribe(
+          (admin) => {
+            if (!admin && localStorage.getItem(TOKEN_KEY)) {
+              this.authService.loadCurrentUser().subscribe()
+            }
           }
-        }
+        )
       }
     })
+  }
+
+  ngOnDestroy(): void {
+    if (this.currentUserSubscription) {
+      this.currentUserSubscription.unsubscribe()
+    }
   }
 }
