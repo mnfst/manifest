@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.7
+
+### Patch Changes
+
+- 7fcb7af: fix error on watching changes
+
 ## 4.11.6
 
 ### Patch Changes
