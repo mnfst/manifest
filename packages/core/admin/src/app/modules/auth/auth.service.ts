@@ -1,7 +1,15 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { Router } from '@angular/router'
-import { firstValueFrom } from 'rxjs'
+import {
+  BehaviorSubject,
+  catchError,
+  firstValueFrom,
+  Observable,
+  of,
+  tap,
+  throwError
+} from 'rxjs'
 import { TOKEN_KEY } from '../../../constants'
 import { environment } from '../../../environments/environment'
 import { Admin } from '../../typescript/interfaces/admin.interface'
@@ -11,7 +19,12 @@ import { FlashMessageService } from '../shared/services/flash-message.service'
   providedIn: 'root'
 })
 export class AuthService {
-  private currentUserPromise: Promise<Admin> | null = null
+  private currentUserSubject: BehaviorSubject<Admin> =
+    new BehaviorSubject<Admin>(null)
+  public currentUser$: Observable<Admin> =
+    this.currentUserSubject.asObservable()
+
+  private isUserLoaded = false
 
   constructor(
     private http: HttpClient,
@@ -73,28 +86,45 @@ export class AuthService {
   }
 
   logout(): void {
-    delete this.currentUserPromise
+    this.currentUserSubject.next(null)
     localStorage.removeItem(TOKEN_KEY)
+    this.isUserLoaded = false
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem(TOKEN_KEY)
+    return !!this.currentUserSubject.value
   }
 
-  async me(): Promise<Admin> {
-    if (!this.currentUserPromise) {
-      this.currentUserPromise = firstValueFrom(
-        this.http.get(`${environment.apiBaseUrl}/auth/admins/me`)
-      ).catch(() => {
-        this.logout()
-        this.router.navigate(['/auth/login'])
-        this.flashMessageService.error(
-          'You must be logged in to view that page.'
-        )
-      }) as Promise<Admin>
+  loadCurrentUser(): Observable<Admin> {
+    if (this.isUserLoaded) {
+      return of(this.currentUserSubject.value)
     }
 
-    return this.currentUserPromise
+    return this.http
+      .get<Admin>(`${environment.apiBaseUrl}/auth/admins/me`)
+      .pipe(
+        tap((user: Admin) => {
+          this.isUserLoaded = true
+          this.currentUserSubject.next(user)
+        }),
+        catchError((error) => {
+          this.logout()
+          this.router.navigate(['/auth/login'])
+          this.flashMessageService.error(
+            'You must be logged in to view that page.'
+          )
+          return throwError(() => error)
+        })
+      )
+  }
+
+  /**
+   * Returns the current user without subscribing to the observable.
+   *
+   * @returns {Admin} The current user
+   */
+  public getCurrentUserValue(): Admin {
+    return this.currentUserSubject.value
   }
 
   /**

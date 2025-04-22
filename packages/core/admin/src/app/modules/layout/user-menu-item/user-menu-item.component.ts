@@ -1,6 +1,7 @@
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core'
 import { Admin } from '../../../typescript/interfaces/admin.interface'
 import { AuthService } from '../../auth/auth.service'
+import { filter } from 'rxjs'
 
 @Component({
   selector: 'app-user-menu-item',
@@ -17,9 +18,11 @@ export class UserMenuItemComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.authService.me().then((admin: Admin) => {
-      this.currentUser = admin
-    })
+    this.authService.currentUser$
+      .pipe(filter((admin) => !!admin))
+      .subscribe((admin: Admin) => {
+        this.currentUser = admin
+      })
   }
 
   @HostListener('document:click', ['$event.target'])
