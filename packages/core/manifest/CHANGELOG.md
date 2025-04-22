@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.6
+
+### Patch Changes
+
+- d481786: fixed empty admin panel if user not loaded yet
+
 ## 4.11.5
 
 ### Patch Changes
