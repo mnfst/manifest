@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.8
+
+### Patch Changes
+
+- 2e79a19: display app name on admin login and register page
+
 ## 4.11.7
 
 ### Patch Changes
