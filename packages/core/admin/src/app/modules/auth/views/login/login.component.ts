@@ -7,6 +7,7 @@ import { PropType } from '@repo/types'
 
 import { AuthService } from '../../auth.service'
 import { DEFAULT_ADMIN_CREDENTIALS } from '../../../../../constants'
+import { ManifestService } from '../../../shared/services/manifest.service'
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,8 @@ import { DEFAULT_ADMIN_CREDENTIALS } from '../../../../../constants'
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
+  appName: string
+
   suggestedEmail: string
   suggestedPassword: string
 
@@ -24,10 +27,16 @@ export class LoginComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private manifestService: ManifestService
   ) {}
 
   ngOnInit(): void {
+    // Get app name from manifest.
+    this.manifestService.getAppName().then((name) => {
+      this.appName = name
+    })
+
     this.activatedRoute.queryParams.subscribe(async (queryParams: Params) => {
       // Set suggested email and password from query params or default admin credentials.
       if (queryParams['email'] && queryParams['password']) {

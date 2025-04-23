@@ -39,6 +39,23 @@ export class ManifestService {
   }
 
   /**
+   * Gets the app name
+   *
+   * @returns A Promise of the app name.
+   */
+  async getAppName(): Promise<string> {
+    return firstValueFrom(
+      this.http.get<{ name: string }>(
+        `${environment.apiBaseUrl}/manifest/app-name`
+      )
+    )
+      .then((response) => response.name)
+      .catch((error) => {
+        throw error
+      })
+  }
+
+  /**
    * Gets the manifest for a specific entity.
    *
    * @param entitySlug The slug of the entity.

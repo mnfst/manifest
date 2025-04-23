@@ -11,7 +11,6 @@ describe('ManifestController', () => {
   let controller: ManifestController
   let authService: AuthService
   let manifestService: ManifestService
-  let entityManifestService: EntityManifestService
 
   const dummyManifest: AppManifest = {
     name: 'Test App'
@@ -50,17 +49,19 @@ describe('ManifestController', () => {
     controller = module.get<ManifestController>(ManifestController)
     authService = module.get<AuthService>(AuthService)
     manifestService = module.get<ManifestService>(ManifestService)
-    entityManifestService = module.get<EntityManifestService>(
-      EntityManifestService
-    )
   })
 
   it('should be defined', () => {
     expect(controller).toBeDefined()
   })
 
+  it('should get the app name', async () => {
+    const appName: { name: string } = await controller.getAppName()
+    expect(appName).toEqual({ name: dummyManifest.name })
+  })
+
   it('should get the app manifest', async () => {
-    const manifest: any = await controller.getAppManifest({} as Request)
+    const manifest: any = await controller.getAppManifest()
 
     expect(manifest).toEqual(dummyManifest)
   })
@@ -68,7 +69,7 @@ describe('ManifestController', () => {
   it('should get the full version of the app manifest if the user is an admin', async () => {
     jest.spyOn(authService, 'isReqUserAdmin').mockResolvedValue(true)
 
-    const manifest: any = await controller.getAppManifest({} as Request)
+    const manifest: any = await controller.getAppManifest()
 
     expect(manifest).toEqual(dummyManifest)
     expect(manifestService.getAppManifest).toHaveBeenCalledWith({

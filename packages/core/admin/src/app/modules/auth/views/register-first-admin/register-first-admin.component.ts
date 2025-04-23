@@ -5,6 +5,7 @@ import { confirmPasswordValidator } from '../../utlis/confirm-password-validator
 import { AuthService } from '../../auth.service'
 import { Router } from '@angular/router'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
+import { ManifestService } from '../../../shared/services/manifest.service'
 
 @Component({
   selector: 'app-register-first-admin',
@@ -12,16 +13,24 @@ import { FlashMessageService } from '../../../shared/services/flash-message.serv
   styleUrl: './register-first-admin.component.scss'
 })
 export class RegisterFirstAdminComponent implements OnInit {
+  appName: string
+
   form: FormGroup
   PropType = PropType
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private flashMessageService: FlashMessageService
+    private flashMessageService: FlashMessageService,
+    private manifestService: ManifestService
   ) {}
 
   ngOnInit(): void {
+    // Get app name from manifest.
+    this.manifestService.getAppName().then((name) => {
+      this.appName = name
+    })
+
     this.form = new FormGroup({
       email: new FormControl('', [Validators.required, Validators.email]),
       password: new FormControl('', [Validators.required]),
