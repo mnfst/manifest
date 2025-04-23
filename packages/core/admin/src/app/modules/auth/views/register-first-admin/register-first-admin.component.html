@@ -4,17 +4,12 @@
       <div class="columns">
         <div class="column col-welcome">
           <div class="register-wrap">
-            <img
-              src="/assets/images/logo.svg"
-              alt="manifest logo"
-              class="mb-3"
-              width="264"
-            />
             <div class="card is-bordered">
               <div class="card-content">
                 <div class="content">
-                  <h2 class="title is-2 has-text-weight-bold">Welcome</h2>
-
+                  <h1 class="is-size-3 has-text-weight-bold my-3">
+                    {{ ' {{ ' }}appName{{ ' }} ' }}
+                  </h1>
                   <p class="is-size-5">
                     Welcome to your admin panel. Create your first admin account
                     to continue. You can always change those values later.
@@ -66,6 +61,17 @@
                   </button>
                 </div>
               </div>
+            </div>
+            <div
+              class="is-flex is-align-items-center is-justify-content-flex-end my-3"
+            >
+              <span style="margin-top: 9px">Built with</span>
+              <img
+                src="/assets/images/logo.svg"
+                alt="manifest logo"
+                class="ml-3"
+                width="94"
+              />
             </div>
           </div>
         </div>
