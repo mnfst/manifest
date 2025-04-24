@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.9
+
+### Patch Changes
+
+- 73aeba2: prevent nodemon to reload when db change
+
 ## 4.11.8
 
 ### Patch Changes
