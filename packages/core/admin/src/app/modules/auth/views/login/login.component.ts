@@ -31,7 +31,13 @@ export class LoginComponent implements OnInit {
     private manifestService: ManifestService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    const isDbEmpty = await this.authService.isDbEmpty()
+
+    if (isDbEmpty) {
+      this.router.navigate(['/auth/welcome'])
+    }
+
     // Get app name from manifest.
     this.manifestService.getAppName().then((name) => {
       this.appName = name
@@ -57,11 +63,6 @@ export class LoginComponent implements OnInit {
           Validators.required
         ])
       })
-
-      // Redirect to register first admin if the database is empty.
-      if (await this.authService.isDbEmpty()) {
-        this.router.navigate(['/auth/welcome'])
-      }
     })
   }
 
