@@ -1,8 +1,8 @@
-<section class="hero is-fullheight">
+<section class="hero is-fullheight" *ngIf="appName">
   <div class="hero-body">
     <div class="container has-text-centered">
       <div class="columns">
-        <div class="column col-login" *ngIf="appName">
+        <div class="column col-login">
           <div>
             <h1 class="is-size-3 has-text-weight-bold">
               {{ appName }}
