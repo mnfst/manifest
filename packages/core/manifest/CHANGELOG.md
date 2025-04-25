@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.10
+
+### Patch Changes
+
+- 111efd4: added --mountedDrive arg to manifest command to prevent watch issues on integrations
+
 ## 4.11.9
 
 ### Patch Changes
