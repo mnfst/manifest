@@ -23,9 +23,14 @@ const nodemonPath = isPnpm
     )
   : path.join(process.cwd(), 'node_modules', '.bin', nodemonExecutable)
 
+// Check if --mountedDrive argument is present to switch the config file.
+// This is used to avoid issues with file watching when running nodemon from a mounted drive (e.g., Stackblitz, Webcontainers...) .
+const isMountedDrive = process.argv.includes('--mountedDrive')
+const configFile = isMountedDrive ? 'nodemon-mounted.json' : 'nodemon.json'
+
 const nodemon = spawn(
   nodemonPath,
-  ['.', '--config', `${__dirname}/nodemon.json`],
+  ['.', '--config', `${__dirname}/${configFile}`],
   {
     stdio: 'inherit',
     shell: true
