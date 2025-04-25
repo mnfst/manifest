@@ -1,0 +1,14 @@
+{
+  "watch": ["manifest/*.yml", "manifest/handlers/*.js"],
+  "ext": "yml,js",
+  "exec": "node node_modules/manifest/dist/manifest/src/main.js",
+  "legacyWatch": true,
+  "ignore": [
+    "*.lock",
+    "**/*.lock",
+    "*.db",
+    "**/*.db",
+    "*.db-journal",
+    "**/*.db-journal"
+  ]
+}
