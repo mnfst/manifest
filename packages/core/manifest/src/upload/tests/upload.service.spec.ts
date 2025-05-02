@@ -76,6 +76,38 @@ describe('UploadService', () => {
 
       expect(storageService.store).toHaveBeenCalledWith(entity, property, file)
     })
+
+    it('should throw an error if no file, no entity or no property provided', async () => {
+      expect(async () => {
+        await service.storeFile({
+          file: null as any,
+          entity: 'entity',
+          property: 'property'
+        })
+      }).rejects.toThrow()
+
+      expect(async () => {
+        await service.storeFile({
+          file: {
+            buffer: Buffer.from('file content'),
+            originalname: 'file.txt'
+          },
+          entity: null,
+          property: 'property'
+        })
+      }).rejects.toThrow()
+
+      expect(async () => {
+        await service.storeFile({
+          file: {
+            buffer: Buffer.from('file content'),
+            originalname: 'file.txt'
+          },
+          entity: 'entity',
+          property: null
+        })
+      }).rejects.toThrow()
+    })
   })
 
   describe('store image', () => {
@@ -118,6 +150,37 @@ describe('UploadService', () => {
           property: 'not-an-image'
         })
       ).toThrow()
+    })
+
+    it('should throw an error if no file, no entity or no property provided', async () => {
+      const image = {
+        buffer: Buffer.from('image content'),
+        originalname: 'image.jpg'
+      }
+
+      expect(async () => {
+        await service.storeImage({
+          image: null as any,
+          entity: 'entity',
+          property: 'property'
+        })
+      }).rejects.toThrow()
+
+      expect(async () => {
+        await service.storeImage({
+          image,
+          entity: null,
+          property: 'property'
+        })
+      }).rejects.toThrow()
+
+      expect(async () => {
+        await service.storeImage({
+          image,
+          entity: 'entity',
+          property: null
+        })
+      }).rejects.toThrow()
     })
   })
 })
