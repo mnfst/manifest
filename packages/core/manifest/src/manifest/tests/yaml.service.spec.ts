@@ -56,6 +56,24 @@ describe('YamlService', () => {
 
       expect(remoteAppSchema).toEqual(dummyRemoteAppSchema)
     })
+
+    it('should throw an error if it cannot load the manifest file', async () => {
+      // Mock fetch error.
+      ;(global.fetch as jest.Mock).mockImplementation(() =>
+        Promise.reject('Error')
+      )
+
+      expect(async () => {
+        await service.loadManifestFromUrl('wrong')
+      }).rejects.toThrow()
+
+      // Reset
+      ;(global.fetch as jest.Mock).mockImplementation(() =>
+        Promise.resolve({
+          text: () => Promise.resolve(JSON.stringify(dummyRemoteAppSchema))
+        })
+      )
+    })
   })
 
   describe('ignore emojis', () => {
@@ -89,6 +107,16 @@ describe('YamlService', () => {
       const result = service.interpolateDotEnvVariables('test ${ TEST }')
 
       expect(result).toBe('test test')
+    })
+
+    it('should console warn when env var is undefined', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+      service.interpolateDotEnvVariables('test ${UNDEFINED_ENV_VAR}')
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('not defined')
+      )
     })
   })
 })

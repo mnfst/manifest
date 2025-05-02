@@ -51,11 +51,9 @@ export class YamlService {
    *
    **/
   async loadManifestFromUrl(url: string): Promise<string> {
-    const response = await fetch(url)
-
-    if (!response) {
+    const response = await fetch(url).catch(() => {
       throw new Error(`Failed to fetch the manifest from ${url}`)
-    }
+    })
 
     const text = await response.text()
 
