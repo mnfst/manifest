@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -126,10 +128,19 @@ export class CollectionController {
 
   @Delete(':entity/:id')
   @Rule('delete')
-  delete(
+  async delete(
     @Param('entity') entity: string,
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request
   ): Promise<BaseEntity> {
+    const user = await this.authService.getUserFromRequest(req)
+    const isAdmin: boolean = await this.authService.isReqUserAdmin(req)
+    if (isAdmin && user.user.id === id) {
+      throw new HttpException(
+        'An admin cannot delete itself.',
+        HttpStatus.FORBIDDEN
+      )
+    }
     return this.crudService.delete(entity, id)
   }
 }
