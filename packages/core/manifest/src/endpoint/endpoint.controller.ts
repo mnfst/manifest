@@ -21,7 +21,7 @@ import { HandlerService } from '../handler/handler.service'
 export class EndpointController {
   constructor(private readonly handlerService: HandlerService) {}
 
-  @Get('*')
+  @Get('*splat')
   @Rule('dynamic-endpoint') // The dynamic-endpoint rule is based on policies individually set for each endpoint.
   triggerGetEndpoint(
     @Req() req: Request,
@@ -30,7 +30,7 @@ export class EndpointController {
     return this.handleRoute(req, res)
   }
 
-  @Post('*')
+  @Post('*splat')
   @Rule('dynamic-endpoint')
   triggerPostEndpoint(
     @Req() req: Request,
@@ -39,7 +39,7 @@ export class EndpointController {
     return this.handleRoute(req, res)
   }
 
-  @Put('*')
+  @Put('*splat')
   @Rule('dynamic-endpoint')
   triggerPutEndpoint(
     @Req() req: Request,
@@ -48,7 +48,7 @@ export class EndpointController {
     return this.handleRoute(req, res)
   }
 
-  @Patch('*')
+  @Patch('*splat')
   @Rule('dynamic-endpoint')
   triggerPatchEndpoint(
     @Req() req: Request,
@@ -57,7 +57,7 @@ export class EndpointController {
     return this.handleRoute(req, res)
   }
 
-  @Delete('*')
+  @Delete('*splat')
   @Rule('dynamic-endpoint')
   triggerDeleteEndpoint(
     @Req() req: Request,
