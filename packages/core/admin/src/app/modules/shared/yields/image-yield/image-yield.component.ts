@@ -5,10 +5,9 @@ import { ImageSizesObject } from '@repo/types'
 import { getSmallestImageSize } from '@repo/common'
 
 @Component({
-  selector: 'app-image-yield',
-  standalone: true,
-  imports: [NgIf],
-  template: `
+    selector: 'app-image-yield',
+    imports: [NgIf],
+    template: `
     <img [src]="image" alt="image" *ngIf="image" width="36" height="36" />
     <span *ngIf="!image">-</span>
   `

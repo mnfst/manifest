@@ -32,7 +32,6 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
 
 @Component({
   selector: 'app-input',
-  standalone: true,
   imports: [
     CommonModule,
     BooleanInputComponent,
@@ -188,7 +187,8 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
     <ul *ngIf="errors?.length">
       <li *ngFor="let error of errors" class="has-text-danger">{{ error }}</li>
     </ul>
-  `
+  `,
+  standalone: true
 })
 export class InputComponent implements OnChanges {
   @Input() prop: PropertyManifest

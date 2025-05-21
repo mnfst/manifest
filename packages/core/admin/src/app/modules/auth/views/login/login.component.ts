@@ -10,9 +10,10 @@ import { DEFAULT_ADMIN_CREDENTIALS } from '../../../../../constants'
 import { ManifestService } from '../../../shared/services/manifest.service'
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.scss'],
+    standalone: false
 })
 export class LoginComponent implements OnInit {
   appName: string

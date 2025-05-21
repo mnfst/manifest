@@ -13,10 +13,9 @@ import { NgClass, NgIf } from '@angular/common'
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-file-input',
-  standalone: true,
-  imports: [NgIf, NgClass],
-  templateUrl: './file-input.component.html'
+    selector: 'app-file-input',
+    imports: [NgIf, NgClass],
+    templateUrl: './file-input.component.html'
 })
 export class FileInputComponent {
   @Input() prop: PropertyManifest

@@ -11,10 +11,9 @@ import {
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-date-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-date-input',
+    imports: [NgClass],
+    template: `<label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input"
       [ngClass]="{ 'is-danger': isError }"
@@ -23,7 +22,7 @@ import { PropertyManifest } from '@repo/types'
       (change)="onChange($event)"
       #input
     />`,
-  styleUrls: ['./date-input.component.scss']
+    styleUrls: ['./date-input.component.scss']
 })
 export class DateInputComponent implements OnInit {
   @Input() prop: PropertyManifest

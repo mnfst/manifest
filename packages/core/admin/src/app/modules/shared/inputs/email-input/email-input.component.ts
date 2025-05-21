@@ -11,10 +11,9 @@ import {
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-email-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `
+    selector: 'app-email-input',
+    imports: [NgClass],
+    template: `
     <label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input"
@@ -26,7 +25,7 @@ import { PropertyManifest } from '@repo/types'
       #input
     />
   `,
-  styleUrls: ['./email-input.component.scss']
+    styleUrls: ['./email-input.component.scss']
 })
 export class EmailInputComponent implements OnInit {
   @Input() prop: PropertyManifest

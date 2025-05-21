@@ -5,9 +5,10 @@ import { ManifestService } from '../../modules/shared/services/manifest.service'
 import { MetaService } from '../../modules/shared/services/meta.service'
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.scss'],
+    standalone: false
 })
 export class HomeComponent implements OnInit {
   appManifest: AppManifest

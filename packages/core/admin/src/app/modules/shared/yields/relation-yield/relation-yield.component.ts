@@ -5,17 +5,16 @@ import { EntityManifest, RelationshipManifest } from '@repo/types'
 import { ManifestService } from '../../services/manifest.service'
 
 @Component({
-  selector: 'app-relation-yield',
-  standalone: true,
-  imports: [RouterModule, CommonModule],
-  template: ` <a
+    selector: 'app-relation-yield',
+    imports: [RouterModule, CommonModule],
+    template: ` <a
       [routerLink]="['/', 'collections', entityManifest.slug, item.id]"
       *ngIf="item && entityManifest"
     >
       <span>{{ item[entityManifest.mainProp] }}</span>
     </a>
     <span *ngIf="!item || !entityManifest">-</span>`,
-  styleUrls: ['./relation-yield.component.scss']
+    styleUrls: ['./relation-yield.component.scss']
 })
 export class RelationYieldComponent implements OnInit {
   entityManifest: EntityManifest

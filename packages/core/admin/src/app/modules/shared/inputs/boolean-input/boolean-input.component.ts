@@ -11,7 +11,6 @@ import { PropertyManifest } from '@repo/types'
 
 @Component({
   selector: 'app-boolean-input',
-  standalone: true,
   imports: [NgClass, NgIf],
   template: `
     <div class="control mt-7 mb-4">

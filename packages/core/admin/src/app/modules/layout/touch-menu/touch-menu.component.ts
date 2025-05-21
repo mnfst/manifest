@@ -2,9 +2,10 @@ import { Component, Renderer2 } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 
 @Component({
-  selector: 'app-touch-menu',
-  templateUrl: './touch-menu.component.html',
-  styleUrls: ['./touch-menu.component.scss']
+    selector: 'app-touch-menu',
+    templateUrl: './touch-menu.component.html',
+    styleUrls: ['./touch-menu.component.scss'],
+    standalone: false
 })
 export class TouchMenuComponent {
   isOpen = false

@@ -11,10 +11,9 @@ import {
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-textarea-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-textarea-input',
+    imports: [NgClass],
+    template: `<label [for]="prop.name">{{ prop.name }}</label>
     <textarea
       class="textarea"
       [ngClass]="{ 'is-danger': isError }"
@@ -23,7 +22,7 @@ import { PropertyManifest } from '@repo/types'
       [name]="prop.name"
     >
     </textarea> `,
-  styleUrls: ['./textarea-input.component.scss']
+    styleUrls: ['./textarea-input.component.scss']
 })
 export class TextareaInputComponent implements OnInit {
   @Input() prop: PropertyManifest

@@ -12,7 +12,6 @@ import { PropertyManifest } from '@repo/types'
 
 @Component({
   selector: 'app-currency-input',
-  standalone: true,
   imports: [NgClass],
   template: ` <label [for]="prop.name">{{ prop.name }}</label>
     <p class="control has-icons-left">

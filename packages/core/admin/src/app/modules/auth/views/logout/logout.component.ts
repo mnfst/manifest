@@ -4,7 +4,8 @@ import { Router } from '@angular/router'
 import { AuthService } from '../../auth.service'
 
 @Component({
-  template: 'NO UI TO BE FOUND HERE!'
+    template: 'NO UI TO BE FOUND HERE!',
+    standalone: false
 })
 export class LogoutComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) {}

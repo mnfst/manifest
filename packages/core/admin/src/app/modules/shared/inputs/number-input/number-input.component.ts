@@ -11,10 +11,9 @@ import {
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-number-input',
-  standalone: true,
-  imports: [NgClass],
-  template: ` <label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-number-input',
+    imports: [NgClass],
+    template: ` <label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input form-control"
       [ngClass]="{ 'is-danger': isError }"
@@ -23,7 +22,7 @@ import { PropertyManifest } from '@repo/types'
       step="1"
       #input
     />`,
-  styleUrls: ['./number-input.component.scss']
+    styleUrls: ['./number-input.component.scss']
 })
 export class NumberInputComponent implements OnInit {
   @Input() prop: PropertyManifest

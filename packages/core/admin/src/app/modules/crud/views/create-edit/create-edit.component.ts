@@ -20,9 +20,10 @@ import { CrudService } from '../../services/crud.service'
 import { MetaService } from '../../../shared/services/meta.service'
 
 @Component({
-  selector: 'app-create-edit',
-  templateUrl: './create-edit.component.html',
-  styleUrls: ['./create-edit.component.scss']
+    selector: 'app-create-edit',
+    templateUrl: './create-edit.component.html',
+    styleUrls: ['./create-edit.component.scss'],
+    standalone: false
 })
 export class CreateEditComponent {
   item: any

@@ -15,10 +15,9 @@ import { NgClass, NgIf } from '@angular/common'
 import { getSmallestImageSize } from '@repo/common'
 
 @Component({
-  selector: 'app-image-input',
-  standalone: true,
-  imports: [NgIf, NgClass],
-  templateUrl: './image-input.component.html'
+    selector: 'app-image-input',
+    imports: [NgIf, NgClass],
+    templateUrl: './image-input.component.html'
 })
 export class ImageInputComponent implements OnInit {
   @Input() prop: PropertyManifest

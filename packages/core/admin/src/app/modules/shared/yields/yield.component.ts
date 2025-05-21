@@ -18,25 +18,24 @@ import { ImageYieldComponent } from './image-yield/image-yield.component'
 import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.component'
 
 @Component({
-  selector: 'app-yield',
-  standalone: true,
-  imports: [
-    CommonModule,
-    BooleanYieldComponent,
-    CurrencyYieldComponent,
-    DateYieldComponent,
-    TimestampYieldComponent,
-    EmailYieldComponent,
-    NumberYieldComponent,
-    LinkYieldComponent,
-    TextYieldComponent,
-    LabelYieldComponent,
-    ProgressBarYieldComponent,
-    LocationYieldComponent,
-    ImageYieldComponent,
-    RichTextYieldComponent
-  ],
-  template: `
+    selector: 'app-yield',
+    imports: [
+        CommonModule,
+        BooleanYieldComponent,
+        CurrencyYieldComponent,
+        DateYieldComponent,
+        TimestampYieldComponent,
+        EmailYieldComponent,
+        NumberYieldComponent,
+        LinkYieldComponent,
+        TextYieldComponent,
+        LabelYieldComponent,
+        ProgressBarYieldComponent,
+        LocationYieldComponent,
+        ImageYieldComponent,
+        RichTextYieldComponent
+    ],
+    template: `
     <app-text-yield
       *ngIf="prop.type === PropType.String || prop.type === PropType.Text"
       [value]="value"

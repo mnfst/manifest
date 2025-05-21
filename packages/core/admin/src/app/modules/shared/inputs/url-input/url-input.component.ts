@@ -12,10 +12,9 @@ import { NgClass } from '@angular/common'
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-url-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-url-input',
+    imports: [NgClass],
+    template: `<label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input form-control"
       [ngClass]="{ 'is-danger': isError }"
@@ -24,7 +23,7 @@ import { PropertyManifest } from '@repo/types'
       (change)="onChange($event)"
       #input
     />`,
-  styleUrls: ['./url-input.component.scss']
+    styleUrls: ['./url-input.component.scss']
 })
 export class UrlInputComponent implements OnInit {
   @Input() prop: PropertyManifest

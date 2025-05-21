@@ -11,10 +11,9 @@ import {
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-text-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-text-input',
+    imports: [NgClass],
+    template: `<label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input form-control"
       [ngClass]="{ 'is-danger': isError }"
@@ -22,7 +21,7 @@ import { PropertyManifest } from '@repo/types'
       (change)="onChange($event)"
       #input
     />`,
-  styleUrls: ['./text-input.component.scss']
+    styleUrls: ['./text-input.component.scss']
 })
 export class TextInputComponent implements OnInit {
   @Input() prop: PropertyManifest

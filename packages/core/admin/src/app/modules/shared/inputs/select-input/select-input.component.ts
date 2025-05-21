@@ -19,10 +19,9 @@ import { CrudService } from '../../../crud/services/crud.service'
 import { ManifestService } from '../../services/manifest.service'
 
 @Component({
-  selector: 'app-select-input',
-  standalone: true,
-  imports: [ReactiveFormsModule, NgClass, NgFor],
-  template: `
+    selector: 'app-select-input',
+    imports: [ReactiveFormsModule, NgClass, NgFor],
+    template: `
     <div [formGroup]="form">
       <label [for]="label">{{ label }}</label>
       <div class="control">
@@ -41,7 +40,7 @@ import { ManifestService } from '../../services/manifest.service'
       </div>
     </div>
   `,
-  styleUrls: ['./select-input.component.scss']
+    styleUrls: ['./select-input.component.scss']
 })
 export class SelectInputComponent implements OnInit {
   @Input() prop: PropertyManifest

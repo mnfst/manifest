@@ -4,9 +4,10 @@ import { AuthService } from '../../auth/auth.service'
 import { filter } from 'rxjs'
 
 @Component({
-  selector: 'app-user-menu-item',
-  templateUrl: './user-menu-item.component.html',
-  styleUrls: ['./user-menu-item.component.scss']
+    selector: 'app-user-menu-item',
+    templateUrl: './user-menu-item.component.html',
+    styleUrls: ['./user-menu-item.component.scss'],
+    standalone: false
 })
 export class UserMenuItemComponent implements OnInit {
   currentUser: Admin

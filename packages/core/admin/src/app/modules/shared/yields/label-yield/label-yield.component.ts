@@ -1,11 +1,9 @@
-import { CommonModule } from '@angular/common'
+import { NgIf } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
-import { TruncatePipe } from '../../pipes/truncate.pipe'
 
 @Component({
   selector: 'app-label-yield',
-  standalone: true,
-  imports: [CommonModule, TruncatePipe],
+  imports: [NgIf],
   template: ` <span class="tag is-rounded is-color-{{ index }}" *ngIf="value">{{
       value
     }}</span>

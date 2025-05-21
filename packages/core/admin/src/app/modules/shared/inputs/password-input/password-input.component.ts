@@ -11,10 +11,9 @@ import {
 import { PropertyManifest } from '@repo/types'
 
 @Component({
-  selector: 'app-password-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-password-input',
+    imports: [NgClass],
+    template: `<label [for]="prop.name">{{ prop.name }}</label>
     <input
       class="input form-control"
       [ngClass]="{ 'is-danger': isError }"
@@ -24,7 +23,7 @@ import { PropertyManifest } from '@repo/types'
       (change)="onChange($event)"
       #input
     />`,
-  styleUrls: ['./password-input.component.scss']
+    styleUrls: ['./password-input.component.scss']
 })
 export class PasswordInputComponent implements OnInit {
   @Input() prop: PropertyManifest

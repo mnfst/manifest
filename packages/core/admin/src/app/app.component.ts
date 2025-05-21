@@ -5,8 +5,9 @@ import { TOKEN_KEY } from '../constants'
 import { Subscription } from 'rxjs'
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html'
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    standalone: false
 })
 export class AppComponent implements OnInit, OnDestroy {
   isLogin = true

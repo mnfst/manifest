@@ -6,10 +6,9 @@ import { PropertyManifest } from '@repo/types'
 import { QuillModule } from 'ngx-quill'
 
 @Component({
-  selector: 'app-rich-text-input',
-  standalone: true,
-  imports: [NgClass, QuillModule, ReactiveFormsModule],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+    selector: 'app-rich-text-input',
+    imports: [NgClass, QuillModule, ReactiveFormsModule],
+    template: `<label [for]="prop.name">{{ prop.name }}</label>
     <form [formGroup]="form">
       <div class="control" [ngClass]="{ 'is-danger': isError }">
         <quill-editor
@@ -19,7 +18,7 @@ import { QuillModule } from 'ngx-quill'
         ></quill-editor>
       </div>
     </form>`,
-  styleUrl: './rich-text-input.component.scss'
+    styleUrl: './rich-text-input.component.scss'
 })
 export class RichTextInputComponent {
   @Input() prop: PropertyManifest

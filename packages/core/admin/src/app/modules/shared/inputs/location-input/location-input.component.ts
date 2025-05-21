@@ -10,10 +10,9 @@ import {
 } from '@angular/core'
 import { PropertyManifest } from '@repo/types'
 @Component({
-  selector: 'app-location-input',
-  standalone: true,
-  imports: [NgClass],
-  template: `
+    selector: 'app-location-input',
+    imports: [NgClass],
+    template: `
     <label for="">{{ prop.name }}</label>
     <div class="columns is-mobile">
       <div class="column">
@@ -58,7 +57,7 @@ import { PropertyManifest } from '@repo/types'
       </div>
     </div>
   `,
-  styleUrls: ['./location-input.component.scss']
+    styleUrls: ['./location-input.component.scss']
 })
 export class LocationInputComponent implements OnInit {
   @Input() prop: PropertyManifest

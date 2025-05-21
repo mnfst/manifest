@@ -3,10 +3,9 @@ import { Component, Input } from '@angular/core'
 import { TruncatePipe } from '../../pipes/truncate.pipe'
 
 @Component({
-  selector: 'app-link-yield',
-  standalone: true,
-  imports: [NgIf, NgClass, TruncatePipe],
-  template: ` <a
+    selector: 'app-link-yield',
+    imports: [NgIf, NgClass, TruncatePipe],
+    template: ` <a
       [href]="value"
       [download]="isDownload"
       target="_blank"
@@ -24,7 +23,7 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
       <span *ngIf="!compact">{{ value }}</span>
     </a>
     <span class="is-nowrap" *ngIf="!value"> - </span>`,
-  styleUrls: ['./link-yield.component.scss']
+    styleUrls: ['./link-yield.component.scss']
 })
 export class LinkYieldComponent {
   @Input() value: string

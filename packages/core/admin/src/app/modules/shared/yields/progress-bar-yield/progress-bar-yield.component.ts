@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input, OnInit } from '@angular/core'
 
-import { TruncatePipe } from '../../pipes/truncate.pipe'
-
 @Component({
   selector: 'app-progress-bar-yield',
   template: `
@@ -18,8 +16,7 @@ import { TruncatePipe } from '../../pipes/truncate.pipe'
     </div>
   `,
   styleUrls: ['./progress-bar-yield.component.scss'],
-  standalone: true,
-  imports: [CommonModule, TruncatePipe]
+  imports: [CommonModule]
 })
 export class ProgressBarYieldComponent implements OnInit {
   @Input() value: string

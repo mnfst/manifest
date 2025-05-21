@@ -19,11 +19,10 @@ import { CrudService } from '../../../crud/services/crud.service'
 import { forceNumberArray } from '@repo/common'
 
 @Component({
-  selector: 'app-multi-select-input',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './multi-select-input.component.html',
-  styleUrls: ['./multi-select-input.component.scss']
+    selector: 'app-multi-select-input',
+    imports: [CommonModule],
+    templateUrl: './multi-select-input.component.html',
+    styleUrls: ['./multi-select-input.component.scss']
 })
 export class MultiSelectInputComponent implements OnInit {
   @Input() prop: PropertyManifest

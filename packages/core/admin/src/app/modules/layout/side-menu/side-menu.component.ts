@@ -4,9 +4,10 @@ import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { ManifestService } from '../../shared/services/manifest.service'
 
 @Component({
-  selector: 'app-side-menu',
-  templateUrl: './side-menu.component.html',
-  styleUrls: ['./side-menu.component.scss']
+    selector: 'app-side-menu',
+    templateUrl: './side-menu.component.html',
+    styleUrls: ['./side-menu.component.scss'],
+    standalone: false
 })
 export class SideMenuComponent implements OnInit {
   collections: EntityManifest[]

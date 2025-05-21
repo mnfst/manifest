@@ -8,9 +8,10 @@ import { FlashMessageService } from '../../../shared/services/flash-message.serv
 import { ManifestService } from '../../../shared/services/manifest.service'
 
 @Component({
-  selector: 'app-register-first-admin',
-  templateUrl: './register-first-admin.component.html',
-  styleUrl: './register-first-admin.component.scss'
+    selector: 'app-register-first-admin',
+    templateUrl: './register-first-admin.component.html',
+    styleUrl: './register-first-admin.component.scss',
+    standalone: false
 })
 export class RegisterFirstAdminComponent implements OnInit {
   appName: string

@@ -2,9 +2,8 @@ import { NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
 @Component({
-  standalone: true,
-  selector: 'app-location-yield',
-  template: `<a
+    selector: 'app-location-yield',
+    template: `<a
       href="https://www.openstreetmap.org/?mlat={{ value.lat }}&mlon={{
         value.lng
       }}"
@@ -15,8 +14,8 @@ import { Component, Input } from '@angular/core';
       <span>View on map</span></a
     >
     <span *ngIf="!value?.lat || !value?.lng">-</span> `,
-  imports: [NgIf],
-  styleUrls: ['./location-yield.component.scss']
+    imports: [NgIf],
+    styleUrls: ['./location-yield.component.scss']
 })
 export class LocationYieldComponent {
   @Input() value: { lat: number; lng: number }
