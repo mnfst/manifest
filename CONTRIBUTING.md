@@ -65,7 +65,6 @@ From the root of the repository, run:
 
 ```
 npm install
-npm install --workspaces
 
 npm run dev
 ```
