@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common'
-import { HttpClientModule } from '@angular/common/http'
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { NgModule } from '@angular/core'
 
 import { InputComponent } from './inputs/input.component'
@@ -8,14 +8,13 @@ import { TruncatePipe } from './pipes/truncate.pipe'
 import { FlashMessageService } from './services/flash-message.service'
 
 @NgModule({
-  providers: [FlashMessageService],
+  exports: [CapitalizeFirstLetterPipe, TruncatePipe, InputComponent],
   imports: [
     CommonModule,
-    HttpClientModule,
     CapitalizeFirstLetterPipe,
     TruncatePipe,
     InputComponent
   ],
-  exports: [CapitalizeFirstLetterPipe, TruncatePipe, InputComponent]
+  providers: [FlashMessageService, provideHttpClient(withInterceptorsFromDi())]
 })
 export class SharedModule {}
