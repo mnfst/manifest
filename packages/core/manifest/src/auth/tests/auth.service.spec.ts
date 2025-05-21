@@ -9,7 +9,7 @@ import { EntityManifestService } from '../../manifest/services/entity-manifest.s
 
 jest.mock('bcryptjs', () => ({
   compareSync: jest.fn().mockResolvedValue(true),
-  hashSync: jest.fn().mockResolvedValue('testHashedPassword')
+  hash: jest.fn().mockResolvedValue(Promise.resolve('testHashedPassword'))
 }))
 
 describe('AuthService', () => {

@@ -12,7 +12,6 @@ import {
   DEFAULT_ADMIN_CREDENTIALS,
   SALT_ROUNDS
 } from '../constants'
-import { validate } from 'class-validator'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 
 @Injectable()
@@ -112,14 +111,9 @@ export class AuthService {
       }) as Repository<AuthenticableEntity>
 
     const newUser: AuthenticableEntity = entityRepository.create({
-      email: signupUserDto.email
+      email: signupUserDto.email,
+      password: await bcrypt.hash(signupUserDto.password, SALT_ROUNDS)
     })
-    newUser.password = bcrypt.hashSync(signupUserDto.password, SALT_ROUNDS)
-
-    const errors = await validate(newUser)
-    if (errors.length) {
-      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
-    }
 
     const savedUser = await entityRepository.save(newUser)
 
