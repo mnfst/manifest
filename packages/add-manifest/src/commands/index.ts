@@ -1,4 +1,4 @@
-import { Args, Command } from '@oclif/core'
+import { Args, Command, Flags } from '@oclif/core'
 import axios from 'axios'
 import { PromiseWithChild, exec as execCp } from 'node:child_process'
 import * as crypto from 'node:crypto'
@@ -14,6 +14,7 @@ import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
 import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
 import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 import { getLatestPackageVersion } from '../utils/GetLatestPackageVersion.js'
+import { getBackendFileContent } from '../utils/GetBackendFileContent.js'
 import { input } from '@inquirer/prompts'
 
 const exec = promisify(execCp)
@@ -24,6 +25,13 @@ export class MyCommand extends Command {
       name: 'name',
       description:
         'The name for the new workspace and the initial project. It will be used for the root directory.'
+    })
+  }
+
+  static flags = {
+    backendFile: Flags.string({
+      summary:
+        'The remote file to use as a template for the backend.yml file. If not provided, the default file will be used.'
     })
   }
 
@@ -99,10 +107,12 @@ export class MyCommand extends Command {
     // Path where the new file should be created
     const newFilePath = path.join(manifestFolderPath, initialFileName)
 
-    // Read the content from the asset file
-    const content = fs.readFileSync(
+    // Get the content of the file either remote or local.
+    const { flags } = await this.parse(MyCommand)
+    const remoteBackendFile = flags.backendFile
+    const content: string = await getBackendFileContent(
       path.join(assetFolderPath, initialFileName),
-      'utf8'
+      remoteBackendFile
     )
 
     // Write the content to the new file
