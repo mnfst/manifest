@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
+    "watch": "tsc -b --watch",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
@@ -35,6 +36,7 @@
     }
   },
   "dependencies": {
+    "@inquirer/prompts": "^7.5.1",
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^5",

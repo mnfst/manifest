@@ -1,4 +1,4 @@
-import { Command } from '@oclif/core'
+import { Args, Command } from '@oclif/core'
 import axios from 'axios'
 import { PromiseWithChild, exec as execCp } from 'node:child_process'
 import * as crypto from 'node:crypto'
@@ -14,54 +14,90 @@ import { updateExtensionJsonFile } from '../utils/UpdateExtensionJsonFile.js'
 import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
 import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 import { getLatestPackageVersion } from '../utils/GetLatestPackageVersion.js'
+import { input } from '@inquirer/prompts'
 
 const exec = promisify(execCp)
 
 export class MyCommand extends Command {
+  static args = {
+    firstArg: Args.string({
+      name: 'name',
+      description:
+        'The name for the new workspace and the initial project. It will be used for the root directory.'
+    })
+  }
+
   /**
    * The run method is called when the command is run.
    *
    * Steps:
-   * 1. Create a folder with the name `manifest`.
-   * 2. Create a file inside the folder with the name `manifest.yml`.
-   * 3. Update the `package.json` file with the new packages and scripts.
-   * 4. Update the .vscode/extensions.json file with the recommended extensions.
-   * 5. Update the .vscode/settings.json file with the recommended settings.
-   * 6. Update the .gitignore file with the recommended settings.
-   * 7. Update the .env file with the environment variables.
-   * 8. If no README.md file exists, create one.
-   * 9. Install the new packages.
-   * 10. Serve the new app.
-   * 11. Wait for the server to start.
-   * 12. Seed the database.
-   * 13. Open the browser.
+   * 1. Create a folder named after the first arg or ask for it
+   * 2. Create a folder with the name `manifest`.
+   * 3. Create a file inside the folder with the name `manifest.yml`.
+   * 4. Update the `package.json` file with the new packages and scripts.
+   * 5. Update the .vscode/extensions.json file with the recommended extensions.
+   * 6. Update the .vscode/settings.json file with the recommended settings.
+   * 7. Update the .gitignore file with the recommended settings.
+   * 8. Update the .env file with the environment variables.
+   * 9. If no README.md file exists, create one.
+   * 10. Install the new packages.
+   * 11. Serve the new app.
+   * 12. Wait for the server to start.
+   * 13. Seed the database.
+   * 14. Open the browser.
    */
   async run(): Promise<void> {
-    const folderName = 'manifest'
-    const initialFileName = 'backend.yml'
-    const __dirname = path.dirname(fileURLToPath(import.meta.url))
-    const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
+    // * 1 Create a folder named after the first argument or ask for it.
+    const { argv } = await this.parse(MyCommand)
+    let projectName: string = argv[0] as string
 
-    const spinner = ora('Add Manifest to your project...').start()
+    if (!projectName) {
+      projectName = await input({
+        message: 'What name would you like to use for the new workspace?',
+        validate: (input: string) => {
+          if (!input.trim()) {
+            return 'The name name cannot be empty'
+          }
+          // Check for invalid characters in The name names
+          if (/[<>:"/\\|?*]/.test(input)) {
+            return 'Folder name contains invalid characters'
+          }
+          return true
+        }
+      })
+    }
 
-    // * 1. Create a folder with the name `manifest`.
-    // Construct the folder path. This example creates the folder in the current working directory.
-    const folderPath = path.join(process.cwd(), folderName)
+    const spinner = ora(
+      `Creating your Manifest project in ${projectName} folder...`
+    ).start()
+
+    const projectFolderPath = path.join(process.cwd(), projectName)
 
     // Check if the folder already exists
-    if (fs.existsSync(folderPath)) {
+    if (fs.existsSync(projectFolderPath)) {
       spinner.fail(
-        `Error: The "${folderName}" folder already exists in the current directory. Please remove it and try again.`
+        `Error: The "${projectFolderPath}" folder already exists in the current directory. Please find another name.`
       )
       process.exit(1)
     }
 
-    // Create the folder
-    fs.mkdirSync(folderPath)
+    fs.mkdirSync(projectFolderPath)
 
-    // * 2. Create a file inside the folder with the name `manifest.yml`.
+    const manifestFolderName = 'manifest'
+    const initialFileName = 'backend.yml'
+    const __dirname = path.dirname(fileURLToPath(import.meta.url))
+    const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
+
+    // * 2. Create a folder with the name `manifest`.
+    // Construct the folder path. This example creates the folder in the current working directory.
+    const manifestFolderPath = path.join(projectFolderPath, manifestFolderName)
+
+    // Create the folder
+    fs.mkdirSync(manifestFolderPath)
+
+    // * 3. Create a file inside the folder with the name `manifest.yml`.
     // Path where the new file should be created
-    const newFilePath = path.join(folderPath, initialFileName)
+    const newFilePath = path.join(manifestFolderPath, initialFileName)
 
     // Read the content from the asset file
     const content = fs.readFileSync(
@@ -76,7 +112,7 @@ export class MyCommand extends Command {
     spinner.start('Update package.json file...')
 
     // Update package.json file.
-    const packagePath = path.join(process.cwd(), 'package.json')
+    const packagePath = path.join(projectFolderPath, 'package.json')
     let packageJson
 
     if (fs.existsSync(packagePath)) {
@@ -112,7 +148,7 @@ export class MyCommand extends Command {
     spinner.start('Add settings...')
 
     // Update .vscode/extensions.json file.
-    const vscodeDirPath: string = path.join(process.cwd(), '.vscode')
+    const vscodeDirPath: string = path.join(projectFolderPath, '.vscode')
     const extensionsFilePath: string = path.join(
       vscodeDirPath,
       'extensions.json'
@@ -163,7 +199,7 @@ export class MyCommand extends Command {
     )
 
     // * 7. Update the .env file with the environment variables.
-    const gitignorePath = path.join(process.cwd(), '.gitignore')
+    const gitignorePath = path.join(projectFolderPath, '.gitignore')
     let gitignoreContent = ''
 
     if (fs.existsSync(gitignorePath)) {
@@ -187,7 +223,7 @@ export class MyCommand extends Command {
     spinner.succeed()
 
     // * 8. Add a README.md file if it doesn't exist.
-    const readmeFilePath = path.join(process.cwd(), 'README.md')
+    const readmeFilePath = path.join(projectFolderPath, 'README.md')
     if (!fs.existsSync(readmeFilePath)) {
       fs.writeFileSync(
         readmeFilePath,
@@ -210,7 +246,7 @@ export class MyCommand extends Command {
 
     spinner.start('Add environment variables...')
     // Add environment variables to .env file
-    const envFilePath = path.join(process.cwd(), '.env')
+    const envFilePath = path.join(projectFolderPath, '.env')
     const envJWTSecret = `TOKEN_SECRET_KEY=${crypto
       .randomBytes(32)
       .toString('hex')}`
