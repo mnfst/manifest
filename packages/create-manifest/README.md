@@ -1,9 +1,9 @@
-# add-manifest
+# create-manifest
 
-The `add-manifest` command adds [Manifest](https://manifest.build) to your project.
+The `create-manifest` command adds [Manifest](https://manifest.build) to your project.
 
 ```bash
-npx add-manifest@latest
+npx create-manifest@latest
 ```
 
 ## Develop

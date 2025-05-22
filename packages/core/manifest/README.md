@@ -33,7 +33,7 @@ entities:
 Simply run this command on your terminal from the root of your project:
 
 ```bash
-npx add-manifest@latest
+npx create-manifest@latest
 ```
 
 ## Test
