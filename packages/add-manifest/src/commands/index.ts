@@ -32,7 +32,8 @@ export class MyCommand extends Command {
     backendFile: Flags.string({
       summary:
         'The remote file to use as a template for the backend.yml file. If not provided, the default file will be used.'
-    })
+    }),
+    cursor: Flags.boolean()
   }
 
   /**
@@ -48,11 +49,12 @@ export class MyCommand extends Command {
    * 7. Update the .gitignore file with the recommended settings.
    * 8. Update the .env file with the environment variables.
    * 9. If no README.md file exists, create one.
-   * 10. Install the new packages.
-   * 11. Serve the new app.
-   * 12. Wait for the server to start.
-   * 13. Seed the database.
-   * 14. Open the browser.
+   * 10. Add optional files based on flags
+   * 11. Install the new packages.
+   * 12. Serve the new app.
+   * 13. Wait for the server to start.
+   * 14. Seed the database.
+   * 15. Open the browser.
    */
   async run(): Promise<void> {
     // * 1 Create a folder named after the first argument or ask for it.
@@ -232,13 +234,49 @@ export class MyCommand extends Command {
 
     spinner.succeed()
 
-    // * 8. Add a README.md file if it doesn't exist.
+    // * 9. Add a README.md file if it doesn't exist.
     const readmeFilePath = path.join(projectFolderPath, 'README.md')
     if (!fs.existsSync(readmeFilePath)) {
       fs.writeFileSync(
         readmeFilePath,
         fs.readFileSync(path.join(assetFolderPath, 'README.md'), 'utf8')
       )
+    }
+
+    // * 10. Add optional files based on flags
+
+    // Add rules for Cursor IDE.
+    if (flags.cursor) {
+      spinner.start('Add rules for Cursor IDE...')
+
+      const cursorFolderPath = path.join(projectFolderPath, '.cursor', 'rules')
+      const cursorFileName = 'manifest.mdc'
+
+      fs.mkdirSync(cursorFolderPath, { recursive: true })
+
+      let cursorFileContent: string
+
+      try {
+        const response = await fetch(
+          'https://raw.githubusercontent.com/mnfst/rules/refs/heads/main/cursor/manifest.mdc'
+        )
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        cursorFileContent = await response.text()
+      } catch (error) {
+        console.error('Error fetching YAML:', error)
+        throw error
+      }
+
+      // Write the content to the new file
+      fs.writeFileSync(
+        path.join(cursorFolderPath, cursorFileName),
+        cursorFileContent
+      )
+      spinner.succeed()
     }
 
     // * 9. Install the new packages.
