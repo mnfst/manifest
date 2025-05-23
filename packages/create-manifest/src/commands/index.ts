@@ -1,8 +1,8 @@
 import { Args, Command, Flags } from '@oclif/core'
 import axios from 'axios'
-import { PromiseWithChild, exec as execCp } from 'node:child_process'
-import * as crypto from 'node:crypto'
+import { exec as execCp, PromiseWithChild } from 'node:child_process'
 import * as fs from 'node:fs'
+import * as crypto from 'node:crypto'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -16,10 +16,15 @@ import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 import { getLatestPackageVersion } from '../utils/GetLatestPackageVersion.js'
 import { getBackendFileContent } from '../utils/GetBackendFileContent.js'
 import { input } from '@inquirer/prompts'
+import { slugify } from '../utils/helpers.js'
+import chalk from 'chalk'
 
 const exec = promisify(execCp)
 
-export class MyCommand extends Command {
+export default class CreateManifest extends Command {
+  static description =
+    'Create a new Manifest project with the default files and folders.'
+
   static args = {
     firstArg: Args.string({
       name: 'name',
@@ -58,8 +63,8 @@ export class MyCommand extends Command {
    */
   async run(): Promise<void> {
     // * 1 Create a folder named after the first argument or ask for it.
-    const { argv } = await this.parse(MyCommand)
-    let projectName: string = argv[0] as string
+    const { argv } = await this.parse(CreateManifest)
+    let projectName: string = slugify(argv[0] as string)
 
     if (!projectName) {
       projectName = await input({
@@ -110,7 +115,7 @@ export class MyCommand extends Command {
     const newFilePath = path.join(manifestFolderPath, initialFileName)
 
     // Get the content of the file either remote or local.
-    const { flags } = await this.parse(MyCommand)
+    const { flags } = await this.parse(CreateManifest)
     const remoteBackendFile = flags.backendFile
     const content: string = await getBackendFileContent(
       path.join(assetFolderPath, initialFileName),
@@ -131,10 +136,12 @@ export class MyCommand extends Command {
       packageJson = parse(fs.readFileSync(packagePath, 'utf8'))
     } else {
       packageJson = JSON.parse(
-        fs.readFileSync(
-          path.join(assetFolderPath, 'default-package.json'),
-          'utf8'
-        )
+        fs
+          .readFileSync(
+            path.join(assetFolderPath, 'default-package.json'),
+            'utf8'
+          )
+          .replace('PROJECT_NAME', projectName)
       )
     }
 
@@ -284,7 +291,7 @@ export class MyCommand extends Command {
 
     // Install deps.
     try {
-      await exec('npm install')
+      await exec(`cd ${projectName} && npm install --silent`)
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
     }
@@ -336,9 +343,12 @@ export class MyCommand extends Command {
     spinner.succeed()
 
     console.log()
-    console.log('🎉 Manifest successfully installed !')
+    console.log(chalk.bold('🎉 Manifest successfully installed !'))
     console.log()
-    console.log('🚀 Run `npm run manifest` to start the server.')
+    console.log('To start the server:')
+    console.log()
+    console.log(chalk.bold(`  cd ${projectName}`))
+    console.log(chalk.bold('  npm run manifest'))
     console.log()
 
     await this.silentKill(serveTask?.child?.pid || 0)

@@ -1,7 +1,7 @@
 {
-  "name": "my-manifest-project",
+  "name": "PROJECT_NAME",
   "version": "0.1.0",
-  "description": "A project made with Manifest",
+  "description": "A backend made with Manifest: https://manifest.build",
   "scripts": {},
   "dependencies": {}
 }

@@ -11,8 +11,7 @@
     "publish-packages": "turbo run build lint test && changeset version && changeset publish"
   },
   "workspaces": [
-    "packages/**/*",
-    "!packages/js-sdk/sandbox"
+    "packages/**/*"
   ],
   "devDependencies": {
     "@eslint/js": "^9.14.0",
