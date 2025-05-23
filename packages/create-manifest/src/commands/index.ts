@@ -64,7 +64,7 @@ export default class CreateManifest extends Command {
   async run(): Promise<void> {
     // * 1 Create a folder named after the first argument or ask for it.
     const { argv } = await this.parse(CreateManifest)
-    let projectName: string = slugify(argv[0] as string)
+    let projectName: string = argv[0] as string
 
     if (!projectName) {
       projectName = await input({
@@ -81,6 +81,8 @@ export default class CreateManifest extends Command {
         }
       })
     }
+
+    projectName = slugify(projectName)
 
     const spinner = ora(
       `Creating your Manifest project in ${projectName} folder...`
