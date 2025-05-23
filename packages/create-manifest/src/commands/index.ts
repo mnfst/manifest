@@ -327,7 +327,7 @@ export default class CreateManifest extends Command {
 
     try {
       // We run the manifest script to build the database.
-      serveTask = exec('npm run manifest')
+      serveTask = exec(`cd ${projectName} && npm run manifest`)
 
       await this.waitForServerToBeReady()
       spinner.succeed()
@@ -337,7 +337,7 @@ export default class CreateManifest extends Command {
 
     spinner.start('Seed initial data...')
     try {
-      await exec('npm run manifest:seed')
+      await exec(`cd ${projectName} && npm run manifest:seed`)
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
     }
@@ -373,10 +373,10 @@ export default class CreateManifest extends Command {
   /**
    * Wait for the server to be ready.
    *
-   * @returns {Promise<void>} - Returns a promise that resolves to void when the server is ready.
+   * @returns a promise that resolves to void when the server is ready.
    *
    **/
-  async waitForServerToBeReady() {
+  async waitForServerToBeReady(): Promise<void> {
     let serverReady = false
     while (!serverReady) {
       serverReady = await this.isServerReady()
@@ -389,9 +389,9 @@ export default class CreateManifest extends Command {
   /**
    * Transform a JSON with comments to a JSON without comments.
    *
-   * @param {string} jsonWithComments - The JSON with comments.
+   * @param jsonString - The JSON with comments.
    *
-   * @returns {string} - The JSON without comments.
+   * @returns the JSON without comments.
    *
    **/
   removeComments(jsonString: string): string {

@@ -1,6 +1,6 @@
 {
   "name": "create-manifest",
-  "version": "1.1.6",
+  "version": "1.1.8",
   "author": "Manifest",
   "description": "Create a new Manifest backend",
   "homepage": "https://manifest.build",
