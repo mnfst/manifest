@@ -64,7 +64,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.744.0",
     "@faker-js/faker": "^8.4.1",
-    "@nestjs/common": "^10.4.8",
+    "@nestjs/common": "^11.0.17",
     "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^10.4.8",
     "@nestjs/platform-express": "^10.4.8",
