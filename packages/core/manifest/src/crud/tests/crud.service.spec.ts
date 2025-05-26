@@ -7,6 +7,7 @@ import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
 import { EntityManifest, Paginator, PropType } from '../../../../types/src'
 import { SelectQueryBuilder } from 'typeorm'
+import bcrypt from 'bcryptjs'
 
 describe('CrudService', () => {
   let service: CrudService
@@ -341,7 +342,7 @@ describe('CrudService', () => {
     })
   })
 
-  describe('update', () => {
+  describe('update (full replacement', () => {
     it('should update an entity', async () => {
       const entitySlug = 'test'
       const id = 1
@@ -428,50 +429,81 @@ describe('CrudService', () => {
 
       expect(service.update({ entitySlug, id, itemDto })).rejects.toThrow()
     })
+  })
 
-    describe('update (partial replacement)', () => {
-      it('should do a partial replacement of properties', async () => {
-        const entitySlug = 'test'
-        const id = 1
-        const itemDto = { name: 'test' }
+  describe('update (partial replacement)', () => {
+    it('should do a partial replacement of properties', async () => {
+      const entitySlug = 'test'
+      const id = 1
+      const itemDto = { name: 'test' }
 
-        const result = await service.update({
-          entitySlug,
-          id,
-          itemDto,
-          partialReplacement: true
-        })
-
-        expect(result.name).toEqual(itemDto.name)
-        expect(result.age).toEqual(dummyItem.age)
+      const result = await service.update({
+        entitySlug,
+        id,
+        itemDto,
+        partialReplacement: true
       })
 
-      it('should replace relations only if specified', async () => {
-        const entitySlug = 'test'
-        const id = 1
-        const itemDto = { mentorId: 2 }
-        const itemWithoutRelationDto = { name: 'test' }
+      expect(result.name).toEqual(itemDto.name)
+      expect(result.age).toEqual(dummyItem.age)
+    })
 
-        const result = await service.update({
-          entitySlug,
-          id,
-          itemDto,
-          partialReplacement: true
-        })
+    it('should replace relations only if specified', async () => {
+      const entitySlug = 'test'
+      const id = 1
+      const itemDto = { mentorId: 2 }
+      const itemWithoutRelationDto = { name: 'test' }
 
-        const resultWithoutRelation = await service.update({
-          entitySlug,
-          id,
-          itemDto: itemWithoutRelationDto,
-          partialReplacement: true
-        })
-
-        expect(result.mentor['id']).toEqual(itemDto.mentorId)
-        expect(result.name).toEqual(dummyItem.name)
-
-        expect(resultWithoutRelation.mentor).toBeUndefined()
-        expect(resultWithoutRelation.name).toEqual(itemWithoutRelationDto.name)
+      const result = await service.update({
+        entitySlug,
+        id,
+        itemDto,
+        partialReplacement: true
       })
+
+      const resultWithoutRelation = await service.update({
+        entitySlug,
+        id,
+        itemDto: itemWithoutRelationDto,
+        partialReplacement: true
+      })
+
+      expect(result.mentor['id']).toEqual(itemDto.mentorId)
+      expect(result.name).toEqual(dummyItem.name)
+
+      expect(resultWithoutRelation.mentor).toBeUndefined()
+      expect(resultWithoutRelation.name).toEqual(itemWithoutRelationDto.name)
+    })
+
+    it('should not update the password if not provided', async () => {
+      const entitySlug = 'test'
+      const id = 1
+      const itemDto = { name: 'test' }
+
+      jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
+        findOne: jest.fn(() =>
+          Promise.resolve(
+            Object.assign(
+              {
+                password: 'hashedPassword'
+              },
+              dummyItem
+            )
+          )
+        ),
+        create: jest.fn((item) => item),
+        save: jest.fn((item) => item)
+      } as any)
+      jest.spyOn(bcrypt, 'hashSync')
+
+      await service.update({
+        entitySlug,
+        id,
+        itemDto,
+        partialReplacement: true
+      })
+
+      expect(bcrypt.hashSync).not.toHaveBeenCalled()
     })
   })
 

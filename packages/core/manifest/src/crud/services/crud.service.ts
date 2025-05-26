@@ -320,6 +320,10 @@ export class CrudService {
       throw new NotFoundException('Item not found')
     }
 
+    if (entityManifest.authenticable) {
+      delete item['password'] // Password should not be updated unless explicitly set.
+    }
+
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
@@ -352,8 +356,6 @@ export class CrudService {
         itemDto['password'] as string,
         SALT_ROUNDS
       )
-    } else if (entityManifest.authenticable && !itemDto.password) {
-      delete updatedItem.password
     }
 
     const errors = this.validationService.validate(
