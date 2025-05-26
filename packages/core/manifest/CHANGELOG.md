@@ -1,5 +1,11 @@
 # manifest
 
+## 4.11.11
+
+### Patch Changes
+
+- da62deb: Fixed PATCH request password update issue and return token on JS SDK
+
 ## 4.11.10
 
 ### Patch Changes

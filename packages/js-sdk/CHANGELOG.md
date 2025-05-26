@@ -1,5 +1,11 @@
 # @mnfst/sdk
 
+## 1.2.2
+
+### Patch Changes
+
+- da62deb: Fixed PATCH request password update issue and return token on JS SDK
+
 ## 1.2.1
 
 ### Patch Changes
