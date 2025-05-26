@@ -1,5 +1,15 @@
 name: Personal portfolio
 entities:
+  User:
+    properties:
+      - name
+    authenticable: true
+    policies:
+      update:
+        - access: public
+      read:
+        - access: public
+
   Project:
     properties:
       - { name: title, validation: { required: true } }
@@ -25,7 +35,7 @@ entities:
       - seoDescription
     policies:
       read:
-        - access: public
+        - { access: restricted, allow: [User] }
 
   Contacts:
     properties:
