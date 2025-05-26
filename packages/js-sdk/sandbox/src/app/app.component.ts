@@ -15,5 +15,7 @@ export class AppComponent {
     const manifest = new Manifest()
 
     await manifest.login('users', 'br@test.fr', 'azerty')
+
+    await manifest.from('projects').find()
   }
 }
