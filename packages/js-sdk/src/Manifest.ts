@@ -198,13 +198,13 @@ export default class Manifest extends BaseSDK {
    * @param email The email of the entity to login as.
    * @param password The password of the entity to login as.
    *
-   * @returns true if the login was successful.
+   * @returns an object with the token if logged in, false otherwise.
    */
   async login(
     entitySlug: string,
     email: string,
     password: string
-  ): Promise<boolean> {
+  ): Promise<{ token: string }> {
     const response: { token: string } = (await this.fetch({
       path: `/auth/${entitySlug}/login`,
       method: 'POST',
@@ -215,12 +215,12 @@ export default class Manifest extends BaseSDK {
     })) as { token: string }
 
     if (!response.token) {
-      return false
+      throw new Error('Login failed: No token received')
     }
 
     this.headers['Authorization'] = `Bearer ${response.token}`
 
-    return true
+    return { token: response.token }
   }
 
   /**

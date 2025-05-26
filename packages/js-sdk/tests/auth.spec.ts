@@ -36,7 +36,7 @@ describe('Auth', () => {
       credentials.password
     )
 
-    expect(response).toEqual(true)
+    expect(response).toEqual({ token: token })
   })
 
   it('should add token to headers after login', async () => {
