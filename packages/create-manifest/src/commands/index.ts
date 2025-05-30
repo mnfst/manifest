@@ -38,7 +38,9 @@ export default class CreateManifest extends Command {
       summary:
         'The remote file to use as a template for the backend.yml file. If not provided, the default file will be used.'
     }),
-    cursor: Flags.boolean()
+    cursor: Flags.boolean(),
+    copilot: Flags.boolean(),
+    windsurf: Flags.boolean()
   }
 
   /**
@@ -254,7 +256,7 @@ export default class CreateManifest extends Command {
 
     // * 10. Add optional files based on flags
 
-    // Add rules for Cursor IDE.
+    // Add rules for IDEs.
     if (flags.cursor) {
       spinner.start('Add rules for Cursor IDE...')
 
@@ -276,7 +278,7 @@ export default class CreateManifest extends Command {
 
         cursorFileContent = await response.text()
       } catch (error) {
-        console.error('Error fetching YAML:', error)
+        console.error('Error fetching file:', error)
         throw error
       }
 
@@ -284,6 +286,74 @@ export default class CreateManifest extends Command {
       fs.writeFileSync(
         path.join(cursorFolderPath, cursorFileName),
         cursorFileContent
+      )
+      spinner.succeed()
+    }
+
+    if (flags.copilot) {
+      spinner.start('Add rules for Copilot IDE...')
+
+      const copilotFolderPath = path.join(projectFolderPath, '.github')
+      const copilotFileName = 'copilot-instructions.md'
+
+      fs.mkdirSync(copilotFolderPath, { recursive: true })
+      let copilotFileContent: string
+
+      try {
+        const response = await fetch(
+          'https://raw.githubusercontent.com/mnfst/rules/refs/heads/main/copilot/copilot-instructions.md'
+        )
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        copilotFileContent = await response.text()
+      } catch (error) {
+        console.error('Error fetching file:', error)
+        throw error
+      }
+      // Write the content to the new file
+      fs.writeFileSync(
+        path.join(copilotFolderPath, copilotFileName),
+        copilotFileContent
+      )
+      spinner.succeed()
+    }
+
+    if (flags.windsurf) {
+      spinner.start('Add rules for WindSurf IDE...')
+
+      const windsurfFolderPath = path.join(
+        projectFolderPath,
+        '.windsurf',
+        'rules'
+      )
+      const windsurfFileName = 'manifest.md'
+
+      fs.mkdirSync(windsurfFolderPath, { recursive: true })
+
+      let windsurfFileContent: string
+
+      try {
+        const response = await fetch(
+          'https://raw.githubusercontent.com/mnfst/rules/refs/heads/main/windsurf/manifest.md'
+        )
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        windsurfFileContent = await response.text()
+      } catch (error) {
+        console.error('Error fetching file:', error)
+        throw error
+      }
+
+      // Write the content to the new file
+      fs.writeFileSync(
+        path.join(windsurfFolderPath, windsurfFileName),
+        windsurfFileContent
       )
       spinner.succeed()
     }
