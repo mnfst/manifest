@@ -57,7 +57,7 @@ export class SingleController {
     try {
       singleItem = await this.crudService.findOne({
         entitySlug,
-        id: 1,
+        id: '',
         fullVersion: isAdmin
       })
     } catch (e) {
@@ -75,7 +75,7 @@ export class SingleController {
     @Param('entity') entitySlug: string,
     @Body() itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
-    return this.crudService.update({ entitySlug, id: 1, itemDto })
+    return this.crudService.update({ entitySlug, id: '', itemDto })
   }
 
   @Patch(':entity')
@@ -86,7 +86,7 @@ export class SingleController {
   ): Promise<BaseEntity> {
     return this.crudService.update({
       entitySlug,
-      id: 1,
+      id: '',
       itemDto,
       partialReplacement: true
     })

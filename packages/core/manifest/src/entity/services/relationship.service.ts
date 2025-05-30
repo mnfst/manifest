@@ -5,12 +5,7 @@ import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
 import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
 import { EntityService } from './entity.service'
 
-import {
-  getRandomIntExcluding,
-  getDtoPropertyNameFromRelationship,
-  forceNumberArray,
-  camelize
-} from '@repo/common'
+import { getDtoPropertyNameFromRelationship, camelize } from '@repo/common'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
@@ -31,7 +26,7 @@ export class RelationshipService {
    **/
   getSeedValue(
     relationshipManifest: RelationshipManifest
-  ): number | { id: number }[] {
+  ): number | { id: string }[] {
     const relatedEntity: EntityManifest =
       this.entityManifestService.getEntityManifest({
         className: relationshipManifest.entity
@@ -58,16 +53,17 @@ export class RelationshipService {
         max
       })
 
-      const relations: { id: number }[] = []
+      const relations: { id: string }[] = []
 
       while (relations.length < numberOfRelations) {
-        const newRelation: { id: number } = {
+        const newRelation: { id: string } = {
           // We need to make sure that the id is unique.
-          id: getRandomIntExcluding({
-            min: 1,
-            max: relatedEntity.seedCount,
-            exclude: relations.map((relation) => relation.id)
-          })
+          // id: getRandomIntExcluding({
+          //   min: 1,
+          //   max: relatedEntity.seedCount,
+          //   exclude: relations.map((relation) => relation.id)
+          // })
+          id: '' // TODO: UUID seed
         }
 
         // Only add the relation if it's not already in the list to prevent duplicates.
@@ -175,7 +171,7 @@ export class RelationshipService {
       const propertyName: string =
         getDtoPropertyNameFromRelationship(relationship)
 
-      const relationIds: number[] = forceNumberArray(itemDto[propertyName])
+      const relationIds: string[] = itemDto[propertyName]
 
       if (relationIds.length) {
         const relatedEntityRepository: Repository<BaseEntity> =

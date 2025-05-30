@@ -177,7 +177,7 @@ export class CrudService {
     fullVersion
   }: {
     entitySlug: string
-    id: number
+    id: string
     queryParams?: { [key: string]: string | string[] }
     fullVersion?: boolean
   }) {
@@ -301,7 +301,7 @@ export class CrudService {
     partialReplacement
   }: {
     entitySlug: string
-    id: number
+    id: string
     itemDto: Partial<BaseEntity>
     partialReplacement?: boolean
   }): Promise<BaseEntity> {
@@ -381,7 +381,7 @@ export class CrudService {
    *
    * @returns the deleted item.
    */
-  async delete(entitySlug: string, id: number): Promise<BaseEntity> {
+  async delete(entitySlug: string, id: string): Promise<BaseEntity> {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({
         entitySlug

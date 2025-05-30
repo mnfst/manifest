@@ -49,7 +49,7 @@ export class BackendSDK extends BaseSDK {
       get: async <T>(): Promise<T> => {
         return this.crudService.findOne({
           entitySlug: this.slug,
-          id: 1,
+          id: '',
           fullVersion: true
         }) as Promise<T>
       },
@@ -62,7 +62,7 @@ export class BackendSDK extends BaseSDK {
       update: async <T>(data: unknown): Promise<T> => {
         return this.crudService.update({
           entitySlug: this.slug,
-          id: 1,
+          id: '',
           itemDto: data as Partial<T>
         }) as Promise<T>
       },
@@ -76,7 +76,7 @@ export class BackendSDK extends BaseSDK {
       patch: async <T>(data: unknown): Promise<T> => {
         return this.crudService.update({
           entitySlug: this.slug,
-          id: 1,
+          id: '',
           itemDto: data as Partial<T>,
           partialReplacement: true
         }) as Promise<T>
@@ -116,7 +116,7 @@ export class BackendSDK extends BaseSDK {
    * @example client.from('cats').findOne(1);
    *
    **/
-  async findOneById<T>(id: number): Promise<T> {
+  async findOneById<T>(id: string): Promise<T> {
     return this.crudService.findOne({
       entitySlug: this.slug,
       queryParams: this.queryParams,
@@ -148,7 +148,7 @@ export class BackendSDK extends BaseSDK {
    * @returns The updated item.
    * @example client.from('cats').update(1, { name: 'updated name' });
    */
-  async update<T>(id: number, itemDto: unknown): Promise<T> {
+  async update<T>(id: string, itemDto: unknown): Promise<T> {
     return this.crudService.update({
       entitySlug: this.slug,
       id,
@@ -165,7 +165,7 @@ export class BackendSDK extends BaseSDK {
    * @returns The updated item.
    * @example client.from('cats').update(1, { name: 'updated name' });
    */
-  async patch<T>(id: number, itemDto: unknown): Promise<T> {
+  async patch<T>(id: string, itemDto: unknown): Promise<T> {
     return this.crudService.update({
       entitySlug: this.slug,
       id,
@@ -183,7 +183,7 @@ export class BackendSDK extends BaseSDK {
    * @returns The id of the deleted item.
    * @example client.from('cats').delete(1);
    */
-  async delete(id: number): Promise<BaseEntity> {
+  async delete(id: string): Promise<BaseEntity> {
     return this.crudService.delete(this.slug, id)
   }
 

@@ -3,6 +3,6 @@
  */
 export interface SelectOption {
   label: string
-  id: number
+  id: string
   selected?: boolean
 }
