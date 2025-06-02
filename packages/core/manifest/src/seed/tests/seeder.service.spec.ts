@@ -6,8 +6,12 @@ import { RelationshipService } from '../../entity/services/relationship.service'
 import { DataSource, EntityMetadata } from 'typeorm'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { StorageService } from '../../storage/services/storage.service'
-import { DEFAULT_ADMIN_CREDENTIALS, DEFAULT_IMAGE_SIZES } from '../../constants'
-import { PropType } from '../../../../types/src'
+import {
+  DEFAULT_ADMIN_CREDENTIALS,
+  DEFAULT_IMAGE_SIZES,
+  DEFAULT_MAX_MANY_TO_MANY_RELATIONS
+} from '../../constants'
+import { PropType, RelationshipManifest } from '../../../../types/src'
 
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
@@ -61,7 +65,20 @@ describe('SeederService', () => {
           provide: EntityService,
           useValue: {
             createEntity: jest.fn(),
-            getEntityMetadatas: jest.fn(() => dummyEntityMetadatas)
+            getEntityMetadatas: jest.fn(() => dummyEntityMetadatas),
+            getEntityMetadata: jest.fn(),
+            getEntityRepository: jest.fn(() => ({
+              find: jest.fn(() =>
+                Promise.resolve([
+                  {
+                    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+                  },
+                  {
+                    id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                  }
+                ])
+              )
+            }))
           }
         },
         {
@@ -291,32 +308,57 @@ describe('SeederService', () => {
   })
 
   describe('seedRelationships', () => {
-    //  it('should return a seed value between 1 and the seed count', () => {
-    //       const seedValue = service.getSeedValue(dummyRelationManifest)
-    //       expect(seedValue).toBeGreaterThanOrEqual(1)
-    //       expect(seedValue).toBeLessThanOrEqual(mockSeedCount)
-    //     })
-    //     it('should return a set items with a count between 0 and the default max many-to-many relations', () => {
-    //       const manyToManyRelationManifest: RelationshipManifest = {
-    //         name: 'users',
-    //         entity: 'User',
-    //         type: 'many-to-many',
-    //         owningSide: true
-    //       }
-    //       const seedValue: { id: string }[] = service.getSeedValue(
-    //         manyToManyRelationManifest
-    //       ) as { id: string }[]
-    //       expect(seedValue.length).toBeGreaterThanOrEqual(0)
-    //       expect(seedValue.length).toBeLessThanOrEqual(
-    //         DEFAULT_MAX_MANY_TO_MANY_RELATIONS
-    //       )
-    //       seedValue.forEach((relation) => {
-    //         expect(relation.id).toBeGreaterThanOrEqual(1)
-    //         expect(relation.id).toBeLessThanOrEqual(mockSeedCount)
-    //       })
-    //     })
-    //   })
-    // })
+    it('should return an UUID if the relation is many-to-one', async () => {
+      const dummyRelationManifest: RelationshipManifest = {
+        name: 'owner',
+        entity: 'User',
+        type: 'many-to-one'
+      }
+
+      const seedValue = await service.seedRelationships(dummyRelationManifest)
+
+      expect(typeof seedValue).toBe('string')
+      expect(seedValue).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    })
+    it('should return a set items with a count between 0 and the default max many-to-many relations', async () => {
+      const manyToManyRelationManifest: RelationshipManifest = {
+        name: 'users',
+        entity: 'User',
+        type: 'many-to-many',
+        owningSide: true
+      }
+      const seedValue: { id: string }[] = (await service.seedRelationships(
+        manyToManyRelationManifest
+      )) as { id: string }[]
+
+      expect(seedValue.length).toBeGreaterThanOrEqual(0)
+      expect(seedValue.length).toBeLessThanOrEqual(
+        DEFAULT_MAX_MANY_TO_MANY_RELATIONS
+      )
+      seedValue.forEach((item) => {
+        expect(typeof item.id).toBe('string')
+        expect(item.id).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        )
+      })
+    })
+
+    it('should return an array of items without duplicates in many-to-many relations', async () => {
+      const manyToManyRelationManifest: RelationshipManifest = {
+        name: 'users',
+        entity: 'User',
+        type: 'many-to-many',
+        owningSide: true
+      }
+      const seedValue: { id: string }[] = (await service.seedRelationships(
+        manyToManyRelationManifest
+      )) as { id: string }[]
+
+      const uniqueIds = new Set(seedValue.map((item) => item.id))
+      expect(uniqueIds.size).toBe(seedValue.length)
+    })
   })
 
   describe('seedAdmin', () => {

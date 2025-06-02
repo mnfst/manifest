@@ -377,30 +377,26 @@ export class SeederService {
         })
       })
 
-    let records: BaseEntity[] = []
-
     // Store all items in memory to avoid multiple queries.
     if (!this.records[relationshipManifest.entity]) {
-      records = await relatedEntityRepository.find({
-        select: ['id']
-      })
-    } else {
-      records = await Promise.resolve(this.records[relationshipManifest.entity])
+      this.records[relationshipManifest.entity] =
+        await relatedEntityRepository.find({
+          select: ['id']
+        })
     }
 
     if (relationshipManifest.type === 'many-to-one') {
       return this.getRandomUniqueIds(
-        records[relationshipManifest.entity].map((item: BaseEntity) => item.id),
+        this.records[relationshipManifest.entity].map(
+          (item: BaseEntity) => item.id
+        ),
         1
       )[0]
-    } else if (
-      relationshipManifest.type === 'many-to-many' &&
-      !relationshipManifest
-    ) {
+    } else if (relationshipManifest.type === 'many-to-many') {
       // On many-to-many relationships, we need to generate a random number of relations.
       const max: number = Math.min(
         DEFAULT_MAX_MANY_TO_MANY_RELATIONS,
-        records[relationshipManifest.entity].length
+        this.records[relationshipManifest.entity].length
       )
 
       const numberOfRelations: number = faker.number.int({
@@ -409,7 +405,9 @@ export class SeederService {
       })
 
       return this.getRandomUniqueIds(
-        records[relationshipManifest.entity].map((item: BaseEntity) => item.id),
+        this.records[relationshipManifest.entity].map(
+          (item: BaseEntity) => item.id
+        ),
         numberOfRelations
       ).map((id: string) => ({ id }))
     }

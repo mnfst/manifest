@@ -4,6 +4,7 @@ import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
 import { EntityService } from './entity.service'
 
 import { getDtoPropertyNameFromRelationship, camelize } from '@repo/common'
+import pluralize from 'pluralize'
 
 @Injectable()
 export class RelationshipService {
@@ -57,7 +58,7 @@ export class RelationshipService {
         // If this is the owning side of the relationship, we need to set the join table name.
         if (manyToManyRelationShip.owningSide) {
           relationOptions[manyToManyRelationShip.name].joinTable = {
-            name: `${camelize(entityManifest.className)}_${manyToManyRelationShip.name}`
+            name: `${camelize(entityManifest.className)}_${pluralize.singular(manyToManyRelationShip.name)}`
           }
         }
       })
