@@ -95,6 +95,29 @@ describe('Collection CRUD (e2e)', () => {
 
       expect(response.status).toBe(400)
     })
+
+    it('should filter items using _in filter', async () => {
+      const response = await global.request.get(
+        `/collections/dogs?name_in=${dummyDog.name},Rex`
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body.data.length).toBeGreaterThanOrEqual(1)
+      expect(response.body.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: dummyDog.name })
+        ])
+      )
+    })
+
+    it('should return an empty array if no items match _in filter', async () => {
+      const response = await global.request.get(
+        `/collections/dogs?name_in=NonExistentName`
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body.data.length).toBe(0)
+    })
   })
 
   describe('GET /collections/:entity/select-options', () => {
