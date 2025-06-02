@@ -108,7 +108,10 @@ export class RelationshipService {
       const propertyName: string =
         getDtoPropertyNameFromRelationship(relationship)
 
-      const relationIds: string[] = itemDto[propertyName]
+      const relationIds: string[] =
+        typeof itemDto[propertyName] === 'string'
+          ? [itemDto[propertyName]]
+          : itemDto[propertyName] || []
 
       if (relationIds.length) {
         const relatedEntityRepository: Repository<BaseEntity> =
