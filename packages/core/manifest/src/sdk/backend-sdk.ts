@@ -49,7 +49,6 @@ export class BackendSDK extends BaseSDK {
       get: async <T>(): Promise<T> => {
         return this.crudService.findOne({
           entitySlug: this.slug,
-          id: '',
           fullVersion: true
         }) as Promise<T>
       },
@@ -62,7 +61,6 @@ export class BackendSDK extends BaseSDK {
       update: async <T>(data: unknown): Promise<T> => {
         return this.crudService.update({
           entitySlug: this.slug,
-          id: '',
           itemDto: data as Partial<T>
         }) as Promise<T>
       },

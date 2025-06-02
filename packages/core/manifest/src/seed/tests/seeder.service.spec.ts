@@ -290,6 +290,35 @@ describe('SeederService', () => {
     })
   })
 
+  describe('seedRelationships', () => {
+    //  it('should return a seed value between 1 and the seed count', () => {
+    //       const seedValue = service.getSeedValue(dummyRelationManifest)
+    //       expect(seedValue).toBeGreaterThanOrEqual(1)
+    //       expect(seedValue).toBeLessThanOrEqual(mockSeedCount)
+    //     })
+    //     it('should return a set items with a count between 0 and the default max many-to-many relations', () => {
+    //       const manyToManyRelationManifest: RelationshipManifest = {
+    //         name: 'users',
+    //         entity: 'User',
+    //         type: 'many-to-many',
+    //         owningSide: true
+    //       }
+    //       const seedValue: { id: string }[] = service.getSeedValue(
+    //         manyToManyRelationManifest
+    //       ) as { id: string }[]
+    //       expect(seedValue.length).toBeGreaterThanOrEqual(0)
+    //       expect(seedValue.length).toBeLessThanOrEqual(
+    //         DEFAULT_MAX_MANY_TO_MANY_RELATIONS
+    //       )
+    //       seedValue.forEach((relation) => {
+    //         expect(relation.id).toBeGreaterThanOrEqual(1)
+    //         expect(relation.id).toBeLessThanOrEqual(mockSeedCount)
+    //       })
+    //     })
+    //   })
+    // })
+  })
+
   describe('seedAdmin', () => {
     it('should seed the admin user', async () => {
       const dummyRepository = {

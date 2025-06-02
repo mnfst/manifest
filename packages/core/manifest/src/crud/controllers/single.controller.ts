@@ -75,7 +75,7 @@ export class SingleController {
     @Param('entity') entitySlug: string,
     @Body() itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
-    return this.crudService.update({ entitySlug, id: '', itemDto })
+    return this.crudService.update({ entitySlug, itemDto })
   }
 
   @Patch(':entity')
@@ -86,7 +86,6 @@ export class SingleController {
   ): Promise<BaseEntity> {
     return this.crudService.update({
       entitySlug,
-      id: '',
       itemDto,
       partialReplacement: true
     })

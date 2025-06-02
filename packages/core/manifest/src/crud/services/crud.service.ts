@@ -177,7 +177,7 @@ export class CrudService {
     fullVersion
   }: {
     entitySlug: string
-    id: string
+    id?: string
     queryParams?: { [key: string]: string | string[] }
     fullVersion?: boolean
   }) {
@@ -186,6 +186,10 @@ export class CrudService {
         slug: entitySlug,
         fullVersion
       })
+
+    if (!entityManifest.single && !id) {
+      throw new Error('Id is required for collections.')
+    }
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
       {
@@ -288,7 +292,7 @@ export class CrudService {
    * Updates an item doing a FULL REPLACEMENT of the item properties and relations unless partialReplacement is set to true.
    *
    * @param entitySlug the entity slug.
-   * @param id the item id.
+   * @param id the item id (only for collections)
    * @param itemDto the item dto.
    * @param partialReplacement whether to do a partial replacement.
    *
@@ -301,7 +305,7 @@ export class CrudService {
     partialReplacement
   }: {
     entitySlug: string
-    id: string
+    id?: string
     itemDto: Partial<BaseEntity>
     partialReplacement?: boolean
   }): Promise<BaseEntity> {
@@ -310,6 +314,10 @@ export class CrudService {
         slug: entitySlug,
         fullVersion: true
       })
+
+    if (!entityManifest.single && !id) {
+      throw new Error('Id is required for collections.')
+    }
 
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
