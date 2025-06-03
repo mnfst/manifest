@@ -1,9 +1,20 @@
-describe('Relationship', () => {
-  const dummyPost = {
-    title: 'Post title',
-    content: 'Post content',
-    authorId: 'b47ac10b-58cc-4372-a567-0e02b2c3d479'
-  }
+describe('Relationship (e2e)', () => {
+  let dummyPost: any
+  let authorId: string
+
+  beforeAll(async () => {
+    authorId = (
+      await global.request.post('/collections/authors').send({
+        name: 'Example Author'
+      })
+    ).body.id
+
+    dummyPost = {
+      title: 'Example Post',
+      content: 'This is an example post content.',
+      authorId
+    }
+  })
 
   describe('ManyToOne', () => {
     it('can create a many to one relationship and query it from child to parent', async () => {
@@ -91,32 +102,42 @@ describe('Relationship', () => {
     })
 
     it('can query nested many to one relationships from child => parent => parent', async () => {
+      const newUniversity = {
+        name: 'University Name'
+      }
+      const createUniversityResponse = await global.request
+        .post('/collections/universities')
+        .send(newUniversity)
+
       const newAuthor = {
         name: 'Author name',
-        universityId: 1
+        universityId: createUniversityResponse.body.id
       }
 
       const createAuthorResponse = await global.request
         .post('/collections/authors')
         .send(newAuthor)
 
-      await global.request.post('/collections/posts').send({
-        title: 'Post title',
-        content: 'Post content',
-        authorId: createAuthorResponse.body.id
-      })
+      const createPostResponse = await global.request
+        .post('/collections/posts')
+        .send({
+          title: 'Post title',
+          content: 'Post content',
+          authorId: createAuthorResponse.body.id
+        })
 
       const listResponse = await global.request.get(
         `/collections/posts?relations=author,author.university`
       )
       const detailResponse = await global.request.get(
-        `/collections/posts/1?relations=author,author.university`
+        `/collections/posts/${createPostResponse.body.id}?relations=author,author.university`
       )
 
       expect(listResponse.status).toBe(200)
-      expect(listResponse.body.data[0].author.university.id).toEqual(
-        expect.any(String)
-      )
+      expect(
+        listResponse.body.data.find((p) => p.id === createPostResponse.body.id)
+          ?.author?.university?.id
+      ).toEqual(expect.any(String))
 
       expect(detailResponse.status).toBe(200)
       expect(detailResponse.body.author.university.id).toEqual(
@@ -125,10 +146,16 @@ describe('Relationship', () => {
     })
 
     it('can query nested many to one relationships from parent => child => child', async () => {
-      const dummyUniversityId = '3f2504e0-4f89-11d3-9a0c-0305e82c3301'
+      const newUniversity = {
+        name: 'University Name'
+      }
+      const createUniversityResponse = await global.request
+        .post('/collections/universities')
+        .send(newUniversity)
+
       const newAuthor = {
         name: 'Author name',
-        universityId: dummyUniversityId
+        universityId: createUniversityResponse.body.id
       }
 
       const createAuthorResponse = await global.request
@@ -144,7 +171,7 @@ describe('Relationship', () => {
         })
 
       const fetchedUniversity = await global.request.get(
-        `/collections/universities/${dummyUniversityId}?relations=authors,authors.posts`
+        `/collections/universities/${createUniversityResponse.body.id}?relations=authors,authors.posts`
       )
 
       expect(fetchedUniversity.status).toBe(200)
@@ -178,7 +205,11 @@ describe('Relationship', () => {
 
   describe('ManyToMany', () => {
     it('can create a many to many relationship', async () => {
-      const dummyTagIds = [1, 3]
+      const fetchTagResponse = await global.request.get('/collections/tags')
+      const dummyTagIds = fetchTagResponse.body.data
+        .slice(0, 2)
+        .map((tag) => tag.id)
+
       const createResponse = await global.request
         .post('/collections/posts')
         .send({
@@ -191,10 +222,14 @@ describe('Relationship', () => {
         `/collections/posts/${createResponse.body.id}?relations=tags`
       )
 
+      console.log(fetchedPost.body.tags, dummyTagIds)
+
       expect(createResponse.status).toBe(201)
       expect(fetchedPost.status).toBe(200)
       expect(fetchedPost.body.tags.length).toBe(dummyTagIds.length)
-      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(dummyTagIds)
+      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(
+        expect.arrayContaining(dummyTagIds)
+      )
     })
 
     it('can update a many to many relationship', async () => {
@@ -227,7 +262,9 @@ describe('Relationship', () => {
 
       expect(updateResponse.status).toBe(200)
       expect(fetchedPost.status).toBe(200)
-      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(otherTagIds)
+      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(
+        expect.arrayContaining(otherTagIds)
+      )
     })
 
     it('can remove a many to many relationship', async () => {
@@ -257,7 +294,11 @@ describe('Relationship', () => {
     })
 
     it('can query a many to many relationship from both sides', async () => {
-      const dummyTagIds = [1, 3]
+      const fetchTagResponse = await global.request.get('/collections/tags')
+
+      const dummyTagIds = fetchTagResponse.body.data
+        .map((tag) => tag.id)
+        .slice(3, 5)
 
       const createPostResponse = await global.request
         .post('/collections/posts')
@@ -279,15 +320,23 @@ describe('Relationship', () => {
       expect(fetchedPost.status).toBe(200)
       expect(fetchedTag.status).toBe(200)
 
-      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(dummyTagIds)
+      expect(fetchedPost.body.tags.map((tag) => tag.id)).toEqual(
+        expect.arrayContaining(dummyTagIds)
+      )
       expect(fetchedTag.body.posts.map((post) => post.id)).toContain(
         createPostResponse.body.id
       )
     })
 
     it('can query nested many to many relationships', async () => {
-      const dummyTagIds = [1, 3]
-      const dummyAuthorId = 4
+      const fetchTagResponse = await global.request.get('/collections/tags')
+
+      const dummyTagIds = fetchTagResponse.body.data
+        .map((tag) => tag.id)
+        .slice(2, 4)
+
+      const dummyAuthorId = (await global.request.get('/collections/authors'))
+        .body.data[0].id
 
       const createPostResponse = await global.request
         .post('/collections/posts')
@@ -308,7 +357,7 @@ describe('Relationship', () => {
         fetchedAuthor.body.posts
           .find((p) => p.id === createPostResponse.body.id)
           .tags.map((tag) => tag.id)
-      ).toEqual(dummyTagIds)
+      ).toEqual(expect.arrayContaining(dummyTagIds))
     })
 
     it('eager manyToMany relations are loaded by default', async () => {
@@ -329,12 +378,10 @@ describe('Relationship', () => {
         `/collections/tweets/${createTweetResponse.body.id}`
       )
 
-      console.log(fetchedTweet.body)
-
       expect(createTweetResponse.status).toBe(201)
       expect(fetchedTweet.status).toBe(200)
       expect(fetchedTweet.body.customTagNames.map((tag) => tag.id)).toEqual(
-        dummyTagIds
+        expect.arrayContaining(dummyTagIds)
       )
     })
 

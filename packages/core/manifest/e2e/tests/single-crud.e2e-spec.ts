@@ -25,7 +25,7 @@ describe('Single CRUD (e2e)', () => {
   })
 
   it('cannot delete a single entity', async () => {
-    const response = await global.request.delete('/singles/contact/1')
+    const response = await global.request.delete('/singles/contact')
 
     expect(response.status).toBe(404)
   })
