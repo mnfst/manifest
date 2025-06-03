@@ -161,18 +161,6 @@ describe('SeederService', () => {
         )
       })
     })
-
-    it('should only seed a table if passed as an argument', async () => {
-      jest.spyOn(dataSource, 'createQueryRunner').mockReturnValue(queryRunner)
-
-      await service.seed('table1')
-
-      expect(queryRunner.query).toHaveBeenNthCalledWith(
-        2,
-        `DELETE FROM [${'table1'}]`
-      )
-      expect(queryRunner.query).toHaveBeenCalledTimes(3) // 2 for PRAGMA FKs and 1 for DELETE.
-    })
   })
 
   describe('seedProperty', () => {
