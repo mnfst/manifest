@@ -645,7 +645,7 @@ export class CrudService {
 
         // "In" is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          let inValues: string[] = value.split(',')
+          const inValues: string[] = value.split(',')
           query.andWhere(`${whereKey} ${operator} (:...value_${index})`, {
             [`value_${index}`]: inValues
           })
