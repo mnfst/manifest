@@ -65,6 +65,7 @@ describe('Single CRUD (e2e)', () => {
 
       expect(updatedResponse.status).toBe(200)
       expect(updatedResponse.body.title).toBe(newTitle)
+      expect(updatedResponse.body.content).toBe(null) // Empties missing property on full replacement.
     })
 
     it('validates the fields of a single entity', async () => {

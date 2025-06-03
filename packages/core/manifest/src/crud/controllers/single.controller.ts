@@ -57,7 +57,6 @@ export class SingleController {
     try {
       singleItem = await this.crudService.findOne({
         entitySlug,
-        id: '',
         fullVersion: isAdmin
       })
     } catch (e) {

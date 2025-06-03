@@ -38,15 +38,19 @@ describe('Authorization (e2e)', () => {
         .send({
           name: 'new owner'
         })
-      const showResponse = await global.request.get('/collections/owners/1')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      const showResponse = await global.request.get(
+        `/collections/owners/${createResponse.body.id}`
+      )
 
       const updateResponse = await global.request
-        .put('/collections/owners/1')
+        .put(`/collections/owners/${createResponse.body.id}`)
         .send({
           name: 'updated owner'
         })
       const deleteResponse = await global.request.delete(
-        '/collections/owners/1'
+        `/collections/owners/${createResponse.body.id}`
       )
 
       const adminListResponse = await global.request
@@ -60,16 +64,16 @@ describe('Authorization (e2e)', () => {
         })
         .set('Authorization', 'Bearer ' + adminToken)
       const adminShowResponse = await global.request
-        .get('/collections/owners/1')
+        .get(`/collections/owners/${createResponse.body.id}`)
         .set('Authorization', 'Bearer ' + adminToken)
       const adminUpdateResponse = await global.request
-        .put('/collections/owners/1')
+        .put(`/collections/owners/${createResponse.body.id}`)
         .send({
           name: 'updated owner'
         })
         .set('Authorization', 'Bearer ' + adminToken)
       const adminDeleteResponse = await global.request
-        .delete('/collections/owners/1')
+        .delete(`/collections/owners/${createResponse.body.id}`)
         .set('Authorization', 'Bearer ' + adminToken)
 
       expect(listResponse.status).toBe(403)

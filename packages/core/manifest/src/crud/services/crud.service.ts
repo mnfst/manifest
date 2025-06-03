@@ -8,7 +8,12 @@ import {
 
 import { camelize, getRecordKeyByValue } from '@repo/common'
 
-import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
+import {
+  EntityMetadata,
+  FindOneOptions,
+  Repository,
+  SelectQueryBuilder
+} from 'typeorm'
 
 import { BaseEntity } from '@repo/types'
 import { ValidationError } from 'class-validator'
@@ -206,7 +211,11 @@ export class CrudService {
           fullVersion
         })
       )
-      .where('entity.id = :id', { id })
+
+    // ID is not applicable on Single entities.
+    if (id) {
+      query.where('entity.id = :id', { id })
+    }
 
     this.loadRelations({
       query,
@@ -322,7 +331,8 @@ export class CrudService {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
 
-    const item: BaseEntity = await entityRepository.findOne({ where: { id } })
+    const findParams: FindOneOptions = id ? { where: { id } } : { where: {} }
+    const item: BaseEntity = await entityRepository.findOne(findParams)
 
     if (!item) {
       throw new NotFoundException('Item not found')
@@ -356,7 +366,10 @@ export class CrudService {
       })
     }
 
-    const updatedItem: BaseEntity = entityRepository.create({ id, ...itemDto })
+    const updatedItem: BaseEntity = entityRepository.create({
+      id: item.id,
+      ...itemDto
+    })
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {

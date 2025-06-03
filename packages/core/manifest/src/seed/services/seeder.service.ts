@@ -134,15 +134,9 @@ export class SeederService {
           fullVersion: true
         })
 
-      if (entityManifest.single) {
-        console.log(
-          `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
-        )
-      } else {
-        console.log(
-          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-        )
-      }
+      console.log(
+        `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+      )
 
       for (let i = 0; i < entityManifest.seedCount; i++) {
         const newRecord: BaseEntity = repository.create()
