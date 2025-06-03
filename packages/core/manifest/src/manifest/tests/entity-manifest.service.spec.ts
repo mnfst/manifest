@@ -221,7 +221,7 @@ describe('EntityManifestService', () => {
     expect(entityManifests[0].mainProp).toBe(null) // No main prop for single entities.
     expect(entityManifests[0].namePlural).toBe('homecontent')
     expect(entityManifests[0].authenticable).toBe(false)
-    expect(entityManifests[0]).not.toHaveProperty('seedCount')
+    expect(entityManifests[0].seedCount).toBe(1)
     expect(entityManifests[0]).not.toHaveProperty('belongsTo')
     expect(entityManifests[0]).not.toHaveProperty('belongsToMany')
   })
