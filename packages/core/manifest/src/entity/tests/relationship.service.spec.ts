@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { RelationshipService } from '../services/relationship.service'
-import { RelationshipManifest } from '@repo/types'
+import { EntityManifest, PropType, RelationshipManifest } from '@repo/types'
 import { EntityService } from '../services/entity.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
@@ -17,6 +17,50 @@ describe('RelationshipService', () => {
     'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
   ]
+  const dummyEntityManifest: EntityManifest = {
+    className: 'Test',
+    nameSingular: 'Test',
+    namePlural: 'Tests',
+    mainProp: 'name',
+    slug: 'test',
+    authenticable: true,
+    relationships: [dummyRelationManifest],
+    properties: [
+      {
+        name: 'name',
+        type: PropType.String
+      },
+      {
+        name: 'age',
+        type: PropType.Number,
+        default: 18
+      },
+      {
+        name: 'color',
+        type: PropType.String
+      },
+      {
+        name: 'secretProperty',
+        type: PropType.String,
+        hidden: true
+      },
+      {
+        name: 'password',
+        type: PropType.Password
+      },
+      {
+        name: 'secondPassword',
+        type: PropType.Password
+      }
+    ],
+    policies: {
+      create: [],
+      read: [],
+      update: [],
+      delete: [],
+      signup: []
+    }
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -48,6 +92,64 @@ describe('RelationshipService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined()
+  })
+
+  describe('getEntitySchemaRelationOptions', () => {
+    it('should return the many-to-one relationship options', () => {
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(dummyEntityManifest)
+
+      expect(relationOptions.owner).toEqual({
+        target: 'User',
+        type: 'many-to-one',
+        eager: false
+      })
+    })
+
+    it('should return the many-to-many relationship options', () => {
+      const manyToManyRelationManifest: RelationshipManifest = {
+        name: 'users',
+        entity: 'User',
+        type: 'many-to-many',
+        owningSide: true,
+        inverseSide: 'relatedUsers'
+      }
+      const entityManifest = Object.assign({}, dummyEntityManifest, {
+        relationships: [manyToManyRelationManifest]
+      })
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(entityManifest)
+      expect(relationOptions.users).toEqual({
+        target: 'User',
+        type: 'many-to-many',
+        eager: false,
+        inverseSide: 'relatedUsers',
+        joinTable: {
+          name: 'test_user'
+        }
+      })
+    })
+
+    it('should return the one-to-many relationship options', () => {
+      const oneToManyRelationManifest: RelationshipManifest = {
+        name: 'relatedUsers',
+        entity: 'User',
+        type: 'one-to-many',
+        inverseSide: 'users'
+      }
+      const entityManifest = Object.assign({}, dummyEntityManifest, {
+        relationships: [oneToManyRelationManifest]
+      })
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(entityManifest)
+
+      expect(relationOptions.relatedUsers).toEqual({
+        target: 'User',
+        type: 'one-to-many',
+        eager: false,
+        inverseSide: 'users'
+      })
+    })
   })
 
   describe('fetchRelationItemsFromDto', () => {
