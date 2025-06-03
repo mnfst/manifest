@@ -74,7 +74,6 @@ export class BackendSDK extends BaseSDK {
       patch: async <T>(data: unknown): Promise<T> => {
         return this.crudService.update({
           entitySlug: this.slug,
-          id: '',
           itemDto: data as Partial<T>,
           partialReplacement: true
         }) as Promise<T>
