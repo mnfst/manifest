@@ -78,10 +78,10 @@ describe('Collection CRUD (e2e)', () => {
     })
 
     it('should filter items by relationship', async () => {
-      const bigNumber: number = 999
+      const idThatDoesNotExist = '3f2504e0-4f89-11d3-9a0c-0305e82c3301' // Example UUID that does not exist
 
       const response = await global.request.get(
-        `/collections/dogs?relations=owner&owner.id_eq=${bigNumber}`
+        `/collections/dogs?relations=owner&owner.id_eq=${idThatDoesNotExist}`
       )
 
       expect(response.status).toBe(200)

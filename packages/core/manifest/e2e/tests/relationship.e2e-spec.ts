@@ -75,7 +75,7 @@ describe('Relationship (e2e)', () => {
       const newAuthor = {
         name: 'Author name'
       }
-      const veryBigNumber = '9999'
+      const idThatDoesNotExist = '3f2504e0-4f89-11d3-9a0c-0305e82c3301' // Example UUID that does not exist
 
       const createAuthorResponse = await global.request
         .post('/collections/authors')
@@ -91,7 +91,7 @@ describe('Relationship (e2e)', () => {
         `/collections/posts?relations=author&author.id_eq=${createAuthorResponse.body.id}`
       )
       const nonExistentAuthorResponse = await global.request.get(
-        `/collections/posts?relations=author&author.id_eq=${veryBigNumber}`
+        `/collections/posts?relations=author&author.id_eq=${idThatDoesNotExist}`
       )
 
       expect(filteredResponse.status).toBe(200)
@@ -268,7 +268,11 @@ describe('Relationship (e2e)', () => {
     })
 
     it('can remove a many to many relationship', async () => {
-      const dummyTagIds = [1, 3]
+      const fetchTagResponse = await global.request.get('/collections/tags')
+
+      const dummyTagIds = fetchTagResponse.body.data
+        .map((tag) => tag.id)
+        .slice(0, 2)
 
       const createResponse = await global.request
         .post('/collections/posts')
@@ -403,7 +407,7 @@ describe('Relationship (e2e)', () => {
       )
 
       const nonExistentTagResponse = await global.request.get(
-        `/collections/posts?relations=tags&tags.id_eq=9999`
+        `/collections/posts?relations=tags&tags.id_eq=3f2504e0-4f89-11d3-9a0c-0305e82c3301`
       )
 
       expect(filteredResponse.status).toBe(200)
