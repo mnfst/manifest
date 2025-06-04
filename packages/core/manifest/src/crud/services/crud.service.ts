@@ -129,7 +129,7 @@ export class CrudService {
         queryParams.order === 'DESC' ? 'DESC' : 'ASC'
       )
     } else {
-      query.orderBy('entity.id', 'DESC')
+      query.addSelect('entity.createdAt').orderBy('entity.createdAt', 'DESC')
     }
 
     // Paginate.
