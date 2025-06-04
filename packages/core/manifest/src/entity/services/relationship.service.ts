@@ -1,84 +1,17 @@
-import { faker } from '@faker-js/faker'
 import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
-import { Inject, Injectable, forwardRef } from '@nestjs/common'
+import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
-import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
 import { EntityService } from './entity.service'
 
-import {
-  getRandomIntExcluding,
-  getDtoPropertyNameFromRelationship,
-  forceNumberArray,
-  camelize
-} from '@repo/common'
-import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { getDtoPropertyNameFromRelationship, camelize } from '@repo/common'
+import pluralize from 'pluralize'
 
 @Injectable()
 export class RelationshipService {
   constructor(
-    private entityManifestService: EntityManifestService,
     @Inject(forwardRef(() => EntityService))
     private entityService: EntityService
   ) {}
-
-  /**
-   * Get the seed value for a relationship based on the number of relation items (seed count).
-   *
-   * @param relationshipManifest The relationship manifest in its detailed form.
-   *
-   * @returns An single id or an array of objects with an id property.
-   *
-   **/
-  getSeedValue(
-    relationshipManifest: RelationshipManifest
-  ): number | { id: number }[] {
-    const relatedEntity: EntityManifest =
-      this.entityManifestService.getEntityManifest({
-        className: relationshipManifest.entity
-      })
-
-    if (relationshipManifest.type === 'many-to-one') {
-      return faker.number.int({
-        min: 1,
-        max: relatedEntity.seedCount
-      })
-    } else if (
-      relationshipManifest.type === 'many-to-many' &&
-      relationshipManifest.owningSide
-    ) {
-      // On many-to-many relationships, we need to generate a random number of relations.
-
-      const max: number =
-        DEFAULT_MAX_MANY_TO_MANY_RELATIONS > relatedEntity.seedCount
-          ? relatedEntity.seedCount
-          : DEFAULT_MAX_MANY_TO_MANY_RELATIONS
-
-      const numberOfRelations: number = faker.number.int({
-        min: 0,
-        max
-      })
-
-      const relations: { id: number }[] = []
-
-      while (relations.length < numberOfRelations) {
-        const newRelation: { id: number } = {
-          // We need to make sure that the id is unique.
-          id: getRandomIntExcluding({
-            min: 1,
-            max: relatedEntity.seedCount,
-            exclude: relations.map((relation) => relation.id)
-          })
-        }
-
-        // Only add the relation if it's not already in the list to prevent duplicates.
-        if (!relations.find((relation) => relation.id === newRelation.id)) {
-          relations.push(newRelation)
-        }
-      }
-
-      return relations
-    }
-  }
 
   /**
    * Get the TypeORM EntitySchemaRelationOptions for a given entity based on its relationships.
@@ -125,7 +58,7 @@ export class RelationshipService {
         // If this is the owning side of the relationship, we need to set the join table name.
         if (manyToManyRelationShip.owningSide) {
           relationOptions[manyToManyRelationShip.name].joinTable = {
-            name: `${camelize(entityManifest.className)}_${manyToManyRelationShip.name}`
+            name: `${camelize(entityManifest.className)}_${pluralize.singular(manyToManyRelationShip.name)}`
           }
         }
       })
@@ -175,7 +108,10 @@ export class RelationshipService {
       const propertyName: string =
         getDtoPropertyNameFromRelationship(relationship)
 
-      const relationIds: number[] = forceNumberArray(itemDto[propertyName])
+      const relationIds: string[] =
+        typeof itemDto[propertyName] === 'string'
+          ? [itemDto[propertyName]]
+          : itemDto[propertyName] || []
 
       if (relationIds.length) {
         const relatedEntityRepository: Repository<BaseEntity> =

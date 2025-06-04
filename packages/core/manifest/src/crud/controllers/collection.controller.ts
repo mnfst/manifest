@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -76,7 +76,7 @@ export class CollectionController {
   @Rule('read')
   async findOne(
     @Param('entity') entitySlug: string,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() queryParams: { [key: string]: string | string[] },
     @Req() req: Request
   ): Promise<BaseEntity> {
@@ -103,7 +103,7 @@ export class CollectionController {
   @Rule('update')
   put(
     @Param('entity') entitySlug: string,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
     return this.crudService.update({ entitySlug, id, itemDto })
@@ -113,7 +113,7 @@ export class CollectionController {
   @Rule('update')
   patch(
     @Param('entity') entitySlug: string,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() itemDto: Partial<BaseEntity>
   ): Promise<BaseEntity> {
     return this.crudService.update({
@@ -128,7 +128,7 @@ export class CollectionController {
   @Rule('delete')
   delete(
     @Param('entity') entity: string,
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseUUIDPipe) id: string
   ): Promise<BaseEntity> {
     return this.crudService.delete(entity, id)
   }

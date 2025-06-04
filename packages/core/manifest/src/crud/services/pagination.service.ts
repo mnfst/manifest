@@ -32,7 +32,7 @@ export class PaginationService {
       .getMany()
 
     return {
-      data: results,
+      data: results.map(({ createdAt, ...rest }) => rest as BaseEntity), // Remove createdAt from the results (used for sorting only).
       currentPage,
       lastPage: Math.ceil(total / resultsPerPage),
       from: offset + 1,

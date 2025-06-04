@@ -9,9 +9,9 @@
  * */
 export interface BaseEntity {
   /**
-   * The entity's unique identifier.
+   * The entity's unique identifier (UUID).
    */
-  id: number
+  id: string
 
   /**
    * The date and time the entity was created (automatic).

@@ -71,6 +71,14 @@ describe('Validation (e2e)', () => {
     })
 
     it('update validation is the same as create validation', async () => {
+      const createResponse = await global.request
+        .post('/collections/cars')
+        .send({
+          model: 'double turbo truck',
+          brand: 'example brand',
+          year: 2000
+        })
+
       const goodCar = {
         model: 'double turbo truck',
         brand: 'example brand',
@@ -84,10 +92,10 @@ describe('Validation (e2e)', () => {
       }
 
       const goodResponse = await global.request
-        .put('/collections/cars/1')
+        .put('/collections/cars/' + createResponse.body.id)
         .send(goodCar)
       const badResponse = await global.request
-        .put('/collections/cars/1')
+        .put('/collections/cars/' + createResponse.body.id)
         .send(badCar)
 
       expect(goodResponse.status).toBe(200)
@@ -163,7 +171,7 @@ describe('Validation (e2e)', () => {
         .send({ ...superUserWithoutPassword, password: 'password' })
 
       const updateResponse = await global.request
-        .put('/collections/super-users/1')
+        .put(`/collections/super-users/${goodCreateResponse.body.id}`)
         .send({ name: 'new name', email: 'example2@manifest.build' })
 
       expect(badCreateResponse.status).toBe(400)

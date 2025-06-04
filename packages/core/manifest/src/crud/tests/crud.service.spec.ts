@@ -56,7 +56,7 @@ describe('CrudService', () => {
   }
 
   const dummyItem = {
-    id: 1,
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
     name: 'Superman',
     age: 30,
     color: 'blue',
@@ -246,22 +246,20 @@ describe('CrudService', () => {
   describe('findOne', () => {
     it('should return an entity', async () => {
       const entitySlug = 'test'
-      const id = 1
 
-      const result = await service.findOne({ entitySlug, id })
+      const result = await service.findOne({ entitySlug, id: dummyItem.id })
 
       expect(result).toEqual(dummyItem)
     })
 
     it('should throw a 404 error if the entity is not found', async () => {
       const entitySlug = 'test'
-      const id = 2
 
       jest
         .spyOn(queryBuilder, 'getOne')
         .mockReturnValue(Promise.resolve(undefined))
 
-      await expect(service.findOne({ entitySlug, id })).rejects.toThrow()
+      await expect(service.findOne({ entitySlug })).rejects.toThrow()
     })
   })
 
@@ -317,18 +315,20 @@ describe('CrudService', () => {
     })
 
     it('should store relationships', async () => {
-      const dummyRelations = { mentor: { id: 3 } } as any
+      const dummyUuid = '3e4a9c2f-8b1d-4e72-9a5b-c8f3d2e1a6b7'
+
+      const dummyRelations = { mentor: { id: dummyUuid } } as any
 
       jest
         .spyOn(relationshipService, 'fetchRelationItemsFromDto')
         .mockReturnValue(Promise.resolve(dummyRelations))
 
       const entitySlug = 'test'
-      const itemDto = { name: 'test', mentorId: 3 }
+      const itemDto = { name: 'test', mentorId: dummyUuid }
 
       const result = await service.store(entitySlug, itemDto)
 
-      expect(result.mentor['id']).toEqual(3)
+      expect(result.mentor['id']).toEqual(dummyUuid)
     })
   })
 
@@ -345,17 +345,19 @@ describe('CrudService', () => {
   describe('update (full replacement', () => {
     it('should update an entity', async () => {
       const entitySlug = 'test'
-      const id = 1
       const itemDto = { name: 'test' }
 
-      const result = await service.update({ entitySlug, id, itemDto })
+      const result = await service.update({
+        entitySlug,
+        id: dummyItem.id,
+        itemDto
+      })
 
       expect(result.name).toEqual(itemDto.name)
     })
 
     it('should throw an error if the entity is not found', async () => {
       const entitySlug = 'test'
-      const id = 1
       const itemDto = { name: 'test' }
 
       jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
@@ -365,26 +367,33 @@ describe('CrudService', () => {
       } as any)
 
       await expect(
-        service.update({ entitySlug, id, itemDto })
+        service.update({ entitySlug, id: dummyItem.id, itemDto })
       ).rejects.toThrow()
     })
 
     it('should update relationships', async () => {
       const entitySlug = 'test'
-      const id = 1
-      const itemDto = { mentorId: 2 }
+      const dummyUuid = '7e5a1d9f-3b6c-4f28-9e4a-b8c1f5d7a3e9'
+      const itemDto = { mentorId: dummyUuid }
 
-      const result: any = await service.update({ entitySlug, id, itemDto })
+      const result: any = await service.update({
+        entitySlug,
+        id: dummyUuid,
+        itemDto
+      })
 
       expect(result.mentor.id).toEqual(itemDto.mentorId)
     })
 
     it('should do a full replacement of properties', async () => {
       const entitySlug = 'test'
-      const id = 1
       const itemDto = { name: 'test' }
 
-      const result = await service.update({ entitySlug, id, itemDto })
+      const result = await service.update({
+        entitySlug,
+        id: dummyItem.id,
+        itemDto
+      })
 
       expect(result.name).toEqual(itemDto.name)
       expect(result.age).toBeUndefined()
@@ -392,18 +401,18 @@ describe('CrudService', () => {
 
     it('should do a full replacement of relationships', async () => {
       const entitySlug = 'test'
-      const id = 1
+      const dummyUuid = '8b4f7d2a-1c9e-4a58-9b7f-e6c3a9d2b5f1'
       const itemWithoutRelation = {}
-      const itemWithNewRelation = { mentorId: 2 }
+      const itemWithNewRelation = { mentorId: dummyUuid }
 
       const resultWithoutRelation = await service.update({
         entitySlug,
-        id,
+        id: dummyUuid,
         itemDto: itemWithoutRelation
       })
       const resultWithNewRelation = await service.update({
         entitySlug,
-        id,
+        id: dummyUuid,
         itemDto: itemWithNewRelation
       })
 
@@ -424,22 +433,22 @@ describe('CrudService', () => {
       ])
 
       const entitySlug = 'test'
-      const id = 1
       const itemDto = { name: '' }
 
-      expect(service.update({ entitySlug, id, itemDto })).rejects.toThrow()
+      expect(
+        service.update({ entitySlug, id: dummyItem.id, itemDto })
+      ).rejects.toThrow()
     })
   })
 
   describe('update (partial replacement)', () => {
     it('should do a partial replacement of properties', async () => {
       const entitySlug = 'test'
-      const id = 1
       const itemDto = { name: 'test' }
 
       const result = await service.update({
         entitySlug,
-        id,
+        id: dummyItem.id,
         itemDto,
         partialReplacement: true
       })
@@ -450,20 +459,19 @@ describe('CrudService', () => {
 
     it('should replace relations only if specified', async () => {
       const entitySlug = 'test'
-      const id = 1
-      const itemDto = { mentorId: 2 }
+      const itemDto = { mentorId: '6c9e2b5f-4a7d-4b19-9c6e-f3a1d8b5c7e9' }
       const itemWithoutRelationDto = { name: 'test' }
 
       const result = await service.update({
         entitySlug,
-        id,
+        id: dummyItem.id,
         itemDto,
         partialReplacement: true
       })
 
       const resultWithoutRelation = await service.update({
         entitySlug,
-        id,
+        id: dummyItem.id,
         itemDto: itemWithoutRelationDto,
         partialReplacement: true
       })
@@ -477,7 +485,6 @@ describe('CrudService', () => {
 
     it('should not update the password if not provided', async () => {
       const entitySlug = 'test'
-      const id = 1
       const itemDto = { name: 'test' }
 
       jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
@@ -498,7 +505,7 @@ describe('CrudService', () => {
 
       await service.update({
         entitySlug,
-        id,
+        id: dummyItem.id,
         itemDto,
         partialReplacement: true
       })
@@ -510,33 +517,30 @@ describe('CrudService', () => {
   describe('delete', () => {
     it('should delete an entity', async () => {
       const entitySlug = 'test'
-      const id = 1
 
-      const result = await service.delete(entitySlug, id)
+      const result = await service.delete(entitySlug, dummyItem.id)
 
       expect(result).toEqual(dummyItem)
     })
 
     it('should throw an error if the entity is not found', async () => {
       const entitySlug = 'test'
-      const id = 2
 
       jest.spyOn(entityService, 'getEntityRepository').mockReturnValue({
         delete: jest.fn(() => Promise.resolve(undefined))
       } as any)
 
-      await expect(service.delete(entitySlug, id)).rejects.toThrow()
+      await expect(service.delete(entitySlug, dummyItem.id)).rejects.toThrow()
     })
 
     it('should throw an error if the item has parent one-to-many relationships', async () => {
       const entitySlug = 'test'
-      const id = 1
 
       jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
         relations: [{ name: 'parent', type: 'one-to-many' }]
       } as any)
 
-      await expect(service.delete(entitySlug, id)).rejects.toThrow()
+      await expect(service.delete(entitySlug, dummyItem.id)).rejects.toThrow()
     })
   })
 })

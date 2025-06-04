@@ -103,7 +103,7 @@ export class ListComponent implements OnInit {
    *
    * @returns void
    */
-  delete(id: number): void {
+  delete(id: string): void {
     this.crudService
       .delete(this.entityManifest.slug, id)
       .then(() => {

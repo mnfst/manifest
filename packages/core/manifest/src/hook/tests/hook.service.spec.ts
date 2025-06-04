@@ -4,7 +4,7 @@ import { HookManifest, HookSchema } from '../../../../types/src'
 
 describe('HookService', () => {
   let service: HookService
-  let originalConsoleLog: typeof console.log
+  let originalConsoleError: typeof console.error
 
   const hookManifest: HookManifest = {
     event: 'beforeCreate',
@@ -17,12 +17,13 @@ describe('HookService', () => {
   }
 
   beforeAll(() => {
-    originalConsoleLog = console.log
-    console.log = jest.fn()
+    // Prevent console.error from cluttering the test output (fails voluntarily on fetch).
+    originalConsoleError = console.error
+    console.error = jest.fn()
   })
 
   afterAll(() => {
-    console.log = originalConsoleLog
+    console.error = originalConsoleError
   })
 
   beforeAll(() => {

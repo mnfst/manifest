@@ -124,7 +124,7 @@ describe('SingleController', () => {
   })
 
   describe('PUT :entity', () => {
-    it('should call crudService.update with ID 1', async () => {
+    it('should call crudService.update', async () => {
       const entitySlug = 'test'
       const itemDto = { name: 'test' }
 
@@ -132,14 +132,13 @@ describe('SingleController', () => {
 
       expect(crudService.update).toHaveBeenCalledWith({
         entitySlug,
-        id: 1,
         itemDto
       })
     })
   })
 
   describe('PATCH :entity', () => {
-    it('should call crudService.update with ID 1 and partialReplacement true', async () => {
+    it('should call crudService.update and partialReplacement true', async () => {
       const entitySlug = 'test'
       const itemDto = { name: 'test' }
 
@@ -147,7 +146,6 @@ describe('SingleController', () => {
 
       expect(crudService.update).toHaveBeenCalledWith({
         entitySlug,
-        id: 1,
         itemDto,
         partialReplacement: true
       })

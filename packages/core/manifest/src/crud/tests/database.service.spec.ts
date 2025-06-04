@@ -4,7 +4,6 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 import { EntityService } from '../../entity/services/entity.service'
 
 describe('DatabaseService', () => {
-  let manifestService: ManifestService
   let entityService: EntityService
   let service: DatabaseService
 
@@ -33,7 +32,6 @@ describe('DatabaseService', () => {
       ]
     }).compile()
 
-    manifestService = module.get<ManifestService>(ManifestService)
     entityService = module.get<EntityService>(EntityService)
     service = module.get<DatabaseService>(DatabaseService)
   })

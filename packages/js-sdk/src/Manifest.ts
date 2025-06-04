@@ -116,7 +116,7 @@ export default class Manifest extends BaseSDK {
    * @example client.from('cats').findOne(1);
    *
    **/
-  async findOneById<T>(id: number): Promise<T> {
+  async findOneById<T>(id: string): Promise<T> {
     return this.fetch({
       path: `/collections/${this.slug}/${id}`,
       queryParams: {
@@ -149,7 +149,7 @@ export default class Manifest extends BaseSDK {
    * @returns The updated item.
    * @example client.from('cats').update(1, { name: 'updated name' });
    */
-  async update<T>(id: number, itemDto: unknown): Promise<T> {
+  async update<T>(id: string, itemDto: unknown): Promise<T> {
     return this.fetch({
       path: `/collections/${this.slug}/${id}`,
       method: 'PUT',
@@ -166,7 +166,7 @@ export default class Manifest extends BaseSDK {
    * @returns The updated item.
    * @example client.from('cats').update(1, { name: 'updated name' });
    */
-  async patch<T>(id: number, itemDto: unknown): Promise<T> {
+  async patch<T>(id: string, itemDto: unknown): Promise<T> {
     return this.fetch({
       path: `/collections/${this.slug}/${id}`,
       method: 'PATCH',
@@ -183,7 +183,7 @@ export default class Manifest extends BaseSDK {
    * @returns The id of the deleted item.
    * @example client.from('cats').delete(1);
    */
-  async delete<T>(id: number): Promise<T> {
+  async delete<T>(id: string): Promise<T> {
     return this.fetch({
       path: `/collections/${this.slug}/${id}`,
       method: 'DELETE'

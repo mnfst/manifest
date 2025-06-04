@@ -16,7 +16,6 @@ import {
 } from '@repo/types'
 import { ManifestService } from '../../services/manifest.service'
 import { CrudService } from '../../../crud/services/crud.service'
-import { forceNumberArray } from '@repo/common'
 
 @Component({
   selector: 'app-multi-select-input',
@@ -28,10 +27,10 @@ import { forceNumberArray } from '@repo/common'
 export class MultiSelectInputComponent implements OnInit {
   @Input() prop: PropertyManifest
   @Input() relationship: RelationshipManifest
-  @Input() value: { id: number }[]
+  @Input() value: { id: string }[]
   @Input() isError: boolean
 
-  @Output() valueChanged: EventEmitter<number[]> = new EventEmitter()
+  @Output() valueChanged: EventEmitter<string[]> = new EventEmitter()
 
   options: SelectOption[]
   selectedOptions: SelectOption[] = []
@@ -63,9 +62,7 @@ export class MultiSelectInputComponent implements OnInit {
       this.selectedOptions = []
       this.options
         .filter((option) =>
-          forceNumberArray(this.value.map((v) => v.id)).find(
-            (value) => value === option.id
-          )
+          this.value.map((v) => v.id).find((value) => value === option.id)
         )
         .forEach((option) => {
           option.selected = true

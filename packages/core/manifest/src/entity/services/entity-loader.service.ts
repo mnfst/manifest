@@ -129,13 +129,13 @@ export class EntityLoaderService {
 
     switch (dbConnection) {
       case 'sqlite':
-        idType = 'integer'
+        idType = 'text'
         break
       case 'postgres':
-        idType = 'int'
+        idType = 'uuid'
         break
       case 'mysql':
-        idType = 'int'
+        idType = 'varchar'
         break
     }
 
@@ -143,7 +143,7 @@ export class EntityLoaderService {
       id: {
         type: idType,
         primary: true,
-        generated: true
+        generated: 'uuid'
       },
       createdAt: {
         name: 'createdAt',
