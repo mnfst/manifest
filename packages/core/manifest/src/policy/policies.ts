@@ -8,6 +8,7 @@ export const policies: Record<
     entity: EntityManifest,
     options?: {
       allow?: string[]
+      condition?: 'self'
     }
   ) => boolean
 > = {
@@ -29,11 +30,12 @@ export const policies: Record<
 
   /**
    * Returns whether the user is authenticated. If "allow" is provided, it will check if the entity is allowed.
+   *  If "condition" is set to "self", it will check if the user is accessing their own entity.
    */
   restricted: (
     user: AuthenticableEntity,
     entity: EntityManifest,
-    options: { allow: string[] }
+    options: { allow: string[]; condition?: 'self' }
   ) => {
     if (!user) {
       return false
@@ -44,8 +46,14 @@ export const policies: Record<
       return true
     }
 
-    if (options.allow) {
-      return options.allow.includes(entity.className)
+    // If "allow" is provided, check if the entity className is in the allowed list.
+    if (options.allow && !options.allow.includes(entity.className)) {
+      return false
+    }
+
+    // If "condition" is set to "self", check if the user is accessing their own entity.
+    if (options.condition === 'self') {
+      // TODO: Logic goes here.
     }
 
     return true
