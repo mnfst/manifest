@@ -1,5 +1,11 @@
 # manifest
 
+## 4.12.1
+
+### Patch Changes
+
+- 67dd5a6: Fixed In operator on filterQuery
+
 ## 4.12.0
 
 ### Minor Changes
