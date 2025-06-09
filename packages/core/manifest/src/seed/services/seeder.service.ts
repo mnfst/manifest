@@ -12,7 +12,6 @@ import {
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityMetadata, QueryRunner, Repository } from 'typeorm'
 import { EntityService } from '../../entity/services/entity.service'
-import { RelationshipService } from '../../entity/services/relationship.service'
 
 import { faker } from '@faker-js/faker'
 import * as fs from 'fs'
@@ -23,6 +22,7 @@ import {
   ADMIN_ENTITY_MANIFEST,
   AUTHENTICABLE_PROPS,
   DEFAULT_ADMIN_CREDENTIALS,
+  DEFAULT_MAX_MANY_TO_MANY_RELATIONS,
   DUMMY_FILE_NAME,
   DUMMY_IMAGE_NAME
 } from '../../constants'
@@ -34,10 +34,10 @@ import { EntityManifestService } from '../../manifest/services/entity-manifest.s
 export class SeederService {
   seededFiles: { [key: string]: string } = {}
   seededImages: { [key: string]: { [key: string]: string } } = {}
+  records: { [key: string]: BaseEntity[] } = {}
 
   constructor(
     private entityService: EntityService,
-    private relationshipService: RelationshipService,
     private entityManifestService: EntityManifestService,
     private storageService: StorageService,
     private dataSource: DataSource
@@ -106,13 +106,7 @@ export class SeederService {
         await queryRunner.query('PRAGMA foreign_keys = OFF')
         await Promise.all(
           entityMetadatas.map(async (entity: EntityMetadata) =>
-            queryRunner
-              .query(`DELETE FROM [${entity.tableName}]`)
-              .then(() =>
-                queryRunner.query(
-                  `DELETE FROM sqlite_sequence WHERE name = '${entity.tableName}'`
-                )
-              )
+            queryRunner.query(`DELETE FROM [${entity.tableName}]`)
           )
         )
         await queryRunner.query('PRAGMA foreign_keys = ON')
@@ -140,15 +134,9 @@ export class SeederService {
           fullVersion: true
         })
 
-      if (entityManifest.single) {
-        console.log(
-          `✅ Seeding ${entityManifest.seedCount || 'single'} ${entityManifest.nameSingular}...`
-        )
-      } else {
-        console.log(
-          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-        )
-      }
+      console.log(
+        `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+      )
 
       for (let i = 0; i < entityManifest.seedCount; i++) {
         const newRecord: BaseEntity = repository.create()
@@ -164,15 +152,16 @@ export class SeederService {
           )
         }
 
-        entityManifest.relationships
-          .filter(
+        const manyToOneRelationships: RelationshipManifest[] =
+          entityManifest.relationships.filter(
             (relationship: RelationshipManifest) =>
               relationship.type === 'many-to-one'
           )
-          .forEach((relationManifest: RelationshipManifest) => {
-            newRecord[relationManifest.name] =
-              this.relationshipService.getSeedValue(relationManifest)
-          })
+
+        for (const relationship of manyToOneRelationships) {
+          newRecord[relationship.name] =
+            await this.seedRelationships(relationship)
+        }
 
         await repository.save(newRecord)
       }
@@ -195,19 +184,20 @@ export class SeederService {
 
       const allRecords: BaseEntity[] = await repository.find()
 
-      entityManifest.relationships
-        .filter(
+      const manyToManyRelationships: RelationshipManifest[] =
+        entityManifest.relationships.filter(
           (relationship: RelationshipManifest) =>
-            relationship.type === 'many-to-many'
+            relationship.type === 'many-to-many' && relationship.owningSide
         )
-        .forEach((relationshipManifest: RelationshipManifest) => {
-          allRecords.forEach(async (record: BaseEntity) => {
-            record[relationshipManifest.name] =
-              this.relationshipService.getSeedValue(relationshipManifest)
 
-            manyToManyPromises.push(repository.save(record))
-          })
-        })
+      for (const relationshipManifest of manyToManyRelationships) {
+        for (const record of allRecords) {
+          record[relationshipManifest.name] =
+            await this.seedRelationships(relationshipManifest)
+
+          manyToManyPromises.push(repository.save(record))
+        }
+      }
     }
 
     await Promise.all(manyToManyPromises)
@@ -361,5 +351,72 @@ export class SeederService {
     admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
 
     await repository.save(admin)
+  }
+
+  /**
+   * Get the seed value for a relationship based on the number of relation items (seed count).
+   *
+   * @param relationshipManifest The relationship manifest in its detailed form.
+   *
+   * @returns An single id or an array of objects with an id property.
+   *
+   **/
+  async seedRelationships(
+    relationshipManifest: RelationshipManifest
+  ): Promise<string | { id: string }[]> {
+    const relatedEntityRepository: Repository<BaseEntity> =
+      this.entityService.getEntityRepository({
+        entityMetadata: this.entityService.getEntityMetadata({
+          className: relationshipManifest.entity
+        })
+      })
+
+    // Store all items in memory to avoid multiple queries.
+    if (!this.records[relationshipManifest.entity]) {
+      this.records[relationshipManifest.entity] =
+        await relatedEntityRepository.find({
+          select: ['id']
+        })
+    }
+
+    if (relationshipManifest.type === 'many-to-one') {
+      return this.getRandomUniqueIds(
+        this.records[relationshipManifest.entity].map(
+          (item: BaseEntity) => item.id
+        ),
+        1
+      )[0]
+    } else if (relationshipManifest.type === 'many-to-many') {
+      // On many-to-many relationships, we need to generate a random number of relations.
+      const max: number = Math.min(
+        DEFAULT_MAX_MANY_TO_MANY_RELATIONS,
+        this.records[relationshipManifest.entity].length
+      )
+
+      const numberOfRelations: number = faker.number.int({
+        min: 0,
+        max
+      })
+
+      return this.getRandomUniqueIds(
+        this.records[relationshipManifest.entity].map(
+          (item: BaseEntity) => item.id
+        ),
+        numberOfRelations
+      ).map((id: string) => ({ id }))
+    }
+  }
+
+  /**
+   * Generates an array of unique IDs from the provided list.
+   *
+   * @param ids The array of IDs to choose from.
+   * @param count The number of unique IDs to return.
+   *
+   * @return An array of unique IDs, randomly selected from the provided list.
+   */
+  private getRandomUniqueIds(ids: string[], count: number): string[] {
+    const shuffled = [...ids].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, Math.min(count, ids.length))
   }
 }
