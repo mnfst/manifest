@@ -75,6 +75,7 @@ describe('CrudService', () => {
 
   const queryBuilder: SelectQueryBuilder<any> = {
     where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
@@ -225,7 +226,25 @@ describe('CrudService', () => {
     })
 
     it('should return all entities with filters', async () => {
-      // TODO: Implement test
+      const entitySlug = 'test'
+      const result = await service.findAll({
+        entitySlug,
+        queryParams: { 
+          name_eq: 'Superman',
+          age_gte: '25',
+          age_lte: '35',
+          color_like: 'blue',
+          color_in: 'blue,red,green'
+        }
+      })
+
+      expect(result).toEqual(dummyPaginator)
+      expect(queryBuilder.andWhere).toHaveBeenCalledTimes(5)
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.name = :value_0', { value_0: 'Superman' })
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.age >= :value_1', { value_1: '25' })
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.age <= :value_2', { value_2: '35' })
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.color like :value_3', { value_3: 'blue' })
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.color in (:...value_4)', { value_4: ['blue', 'red', 'green'] })
     })
   })
 

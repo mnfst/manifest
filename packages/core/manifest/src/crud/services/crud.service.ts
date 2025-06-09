@@ -666,13 +666,16 @@ export class CrudService {
 
         // "In" is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          value = JSON.parse(`[${value}]`)
+          const inValues: string[] = value.split(',')
+          query.andWhere(`${whereKey} ${operator} (:...value_${index})`, {
+            [`value_${index}`]: inValues
+          })
+        } else {
+          // For other operators, just use the value directly.
+          query.andWhere(`${whereKey} ${operator} :value_${index}`, {
+            [`value_${index}`]: value
+          })
         }
-
-        // Finally and the where query.
-        query.andWhere(`${whereKey} ${operator} :value_${index}`, {
-          [`value_${index}`]: value
-        })
       })
 
     return query
