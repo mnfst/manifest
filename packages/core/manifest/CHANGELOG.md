@@ -1,5 +1,11 @@
 # manifest
 
+## 4.12.0
+
+### Minor Changes
+
+- beb4317: Replaced incremental int IDs by UUIDs, thanks @jerryjappinen
+
 ## 4.11.11
 
 ### Patch Changes
