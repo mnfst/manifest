@@ -77,6 +77,7 @@ describe('CrudService', () => {
     where: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
     getOne: jest.fn().mockReturnValue(Promise.resolve(dummyItem))
   } as any
 
