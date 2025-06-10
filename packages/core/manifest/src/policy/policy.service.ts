@@ -51,6 +51,10 @@ export class PolicyService {
             : policySchema.allow
       }
 
+      if (policySchema.condition) {
+        policyManifest.condition = policySchema.condition
+      }
+
       return policyManifest
     })
   }
