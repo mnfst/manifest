@@ -62,8 +62,8 @@ export const policies: Record<AccessPolicy, (params: PolicyParams) => boolean> =
 
       // If "condition" is set to "self", check if the user is accessing their own entity.
       if (params.options?.condition === 'self') {
-        // Creation: we only allow record creation if logged in user is owner.
-        if (params.rule === 'create') {
+        // Creation: we only allow record creation if logged in user is owner, same for updates, we cannot change ownership.
+        if (params.rule === 'create' || params.rule === 'update') {
           const relationshipWithUser: RelationshipManifest | undefined =
             params.entityManifest.relationships.find(
               (r: RelationshipManifest) =>
@@ -76,15 +76,20 @@ export const policies: Record<AccessPolicy, (params: PolicyParams) => boolean> =
           const dtoOwnershipPropertyName: string =
             getDtoPropertyNameFromRelationship(relationshipWithUser)
 
-          console.log(dtoOwnershipPropertyName)
+          if (params.body[dtoOwnershipPropertyName] !== params.user.id) {
+            return false
+          }
+        }
 
-          console.log('itemDto', params.body[dtoOwnershipPropertyName])
-          console.log('userId', params.user.id)
+        if (params.rule === 'update' || params.rule === 'delete') {
+          // TODO: Get requested record and ensure that it belongs to the user.
+        }
 
-          return params.body[dtoOwnershipPropertyName] === params.user.id
+        if (params.rule === 'read') {
+          // TODO: restrict read access to only the user's own records.
         }
       }
-      // TODO: Edit and Delete policies should also check ownership.
+
       return true
     }
   }
