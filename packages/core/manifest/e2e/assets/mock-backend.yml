@@ -130,10 +130,10 @@ entities:
     properties:
       - name
     belongsTo:
-      - Owner
+      - User
     policies:
       create:
-        - access: public
+        - { access: restricted, allow: User, condition: "self" }
       read:
         - { access: restricted, allow: User, condition: "self" }
 

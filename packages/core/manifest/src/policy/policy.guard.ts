@@ -38,7 +38,13 @@ export class PolicyGuard implements CanActivate {
     const { user, entitySlug: userEntitySlug }: any =
       (await this.authService.getUserFromRequest(req)) || {}
 
+    const entityManifest: EntityManifest =
+      this.entityManifestService.getEntityManifest({
+        slug: context.getArgs()[0].params.entity
+      })
+
     let userEntityManifest: EntityManifest
+
     if (userEntitySlug) {
       userEntityManifest = this.entityManifestService.getEntityManifest({
         slug: userEntitySlug
@@ -47,16 +53,22 @@ export class PolicyGuard implements CanActivate {
       userEntityManifest = null
     }
 
-    // TODO: pass rule to policyFn
     // TODO: we have to find out how to add filter to query on read.
 
     return routePolicies.every((policy: PolicyManifest) => {
       const policyFn = policies[policy.access]
 
       // Execute the policy function that returns a boolean.
-      return policyFn(user, userEntityManifest, {
-        allow: policy.allow,
-        condition: policy.condition
+      return policyFn({
+        entityManifest,
+        user,
+        userEntityManifest,
+        rule,
+        body: req.body,
+        options: {
+          allow: policy.allow,
+          condition: policy.condition
+        }
       })
     })
   }

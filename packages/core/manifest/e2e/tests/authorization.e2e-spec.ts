@@ -223,7 +223,56 @@ describe('Authorization (e2e)', () => {
 
   describe('Restricted rules with ownership based access (self)', () => {
     it('should allow creating a record only for owner', async () => {
-      // TODO: implement
+      // Create 2 users.
+      const userASignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'usera@example.com',
+          password: 'password'
+        })
+      const userAToken = userASignupResponse.body.token
+
+      const userBSignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'userb@example.com',
+          password: 'password'
+        })
+      const userBToken = userBSignupResponse.body.token
+
+      // Get their IDs.
+      const userAID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userAToken)
+        .then((res) => res.body.id)
+      const userBID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userBToken)
+        .then((res) => res.body.id)
+
+      expect(userAID).toBeDefined()
+      expect(userBID).toBeDefined()
+      expect(userAID).not.toEqual(userBID)
+
+      // User A creates a record as owner.
+      const userACreateResponse = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User A',
+          userId: userAID
+        })
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      const userACreateResponseForUserBFrog = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User B',
+          userId: userBID
+        })
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      expect(userACreateResponse.status).toBe(201)
+      expect(userACreateResponseForUserBFrog.status).toBe(403)
     })
 
     it("should only show owner's records", async () => {
@@ -261,7 +310,7 @@ describe('Authorization (e2e)', () => {
     })
   })
 
-  describe('Admin rules', () => {
+  describe('Admin rules and admin role', () => {
     it('should allow access to admin rules only to admins', async () => {
       const adminReadResponse = await global.request
         .get('/collections/snakes')
@@ -341,6 +390,13 @@ describe('Authorization (e2e)', () => {
       expect(responseAsAdmin.body.hiddenProp).toBeDefined()
       expect(responseAsUser.body.hiddenProp).not.toBeDefined()
       expect(responseAsGuest.body.hiddenProp).not.toBeDefined()
+    })
+
+    it('admins are not concerned by any of ownership based access policies', async () => {
+      // TODO: Create
+      // TODO: Read
+      // TODO: Update
+      // TODO: Delete
     })
   })
 })
