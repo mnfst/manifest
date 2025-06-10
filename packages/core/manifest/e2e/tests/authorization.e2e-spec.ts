@@ -222,7 +222,7 @@ describe('Authorization (e2e)', () => {
   })
 
   describe('Restricted rules with ownership based access (self)', () => {
-    it('should allow creating a record only for owner', async () => {
+    it('should only allow creating a record for owner', async () => {
       // Create 2 users.
       const userASignupResponse = await global.request
         .post('/auth/users/signup')
@@ -230,7 +230,7 @@ describe('Authorization (e2e)', () => {
           email: 'usera@example.com',
           password: 'password'
         })
-      const userAToken = userASignupResponse.body.token
+      const userAToken: string = userASignupResponse.body.token
 
       const userBSignupResponse = await global.request
         .post('/auth/users/signup')
@@ -238,7 +238,7 @@ describe('Authorization (e2e)', () => {
           email: 'userb@example.com',
           password: 'password'
         })
-      const userBToken = userBSignupResponse.body.token
+      const userBToken: string = userBSignupResponse.body.token
 
       // Get their IDs.
       const userAID = await global.request
@@ -283,7 +283,7 @@ describe('Authorization (e2e)', () => {
           email: 'usera2@example.com',
           password: 'password'
         })
-      const userAToken = userASignupResponse.body.token
+      const userAToken: string = userASignupResponse.body.token
 
       const userBSignupResponse = await global.request
         .post('/auth/users/signup')
@@ -291,7 +291,7 @@ describe('Authorization (e2e)', () => {
           email: 'userb2@example.com',
           password: 'password'
         })
-      const userBToken = userBSignupResponse.body.token
+      const userBToken: string = userBSignupResponse.body.token
 
       // Get their IDs.
       const userAID = await global.request
@@ -331,32 +331,33 @@ describe('Authorization (e2e)', () => {
         .set('Authorization', 'Bearer ' + userBToken)
       const listResponseAsGuest = await global.request.get('/collections/frogs')
 
-      const detailResponseAsUserA = await global.request.get(
-        `/collections/frogs/${frogCreateResponseForUserA.body.id}`
-      )
-      const detailResponseAsUserB = await global.request.get(
-        `/collections/frogs/${frogCreateResponseForUserB.body.id}`
-      )
+      const detailResponseAsUserA = await global.request
+        .get(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
 
-      const detailResponseAsUserAGettingUserBRecord = await global.request.get(
-        `/collections/frogs/${frogCreateResponseForUserB.body.id}`
-      )
-      const detailResponseAsUserBGettingUserARecord = await global.request.get(
-        `/collections/frogs/${frogCreateResponseForUserA.body.id}`
-      )
+      const detailResponseAsUserB = await global.request
+        .get(`/collections/frogs/${frogCreateResponseForUserB.body.id}`)
+        .set('Authorization', 'Bearer ' + userBToken)
+
+      const detailResponseAsUserAGettingUserBRecord = await global.request
+        .get(`/collections/frogs/${frogCreateResponseForUserB.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+      const detailResponseAsUserBGettingUserARecord = await global.request
+        .get(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userBToken)
 
       expect(listResponseAsUserA.status).toBe(200)
       expect(listResponseAsUserB.status).toBe(200)
       expect(listResponseAsGuest.status).toBe(403)
       expect(listResponseAsUserA.body.data.length).toBe(1)
       expect(listResponseAsUserB.body.data.length).toBe(1)
-      expect(listResponseAsUserA.body.data[0].userId).toBe(userAID)
-      expect(listResponseAsUserB.body.data[0].userId).toBe(userBID)
+      expect(listResponseAsUserA.body.data[0].user.id).toBe(userAID)
+      expect(listResponseAsUserB.body.data[0].user.id).toBe(userBID)
 
       expect(detailResponseAsUserA.status).toBe(200)
       expect(detailResponseAsUserB.status).toBe(200)
-      expect(detailResponseAsUserAGettingUserBRecord.status).toBe(403)
-      expect(detailResponseAsUserBGettingUserARecord.status).toBe(403)
+      expect(detailResponseAsUserAGettingUserBRecord.status).toBe(404)
+      expect(detailResponseAsUserBGettingUserARecord.status).toBe(404)
     })
 
     it("should allow update only for owner's records", async () => {

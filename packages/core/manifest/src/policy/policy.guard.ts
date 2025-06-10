@@ -64,6 +64,7 @@ export class PolicyGuard implements CanActivate {
         user,
         userEntityManifest,
         rule,
+        request: req,
         body: req.body,
         options: {
           allow: policy.allow,

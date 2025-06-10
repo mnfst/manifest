@@ -2,11 +2,13 @@ import {
   AccessPolicy,
   AuthenticableEntity,
   EntityManifest,
-  RelationshipManifest
+  RelationshipManifest,
+  WhereKeySuffix
 } from '@repo/types'
 import { ADMIN_ENTITY_MANIFEST } from '../constants'
 import { Rule } from './types/rule.type'
 import { getDtoPropertyNameFromRelationship } from '../../../common/src'
+import { Request } from 'express'
 
 interface PolicyParams {
   user: AuthenticableEntity
@@ -14,6 +16,7 @@ interface PolicyParams {
   userEntityManifest: EntityManifest
   rule?: Rule
   body?: unknown
+  request?: Request
   options?: {
     allow?: string[]
     condition?: 'self'
@@ -62,20 +65,21 @@ export const policies: Record<AccessPolicy, (params: PolicyParams) => boolean> =
 
       // If "condition" is set to "self", check if the user is accessing their own entity.
       if (params.options?.condition === 'self') {
+        // Get the relationship with the user entity.
+        const relationshipWithUser: RelationshipManifest | undefined =
+          params.entityManifest.relationships.find(
+            (r: RelationshipManifest) =>
+              r.entity === params.userEntityManifest.className
+          )
+        if (!relationshipWithUser) {
+          return false
+        }
+
+        const dtoOwnershipPropertyName: string =
+          getDtoPropertyNameFromRelationship(relationshipWithUser)
+
         // Creation: we only allow record creation if logged in user is owner, same for updates, we cannot change ownership.
         if (params.rule === 'create' || params.rule === 'update') {
-          const relationshipWithUser: RelationshipManifest | undefined =
-            params.entityManifest.relationships.find(
-              (r: RelationshipManifest) =>
-                r.entity === params.userEntityManifest.className
-            )
-          if (!relationshipWithUser) {
-            return false
-          }
-
-          const dtoOwnershipPropertyName: string =
-            getDtoPropertyNameFromRelationship(relationshipWithUser)
-
           if (params.body[dtoOwnershipPropertyName] !== params.user.id) {
             return false
           }
@@ -86,7 +90,23 @@ export const policies: Record<AccessPolicy, (params: PolicyParams) => boolean> =
         }
 
         if (params.rule === 'read') {
-          // TODO: restrict read access to only the user's own records.
+          // Restrict read access to only the user's own records.
+
+          // Make sure the relationship is requested in the query in order to filter by it.
+          const relationQueryParam: string =
+            (params.request.query['relations'] as string) || ''
+          if (!relationQueryParam.includes(relationshipWithUser.name)) {
+            // If the relationship is not requested, we add it to the query.
+            params.request.query['relations'] = relationQueryParam
+              ? relationQueryParam + ',' + relationshipWithUser.name
+              : relationshipWithUser.name
+          }
+
+          params.request.query = {
+            ...params.request.query,
+            [relationshipWithUser.name + '.id' + WhereKeySuffix.Equal]:
+              params.user.id
+          }
         }
       }
 

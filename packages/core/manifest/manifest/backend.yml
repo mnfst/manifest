@@ -15,6 +15,7 @@ entities:
       - name
     belongsTo:
       - User
+      - Project
     policies:
       create:
         - { access: restricted, allow: User, condition: "self" }
