@@ -276,15 +276,275 @@ describe('Authorization (e2e)', () => {
     })
 
     it("should only show owner's records", async () => {
-      // TODO: implement
+      // Create 2 users.
+      const userASignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'usera2@example.com',
+          password: 'password'
+        })
+      const userAToken = userASignupResponse.body.token
+
+      const userBSignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'userb2@example.com',
+          password: 'password'
+        })
+      const userBToken = userBSignupResponse.body.token
+
+      // Get their IDs.
+      const userAID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userAToken)
+        .then((res) => res.body.id)
+      const userBID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userBToken)
+        .then((res) => res.body.id)
+
+      // Create one record for each user.
+      const frogCreateResponseForUserA = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User A',
+          userId: userAID
+        })
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      const frogCreateResponseForUserB = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User B',
+          userId: userBID
+        })
+        .set('Authorization', 'Bearer ' + userBToken)
+
+      expect(frogCreateResponseForUserA.status).toBe(201)
+      expect(frogCreateResponseForUserB.status).toBe(201)
+
+      const listResponseAsUserA = await global.request
+        .get('/collections/frogs')
+        .set('Authorization', 'Bearer ' + userAToken)
+      const listResponseAsUserB = await global.request
+        .get('/collections/frogs')
+        .set('Authorization', 'Bearer ' + userBToken)
+      const listResponseAsGuest = await global.request.get('/collections/frogs')
+
+      const detailResponseAsUserA = await global.request.get(
+        `/collections/frogs/${frogCreateResponseForUserA.body.id}`
+      )
+      const detailResponseAsUserB = await global.request.get(
+        `/collections/frogs/${frogCreateResponseForUserB.body.id}`
+      )
+
+      const detailResponseAsUserAGettingUserBRecord = await global.request.get(
+        `/collections/frogs/${frogCreateResponseForUserB.body.id}`
+      )
+      const detailResponseAsUserBGettingUserARecord = await global.request.get(
+        `/collections/frogs/${frogCreateResponseForUserA.body.id}`
+      )
+
+      expect(listResponseAsUserA.status).toBe(200)
+      expect(listResponseAsUserB.status).toBe(200)
+      expect(listResponseAsGuest.status).toBe(403)
+      expect(listResponseAsUserA.body.data.length).toBe(1)
+      expect(listResponseAsUserB.body.data.length).toBe(1)
+      expect(listResponseAsUserA.body.data[0].userId).toBe(userAID)
+      expect(listResponseAsUserB.body.data[0].userId).toBe(userBID)
+
+      expect(detailResponseAsUserA.status).toBe(200)
+      expect(detailResponseAsUserB.status).toBe(200)
+      expect(detailResponseAsUserAGettingUserBRecord.status).toBe(403)
+      expect(detailResponseAsUserBGettingUserARecord.status).toBe(403)
     })
 
     it("should allow update only for owner's records", async () => {
-      // TODO: implement
+      // Create 2 users.
+      const userASignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'usera3@example.com',
+          password: 'password'
+        })
+      const userAToken = userASignupResponse.body.token
+
+      const userBSignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'userb3@example.com',
+          password: 'password'
+        })
+      const userBToken = userBSignupResponse.body.token
+
+      // Get their IDs.
+      const userAID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userAToken)
+        .then((res) => res.body.id)
+      const userBID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userBToken)
+        .then((res) => res.body.id)
+
+      // Create one record for each user.
+      const frogCreateResponseForUserA = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User A',
+          userId: userAID
+        })
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      const frogCreateResponseForUserB = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User B',
+          userId: userBID
+        })
+        .set('Authorization', 'Bearer ' + userBToken)
+
+      expect(frogCreateResponseForUserA.status).toBe(201)
+      expect(frogCreateResponseForUserB.status).toBe(201)
+
+      const putResponseAsUserAWithFrogA = await global.request
+        .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+        .send({ name: 'Updated Frog for User A' })
+      const patchResponseAsUserAWithFrogA = await global.request
+        .patch(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+        .send({ name: 'Updated Frog for User A' })
+
+      const putResponseAsUserBWithFrogA = await global.request
+        .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userBToken)
+      const patchResponseAsUserBWithFrogA = await global.request
+        .patch(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userBToken)
+
+      expect(putResponseAsUserAWithFrogA.status).toBe(200)
+      expect(patchResponseAsUserAWithFrogA.status).toBe(200)
+      expect(putResponseAsUserBWithFrogA.status).toBe(403)
+      expect(patchResponseAsUserBWithFrogA.status).toBe(403)
+    })
+
+    it('should prevent changing ownership of a record', async () => {
+      // Create 2 users.
+      const userASignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'usera4@example.com',
+          password: 'password'
+        })
+      const userAToken = userASignupResponse.body.token
+
+      const userBSignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'userb4@example.com',
+          password: 'password'
+        })
+      const userBToken = userBSignupResponse.body.token
+
+      // Get their IDs.
+      const userAID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userAToken)
+        .then((res) => res.body.id)
+      const userBID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userBToken)
+        .then((res) => res.body.id)
+
+      // Create one record for each user.
+      const frogCreateResponseForUserA = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User A',
+          userId: userAID
+        })
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      const frogUpdateResponseAsUserA = await global.request
+        .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+        .send({ name: 'Updated Frog for User A', userId: userAID })
+
+      const frogUpdateResponseChangingOwnership = await global.request
+        .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+        .send({ name: 'Updated Frog for User A', userId: userBID })
+
+      const frogUpdateResponseChangingOwnershipAsUserB = await global.request
+        .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userBToken)
+        .send({ name: 'Updated Frog for User A', userId: userBID })
+
+      expect(frogCreateResponseForUserA.status).toBe(201)
+      expect(frogUpdateResponseAsUserA.status).toBe(200)
+      expect(frogUpdateResponseChangingOwnership.status).toBe(403)
+      expect(frogUpdateResponseChangingOwnershipAsUserB.status).toBe(403)
     })
 
     it("should allow delete only for owner's records", async () => {
-      // TODO: implement
+      // Create 2 users.
+      const userASignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'usera5@example.com',
+          password: 'password'
+        })
+      const userAToken = userASignupResponse.body.token
+
+      const userBSignupResponse = await global.request
+        .post('/auth/users/signup')
+        .send({
+          email: 'userb5@example.com',
+          password: 'password'
+        })
+      const userBToken = userBSignupResponse.body.token
+
+      // Get their IDs.
+      const userAID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userAToken)
+        .then((res) => res.body.id)
+      const userBID = await global.request
+        .get('/auth/users/me')
+        .set('Authorization', 'Bearer ' + userBToken)
+        .then((res) => res.body.id)
+
+      // Create one record for each user.
+      const frogCreateResponseForUserA = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User A',
+          userId: userAID
+        })
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      const frogCreateResponseForUserB = await global.request
+        .post('/collections/frogs')
+        .send({
+          name: 'Frog for User B',
+          userId: userBID
+        })
+        .set('Authorization', 'Bearer ' + userBToken)
+
+      expect(frogCreateResponseForUserA.status).toBe(201)
+      expect(frogCreateResponseForUserB.status).toBe(201)
+
+      const deleteResponseAsUserAWithFrogA = await global.request
+        .delete(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      const deleteResponseAsUserAWithFrogB = await global.request
+        .delete(`/collections/frogs/${frogCreateResponseForUserB.body.id}`)
+        .set('Authorization', 'Bearer ' + userAToken)
+
+      expect(deleteResponseAsUserAWithFrogA.status).toBe(200)
+      expect(deleteResponseAsUserAWithFrogB.status).toBe(403)
     })
   })
 
