@@ -42,7 +42,7 @@ export class MyCommand extends Command {
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
 
-    const spinner = ora('Add Manifest to your project...').start()
+    const spinner = ora('Adding Manifest to your project...').start()
 
     // * 1. Create a folder with the name `manifest`.
     // Construct the folder path. This example creates the folder in the current working directory.
@@ -73,7 +73,7 @@ export class MyCommand extends Command {
     fs.writeFileSync(newFilePath, content)
 
     spinner.succeed()
-    spinner.start('Update package.json file...')
+    spinner.start('Updating package.json file...')
 
     // Update package.json file.
     const packagePath = path.join(process.cwd(), 'package.json')
@@ -109,7 +109,7 @@ export class MyCommand extends Command {
     )
 
     spinner.succeed()
-    spinner.start('Add settings...')
+    spinner.start('Adding settings...')
 
     // Update .vscode/extensions.json file.
     const vscodeDirPath: string = path.join(process.cwd(), '.vscode')
@@ -196,7 +196,7 @@ export class MyCommand extends Command {
     }
 
     // * 9. Install the new packages.
-    spinner.start('Install dependencies...')
+    spinner.start('Installing dependencies...')
 
     // Install deps.
     try {
@@ -208,7 +208,7 @@ export class MyCommand extends Command {
     //  Serve the new app.
     spinner.succeed()
 
-    spinner.start('Add environment variables...')
+    spinner.start('Adding environment variables...')
     // Add environment variables to .env file
     const envFilePath = path.join(process.cwd(), '.env')
     const envJWTSecret = `TOKEN_SECRET_KEY=${crypto
@@ -227,7 +227,7 @@ export class MyCommand extends Command {
     fs.writeFileSync(envFilePath, envContent)
 
     spinner.succeed()
-    spinner.start('Build the database...')
+    spinner.start('Building the database...')
 
     let serveTask: PromiseWithChild<{ stdout: string; stderr: string }> | null =
       null
@@ -242,7 +242,7 @@ export class MyCommand extends Command {
       spinner.fail(`Execution error: ${error}`)
     }
 
-    spinner.start('Seed initial data...')
+    spinner.start('Seeding initial data...')
     try {
       await exec('npm run manifest:seed')
     } catch (error) {
@@ -323,3 +323,4 @@ export class MyCommand extends Command {
     })
   }
 }
+
