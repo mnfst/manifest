@@ -62,7 +62,7 @@ describe('Authorization (e2e)', () => {
     ).body.id
   })
 
-  describe('Rules', () => {
+  describe('General behaviors', () => {
     it('should have admin access by default', async () => {
       const listResponse = await global.request.get('/collections/owners')
       const createResponse = await global.request
@@ -120,6 +120,39 @@ describe('Authorization (e2e)', () => {
       expect(adminDeleteResponse.status).toBe(200)
     })
 
+    it('should work with multiple rules creating and AND logic between rules', async () => {
+      const restrictedTwiceDeleteResponseAsUser = await global.request
+        .delete(`/collections/birds/${birdId}`)
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const restrictedTwiceDeleteResponseAsContributor = await global.request
+        .delete(`/collections/birds/${birdId}`)
+        .set('Authorization', 'Bearer ' + contributorToken)
+
+      expect(restrictedTwiceDeleteResponseAsUser.status).toBe(403)
+      expect(restrictedTwiceDeleteResponseAsContributor.status).toBe(403)
+    })
+
+    it('should work with emojis shortcodes', async () => {
+      const publicResponseUsingEmoji =
+        await global.request.get('/collections/cats')
+      const restrictedResponseUsingEmoji = await global.request
+        .post('/collections/cats')
+        .send({
+          name: 'new cat',
+          hiddenProp: true
+        })
+      const forbiddenResponseUsingEmoji = await global.request
+        .delete('/collections/cats/1')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      expect(publicResponseUsingEmoji.status).toBe(200)
+      expect(restrictedResponseUsingEmoji.status).toBe(403)
+      expect(forbiddenResponseUsingEmoji.status).toBe(403)
+    })
+  })
+
+  describe('Public rules', () => {
     it('should allow access to public rules to everyone', async () => {
       const listResponse = await global.request.get('/collections/cats')
       const showResponse = await global.request.get(
@@ -129,7 +162,9 @@ describe('Authorization (e2e)', () => {
       expect(listResponse.status).toBe(200)
       expect(showResponse.status).toBe(200)
     })
+  })
 
+  describe('Restricted rules', () => {
     it('should allow access to restricted rules to all logged in users if no entity is provided', async () => {
       const restrictedCreateResponseAsUser = await global.request
         .post('/collections/birds')
@@ -165,22 +200,6 @@ describe('Authorization (e2e)', () => {
       expect(restrictedToContributorsAndUsersUpdateResponse.status).toBe(200)
     })
 
-    it('should allow access to admin rules only to admins', async () => {
-      const adminReadResponse = await global.request
-        .get('/collections/snakes')
-        .set('Authorization', 'Bearer ' + adminToken)
-
-      const userReadResponse = await global.request
-        .get('/collections/snakes')
-        .set('Authorization', 'Bearer ' + userToken)
-
-      const guestReadResponse = await global.request.get('/collections/snakes')
-
-      expect(adminReadResponse.status).toBe(200)
-      expect(userReadResponse.status).toBe(403)
-      expect(guestReadResponse.status).toBe(403)
-    })
-
     it('should deny access to restricted rules to guests', async () => {
       const restrictedCreateResponse =
         await global.request.post('/collections/birds')
@@ -200,7 +219,27 @@ describe('Authorization (e2e)', () => {
 
       expect(restrictedToUsersUpdateResponse.status).toBe(403)
     })
+  })
 
+  describe('Restricted rules with ownership based access (self)', () => {
+    it('should allow creating a record only for owner', async () => {
+      // TODO: implement
+    })
+
+    it("should only show owner's records", async () => {
+      // TODO: implement
+    })
+
+    it("should allow update only for owner's records", async () => {
+      // TODO: implement
+    })
+
+    it("should allow delete only for owner's records", async () => {
+      // TODO: implement
+    })
+  })
+
+  describe('Forbidden rules', () => {
     it('should deny access to everyone even admins for forbidden rules', async () => {
       const forbiddenUpdateResponseAsGuest = await global.request
         .post('/auth/snakes/signup')
@@ -220,40 +259,25 @@ describe('Authorization (e2e)', () => {
       expect(forbiddenUpdateResponseAsUser.status).toBe(403)
       expect(forbiddenUpdateResponseAsAdmin.status).toBe(403)
     })
-
-    it('should work with multiple rules creating and AND logic between rules', async () => {
-      const restrictedTwiceDeleteResponseAsUser = await global.request
-        .delete(`/collections/birds/${birdId}`)
-        .set('Authorization', 'Bearer ' + userToken)
-
-      const restrictedTwiceDeleteResponseAsContributor = await global.request
-        .delete(`/collections/birds/${birdId}`)
-        .set('Authorization', 'Bearer ' + contributorToken)
-
-      expect(restrictedTwiceDeleteResponseAsUser.status).toBe(403)
-      expect(restrictedTwiceDeleteResponseAsContributor.status).toBe(403)
-    })
-
-    it('should work with emojis shortcodes', async () => {
-      const publicResponseUsingEmoji =
-        await global.request.get('/collections/cats')
-      const restrictedResponseUsingEmoji = await global.request
-        .post('/collections/cats')
-        .send({
-          name: 'new cat',
-          hiddenProp: true
-        })
-      const forbiddenResponseUsingEmoji = await global.request
-        .delete('/collections/cats/1')
-        .set('Authorization', 'Bearer ' + adminToken)
-
-      expect(publicResponseUsingEmoji.status).toBe(200)
-      expect(restrictedResponseUsingEmoji.status).toBe(403)
-      expect(forbiddenResponseUsingEmoji.status).toBe(403)
-    })
   })
 
-  describe('Admin role', () => {
+  describe('Admin rules', () => {
+    it('should allow access to admin rules only to admins', async () => {
+      const adminReadResponse = await global.request
+        .get('/collections/snakes')
+        .set('Authorization', 'Bearer ' + adminToken)
+
+      const userReadResponse = await global.request
+        .get('/collections/snakes')
+        .set('Authorization', 'Bearer ' + userToken)
+
+      const guestReadResponse = await global.request.get('/collections/snakes')
+
+      expect(adminReadResponse.status).toBe(200)
+      expect(userReadResponse.status).toBe(403)
+      expect(guestReadResponse.status).toBe(403)
+    })
+
     it('admins are only visible to other admins', async () => {
       const adminReadResponseAsAdmin = await global.request
         .get('/collections/admins')
