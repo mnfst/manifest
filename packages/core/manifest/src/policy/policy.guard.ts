@@ -27,6 +27,7 @@ export class PolicyGuard implements CanActivate {
     const request: Request = context.switchToHttp().getRequest()
 
     let routePolicies: PolicyManifest[]
+    let entityManifest: EntityManifest
 
     if (rule === 'dynamic-endpoint') {
       routePolicies = request['endpoint']?.policies || []
@@ -35,15 +36,13 @@ export class PolicyGuard implements CanActivate {
         rule,
         context.getArgs()[0].params.entity
       )
-    }
-
-    const { user, entitySlug: userEntitySlug }: any =
-      (await this.authService.getUserFromRequest(request)) || {}
-
-    const entityManifest: EntityManifest =
-      this.entityManifestService.getEntityManifest({
+      entityManifest = this.entityManifestService.getEntityManifest({
         slug: context.getArgs()[0].params.entity
       })
+    }
+
+    const { user, entitySlug: userEntitySlug } =
+      (await this.authService.getUserFromRequest(request)) || {}
 
     let userEntityManifest: EntityManifest
 
@@ -61,9 +60,11 @@ export class PolicyGuard implements CanActivate {
 
         return policyFn({
           entityManifest,
-          entityRepository: this.entityService.getEntityRepository({
-            entitySlug: entityManifest.slug
-          }),
+          entityRepository: entityManifest
+            ? this.entityService.getEntityRepository({
+                entitySlug: entityManifest.slug
+              })
+            : null,
           user,
           userEntityManifest,
           rule,
