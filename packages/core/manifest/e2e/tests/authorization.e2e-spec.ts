@@ -411,18 +411,22 @@ describe('Authorization (e2e)', () => {
       const putResponseAsUserAWithFrogA = await global.request
         .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
         .set('Authorization', 'Bearer ' + userAToken)
-        .send({ name: 'Updated Frog for User A' })
+        .send({ name: 'Updated Frog A for User A', userId: userAID })
+
       const patchResponseAsUserAWithFrogA = await global.request
         .patch(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
         .set('Authorization', 'Bearer ' + userAToken)
-        .send({ name: 'Updated Frog for User A' })
+        .send({ name: 'Patched Frog A for User A' })
 
       const putResponseAsUserBWithFrogA = await global.request
         .put(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
         .set('Authorization', 'Bearer ' + userBToken)
+        .send({ name: 'Updated Frog A with User B', userId: userBID })
+
       const patchResponseAsUserBWithFrogA = await global.request
         .patch(`/collections/frogs/${frogCreateResponseForUserA.body.id}`)
         .set('Authorization', 'Bearer ' + userBToken)
+        .send({ name: 'Patched Frog A with User B' })
 
       expect(putResponseAsUserAWithFrogA.status).toBe(200)
       expect(patchResponseAsUserAWithFrogA.status).toBe(200)

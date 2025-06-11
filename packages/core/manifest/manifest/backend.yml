@@ -21,6 +21,10 @@ entities:
         - { access: restricted, allow: User, condition: "self" }
       read:
         - { access: restricted, allow: User, condition: "self" }
+      update:
+        - { access: restricted, allow: User, condition: "self" }
+      delete:
+        - { access: restricted, allow: User, condition: "self" }
 
   Project:
     properties:

@@ -6,12 +6,14 @@ import { AuthService } from '../auth/auth.service'
 import { Request } from 'express'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 import { policies } from './policies'
+import { EntityService } from '../entity/services/entity.service'
 
 @Injectable()
 export class PolicyGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly entityManifestService: EntityManifestService,
+    private readonly entityService: EntityService,
     private readonly authService: AuthService
   ) {}
 
@@ -22,12 +24,12 @@ export class PolicyGuard implements CanActivate {
       return true
     }
 
-    const req: Request = context.switchToHttp().getRequest()
+    const request: Request = context.switchToHttp().getRequest()
 
     let routePolicies: PolicyManifest[]
 
     if (rule === 'dynamic-endpoint') {
-      routePolicies = req['endpoint']?.policies || []
+      routePolicies = request['endpoint']?.policies || []
     } else {
       routePolicies = await this.getCrudPolicies(
         rule,
@@ -36,7 +38,7 @@ export class PolicyGuard implements CanActivate {
     }
 
     const { user, entitySlug: userEntitySlug }: any =
-      (await this.authService.getUserFromRequest(req)) || {}
+      (await this.authService.getUserFromRequest(request)) || {}
 
     const entityManifest: EntityManifest =
       this.entityManifestService.getEntityManifest({
@@ -53,25 +55,35 @@ export class PolicyGuard implements CanActivate {
       userEntityManifest = null
     }
 
-    // TODO: we have to find out how to add filter to query on read.
+    return Promise.all(
+      routePolicies.map((policy: PolicyManifest) => {
+        const policyFn = policies[policy.access]
 
-    return routePolicies.every((policy: PolicyManifest) => {
-      const policyFn = policies[policy.access]
-
-      // Execute the policy function that returns a boolean.
-      return policyFn({
-        entityManifest,
-        user,
-        userEntityManifest,
-        rule,
-        request: req,
-        body: req.body,
-        options: {
-          allow: policy.allow,
-          condition: policy.condition
-        }
+        return policyFn({
+          entityManifest,
+          entityRepository: this.entityService.getEntityRepository({
+            entitySlug: entityManifest.slug
+          }),
+          user,
+          userEntityManifest,
+          rule,
+          request,
+          options: {
+            allow: policy.allow,
+            condition: policy.condition
+          }
+        })
       })
-    })
+    )
+      .then((results: boolean[]) => {
+        console.log(`Policy results for rule "${rule}":`, results)
+        // Check if all policies return true
+        return results.every((result) => result === true)
+      })
+      .catch(() => {
+        // If any policy fails, deny access
+        return false
+      })
   }
 
   /**

@@ -6,11 +6,13 @@ import { ManifestModule } from '../manifest/manifest.module'
 import { AuthModule } from '../auth/auth.module'
 import { PolicyModule } from '../policy/policy.module'
 import { HandlerModule } from '../handler/handler.module'
+import { EntityModule } from '../entity/entity.module'
 
 @Module({
   imports: [
     forwardRef(() => ManifestModule),
     forwardRef(() => AuthModule),
+    forwardRef(() => EntityModule),
     PolicyModule,
     HandlerModule
   ],
