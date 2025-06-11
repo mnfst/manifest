@@ -2,64 +2,73 @@ import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { policies } from '../../policy/policies'
 
 describe('Policies', () => {
-  const user = { email: 'admin@testfr' } as any
+  const user = { email: 'admin@manifest.build' } as any
 
   describe('admin', () => {
-    it('should return true if the user is an admin', () => {
+    it('should return true if the user is an admin', async () => {
       expect(
-        policies.admin(user, { slug: ADMIN_ENTITY_MANIFEST.slug } as any)
+        await policies.admin({ user, slug: ADMIN_ENTITY_MANIFEST.slug } as any)
       ).toBe(true)
     })
 
-    it('should return false if the user is not an admin', () => {
+    it('should return false if the user is not an admin', async () => {
       const user = { email: 'user@testfr' } as any
 
-      expect(policies.admin(user, { slug: 'contributors' } as any)).toBe(false)
+      expect(await policies.admin({ user, slug: 'contributors' } as any)).toBe(
+        false
+      )
     })
   })
 
   describe('public', () => {
-    it('should return true', () => {
-      expect(policies.public(user, {} as any)).toBe(true)
+    it('should return true', async () => {
+      expect(await policies.public({ user } as any)).toBe(true)
     })
   })
 
   describe('forbidden', () => {
-    it('should return false', () => {
-      expect(policies.forbidden(user, {} as any)).toBe(false)
+    it('should return false', async () => {
+      expect(await policies.forbidden({ user } as any)).toBe(false)
     })
   })
 
   describe('restricted', () => {
-    it('should return true if the user is an admin', () => {
+    it('should return true if the user is an admin', async () => {
       expect(
-        policies.restricted(user, { slug: ADMIN_ENTITY_MANIFEST.slug } as any, {
+        await policies.restricted({
+          user,
+          slug: ADMIN_ENTITY_MANIFEST.slug,
           allow: ['users']
-        })
+        } as any)
       ).toBe(true)
     })
 
-    it('should return false if there is no user logged in', () => {
+    it('should return false if there is no user logged in', async () => {
       expect(
-        policies.restricted(null, { slug: 'contributors' } as any, {
+        await policies.restricted({
+          user: null,
+          slug: 'contributors',
           allow: []
-        })
+        } as any)
       ).toBe(false)
     })
 
-    it('should return true if the user is logged in and from entity list', () => {
+    it('should return true if the user is logged in and from entity list', async () => {
       expect(
-        policies.restricted(user, { className: 'contributors' } as any, {
-          allow: ['contributors', 'guests']
-        })
+        await policies.restricted({
+          user,
+          className: 'Contributor',
+          allow: ['Contributor', 'Guest']
+        } as any)
       ).toBe(true)
     })
 
-    it('should return false if the user is logged in but not in list', () => {
+    it('should return false if the user is logged in but not in list', async () => {
       expect(
-        policies.restricted(user, { className: 'guests' } as any, {
-          allow: ['users']
-        })
+        await policies.restricted({
+          user,
+          options: { allow: ['User'] }
+        } as any)
       ).toBe(false)
     })
   })
