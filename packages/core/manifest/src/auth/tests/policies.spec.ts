@@ -7,16 +7,22 @@ describe('Policies', () => {
   describe('admin', () => {
     it('should return true if the user is an admin', async () => {
       expect(
-        await policies.admin({ user, slug: ADMIN_ENTITY_MANIFEST.slug } as any)
+        await policies.admin({
+          user,
+          userEntityManifest: { slug: ADMIN_ENTITY_MANIFEST.slug }
+        } as any)
       ).toBe(true)
     })
 
     it('should return false if the user is not an admin', async () => {
       const user = { email: 'user@testfr' } as any
 
-      expect(await policies.admin({ user, slug: 'contributors' } as any)).toBe(
-        false
-      )
+      expect(
+        await policies.admin({
+          user,
+          userEntityManifest: { slug: 'contributors' }
+        } as any)
+      ).toBe(false)
     })
   })
 
@@ -37,7 +43,7 @@ describe('Policies', () => {
       expect(
         await policies.restricted({
           user,
-          slug: ADMIN_ENTITY_MANIFEST.slug,
+          userEntityManifest: { slug: ADMIN_ENTITY_MANIFEST.slug },
           allow: ['users']
         } as any)
       ).toBe(true)
@@ -47,7 +53,7 @@ describe('Policies', () => {
       expect(
         await policies.restricted({
           user: null,
-          slug: 'contributors',
+          userEntityManifest: { slug: 'contributors' },
           allow: []
         } as any)
       ).toBe(false)
@@ -57,7 +63,10 @@ describe('Policies', () => {
       expect(
         await policies.restricted({
           user,
-          className: 'Contributor',
+          userEntityManifest: {
+            slug: 'contributors',
+            className: 'Contributor'
+          },
           allow: ['Contributor', 'Guest']
         } as any)
       ).toBe(true)
@@ -67,6 +76,7 @@ describe('Policies', () => {
       expect(
         await policies.restricted({
           user,
+          userEntityManifest: { slug: 'contributors' },
           options: { allow: ['User'] }
         } as any)
       ).toBe(false)

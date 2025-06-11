@@ -76,7 +76,6 @@ export class PolicyGuard implements CanActivate {
       })
     )
       .then((results: boolean[]) => {
-        console.log(`Policy results for rule "${rule}":`, results)
         // Check if all policies return true
         return results.every((result) => result === true)
       })
