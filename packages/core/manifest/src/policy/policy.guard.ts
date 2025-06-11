@@ -6,12 +6,14 @@ import { AuthService } from '../auth/auth.service'
 import { Request } from 'express'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
 import { policies } from './policies'
+import { EntityService } from '../entity/services/entity.service'
 
 @Injectable()
 export class PolicyGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly entityManifestService: EntityManifestService,
+    private readonly entityService: EntityService,
     private readonly authService: AuthService
   ) {}
 
@@ -22,23 +24,28 @@ export class PolicyGuard implements CanActivate {
       return true
     }
 
-    const req: Request = context.switchToHttp().getRequest()
+    const request: Request = context.switchToHttp().getRequest()
 
     let routePolicies: PolicyManifest[]
+    let entityManifest: EntityManifest
 
     if (rule === 'dynamic-endpoint') {
-      routePolicies = req['endpoint']?.policies || []
+      routePolicies = request['endpoint']?.policies || []
     } else {
       routePolicies = await this.getCrudPolicies(
         rule,
         context.getArgs()[0].params.entity
       )
+      entityManifest = this.entityManifestService.getEntityManifest({
+        slug: context.getArgs()[0].params.entity
+      })
     }
 
-    const { user, entitySlug: userEntitySlug }: any =
-      (await this.authService.getUserFromRequest(req)) || {}
+    const { user, entitySlug: userEntitySlug } =
+      (await this.authService.getUserFromRequest(request)) || {}
 
     let userEntityManifest: EntityManifest
+
     if (userEntitySlug) {
       userEntityManifest = this.entityManifestService.getEntityManifest({
         slug: userEntitySlug
@@ -47,12 +54,36 @@ export class PolicyGuard implements CanActivate {
       userEntityManifest = null
     }
 
-    return routePolicies.every((policy: PolicyManifest) => {
-      const policyFn = policies[policy.access]
+    return Promise.all(
+      routePolicies.map((policy: PolicyManifest) => {
+        const policyFn = policies[policy.access]
 
-      // Execute the policy function that returns a boolean.
-      return policyFn(user, userEntityManifest, { allow: policy.allow })
-    })
+        return policyFn({
+          entityManifest,
+          entityRepository: entityManifest
+            ? this.entityService.getEntityRepository({
+                entitySlug: entityManifest.slug
+              })
+            : null,
+          user,
+          userEntityManifest,
+          rule,
+          request,
+          options: {
+            allow: policy.allow,
+            condition: policy.condition
+          }
+        })
+      })
+    )
+      .then((results: boolean[]) => {
+        // Check if all policies return true
+        return results.every((result) => result === true)
+      })
+      .catch(() => {
+        // If any policy fails, deny access
+        return false
+      })
   }
 
   /**

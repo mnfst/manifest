@@ -104,9 +104,9 @@ export function getRandomIntExcluding({
 export function getDtoPropertyNameFromRelationship(
   relationship: RelationshipManifest
 ): string {
-  if (relationship.type === 'many-to-one') {
+  if (relationship?.type === 'many-to-one') {
     return relationship.name + 'Id'
-  } else if (relationship.type === 'many-to-many') {
+  } else if (relationship?.type === 'many-to-many') {
     return relationship.name.endsWith('s')
       ? relationship.name.slice(0, -1) + 'Ids'
       : relationship.name + 'Id'

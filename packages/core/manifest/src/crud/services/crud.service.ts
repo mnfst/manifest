@@ -224,6 +224,13 @@ export class CrudService {
       requestedRelations: queryParams?.relations?.toString().split(',')
     })
 
+    // Apply filters.
+    this.filterQuery({
+      query,
+      queryParams,
+      entityManifest
+    })
+
     const item: BaseEntity = await query.getOne()
 
     if (!item) {

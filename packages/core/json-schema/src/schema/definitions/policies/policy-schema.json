@@ -30,6 +30,11 @@
           }
         }
       ]
+    },
+    "condition": {
+      "type": "string",
+      "enum": ["self"],
+      "description": "When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)"
     }
   },
   "required": ["access"],

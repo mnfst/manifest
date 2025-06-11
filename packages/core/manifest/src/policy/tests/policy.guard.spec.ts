@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { AuthService } from '../../auth/auth.service'
 import { EntityManifest } from '@repo/types'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('PolicyGuard', () => {
   let authorizationGuard: PolicyGuard
@@ -35,7 +36,14 @@ describe('PolicyGuard', () => {
           policies: [{ access: 'public' }]
         }
       }))
-    }))
+    })),
+    getArgs: jest.fn(() => [
+      {
+        params: {
+          entity: 'entity'
+        }
+      }
+    ])
   }
 
   beforeEach(async () => {
@@ -51,7 +59,19 @@ describe('PolicyGuard', () => {
         {
           provide: EntityManifestService,
           useValue: {
-            getEntityManifest: jest.fn()
+            getEntityManifest: jest.fn(
+              () =>
+                ({
+                  slug: 'entity',
+                  policies: {}
+                }) as EntityManifest
+            )
+          }
+        },
+        {
+          provide: EntityService,
+          useValue: {
+            getEntityRepository: jest.fn()
           }
         },
         {
@@ -135,7 +155,14 @@ describe('PolicyGuard', () => {
               policies: [{ access: 'forbidden' }]
             }
           }))
-        }))
+        })),
+        getArgs: jest.fn(() => [
+          {
+            params: {
+              entity: 'entity'
+            }
+          }
+        ])
       } as any
 
       const result = await authorizationGuard.canActivate(
