@@ -110,7 +110,16 @@ export const policies: Record<
           return Promise.resolve(false)
         }
 
-        // TODO: Update only: prevent changing ownership of the record.
+        if (params.rule === 'update') {
+          // If the user is updating the record, we need to ensure that the ownership property is not changed.
+          if (
+            params.request.body[dtoOwnershipPropertyName] &&
+            params.request.body[dtoOwnershipPropertyName] !==
+              (requestedRecord[relationshipWithUser.name] as BaseEntity)?.id
+          ) {
+            return Promise.resolve(false)
+          }
+        }
       }
 
       if (params.rule === 'read') {
