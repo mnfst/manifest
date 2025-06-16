@@ -77,7 +77,10 @@ describe('PolicyGuard', () => {
         {
           provide: AuthService,
           useValue: {
-            getUserFromRequest: jest.fn()
+            getUserFromRequest: jest.fn(() => ({
+              user: {},
+              entitySlug: 'users'
+            }))
           }
         }
       ]
@@ -90,14 +93,18 @@ describe('PolicyGuard', () => {
     )
   })
 
-  it('should be defined', () => {
-    expect(authorizationGuard).toBeDefined()
-  })
+  describe('General', () => {
+    it('should be defined', () => {
+      expect(authorizationGuard).toBeDefined()
+    })
 
-  it('should return true if rule is not defined', async () => {
-    const result = await authorizationGuard.canActivate(context)
+    it('should return true if rule is not defined', async () => {
+      const result = await authorizationGuard.canActivate(context)
+      expect(result).toBe(true)
+    })
 
-    expect(result).toBe(true)
+
+    })
   })
 
   describe('Policies on CRUD operations', () => {

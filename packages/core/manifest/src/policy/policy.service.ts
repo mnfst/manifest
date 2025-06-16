@@ -15,7 +15,7 @@ export class PolicyService {
     policySchemas: PolicySchema[],
     defaultPolicy: PolicyManifest
   ): PolicyManifest[] {
-    if (!policySchemas) {
+    if (!policySchemas?.length) {
       return [defaultPolicy]
     }
 
