@@ -103,7 +103,17 @@ describe('PolicyGuard', () => {
       expect(result).toBe(true)
     })
 
+    it('should return false if any promise in policies fails', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('read')
+      jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
+        policies: {
+          read: [{ access: 'public' }, { access: 'forbidden' }]
+        }
+      } as EntityManifest)
 
+      const result = await authorizationGuard.canActivate(context)
+
+      expect(result).toBe(false)
     })
   })
 
