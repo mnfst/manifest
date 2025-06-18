@@ -1,8 +1,6 @@
-# Manifest
+[Manifest](https://manifest.build) is a **backend** your AI can understand and your team can trust.
 
-[Manifest](https://manifest.build) is the simplest **backend** you will find.
-
-It provides a complete backend to your client app without the hassle that comes with it. It actually fits into **a single YAML file**.
+It allows you to create a backend with data, storage, logic and an admin panel. All is defined in **1 YAML file** that both humans and LLMs can understand and edit. ✨
 
 Here is an example of a complete Manifest app:
 
@@ -28,17 +26,30 @@ entities:
       - { name: isChampion, type: boolean }
 ```
 
-## Install
+## Installation
 
-Simply run this command on your terminal from the root of your project:
+Create a new Manifest project by running:
 
 ```bash
-npx create-manifest@latest
+yarn create manifest my-project
 ```
 
-## Test
+You can also use the following variants depending on your environment:
+
+##### Cursor
 
 ```bash
-npm run test
-npm run test:e2e
+yarn create manifest my-project --cursor
+```
+
+##### Copilot
+
+```bash
+yarn create manifest my-project --copilot
+```
+
+##### Windsurf
+
+```bash
+yarn create manifest my-project --windsurf
 ```
