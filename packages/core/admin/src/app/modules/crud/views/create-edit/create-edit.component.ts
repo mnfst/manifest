@@ -189,7 +189,7 @@ export class CreateEditComponent {
     } else {
       this.crudService
         .create(this.entityManifest.slug, this.form.value)
-        .then((createdItem: { id: number }) => {
+        .then((createdItem: { id: string }) => {
           this.loading = false
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been created successfully`

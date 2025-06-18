@@ -8,7 +8,12 @@ import {
 
 import { camelize, getRecordKeyByValue } from '@repo/common'
 
-import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
+import {
+  EntityMetadata,
+  FindOneOptions,
+  Repository,
+  SelectQueryBuilder
+} from 'typeorm'
 
 import { BaseEntity } from '@repo/types'
 import { ValidationError } from 'class-validator'
@@ -124,7 +129,7 @@ export class CrudService {
         queryParams.order === 'DESC' ? 'DESC' : 'ASC'
       )
     } else {
-      query.orderBy('entity.id', 'DESC')
+      query.addSelect('entity.createdAt').orderBy('entity.createdAt', 'DESC')
     }
 
     // Paginate.
@@ -177,7 +182,7 @@ export class CrudService {
     fullVersion
   }: {
     entitySlug: string
-    id: number
+    id?: string
     queryParams?: { [key: string]: string | string[] }
     fullVersion?: boolean
   }) {
@@ -186,6 +191,10 @@ export class CrudService {
         slug: entitySlug,
         fullVersion
       })
+
+    if (!entityManifest.single && !id) {
+      throw new Error('Id is required for collections.')
+    }
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
       {
@@ -202,7 +211,11 @@ export class CrudService {
           fullVersion
         })
       )
-      .where('entity.id = :id', { id })
+
+    // ID is not applicable on Single entities.
+    if (id) {
+      query.where('entity.id = :id', { id })
+    }
 
     this.loadRelations({
       query,
@@ -288,7 +301,7 @@ export class CrudService {
    * Updates an item doing a FULL REPLACEMENT of the item properties and relations unless partialReplacement is set to true.
    *
    * @param entitySlug the entity slug.
-   * @param id the item id.
+   * @param id the item id (only for collections)
    * @param itemDto the item dto.
    * @param partialReplacement whether to do a partial replacement.
    *
@@ -301,7 +314,7 @@ export class CrudService {
     partialReplacement
   }: {
     entitySlug: string
-    id: number
+    id?: string
     itemDto: Partial<BaseEntity>
     partialReplacement?: boolean
   }): Promise<BaseEntity> {
@@ -311,13 +324,22 @@ export class CrudService {
         fullVersion: true
       })
 
+    if (!entityManifest.single && !id) {
+      throw new Error('Id is required for collections.')
+    }
+
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
 
-    const item: BaseEntity = await entityRepository.findOne({ where: { id } })
+    const findParams: FindOneOptions = id ? { where: { id } } : { where: {} }
+    const item: BaseEntity = await entityRepository.findOne(findParams)
 
     if (!item) {
       throw new NotFoundException('Item not found')
+    }
+
+    if (entityManifest.authenticable) {
+      delete item['password'] // Password should not be updated unless explicitly set.
     }
 
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
@@ -344,7 +366,10 @@ export class CrudService {
       })
     }
 
-    const updatedItem: BaseEntity = entityRepository.create({ id, ...itemDto })
+    const updatedItem: BaseEntity = entityRepository.create({
+      id: item.id,
+      ...itemDto
+    })
 
     // Hash password if it exists.
     if (entityManifest.authenticable && itemDto.password) {
@@ -352,8 +377,6 @@ export class CrudService {
         itemDto['password'] as string,
         SALT_ROUNDS
       )
-    } else if (entityManifest.authenticable && !itemDto.password) {
-      delete updatedItem.password
     }
 
     const errors = this.validationService.validate(
@@ -379,7 +402,7 @@ export class CrudService {
    *
    * @returns the deleted item.
    */
-  async delete(entitySlug: string, id: number): Promise<BaseEntity> {
+  async delete(entitySlug: string, id: string): Promise<BaseEntity> {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({
         entitySlug
@@ -643,13 +666,16 @@ export class CrudService {
 
         // "In" is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          value = JSON.parse(`[${value}]`)
+          const inValues: string[] = value.split(',')
+          query.andWhere(`${whereKey} ${operator} (:...value_${index})`, {
+            [`value_${index}`]: inValues
+          })
+        } else {
+          // For other operators, just use the value directly.
+          query.andWhere(`${whereKey} ${operator} :value_${index}`, {
+            [`value_${index}`]: value
+          })
         }
-
-        // Finally and the where query.
-        query.andWhere(`${whereKey} ${operator} :value_${index}`, {
-          [`value_${index}`]: value
-        })
       })
 
     return query

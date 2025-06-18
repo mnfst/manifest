@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { RelationshipService } from '../services/relationship.service'
-import { RelationshipManifest } from '@repo/types'
+import { EntityManifest, PropType, RelationshipManifest } from '@repo/types'
 import { EntityService } from '../services/entity.service'
-import { DEFAULT_MAX_MANY_TO_MANY_RELATIONS } from '../../constants'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('RelationshipService', () => {
@@ -14,7 +13,54 @@ describe('RelationshipService', () => {
     entity: 'User',
     type: 'many-to-one'
   }
-  const dummyUserIds: number[] = [1, 2, 3]
+  const dummyUserIds: string[] = [
+    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+  ]
+  const dummyEntityManifest: EntityManifest = {
+    className: 'Test',
+    nameSingular: 'Test',
+    namePlural: 'Tests',
+    mainProp: 'name',
+    slug: 'test',
+    authenticable: true,
+    relationships: [dummyRelationManifest],
+    properties: [
+      {
+        name: 'name',
+        type: PropType.String
+      },
+      {
+        name: 'age',
+        type: PropType.Number,
+        default: 18
+      },
+      {
+        name: 'color',
+        type: PropType.String
+      },
+      {
+        name: 'secretProperty',
+        type: PropType.String,
+        hidden: true
+      },
+      {
+        name: 'password',
+        type: PropType.Password
+      },
+      {
+        name: 'secondPassword',
+        type: PropType.Password
+      }
+    ],
+    policies: {
+      create: [],
+      read: [],
+      update: [],
+      delete: [],
+      signup: []
+    }
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -48,41 +94,68 @@ describe('RelationshipService', () => {
     expect(service).toBeDefined()
   })
 
-  describe('getSeedValue', () => {
-    it('should return a seed value between 1 and the seed count', () => {
-      const seedValue = service.getSeedValue(dummyRelationManifest)
+  describe('getEntitySchemaRelationOptions', () => {
+    it('should return the many-to-one relationship options', () => {
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(dummyEntityManifest)
 
-      expect(seedValue).toBeGreaterThanOrEqual(1)
-      expect(seedValue).toBeLessThanOrEqual(mockSeedCount)
+      expect(relationOptions.owner).toEqual({
+        target: 'User',
+        type: 'many-to-one',
+        eager: false
+      })
     })
 
-    it('should return a set items with a count between 0 and the default max many-to-many relations', () => {
+    it('should return the many-to-many relationship options', () => {
       const manyToManyRelationManifest: RelationshipManifest = {
         name: 'users',
         entity: 'User',
         type: 'many-to-many',
-        owningSide: true
+        owningSide: true,
+        inverseSide: 'relatedUsers'
       }
+      const entityManifest = Object.assign({}, dummyEntityManifest, {
+        relationships: [manyToManyRelationManifest]
+      })
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(entityManifest)
+      expect(relationOptions.users).toEqual({
+        target: 'User',
+        type: 'many-to-many',
+        eager: false,
+        inverseSide: 'relatedUsers',
+        joinTable: {
+          name: 'test_user'
+        }
+      })
+    })
 
-      const seedValue: { id: number }[] = service.getSeedValue(
-        manyToManyRelationManifest
-      ) as { id: number }[]
+    it('should return the one-to-many relationship options', () => {
+      const oneToManyRelationManifest: RelationshipManifest = {
+        name: 'relatedUsers',
+        entity: 'User',
+        type: 'one-to-many',
+        inverseSide: 'users'
+      }
+      const entityManifest = Object.assign({}, dummyEntityManifest, {
+        relationships: [oneToManyRelationManifest]
+      })
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(entityManifest)
 
-      expect(seedValue.length).toBeGreaterThanOrEqual(0)
-      expect(seedValue.length).toBeLessThanOrEqual(
-        DEFAULT_MAX_MANY_TO_MANY_RELATIONS
-      )
-      seedValue.forEach((relation) => {
-        expect(relation.id).toBeGreaterThanOrEqual(1)
-        expect(relation.id).toBeLessThanOrEqual(mockSeedCount)
+      expect(relationOptions.relatedUsers).toEqual({
+        target: 'User',
+        type: 'one-to-many',
+        eager: false,
+        inverseSide: 'users'
       })
     })
   })
 
   describe('fetchRelationItemsFromDto', () => {
-    it('should return an object with the relation items', async () => {
+    it('should return an object with the many-to-one relations', async () => {
       const itemDto = {
-        ownerId: 1
+        ownerId: 'b47ac10b-58cc-4372-a567-0e02b2c3d479'
       }
 
       const relationItems = await service.fetchRelationItemsFromDto({
@@ -93,7 +166,7 @@ describe('RelationshipService', () => {
       expect(relationItems.owner['id']).toBe(itemDto.ownerId)
     })
 
-    it('should retrun an object with the relation items for many-to-many relationships', async () => {
+    it('should return an object with the relation items for many-to-many relationships', async () => {
       const manyToManyRelationManifest: RelationshipManifest = {
         name: 'users',
         entity: 'User',
@@ -110,34 +183,34 @@ describe('RelationshipService', () => {
         relationships: [manyToManyRelationManifest]
       })) as any
 
-      expect(relationItems.users.length).toBe(3)
+      expect(relationItems.users.length).toBe(dummyUserIds.length)
 
       relationItems.users.forEach((user, index) => {
         expect(user['id']).toBe(itemDto.userIds[index])
       })
     })
-  })
 
-  it('should empty missing relationships if emptyMissing is true', async () => {
-    const itemDto = {}
+    it('should empty missing relationships if emptyMissing is true', async () => {
+      const itemDto = {}
 
-    const relationItems = await service.fetchRelationItemsFromDto({
-      itemDto,
-      relationships: [dummyRelationManifest],
-      emptyMissing: true
+      const relationItems = await service.fetchRelationItemsFromDto({
+        itemDto,
+        relationships: [dummyRelationManifest],
+        emptyMissing: true
+      })
+
+      expect(relationItems.owner).toBeNull()
     })
 
-    expect(relationItems.owner).toBeNull()
-  })
+    it('should not empty missing relationships by default', async () => {
+      const itemDto = {}
 
-  it('should not empty missing relationships by default', async () => {
-    const itemDto = {}
+      const relationItems = await service.fetchRelationItemsFromDto({
+        itemDto,
+        relationships: [dummyRelationManifest]
+      })
 
-    const relationItems = await service.fetchRelationItemsFromDto({
-      itemDto,
-      relationships: [dummyRelationManifest]
+      expect(relationItems.owner).toBeUndefined()
     })
-
-    expect(relationItems.owner).toBeUndefined()
   })
 })

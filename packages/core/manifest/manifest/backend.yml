@@ -1,5 +1,15 @@
 name: Personal portfolio
 entities:
+  User:
+    properties:
+      - name
+    authenticable: true
+    policies:
+      update:
+        - access: public
+      read:
+        - access: public
+
   Project:
     properties:
       - { name: title, validation: { required: true } }
@@ -25,9 +35,13 @@ entities:
       - seoDescription
     policies:
       read:
-        - access: public
+        - { access: restricted, allow: [User] }
+    belongsTo:
+      - User
+    belongsToMany:
+      - Contact
 
-  Contacts:
+  Contact:
     properties:
       - { name: name, type: string, validation: { required: true } }
       - { name: email, type: email, validation: { required: true } }
@@ -35,3 +49,12 @@ entities:
     policies:
       create:
         - access: public
+
+  Dog:
+    properties:
+      - { name: name, type: string, validation: { required: true } }
+      - { name: age, type: number, validation: { required: true } }
+      - { name: photo, type: image }
+
+    belongsToMany:
+      - User

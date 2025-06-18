@@ -1,5 +1,23 @@
 # manifest
 
+## 4.12.1
+
+### Patch Changes
+
+- 67dd5a6: Fixed In operator on filterQuery
+
+## 4.12.0
+
+### Minor Changes
+
+- beb4317: Replaced incremental int IDs by UUIDs, thanks @jerryjappinen
+
+## 4.11.11
+
+### Patch Changes
+
+- da62deb: Fixed PATCH request password update issue and return token on JS SDK
+
 ## 4.11.10
 
 ### Patch Changes
