@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.1.10
+
+### Patch Changes
+
+- c806577: Update installation instructions in README and keywords more appropriate to ai code editors
+
 ## 1.1.2
 
 ### Patch Changes

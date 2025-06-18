@@ -1,5 +1,11 @@
 # @mnfst/sdk
 
+## 1.3.1
+
+### Patch Changes
+
+- c806577: Update installation instructions in README and keywords more appropriate to ai code editors
+
 ## 1.3.0
 
 ### Minor Changes

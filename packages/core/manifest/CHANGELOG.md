@@ -1,5 +1,11 @@
 # manifest
 
+## 4.12.2
+
+### Patch Changes
+
+- c806577: Update installation instructions in README and keywords more appropriate to ai code editors
+
 ## 4.12.1
 
 ### Patch Changes
