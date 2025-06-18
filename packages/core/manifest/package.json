@@ -1,7 +1,7 @@
 {
   "name": "manifest",
   "version": "4.12.1",
-  "description": "The 1-file micro-backend",
+  "description": "The backend for AI code editors",
   "author": "Manifest",
   "license": "MIT",
   "main": "dist/manifest/main.js",
