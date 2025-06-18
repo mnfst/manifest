@@ -270,15 +270,7 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
 }
 /**
@@ -489,14 +481,6 @@ export interface EndpointSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema1 {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
 }
