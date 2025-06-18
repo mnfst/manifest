@@ -8,7 +8,7 @@
 </p>
 
 <p align='center'>
-<strong>The 1-file micro-backend</strong>
+<strong>The backend for AI code editors</strong>
 <br><br>  
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm download" src="https://img.shields.io/npm/dt/manifest.svg"></a>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
@@ -49,9 +49,13 @@ entities:
 
 ## Why Manifest?
 
-80% of websites and apps only use the most basic backend features. Using over-engineered solutions lead to unnecessary costs and complexity.
+While LLMs and vibe-coding tools are great at generating frontend code, they often fail to deliver a clean and secure backend. Manifest fills that gap.
 
-Manifest keeps it simple, delivering only the essential backend features and smoothly integrating in your project like any other file in your codebase.
+Manifest allows you to create a backend with data, storage, logic and an admin panel. All is defined in a single file of code. ✨
+
+- 1 YAML file that both humans and LLMs can understand and edit
+- Works across all dev environments, from Cursor to custom workflows
+- Uses up to 10 times fewer LLM tokens than other backends
 
 ## Use cases
 
@@ -91,7 +95,7 @@ Here is a few small things you can do:
 
 - Star the Manifest repository (this one)
 - Give us your feedback on [Discord](https://discord.gg/FepAked3W7)
-- Sponsor Manifest through [OpenCollective](https://opencollective.com/mnfst)
+- Sponsor Manifest through [Github](https://github.com/sponsors/mnfst) or [OpenCollective](https://opencollective.com/mnfst)
 
 ## Contributors
 
