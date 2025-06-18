@@ -73,11 +73,19 @@ Manifest fits great in those type of projects:
 
 ## Getting started
 
-Simply run this terminal command to add Manifest locally:
+Run this command to create a new project with Manifest, specifying your AI-powered IDE if needed:
 
 ```bash
-npx create-manifest@latest
+yarn create manifest my-project --cursor
 ```
+
+Replace `--cursor` with:
+
+- `--copilot` if you're using **GitHub Copilot**
+- `--windsurf` for **Windsurf**
+- or remove it entirely if you're not using any AI coding tool
+
+You can also use `npm create` instead of `yarn create`.
 
 > [!NOTE]  
 > Manifest is currently in BETA, use it at your own risk. It is stable enough to power small projects, prototypes and MVPs but we do not recommend to use it on critical platforms.

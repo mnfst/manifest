@@ -34,7 +34,7 @@ Create a new Manifest project by running:
 yarn create manifest my-project
 ```
 
-You can also use the following variants depending on your environment:
+Using an AI coding editor or LLM-powered workflow? These commands configure your project to work seamlessly with it:
 
 ##### Cursor
 
@@ -55,3 +55,5 @@ yarn create manifest my-project --windsurf
 ```
 
 This sets up my-project with Manifest, tailored to your environment.
+
+`npm create` also works if you don’t use Yarn.
