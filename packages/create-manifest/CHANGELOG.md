@@ -1,4 +1,4 @@
-# add-manifest
+# create-manifest
 
 ## 1.1.2
 

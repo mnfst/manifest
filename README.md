@@ -72,7 +72,7 @@ Manifest fits great in those type of projects:
 Simply run this terminal command to add Manifest locally:
 
 ```bash
-npx add-manifest@latest
+npx create-manifest@latest
 ```
 
 > [!NOTE]  

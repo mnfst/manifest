@@ -12,5 +12,4 @@ node_modules
 oclif.lock
 oclif.manifest.json
 
-/example/*
-!example/.gitkeep
+/test-folder/*
