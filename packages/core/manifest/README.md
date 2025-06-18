@@ -53,3 +53,5 @@ yarn create manifest my-project --copilot
 ```bash
 yarn create manifest my-project --windsurf
 ```
+
+This sets up my-project with Manifest, tailored to your environment.
