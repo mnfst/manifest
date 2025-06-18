@@ -23,17 +23,17 @@ Before coding it is important to understand where the functionality you want to 
 
 Manifest is a set of several packages and [repositories](https://github.com/orgs/mnfst/repositories) built with open source software, using TypeScript as the main language.
 
-| Name           | Description                                                     | Stack            | Repo                                          | Package                                                          |
-| -------------- | --------------------------------------------------------------- | ---------------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| Manifest       | Manifest core                                                   | NestJS / TypeORM | [manifest](https://github.com/mnfst/manifest) | [manifest](https://www.npmjs.com/package/manifest)               |
-| Manifest Admin | Official Admin Panel                                            | Angular          | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| Add Manifest   | NPX install script                                              | OCLIF            | [manifest](https://github.com/mnfst/manifest) | [create-manifest](https://www.npmjs.com/package/create-manifest) |
-| JSON Schema    | Manifest JSON SCHEMA: https://schema.manifest.build/schema.json | JSON             | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| Types          | Manifest Types library                                          | TypeScript       | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| Helpers        | Manifest Helpers library                                        | TypeScript       | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| JS SDK         | Client JavaScript SDK                                           | TypeScript       | [manifest](https://github.com/mnfst/manifest) | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)           |
-| Website        | Official website: https://manifest.build                        | NextJS           | [website](https://github.com/mnfst/website)   | -                                                                |
-| Docs           | Documentation: https://manifest.build/docs                      | Docusaurus       | [docs](https://github.com/mnfst/docs)         | -                                                                |
+| Name            | Description                                                     | Stack            | Repo                                          | Package                                                          |
+| --------------- | --------------------------------------------------------------- | ---------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+| Manifest        | Manifest core                                                   | NestJS / TypeORM | [manifest](https://github.com/mnfst/manifest) | [manifest](https://www.npmjs.com/package/manifest)               |
+| Manifest Admin  | Official Admin Panel                                            | Angular          | [manifest](https://github.com/mnfst/manifest) | -                                                                |
+| Create Manifest | NPX install script                                              | OCLIF            | [manifest](https://github.com/mnfst/manifest) | [create-manifest](https://www.npmjs.com/package/create-manifest) |
+| JSON Schema     | Manifest JSON SCHEMA: https://schema.manifest.build/schema.json | JSON             | [manifest](https://github.com/mnfst/manifest) | -                                                                |
+| Types           | Manifest Types library                                          | TypeScript       | [manifest](https://github.com/mnfst/manifest) | -                                                                |
+| Helpers         | Manifest Helpers library                                        | TypeScript       | [manifest](https://github.com/mnfst/manifest) | -                                                                |
+| JS SDK          | Client JavaScript SDK                                           | TypeScript       | [manifest](https://github.com/mnfst/manifest) | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)           |
+| Website         | Official website: https://manifest.build                        | NextJS           | [website](https://github.com/mnfst/website)   | -                                                                |
+| Docs            | Documentation: https://manifest.build/docs                      | Docusaurus       | [docs](https://github.com/mnfst/docs)         | -                                                                |
 
 ## Development workflow and guidelines
 
