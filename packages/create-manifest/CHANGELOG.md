@@ -1,5 +1,12 @@
 # create-manifest
 
+## 1.1.11
+
+### Patch Changes
+
+- f5d316a: add baseline to the readme generated when installing manifest
+- 93063c0: Updatebaseline on the readme provided on manifest app installation
+
 ## 1.1.10
 
 ### Patch Changes
