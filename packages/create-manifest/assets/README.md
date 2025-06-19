@@ -9,7 +9,7 @@
 </p>
 
 <p align='center'>
-<strong>A backend so simple that it fits into 1 YAML file</strong>
+<strong>The backend for AI code editors</strong> <br> <span>Manifest is a backend your AI can understand and your team can trust.</span>
 
 ## Description
 
