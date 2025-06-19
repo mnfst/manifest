@@ -9,7 +9,7 @@
 </p>
 
 <p align='center'>
-<strong>A backend so simple that it fits into 1 YAML file</strong>
+<strong>The backend for AI code editors</strong> <br> <span>Manifest is a backend your AI can understand and your team can trust.</span>
 <br><br>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
   <a href="https://www.codefactor.io/repository/github/mnfst/manifest" target="_blank"><img alt="CodeFactor Grade" src="https://img.shields.io/codefactor/grade/github/mnfst/manifest"></a>
