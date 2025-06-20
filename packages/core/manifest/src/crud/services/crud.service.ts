@@ -53,6 +53,50 @@ export class CrudService {
   ) {}
 
   /**
+   * Filters itemDto to only include valid entity properties (columns and foreign keys).
+   * Excludes relation properties to prevent unwanted relation updates.
+   *
+   * @param itemDto the item dto to filter.
+   * @param entityRepository the entity repository.
+   *
+   * @returns the filtered itemDto with only valid properties.
+   */
+  private filterValidProperties(
+    itemDto: Partial<BaseEntity>,
+    entityRepository: Repository<BaseEntity>
+  ): Partial<BaseEntity> {
+    const entityMetadata = entityRepository.metadata
+    const allColumns = entityMetadata.columns.map((col) => col.propertyName)
+    const validRelationships = entityMetadata.relations.map(
+      (rel) => rel.propertyName
+    )
+
+    // Valid properties are columns that are NOT also relations
+    const validProperties = allColumns.filter(
+      (col) => !validRelationships.includes(col)
+    )
+
+    return Object.fromEntries(
+      Object.entries(itemDto).filter(([key]) => {
+        // Allow actual database columns (not relations)
+        if (validProperties.includes(key)) {
+          return true
+        }
+
+        // Allow foreign key columns (userId, projectId, etc.)
+        if (
+          key.endsWith('Id') &&
+          validRelationships.includes(key.slice(0, -2))
+        ) {
+          return true
+        }
+
+        return false
+      })
+    )
+  }
+
+  /**
    * Returns a paginated list of entities.
    *
    * @param entitySlug the entity slug.
@@ -252,12 +296,6 @@ export class CrudService {
         fullVersion: true
       })
 
-    const newItem: BaseEntity = this.createWithDefaults({
-      repository,
-      entityManifest,
-      itemDto
-    })
-
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
@@ -265,6 +303,12 @@ export class CrudService {
           .filter((r) => r.type !== 'one-to-many')
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       })
+
+    const newItem: BaseEntity = this.createWithDefaults({
+      repository,
+      entityManifest,
+      itemDto: this.filterValidProperties(itemDto, repository)
+    })
 
     // Hash password if it exists.
     entityManifest.properties
@@ -358,9 +402,12 @@ export class CrudService {
         emptyMissing: !partialReplacement
       })
 
+    // Filter itemDto to only include valid  properties.
+    let filteredItemDto = this.filterValidProperties(itemDto, entityRepository)
+
     // On partial replacement, only update the provided props.
     if (partialReplacement) {
-      itemDto = { ...item, ...itemDto }
+      filteredItemDto = { ...item, ...filteredItemDto }
 
       // Remove undefined values to keep the existing values.
       Object.keys(relationItems).forEach((key: string) => {
@@ -375,13 +422,13 @@ export class CrudService {
 
     const updatedItem: BaseEntity = entityRepository.create({
       id: item.id,
-      ...itemDto
+      ...filteredItemDto
     })
 
     // Hash password if it exists.
-    if (entityManifest.authenticable && itemDto.password) {
+    if (entityManifest.authenticable && filteredItemDto.password) {
       updatedItem.password = bcrypt.hashSync(
-        itemDto['password'] as string,
+        filteredItemDto['password'] as string,
         SALT_ROUNDS
       )
     }
