@@ -59,4 +59,33 @@ describe('PolicyService', () => {
       }
     ])
   })
+
+  it('should return default policy if no policies are provided', () => {
+    // Arrange
+    const result = service.transformPolicies([], PUBLIC_ACCESS_POLICY)
+
+    expect(result).toEqual([PUBLIC_ACCESS_POLICY])
+  })
+
+  it('should set the condition if provided', () => {
+    // Arrange
+    const policySchemas: PolicySchema[] = [
+      {
+        access: '🌐',
+        allow: ['User'],
+        condition: 'self'
+      }
+    ]
+    const result = service.transformPolicies(
+      policySchemas,
+      PUBLIC_ACCESS_POLICY
+    )
+    expect(result).toEqual([
+      {
+        access: 'public',
+        allow: ['User'],
+        condition: 'self'
+      }
+    ])
+  })
 })

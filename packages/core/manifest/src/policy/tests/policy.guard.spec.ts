@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { AuthService } from '../../auth/auth.service'
 import { EntityManifest } from '@repo/types'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('PolicyGuard', () => {
   let authorizationGuard: PolicyGuard
@@ -35,7 +36,14 @@ describe('PolicyGuard', () => {
           policies: [{ access: 'public' }]
         }
       }))
-    }))
+    })),
+    getArgs: jest.fn(() => [
+      {
+        params: {
+          entity: 'entity'
+        }
+      }
+    ])
   }
 
   beforeEach(async () => {
@@ -51,13 +59,28 @@ describe('PolicyGuard', () => {
         {
           provide: EntityManifestService,
           useValue: {
-            getEntityManifest: jest.fn()
+            getEntityManifest: jest.fn(
+              () =>
+                ({
+                  slug: 'entity',
+                  policies: {}
+                }) as EntityManifest
+            )
+          }
+        },
+        {
+          provide: EntityService,
+          useValue: {
+            getEntityRepository: jest.fn()
           }
         },
         {
           provide: AuthService,
           useValue: {
-            getUserFromRequest: jest.fn()
+            getUserFromRequest: jest.fn(() => ({
+              user: {},
+              entitySlug: 'users'
+            }))
           }
         }
       ]
@@ -70,14 +93,28 @@ describe('PolicyGuard', () => {
     )
   })
 
-  it('should be defined', () => {
-    expect(authorizationGuard).toBeDefined()
-  })
+  describe('General', () => {
+    it('should be defined', () => {
+      expect(authorizationGuard).toBeDefined()
+    })
 
-  it('should return true if rule is not defined', async () => {
-    const result = await authorizationGuard.canActivate(context)
+    it('should return true if rule is not defined', async () => {
+      const result = await authorizationGuard.canActivate(context)
+      expect(result).toBe(true)
+    })
 
-    expect(result).toBe(true)
+    it('should return false if any promise in policies fails', async () => {
+      jest.spyOn(reflector, 'get').mockReturnValue('read')
+      jest.spyOn(entityManifestService, 'getEntityManifest').mockReturnValue({
+        policies: {
+          read: [{ access: 'public' }, { access: 'forbidden' }]
+        }
+      } as EntityManifest)
+
+      const result = await authorizationGuard.canActivate(context)
+
+      expect(result).toBe(false)
+    })
   })
 
   describe('Policies on CRUD operations', () => {
@@ -135,7 +172,14 @@ describe('PolicyGuard', () => {
               policies: [{ access: 'forbidden' }]
             }
           }))
-        }))
+        })),
+        getArgs: jest.fn(() => [
+          {
+            params: {
+              entity: 'entity'
+            }
+          }
+        ])
       } as any
 
       const result = await authorizationGuard.canActivate(

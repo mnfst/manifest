@@ -15,7 +15,7 @@ export class PolicyService {
     policySchemas: PolicySchema[],
     defaultPolicy: PolicyManifest
   ): PolicyManifest[] {
-    if (!policySchemas) {
+    if (!policySchemas?.length) {
       return [defaultPolicy]
     }
 
@@ -49,6 +49,10 @@ export class PolicyService {
           typeof policySchema.allow === 'string'
             ? [policySchema.allow]
             : policySchema.allow
+      }
+
+      if (policySchema.condition) {
+        policyManifest.condition = policySchema.condition
       }
 
       return policyManifest
