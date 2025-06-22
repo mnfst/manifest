@@ -315,6 +315,120 @@ entities:
       delete:
         - access: public
 
+# Testing webhooks
+  WebhookTester:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e
+          headers:
+            x-test-header: 'e2e-test'
+    policies: &publicAccess
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  WebhookGet:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e
+          method: GET
+    policies: *publicAccess
+
+  WebhookPut:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e
+          method: PUT
+    policies: *publicAccess
+
+  WebhookPatch:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e
+          method: PATCH
+    policies: *publicAccess
+
+  WebhookDelete:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e
+          method: DELETE
+    policies: *publicAccess
+
+  WebhookEnv:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e-from-env
+          method: POST
+    policies: *publicAccess
+
+  WebhookFail:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9998/this-will-fail
+    policies: *publicAccess
+
+  WebhookEvents:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e
+      afterUpdate:
+        - url: http://localhost:9999/webhooks-e2e
+      afterDelete:
+        - url: http://localhost:9999/webhooks-e2e
+    policies: *publicAccess
+
+  WebhookWithHeaders:
+    properties:
+      - name
+    hooks:
+      afterCreate:
+        - url: http://localhost:9999/webhooks-e2e-from-env
+          headers:
+            Authorization: 'Bearer ${TOKEN_SECRET_KEY}'
+    policies: *publicAccess
+
+  WebhookSinglePage:
+    single: true
+    nameSingular: WebhookSingle
+    slug: webhook-single
+    properties:
+      - { name: title, type: string }
+    hooks:
+      afterUpdate:
+        - url: http://localhost:9999/webhooks-e2e
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+    
+
 # Testing endpoints
 endpoints:
   basicEndpoint:
