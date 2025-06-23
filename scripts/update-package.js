@@ -1,4 +1,5 @@
 // This script updates the package.json files with the latest version of the "manifest" package.
+// It skips updates for beta releases to avoid updating examples with unstable versions.
 
 const fs = require('fs')
 const path = require('path')
@@ -16,7 +17,53 @@ const FOLDERS = [
   '../../../examples/website/validation'
 ]
 
+function getCurrentVersion() {
+  try {
+    const packageJsonPath = path.join(process.cwd(), 'package.json')
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+    return packageJson.version
+  } catch (err) {
+    console.error('Failed to read current package version:', err.message)
+    return null
+  }
+}
+
+function isBetaVersion(version) {
+  if (!version) return false
+
+  // Check for common beta patterns: beta, alpha, rc, pre, etc.
+  const betaPatterns = [
+    /beta/i,
+    /alpha/i,
+    /rc/i,
+    /pre/i,
+    /-\d+$/, // Matches versions ending with -1, -2, etc.
+    /\d+\.\d+\.\d+-.+/ // Matches any version with a prerelease identifier
+  ]
+
+  return betaPatterns.some((pattern) => pattern.test(version))
+}
+
 function updatePackage() {
+  const currentVersion = getCurrentVersion()
+
+  if (!currentVersion) {
+    console.error('Cannot determine current version. Aborting update.')
+    return
+  }
+
+  console.log(`Current version: ${currentVersion}`)
+
+  if (isBetaVersion(currentVersion)) {
+    console.log(
+      'ⓘ Beta version detected. Skipping example updates to avoid unstable releases.'
+    )
+    console.log('Examples will only be updated for stable releases.')
+    return
+  }
+
+  console.log('✅ Stable version detected. Proceeding with example updates...')
+
   FOLDERS.forEach((folder) => {
     const packageJsonPath = path.join(folder, 'package.json')
 
