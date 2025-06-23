@@ -14,6 +14,7 @@ import {
 } from '../constants'
 import { validate } from 'class-validator'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
+import { plainToClass } from 'class-transformer'
 
 @Injectable()
 export class AuthService {
@@ -106,6 +107,16 @@ export class AuthService {
       )
     }
 
+    const newUserClass = plainToClass(
+      SignupAuthenticableEntityDto,
+      signupUserDto
+    )
+
+    const errors = await validate(newUserClass)
+    if (errors.length) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
+    }
+
     const entityRepository: Repository<AuthenticableEntity> =
       this.entityService.getEntityRepository({
         entitySlug
@@ -115,11 +126,6 @@ export class AuthService {
       email: signupUserDto.email
     })
     newUser.password = bcrypt.hashSync(signupUserDto.password, SALT_ROUNDS)
-
-    const errors = await validate(newUser)
-    if (errors.length) {
-      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
-    }
 
     const savedUser = await entityRepository.save(newUser)
 
