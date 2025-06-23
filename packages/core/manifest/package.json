@@ -99,6 +99,7 @@
     "mysql2": "^3.12.0",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.1.9",
+    "path-to-regexp": "^3.3.0",
     "pg": "^8.13.3",
     "pluralize": "^8.0.0",
     "reflect-metadata": "^0.2.1",
