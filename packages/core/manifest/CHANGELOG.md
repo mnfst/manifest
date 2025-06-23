@@ -1,5 +1,11 @@
 # manifest
 
+## 4.12.4
+
+### Patch Changes
+
+- d3f1aac: fixed 400 error on signup admins, thanks @chriskacerguis
+
 ## 4.12.3
 
 ### Patch Changes
