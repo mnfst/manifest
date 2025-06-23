@@ -1803,7 +1803,11 @@ background: #ce107c;
 
     // Write OpenAPI spec to file.
     const yamlString: string = yaml.dump(openApiObject)
-    fs.writeFileSync(`./openapi.yml`, yamlString, 'utf8')
+    fs.writeFileSync(
+      `${configService.get('paths').generatedFolder}/openapi.yml`,
+      yamlString,
+      'utf8'
+    )
   }
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)

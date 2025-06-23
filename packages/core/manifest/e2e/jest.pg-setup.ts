@@ -64,7 +64,7 @@ beforeAll(async () => {
       load: () =>
         load(
           fs.readFileSync(
-            `${process.cwd()}/e2e/assets/mock-backend.yml`,
+            `${process.cwd()}/e2e/assets/mock-manifest.yml`,
             'utf8'
           )
         )
