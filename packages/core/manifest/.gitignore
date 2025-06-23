@@ -4,7 +4,10 @@
 # compiled output
 /dist
 /node_modules
+
+# Generated project
 /manifest/.manifest
+/manifest/public
 
 # Logs
 logs
@@ -37,6 +40,3 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-# Storage
-/public
