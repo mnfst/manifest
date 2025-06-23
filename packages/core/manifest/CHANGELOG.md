@@ -1,5 +1,11 @@
 # manifest
 
+## 4.12.3
+
+### Patch Changes
+
+- c74b428: fixed path error on windows with handler files, thanks @akvgergo
+
 ## 4.12.2
 
 ### Patch Changes
