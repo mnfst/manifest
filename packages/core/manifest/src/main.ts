@@ -1,10 +1,12 @@
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
-import { SwaggerModule } from '@nestjs/swagger'
+import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
 import connectLiveReload from 'connect-livereload'
 import * as express from 'express'
 import * as livereload from 'livereload'
+import * as fs from 'fs'
+import * as yaml from 'js-yaml'
 import { join } from 'path'
 import { AppModule } from './app.module'
 import {
@@ -75,8 +77,9 @@ async function bootstrap() {
 
   if (configService.get('showOpenApiDocs')) {
     const openApiService: OpenApiService = app.get(OpenApiService)
+    const openApiObject: OpenAPIObject = openApiService.generateOpenApiObject()
 
-    SwaggerModule.setup(API_PATH, app, openApiService.generateOpenApiObject(), {
+    SwaggerModule.setup(API_PATH, app, openApiObject, {
       customfavIcon: 'assets/images/open-api/favicon.ico',
       customSiteTitle: 'Manifest API Doc',
 
@@ -1797,6 +1800,10 @@ background: #ce107c;
  }
 `
     })
+
+    // Write OpenAPI spec to file.
+    const yamlString: string = yaml.dump(openApiObject)
+    fs.writeFileSync(`./openapi.yml`, yamlString, 'utf8')
   }
 
   await app.listen(configService.get('PORT') || DEFAULT_PORT)
