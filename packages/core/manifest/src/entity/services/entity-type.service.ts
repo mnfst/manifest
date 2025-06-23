@@ -4,9 +4,11 @@ import {
   AppManifest,
   EntityManifest,
   PropertyManifest,
-  PropType
+  PropType,
+  RelationshipManifest
 } from '../../../../types/src'
 import { propTypeTsType } from '../types/prop-type-ts-type'
+import { AUTHENTICABLE_PROPS } from '../../constants'
 
 @Injectable()
 export class EntityTypeService {
@@ -34,12 +36,22 @@ export class EntityTypeService {
   private generateTSInterfaceFromEntityManifest(
     entityManifest: EntityManifest
   ): string {
-    const idProperty: PropertyManifest = {
-      name: 'id',
-      type: PropType.String
+    // All properties have an id property.
+    const properties: PropertyManifest[] = [
+      {
+        name: 'id',
+        type: PropType.String
+      }
+    ]
+
+    // Add authenticable properties if the entity is authenticable.
+    if (entityManifest.authenticable) {
+      properties.push(...AUTHENTICABLE_PROPS)
     }
 
-    const properties = [idProperty, ...entityManifest.properties]
+    // Generate TypeScript properties from the manifest.
+    const tsProperties: string[] = [...properties, ...entityManifest.properties]
+      .filter((prop) => prop.hidden !== true)
       .map((prop: PropertyManifest) => {
         let tsType: string
         if (prop.type === PropType.Choice && prop.options?.values) {
@@ -51,8 +63,27 @@ export class EntityTypeService {
 
         return `  ${prop.name}: ${tsType};`
       })
-      .join('\n')
 
-    return `export interface ${entityManifest.className} {\n${properties}\n}\n`
+    // Add relationships if they exist.
+    if (entityManifest.relationships.length > 0) {
+      entityManifest.relationships.forEach(
+        (relationship: RelationshipManifest) => {
+          if (
+            relationship.type === 'many-to-many' ||
+            relationship.type === 'one-to-many'
+          ) {
+            tsProperties.push(
+              `  ${relationship.name}?: ${relationship.entity}[];`
+            )
+          } else {
+            tsProperties.push(
+              `  ${relationship.name}?: ${relationship.entity};`
+            )
+          }
+        }
+      )
+    }
+
+    return `export interface ${entityManifest.className} {\n${tsProperties.join('\n')}\n}\n`
   }
 }
