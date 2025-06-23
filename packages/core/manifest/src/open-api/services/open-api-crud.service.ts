@@ -104,7 +104,7 @@ export class OpenApiCrudService {
     return {
       get: {
         summary: `List ${entityManifest.namePlural}`,
-        description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/rest-api#filters`,
+        description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/crud#get-a-list-of-items`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         security: this.openApiUtilsService.getSecurityRequirements(
           entityManifest.policies.read
