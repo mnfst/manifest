@@ -6,6 +6,8 @@ import { AppManifest } from '@repo/types'
 import { OpenApiManifestService } from './open-api-manifest.service'
 import { OpenApiAuthService } from './open-api-auth.service'
 import { OpenApiEndpointService } from './open-api.endpoint.service'
+import { ConfigService } from '@nestjs/config'
+import { API_PATH } from '../../constants'
 
 @Injectable()
 export class OpenApiService {
@@ -14,7 +16,8 @@ export class OpenApiService {
     private readonly openApiCrudService: OpenApiCrudService,
     private readonly openApiManifestService: OpenApiManifestService,
     private readonly openApiAuthService: OpenApiAuthService,
-    private readonly openApiEndpointService: OpenApiEndpointService
+    private readonly openApiEndpointService: OpenApiEndpointService,
+    private configService: ConfigService
   ) {}
 
   /**
@@ -32,6 +35,13 @@ export class OpenApiService {
         title: appManifest.name,
         version: appManifest.version
       },
+
+      servers: [
+        {
+          url: `${this.configService.get('baseUrl')}/${API_PATH}`,
+          description: `${this.configService.get('NODE_ENV') === 'production' ? 'Production' : 'Development'} server`
+        }
+      ],
       paths: {
         ...this.openApiCrudService.generateEntityPaths(
           Object.values(appManifest.entities)

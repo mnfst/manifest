@@ -44,7 +44,7 @@ export class OpenApiAuthService {
 
     authenticableEntities.forEach((entity: EntityManifest) => {
       // Login.
-      paths[`/api/auth/${entity.slug}/login`] = {
+      paths[`/auth/${entity.slug}/login`] = {
         post: {
           summary: `Login as a ${entity.nameSingular}`,
           description: `Logs in as a ${entity.nameSingular}.`,
@@ -132,7 +132,7 @@ export class OpenApiAuthService {
       }
 
       // Get current user.
-      paths[`/api/auth/${entity.slug}/me`] = {
+      paths[`/auth/${entity.slug}/me`] = {
         get: {
           summary: `Get current ${entity.nameSingular}`,
           description: `Get current ${entity.nameSingular}.`,
@@ -201,7 +201,7 @@ export class OpenApiAuthService {
           (policy: PolicyManifest) => policy.access === 'public'
         )
       ) {
-        paths[`/api/auth/${entity.slug}/signup`] = {
+        paths[`/auth/${entity.slug}/signup`] = {
           post: {
             summary: `Signup as ${entity.nameSingular}`,
             description: `Signs up as ${entity.nameSingular}.`,

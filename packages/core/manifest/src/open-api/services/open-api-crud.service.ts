@@ -2,7 +2,7 @@ import { EntityManifest, PolicyManifest } from '@repo/types'
 import { Injectable } from '@nestjs/common'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { upperCaseFirstLetter } from '@repo/common'
-import { API_PATH, COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
+import { COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
 import { OpenApiUtilsService } from './open-api-utils.service'
 
 @Injectable()
@@ -25,17 +25,14 @@ export class OpenApiCrudService {
     entityManifests
       .filter((entityManifest: EntityManifest) => !entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {}
-        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] =
-          {}
-        paths[
-          `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
-        ] = {}
+        paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {}
+        paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] = {}
+        paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`] = {}
 
         // Create.
         if (this.isNotForbidden(entityManifest.policies.create)) {
           Object.assign(
-            paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`],
             this.generateCreatePath(entityManifest)
           )
         }
@@ -43,19 +40,15 @@ export class OpenApiCrudService {
         // Read.
         if (this.isNotForbidden(entityManifest.policies.read)) {
           Object.assign(
-            paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`],
             this.generateListPath(entityManifest)
           )
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`],
             this.generateDetailPath(entityManifest)
           )
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`],
             this.generateListSelectOptionsPath(entityManifest)
           )
         }
@@ -63,9 +56,7 @@ export class OpenApiCrudService {
         // Update.
         if (this.isNotForbidden(entityManifest.policies.update)) {
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`],
             this.generateUpdatePath(entityManifest),
             this.generatePatchPath(entityManifest)
           )
@@ -74,9 +65,7 @@ export class OpenApiCrudService {
         // Delete.
         if (this.isNotForbidden(entityManifest.policies.delete)) {
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`],
             this.generateDeletePath(entityManifest)
           )
         }
@@ -88,13 +77,13 @@ export class OpenApiCrudService {
       .forEach((entityManifest: EntityManifest) => {
         // Read.
         if (this.isNotForbidden(entityManifest.policies.read)) {
-          paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
+          paths[`/${SINGLES_PATH}/${entityManifest.slug}`] = {
             ...this.generateDetailPath(entityManifest, true)
           }
         }
 
         if (this.isNotForbidden(entityManifest.policies.update)) {
-          paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
+          paths[`/${SINGLES_PATH}/${entityManifest.slug}`] = {
             ...this.generateDetailPath(entityManifest, true),
             ...this.generatePatchPath(entityManifest, true)
           }
