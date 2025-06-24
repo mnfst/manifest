@@ -136,7 +136,8 @@ export class OpenApiCrudService {
             description: 'The field to order by',
             required: false,
             schema: {
-              type: 'string'
+              type: 'string',
+              enum: entityManifest.properties.map((property) => property.name)
             }
           },
           {
@@ -146,7 +147,8 @@ export class OpenApiCrudService {
             required: false,
             schema: {
               type: 'string',
-              enum: ['ASC', 'DESC']
+              enum: ['ASC', 'DESC'],
+              default: 'ASC'
             }
           },
           {
@@ -155,8 +157,16 @@ export class OpenApiCrudService {
             description:
               'The relations to include. For several relations, use a comma-separated list',
             required: false,
+            style: 'form',
+            explode: false,
             schema: {
-              type: 'string'
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: entityManifest.relationships.map(
+                  (relation) => relation.name
+                )
+              }
             }
           }
         ],
@@ -166,7 +176,22 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/Paginator'
+                  allOf: [
+                    {
+                      $ref: '#/components/schemas/Paginator'
+                    },
+                    {
+                      type: 'object',
+                      properties: {
+                        data: {
+                          type: 'array',
+                          items: {
+                            $ref: `#/components/schemas/${entityManifest.className}`
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }

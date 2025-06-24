@@ -13,22 +13,28 @@ export const generalSchemas: Record<string, SchemaObject> = {
         }
       },
       currentPage: {
-        type: 'integer'
+        type: 'integer',
+        example: 1
       },
       lastPage: {
-        type: 'integer'
+        type: 'integer',
+        example: 20
       },
       from: {
-        type: 'integer'
+        type: 'integer',
+        example: 1
       },
       to: {
-        type: 'integer'
+        type: 'integer',
+        example: 10
       },
       total: {
-        type: 'integer'
+        type: 'integer',
+        example: 200
       },
       perPage: {
-        type: 'integer'
+        type: 'integer',
+        example: 10
       }
     },
     required: [
