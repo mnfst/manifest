@@ -4,11 +4,11 @@ import {
   AppManifest,
   EntityManifest,
   PropertyManifest,
-  PropType,
-  RelationshipManifest
+  PropType
 } from '../../../../types/src'
 import { propTypeTsType } from '../types/prop-type-ts-type'
 import { AUTHENTICABLE_PROPS } from '../../constants'
+import { EntityTypeInfo } from '../types/entity-type-info'
 
 @Injectable()
 export class EntityTypeService {
@@ -17,26 +17,27 @@ export class EntityTypeService {
    * Generates the entity types based on the application manifest.
    *
 
-   * @returns An array of EntityTypeInfo objects representing the entity types.
+   * @returns An array of EntityTypeInfo objects, each representing an entity type.
    */
-  generateEntityTypes(): string[] {
+  generateEntityTypeInfos(): EntityTypeInfo[] {
     const appManifest: AppManifest = this.manifestService.getAppManifest()
 
     return Object.values(appManifest.entities).map((entity) =>
-      this.generateTSInterfaceFromEntityManifest(entity)
+      this.generateEntityTypeInfoFromManifest(entity)
     )
   }
 
   /**
-   * Generates a TypeScript interface from an EntityManifest.
+   * Generates a TypeScript interface for the entity type based on the entity manifest.
    *
    * @param entityManifest The EntityManifest to generate the interface from.
-   * @returns A string representing the TypeScript interface.
-   */
-  private generateTSInterfaceFromEntityManifest(
+   *
+   * @returns an EntityTypeInfo object containing the name and properties of the entity.
+   *
+   **/
+  private generateEntityTypeInfoFromManifest(
     entityManifest: EntityManifest
-  ): string {
-    // All properties have an id property.
+  ): EntityTypeInfo {
     const properties: PropertyManifest[] = [
       {
         name: 'id',
@@ -49,41 +50,65 @@ export class EntityTypeService {
       properties.push(...AUTHENTICABLE_PROPS)
     }
 
-    // Generate TypeScript properties from the manifest.
-    const tsProperties: string[] = [...properties, ...entityManifest.properties]
-      .filter((prop) => prop.hidden !== true)
-      .map((prop: PropertyManifest) => {
-        let tsType: string
-        if (prop.type === PropType.Choice && prop.options?.values) {
-          const values = prop.options.values as string[]
-          tsType = values.map((val) => `'${val}'`).join(' | ')
-        } else {
-          tsType = propTypeTsType[prop.type]
-        }
+    const propertyTypeInfos: EntityTypeInfo['properties'] = [
+      ...properties,
+      ...entityManifest.properties
+    ].map((prop: PropertyManifest) => {
+      const type = propTypeTsType[prop.type] || 'any'
+      return {
+        name: prop.name,
+        type,
+        values:
+          prop.type === PropType.Choice
+            ? (prop.options?.values as string[]) || null
+            : undefined
+      }
+    })
 
-        return `  ${prop.name}: ${tsType};`
-      })
+    // Add relationships as properties if they exist.
+    entityManifest.relationships.forEach((relationship) => {
+      if (
+        relationship.type === 'many-to-many' ||
+        relationship.type === 'one-to-many'
+      ) {
+        propertyTypeInfos.push({
+          name: relationship.name,
+          type: `${relationship.entity}[]`,
+          optional: true
+        })
+      } else {
+        propertyTypeInfos.push({
+          name: relationship.name,
+          type: relationship.entity,
+          optional: true
+        })
+      }
+    })
 
-    // Add relationships if they exist.
-    if (entityManifest.relationships.length > 0) {
-      entityManifest.relationships.forEach(
-        (relationship: RelationshipManifest) => {
-          if (
-            relationship.type === 'many-to-many' ||
-            relationship.type === 'one-to-many'
-          ) {
-            tsProperties.push(
-              `  ${relationship.name}?: ${relationship.entity}[];`
-            )
-          } else {
-            tsProperties.push(
-              `  ${relationship.name}?: ${relationship.entity};`
-            )
-          }
-        }
-      )
+    return {
+      name: entityManifest.className,
+      properties: propertyTypeInfos
     }
+  }
 
-    return `export interface ${entityManifest.className} {\n${tsProperties.join('\n')}\n}\n`
+  /**
+   * Generates a TypeScript interface from the entity type info.
+   *
+   * @param entityTypeInfo The EntityTypeInfo to generate the interface from.
+   *
+   * @returns A string representing the TypeScript interface.
+   */
+  generateTSInterfaceFromEntityTypeInfo(
+    entityTypeInfo: EntityTypeInfo
+  ): string {
+    const tsProperties: string[] = entityTypeInfo.properties.map((prop) => {
+      let tsType: string = prop.type
+      if (prop.values) {
+        tsType = prop.values.map((val) => `'${val}'`).join(' | ')
+      }
+      return `  ${prop.name}${prop.optional ? '?' : ''}: ${tsType};`
+    })
+
+    return `export interface ${entityTypeInfo.name} {\n${tsProperties.join('\n')}\n}\n`
   }
 }
