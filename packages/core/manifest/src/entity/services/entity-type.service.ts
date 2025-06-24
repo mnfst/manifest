@@ -3,12 +3,16 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 import {
   AppManifest,
   EntityManifest,
+  ImageSizesObject,
   PropertyManifest,
   PropType
 } from '../../../../types/src'
 import { propTypeTsType } from '../types/prop-type-ts-type'
 import { AUTHENTICABLE_PROPS } from '../../constants'
-import { EntityTypeInfo } from '../types/entity-type-info'
+import {
+  EntityTsTypeInfo,
+  PropertyTsTypeInfo
+} from '../types/entity-ts-type-info'
 
 @Injectable()
 export class EntityTypeService {
@@ -19,7 +23,7 @@ export class EntityTypeService {
 
    * @returns An array of EntityTypeInfo objects, each representing an entity type.
    */
-  generateEntityTypeInfos(): EntityTypeInfo[] {
+  generateEntityTypeInfos(): EntityTsTypeInfo[] {
     const appManifest: AppManifest = this.manifestService.getAppManifest()
 
     return Object.values(appManifest.entities).map((entity) =>
@@ -37,7 +41,7 @@ export class EntityTypeService {
    **/
   private generateEntityTypeInfoFromManifest(
     entityManifest: EntityManifest
-  ): EntityTypeInfo {
+  ): EntityTsTypeInfo {
     const properties: PropertyManifest[] = [
       {
         name: 'id',
@@ -50,19 +54,23 @@ export class EntityTypeService {
       properties.push(...AUTHENTICABLE_PROPS)
     }
 
-    const propertyTypeInfos: EntityTypeInfo['properties'] = [
+    const propertyTypeInfos: PropertyTsTypeInfo[] = [
       ...properties,
       ...entityManifest.properties
     ].map((prop: PropertyManifest) => {
-      const type = propTypeTsType[prop.type] || 'any'
-      return {
+      const propertyTsTypeInfo: PropertyTsTypeInfo = {
         name: prop.name,
-        type,
-        values:
-          prop.type === PropType.Choice
-            ? (prop.options?.values as string[]) || null
-            : undefined
+        type: propTypeTsType[prop.type] || 'any',
+        manifestPropType: prop.type
       }
+
+      if (prop.type === PropType.Choice) {
+        propertyTsTypeInfo.values = (prop.options?.values as string[]) || null
+      } else if (prop.type === PropType.Image) {
+        propertyTsTypeInfo.sizes = prop.options?.sizes as ImageSizesObject
+      }
+
+      return propertyTsTypeInfo
     })
 
     // Add relationships as properties if they exist.
@@ -74,12 +82,14 @@ export class EntityTypeService {
         propertyTypeInfos.push({
           name: relationship.name,
           type: `${relationship.entity}[]`,
+          manifestPropType: null, //  Relationships do not have a PropType.
           optional: true
         })
       } else {
         propertyTypeInfos.push({
           name: relationship.name,
           type: relationship.entity,
+          manifestPropType: null, //  Relationships do not have a PropType.
           optional: true
         })
       }
@@ -99,7 +109,7 @@ export class EntityTypeService {
    * @returns A string representing the TypeScript interface.
    */
   generateTSInterfaceFromEntityTypeInfo(
-    entityTypeInfo: EntityTypeInfo
+    entityTypeInfo: EntityTsTypeInfo
   ): string {
     const tsProperties: string[] = entityTypeInfo.properties.map((prop) => {
       let tsType: string = prop.type

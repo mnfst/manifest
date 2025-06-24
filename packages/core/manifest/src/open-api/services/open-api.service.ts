@@ -8,7 +8,7 @@ import { OpenApiAuthService } from './open-api-auth.service'
 import { OpenApiEndpointService } from './open-api.endpoint.service'
 import { ConfigService } from '@nestjs/config'
 import { API_PATH } from '../../constants'
-import { EntityTypeInfo } from '../../entity/types/entity-type-info'
+import { EntityTsTypeInfo } from '../../entity/types/entity-ts-type-info'
 import { OpenApiSchemaService } from './open-api-schema.service'
 
 @Injectable()
@@ -31,7 +31,7 @@ export class OpenApiService {
    * @returns The OpenAPI object.
    *
    */
-  generateOpenApiObject(entityTypeInfos: EntityTypeInfo[]): OpenAPIObject {
+  generateOpenApiObject(entityTypeInfos: EntityTsTypeInfo[]): OpenAPIObject {
     const appManifest: AppManifest = this.manifestService.getAppManifest()
 
     return {
@@ -40,7 +40,6 @@ export class OpenApiService {
         title: appManifest.name,
         version: appManifest.version
       },
-
       servers: [
         {
           url: `${this.configService.get('baseUrl')}/${API_PATH}`,

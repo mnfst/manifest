@@ -18,7 +18,7 @@ export const propTypeTsType: Record<PropType, TsType> = {
   [PropType.Boolean]: 'boolean',
   [PropType.Password]: 'string',
   [PropType.Choice]: 'string', // Will be overridden with enum values
-  [PropType.Location]: 'string',
+  [PropType.Location]: '{ lat: number; lng: number }',
   [PropType.File]: 'string',
-  [PropType.Image]: 'string'
+  [PropType.Image]: '{[key:string]: string}'
 }

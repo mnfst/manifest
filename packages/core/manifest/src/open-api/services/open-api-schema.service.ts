@@ -2,10 +2,13 @@ import { Injectable } from '@nestjs/common'
 import { generalSchemas } from '../schemas/general-schemas'
 import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import {
-  EntityTypeInfo,
-  PropertyTypeInfo
-} from '../../entity/types/entity-type-info'
+  EntityTsTypeInfo,
+  PropertyTsTypeInfo
+} from '../../entity/types/entity-ts-type-info'
 import { tsTypeSchemaTypes } from '../schemas/ts-type-schema-types'
+import { propTypeExamples } from '../schemas/prop-type-examples'
+import { propTypeFormats } from '../schemas/prop-type-formats'
+import { PropType } from '../../../../types/src'
 
 @Injectable()
 export class OpenApiSchemaService {
@@ -27,14 +30,14 @@ export class OpenApiSchemaService {
    * @return A record of entity schemas, where the key is the entity name and the value is the schema object.
    */
   generateEntitySchemas(
-    entityTypeInfos: EntityTypeInfo[]
+    entityTypeInfos: EntityTsTypeInfo[]
   ): Record<string, SchemaObject> {
     const entitySchemas: Record<string, SchemaObject> = {}
 
-    entityTypeInfos.forEach((entityTypeInfo: EntityTypeInfo) => {
+    entityTypeInfos.forEach((entityTypeInfo: EntityTsTypeInfo) => {
       const properties: Record<string, SchemaObject> = {}
 
-      entityTypeInfo.properties.forEach((property: PropertyTypeInfo) => {
+      entityTypeInfo.properties.forEach((property: PropertyTsTypeInfo) => {
         properties[property.name] = this.generatePropertySchema(property)
       })
 
@@ -48,7 +51,7 @@ export class OpenApiSchemaService {
     return entitySchemas
   }
 
-  private generatePropertySchema(property: PropertyTypeInfo): SchemaObject {
+  private generatePropertySchema(property: PropertyTsTypeInfo): SchemaObject {
     const schema: SchemaObject = JSON.parse(
       JSON.stringify(tsTypeSchemaTypes[property.type] || {})
     )
@@ -60,24 +63,51 @@ export class OpenApiSchemaService {
       }
     }
 
-    if (property.values?.length > 0) {
+    if (
+      property.manifestPropType === PropType.Choice &&
+      property.values?.length > 0
+    ) {
       return {
         type: 'string',
+        description: `The ${property.name} property of the entity (${property.manifestPropType})`,
         enum: property.values,
         example: property.values[0]
       }
-    }
-
-    if (property.name === 'id') {
+    } else if (property.name === 'id') {
       schema.description = `The unique identifier for the entity`
       schema.format = 'uuid'
+      schema.example = '123e4567-e89b-12d3-a456-426614174000'
+    } else if (property.manifestPropType === PropType.Image) {
+      schema.description = `The ${property.name} property of the entity (${property.manifestPropType})`
+      schema.type = 'object'
+      schema.properties = Object.keys(property.sizes || {}).reduce(
+        (acc, size) => {
+          acc[size] = {
+            type: 'string',
+            format: 'uri',
+            description: `Image URL for size ${size}`,
+            example: `https://example.com/image-${size}.jpg`
+          }
+          return acc
+        },
+        {}
+      )
+
+      schema.required = Object.keys(property.sizes || {})
+    } else {
+      schema.description = `The ${property.name} property of the entity (${property.manifestPropType})`
+      schema.example = propTypeExamples[property.manifestPropType]
+
+      const format = propTypeFormats[property.manifestPropType]
+      if (format) {
+        schema.format = format
+      }
     }
 
     if (property.optional) {
       schema.nullable = true
     }
 
-    console.log(schema)
     return schema
   }
 }

@@ -18,7 +18,7 @@ import {
 } from './constants'
 import { OpenApiService } from './open-api/services/open-api.service'
 import { EntityTypeService } from './entity/services/entity-type.service'
-import { EntityTypeInfo } from './entity/types/entity-type-info'
+import { EntityTsTypeInfo } from './entity/types/entity-ts-type-info'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -81,7 +81,7 @@ async function bootstrap() {
   if (configService.get('showOpenApiDocs')) {
     // Start with generating types.
     const entityTypeService: EntityTypeService = app.get(EntityTypeService)
-    const entityTypeInfos: EntityTypeInfo[] =
+    const entityTypeInfos: EntityTsTypeInfo[] =
       entityTypeService.generateEntityTypeInfos()
 
     fs.writeFileSync(
