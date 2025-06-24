@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { generalSchemas } from '../schemas/general-schemas'
-import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import {
+  ReferenceObject,
+  SchemaObject
+} from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import {
   EntityTsTypeInfo,
   PropertyTsTypeInfo
@@ -34,16 +37,26 @@ export class OpenApiSchemaService {
   ): Record<string, SchemaObject> {
     const entitySchemas: Record<string, SchemaObject> = {}
 
-    entityTypeInfos.forEach((entityTypeInfo: EntityTsTypeInfo) => {
-      const properties: Record<string, SchemaObject> = {}
+    entityTypeInfos.forEach((entityTsTypeInfo: EntityTsTypeInfo) => {
+      const properties: Record<string, SchemaObject | ReferenceObject> = {}
 
-      entityTypeInfo.properties.forEach((property: PropertyTsTypeInfo) => {
-        properties[property.name] = this.generatePropertySchema(property)
-      })
+      // Add general schemas for the entity.
+      entityTsTypeInfo.properties
+        .filter((property) => !this.isPropertyRelationship(property))
+        .forEach((property: PropertyTsTypeInfo) => {
+          properties[property.name] = this.generatePropertySchema(property)
+        })
 
-      entitySchemas[entityTypeInfo.name] = {
+      // Add relationship schemas for the entity.
+      entityTsTypeInfo.properties
+        .filter((property) => this.isPropertyRelationship(property))
+        .forEach((property: PropertyTsTypeInfo) => {
+          properties[property.name] = this.generateRelationshipSchema(property)
+        })
+
+      entitySchemas[entityTsTypeInfo.name] = {
         type: 'object',
-        description: `${entityTypeInfo.name} entity schema`,
+        description: `${entityTsTypeInfo.name} entity schema`,
         properties
       }
     })
@@ -109,5 +122,43 @@ export class OpenApiSchemaService {
     }
 
     return schema
+  }
+
+  /**
+   * Generate a schema for a relationship property.
+   *
+   * @param property - The property to generate the schema for.
+   * @returns The schema object for the relationship property.
+   */
+  private generateRelationshipSchema(
+    property: PropertyTsTypeInfo
+  ): SchemaObject | ReferenceObject {
+    const isArray: boolean = property.type.endsWith('[]')
+
+    if (isArray) {
+      return {
+        type: 'array',
+        description: `Array of ${property.name} entities`,
+        items: {
+          $ref: `#/components/schemas/${property.type.replace('[]', '')}`
+        }
+      }
+    } else {
+      return {
+        type: 'object',
+        description: `Single ${property.name} entity`,
+        $ref: `#/components/schemas/${property.type}`
+      }
+    }
+  }
+
+  /**
+   * Check if the property is a relationship.
+   *
+   * @param property - The property to check.
+   * @returns True if the property is a relationship, false otherwise.
+   */
+  private isPropertyRelationship(property: PropertyTsTypeInfo): boolean {
+    return property.manifestPropType === null
   }
 }
