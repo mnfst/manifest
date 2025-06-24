@@ -1,10 +1,11 @@
 import { PropType } from '../../../../types/src'
+import { TsType } from './ts-types'
 
 /**
  * This is a mapping of property types to TypeScript types.
  * It is used to generate TypeScript interfaces for entity properties.
  */
-export const propTypeTsType: Record<PropType, string> = {
+export const propTypeTsType: Record<PropType, TsType> = {
   [PropType.String]: 'string',
   [PropType.Text]: 'string',
   [PropType.RichText]: 'string',

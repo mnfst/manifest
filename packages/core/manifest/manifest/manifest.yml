@@ -53,3 +53,12 @@ entities:
       - { name: location, type: location }
       - { name: certificate, type: file }
       - { name: photo, type: image }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public

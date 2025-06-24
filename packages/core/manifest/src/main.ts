@@ -98,7 +98,8 @@ async function bootstrap() {
 
     const openApiService: OpenApiService = app.get(OpenApiService)
 
-    const openApiObject: OpenAPIObject = openApiService.generateOpenApiObject()
+    const openApiObject: OpenAPIObject =
+      openApiService.generateOpenApiObject(entityTypeInfos)
 
     SwaggerModule.setup(API_PATH, app, openApiObject, {
       customfavIcon: 'assets/images/open-api/favicon.ico',

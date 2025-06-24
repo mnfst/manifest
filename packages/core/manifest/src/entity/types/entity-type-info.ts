@@ -1,9 +1,11 @@
 export interface EntityTypeInfo {
   name: string
-  properties: {
-    name: string
-    type: string
-    optional?: boolean
-    values?: string[] | null
-  }[]
+  properties: PropertyTypeInfo[]
+}
+
+export interface PropertyTypeInfo {
+  name: string
+  type: string
+  optional?: boolean
+  values?: string[] | null
 }
