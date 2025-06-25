@@ -41,6 +41,10 @@ import { PaginationService } from './pagination.service'
 import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import {
+  getValidWhereOperators,
+  isValidWhereOperator
+} from '../records/prop-type-valid-where-operators'
 
 @Injectable()
 export class CrudService {
@@ -632,6 +636,17 @@ export class CrudService {
         const prop: PropertyManifest = entityManifest.properties.find(
           (prop: PropertyManifest) => prop.name === propName && !prop.hidden
         )
+
+        if (prop && !isValidWhereOperator(prop.type, operator)) {
+          throw new HttpException(
+            `Operator ${operator} (with '${suffix}' suffix) is not valid for property ${propName}. ${prop.type} properties can only use the following operators: ${getValidWhereOperators(
+              prop.type
+            )
+              .map((operator) => `'${operator}'`)
+              .join(', ')}.`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
 
         const relation: RelationshipManifest =
           entityManifest.relationships.find(

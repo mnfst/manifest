@@ -1,9 +1,22 @@
-import { EntityManifest, PolicyManifest } from '@repo/types'
+import {
+  EntityManifest,
+  PolicyManifest,
+  PropertyManifest,
+  WhereKeySuffix,
+  WhereOperator,
+  whereOperatorKeySuffix
+} from '@repo/types'
 import { Injectable } from '@nestjs/common'
-import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import {
+  ParameterObject,
+  PathItemObject,
+  SchemaObject
+} from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { upperCaseFirstLetter } from '@repo/common'
 import { COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
 import { OpenApiUtilsService } from './open-api-utils.service'
+import { isValidWhereOperator } from '../../crud/records/prop-type-valid-where-operators'
+import { getRecordKeyByValue } from '@repo/common'
 
 @Injectable()
 export class OpenApiCrudService {
@@ -168,7 +181,8 @@ export class OpenApiCrudService {
                 )
               }
             }
-          }
+          },
+          ...this.generateFilterParameters(entityManifest.properties)
         ],
         responses: {
           '200': {
@@ -521,9 +535,64 @@ export class OpenApiCrudService {
    *
    * @returns True if none of the policies are forbidden, false otherwise.
    */
-  isNotForbidden(policies: PolicyManifest[]): boolean {
+  private isNotForbidden(policies: PolicyManifest[]): boolean {
     return policies.every((policy) => {
       return policy.access !== 'forbidden'
     })
+  }
+
+  private generateFilterParameters(
+    properties: PropertyManifest[]
+  ): ParameterObject[] {
+    const filterParameters: ParameterObject[] = []
+
+    for (const property of properties) {
+      for (const suffix of Object.values(WhereKeySuffix)) {
+        // Skip incompatible combinations
+        if (
+          !isValidWhereOperator(
+            property.type,
+            getRecordKeyByValue(whereOperatorKeySuffix, suffix) as WhereOperator
+          )
+        ) {
+          continue
+        }
+
+        const paramName = `${property.name}${suffix}`
+        let schema: SchemaObject
+
+        switch (property.type) {
+          case 'number':
+            schema = { type: 'number' }
+            break
+          case 'boolean':
+            schema = { type: 'boolean' }
+            break
+          case 'date':
+            schema = { type: 'string', format: 'date-time' }
+            break
+          default:
+            schema = { type: 'string' }
+        }
+
+        // Special handling for _in suffix
+        if (suffix === WhereKeySuffix.In) {
+          schema = {
+            type: 'string',
+            description: 'Comma-separated list of values'
+          }
+        }
+
+        filterParameters.push({
+          name: paramName,
+          in: 'query',
+          description: `Filter by ${property.name}`,
+          required: false,
+          schema
+        })
+      }
+    }
+
+    return filterParameters
   }
 }
