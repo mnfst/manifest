@@ -273,7 +273,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                type: 'object'
+                $ref: `#/components/schemas/Create${entityManifest.className}Dto`
               }
             }
           }
@@ -283,10 +283,38 @@ export class OpenApiCrudService {
         ),
         responses: {
           '201': {
-            description: `OK`
+            description: `OK`,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: `#/components/schemas/${entityManifest.className}`
+                }
+              }
+            }
           },
           '400': {
-            description: `Bad request`
+            description: `Bad request`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Validation failed'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Bad Request'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 400
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

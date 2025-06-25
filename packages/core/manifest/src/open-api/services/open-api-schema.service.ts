@@ -42,14 +42,14 @@ export class OpenApiSchemaService {
 
       // Add general schemas for the entity.
       entityTsTypeInfo.properties
-        .filter((property) => !this.isPropertyRelationship(property))
+        .filter((property) => !property.isRelationship)
         .forEach((property: PropertyTsTypeInfo) => {
           properties[property.name] = this.generatePropertySchema(property)
         })
 
       // Add relationship schemas for the entity.
       entityTsTypeInfo.properties
-        .filter((property) => this.isPropertyRelationship(property))
+        .filter((property) => property.isRelationship)
         .forEach((property: PropertyTsTypeInfo) => {
           properties[property.name] = this.generateRelationshipSchema(property)
         })
@@ -122,9 +122,7 @@ export class OpenApiSchemaService {
       }
     }
 
-    if (property.optional) {
-      schema.nullable = true
-    }
+    schema.nullable = !property.optional
 
     return schema
   }
@@ -139,6 +137,28 @@ export class OpenApiSchemaService {
     property: PropertyTsTypeInfo
   ): SchemaObject | ReferenceObject {
     const isArray: boolean = property.type.endsWith('[]')
+
+    // In the case of dealing with a Dto relationship, we only get the ID (or array of IDs) of the related entity.
+    if (property.type === 'string' || property.type === 'string[]') {
+      if (isArray) {
+        return {
+          type: 'array',
+          description: `Array of IDs for ${property.name} entities`,
+          items: {
+            type: 'string',
+            format: 'uuid',
+            example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+          }
+        }
+      } else {
+        return {
+          type: 'string',
+          description: `ID of the ${property.name} entity`,
+          format: 'uuid',
+          example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+        }
+      }
+    }
 
     if (isArray) {
       return {
@@ -155,15 +175,5 @@ export class OpenApiSchemaService {
         $ref: `#/components/schemas/${property.type}`
       }
     }
-  }
-
-  /**
-   * Check if the property is a relationship.
-   *
-   * @param property - The property to check.
-   * @returns True if the property is a relationship, false otherwise.
-   */
-  private isPropertyRelationship(property: PropertyTsTypeInfo): boolean {
-    return property.manifestPropType === null
   }
 }
