@@ -37,18 +37,21 @@ beforeAll(async () => {
   process.env.DB_DROP_SCHEMA = 'true'
 
   // Start the NestJS application mocking some services.
+  const yamlService = new YamlService()
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule]
   })
     .overrideProvider(YamlService)
     .useValue({
-      load: () =>
-        load(
-          fs.readFileSync(
-            `${process.cwd()}/e2e/assets/mock-backend.yml`,
-            'utf8'
-          )
+      load: () => {
+        const fileContent = fs.readFileSync(
+          `${process.cwd()}/e2e/assets/mock-backend.yml`,
+          'utf8'
         )
+        const interpolatedContent =
+          yamlService.interpolateDotEnvVariables(fileContent)
+        return load(interpolatedContent)
+      }
     })
     .compile()
 
