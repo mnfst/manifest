@@ -565,10 +565,38 @@ export class OpenApiCrudService {
         ),
         responses: {
           '200': {
-            description: `OK`
+            description: `OK`,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: `#/components/schemas/${entityManifest.className}`
+                }
+              }
+            }
           },
           '404': {
-            description: `The ${entityManifest.nameSingular} was not found`
+            description: `The ${entityManifest.nameSingular} was not found`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 404
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
