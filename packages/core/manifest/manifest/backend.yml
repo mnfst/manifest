@@ -10,6 +10,22 @@ entities:
       read:
         - access: public
 
+  Frog:
+    properties:
+      - name
+    belongsTo:
+      - User
+      - Project
+    policies:
+      create:
+        - { access: restricted, allow: User, condition: "self" }
+      read:
+        - { access: restricted, allow: User, condition: "self" }
+      update:
+        - { access: restricted, allow: User, condition: "self" }
+      delete:
+        - { access: restricted, allow: User, condition: "self" }
+
   Project:
     properties:
       - { name: title, validation: { required: true } }
@@ -36,12 +52,8 @@ entities:
     policies:
       read:
         - { access: restricted, allow: [User] }
-    belongsTo:
-      - User
-    belongsToMany:
-      - Contact
 
-  Contact:
+  Contacts:
     properties:
       - { name: name, type: string, validation: { required: true } }
       - { name: email, type: email, validation: { required: true } }
@@ -49,12 +61,3 @@ entities:
     policies:
       create:
         - access: public
-
-  Dog:
-    properties:
-      - { name: name, type: string, validation: { required: true } }
-      - { name: age, type: number, validation: { required: true } }
-      - { name: photo, type: image }
-
-    belongsToMany:
-      - User

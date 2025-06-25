@@ -4,6 +4,7 @@ import { PolicyGuard } from '../../policy/policy.guard'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { HandlerService } from '../../handler/handler.service'
 import { AuthService } from '../../auth/auth.service'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('EndpointController', () => {
   let controller: EndpointController
@@ -22,6 +23,12 @@ describe('EndpointController', () => {
           provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn(() => ({}))
+          }
+        },
+        {
+          provide: EntityService,
+          useValue: {
+            getEntityManifest: jest.fn()
           }
         },
         {
