@@ -37,7 +37,8 @@ export class OpenApiAuthService {
           }
         },
         example: {
-          token: '12345'
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJlbnRpdHlTbHVnIjoidHJhaW5lcnMiLCJpYXQiOjE3NTA4NjUyNjB9.8KRlyPPlNWvHDc_yaocqrqYBhAzAyn5PvyCKyvUUCM4'
         }
       }
     }
@@ -148,19 +149,7 @@ export class OpenApiAuthService {
               content: {
                 'application/json': {
                   schema: {
-                    type: 'object',
-                    properties: {
-                      id: {
-                        type: 'number'
-                      },
-                      email: {
-                        type: 'string'
-                      }
-                    }
-                  },
-                  example: {
-                    id: 1,
-                    email: 'user@example.com'
+                    $ref: `#/components/schemas/${entity.className}`
                   }
                 }
               }
