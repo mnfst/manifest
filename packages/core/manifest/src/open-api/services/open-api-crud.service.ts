@@ -228,7 +228,7 @@ export class OpenApiCrudService {
   ): PathItemObject {
     return {
       get: {
-        summary: `List ${entityManifest.namePlural} for select options`,
+        summary: `List ${entityManifest.namePlural} for select options (admin panel)`,
         description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'. Used in the admin panel to fill select dropdowns.`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         security: [
@@ -328,6 +328,24 @@ export class OpenApiCrudService {
                   format: 'uuid',
                   example: '123e4567-e89b-12d3-a456-426614174000'
                 }
+              },
+              {
+                name: 'relations',
+                in: 'query',
+                description:
+                  'The relations to include. For several relations, use a comma-separated list',
+                required: false,
+                style: 'form',
+                explode: false,
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    enum: entityManifest.relationships.map(
+                      (relation) => relation.name
+                    )
+                  }
+                }
               }
             ],
         security: this.openApiUtilsService.getSecurityRequirements(
@@ -339,7 +357,8 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object'
+                  type: 'object',
+                  $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }
             }

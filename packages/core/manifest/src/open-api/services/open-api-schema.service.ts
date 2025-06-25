@@ -93,6 +93,11 @@ export class OpenApiSchemaService {
     } else if (property.manifestPropType === PropType.Image) {
       schema.description = `The ${property.name} property of the entity (${property.manifestPropType})`
       schema.type = 'object'
+      schema.additionalProperties = false
+      schema.example = Object.keys(property.sizes).reduce((acc, size) => {
+        acc[size] = `https://example.com/image-${size}.jpg`
+        return acc
+      }, {})
       schema.properties = Object.keys(property.sizes || {}).reduce(
         (acc, size) => {
           acc[size] = {
