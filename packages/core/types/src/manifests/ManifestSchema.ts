@@ -272,6 +272,10 @@ export interface PoliciesSchema {
 export interface PolicySchema {
   access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
+  /**
+   * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
+   */
+  condition?: 'self'
 }
 /**
  * Validation for the property. Doc: https://manifest.build/docs/validation
@@ -483,4 +487,8 @@ export interface EndpointSchema {
 export interface PolicySchema1 {
   access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
+  /**
+   * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
+   */
+  condition?: 'self'
 }

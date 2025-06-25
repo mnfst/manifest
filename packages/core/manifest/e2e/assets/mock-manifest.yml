@@ -125,6 +125,22 @@ entities:
       signup:
         - access: 🚫
 
+  # Testing policies with the Frog entity (owner-based control).
+  Frog:
+    properties:
+      - name
+    belongsTo:
+      - User
+    policies:
+      create:
+        - { access: restricted, allow: User, condition: "self" }
+      read:
+        - { access: restricted, allow: User, condition: "self" }
+      update:
+        - { access: restricted, allow: User, condition: "self" }
+      delete:
+        - { access: restricted, allow: User, condition: "self" }
+
   # Testing authenticable entities with the User and Contributor entities.
   User:
     authenticable: true

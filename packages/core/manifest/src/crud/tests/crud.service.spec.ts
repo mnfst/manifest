@@ -82,12 +82,26 @@ describe('CrudService', () => {
     getOne: jest.fn().mockReturnValue(Promise.resolve(dummyItem))
   } as any
 
+  const entityMetadata = {
+    columns: [
+      { propertyName: 'id', isPrimary: true },
+      { propertyName: 'name' },
+      { propertyName: 'age' },
+      { propertyName: 'color' },
+      { propertyName: 'secretProperty', isVisible: false },
+      { propertyName: 'password', isVisible: false },
+      { propertyName: 'secondPassword', isVisible: false }
+    ],
+    relations: []
+  }
+
   const entityRepository = {
     findOne: jest.fn(() => Promise.resolve(dummyItem)),
     create: jest.fn((item) => item),
     save: jest.fn((item) => item),
     createQueryBuilder: jest.fn(() => queryBuilder),
-    delete: jest.fn(() => Promise.resolve({}))
+    delete: jest.fn(() => Promise.resolve({})),
+    metadata: entityMetadata
   } as any
 
   beforeEach(async () => {
@@ -229,7 +243,7 @@ describe('CrudService', () => {
       const entitySlug = 'test'
       const result = await service.findAll({
         entitySlug,
-        queryParams: { 
+        queryParams: {
           name_eq: 'Superman',
           age_gte: '25',
           age_lte: '35',
@@ -240,11 +254,26 @@ describe('CrudService', () => {
 
       expect(result).toEqual(dummyPaginator)
       expect(queryBuilder.andWhere).toHaveBeenCalledTimes(5)
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.name = :value_0', { value_0: 'Superman' })
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.age >= :value_1', { value_1: '25' })
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.age <= :value_2', { value_2: '35' })
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.color like :value_3', { value_3: 'blue' })
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('entity.color in (:...value_4)', { value_4: ['blue', 'red', 'green'] })
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'entity.name = :value_0',
+        { value_0: 'Superman' }
+      )
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'entity.age >= :value_1',
+        { value_1: '25' }
+      )
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'entity.age <= :value_2',
+        { value_2: '35' }
+      )
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'entity.color like :value_3',
+        { value_3: 'blue' }
+      )
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'entity.color in (:...value_4)',
+        { value_4: ['blue', 'red', 'green'] }
+      )
     })
   })
 
@@ -518,6 +547,7 @@ describe('CrudService', () => {
             )
           )
         ),
+        metadata: entityMetadata,
         create: jest.fn((item) => item),
         save: jest.fn((item) => item)
       } as any)

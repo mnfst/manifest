@@ -9,6 +9,7 @@ import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
 import { EventService } from '../../event/event.service'
 import { HandlerService } from '../../handler/handler.service'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('CollectionController', () => {
   let controller: CollectionController
@@ -51,6 +52,12 @@ describe('CollectionController', () => {
         },
         {
           provide: EntityManifestService,
+          useValue: {
+            getEntityManifest: jest.fn()
+          }
+        },
+        {
+          provide: EntityService,
           useValue: {
             getEntityManifest: jest.fn()
           }
