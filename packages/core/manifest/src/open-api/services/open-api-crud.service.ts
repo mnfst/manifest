@@ -1,7 +1,6 @@
 import {
   EntityManifest,
   PolicyManifest,
-  PropertyManifest,
   WhereKeySuffix,
   WhereOperator,
   whereOperatorKeySuffix
@@ -17,6 +16,7 @@ import { COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
 import { OpenApiUtilsService } from './open-api-utils.service'
 import { isValidWhereOperator } from '../../crud/records/prop-type-valid-where-operators'
 import { getRecordKeyByValue } from '@repo/common'
+import { WHERE_OPERATOR_DESCRIPTIONS } from '../schemas/where-operator-descriptions'
 
 @Injectable()
 export class OpenApiCrudService {
@@ -182,7 +182,7 @@ export class OpenApiCrudService {
               }
             }
           },
-          ...this.generateFilterParameters(entityManifest.properties)
+          ...this.generateFilterParameters(entityManifest)
         ],
         responses: {
           '200': {
@@ -542,19 +542,19 @@ export class OpenApiCrudService {
   }
 
   private generateFilterParameters(
-    properties: PropertyManifest[]
+    entityManifest: EntityManifest
   ): ParameterObject[] {
     const filterParameters: ParameterObject[] = []
 
-    for (const property of properties) {
+    for (const property of entityManifest.properties) {
       for (const suffix of Object.values(WhereKeySuffix)) {
+        const whereOperator: WhereOperator = getRecordKeyByValue(
+          whereOperatorKeySuffix,
+          suffix
+        ) as WhereOperator
+
         // Skip incompatible combinations
-        if (
-          !isValidWhereOperator(
-            property.type,
-            getRecordKeyByValue(whereOperatorKeySuffix, suffix) as WhereOperator
-          )
-        ) {
+        if (!isValidWhereOperator(property.type, whereOperator)) {
           continue
         }
 
@@ -578,15 +578,17 @@ export class OpenApiCrudService {
         // Special handling for _in suffix
         if (suffix === WhereKeySuffix.In) {
           schema = {
-            type: 'string',
-            description: 'Comma-separated list of values'
+            type: 'string'
           }
         }
 
         filterParameters.push({
           name: paramName,
           in: 'query',
-          description: `Filter by ${property.name}`,
+          description: WHERE_OPERATOR_DESCRIPTIONS[whereOperator](
+            entityManifest.namePlural,
+            property.name
+          ),
           required: false,
           schema
         })
