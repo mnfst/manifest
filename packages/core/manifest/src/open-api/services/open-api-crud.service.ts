@@ -273,7 +273,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/Create${entityManifest.className}Dto`
+                $ref: `#/components/schemas/CreateUpdate${entityManifest.className}Dto`
               }
             }
           }
@@ -425,7 +425,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                type: 'object'
+                $ref: `#/components/schemas/CreateUpdate${entityManifest.className}Dto`
               }
             }
           }
@@ -454,13 +454,34 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object'
+                  $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }
             }
           },
           '404': {
-            description: `Not found`
+            description: `Not found`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Item not Found'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 404
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -492,7 +513,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                type: 'object'
+                $ref: `#/components/schemas/CreateUpdate${entityManifest.className}Dto`
               }
             }
           }
@@ -521,13 +542,34 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object'
+                  $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }
             }
           },
           '404': {
-            description: `Not found`
+            description: `Not found`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Item not Found'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 404
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

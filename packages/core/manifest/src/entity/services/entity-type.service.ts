@@ -171,7 +171,7 @@ export class EntityTypeService {
     )
 
     return {
-      name: `Create${entityManifest.className}Dto`,
+      name: `CreateUpdate${entityManifest.className}Dto`,
       properties: propertyTypeInfos
     }
   }
