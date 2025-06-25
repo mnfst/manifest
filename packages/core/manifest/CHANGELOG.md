@@ -1,5 +1,11 @@
 # manifest
 
+## 4.13.0
+
+### Minor Changes
+
+- 426c11b: added ownership based access, thanks @tvanh3
+
 ## 4.12.4
 
 ### Patch Changes
