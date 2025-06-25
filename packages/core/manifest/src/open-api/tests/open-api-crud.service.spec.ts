@@ -173,6 +173,18 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+
+    it('should generate general parameters (pagination and sorting)', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate all available filters (for each property with valid suffixes)', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate a success response with a $ref to the Paginator schema and the entity schema', () => {
+      return false // TODO: Implement this test
+    })
   })
 
   describe('generateListSelectOptionsPath', () => {
@@ -212,6 +224,13 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+    it('should generate request body with a reference to the DTO schema', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      return false // TODO: Implement this test
+    })
   })
 
   describe('generateDetailPath', () => {
@@ -231,6 +250,18 @@ describe('OpenApiCrudService', () => {
           }
         }
       })
+    })
+
+    it('should generate parameters for the entity ID', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate parameter for the relationships', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      return false // TODO: Implement this test
     })
   })
 
@@ -253,6 +284,18 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+
+    it('should generate parameters for the entity ID', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate request body with a reference to the DTO schema', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      return false // TODO: Implement this test
+    })
   })
 
   describe('generatePatchPath', () => {
@@ -274,6 +317,17 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+    it('should generate parameters for the entity ID', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate request body with a reference to the DTO schema', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      return false // TODO: Implement this test
+    })
   })
 
   describe('generateDeletePath', () => {
@@ -293,6 +347,14 @@ describe('OpenApiCrudService', () => {
           }
         }
       })
+    })
+
+    it('should generate parameters for the entity ID', () => {
+      return false // TODO: Implement this test
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      return false // TODO: Implement this test
     })
   })
 

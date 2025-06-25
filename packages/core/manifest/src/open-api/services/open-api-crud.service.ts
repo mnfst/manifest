@@ -652,7 +652,7 @@ export class OpenApiCrudService {
    *
    * @returns True if none of the policies are forbidden, false otherwise.
    */
-  private isNotForbidden(policies: PolicyManifest[]): boolean {
+  isNotForbidden(policies: PolicyManifest[]): boolean {
     return policies.every((policy) => {
       return policy.access !== 'forbidden'
     })

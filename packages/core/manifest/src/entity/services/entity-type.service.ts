@@ -177,7 +177,7 @@ export class EntityTypeService {
   }
 
   /**
-   * Generates a TypeScript interface from the entity type info.
+   * Generates a string representation of a TypeScript interface from the entity type info.
    *
    * @param entityTypeInfo The EntityTypeInfo to generate the interface from.
    *

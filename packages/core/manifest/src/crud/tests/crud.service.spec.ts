@@ -275,6 +275,36 @@ describe('CrudService', () => {
         { value_4: ['blue', 'red', 'green'] }
       )
     })
+
+    it('should throw an error if the filter suffix is invalid', async () => {
+      const entitySlug = 'test'
+      await expect(
+        service.findAll({
+          entitySlug,
+          queryParams: { age_notASuffix: '30' }
+        })
+      ).rejects.toThrow()
+    })
+
+    it('should throw an error if the filter suffix is not compatible with propertyType', async () => {
+      const entitySlug = 'test'
+
+      // Cannot filter by password.
+      await expect(
+        service.findAll({
+          entitySlug,
+          queryParams: { password_eq: '30' }
+        })
+      ).rejects.toThrow()
+
+      // Greater than or equal is not compatible with string.
+      await expect(
+        service.findAll({
+          entitySlug,
+          queryParams: { name_gte: '30' }
+        })
+      ).rejects.toThrow()
+    })
   })
 
   describe('findSelectOptions', () => {

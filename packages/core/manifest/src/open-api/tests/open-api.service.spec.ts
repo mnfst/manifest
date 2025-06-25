@@ -98,6 +98,10 @@ describe('OpenApiService', () => {
     expect(openApiObject.info.version).toBe(dummyAppManifest.version)
   })
 
+  it('should generate the server URL based on the config', () => {
+    return false // TODO: Implement this test
+  })
+
   it('should generate paths for each entity', () => {
     jest.spyOn(openApiCrudService, 'generateEntityPaths')
 
@@ -116,5 +120,25 @@ describe('OpenApiService', () => {
     expect(openApiManifestService.generateManifestPaths).toHaveBeenCalledWith(
       dummyAppManifest
     )
+  })
+
+  it('should generate the auth paths', () => {
+    return false // TODO: Implement this test
+  })
+
+  it('should generate the endpoint paths', () => {
+    return false // TODO: Implement this test
+  })
+
+  it('should generate the schemas for entities', () => {
+    return false // TODO: Implement this test
+  })
+
+  it('should generate the general schemas', () => {
+    return false // TODO: Implement this test
+  })
+
+  it('should include security schemes in the components', () => {
+    return false // TODO: Implement this test
   })
 })

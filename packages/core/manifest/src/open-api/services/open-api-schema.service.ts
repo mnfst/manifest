@@ -70,10 +70,9 @@ export class OpenApiSchemaService {
     )
 
     if (!schema) {
-      return {
-        type: 'object',
-        description: `Unknown type for property ${property.name}`
-      }
+      throw new Error(
+        `No schema found for property type: ${property.type} (${property.manifestPropType})`
+      )
     }
 
     if (

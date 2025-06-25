@@ -134,4 +134,8 @@ describe('OpenApiAuthService', () => {
       `/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/signup`
     )
   })
+
+  it('should generate a "/me" path for authenticable entities with a reference to the entity schema', () => {
+    return false // TODO: Implement this test
+  })
 })
