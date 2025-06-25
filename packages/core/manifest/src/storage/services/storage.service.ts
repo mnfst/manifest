@@ -30,21 +30,27 @@ export class StorageService {
     this.s3Region = this.configService.get('storage.s3Region')
     this.s3AccessKeyId = this.configService.get('storage.s3AccessKeyId')
     this.s3SecretAccessKey = this.configService.get('storage.s3SecretAccessKey')
-    this.s3provider = this.s3Endpoint?.includes('amazon')
-      ? 'aws'
-      : this.s3Endpoint?.includes('digitalocean')
-        ? 'digitalocean'
-        : 'other'
+    this.s3provider = this.configService.get('storage.s3Provider')
+      ? this.configService.get('storage.s3Provider')
+      : this.s3Endpoint?.includes('amazon')
+        ? 'aws'
+        : this.s3Endpoint?.includes('digitalocean')
+          ? 'digitalocean'
+          : 'other'
 
     if (this.isS3Enabled) {
+      let s3Endpoint = this.configService.get('storage.s3Endpoint')
+      if (this.s3provider === 'supabase') {
+        s3Endpoint = this.s3Endpoint + '/s3'
+      }
       this.s3Client = new S3Client({
         region: this.s3Region,
-        endpoint: this.s3Endpoint,
+        endpoint: s3Endpoint,
         credentials: {
           accessKeyId: this.s3AccessKeyId,
           secretAccessKey: this.s3SecretAccessKey
         },
-        forcePathStyle: false
+        forcePathStyle: this.s3provider === 'supabase'
       })
     }
   }
@@ -193,6 +199,9 @@ export class StorageService {
    * @returns The S3 file URL.
    */
   private async uploadToS3(key: string, buffer: Buffer): Promise<string> {
+    if (this.s3provider === 'supabase') {
+      return this.uploadToSupabase(key, buffer)
+    }
     await this.s3Client.send(
       new PutObjectCommand({
         Bucket: this.s3Bucket,
@@ -203,5 +212,17 @@ export class StorageService {
       })
     )
     return `${this.s3Endpoint}/${this.s3Bucket}/${STORAGE_PATH}/${key}`
+  }
+
+  private async uploadToSupabase(key: string, buffer: Buffer): Promise<string> {
+    await this.s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.s3Bucket,
+        Key: `${STORAGE_PATH}/${key}`,
+        Body: buffer,
+      })
+    )
+
+    return `${this.s3Endpoint}/object/public/${this.s3Bucket}/${STORAGE_PATH}/${key}`;
   }
 }
