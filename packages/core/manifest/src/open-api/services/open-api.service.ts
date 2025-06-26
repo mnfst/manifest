@@ -43,7 +43,7 @@ export class OpenApiService {
       servers: [
         {
           url: `${this.configService.get('baseUrl')}/${API_PATH}`,
-          description: `${this.configService.get('NODE_ENV') === 'production' ? 'Production' : 'Development'} server`
+          description: `${this.configService.get('nodeEnv') === 'production' ? 'Production' : 'Development'} server`
         }
       ],
       paths: {

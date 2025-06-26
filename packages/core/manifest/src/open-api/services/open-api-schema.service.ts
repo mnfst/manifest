@@ -69,7 +69,7 @@ export class OpenApiSchemaService {
       JSON.stringify(tsTypeSchemaTypes[property.type] || {})
     )
 
-    if (!schema) {
+    if (Object.keys(schema).length === 0) {
       throw new Error(
         `No schema found for property type: ${property.type} (${property.manifestPropType})`
       )
