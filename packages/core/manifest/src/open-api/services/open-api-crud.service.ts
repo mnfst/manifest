@@ -150,7 +150,8 @@ export class OpenApiCrudService {
             required: false,
             schema: {
               type: 'string',
-              enum: entityManifest.properties.map((property) => property.name)
+              enum: entityManifest.properties.map((property) => property.name),
+              default: 'createdAt'
             }
           },
           {
@@ -161,7 +162,7 @@ export class OpenApiCrudService {
             schema: {
               type: 'string',
               enum: ['ASC', 'DESC'],
-              default: 'ASC'
+              default: 'DESC'
             }
           },
           {
@@ -385,7 +386,6 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object',
                   $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }

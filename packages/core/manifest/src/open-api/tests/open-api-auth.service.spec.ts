@@ -136,6 +136,43 @@ describe('OpenApiAuthService', () => {
   })
 
   it('should generate a "/me" path for authenticable entities with a reference to the entity schema', () => {
-    return false // TODO: Implement this test
+    const appManifestWithAuthenticableEntity: AppManifest = {
+      name: 'Test',
+      entities: {
+        user: {
+          slug: 'users',
+          className: 'User',
+          authenticable: true,
+          policies: {
+            create: [{ access: 'public' }],
+            read: [{ access: 'public' }],
+            update: [{ access: 'public' }],
+            delete: [{ access: 'public' }],
+            signup: [{ access: 'public' }]
+          }
+        } as EntityManifest
+      }
+    }
+
+    const paths = service.generateAuthPaths(appManifestWithAuthenticableEntity)
+
+    expect(paths).toHaveProperty(
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`
+    )
+    expect(
+      paths[`/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`]
+        .get
+    ).toHaveProperty('responses')
+    expect(
+      paths[`/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`]
+        .get.responses
+    ).toHaveProperty('200')
+    expect(
+      paths[`/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`]
+        .get.responses['200']['content']['application/json'].schema
+    ).toHaveProperty(
+      '$ref',
+      `#/components/schemas/${appManifestWithAuthenticableEntity.entities.user.className}`
+    )
   })
 })
