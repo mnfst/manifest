@@ -15,6 +15,12 @@ entities:
       - { name: level, type: number }
     belongsTo:
       - Trainer
+    belongsToMany:
+      - Fruit
+
+  Fruit:
+    properties:
+      - name
 
   Trainer 🧑‍🎤:
     authenticable: true
@@ -34,6 +40,8 @@ entities:
   Dog:
     belongsTo:
       - Trainer
+    belongsToMany:
+      - Fruit
     properties:
       - name
       - { name: description, type: text }

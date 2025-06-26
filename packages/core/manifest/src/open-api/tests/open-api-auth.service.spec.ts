@@ -72,10 +72,8 @@ describe('OpenApiAuthService', () => {
 
     const paths = service.generateAuthPaths(appManifestWithoutEntities)
 
-    expect(paths).toHaveProperty(
-      `/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/login`
-    )
-    expect(paths).toHaveProperty(`/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/me`)
+    expect(paths).toHaveProperty(`/auth/${ADMIN_ENTITY_MANIFEST.slug}/login`)
+    expect(paths).toHaveProperty(`/auth/${ADMIN_ENTITY_MANIFEST.slug}/me`)
   })
 
   it('should generate auth paths for authenticable entities', () => {
@@ -100,13 +98,13 @@ describe('OpenApiAuthService', () => {
     const paths = service.generateAuthPaths(appManifestWithAuthenticableEntity)
 
     expect(paths).toHaveProperty(
-      `/api/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/login`
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/login`
     )
     expect(paths).toHaveProperty(
-      `/api/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/signup`
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/signup`
     )
     expect(paths).toHaveProperty(
-      `/api/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`
     )
   })
 
@@ -128,10 +126,10 @@ describe('OpenApiAuthService', () => {
     const paths = service.generateAuthPaths(appManifestWithForbiddenSignup)
 
     expect(paths).not.toHaveProperty(
-      `/api/auth/${appManifestWithForbiddenSignup.entities.user.slug}/signup`
+      `/auth/${appManifestWithForbiddenSignup.entities.user.slug}/signup`
     )
     expect(paths).not.toHaveProperty(
-      `/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/signup`
+      `/auth/${ADMIN_ENTITY_MANIFEST.slug}/signup`
     )
   })
 

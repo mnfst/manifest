@@ -72,10 +72,7 @@ export class OpenApiSchemaService {
    */
   private generatePropertySchema(property: PropertyTsTypeInfo): SchemaObject {
     // Special handling for image properties as the type is a custom object with sizes.
-    if (
-      typeof property.type === 'object' &&
-      property.manifestPropType === PropType.Image
-    ) {
+    if (property.manifestPropType === PropType.Image) {
       return {
         description: `The ${property.name} property of the entity (${property.manifestPropType})`,
         type: 'object',

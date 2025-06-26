@@ -60,7 +60,10 @@ describe('OpenApiSchemaService', () => {
         },
         {
           name: 'photo',
-          type: '{[key:string]: string}',
+          type: `{
+            small: string;
+            big: string;
+          }`,
           manifestPropType: PropType.Image,
           sizes: {
             small: {
@@ -198,7 +201,9 @@ describe('OpenApiSchemaService', () => {
     it('should generate schemas for entities with properties', () => {
       const schemas = service.generateEntitySchemas(entityTsTypeInfos)
       expect(schemas).toBeDefined()
-      expect(Object.keys(schemas)).toEqual(['Dog'])
+      expect(Object.keys(schemas)).toEqual(
+        expect.arrayContaining(['Dog', 'CreateUpdateDogDto'])
+      )
       expect(schemas.Dog).toBeDefined()
       expect(schemas.Dog.type).toBe('object')
       expect(schemas.Dog.description).toBe('Dog entity schema')
@@ -261,19 +266,21 @@ describe('OpenApiSchemaService', () => {
       relationshipProperties.forEach((property) => {
         expect(properties[property.name]).toBeDefined()
 
-        const isArray = property.type.endsWith('[]')
+        const propertyType: string = property.type as string // Only Images are objects, others are strings.s
+
+        const isArray = propertyType.endsWith('[]')
 
         if (isArray) {
           expect(properties[property.name]['type']).toEqual('array')
           expect(properties[property.name]['items']).toBeDefined()
           expect(properties[property.name]['items']['$ref']).toBeDefined()
           expect(properties[property.name]['items']['$ref']).toEqual(
-            `#/components/schemas/${property.type.replace('[]', '')}`
+            `#/components/schemas/${propertyType.replace('[]', '')}`
           )
         } else {
           expect(properties[property.name]['$ref']).toBeDefined()
           expect(properties[property.name]['$ref']).toEqual(
-            `#/components/schemas/${property.type}`
+            `#/components/schemas/${propertyType}`
           )
         }
       })
@@ -302,9 +309,13 @@ describe('OpenApiSchemaService', () => {
       const imageProperty = entityTsTypeInfos[0].properties.find(
         (property) => property.manifestPropType === PropType.Image
       )
+
       expect(imageProperty).toBeDefined()
       const schemas = service.generateEntitySchemas(entityTsTypeInfos)
       const properties = schemas.Dog.properties
+
+      console.log(properties[imageProperty.name])
+
       expect(properties[imageProperty.name]).toBeDefined()
       expect(properties[imageProperty.name]['type']).toEqual('object')
       expect(properties[imageProperty.name]['properties']).toBeDefined()
@@ -393,7 +404,9 @@ describe('OpenApiSchemaService', () => {
       const schemas = service.generateEntitySchemas(entityTsTypeInfos)
       const properties = schemas.CreateUpdateDogDto.properties
       relationshipProperties.forEach((property) => {
-        const isArray = property.type.endsWith('[]')
+        const propertyType: string = property.type as string // Only Images are objects, others are strings.
+
+        const isArray = propertyType.endsWith('[]')
 
         if (isArray) {
           expect(properties[property.name]).toBeDefined()
