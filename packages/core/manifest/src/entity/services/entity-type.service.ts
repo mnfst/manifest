@@ -79,6 +79,21 @@ export class EntityTypeService {
       if (prop.type === PropType.Choice) {
         propertyTsTypeInfo.values = (prop.options?.values as string[]) || null
       } else if (prop.type === PropType.Image) {
+        propertyTsTypeInfo.type = Object.keys(
+          (prop.options?.sizes as ImageSizesObject) || {}
+        ).reduce(
+          (
+            acc: { [key: string]: { width: number; height: number } },
+            size: string
+          ) => {
+            acc[size] = {
+              width: prop.options?.sizes[size].width || 0,
+              height: prop.options?.sizes[size].height || 0
+            }
+            return acc
+          },
+          {}
+        )
         propertyTsTypeInfo.sizes = prop.options?.sizes as ImageSizesObject
       }
 
@@ -187,7 +202,19 @@ export class EntityTypeService {
     entityTypeInfo: EntityTsTypeInfo
   ): string {
     const tsProperties: string[] = entityTypeInfo.properties.map((prop) => {
-      let tsType: string = prop.type
+      let tsType: string
+
+      // Special handling for image sizes.
+      if (prop.manifestPropType === PropType.Image && prop.sizes) {
+        tsType = `{ ${Object.keys(prop.sizes)
+          .map((size: string) => `${size}: string`)
+          .join('; ')} }`
+      } else if (prop.manifestPropType === PropType.Location) {
+        tsType = '{ lat: number; lng: number; }'
+      } else {
+        tsType = prop.type as string
+      }
+
       if (prop.values) {
         tsType = prop.values.map((val) => `'${val}'`).join(' | ')
       }

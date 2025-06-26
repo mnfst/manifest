@@ -7,7 +7,7 @@ export interface EntityTsTypeInfo {
 
 export interface PropertyTsTypeInfo {
   name: string
-  type: string
+  type: string | object // Image sizes are represented as an object.
   manifestPropType?: PropType
   isRelationship?: boolean
   optional?: boolean

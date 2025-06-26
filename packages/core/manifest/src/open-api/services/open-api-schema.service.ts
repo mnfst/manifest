@@ -64,9 +64,42 @@ export class OpenApiSchemaService {
     return entitySchemas
   }
 
+  /**
+   * Generate a schema for a property.
+   *
+   * @param property - The property to generate the schema for.
+   * @returns The schema object for the property.
+   */
   private generatePropertySchema(property: PropertyTsTypeInfo): SchemaObject {
+    // Special handling for image properties as the type is a custom object with sizes.
+    if (
+      typeof property.type === 'object' &&
+      property.manifestPropType === PropType.Image
+    ) {
+      return {
+        description: `The ${property.name} property of the entity (${property.manifestPropType})`,
+        type: 'object',
+        additionalProperties: false,
+        example: Object.keys(property.sizes).reduce((acc, size) => {
+          acc[size] = `https://example.com/image-${size}.jpg`
+          return acc
+        }, {}),
+
+        required: Object.keys(property.sizes || {}),
+        properties: Object.keys(property.sizes || {}).reduce((acc, size) => {
+          acc[size] = {
+            type: 'string',
+            format: 'uri',
+            description: `Image URL for size ${size}`,
+            example: `https://example.com/image-${size}.jpg`
+          }
+          return acc
+        }, {})
+      }
+    }
+
     const schema: SchemaObject = JSON.parse(
-      JSON.stringify(tsTypeSchemaTypes[property.type] || {})
+      JSON.stringify(tsTypeSchemaTypes[property.type as string] || {})
     )
 
     if (Object.keys(schema).length === 0) {
@@ -89,28 +122,6 @@ export class OpenApiSchemaService {
       schema.description = `The unique identifier for the entity`
       schema.format = 'uuid'
       schema.example = '123e4567-e89b-12d3-a456-426614174000'
-    } else if (property.manifestPropType === PropType.Image) {
-      schema.description = `The ${property.name} property of the entity (${property.manifestPropType})`
-      schema.type = 'object'
-      schema.additionalProperties = false
-      schema.example = Object.keys(property.sizes).reduce((acc, size) => {
-        acc[size] = `https://example.com/image-${size}.jpg`
-        return acc
-      }, {})
-      schema.properties = Object.keys(property.sizes || {}).reduce(
-        (acc, size) => {
-          acc[size] = {
-            type: 'string',
-            format: 'uri',
-            description: `Image URL for size ${size}`,
-            example: `https://example.com/image-${size}.jpg`
-          }
-          return acc
-        },
-        {}
-      )
-
-      schema.required = Object.keys(property.sizes || {})
     } else {
       schema.description = `The ${property.name} property of the entity (${property.manifestPropType})`
       schema.example = propTypeExamples[property.manifestPropType]
@@ -135,10 +146,12 @@ export class OpenApiSchemaService {
   private generateRelationshipSchema(
     property: PropertyTsTypeInfo
   ): SchemaObject | ReferenceObject {
-    const isArray: boolean = property.type.endsWith('[]')
+    const propertyType: string = property.type as string
+
+    const isArray: boolean = propertyType.endsWith('[]')
 
     // In the case of dealing with a Dto relationship, we only get the ID (or array of IDs) of the related entity.
-    if (property.type === 'string' || property.type === 'string[]') {
+    if (propertyType === 'string' || propertyType === 'string[]') {
       if (isArray) {
         return {
           type: 'array',
@@ -164,14 +177,14 @@ export class OpenApiSchemaService {
         type: 'array',
         description: `Array of ${property.name} entities`,
         items: {
-          $ref: `#/components/schemas/${property.type.replace('[]', '')}`
+          $ref: `#/components/schemas/${propertyType.replace('[]', '')}`
         }
       }
     } else {
       return {
         type: 'object',
         description: `Single ${property.name} entity`,
-        $ref: `#/components/schemas/${property.type}`
+        $ref: `#/components/schemas/${propertyType}`
       }
     }
   }

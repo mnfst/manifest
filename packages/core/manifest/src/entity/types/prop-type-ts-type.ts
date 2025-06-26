@@ -20,5 +20,5 @@ export const propTypeTsType: Record<PropType, TsType> = {
   [PropType.Choice]: 'string', // Will be overridden with enum values
   [PropType.Location]: '{ lat: number; lng: number }',
   [PropType.File]: 'string',
-  [PropType.Image]: '{[key:string]: string}'
+  [PropType.Image]: 'string' // Will be overridden with sizes
 }
