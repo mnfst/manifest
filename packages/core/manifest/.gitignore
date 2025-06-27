@@ -6,7 +6,8 @@
 /node_modules
 
 # Tests
-/e2e/manifest/.manifest
+/e2e/manifest/.manifest/*
+!/e2e/manifest/.manifest/.gitkeep
 /e2e/manifest/public
 
 # Generated project

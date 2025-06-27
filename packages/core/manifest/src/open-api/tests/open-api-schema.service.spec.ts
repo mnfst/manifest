@@ -314,8 +314,6 @@ describe('OpenApiSchemaService', () => {
       const schemas = service.generateEntitySchemas(entityTsTypeInfos)
       const properties = schemas.Dog.properties
 
-      console.log(properties[imageProperty.name])
-
       expect(properties[imageProperty.name]).toBeDefined()
       expect(properties[imageProperty.name]['type']).toEqual('object')
       expect(properties[imageProperty.name]['properties']).toBeDefined()
