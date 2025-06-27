@@ -3,9 +3,9 @@ import { AppModule } from '../src/app.module'
 import { YamlService } from '../src/manifest/services/yaml.service'
 import { INestApplication } from '@nestjs/common'
 import supertest from 'supertest'
-import { load } from 'js-yaml'
+import * as yaml from 'js-yaml'
 import fs from 'fs'
-import { SwaggerModule } from '@nestjs/swagger'
+import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
 import { OpenApiService } from '../src/open-api/services/open-api.service'
 import { SeederService } from '../src/seed/services/seeder.service'
 import {
@@ -13,6 +13,9 @@ import {
   StartedPostgreSqlContainer
 } from '@testcontainers/postgresql'
 import path from 'path'
+import { ConfigService } from '@nestjs/config'
+import { EntityTypeService } from '../src/entity/services/entity-type.service'
+import { EntityTsTypeInfo } from '../src/entity/types/entity-ts-type-info'
 
 let app: INestApplication
 let originalConsoleLog: any
@@ -34,7 +37,7 @@ beforeAll(async () => {
   process.env.TOKEN_SECRET_KEY = 'test'
   process.env.MANIFEST_HANDLERS_FOLDER = path.join(
     __dirname,
-    'assets',
+    'manifest',
     'handlers'
   )
 
@@ -62,9 +65,9 @@ beforeAll(async () => {
     .overrideProvider(YamlService)
     .useValue({
       load: () =>
-        load(
+        yaml.load(
           fs.readFileSync(
-            `${process.cwd()}/e2e/assets/mock-manifest.yml`,
+            `${process.cwd()}/e2e/manifest/mock-manifest.yml`,
             'utf8'
           )
         )
@@ -85,9 +88,40 @@ beforeAll(async () => {
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())
 
+  const configService = app.get(ConfigService)
+
+  const entityTypeService: EntityTypeService = app.get(EntityTypeService)
+  const entityTypeInfos: EntityTsTypeInfo[] =
+    entityTypeService.generateEntityTypeInfos()
+
+  // Write TypeScript interfaces to file.
+  fs.writeFileSync(
+    `${configService.get('paths').generatedFolder}/types.ts`,
+    entityTypeInfos
+      .map((entityTypeInfo) =>
+        entityTypeService.generateTSInterfaceFromEntityTypeInfo(entityTypeInfo)
+      )
+      .join('\n'),
+    'utf8'
+  )
   // Set the SwaggerModule to serve the OpenAPI doc.
   const openApiService = app.get(OpenApiService)
-  SwaggerModule.setup('api', app, openApiService.generateOpenApiObject())
+  const openApiObject: OpenAPIObject =
+    openApiService.generateOpenApiObject(entityTypeInfos)
+
+  SwaggerModule.setup(
+    'api',
+    app,
+    openApiService.generateOpenApiObject(entityTypeInfos)
+  )
+
+  // Write OpenAPI spec to file.
+  const yamlString: string = yaml.dump(openApiObject)
+  fs.writeFileSync(
+    `${configService.get('paths').generatedFolder}/openapi.yml`,
+    yamlString,
+    'utf8'
+  )
 
   await app.init()
 })

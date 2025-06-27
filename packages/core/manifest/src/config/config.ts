@@ -61,7 +61,9 @@ export default (): {
   const projectRoot: string =
     process.env.NODE_ENV === 'contribution'
       ? `${process.cwd()}/manifest`
-      : process.cwd()
+      : process.env.NODE_ENV === 'test'
+        ? `${process.cwd()}/e2e/manifest`
+        : process.cwd()
   const generatedFolder: string = path.join(projectRoot, GENERATED_FOLDER_PATH)
 
   return {

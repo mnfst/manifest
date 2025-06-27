@@ -5,6 +5,10 @@
 /dist
 /node_modules
 
+# Tests
+/e2e/manifest/.manifest
+/e2e/manifest/public
+
 # Generated project
 /manifest/.manifest
 /manifest/public

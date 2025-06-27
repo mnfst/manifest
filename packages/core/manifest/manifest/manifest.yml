@@ -21,6 +21,15 @@ entities:
   Fruit:
     properties:
       - name
+    policies:
+      create:
+        - { access: restricted, allow: [Trainer, User] }
+      read:
+        - { access: restricted, allow: Trainer }
+      update:
+        - access: public
+      delete:
+        - access: public
 
   Trainer 🧑‍🎤:
     authenticable: true

@@ -84,6 +84,7 @@ async function bootstrap() {
     const entityTypeInfos: EntityTsTypeInfo[] =
       entityTypeService.generateEntityTypeInfos()
 
+    // Write TypeScript interfaces to file.
     fs.writeFileSync(
       `${configService.get('paths').generatedFolder}/types.ts`,
       entityTypeInfos
