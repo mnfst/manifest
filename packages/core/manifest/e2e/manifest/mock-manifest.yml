@@ -106,7 +106,7 @@ entities:
       - { name: hiddenProp, type: boolean, hidden: true }
     policies:
       create:
-        - access: 🔒 # Restricted to logged in users.
+        - { access: restricted, allow: User }
       read:
         - access: 🌐 # Public.
       update:

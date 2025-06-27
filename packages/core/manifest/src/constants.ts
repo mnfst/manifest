@@ -12,6 +12,7 @@ export const API_PATH: string = 'api'
 export const COLLECTIONS_PATH: string = 'collections'
 export const SINGLES_PATH: string = 'singles'
 export const ENDPOINTS_PATH: string = 'endpoints'
+export const GENERATED_FOLDER_PATH: string = '.manifest'
 
 // Default values.
 export const DEFAULT_PORT: number = 1111

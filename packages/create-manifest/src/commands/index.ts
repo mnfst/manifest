@@ -36,7 +36,7 @@ export default class CreateManifest extends Command {
   static flags = {
     backendFile: Flags.string({
       summary:
-        'The remote file to use as a template for the backend.yml file. If not provided, the default file will be used.'
+        'The remote file to use as a template for the manifest.yml file. If not provided, the default file will be used.'
     }),
     cursor: Flags.boolean(),
     copilot: Flags.boolean(),
@@ -103,7 +103,7 @@ export default class CreateManifest extends Command {
     fs.mkdirSync(projectFolderPath)
 
     const manifestFolderName = 'manifest'
-    const initialFileName = 'backend.yml'
+    const initialFileName = 'manifest.yml'
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
 
@@ -233,7 +233,7 @@ export default class CreateManifest extends Command {
       'node_modules',
       '.env',
       'public',
-      'manifest/backend.db'
+      'manifest/backend.db' // TODO: Adapt to new folder structure.
     ]
     newGitignoreLines.forEach((line) => {
       if (!gitignoreContent.includes(line)) {

@@ -15,7 +15,7 @@ export class OpenApiManifestService {
     appManifest: AppManifest
   ): Record<string, PathItemObject> {
     const paths: Record<string, PathItemObject> = {
-      ['/api/manifest']: {
+      ['/manifest']: {
         get: {
           summary: 'Get the manifest',
           description: 'Retrieves the manifest of the application.',
@@ -44,7 +44,7 @@ export class OpenApiManifestService {
 
     Object.values(appManifest.entities).forEach(
       (entityManifest: EntityManifest) => {
-        paths[`/api/manifest/entities/${entityManifest.slug}`] =
+        paths[`/manifest/entities/${entityManifest.slug}`] =
           this.generateEntityManifestPath(entityManifest)
       }
     )

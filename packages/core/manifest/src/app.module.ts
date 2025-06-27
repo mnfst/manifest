@@ -5,10 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { DatabaseConnection } from '@repo/types'
 import { EntitySchema } from 'typeorm'
 import { AuthModule } from './auth/auth.module'
-import databaseConfig from './config/database'
-import generalConfig from './config/general'
-import storageConfig from './config/storage'
-import pathsConfig from './config/paths'
 import { CrudModule } from './crud/crud.module'
 import { EntityModule } from './entity/entity.module'
 import { EntityLoaderService } from './entity/services/entity-loader.service'
@@ -33,13 +29,14 @@ import { MiddlewareModule } from './middleware/middleware.module'
 import { EventModule } from './event/event.module'
 
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions'
+import config from './config/config'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.contribution'],
-      load: [generalConfig, databaseConfig, pathsConfig, storageConfig]
+      load: [config]
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, EntityModule, ManifestModule],

@@ -6,6 +6,7 @@ import { OpenApiManifestService } from './services/open-api-manifest.service'
 import { OpenApiAuthService } from './services/open-api-auth.service'
 import { OpenApiEndpointService } from './services/open-api.endpoint.service'
 import { OpenApiUtilsService } from './services/open-api-utils.service'
+import { OpenApiSchemaService } from './services/open-api-schema.service'
 
 @Module({
   imports: [ManifestModule],
@@ -15,6 +16,7 @@ import { OpenApiUtilsService } from './services/open-api-utils.service'
     OpenApiManifestService,
     OpenApiAuthService,
     OpenApiEndpointService,
+    OpenApiSchemaService,
     OpenApiUtilsService
   ]
 })

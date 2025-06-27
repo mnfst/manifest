@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiEndpointService } from '../services/open-api.endpoint.service'
 import { EndpointManifest } from '../../../../types/src'
-import { API_PATH, ENDPOINTS_PATH } from '../../constants'
+import { ENDPOINTS_PATH } from '../../constants'
 import { OpenApiUtilsService } from '../services/open-api-utils.service'
 
 describe('OpenApiEndpointService', () => {
@@ -37,7 +37,7 @@ describe('OpenApiEndpointService', () => {
 
     const paths = service.generateEndpointPaths([dummyEndpoint])
 
-    const generatedPath = `/${API_PATH}/${ENDPOINTS_PATH}/test`
+    const generatedPath = `/${ENDPOINTS_PATH}/test`
 
     expect(paths[generatedPath]).toBeDefined()
     expect(paths[generatedPath].get).toBeDefined()
@@ -55,7 +55,7 @@ describe('OpenApiEndpointService', () => {
 
     const paths = service.generateEndpointPaths([endpointWithRouteParams])
 
-    const generatedPath = `/${API_PATH}/${ENDPOINTS_PATH}/users/{userId}/comments/{commentId}`
+    const generatedPath = `/${ENDPOINTS_PATH}/users/{userId}/comments/{commentId}`
 
     expect(paths[generatedPath]).toBeDefined()
     expect(paths[generatedPath].get).toBeDefined()

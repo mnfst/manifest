@@ -72,10 +72,8 @@ describe('OpenApiAuthService', () => {
 
     const paths = service.generateAuthPaths(appManifestWithoutEntities)
 
-    expect(paths).toHaveProperty(
-      `/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/login`
-    )
-    expect(paths).toHaveProperty(`/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/me`)
+    expect(paths).toHaveProperty(`/auth/${ADMIN_ENTITY_MANIFEST.slug}/login`)
+    expect(paths).toHaveProperty(`/auth/${ADMIN_ENTITY_MANIFEST.slug}/me`)
   })
 
   it('should generate auth paths for authenticable entities', () => {
@@ -100,13 +98,13 @@ describe('OpenApiAuthService', () => {
     const paths = service.generateAuthPaths(appManifestWithAuthenticableEntity)
 
     expect(paths).toHaveProperty(
-      `/api/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/login`
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/login`
     )
     expect(paths).toHaveProperty(
-      `/api/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/signup`
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/signup`
     )
     expect(paths).toHaveProperty(
-      `/api/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`
     )
   })
 
@@ -128,10 +126,51 @@ describe('OpenApiAuthService', () => {
     const paths = service.generateAuthPaths(appManifestWithForbiddenSignup)
 
     expect(paths).not.toHaveProperty(
-      `/api/auth/${appManifestWithForbiddenSignup.entities.user.slug}/signup`
+      `/auth/${appManifestWithForbiddenSignup.entities.user.slug}/signup`
     )
     expect(paths).not.toHaveProperty(
-      `/api/auth/${ADMIN_ENTITY_MANIFEST.slug}/signup`
+      `/auth/${ADMIN_ENTITY_MANIFEST.slug}/signup`
+    )
+  })
+
+  it('should generate a "/me" path for authenticable entities with a reference to the entity schema', () => {
+    const appManifestWithAuthenticableEntity: AppManifest = {
+      name: 'Test',
+      entities: {
+        user: {
+          slug: 'users',
+          className: 'User',
+          authenticable: true,
+          policies: {
+            create: [{ access: 'public' }],
+            read: [{ access: 'public' }],
+            update: [{ access: 'public' }],
+            delete: [{ access: 'public' }],
+            signup: [{ access: 'public' }]
+          }
+        } as EntityManifest
+      }
+    }
+
+    const paths = service.generateAuthPaths(appManifestWithAuthenticableEntity)
+
+    expect(paths).toHaveProperty(
+      `/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`
+    )
+    expect(
+      paths[`/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`]
+        .get
+    ).toHaveProperty('responses')
+    expect(
+      paths[`/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`]
+        .get.responses
+    ).toHaveProperty('200')
+    expect(
+      paths[`/auth/${appManifestWithAuthenticableEntity.entities.user.slug}/me`]
+        .get.responses['200']['content']['application/json'].schema
+    ).toHaveProperty(
+      '$ref',
+      `#/components/schemas/${appManifestWithAuthenticableEntity.entities.user.className}`
     )
   })
 })

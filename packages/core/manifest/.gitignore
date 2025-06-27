@@ -4,7 +4,15 @@
 # compiled output
 /dist
 /node_modules
-/manifest/backend.db
+
+# Tests
+/e2e/manifest/.manifest/*
+!/e2e/manifest/.manifest/.gitkeep
+/e2e/manifest/public
+
+# Generated project
+/manifest/.manifest
+/manifest/public
 
 # Logs
 logs
@@ -37,6 +45,3 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-# Storage
-/public

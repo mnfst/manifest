@@ -6,6 +6,10 @@ import { AppManifest } from '@repo/types'
 import { OpenApiManifestService } from './open-api-manifest.service'
 import { OpenApiAuthService } from './open-api-auth.service'
 import { OpenApiEndpointService } from './open-api.endpoint.service'
+import { ConfigService } from '@nestjs/config'
+import { API_PATH } from '../../constants'
+import { EntityTsTypeInfo } from '../../entity/types/entity-ts-type-info'
+import { OpenApiSchemaService } from './open-api-schema.service'
 
 @Injectable()
 export class OpenApiService {
@@ -14,16 +18,20 @@ export class OpenApiService {
     private readonly openApiCrudService: OpenApiCrudService,
     private readonly openApiManifestService: OpenApiManifestService,
     private readonly openApiAuthService: OpenApiAuthService,
-    private readonly openApiEndpointService: OpenApiEndpointService
+    private readonly openApiEndpointService: OpenApiEndpointService,
+    private readonly openApiSchemaService: OpenApiSchemaService,
+    private configService: ConfigService
   ) {}
 
   /**
    * Generates the OpenAPI object for the application.
    *
+   * @param entityTypeInfos - An array of EntityTypeInfo objects that describe the entities in the application.
+   *
    * @returns The OpenAPI object.
    *
    */
-  generateOpenApiObject(): OpenAPIObject {
+  generateOpenApiObject(entityTypeInfos: EntityTsTypeInfo[]): OpenAPIObject {
     const appManifest: AppManifest = this.manifestService.getAppManifest()
 
     return {
@@ -32,6 +40,12 @@ export class OpenApiService {
         title: appManifest.name,
         version: appManifest.version
       },
+      servers: [
+        {
+          url: `${this.configService.get('baseUrl')}/${API_PATH}`,
+          description: `${this.configService.get('nodeEnv') === 'production' ? 'Production' : 'Development'} server`
+        }
+      ],
       paths: {
         ...this.openApiCrudService.generateEntityPaths(
           Object.values(appManifest.entities)
@@ -43,122 +57,11 @@ export class OpenApiService {
         )
       },
       components: {
-        schemas: {
-          Paginator: {
-            type: 'object',
-            properties: {
-              data: {
-                type: 'array',
-                items: {
-                  type: 'object'
-                }
-              },
-              currentPage: {
-                type: 'integer'
-              },
-              lastPage: {
-                type: 'integer'
-              },
-              from: {
-                type: 'integer'
-              },
-              to: {
-                type: 'integer'
-              },
-              total: {
-                type: 'integer'
-              },
-              perPage: {
-                type: 'integer'
-              }
-            }
-          },
-          SelectOption: {
-            type: 'object',
-            properties: {
-              id: {
-                type: 'number'
-              },
-              label: {
-                type: 'string'
-              }
-            }
-          },
-          AppManifest: {
-            type: 'object',
-            properties: {
-              name: {
-                type: 'string'
-              },
-              entities: {
-                type: 'object',
-                additionalProperties: {
-                  $ref: '#/components/schemas/EntityManifest'
-                }
-              }
-            }
-          },
-          EntityManifest: {
-            type: 'object',
-            properties: {
-              className: {
-                type: 'string'
-              },
-              nameSingular: {
-                type: 'string'
-              },
-              namePlural: {
-                type: 'string'
-              },
-              slug: {
-                type: 'string'
-              },
-              mainProp: {
-                type: 'string'
-              },
-              seedCount: {
-                type: 'number'
-              },
-              belongsTo: {
-                type: 'array',
-                items: {
-                  $ref: '#/components/schemas/RelationshipManifest'
-                }
-              },
-              properties: {
-                type: 'array',
-                items: {
-                  $ref: '#/components/schemas/PropertyManifest'
-                }
-              }
-            }
-          },
-          RelationshipManifest: {
-            type: 'object',
-            properties: {
-              name: {
-                type: 'string'
-              },
-              entity: {
-                type: 'string'
-              },
-              eager: {
-                type: 'boolean'
-              }
-            }
-          },
-          PropertyManifest: {
-            type: 'object',
-            properties: {
-              name: {
-                type: 'string'
-              },
-              type: {
-                type: 'string'
-              }
-            }
-          }
-        },
+        schemas: Object.assign(
+          {},
+          this.openApiSchemaService.generateEntitySchemas(entityTypeInfos),
+          this.openApiSchemaService.getGeneralSchemas()
+        ),
         securitySchemes: this.openApiAuthService.getSecuritySchemes(appManifest)
       }
     }
