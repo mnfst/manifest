@@ -26,6 +26,9 @@ async function bootstrap() {
     logger: ['error', 'warn']
   })
 
+  // Get the underlying Express instance and disable X-Powered-By header.
+  app.getHttpAdapter().getInstance().disable('x-powered-by')
+
   const configService = app.get(ConfigService)
 
   app.setGlobalPrefix(API_PATH)
