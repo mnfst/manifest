@@ -664,6 +664,7 @@ export class CrudService {
     entityManifest: EntityManifest
   }): SelectQueryBuilder<BaseEntity> {
     Object.entries(queryParams || {})
+      .filter(([_key, value]) => value) // Ignore empty values.
       .filter(
         ([key]: [string, string | string[]]) =>
           !QUERY_PARAMS_RESERVED_WORDS.includes(key)
