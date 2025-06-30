@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.2.0
+
+### Minor Changes
+
+- 2193b6b: generate openapi spec and types from backend
+
 ## 1.1.11
 
 ### Patch Changes
