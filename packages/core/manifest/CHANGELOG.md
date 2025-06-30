@@ -1,5 +1,11 @@
 # manifest
 
+## 4.14.0
+
+### Minor Changes
+
+- 2193b6b: generate openapi spec and types from backend
+
 ## 4.13.0
 
 ### Minor Changes
