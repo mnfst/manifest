@@ -395,7 +395,7 @@ export default class CreateManifest extends Command {
 
     try {
       // We run the manifest script to build the database.
-      serveTask = exec(`cd ${projectName} && npm run manifest`)
+      serveTask = exec(`cd ${projectName} && npm run start`)
 
       await this.waitForServerToBeReady()
       spinner.succeed()
@@ -405,7 +405,7 @@ export default class CreateManifest extends Command {
 
     spinner.start('Seeding initial data...')
     try {
-      await exec(`cd ${projectName} && npm run manifest:seed`)
+      await exec(`cd ${projectName} && npm run seed`)
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
     }
@@ -418,7 +418,7 @@ export default class CreateManifest extends Command {
     console.log('To start the server:')
     console.log()
     console.log(chalk.bold(`  cd ${projectName}`))
-    console.log(chalk.bold('  npm run manifest'))
+    console.log(chalk.bold('  npm run start'))
     console.log()
 
     await this.silentKill(serveTask?.child?.pid || 0)
