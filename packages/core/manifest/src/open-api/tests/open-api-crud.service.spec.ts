@@ -1,7 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiCrudService } from '../services/open-api-crud.service'
-import { EntityManifest, PolicyManifest, PropType } from '@repo/types'
+import {
+  EntityManifest,
+  PolicyManifest,
+  PropType,
+  WhereOperator,
+  whereOperatorKeySuffix
+} from '@repo/types'
 import { OpenApiUtilsService } from '../services/open-api-utils.service'
+import { QUERY_PARAMS_RESERVED_WORDS } from '../../constants'
+import { getValidWhereOperators } from '../../crud/records/prop-type-valid-where-operators'
 
 describe('OpenApiCrudService', () => {
   let service: OpenApiCrudService
@@ -13,13 +21,55 @@ describe('OpenApiCrudService', () => {
     slug: 'cats',
     mainProp: 'name',
     seedCount: 50,
-    relationships: [],
     properties: [
       {
         name: 'name',
         type: PropType.String
+      },
+      {
+        name: 'isActive',
+        type: PropType.Boolean
       }
     ],
+    relationships: [
+      {
+        name: 'owner',
+        type: 'many-to-one',
+        entity: 'User'
+      },
+      {
+        name: 'friends',
+        type: 'many-to-many',
+        entity: 'Cat'
+      }
+    ],
+    policies: {
+      create: [],
+      read: [],
+      update: [],
+      delete: [],
+      signup: []
+    }
+  }
+
+  const dummySingleEntityManifest: EntityManifest = {
+    className: 'Settings',
+    nameSingular: 'settings',
+    namePlural: 'settings',
+    slug: 'settings',
+    mainProp: 'name',
+    single: true,
+    properties: [
+      {
+        name: 'projectName',
+        type: PropType.String
+      },
+      {
+        name: 'projectValue',
+        type: PropType.String
+      }
+    ],
+    relationships: [],
     policies: {
       create: [],
       read: [],
@@ -173,6 +223,76 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+
+    it('should generate general parameters (pagination and sorting)', () => {
+      const path = service.generateListPath(dummyEntityManifest)
+      expect(path.get.parameters).toBeDefined()
+      Array.from(QUERY_PARAMS_RESERVED_WORDS).forEach((param) => {
+        const paramObj = path.get.parameters.find((p) => p['name'] === param)
+        expect(paramObj).toBeDefined()
+        expect(paramObj).toEqual(
+          expect.objectContaining({
+            name: param,
+            in: 'query',
+            required: false
+          })
+        )
+      })
+    })
+
+    it('should generate all available filters (for each property with valid suffixes)', () => {
+      const path = service.generateListPath(dummyEntityManifest)
+      expect(path.get.parameters).toBeDefined()
+      expect(path.get.parameters.length).toBeGreaterThan(0)
+      dummyEntityManifest.properties.forEach((prop) => {
+        getValidWhereOperators(prop.type).forEach((operator: WhereOperator) => {
+          const filterName = `${prop.name}${whereOperatorKeySuffix[operator]}`
+          const filterParam = path.get.parameters.find(
+            (p) => p['name'] === filterName
+          )
+          expect(filterParam).toBeDefined()
+          expect(filterParam['in']).toBe('query')
+          expect(filterParam['required']).toBe(false)
+          expect(filterParam['description']).toEqual(expect.any(String))
+          expect(filterParam['schema']).toEqual(
+            expect.objectContaining({
+              type: expect.any(String)
+            })
+          )
+        })
+      })
+    })
+
+    it('should generate a success response with a $ref to the Paginator schema and the entity schema', () => {
+      const path = service.generateListPath(dummyEntityManifest)
+      expect(path.get.responses['200']).toBeDefined()
+      expect(
+        path.get.responses['200']['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.get.responses['200']['content']['application/json'].schema
+      ).toBeDefined()
+      expect(
+        path.get.responses['200']['content']['application/json'].schema.allOf
+      ).toEqual(
+        expect.arrayContaining([
+          {
+            $ref: '#/components/schemas/Paginator'
+          },
+          {
+            type: 'object',
+            properties: {
+              data: {
+                type: 'array',
+                items: {
+                  $ref: `#/components/schemas/${dummyEntityManifest.className}`
+                }
+              }
+            }
+          }
+        ])
+      )
+    })
   })
 
   describe('generateListSelectOptionsPath', () => {
@@ -212,6 +332,31 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+
+    it('should generate request body with a reference to the DTO schema', () => {
+      const path = service.generateCreatePath(dummyEntityManifest)
+      expect(path.post.requestBody).toBeDefined()
+      expect(path.post.requestBody['content']).toBeDefined()
+      expect(path.post.requestBody['content']['application/json']).toBeDefined()
+      expect(
+        path.post.requestBody['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/CreateUpdate${dummyEntityManifest.className}Dto`
+      })
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      const path = service.generateCreatePath(dummyEntityManifest)
+      expect(path.post.responses['201']).toBeDefined()
+      expect(
+        path.post.responses['201']['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.post.responses['201']['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/${dummyEntityManifest.className}`
+      })
+    })
   })
 
   describe('generateDetailPath', () => {
@@ -230,6 +375,69 @@ describe('OpenApiCrudService', () => {
             '200': expect.any(Object)
           }
         }
+      })
+    })
+
+    it('should generate parameters for the entity ID', () => {
+      const path = service.generateDetailPath(dummyEntityManifest)
+
+      expect(path.get.parameters).toBeDefined()
+
+      const idParam = path.get.parameters.find(
+        (param) => param['name'] === 'id'
+      )
+      expect(idParam).toBeDefined()
+
+      expect(idParam['name']).toBe('id')
+      expect(idParam['in']).toBe('path')
+      expect(idParam['required']).toBe(true)
+      expect(idParam['description']).toEqual(expect.any(String))
+      expect(idParam['schema']).toEqual(
+        expect.objectContaining({
+          type: 'string',
+          format: 'uuid',
+          example: expect.any(String)
+        })
+      )
+    })
+
+    it('should generate parameter for the relationships', () => {
+      const path = service.generateDetailPath(dummyEntityManifest)
+
+      expect(path.get.parameters).toBeDefined()
+
+      const relationshipParam = path.get.parameters.find(
+        (param) => param['name'] === 'relations'
+      )
+      expect(relationshipParam).toBeDefined()
+
+      expect(relationshipParam['name']).toBe('relations')
+      expect(relationshipParam['in']).toBe('query')
+      expect(relationshipParam['required']).toBe(false)
+      expect(relationshipParam['description']).toEqual(expect.any(String))
+      expect(relationshipParam['style']).toBe('form')
+      expect(relationshipParam['explode']).toBe(false)
+      expect(relationshipParam['schema']).toEqual(
+        expect.objectContaining({
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: dummyEntityManifest.relationships.map((r) => r.name)
+          }
+        })
+      )
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      const path = service.generateDetailPath(dummyEntityManifest)
+      expect(path.get.responses['200']).toBeDefined()
+      expect(
+        path.get.responses['200']['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.get.responses['200']['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/${dummyEntityManifest.className}`
       })
     })
   })
@@ -253,6 +461,60 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+
+    it('should generate parameters for the entity ID only if entity not single', () => {
+      const path = service.generateUpdatePath(dummyEntityManifest)
+      const singlePath = service.generateUpdatePath(
+        dummySingleEntityManifest,
+        true
+      )
+
+      expect(path.put.parameters).toBeDefined()
+
+      const idParam = path.put.parameters.find(
+        (param) => param['name'] === 'id'
+      )
+      expect(idParam).toBeDefined()
+
+      expect(idParam['name']).toBe('id')
+      expect(idParam['in']).toBe('path')
+      expect(idParam['required']).toBe(true)
+      expect(idParam['description']).toEqual(expect.any(String))
+      expect(idParam['schema']).toEqual(
+        expect.objectContaining({
+          type: 'string',
+          format: 'uuid',
+          example: expect.any(String)
+        })
+      )
+
+      expect(singlePath.put.parameters).toEqual([]) // Single entity should not have ID parameter
+    })
+
+    it('should generate request body with a reference to the DTO schema', () => {
+      const path = service.generateUpdatePath(dummyEntityManifest)
+      expect(path.put.requestBody).toBeDefined()
+      expect(path.put.requestBody['content']).toBeDefined()
+      expect(path.put.requestBody['content']['application/json']).toBeDefined()
+      expect(
+        path.put.requestBody['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/CreateUpdate${dummyEntityManifest.className}Dto`
+      })
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      const path = service.generateUpdatePath(dummyEntityManifest)
+      expect(path.put.responses['200']).toBeDefined()
+      expect(
+        path.put.responses['200']['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.put.responses['200']['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/${dummyEntityManifest.className}`
+      })
+    })
   })
 
   describe('generatePatchPath', () => {
@@ -274,6 +536,53 @@ describe('OpenApiCrudService', () => {
         }
       })
     })
+
+    it('should generate parameters for the entity ID', () => {
+      const path = service.generatePatchPath(dummyEntityManifest)
+      expect(path.patch.parameters).toBeDefined()
+      const idParam = path.patch.parameters.find(
+        (param) => param['name'] === 'id'
+      )
+      expect(idParam).toBeDefined()
+      expect(idParam['name']).toBe('id')
+      expect(idParam['in']).toBe('path')
+      expect(idParam['required']).toBe(true)
+      expect(idParam['description']).toEqual(expect.any(String))
+      expect(idParam['schema']).toEqual(
+        expect.objectContaining({
+          type: 'string',
+          format: 'uuid',
+          example: expect.any(String)
+        })
+      )
+    })
+
+    it('should generate request body with a reference to the DTO schema', () => {
+      const path = service.generatePatchPath(dummyEntityManifest)
+      expect(path.patch.requestBody).toBeDefined()
+      expect(path.patch.requestBody['content']).toBeDefined()
+      expect(
+        path.patch.requestBody['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.patch.requestBody['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/CreateUpdate${dummyEntityManifest.className}Dto`
+      })
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      const path = service.generatePatchPath(dummyEntityManifest)
+      expect(path.patch.responses['200']).toBeDefined()
+      expect(
+        path.patch.responses['200']['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.patch.responses['200']['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/${dummyEntityManifest.className}`
+      })
+    })
   })
 
   describe('generateDeletePath', () => {
@@ -292,6 +601,40 @@ describe('OpenApiCrudService', () => {
             '200': expect.any(Object)
           }
         }
+      })
+    })
+
+    it('should generate parameters for the entity ID', () => {
+      const path = service.generateDeletePath(dummyEntityManifest)
+      expect(path.delete.parameters).toBeDefined()
+      expect(path.delete.parameters.length).toBe(1)
+      const idParam = path.delete.parameters.find(
+        (param) => param['name'] === 'id'
+      )
+      expect(idParam).toBeDefined()
+      expect(idParam['name']).toBe('id')
+      expect(idParam['in']).toBe('path')
+      expect(idParam['required']).toBe(true)
+      expect(idParam['description']).toEqual(expect.any(String))
+      expect(idParam['schema']).toEqual(
+        expect.objectContaining({
+          type: 'string',
+          format: 'uuid',
+          example: expect.any(String)
+        })
+      )
+    })
+
+    it('should generate a success response with a $ref to the entity schema', () => {
+      const path = service.generateDeletePath(dummyEntityManifest)
+      expect(path.delete.responses['200']).toBeDefined()
+      expect(
+        path.delete.responses['200']['content']['application/json']
+      ).toBeDefined()
+      expect(
+        path.delete.responses['200']['content']['application/json'].schema
+      ).toEqual({
+        $ref: `#/components/schemas/${dummyEntityManifest.className}`
       })
     })
   })

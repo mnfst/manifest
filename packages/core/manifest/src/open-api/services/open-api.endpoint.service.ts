@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { EndpointManifest } from '../../../../types/src'
 import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
-import { API_PATH, ENDPOINTS_PATH } from '../../constants'
+import { ENDPOINTS_PATH } from '../../constants'
 import { OpenApiUtilsService } from './open-api-utils.service'
 
 @Injectable()
@@ -22,7 +22,7 @@ export class OpenApiEndpointService {
 
     endpoints.forEach((endpoint: EndpointManifest) => {
       const path: string = this.convertRouteParams(
-        `/${API_PATH}/${ENDPOINTS_PATH}${endpoint.path}`
+        `/${ENDPOINTS_PATH}${endpoint.path}`
       )
 
       paths[path] = {

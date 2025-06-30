@@ -37,14 +37,15 @@ export class OpenApiAuthService {
           }
         },
         example: {
-          token: '12345'
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJlbnRpdHlTbHVnIjoidHJhaW5lcnMiLCJpYXQiOjE3NTA4NjUyNjB9.8KRlyPPlNWvHDc_yaocqrqYBhAzAyn5PvyCKyvUUCM4'
         }
       }
     }
 
     authenticableEntities.forEach((entity: EntityManifest) => {
       // Login.
-      paths[`/api/auth/${entity.slug}/login`] = {
+      paths[`/auth/${entity.slug}/login`] = {
         post: {
           summary: `Login as a ${entity.nameSingular}`,
           description: `Logs in as a ${entity.nameSingular}.`,
@@ -132,7 +133,7 @@ export class OpenApiAuthService {
       }
 
       // Get current user.
-      paths[`/api/auth/${entity.slug}/me`] = {
+      paths[`/auth/${entity.slug}/me`] = {
         get: {
           summary: `Get current ${entity.nameSingular}`,
           description: `Get current ${entity.nameSingular}.`,
@@ -148,19 +149,7 @@ export class OpenApiAuthService {
               content: {
                 'application/json': {
                   schema: {
-                    type: 'object',
-                    properties: {
-                      id: {
-                        type: 'number'
-                      },
-                      email: {
-                        type: 'string'
-                      }
-                    }
-                  },
-                  example: {
-                    id: 1,
-                    email: 'user@example.com'
+                    $ref: `#/components/schemas/${entity.className}`
                   }
                 }
               }
@@ -201,7 +190,7 @@ export class OpenApiAuthService {
           (policy: PolicyManifest) => policy.access === 'public'
         )
       ) {
-        paths[`/api/auth/${entity.slug}/signup`] = {
+        paths[`/auth/${entity.slug}/signup`] = {
           post: {
             summary: `Signup as ${entity.nameSingular}`,
             description: `Signs up as ${entity.nameSingular}.`,

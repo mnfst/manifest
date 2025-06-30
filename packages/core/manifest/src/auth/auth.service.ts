@@ -171,6 +171,8 @@ export class AuthService {
       }
     })
 
+    delete user.password // Remove password from the user object for security reasons
+
     return { user, entitySlug: decoded.entitySlug }
   }
 

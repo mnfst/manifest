@@ -1,9 +1,22 @@
-import { EntityManifest, PolicyManifest } from '@repo/types'
+import {
+  EntityManifest,
+  PolicyManifest,
+  WhereKeySuffix,
+  WhereOperator,
+  whereOperatorKeySuffix
+} from '@repo/types'
 import { Injectable } from '@nestjs/common'
-import { PathItemObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import {
+  ParameterObject,
+  PathItemObject,
+  SchemaObject
+} from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
 import { upperCaseFirstLetter } from '@repo/common'
-import { API_PATH, COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
+import { COLLECTIONS_PATH, SINGLES_PATH } from '../../constants'
 import { OpenApiUtilsService } from './open-api-utils.service'
+import { isValidWhereOperator } from '../../crud/records/prop-type-valid-where-operators'
+import { getRecordKeyByValue } from '@repo/common'
+import { WHERE_OPERATOR_DESCRIPTIONS } from '../schemas/where-operator-descriptions'
 
 @Injectable()
 export class OpenApiCrudService {
@@ -25,17 +38,14 @@ export class OpenApiCrudService {
     entityManifests
       .filter((entityManifest: EntityManifest) => !entityManifest.single)
       .forEach((entityManifest: EntityManifest) => {
-        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {}
-        paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] =
-          {}
-        paths[
-          `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
-        ] = {}
+        paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {}
+        paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] = {}
+        paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`] = {}
 
         // Create.
         if (this.isNotForbidden(entityManifest.policies.create)) {
           Object.assign(
-            paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`],
             this.generateCreatePath(entityManifest)
           )
         }
@@ -43,19 +53,15 @@ export class OpenApiCrudService {
         // Read.
         if (this.isNotForbidden(entityManifest.policies.read)) {
           Object.assign(
-            paths[`/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}`],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`],
             this.generateListPath(entityManifest)
           )
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`],
             this.generateDetailPath(entityManifest)
           )
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/select-options`],
             this.generateListSelectOptionsPath(entityManifest)
           )
         }
@@ -63,9 +69,7 @@ export class OpenApiCrudService {
         // Update.
         if (this.isNotForbidden(entityManifest.policies.update)) {
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`],
             this.generateUpdatePath(entityManifest),
             this.generatePatchPath(entityManifest)
           )
@@ -74,9 +78,7 @@ export class OpenApiCrudService {
         // Delete.
         if (this.isNotForbidden(entityManifest.policies.delete)) {
           Object.assign(
-            paths[
-              `/${API_PATH}/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`
-            ],
+            paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`],
             this.generateDeletePath(entityManifest)
           )
         }
@@ -88,13 +90,13 @@ export class OpenApiCrudService {
       .forEach((entityManifest: EntityManifest) => {
         // Read.
         if (this.isNotForbidden(entityManifest.policies.read)) {
-          paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
+          paths[`/${SINGLES_PATH}/${entityManifest.slug}`] = {
             ...this.generateDetailPath(entityManifest, true)
           }
         }
 
         if (this.isNotForbidden(entityManifest.policies.update)) {
-          paths[`/${API_PATH}/${SINGLES_PATH}/${entityManifest.slug}`] = {
+          paths[`/${SINGLES_PATH}/${entityManifest.slug}`] = {
             ...this.generateDetailPath(entityManifest, true),
             ...this.generatePatchPath(entityManifest, true)
           }
@@ -115,7 +117,7 @@ export class OpenApiCrudService {
     return {
       get: {
         summary: `List ${entityManifest.namePlural}`,
-        description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/rest-api#filters`,
+        description: `Retrieves a paginated list of ${entityManifest.namePlural}. In addition to the general parameters below, each property of the ${entityManifest.nameSingular} can be used as a filter: https://manifest.build/docs/crud#get-a-list-of-items`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         security: this.openApiUtilsService.getSecurityRequirements(
           entityManifest.policies.read
@@ -147,7 +149,9 @@ export class OpenApiCrudService {
             description: 'The field to order by',
             required: false,
             schema: {
-              type: 'string'
+              type: 'string',
+              enum: entityManifest.properties.map((property) => property.name),
+              default: 'createdAt'
             }
           },
           {
@@ -157,7 +161,8 @@ export class OpenApiCrudService {
             required: false,
             schema: {
               type: 'string',
-              enum: ['ASC', 'DESC']
+              enum: ['ASC', 'DESC'],
+              default: 'DESC'
             }
           },
           {
@@ -166,10 +171,19 @@ export class OpenApiCrudService {
             description:
               'The relations to include. For several relations, use a comma-separated list',
             required: false,
+            style: 'form',
+            explode: false,
             schema: {
-              type: 'string'
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: entityManifest.relationships.map(
+                  (relation) => relation.name
+                )
+              }
             }
-          }
+          },
+          ...this.generateFilterParameters(entityManifest)
         ],
         responses: {
           '200': {
@@ -177,7 +191,22 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/Paginator'
+                  allOf: [
+                    {
+                      $ref: '#/components/schemas/Paginator'
+                    },
+                    {
+                      type: 'object',
+                      properties: {
+                        data: {
+                          type: 'array',
+                          items: {
+                            $ref: `#/components/schemas/${entityManifest.className}`
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -200,7 +229,7 @@ export class OpenApiCrudService {
   ): PathItemObject {
     return {
       get: {
-        summary: `List ${entityManifest.namePlural} for select options`,
+        summary: `List ${entityManifest.namePlural} for select options (admin panel)`,
         description: `Retrieves a list of ${entityManifest.namePlural} for select options. The response is an array of objects with the properties 'id' and 'label'. Used in the admin panel to fill select dropdowns.`,
         tags: [upperCaseFirstLetter(entityManifest.namePlural)],
         security: [
@@ -245,7 +274,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                type: 'object'
+                $ref: `#/components/schemas/CreateUpdate${entityManifest.className}Dto`
               }
             }
           }
@@ -255,10 +284,38 @@ export class OpenApiCrudService {
         ),
         responses: {
           '201': {
-            description: `OK`
+            description: `OK`,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: `#/components/schemas/${entityManifest.className}`
+                }
+              }
+            }
           },
           '400': {
-            description: `Bad request`
+            description: `Bad request`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Validation failed'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Bad Request'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 400
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -300,6 +357,24 @@ export class OpenApiCrudService {
                   format: 'uuid',
                   example: '123e4567-e89b-12d3-a456-426614174000'
                 }
+              },
+              {
+                name: 'relations',
+                in: 'query',
+                description:
+                  'The relations to include. For several relations, use a comma-separated list',
+                required: false,
+                style: 'form',
+                explode: false,
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    enum: entityManifest.relationships.map(
+                      (relation) => relation.name
+                    )
+                  }
+                }
               }
             ],
         security: this.openApiUtilsService.getSecurityRequirements(
@@ -311,7 +386,7 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object'
+                  $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }
             }
@@ -350,7 +425,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                type: 'object'
+                $ref: `#/components/schemas/CreateUpdate${entityManifest.className}Dto`
               }
             }
           }
@@ -379,13 +454,34 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object'
+                  $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }
             }
           },
           '404': {
-            description: `Not found`
+            description: `Not found`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Item not Found'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 404
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -417,7 +513,7 @@ export class OpenApiCrudService {
           content: {
             'application/json': {
               schema: {
-                type: 'object'
+                $ref: `#/components/schemas/CreateUpdate${entityManifest.className}Dto`
               }
             }
           }
@@ -446,13 +542,34 @@ export class OpenApiCrudService {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object'
+                  $ref: `#/components/schemas/${entityManifest.className}`
                 }
               }
             }
           },
           '404': {
-            description: `Not found`
+            description: `Not found`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Item not Found'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 404
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -490,10 +607,38 @@ export class OpenApiCrudService {
         ),
         responses: {
           '200': {
-            description: `OK`
+            description: `OK`,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: `#/components/schemas/${entityManifest.className}`
+                }
+              }
+            }
           },
           '404': {
-            description: `The ${entityManifest.nameSingular} was not found`
+            description: `The ${entityManifest.nameSingular} was not found`,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    error: {
+                      type: 'string',
+                      example: 'Not Found'
+                    },
+                    statusCode: {
+                      type: 'integer',
+                      example: 404
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -511,5 +656,62 @@ export class OpenApiCrudService {
     return policies.every((policy) => {
       return policy.access !== 'forbidden'
     })
+  }
+
+  private generateFilterParameters(
+    entityManifest: EntityManifest
+  ): ParameterObject[] {
+    const filterParameters: ParameterObject[] = []
+
+    for (const property of entityManifest.properties) {
+      for (const suffix of Object.values(WhereKeySuffix)) {
+        const whereOperator: WhereOperator = getRecordKeyByValue(
+          whereOperatorKeySuffix,
+          suffix
+        ) as WhereOperator
+
+        // Skip incompatible combinations
+        if (!isValidWhereOperator(property.type, whereOperator)) {
+          continue
+        }
+
+        const paramName = `${property.name}${suffix}`
+        let schema: SchemaObject
+
+        switch (property.type) {
+          case 'number':
+            schema = { type: 'number' }
+            break
+          case 'boolean':
+            schema = { type: 'boolean' }
+            break
+          case 'date':
+            schema = { type: 'string', format: 'date-time' }
+            break
+          default:
+            schema = { type: 'string' }
+        }
+
+        // Special handling for _in suffix
+        if (suffix === WhereKeySuffix.In) {
+          schema = {
+            type: 'string'
+          }
+        }
+
+        filterParameters.push({
+          name: paramName,
+          in: 'query',
+          description: WHERE_OPERATOR_DESCRIPTIONS[whereOperator](
+            entityManifest.namePlural,
+            property.name
+          ),
+          required: false,
+          schema
+        })
+      }
+    }
+
+    return filterParameters
   }
 }

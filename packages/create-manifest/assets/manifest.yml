@@ -1,4 +1,4 @@
-# This is a sample file for a backend.yml manifest backend.
+# This is a sample file for a manifest.yml manifest backend.
 # Read more about the manifest format here: https:/manifest.build/docs
 
 name: My pet app 🐾
@@ -7,6 +7,9 @@ entities:
     properties:
       - name
       - { name: birthdate, type: date }
+    policies:
+      read:
+        - access: public
 
   Cat:
     properties:

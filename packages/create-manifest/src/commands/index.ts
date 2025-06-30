@@ -36,7 +36,7 @@ export default class CreateManifest extends Command {
   static flags = {
     backendFile: Flags.string({
       summary:
-        'The remote file to use as a template for the backend.yml file. If not provided, the default file will be used.'
+        'The remote file to use as a template for the manifest.yml file. If not provided, the default file will be used.'
     }),
     cursor: Flags.boolean(),
     copilot: Flags.boolean(),
@@ -102,21 +102,20 @@ export default class CreateManifest extends Command {
 
     fs.mkdirSync(projectFolderPath)
 
-    const manifestFolderName = 'manifest'
-    const initialFileName = 'backend.yml'
+    const manifestFolderName = '.manifest'
+    const initialFileName = 'manifest.yml'
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
 
-    // * 2. Create a folder with the name `manifest`.
+    // * 2. Create a folder with the name `.manifest` for compiled files.
     // Construct the folder path. This example creates the folder in the current working directory.
     const manifestFolderPath = path.join(projectFolderPath, manifestFolderName)
 
     // Create the folder
     fs.mkdirSync(manifestFolderPath)
 
-    // * 3. Create a file inside the folder with the name `manifest.yml`.
-    // Path where the new file should be created
-    const newFilePath = path.join(manifestFolderPath, initialFileName)
+    // * 3. Create a file with the name `manifest.yml`.
+    const newFilePath = path.join(projectFolderPath, initialFileName)
 
     // Get the content of the file either remote or local.
     const { flags } = await this.parse(CreateManifest)
@@ -130,7 +129,7 @@ export default class CreateManifest extends Command {
     fs.writeFileSync(newFilePath, content)
 
     spinner.succeed()
-    spinner.start('Update package.json file...')
+    spinner.start('Updating package.json file...')
 
     // Update package.json file.
     const packagePath = path.join(projectFolderPath, 'package.json')
@@ -160,15 +159,14 @@ export default class CreateManifest extends Command {
           manifest: `^${manifestLatestVersion}`
         },
         newScripts: {
-          manifest: 'node node_modules/manifest/scripts/watch/watch.js',
-          'manifest:seed':
-            'node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js'
+          start: 'node node_modules/manifest/scripts/watch/watch.js',
+          seed: 'node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js'
         }
       })
     )
 
     spinner.succeed()
-    spinner.start('Add settings...')
+    spinner.start('Adding settings...')
 
     // Update .vscode/extensions.json file.
     const vscodeDirPath: string = path.join(projectFolderPath, '.vscode')
@@ -233,7 +231,7 @@ export default class CreateManifest extends Command {
       'node_modules',
       '.env',
       'public',
-      'manifest/backend.db'
+      'manifest/backend.db' // TODO: Adapt to new folder structure.
     ]
     newGitignoreLines.forEach((line) => {
       if (!gitignoreContent.includes(line)) {
@@ -258,7 +256,7 @@ export default class CreateManifest extends Command {
 
     // Add rules for IDEs.
     if (flags.cursor) {
-      spinner.start('Add rules for Cursor IDE...')
+      spinner.start('Adding rules for Cursor IDE...')
 
       const cursorFolderPath = path.join(projectFolderPath, '.cursor', 'rules')
       const cursorFileName = 'manifest.mdc'
@@ -291,7 +289,7 @@ export default class CreateManifest extends Command {
     }
 
     if (flags.copilot) {
-      spinner.start('Add rules for Copilot IDE...')
+      spinner.start('Adding rules for Copilot IDE...')
 
       const copilotFolderPath = path.join(projectFolderPath, '.github')
       const copilotFileName = 'copilot-instructions.md'
@@ -322,7 +320,7 @@ export default class CreateManifest extends Command {
     }
 
     if (flags.windsurf) {
-      spinner.start('Add rules for WindSurf IDE...')
+      spinner.start('Adding rules for WindSurf IDE...')
 
       const windsurfFolderPath = path.join(
         projectFolderPath,
@@ -359,7 +357,7 @@ export default class CreateManifest extends Command {
     }
 
     // * 9. Install the new packages.
-    spinner.start('Install dependencies...')
+    spinner.start('Installing dependencies...')
 
     // Install deps.
     try {
@@ -371,7 +369,7 @@ export default class CreateManifest extends Command {
     //  Serve the new app.
     spinner.succeed()
 
-    spinner.start('Add environment variables...')
+    spinner.start('Adding environment variables...')
     // Add environment variables to .env file
     const envFilePath = path.join(projectFolderPath, '.env')
     const envJWTSecret = `TOKEN_SECRET_KEY=${crypto
@@ -390,7 +388,7 @@ export default class CreateManifest extends Command {
     fs.writeFileSync(envFilePath, envContent)
 
     spinner.succeed()
-    spinner.start('Build the database...')
+    spinner.start('Building the database...')
 
     let serveTask: PromiseWithChild<{ stdout: string; stderr: string }> | null =
       null
@@ -405,7 +403,7 @@ export default class CreateManifest extends Command {
       spinner.fail(`Execution error: ${error}`)
     }
 
-    spinner.start('Seed initial data...')
+    spinner.start('Seeding initial data...')
     try {
       await exec(`cd ${projectName} && npm run manifest:seed`)
     } catch (error) {
