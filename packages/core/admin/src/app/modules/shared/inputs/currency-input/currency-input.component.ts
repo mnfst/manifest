@@ -16,7 +16,7 @@ import { PropertyManifest } from '@repo/types'
   imports: [NgClass],
   template: ` <label [for]="prop.name">{{ prop.name }}</label>
     <p class="control has-icons-left">
-      <span class="icon is-small is-left">
+      <span class="icon is-left">
         <span class="is-family-sans-serif	">
           {{ symbol }}
         </span>
