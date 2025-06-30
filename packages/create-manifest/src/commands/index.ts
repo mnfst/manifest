@@ -102,21 +102,20 @@ export default class CreateManifest extends Command {
 
     fs.mkdirSync(projectFolderPath)
 
-    const manifestFolderName = 'manifest'
+    const manifestFolderName = '.manifest'
     const initialFileName = 'manifest.yml'
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
 
-    // * 2. Create a folder with the name `manifest`.
+    // * 2. Create a folder with the name `.manifest` for compiled files.
     // Construct the folder path. This example creates the folder in the current working directory.
     const manifestFolderPath = path.join(projectFolderPath, manifestFolderName)
 
     // Create the folder
     fs.mkdirSync(manifestFolderPath)
 
-    // * 3. Create a file inside the folder with the name `manifest.yml`.
-    // Path where the new file should be created
-    const newFilePath = path.join(manifestFolderPath, initialFileName)
+    // * 3. Create a file with the name `manifest.yml`.
+    const newFilePath = path.join(projectFolderPath, initialFileName)
 
     // Get the content of the file either remote or local.
     const { flags } = await this.parse(CreateManifest)

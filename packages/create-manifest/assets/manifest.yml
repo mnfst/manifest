@@ -7,6 +7,9 @@ entities:
     properties:
       - name
       - { name: birthdate, type: date }
+    policies:
+      read:
+        - access: public
 
   Cat:
     properties:
