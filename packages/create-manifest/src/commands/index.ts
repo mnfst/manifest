@@ -130,7 +130,7 @@ export default class CreateManifest extends Command {
     fs.writeFileSync(newFilePath, content)
 
     spinner.succeed()
-    spinner.start('Update package.json file...')
+    spinner.start('Updating package.json file...')
 
     // Update package.json file.
     const packagePath = path.join(projectFolderPath, 'package.json')
@@ -160,15 +160,14 @@ export default class CreateManifest extends Command {
           manifest: `^${manifestLatestVersion}`
         },
         newScripts: {
-          manifest: 'node node_modules/manifest/scripts/watch/watch.js',
-          'manifest:seed':
-            'node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js'
+          start: 'node node_modules/manifest/scripts/watch/watch.js',
+          seed: 'node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js'
         }
       })
     )
 
     spinner.succeed()
-    spinner.start('Add settings...')
+    spinner.start('Adding settings...')
 
     // Update .vscode/extensions.json file.
     const vscodeDirPath: string = path.join(projectFolderPath, '.vscode')
@@ -258,7 +257,7 @@ export default class CreateManifest extends Command {
 
     // Add rules for IDEs.
     if (flags.cursor) {
-      spinner.start('Add rules for Cursor IDE...')
+      spinner.start('Adding rules for Cursor IDE...')
 
       const cursorFolderPath = path.join(projectFolderPath, '.cursor', 'rules')
       const cursorFileName = 'manifest.mdc'
@@ -291,7 +290,7 @@ export default class CreateManifest extends Command {
     }
 
     if (flags.copilot) {
-      spinner.start('Add rules for Copilot IDE...')
+      spinner.start('Adding rules for Copilot IDE...')
 
       const copilotFolderPath = path.join(projectFolderPath, '.github')
       const copilotFileName = 'copilot-instructions.md'
@@ -322,7 +321,7 @@ export default class CreateManifest extends Command {
     }
 
     if (flags.windsurf) {
-      spinner.start('Add rules for WindSurf IDE...')
+      spinner.start('Adding rules for WindSurf IDE...')
 
       const windsurfFolderPath = path.join(
         projectFolderPath,
@@ -359,7 +358,7 @@ export default class CreateManifest extends Command {
     }
 
     // * 9. Install the new packages.
-    spinner.start('Install dependencies...')
+    spinner.start('Installing dependencies...')
 
     // Install deps.
     try {
@@ -371,7 +370,7 @@ export default class CreateManifest extends Command {
     //  Serve the new app.
     spinner.succeed()
 
-    spinner.start('Add environment variables...')
+    spinner.start('Adding environment variables...')
     // Add environment variables to .env file
     const envFilePath = path.join(projectFolderPath, '.env')
     const envJWTSecret = `TOKEN_SECRET_KEY=${crypto
@@ -390,7 +389,7 @@ export default class CreateManifest extends Command {
     fs.writeFileSync(envFilePath, envContent)
 
     spinner.succeed()
-    spinner.start('Build the database...')
+    spinner.start('Building the database...')
 
     let serveTask: PromiseWithChild<{ stdout: string; stderr: string }> | null =
       null
@@ -405,7 +404,7 @@ export default class CreateManifest extends Command {
       spinner.fail(`Execution error: ${error}`)
     }
 
-    spinner.start('Seed initial data...')
+    spinner.start('Seeding initial data...')
     try {
       await exec(`cd ${projectName} && npm run manifest:seed`)
     } catch (error) {
