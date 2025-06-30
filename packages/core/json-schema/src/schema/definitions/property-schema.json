@@ -32,6 +32,10 @@
             "image"
           ]
         },
+        "helpText": {
+          "description": "Optional help text to provide additional guidance for the property in the admin UI.",
+          "type": "string"
+        },
         "validation": {
           "description": "Validation object for the property.",
           "$ref": "./validation-schema.json"

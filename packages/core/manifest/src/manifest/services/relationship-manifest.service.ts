@@ -37,6 +37,7 @@ export class RelationshipManifestService {
         name: camelize(relationship.name || relationship.entity),
         entity: relationship.entity,
         eager: relationship.eager || false,
+        helpText: relationship.helpText || '',
         type
       }
     } else {
@@ -55,6 +56,7 @@ export class RelationshipManifestService {
         name: pluralize(camelize(relationship.name || relationship.entity)),
         entity: relationship.entity,
         eager: relationship.eager || false,
+        helpText: relationship.helpText || '',
         type,
         owningSide: true,
         inverseSide: pluralize(camelize(entityClassName))
