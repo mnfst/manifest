@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.2.1
+
+### Patch Changes
+
+- 20b9e6c: fixed wrong initial command
+
 ## 1.2.0
 
 ### Minor Changes
