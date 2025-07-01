@@ -37,9 +37,6 @@ export type PropertySchema =
        * Optional help text to provide additional guidance for the property in the admin UI.
        */
       helpText?: string
-      /**
-       * The validation schema for the property. Doc: https://manifest.build/docs/validation
-       */
       validation?: ValidationSchema
       /**
        * The default value of the property. Doc: https://manifest.build/docs/properties#property-params
@@ -281,15 +278,7 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
   /**
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
@@ -504,15 +493,7 @@ export interface EndpointSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema1 {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
   /**
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
