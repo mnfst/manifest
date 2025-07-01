@@ -5,7 +5,11 @@ describe('CRUD operations', () => {
   const collectionBaseUrl: string = 'http://localhost:1111/api/collections'
   const singleBaseUrl: string = 'http://localhost:1111/api/singles'
   const dummyResponse = { dummy: 'response' }
-  const dummyItem = { name: 'Tom', age: 10, id: 1 }
+  const dummyItem = {
+    name: 'Tom',
+    age: 10,
+    id: 'a8f5f167-6d3b-4c8f-9e2a-7b4d8c9f1e3a'
+  }
 
   beforeEach(() => {
     fetchMock.restore()
@@ -106,7 +110,7 @@ describe('CRUD operations', () => {
     })
 
     it('should get an item by its id', async () => {
-      const id: number = 1
+      const id: string = 'a8f5f167-6d3b-4c8f-9e2a-7b4d8c9f1e3a'
 
       fetchMock.mock(`${collectionBaseUrl}/cats/${id}`, dummyResponse)
 
@@ -117,7 +121,7 @@ describe('CRUD operations', () => {
     })
 
     it('should get an item by its id with relations', async () => {
-      const id: number = 1
+      const id: string = 'a8f5f167-6d3b-4c8f-9e2a-7b4d8c9f1e3a'
 
       fetchMock.mock(
         `${collectionBaseUrl}/cats/${id}?relations=owner%2Cowner.company`,
@@ -158,7 +162,7 @@ describe('CRUD operations', () => {
     })
 
     it('should update an item', async () => {
-      const id: number = 1
+      const id: string = 'a8f5f167-6d3b-4c8f-9e2a-7b4d8c9f1e3a'
 
       fetchMock.mock(
         {
@@ -182,7 +186,7 @@ describe('CRUD operations', () => {
     })
 
     it('should patch an item', async () => {
-      const id: number = 1
+      const id: string = 'a8f5f167-6d3b-4c8f-9e2a-7b4d8c9f1e3a'
 
       fetchMock.mock(
         {
@@ -204,7 +208,7 @@ describe('CRUD operations', () => {
     })
 
     it('should delete an item', async () => {
-      const id: number = 1
+      const id: string = 'a8f5f167-6d3b-4c8f-9e2a-7b4d8c9f1e3a'
 
       fetchMock.mock(
         {

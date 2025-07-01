@@ -4,12 +4,13 @@ import { CrudService } from '../../crud/services/crud.service'
 import { UploadService } from '../../upload/services/upload.service'
 import { base64ToBlob } from '../../../../common/src'
 
-describe('SdkService', () => {
+describe('BackendSdk', () => {
   let sdk: BackendSDK
   let crudService: CrudService
   let uploadService: UploadService
 
-  const dummyItem = { id: 1, name: 'Timiaou', color: 'brown' } as any
+  const dummyUuid = '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'
+  const dummyItem = { id: dummyUuid, name: 'Timiaou', color: 'brown' } as any
   const dummySlug = 'cats'
 
   beforeEach(async () => {
@@ -56,7 +57,6 @@ describe('SdkService', () => {
       expect(result).toEqual(dummyItem)
       expect(crudService.findOne).toHaveBeenCalledWith({
         entitySlug: 'homePage',
-        id: 1,
         fullVersion: true
       })
     })
@@ -90,7 +90,7 @@ describe('SdkService', () => {
     })
 
     it('should return a single entity from a collection', async () => {
-      const result = await sdk.from(dummySlug).findOneById(1)
+      const result = await sdk.from(dummySlug).findOneById(dummyUuid)
 
       expect(result).toEqual(dummyItem)
     })
@@ -105,22 +105,30 @@ describe('SdkService', () => {
     })
 
     it('should update an entity in a collection', async () => {
-      const result = await sdk.from(dummySlug).update(1, { name: 'new name' })
+      const result = await sdk
+        .from(dummySlug)
+        .update(dummyUuid, { name: 'new name' })
 
       expect(result).toEqual({ name: 'new name' })
     })
 
     it('should patch an entity in a collection', async () => {
-      const result = await sdk.from(dummySlug).patch(1, { name: 'new name' })
+      const result = await sdk
+        .from(dummySlug)
+        .patch(dummyUuid, { name: 'new name' })
 
-      expect(result).toEqual({ name: 'new name', color: 'brown', id: 1 })
+      expect(result).toEqual({
+        name: 'new name',
+        color: 'brown',
+        id: dummyUuid
+      })
     })
 
     it('should delete an entity in a collection', async () => {
-      const result = await sdk.from(dummySlug).delete(1)
+      const result = await sdk.from(dummySlug).delete(dummyUuid)
 
       expect(result).toEqual(dummyItem)
-      expect(crudService.delete).toHaveBeenCalledWith(dummySlug, 1)
+      expect(crudService.delete).toHaveBeenCalledWith(dummySlug, dummyUuid)
     })
   })
 

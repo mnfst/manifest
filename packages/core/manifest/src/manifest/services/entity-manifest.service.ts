@@ -138,7 +138,7 @@ export class EntityManifestService {
       const partialEntityManifest: EntityManifestCommonFields = {
         className: entitySchema.className || className,
         nameSingular:
-          entitySchema.nameSingular ||
+          entitySchema.nameSingular?.toLowerCase() ||
           pluralize.singular(entitySchema.className || className).toLowerCase(),
         slug:
           entitySchema.slug ||
@@ -300,6 +300,7 @@ export class EntityManifestService {
       mainProp: null,
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
+      seedCount: 1,
       relationships: [],
       policies: {
         create: [FORBIDDEN_ACCESS_POLICY],
@@ -357,6 +358,7 @@ export class EntityManifestService {
           {},
         propSchema.validation
       ),
+      helpText: propSchema.helpText || '',
       default: propSchema.default
     }
   }

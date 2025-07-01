@@ -1,5 +1,17 @@
 # @mnfst/sdk
 
+## 1.3.1
+
+### Patch Changes
+
+- c806577: Update installation instructions in README and keywords more appropriate to ai code editors
+
+## 1.3.0
+
+### Minor Changes
+
+- beb4317: Replaced incremental int IDs by UUIDs, thanks @jerryjappinen
+
 ## 1.2.2
 
 ### Patch Changes

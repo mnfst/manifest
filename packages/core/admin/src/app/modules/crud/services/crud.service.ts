@@ -55,7 +55,7 @@ export class CrudService {
 
   show(
     entitySlug: string,
-    id: number,
+    id: string,
     options?: { relations?: string[] }
   ): Promise<BaseEntity> {
     return firstValueFrom(
@@ -83,16 +83,16 @@ export class CrudService {
     )
   }
 
-  create(entitySlug: string, data: unknown): Promise<{ id: number }> {
+  create(entitySlug: string, data: unknown): Promise<{ id: string }> {
     return firstValueFrom(
-      this.http.post<{ id: number }>(
+      this.http.post<{ id: string }>(
         `${this.collectionBaseUrl}/${entitySlug}`,
         data
       )
     )
   }
 
-  update(entitySlug: string, id: number, data: unknown): Promise<BaseEntity> {
+  update(entitySlug: string, id: string, data: unknown): Promise<BaseEntity> {
     return firstValueFrom(
       this.http.put<BaseEntity>(
         `${this.collectionBaseUrl}/${entitySlug}/${id}`,
@@ -115,9 +115,11 @@ export class CrudService {
     )
   }
 
-  delete(entitySlug: string, id: number): Promise<any> {
+  delete(entitySlug: string, id: string): Promise<BaseEntity> {
     return firstValueFrom(
-      this.http.delete(`${this.collectionBaseUrl}/${entitySlug}/${id}`)
+      this.http.delete<BaseEntity>(
+        `${this.collectionBaseUrl}/${entitySlug}/${id}`
+      )
     )
   }
 }

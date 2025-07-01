@@ -19,7 +19,7 @@ describe('AuthService', () => {
   let entityManifestService: EntityManifestService
 
   const mockUser: any = {
-    email: 'testEmail',
+    email: 'test@example.com',
     password: 'testHashedPassword'
   }
 
@@ -71,7 +71,7 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('token')
 
       const decodedPayload = jwt.decode(result.token)
-      expect(decodedPayload).toHaveProperty('email', 'testEmail')
+      expect(decodedPayload).toHaveProperty('email', 'test@example.com')
     })
 
     it('should throw an exception when no user is found', async () => {

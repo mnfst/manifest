@@ -20,7 +20,7 @@ import { PropertyManifest } from '@repo/types'
         <div class="field">
           <label for="lat-input">Latitude</label>
           <p class="control has-icons-left ">
-            <span class="icon is-small is-left">
+            <span class="icon is-left">
               <i class="icon icon-map-pin"></i>
             </span>
             <input
@@ -40,7 +40,7 @@ import { PropertyManifest } from '@repo/types'
         <div class="field">
           <label for="lng-input">Longitude</label>
           <p class="control has-icons-left ">
-            <span class="icon is-small is-left">
+            <span class="icon is-left">
               <i class="icon icon-map-pin"></i>
             </span>
             <input

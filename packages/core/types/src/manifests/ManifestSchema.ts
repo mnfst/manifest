@@ -33,6 +33,13 @@ export type PropertySchema =
         | 'location'
         | 'file'
         | 'image'
+      /**
+       * Optional help text to provide additional guidance for the property in the admin UI.
+       */
+      helpText?: string
+      /**
+       * The validation schema for the property. Doc: https://manifest.build/docs/validation
+       */
       validation?: ValidationSchema
       /**
        * The default value of the property. Doc: https://manifest.build/docs/properties#property-params
@@ -70,11 +77,15 @@ export type RelationshipSchema =
        * Defaults to false.
        */
       eager?: boolean
+      /**
+       * Optional help text to provide additional guidance for the relationship in the admin UI.
+       */
+      helpText?: string
     }
   | string
 
 /**
- * The 1-file Micro-backend
+ * The backend for AI code editors
  */
 export interface Manifest {
   /**
@@ -270,8 +281,20 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  access:
+    | 'public'
+    | 'restricted'
+    | 'forbidden'
+    | 'admin'
+    | '🌐'
+    | '🚫'
+    | '🔒'
+    | '️👨🏻‍💻'
   allow?: string | string[]
+  /**
+   * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
+   */
+  condition?: 'self'
 }
 /**
  * Validation for the property. Doc: https://manifest.build/docs/validation
@@ -481,6 +504,18 @@ export interface EndpointSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema1 {
-  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  access:
+    | 'public'
+    | 'restricted'
+    | 'forbidden'
+    | 'admin'
+    | '🌐'
+    | '🚫'
+    | '🔒'
+    | '️👨🏻‍💻'
   allow?: string | string[]
+  /**
+   * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
+   */
+  condition?: 'self'
 }

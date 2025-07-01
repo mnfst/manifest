@@ -107,7 +107,7 @@ describe('RelationshipManifestService', () => {
     expect(service).toBeDefined()
   })
 
-  it('should transform the relationship schema into a relationship manifest', () => {
+  it('should transform short-syntax many-to-one relationshipSchema into a relationshipManifest', () => {
     const relationship = 'User'
     const type = 'many-to-one'
     const entityClassName = 'Role'
@@ -123,6 +123,73 @@ describe('RelationshipManifestService', () => {
       entity: 'User',
       eager: false,
       type: 'many-to-one'
+    })
+  })
+
+  it('should transform long-syntax many-to-one relationshipSchema into a relationshipManifest', () => {
+    const relationship = {
+      name: 'user',
+      entity: 'User',
+      eager: true,
+      helpText: 'this is the help text',
+      type: 'many-to-one'
+    }
+    const entityClassName = 'Role'
+    const result = service.transformRelationship(
+      relationship,
+      'many-to-one',
+      entityClassName
+    )
+    expect(result).toEqual({
+      name: 'user',
+      entity: 'User',
+      helpText: 'this is the help text',
+      eager: true,
+      type: 'many-to-one'
+    })
+  })
+
+  it('should transform short-syntax many-to-many relationshipSchema into a relationshipManifest', () => {
+    const relationship = 'User'
+    const type = 'many-to-many'
+    const entityClassName = 'Role'
+    const result = service.transformRelationship(
+      relationship,
+      type,
+      entityClassName
+    )
+    expect(result).toEqual({
+      name: 'users',
+      entity: 'User',
+      eager: false,
+      inverseSide: 'roles',
+      type: 'many-to-many',
+      owningSide: true
+    })
+  })
+
+  it('should transform long-syntax many-to-many relationshipSchema into a relationshipManifest', () => {
+    const relationship = {
+      name: 'user',
+      entity: 'User',
+      eager: true,
+      type: 'many-to-many',
+      helpText: 'this is the help text'
+    }
+    const entityClassName = 'Role'
+    const result = service.transformRelationship(
+      relationship,
+      'many-to-many',
+      entityClassName
+    )
+    expect(result).toEqual({
+      name: 'users',
+      entity: 'User',
+      eager: true,
+      inverseSide: 'roles',
+      type: 'many-to-many',
+      helpText: 'this is the help text',
+      owningSide: true
     })
   })
 

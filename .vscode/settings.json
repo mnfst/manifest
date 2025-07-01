@@ -1,6 +1,6 @@
 {
   "yaml.schemas": {
-    "./packages/core/json-schema/src/schema/schema.json": "**/manifest/**/**backend.yml"
+    "./packages/core/json-schema/src/schema/schema.json": "**/manifest/**/**manifest.yml"
   },
 
   "workbench.colorCustomizations": {
@@ -47,7 +47,7 @@
   },
   "material-icon-theme.folders.associations": {
     "dtos": "interface",
-    "add-manifest": "scripts",
+    "create-manifest": "scripts",
     "manifest": "server",
     "core/manifest": "meta",
     "js-sdk": "javascript",

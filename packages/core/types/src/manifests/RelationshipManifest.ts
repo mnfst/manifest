@@ -22,6 +22,11 @@ export type RelationshipManifest = {
   type: 'many-to-one' | 'many-to-many' | 'one-to-many'
 
   /**
+   * Optional help text to provide additional guidance for the relationship in the admin UI.
+   */
+  helpText?: string
+
+  /**
    * Is this relationship the owning side of the relationship? (only for many-to-many)
    */
   owningSide?: boolean

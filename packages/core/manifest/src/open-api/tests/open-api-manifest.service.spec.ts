@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { OpenApiManifestService } from '../services/open-api-manifest.service'
 import { AppManifest, PropType } from '../../../../types/src'
-import { API_PATH } from '../../constants'
 
 describe('OpenApiManifestService', () => {
   let service: OpenApiManifestService
@@ -49,7 +48,7 @@ describe('OpenApiManifestService', () => {
   it('should generate a route for the main app manifest', () => {
     const paths = service.generateManifestPaths(dummyAppManifest)
 
-    const generatedPath = `/${API_PATH}/manifest`
+    const generatedPath = `/manifest`
 
     expect(paths[generatedPath]).toBeDefined()
     expect(paths[generatedPath].get).toBeDefined()
@@ -58,7 +57,7 @@ describe('OpenApiManifestService', () => {
   it('should generate a route for each entity', () => {
     const paths = service.generateManifestPaths(dummyAppManifest)
 
-    const generatedPath = `/${API_PATH}/manifest/entities/${dummyAppManifest.entities.Cat.slug}`
+    const generatedPath = `/manifest/entities/${dummyAppManifest.entities.Cat.slug}`
 
     expect(paths[generatedPath]).toBeDefined()
     expect(paths[generatedPath].get).toBeDefined()

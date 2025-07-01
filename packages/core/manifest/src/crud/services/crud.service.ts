@@ -8,7 +8,12 @@ import {
 
 import { camelize, getRecordKeyByValue } from '@repo/common'
 
-import { EntityMetadata, Repository, SelectQueryBuilder } from 'typeorm'
+import {
+  EntityMetadata,
+  FindOneOptions,
+  Repository,
+  SelectQueryBuilder
+} from 'typeorm'
 
 import { BaseEntity } from '@repo/types'
 import { ValidationError } from 'class-validator'
@@ -36,6 +41,10 @@ import { PaginationService } from './pagination.service'
 import { ValidationService } from '../../validation/services/validation.service'
 import { RelationshipService } from '../../entity/services/relationship.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import {
+  getValidWhereOperators,
+  isValidWhereOperator
+} from '../records/prop-type-valid-where-operators'
 
 @Injectable()
 export class CrudService {
@@ -46,6 +55,50 @@ export class CrudService {
     private readonly validationService: ValidationService,
     private readonly relationshipService: RelationshipService
   ) {}
+
+  /**
+   * Filters itemDto to only include valid entity properties (columns and foreign keys).
+   * Excludes relation properties to prevent unwanted relation updates.
+   *
+   * @param itemDto the item dto to filter.
+   * @param entityRepository the entity repository.
+   *
+   * @returns the filtered itemDto with only valid properties.
+   */
+  private filterValidProperties(
+    itemDto: Partial<BaseEntity>,
+    entityRepository: Repository<BaseEntity>
+  ): Partial<BaseEntity> {
+    const entityMetadata = entityRepository.metadata
+    const allColumns = entityMetadata.columns.map((col) => col.propertyName)
+    const validRelationships = entityMetadata.relations.map(
+      (rel) => rel.propertyName
+    )
+
+    // Valid properties are columns that are NOT also relations
+    const validProperties = allColumns.filter(
+      (col) => !validRelationships.includes(col)
+    )
+
+    return Object.fromEntries(
+      Object.entries(itemDto).filter(([key]) => {
+        // Allow actual database columns (not relations)
+        if (validProperties.includes(key)) {
+          return true
+        }
+
+        // Allow foreign key columns (userId, projectId, etc.)
+        if (
+          key.endsWith('Id') &&
+          validRelationships.includes(key.slice(0, -2))
+        ) {
+          return true
+        }
+
+        return false
+      })
+    )
+  }
 
   /**
    * Returns a paginated list of entities.
@@ -124,7 +177,7 @@ export class CrudService {
         queryParams.order === 'DESC' ? 'DESC' : 'ASC'
       )
     } else {
-      query.orderBy('entity.id', 'DESC')
+      query.addSelect('entity.createdAt').orderBy('entity.createdAt', 'DESC')
     }
 
     // Paginate.
@@ -177,7 +230,7 @@ export class CrudService {
     fullVersion
   }: {
     entitySlug: string
-    id: number
+    id?: string
     queryParams?: { [key: string]: string | string[] }
     fullVersion?: boolean
   }) {
@@ -186,6 +239,10 @@ export class CrudService {
         slug: entitySlug,
         fullVersion
       })
+
+    if (!entityManifest.single && !id) {
+      throw new Error('Id is required for collections.')
+    }
 
     const entityMetadata: EntityMetadata = this.entityService.getEntityMetadata(
       {
@@ -202,13 +259,24 @@ export class CrudService {
           fullVersion
         })
       )
-      .where('entity.id = :id', { id })
+
+    // ID is not applicable on Single entities.
+    if (id) {
+      query.where('entity.id = :id', { id })
+    }
 
     this.loadRelations({
       query,
       entityMetadata,
       relationships: entityManifest.relationships,
       requestedRelations: queryParams?.relations?.toString().split(',')
+    })
+
+    // Apply filters.
+    this.filterQuery({
+      query,
+      queryParams,
+      entityManifest
     })
 
     const item: BaseEntity = await query.getOne()
@@ -232,12 +300,6 @@ export class CrudService {
         fullVersion: true
       })
 
-    const newItem: BaseEntity = this.createWithDefaults({
-      repository,
-      entityManifest,
-      itemDto
-    })
-
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
@@ -245,6 +307,12 @@ export class CrudService {
           .filter((r) => r.type !== 'one-to-many')
           .filter((r) => r.type !== 'many-to-many' || r.owningSide)
       })
+
+    const newItem: BaseEntity = this.createWithDefaults({
+      repository,
+      entityManifest,
+      itemDto: this.filterValidProperties(itemDto, repository)
+    })
 
     // Hash password if it exists.
     entityManifest.properties
@@ -288,7 +356,7 @@ export class CrudService {
    * Updates an item doing a FULL REPLACEMENT of the item properties and relations unless partialReplacement is set to true.
    *
    * @param entitySlug the entity slug.
-   * @param id the item id.
+   * @param id the item id (only for collections)
    * @param itemDto the item dto.
    * @param partialReplacement whether to do a partial replacement.
    *
@@ -301,7 +369,7 @@ export class CrudService {
     partialReplacement
   }: {
     entitySlug: string
-    id: number
+    id?: string
     itemDto: Partial<BaseEntity>
     partialReplacement?: boolean
   }): Promise<BaseEntity> {
@@ -311,10 +379,15 @@ export class CrudService {
         fullVersion: true
       })
 
+    if (!entityManifest.single && !id) {
+      throw new Error('Id is required for collections.')
+    }
+
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({ entitySlug })
 
-    const item: BaseEntity = await entityRepository.findOne({ where: { id } })
+    const findParams: FindOneOptions = id ? { where: { id } } : { where: {} }
+    const item: BaseEntity = await entityRepository.findOne(findParams)
 
     if (!item) {
       throw new NotFoundException('Item not found')
@@ -333,9 +406,12 @@ export class CrudService {
         emptyMissing: !partialReplacement
       })
 
+    // Filter itemDto to only include valid  properties.
+    let filteredItemDto = this.filterValidProperties(itemDto, entityRepository)
+
     // On partial replacement, only update the provided props.
     if (partialReplacement) {
-      itemDto = { ...item, ...itemDto }
+      filteredItemDto = { ...item, ...filteredItemDto }
 
       // Remove undefined values to keep the existing values.
       Object.keys(relationItems).forEach((key: string) => {
@@ -348,12 +424,15 @@ export class CrudService {
       })
     }
 
-    const updatedItem: BaseEntity = entityRepository.create({ id, ...itemDto })
+    const updatedItem: BaseEntity = entityRepository.create({
+      id: item.id,
+      ...filteredItemDto
+    })
 
     // Hash password if it exists.
-    if (entityManifest.authenticable && itemDto.password) {
+    if (entityManifest.authenticable && filteredItemDto.password) {
       updatedItem.password = bcrypt.hashSync(
-        itemDto['password'] as string,
+        filteredItemDto['password'] as string,
         SALT_ROUNDS
       )
     }
@@ -381,7 +460,7 @@ export class CrudService {
    *
    * @returns the deleted item.
    */
-  async delete(entitySlug: string, id: number): Promise<BaseEntity> {
+  async delete(entitySlug: string, id: string): Promise<BaseEntity> {
     const entityRepository: Repository<BaseEntity> =
       this.entityService.getEntityRepository({
         entitySlug
@@ -585,6 +664,7 @@ export class CrudService {
     entityManifest: EntityManifest
   }): SelectQueryBuilder<BaseEntity> {
     Object.entries(queryParams || {})
+      .filter(([_key, value]) => value) // Ignore empty values.
       .filter(
         ([key]: [string, string | string[]]) =>
           !QUERY_PARAMS_RESERVED_WORDS.includes(key)
@@ -611,6 +691,17 @@ export class CrudService {
         const prop: PropertyManifest = entityManifest.properties.find(
           (prop: PropertyManifest) => prop.name === propName && !prop.hidden
         )
+
+        if (prop && !isValidWhereOperator(prop.type, operator)) {
+          throw new HttpException(
+            `Operator ${operator} (with '${suffix}' suffix) is not valid for property ${propName}. ${prop.type} properties can only use the following operators: ${getValidWhereOperators(
+              prop.type
+            )
+              .map((operator) => `'${operator}'`)
+              .join(', ')}.`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
 
         const relation: RelationshipManifest =
           entityManifest.relationships.find(
@@ -645,13 +736,16 @@ export class CrudService {
 
         // "In" is a bit special as it expects an array of values.
         if (operator === WhereOperator.In) {
-          value = JSON.parse(`[${value}]`)
+          const inValues: string[] = value.split(',')
+          query.andWhere(`${whereKey} ${operator} (:...value_${index})`, {
+            [`value_${index}`]: inValues
+          })
+        } else {
+          // For other operators, just use the value directly.
+          query.andWhere(`${whereKey} ${operator} :value_${index}`, {
+            [`value_${index}`]: value
+          })
         }
-
-        // Finally and the where query.
-        query.andWhere(`${whereKey} ${operator} :value_${index}`, {
-          [`value_${index}`]: value
-        })
       })
 
     return query

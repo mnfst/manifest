@@ -1,5 +1,53 @@
 # manifest
 
+## 4.15.0
+
+### Minor Changes
+
+- c29bc12: added admin panel input help texts, thanks @ronaldaug
+
+## 4.14.0
+
+### Minor Changes
+
+- 2193b6b: generate openapi spec and types from backend
+
+## 4.13.0
+
+### Minor Changes
+
+- 426c11b: added ownership based access, thanks @tvanh3
+
+## 4.12.4
+
+### Patch Changes
+
+- d3f1aac: fixed 400 error on signup admins, thanks @chriskacerguis
+
+## 4.12.3
+
+### Patch Changes
+
+- c74b428: fixed path error on windows with handler files, thanks @akvgergo
+
+## 4.12.2
+
+### Patch Changes
+
+- c806577: Update installation instructions in README and keywords more appropriate to ai code editors
+
+## 4.12.1
+
+### Patch Changes
+
+- 67dd5a6: Fixed In operator on filterQuery
+
+## 4.12.0
+
+### Minor Changes
+
+- beb4317: Replaced incremental int IDs by UUIDs, thanks @jerryjappinen
+
 ## 4.11.11
 
 ### Patch Changes

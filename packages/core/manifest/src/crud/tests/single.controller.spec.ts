@@ -10,6 +10,7 @@ import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
 import { EventService } from '../../event/event.service'
 import { HandlerService } from '../../handler/handler.service'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('SingleController', () => {
   let controller: SingleController
@@ -47,6 +48,12 @@ describe('SingleController', () => {
         },
         {
           provide: EntityManifestService,
+          useValue: {
+            getEntityManifest: jest.fn()
+          }
+        },
+        {
+          provide: EntityService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -124,7 +131,7 @@ describe('SingleController', () => {
   })
 
   describe('PUT :entity', () => {
-    it('should call crudService.update with ID 1', async () => {
+    it('should call crudService.update', async () => {
       const entitySlug = 'test'
       const itemDto = { name: 'test' }
 
@@ -132,14 +139,13 @@ describe('SingleController', () => {
 
       expect(crudService.update).toHaveBeenCalledWith({
         entitySlug,
-        id: 1,
         itemDto
       })
     })
   })
 
   describe('PATCH :entity', () => {
-    it('should call crudService.update with ID 1 and partialReplacement true', async () => {
+    it('should call crudService.update and partialReplacement true', async () => {
       const entitySlug = 'test'
       const itemDto = { name: 'test' }
 
@@ -147,7 +153,6 @@ describe('SingleController', () => {
 
       expect(crudService.update).toHaveBeenCalledWith({
         entitySlug,
-        id: 1,
         itemDto,
         partialReplacement: true
       })

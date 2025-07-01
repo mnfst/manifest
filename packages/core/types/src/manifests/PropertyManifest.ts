@@ -30,6 +30,11 @@ export type PropertyManifest = {
   validation?: ValidationManifest
 
   /**
+   * Optional help text for the property.
+   */
+  helpText?: string
+
+  /**
    * Default value for the property.
    */
   default?: string | number | boolean | Record<string, unknown> | Array<unknown>

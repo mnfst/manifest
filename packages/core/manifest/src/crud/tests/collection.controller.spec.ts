@@ -9,10 +9,13 @@ import { HookInterceptor } from '../../hook/hook.interceptor'
 import { HookService } from '../../hook/hook.service'
 import { EventService } from '../../event/event.service'
 import { HandlerService } from '../../handler/handler.service'
+import { EntityService } from '../../entity/services/entity.service'
 
 describe('CollectionController', () => {
   let controller: CollectionController
   let crudService: CrudService
+
+  const randomUuid: string = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -49,6 +52,12 @@ describe('CollectionController', () => {
         },
         {
           provide: EntityManifestService,
+          useValue: {
+            getEntityManifest: jest.fn()
+          }
+        },
+        {
+          provide: EntityService,
           useValue: {
             getEntityManifest: jest.fn()
           }
@@ -116,15 +125,15 @@ describe('CollectionController', () => {
 
   it('should call crudService.findOne', async () => {
     const entitySlug = 'cats'
-    const id = 1
+
     const queryParams = {}
     const req = {} as any
 
-    await controller.findOne(entitySlug, id, queryParams, req)
+    await controller.findOne(entitySlug, randomUuid, queryParams, req)
 
     expect(crudService.findOne).toHaveBeenCalledWith({
       entitySlug,
-      id,
+      id: randomUuid,
       queryParams,
       fullVersion: false
     })
@@ -141,28 +150,28 @@ describe('CollectionController', () => {
 
   it('should call crudService.update', async () => {
     const entitySlug = 'cats'
-    const id = 1
+
     const itemDto = {}
 
-    await controller.put(entitySlug, id, itemDto)
+    await controller.put(entitySlug, randomUuid, itemDto)
 
     expect(crudService.update).toHaveBeenCalledWith({
       entitySlug,
-      id,
+      id: randomUuid,
       itemDto: itemDto
     })
   })
 
   it('should call crudService.update with partialReplacement', async () => {
     const entitySlug = 'cats'
-    const id = 1
+
     const itemDto = {}
 
-    await controller.patch(entitySlug, id, itemDto)
+    await controller.patch(entitySlug, randomUuid, itemDto)
 
     expect(crudService.update).toHaveBeenCalledWith({
       entitySlug,
-      id,
+      id: randomUuid,
       itemDto: itemDto,
       partialReplacement: true
     })
@@ -170,10 +179,9 @@ describe('CollectionController', () => {
 
   it('should call crudService.delete', async () => {
     const entitySlug = 'cats'
-    const id = 1
 
-    await controller.delete(entitySlug, id)
+    await controller.delete(entitySlug, randomUuid)
 
-    expect(crudService.delete).toHaveBeenCalledWith(entitySlug, id)
+    expect(crudService.delete).toHaveBeenCalledWith(entitySlug, randomUuid)
   })
 })

@@ -5,6 +5,6 @@
   "entryFile": "manifest/src/main",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": ["assets"]
+    "assets": ["assets", "open-api/styles/swagger-custom.css"]
   }
 }
