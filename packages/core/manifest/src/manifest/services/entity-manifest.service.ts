@@ -358,6 +358,7 @@ export class EntityManifestService {
           {},
         propSchema.validation
       ),
+      helpText: propSchema.helpText || '',
       default: propSchema.default
     }
   }

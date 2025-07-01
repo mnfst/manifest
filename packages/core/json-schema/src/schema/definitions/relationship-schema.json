@@ -18,6 +18,10 @@
         "eager": {
           "type": "boolean",
           "description": "Whether the relationship should be eager loaded. Otherwise, you need to explicitly request the relation in the client SDK or API.\nDefaults to false."
+        },
+        "helpText": {
+          "description": "Optional help text to provide additional guidance for the relationship in the admin UI.",
+          "type": "string"
         }
       },
       "required": ["entity"],

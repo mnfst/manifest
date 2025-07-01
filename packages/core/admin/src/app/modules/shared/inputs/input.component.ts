@@ -188,6 +188,11 @@ import { RichTextInputComponent } from './rich-text-input/rich-text-input.compon
     <ul *ngIf="errors?.length">
       <li *ngFor="let error of errors" class="has-text-danger">{{ error }}</li>
     </ul>
+
+    <!-- Display help text if available -->
+    <p class="help" *ngIf="helpText">
+      {{ helpText }}
+    </p>
   `
 })
 export class InputComponent implements OnChanges {
@@ -198,6 +203,8 @@ export class InputComponent implements OnChanges {
   @Input() errors: string[]
   @Output() valueChanged: EventEmitter<any> = new EventEmitter()
 
+  helpText: string
+
   isError: boolean
   PropType = PropType
 
@@ -207,5 +214,7 @@ export class InputComponent implements OnChanges {
 
   ngOnChanges(): void {
     this.isError = !!this.errors?.length
+
+    this.helpText = this.prop?.helpText || this.relationship?.helpText
   }
 }
