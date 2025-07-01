@@ -1,5 +1,11 @@
 # manifest
 
+## 4.15.0
+
+### Minor Changes
+
+- c29bc12: added admin panel input help texts, thanks @ronaldaug
+
 ## 4.14.0
 
 ### Minor Changes
