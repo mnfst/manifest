@@ -26,6 +26,10 @@
       "additionalProperties": {
         "$ref": "./definitions/endpoint-schema.json"
       }
+    },
+    "settings": {
+      "description": "Application settings configuration",
+      "$ref": "./definitions/settings-schema.json"
     }
   },
   "required": ["name"],

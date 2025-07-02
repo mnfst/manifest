@@ -14,6 +14,7 @@ import hookSchema from './schema/definitions/hooks/hook-schema.json'
 import endpointSchema from './schema/definitions/endpoint-schema.json'
 import middlewareSchema from './schema/definitions/middlewares/middleware-schema.json'
 import middlewaresSchema from './schema/definitions/middlewares/middlewares-schema.json'
+import settingsSchema from './schema/definitions/settings-schema.json'
 
 export default [
   manifestSchema,
@@ -41,5 +42,8 @@ export default [
   middlewareSchema,
 
   // Endpoints.
-  endpointSchema
+  endpointSchema,
+
+  // Settings.
+  settingsSchema
 ]

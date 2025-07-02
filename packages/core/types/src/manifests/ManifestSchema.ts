@@ -37,9 +37,6 @@ export type PropertySchema =
        * Optional help text to provide additional guidance for the property in the admin UI.
        */
       helpText?: string
-      /**
-       * The validation schema for the property. Doc: https://manifest.build/docs/validation
-       */
       validation?: ValidationSchema
       /**
        * The default value of the property. Doc: https://manifest.build/docs/properties#property-params
@@ -108,6 +105,7 @@ export interface Manifest {
   endpoints?: {
     [k: string]: EndpointSchema
   }
+  settings?: SettingsSchema
 }
 /**
  * An entity in your system. Doc: https://manifest.build/docs/entities
@@ -281,15 +279,7 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
   /**
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
@@ -504,18 +494,32 @@ export interface EndpointSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema1 {
-  access:
-    | 'public'
-    | 'restricted'
-    | 'forbidden'
-    | 'admin'
-    | '🌐'
-    | '🚫'
-    | '🔒'
-    | '️👨🏻‍💻'
+  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
   allow?: string | string[]
   /**
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
    */
   condition?: 'self'
+}
+/**
+ * Application settings configuration
+ */
+export interface SettingsSchema {
+  /**
+   * Rate limiting configuration for your app
+   */
+  rateLimits?: {
+    /**
+     * Name identifier for the rate limit rule
+     */
+    name?: string
+    /**
+     * Maximum number of requests allowed
+     */
+    limit: number
+    /**
+     * Time window in milliseconds for the rate limit
+     */
+    ttl: number
+  }[]
 }
