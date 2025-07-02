@@ -3,11 +3,6 @@
 
 name: Pokemon app 🐣
 
-settings:
-  rateLimits:
-    - limit: 1
-      ttl: 100
-
 entities:
   Pokemon 🐉:
     properties:
