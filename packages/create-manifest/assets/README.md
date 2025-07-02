@@ -26,7 +26,7 @@ $ npm install
 To run the app in the development mode:
 
 ```bash
-npm run manifest
+npm run start
 ```
 
 - Open [http://localhost:1111](http://localhost:1111) to open your admin UI it in your browser
@@ -39,7 +39,7 @@ The page will reload when you make changes.
 Seeds some dummy data for your entities:
 
 ```bash
-npm run manifest:seed
+npm run seed
 ```
 
 ## Community & Resources
