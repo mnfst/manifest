@@ -90,7 +90,7 @@ import { APP_GUARD } from '@nestjs/core'
 
         const appManifest: AppManifest = manifestService.getAppManifest()
 
-        return appManifest.settings.rateLimits
+        return appManifest.settings.rateLimits || []
       },
       inject: [ConfigService, ManifestService, EntityLoaderService]
     }),
