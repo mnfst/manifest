@@ -1,5 +1,11 @@
 # manifest
 
+## 4.16.0
+
+### Minor Changes
+
+- cc8a1c3: added rate limiting
+
 ## 4.15.0
 
 ### Minor Changes
