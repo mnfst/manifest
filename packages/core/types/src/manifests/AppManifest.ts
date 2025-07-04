@@ -1,4 +1,5 @@
 import { EndpointManifest } from '../endpoints'
+import { AppSettings } from './AppSettings'
 import { EntityManifest } from './EntityManifest'
 
 export interface AppManifest {
@@ -28,4 +29,9 @@ export interface AppManifest {
    * The endpoints of the app.
    */
   endpoints?: EndpointManifest[]
+
+  /**
+   * The settings of the app.
+   */
+  settings?: AppSettings
 }

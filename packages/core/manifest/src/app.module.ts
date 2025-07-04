@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { DatabaseConnection } from '@repo/types'
+import { AppManifest, DatabaseConnection } from '@repo/types'
 import { EntitySchema } from 'typeorm'
 import { AuthModule } from './auth/auth.module'
 import { CrudModule } from './crud/crud.module'
@@ -30,6 +30,8 @@ import { EventModule } from './event/event.module'
 
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions'
 import config from './config/config'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { APP_GUARD } from '@nestjs/core'
 
 @Module({
   imports: [
@@ -76,6 +78,22 @@ import config from './config/config'
       },
       inject: [ConfigService, EntityLoaderService, ManifestService]
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule, EntityModule, ManifestModule],
+      useFactory: async (
+        configService: ConfigService,
+        manifestService: ManifestService
+      ) => {
+        await manifestService.loadManifest(
+          configService.get('paths').manifestFile
+        )
+
+        const appManifest: AppManifest = manifestService.getAppManifest()
+
+        return appManifest.settings.rateLimits || []
+      },
+      inject: [ConfigService, ManifestService, EntityLoaderService]
+    }),
     ManifestModule,
     EntityModule,
     SeedModule,
@@ -94,6 +112,12 @@ import config from './config/config'
     SdkModule,
     MiddlewareModule,
     EventModule
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ]
 })
 export class AppModule {

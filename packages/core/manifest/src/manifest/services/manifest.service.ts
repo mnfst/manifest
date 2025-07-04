@@ -17,6 +17,7 @@ import { ConfigService } from '@nestjs/config'
 @Injectable()
 export class ManifestService {
   private appManifest: AppManifest
+  private loadingPromise: Promise<AppManifest> | null = null
 
   constructor(
     private yamlService: YamlService,
@@ -48,14 +49,30 @@ export class ManifestService {
   }
 
   /**
-   * Load the manifest from the file, validate it and transform it to store it in the service.
+   * Load the manifest from the file and store it in the service. Prevents multiple loads at the same time by returning a promise that resolves when the manifest is loaded.
    *
    * @param manifestFilePath The path to the manifest file.
    *
    * @returns void
    *
    **/
-  async loadManifest(manifestFilePath: string): Promise<void> {
+  async loadManifest(manifestFilePath: string): Promise<AppManifest> {
+    if (this.loadingPromise) {
+      return this.loadingPromise
+    }
+
+    return this.doLoadManifest(manifestFilePath)
+  }
+
+  /**
+   * Load the manifest from the file, validate it and transform it to store it in the service.
+   *
+   * @param manifestFilePath The path to the manifest file.
+   *
+   * @returns A promise that resolves when the manifest is loaded.
+   *
+   **/
+  async doLoadManifest(manifestFilePath: string): Promise<AppManifest> {
     const appSchema: Manifest = await this.yamlService.load(manifestFilePath)
 
     this.schemaService.validate(appSchema)
@@ -72,13 +89,16 @@ export class ManifestService {
         }, {}),
       endpoints: this.endpointService.transformEndpointsSchemaObject(
         appSchema.endpoints
-      )
+      ),
+      settings: appSchema.settings || {}
     }
 
     // Add Admin entity.
     appManifest.entities.Admin = ADMIN_ENTITY_MANIFEST
 
     this.appManifest = appManifest
+
+    return this.appManifest
   }
 
   /**

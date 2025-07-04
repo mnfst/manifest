@@ -105,6 +105,7 @@ export interface Manifest {
   endpoints?: {
     [k: string]: EndpointSchema
   }
+  settings?: SettingsSchema
 }
 /**
  * An entity in your system. Doc: https://manifest.build/docs/entities
@@ -499,4 +500,26 @@ export interface PolicySchema1 {
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
    */
   condition?: 'self'
+}
+/**
+ * Application settings configuration
+ */
+export interface SettingsSchema {
+  /**
+   * Rate limiting configuration for your app
+   */
+  rateLimits?: {
+    /**
+     * Name identifier for the rate limit rule
+     */
+    name?: string
+    /**
+     * Maximum number of requests allowed
+     */
+    limit: number
+    /**
+     * Time window in milliseconds for the rate limit
+     */
+    ttl: number
+  }[]
 }
