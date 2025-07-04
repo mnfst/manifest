@@ -15,7 +15,7 @@ import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
 import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 import { getLatestPackageVersion } from '../utils/GetLatestPackageVersion.js'
 import { getBackendFileContent } from '../utils/GetBackendFileContent.js'
-import { input } from '@inquirer/prompts'
+import { input, select } from '@inquirer/prompts'
 import { slugify } from '../utils/helpers.js'
 import chalk from 'chalk'
 
@@ -67,6 +67,7 @@ export default class CreateManifest extends Command {
     // * 1 Create a folder named after the first argument or ask for it.
     const { argv } = await this.parse(CreateManifest)
     let projectName: string = argv[0] as string
+    let isMonorepo: boolean = argv[1] === 'monorepo'
 
     if (!projectName) {
       projectName = await input({
@@ -84,35 +85,74 @@ export default class CreateManifest extends Command {
       })
     }
 
+    if (!isMonorepo) {
+      const projectType = await select({
+        message: 'What type of project would you like to develop?',
+        choices: [
+          {
+            name: 'A full-stack app (monorepo)',
+            value: 'monorepo',
+            description: 'Creates a monorepo with both "web" and "api" folders'
+          },
+          {
+            name: 'A standalone backend',
+            value: 'standalone',
+            description: 'Creates a backend-only project'
+          }
+        ]
+      })
+
+      isMonorepo = projectType === 'monorepo'
+    }
+
     projectName = slugify(projectName)
 
     const spinner = ora(
       `Creating your Manifest project in ${projectName} folder...`
     ).start()
 
-    const projectFolderPath = path.join(process.cwd(), projectName)
+    const rootFolderPath: string = path.join(process.cwd(), projectName)
 
     // Check if the folder already exists
-    if (fs.existsSync(projectFolderPath)) {
+    if (fs.existsSync(rootFolderPath)) {
       spinner.fail(
-        `Error: The "${projectFolderPath}" folder already exists in the current directory. Please find another name.`
+        `Error: The "${rootFolderPath}" folder already exists in the current directory. Please find another name.`
       )
       process.exit(1)
     }
 
-    fs.mkdirSync(projectFolderPath)
+    fs.mkdirSync(rootFolderPath)
+
+    let projectFolderPath: string
+
+    if (isMonorepo) {
+      // If it's a monorepo, create a folder for the project.
+      projectFolderPath = path.join(rootFolderPath, 'api')
+      fs.mkdirSync(projectFolderPath)
+
+      fs.mkdirSync(path.join(rootFolderPath, 'web'))
+    } else {
+      // If it's a standalone backend, use the root folder as the project folder.
+      projectFolderPath = rootFolderPath
+    }
 
     const manifestFolderName = '.manifest'
     const initialFileName = 'manifest.yml'
     const __dirname = path.dirname(fileURLToPath(import.meta.url))
-    const assetFolderPath = path.join(__dirname, '..', '..', 'assets')
+    const assetFolderPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'assets',
+      isMonorepo ? 'monorepo' : 'standalone'
+    )
 
     // * 2. Create a folder with the name `.manifest` for compiled files.
     // Construct the folder path. This example creates the folder in the current working directory.
-    const manifestFolderPath = path.join(projectFolderPath, manifestFolderName)
+    const compiledFolderPath = path.join(projectFolderPath, manifestFolderName)
 
     // Create the folder
-    fs.mkdirSync(manifestFolderPath)
+    fs.mkdirSync(compiledFolderPath)
 
     // * 3. Create a file with the name `manifest.yml`.
     const newFilePath = path.join(projectFolderPath, initialFileName)
@@ -129,24 +169,16 @@ export default class CreateManifest extends Command {
     fs.writeFileSync(newFilePath, content)
 
     spinner.succeed()
-    spinner.start('Updating package.json file...')
+    spinner.start('Creating package.json file...')
 
     // Update package.json file.
     const packagePath = path.join(projectFolderPath, 'package.json')
-    let packageJson
 
-    if (fs.existsSync(packagePath)) {
-      packageJson = parse(fs.readFileSync(packagePath, 'utf8'))
-    } else {
-      packageJson = JSON.parse(
-        fs
-          .readFileSync(
-            path.join(assetFolderPath, 'default-package.json'),
-            'utf8'
-          )
-          .replace('PROJECT_NAME', projectName)
-      )
-    }
+    const packageJson = JSON.parse(
+      fs
+        .readFileSync(path.join(assetFolderPath, 'api-package.json'), 'utf8')
+        .replace('PROJECT_NAME', projectName)
+    )
 
     const manifestLatestVersion: string =
       await getLatestPackageVersion('manifest')
@@ -165,11 +197,30 @@ export default class CreateManifest extends Command {
       })
     )
 
+    if (isMonorepo) {
+      // If it's a monorepo, also update the web package.json file and the root package.json file.
+      const webPackagePath = path.join(rootFolderPath, 'web', 'package.json')
+      fs.writeFileSync(
+        webPackagePath,
+        fs
+          .readFileSync(path.join(assetFolderPath, 'web-package.json'), 'utf8')
+          .replace('PROJECT_NAME', projectName)
+      )
+
+      const rootPackagePath = path.join(rootFolderPath, 'package.json')
+      fs.writeFileSync(
+        rootPackagePath,
+        fs
+          .readFileSync(path.join(assetFolderPath, 'root-package.json'), 'utf8')
+          .replace('PROJECT_NAME', projectName)
+      )
+    }
+
     spinner.succeed()
     spinner.start('Adding settings...')
 
     // Update .vscode/extensions.json file.
-    const vscodeDirPath: string = path.join(projectFolderPath, '.vscode')
+    const vscodeDirPath: string = path.join(rootFolderPath, '.vscode')
     const extensionsFilePath: string = path.join(
       vscodeDirPath,
       'extensions.json'
@@ -231,7 +282,7 @@ export default class CreateManifest extends Command {
       'node_modules',
       '.env',
       'public',
-      'manifest/backend.db' // TODO: Adapt to new folder structure.
+      '.manifest'
     ]
     newGitignoreLines.forEach((line) => {
       if (!gitignoreContent.includes(line)) {
@@ -244,7 +295,7 @@ export default class CreateManifest extends Command {
     spinner.succeed()
 
     // * 9. Add a README.md file if it doesn't exist.
-    const readmeFilePath = path.join(projectFolderPath, 'README.md')
+    const readmeFilePath = path.join(rootFolderPath, 'README.md')
     if (!fs.existsSync(readmeFilePath)) {
       fs.writeFileSync(
         readmeFilePath,
@@ -252,13 +303,26 @@ export default class CreateManifest extends Command {
       )
     }
 
-    // * 10. Add optional files based on flags
+    if (isMonorepo) {
+      // If it's a monorepo, create a README.md file in the web folder and api folder (in addition to the root folder).
+      const webReadmeFilePath = path.join(rootFolderPath, 'web', 'README.md')
+      fs.writeFileSync(
+        webReadmeFilePath,
+        fs.readFileSync(path.join(assetFolderPath, 'web-readme.md'), 'utf8')
+      )
+      const apiReadmeFilePath = path.join(rootFolderPath, 'api', 'README.md')
+      fs.writeFileSync(
+        apiReadmeFilePath,
+        fs.readFileSync(path.join(assetFolderPath, 'api-readme.md'), 'utf8')
+      )
+    }
 
+    // * 10. Add optional files based on flags
     // Add rules for IDEs.
     if (flags.cursor) {
       spinner.start('Adding rules for Cursor IDE...')
 
-      const cursorFolderPath = path.join(projectFolderPath, '.cursor', 'rules')
+      const cursorFolderPath = path.join(rootFolderPath, '.cursor', 'rules')
       const cursorFileName = 'manifest.mdc'
 
       fs.mkdirSync(cursorFolderPath, { recursive: true })
@@ -291,7 +355,7 @@ export default class CreateManifest extends Command {
     if (flags.copilot) {
       spinner.start('Adding rules for Copilot IDE...')
 
-      const copilotFolderPath = path.join(projectFolderPath, '.github')
+      const copilotFolderPath = path.join(rootFolderPath, '.github')
       const copilotFileName = 'copilot-instructions.md'
 
       fs.mkdirSync(copilotFolderPath, { recursive: true })
@@ -322,11 +386,7 @@ export default class CreateManifest extends Command {
     if (flags.windsurf) {
       spinner.start('Adding rules for WindSurf IDE...')
 
-      const windsurfFolderPath = path.join(
-        projectFolderPath,
-        '.windsurf',
-        'rules'
-      )
+      const windsurfFolderPath = path.join(rootFolderPath, '.windsurf', 'rules')
       const windsurfFileName = 'manifest.md'
 
       fs.mkdirSync(windsurfFolderPath, { recursive: true })

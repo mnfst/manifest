@@ -8,7 +8,7 @@ In the project directory, you can run:
 
 ```
 npm i
-npm run manifest
+npm run start
 ```
 
 Runs the app in the development mode.\
@@ -17,15 +17,15 @@ Open [http://localhost:1111/api](http://localhost:1111/api) to view the REST API
 
 The page will reload when you make changes.
 
-````
-npm manifest:seed
+```
+npm run seed
 ```
 
 Seeds dummy data for your entities and properties. This commands deletes the previous data.
 
 ## Access to the admin panel
 
-**EMAIL:** admin@manifest.build  
+**EMAIL:** admin@manifest.build
 **PASSWORD:** admin
 
 ## Learn More

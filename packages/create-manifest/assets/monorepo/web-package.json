@@ -1,0 +1,10 @@
+{
+  "name": "@PROJECT_NAME/web",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "echo 'Add your frontend framework here'",
+    "build": "echo 'Add your build command here'"
+  }
+}

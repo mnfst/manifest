@@ -13,3 +13,4 @@ oclif.lock
 oclif.manifest.json
 
 /test-folder/*
+!/test-folder/.gitkeep

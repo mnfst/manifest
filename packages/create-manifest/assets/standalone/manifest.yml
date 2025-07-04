@@ -1,0 +1,34 @@
+# This is a sample file for a manifest.yml manifest backend.
+# Read more about the manifest format here: https:/manifest.build/docs
+
+name: My pet app 🐾
+entities:
+  Owner:
+    properties:
+      - name
+      - { name: birthdate, type: date }
+    policies:
+      read:
+        - access: public
+
+  Cat:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+    belongsTo:
+      - Owner
+    policies:
+      read:
+        - access: public
+
+  Homepage:
+    nameSingular: Home content
+    single: true
+    properties:
+      - title
+      - { name: description, type: richText }
+      - { name: cover, type: image }
+    policies:
+      read:
+        - access: public
