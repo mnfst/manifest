@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.3.0
+
+### Minor Changes
+
+- 2a95bd4: added monorepo folder structure option
+
 ## 1.2.1
 
 ### Patch Changes
