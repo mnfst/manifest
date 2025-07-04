@@ -15,7 +15,7 @@ import { updatePackageJsonFile } from '../utils/UpdatePackageJsonFile.js'
 import { updateSettingsJsonFile } from '../utils/UpdateSettingsJsonFile.js'
 import { getLatestPackageVersion } from '../utils/GetLatestPackageVersion.js'
 import { getBackendFileContent } from '../utils/GetBackendFileContent.js'
-import { input, select } from '@inquirer/prompts'
+import { input } from '@inquirer/prompts'
 import { slugify } from '../utils/helpers.js'
 import chalk from 'chalk'
 
@@ -67,7 +67,8 @@ export default class CreateManifest extends Command {
     // * 1 Create a folder named after the first argument or ask for it.
     const { argv } = await this.parse(CreateManifest)
     let projectName: string = argv[0] as string
-    let isMonorepo: boolean = argv[1] === 'monorepo'
+    // let isMonorepo: boolean = argv[1] === 'monorepo'
+    const isMonorepo = false // Hide this feature.
 
     if (!projectName) {
       projectName = await input({
@@ -85,25 +86,25 @@ export default class CreateManifest extends Command {
       })
     }
 
-    if (!isMonorepo) {
-      const projectType = await select({
-        message: 'What type of project would you like to develop?',
-        choices: [
-          {
-            name: 'A full-stack app (monorepo)',
-            value: 'monorepo',
-            description: 'Creates a monorepo with both "web" and "api" folders'
-          },
-          {
-            name: 'A standalone backend',
-            value: 'standalone',
-            description: 'Creates a backend-only project'
-          }
-        ]
-      })
+    // if (!isMonorepo) {
+    //   const projectType = await select({
+    //     message: 'What type of project would you like to develop?',
+    //     choices: [
+    //       {
+    //         name: 'A full-stack app (monorepo)',
+    //         value: 'monorepo',
+    //         description: 'Creates a monorepo with both "web" and "api" folders'
+    //       },
+    //       {
+    //         name: 'A standalone backend',
+    //         value: 'standalone',
+    //         description: 'Creates a backend-only project'
+    //       }
+    //     ]
+    //   })
 
-      isMonorepo = projectType === 'monorepo'
-    }
+    //   isMonorepo = projectType === 'monorepo'
+    // }
 
     projectName = slugify(projectName)
 
