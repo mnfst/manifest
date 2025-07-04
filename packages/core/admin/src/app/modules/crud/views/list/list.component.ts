@@ -21,7 +21,7 @@ import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-firs
   styleUrls: ['./list.component.scss']
 })
 export class ListComponent implements OnInit {
-  paginator: Paginator<{ [key: string]: any }>
+  paginator: Paginator<{ [key: string]: any }> | null = null
   loadingPaginator: boolean
   itemToDelete: { [key: string]: any }
 
@@ -71,13 +71,18 @@ export class ListComponent implements OnInit {
       )
 
       this.loadingPaginator = true
-      this.paginator = await this.crudService.list(this.entityManifest.slug, {
-        filters: this.queryParams,
-        relations: this.entityManifest.relationships
-          ?.filter((r) => r.type !== 'one-to-many')
-          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
-          .map((relation: RelationshipManifest) => relation.name)
-      })
+      this.paginator = await this.crudService
+        .list(this.entityManifest.slug, {
+          filters: this.queryParams,
+          relations: this.entityManifest.relationships
+            ?.filter((r) => r.type !== 'one-to-many')
+            .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+            .map((relation: RelationshipManifest) => relation.name)
+        })
+        .catch(() => {
+          this.loadingPaginator = false
+          return null
+        })
       this.loadingPaginator = false
     })
   }
