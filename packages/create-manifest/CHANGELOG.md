@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.3.1
+
+### Patch Changes
+
+- c2e1074: temporary remove monorepo option
+
 ## 1.3.0
 
 ### Minor Changes
