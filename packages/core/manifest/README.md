@@ -56,7 +56,7 @@ Create a new Manifest project by running:
 
 ```bash
 # NPM
-npx create manifest@latest
+npx create-manifest@latest
 
 # Yarn
 yarn create manifest

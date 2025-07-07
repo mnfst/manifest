@@ -77,7 +77,7 @@ Run this command to create a new project with Manifest, specifying your AI-power
 
 ```bash
 # NPM
-npx create manifest@latest my-project --cursor
+npx create-manifest@latest my-project --cursor
 
 # Yarn
 yarn create manifest my-project --cursor
