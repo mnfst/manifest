@@ -8,6 +8,6 @@
     "seed": "node node_modules/manifest/dist/manifest/src/seed/scripts/seed.js"
   },
   "dependencies": {
-    "manifest": "^4.14"
+    "manifest": "^4.16.1"
   }
 }
