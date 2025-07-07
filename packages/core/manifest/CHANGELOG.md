@@ -1,5 +1,11 @@
 # manifest
 
+## 4.16.1
+
+### Patch Changes
+
+- d15fb95: update readme commands
+
 ## 4.16.0
 
 ### Minor Changes
