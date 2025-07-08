@@ -1,4 +1,4 @@
-import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
+import { BaseEntity, ConceptManifest, RelationshipManifest } from '@repo/types'
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { EntitySchemaRelationOptions, In, Repository } from 'typeorm'
 import { EntityService } from './entity.service'
@@ -16,11 +16,11 @@ export class RelationshipService {
   /**
    * Get the TypeORM EntitySchemaRelationOptions for a given entity based on its relationships.
    *
-   * @param entityManifest The entity manifest to get the relationships for.
+   * @param conceptManifest The entity manifest to get the relationships for.
    *
    * @returns The EntitySchemaRelationOptions for the given entity.
    * */
-  getEntitySchemaRelationOptions(entityManifest: EntityManifest): {
+  getEntitySchemaRelationOptions(conceptManifest: ConceptManifest): {
     [key: string]: EntitySchemaRelationOptions
   } {
     const relationOptions: {
@@ -28,7 +28,7 @@ export class RelationshipService {
     } = {}
 
     // Get the many-to-one relationships.
-    entityManifest.relationships
+    ;(conceptManifest['relationships'] || [])
       .filter(
         (relationship: RelationshipManifest) =>
           relationship.type === 'many-to-one'
@@ -42,7 +42,7 @@ export class RelationshipService {
       })
 
     // Get the many-to-many relationships.
-    entityManifest.relationships
+    ;(conceptManifest['relationships'] || [])
       .filter(
         (relationship: RelationshipManifest) =>
           relationship.type === 'many-to-many'
@@ -58,13 +58,13 @@ export class RelationshipService {
         // If this is the owning side of the relationship, we need to set the join table name.
         if (manyToManyRelationShip.owningSide) {
           relationOptions[manyToManyRelationShip.name].joinTable = {
-            name: `${camelize(entityManifest.className)}_${pluralize.singular(manyToManyRelationShip.name)}`
+            name: `${camelize(conceptManifest.className)}_${pluralize.singular(manyToManyRelationShip.name)}`
           }
         }
       })
 
     // Get the one-to-many relationships.
-    entityManifest.relationships
+    ;(conceptManifest['relationships'] || [])
       .filter(
         (relationship: RelationshipManifest) =>
           relationship.type === 'one-to-many'
@@ -79,6 +79,10 @@ export class RelationshipService {
           inverseSide: oneToManyRelationship.inverseSide
         }
       })
+
+    // Transform groups into one-to-many relationships.
+
+    // TODO: Each group is a oneToMany relationship with the entity.
 
     return relationOptions
   }

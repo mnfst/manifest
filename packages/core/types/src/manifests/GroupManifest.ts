@@ -1,4 +1,5 @@
 import { PropertyManifest } from './PropertyManifest'
+import { RelationshipManifest } from './RelationshipManifest'
 
 export interface GroupManifest {
   /**
@@ -12,7 +13,12 @@ export interface GroupManifest {
   nameSingular: string
 
   /**
-   * The properties of the entity.
+   * The properties of the group.
    */
   properties: PropertyManifest[]
+
+  /**
+   * The relationships of the group.
+   */
+  relationships: RelationshipManifest[]
 }

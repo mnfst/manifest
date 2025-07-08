@@ -35,4 +35,9 @@ export type RelationshipManifest = {
    * The inverse side of the relationship.
    */
   inverseSide?: string
+
+  /**
+   * Whether this related entity is a group.
+   */
+  isGroup?: boolean
 }

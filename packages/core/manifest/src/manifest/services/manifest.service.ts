@@ -93,7 +93,7 @@ export class ManifestService {
         appSchema.endpoints
       ),
       groups: this.groupManifestService
-        .transformGroupManifests(appSchema.groups || {})
+        .transformGroupManifests(appSchema)
         .reduce((acc, entityManifest: EntityManifest) => {
           acc[entityManifest.className] = entityManifest
           return acc

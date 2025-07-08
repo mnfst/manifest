@@ -17,7 +17,6 @@ import {
 } from 'typeorm'
 import { sqlitePropTypeColumnTypes } from '../columns/sqlite-prop-type-column-types'
 import { RelationshipService } from './relationship.service'
-import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { mysqlPropTypeColumnTypes } from '../columns/mysql-prop-type-column-types'
 import { postgresPropTypeColumnTypes } from '../columns/postgres-prop-type-column-types copy'
 import { ColumnService } from './column.service'
@@ -31,7 +30,6 @@ type ConceptManifest = EntityManifest | GroupManifest
 @Injectable()
 export class EntityLoaderService {
   constructor(
-    private entityManifestService: EntityManifestService,
     private manifestService: ManifestService,
     private relationshipService: RelationshipService
   ) {}
@@ -115,11 +113,9 @@ export class EntityLoaderService {
               : { ...this.getBaseEntityColumns(dbConnection) }
           ) as { [key: string]: EntitySchemaColumnOptions },
           relations:
-            typeof conceptManifest['relationships'] === 'object'
-              ? this.relationshipService.getEntitySchemaRelationOptions(
-                  conceptManifest as EntityManifest
-                )
-              : {},
+            this.relationshipService.getEntitySchemaRelationOptions(
+              conceptManifest
+            ),
           uniques: conceptManifest['authenticable']
             ? [{ columns: ['email'] }]
             : []

@@ -4,78 +4,26 @@
 name: Pokemon app 🐣
 
 entities:
-  Pokemon 🐉:
+  Parent:
     properties:
       - name
-      - {
-          name: type,
-          type: choice,
-          options: { values: [Fire, Water, Grass, Electric] }
-        }
-      - { name: level, type: number }
+
+  Service:
+    properties:
+      - name
+      - { name: description }
+      - { name: testimonials, type: group, options: { group: Testimonial } }
+    policies:
+      create:
+        - { access: restricted, allow: [Service] }
     belongsTo:
-      - Trainer
-    belongsToMany:
-      - Fruit
+      - Parent
 
-  Fruit:
+groups:
+  Testimonial:
     properties:
-      - name
-    policies:
-      create:
-        - { access: restricted, allow: [Trainer, User] }
-      read:
-        - { access: restricted, allow: Trainer }
-      update:
-        - access: public
-      delete:
-        - access: public
-
-  Trainer 🧑‍🎤:
-    authenticable: true
-    properties:
-      - name
-      - { name: isChampion, type: boolean }
-    policies:
-      create:
-        - access: public
-      read:
-        - access: public
-      update:
-        - access: public
-      delete:
-        - access: public
-
-  Dog:
-    belongsTo:
-      - Trainer
-    belongsToMany:
-      - Fruit
-    properties:
-      - name
-      - { name: description, type: text }
-      - { name: age, type: number }
-      - { name: website, type: link }
-      - { name: price, type: money, options: { currency: EUR } }
-      - { name: birthdate, type: date }
-      - { name: isGoodBoy, type: boolean }
-      - { name: acquiredAt, type: timestamp }
-      - { name: password, type: password }
-      - { name: email, type: email }
-      - {
-          name: favoriteToy,
-          type: choice,
-          options: { values: [ball, bone, frisbee] }
-        }
-      - { name: location, type: location }
-      - { name: certificate, type: file }
-      - { name: photo, type: image }
-    policies:
-      create:
-        - access: public
-      read:
-        - access: public
-      update:
-        - access: public
-      delete:
-        - access: public
+      - { name: author, type: text }
+      - { name: content, type: text }
+      - { name: rating, type: number }
+    validation:
+      rating: { isNotEmpty: true }

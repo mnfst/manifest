@@ -185,7 +185,7 @@ export class SchemaService {
     ]
 
     keys.forEach((key) => {
-      if (policies[key]) {
+      if (policies?.[key]) {
         result.push(...policies[key]!)
       }
     })
