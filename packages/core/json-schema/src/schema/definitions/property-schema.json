@@ -29,7 +29,8 @@
             "choice",
             "location",
             "file",
-            "image"
+            "image",
+            "group"
           ]
         },
         "helpText": {
@@ -80,6 +81,15 @@
               },
               "then": {
                 "$ref": "./property-options/image-options-schema.json"
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "group" } }
+              },
+              "then": {
+                "$ref": "./property-options/group-options-schema.json"
               }
             }
           ]
