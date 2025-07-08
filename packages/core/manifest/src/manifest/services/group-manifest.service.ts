@@ -17,6 +17,14 @@ export class GroupManifestService {
     private readonly propertyManifestService: PropertyManifestService
   ) {}
 
+  /**
+   * Transforms an AppSchema into an array of GroupManifest
+   *
+   * @param appSchema
+   *
+   * @returns an array of GroupManifest
+   *
+   */
   transformGroupManifests(appSchema: Manifest): GroupManifest[] {
     return Object.entries(appSchema.groups).map(
       ([className, schema]: [string, GroupSchema]) => {
@@ -32,7 +40,8 @@ export class GroupManifestService {
                 relationships.push({
                   name: camelize(entityClassName),
                   entity: entityClassName,
-                  type: 'many-to-one'
+                  type: 'many-to-one',
+                  inverseSide: property['name']
                 })
               }
             })

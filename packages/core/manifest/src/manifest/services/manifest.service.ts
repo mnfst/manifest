@@ -6,7 +6,8 @@ import {
   AppManifest,
   Manifest,
   EntityManifest,
-  EntitySchema
+  EntitySchema,
+  GroupManifest
 } from '@repo/types'
 
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
@@ -79,12 +80,16 @@ export class ManifestService {
 
     this.schemaService.validate(appSchema)
 
+    // Get first the groups as we are going to need them for building the entities.
+    const groupManifests: GroupManifest[] =
+      this.groupManifestService.transformGroupManifests(appSchema)
+
     const appManifest: AppManifest = {
       ...appSchema,
       version: appSchema.version || '0.0.1',
       production: this.configService.get('NODE_ENV') === 'production',
       entities: this.entityManifestService
-        .transformEntityManifests(appSchema.entities)
+        .transformEntityManifests(appSchema.entities, groupManifests)
         .reduce((acc, entityManifest: EntityManifest) => {
           acc[entityManifest.className] = entityManifest
           return acc
@@ -92,12 +97,10 @@ export class ManifestService {
       endpoints: this.endpointService.transformEndpointsSchemaObject(
         appSchema.endpoints
       ),
-      groups: this.groupManifestService
-        .transformGroupManifests(appSchema)
-        .reduce((acc, entityManifest: EntityManifest) => {
-          acc[entityManifest.className] = entityManifest
-          return acc
-        }, {}),
+      groups: groupManifests.reduce((acc, entityManifest: EntityManifest) => {
+        acc[entityManifest.className] = entityManifest
+        return acc
+      }, {}),
       settings: appSchema.settings || {}
     }
 
