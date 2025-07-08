@@ -30,7 +30,7 @@
       "type": "integer"
     },
     "authenticable": {
-      "description": "Whether the entity is authenticable. Doc: https://manifest.build/docs/auth",
+      "description": "Whether the entity is authenticable. Doc: https://manifest.build/docs/authentication#authenticable-entities",
       "type": "boolean"
     },
     "single": {
@@ -39,7 +39,7 @@
       "default": false
     },
     "properties": {
-      "description": "The properties of the entity. Doc: https://manifest.build/docs/entities",
+      "description": "The properties of the entity. Doc: https://manifest.build/docs/entities#properties",
       "type": "array",
       "items": {
         "$ref": "property-schema.json"
@@ -53,14 +53,14 @@
       }
     },
     "belongsToMany": {
-      "description": "The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/relations",
+      "description": "The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/entities#relations",
       "type": "array",
       "items": {
         "$ref": "relationship-schema.json"
       }
     },
     "policies": {
-      "description": "The policies of the entity. Doc: https://manifest.build/docs/policies",
+      "description": "The policies of the entity. Doc: https://manifest.build/docs/access",
       "type": "object",
       "$ref": "./policies/policies-schema.json"
     },
