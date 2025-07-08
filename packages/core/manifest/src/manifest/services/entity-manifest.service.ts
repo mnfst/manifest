@@ -12,10 +12,8 @@ import {
   HookManifest,
   HooksSchema,
   PropType,
-  PropertyManifest,
   PropertySchema,
   RelationshipSchema,
-  ValidationManifest,
   EntityManifestCommonFields,
   crudEventNames,
   MiddlewaresSchema,
@@ -28,7 +26,6 @@ import { RelationshipManifestService } from './relationship-manifest.service'
 import {
   ADMIN_ACCESS_POLICY,
   AUTHENTICABLE_PROPS,
-  DEFAULT_IMAGE_SIZES,
   DEFAULT_SEED_COUNT,
   FORBIDDEN_ACCESS_POLICY,
   PUBLIC_ACCESS_POLICY
@@ -37,6 +34,7 @@ import {
 import { ManifestService } from './manifest.service'
 import { HookService } from '../../hook/hook.service'
 import { PolicyService } from '../../policy/policy.service'
+import { PropertyManifestService } from './property-manifest.service'
 
 @Injectable()
 export class EntityManifestService {
@@ -44,6 +42,7 @@ export class EntityManifestService {
     private relationshipManifestService: RelationshipManifestService,
     @Inject(forwardRef(() => ManifestService))
     private manifestService: ManifestService,
+    private propertyManifestService: PropertyManifestService,
     private hookService: HookService,
     private policyService: PolicyService
   ) {}
@@ -159,7 +158,10 @@ export class EntityManifestService {
               (propSchema as { name: string }).name !== 'id'
           )
           .map((propSchema: PropertySchema) =>
-            this.transformProperty(propSchema, entitySchema)
+            this.propertyManifestService.transformPropertyManifest(
+              propSchema,
+              entitySchema
+            )
           ),
         hooks: this.transformHookObject(entitySchema.hooks),
         middlewares: entitySchema.middlewares || {}
@@ -315,51 +317,6 @@ export class EntityManifestService {
         delete: [FORBIDDEN_ACCESS_POLICY],
         signup: [FORBIDDEN_ACCESS_POLICY]
       }
-    }
-  }
-
-  /**
-   *
-   * Transform  PropertySchema into a PropertyManifest.
-   *
-   * @param propSchema the property schema.
-   * @param entitySchema the entity schema to which the property belongs.
-   *
-   *
-   * @returns the property with the short form properties transformed into long form.
-   *
-   */
-  transformProperty(
-    propSchema: PropertySchema,
-    entitySchema: EntitySchema
-  ): PropertyManifest {
-    // Short syntax.
-    if (typeof propSchema === 'string') {
-      return {
-        name: propSchema,
-        type: PropType.String,
-        hidden: false,
-        validation:
-          (entitySchema.validation?.[propSchema] as ValidationManifest) || {}
-      }
-    }
-
-    return {
-      name: propSchema.name,
-      type: (propSchema.type as PropType) || PropType.String,
-      hidden: propSchema.hidden || false,
-      options:
-        propSchema.options ||
-        (propSchema.type === PropType.Image
-          ? { sizes: DEFAULT_IMAGE_SIZES }
-          : {}),
-      validation: Object.assign(
-        (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
-          {},
-        propSchema.validation
-      ),
-      helpText: propSchema.helpText || '',
-      default: propSchema.default
     }
   }
 

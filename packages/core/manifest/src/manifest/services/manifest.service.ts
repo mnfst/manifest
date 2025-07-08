@@ -13,6 +13,7 @@ import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from './entity-manifest.service'
 import { EndpointService } from '../../endpoint/endpoint.service'
 import { ConfigService } from '@nestjs/config'
+import { GroupManifestService } from './group-manifest.service'
 
 @Injectable()
 export class ManifestService {
@@ -24,6 +25,7 @@ export class ManifestService {
     private schemaService: SchemaService,
     @Inject(forwardRef(() => EntityManifestService))
     private entityManifestService: EntityManifestService,
+    private groupManifestService: GroupManifestService,
     private endpointService: EndpointService,
     private readonly configService: ConfigService
   ) {}
@@ -90,6 +92,12 @@ export class ManifestService {
       endpoints: this.endpointService.transformEndpointsSchemaObject(
         appSchema.endpoints
       ),
+      groups: this.groupManifestService
+        .transformGroupManifests(appSchema.groups || {})
+        .reduce((acc, entityManifest: EntityManifest) => {
+          acc[entityManifest.className] = entityManifest
+          return acc
+        }, {}),
       settings: appSchema.settings || {}
     }
 

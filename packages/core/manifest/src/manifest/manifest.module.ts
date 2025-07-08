@@ -10,6 +10,8 @@ import { ManifestService } from './services/manifest.service'
 import { HookModule } from '../hook/hook.module'
 import { PolicyModule } from '../policy/policy.module'
 import { EndpointModule } from '../endpoint/endpoint.module'
+import { GroupManifestService } from './services/group-manifest.service'
+import { PropertyManifestService } from './services/property-manifest.service'
 
 /**
  *
@@ -31,6 +33,8 @@ import { EndpointModule } from '../endpoint/endpoint.module'
     YamlService,
     SchemaService,
     EntityManifestService,
+    GroupManifestService,
+    PropertyManifestService,
     RelationshipManifestService
   ],
   controllers: [ManifestController],

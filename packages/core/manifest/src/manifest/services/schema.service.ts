@@ -6,7 +6,8 @@ import {
   EntitySchema,
   PropertySchema,
   PoliciesSchema,
-  PolicySchema
+  PolicySchema,
+  GroupSchema
 } from '@repo/types'
 import Ajv from 'ajv'
 import schemas from '@repo/json-schema'
@@ -143,6 +144,26 @@ export class SchemaService {
           )
 
           console.log(chalk.red(`Group ${propertyGroup} does not exist`))
+          process.exit(1)
+        }
+      })
+    })
+
+    // Validate that groups cannot have nested group properties.
+    Object.values(manifest.groups || {}).forEach((group: GroupSchema) => {
+      group.properties.forEach((property: PropertySchema) => {
+        if (typeof property === 'string') {
+          return
+        }
+
+        if (property.type === 'group') {
+          console.log(
+            chalk.red(
+              'JSON Schema Validation failed. Please fix the following:'
+            )
+          )
+
+          console.log(chalk.red(`Groups cannot have nested group properties.`))
           process.exit(1)
         }
       })
