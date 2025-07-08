@@ -1,8 +1,10 @@
 import {
+  AppManifest,
   AuthenticableEntity,
   BaseEntity,
   DatabaseConnection,
   EntityManifest,
+  GroupManifest,
   PropType,
   PropertyManifest
 } from '@repo/types'
@@ -22,11 +24,15 @@ import { ColumnService } from './column.service'
 import { BooleanTransformer } from '../transformers/boolean-transformer'
 import { NumberTransformer } from '../transformers/number-transformer'
 import { TimestampTransformer } from '../transformers/timestamp-transformer'
+import { ManifestService } from '../../manifest/services/manifest.service'
+
+type ConceptManifest = EntityManifest | GroupManifest
 
 @Injectable()
 export class EntityLoaderService {
   constructor(
     private entityManifestService: EntityManifestService,
+    private manifestService: ManifestService,
     private relationshipService: RelationshipService
   ) {}
 
@@ -39,8 +45,15 @@ export class EntityLoaderService {
    *
    **/
   loadEntities(dbConnection: DatabaseConnection): EntitySchema[] {
-    const entityManifests: EntityManifest[] =
-      this.entityManifestService.getEntityManifests({ fullVersion: true })
+    const appManifest: AppManifest = this.manifestService.getAppManifest({
+      fullVersion: true
+    })
+
+    // Get all entities and groups from the manifest.
+    const entitiesAndGroups: ConceptManifest[] = [
+      ...Object.values(appManifest.entities),
+      ...Object.values(appManifest.groups)
+    ]
 
     // Set column types based on the database connection.
     let columns: Record<PropType, ColumnType>
@@ -58,13 +71,13 @@ export class EntityLoaderService {
     }
 
     // Convert Manifest Entities to TypeORM Entities.
-    const entitySchemas: EntitySchema[] = entityManifests.map(
-      (entityManifest: EntityManifest) => {
+    const entitySchemas: EntitySchema[] = entitiesAndGroups.map(
+      (conceptManifest: ConceptManifest) => {
         const entitySchema: EntitySchema = new EntitySchema({
-          name: entityManifest.className,
+          name: conceptManifest.className,
 
           // Convert properties to columns.
-          columns: entityManifest.properties.reduce(
+          columns: conceptManifest.properties.reduce(
             (
               acc: { [key: string]: EntitySchemaColumnOptions },
               propManifest: PropertyManifest
@@ -97,15 +110,19 @@ export class EntityLoaderService {
               return acc
             },
             // Merge with base entities for base columns.
-            entityManifest.authenticable
+            conceptManifest['authenticable']
               ? { ...this.getBaseAuthenticableEntityColumns(dbConnection) }
               : { ...this.getBaseEntityColumns(dbConnection) }
           ) as { [key: string]: EntitySchemaColumnOptions },
           relations:
-            this.relationshipService.getEntitySchemaRelationOptions(
-              entityManifest
-            ),
-          uniques: entityManifest.authenticable ? [{ columns: ['email'] }] : []
+            typeof conceptManifest['relationships'] === 'object'
+              ? this.relationshipService.getEntitySchemaRelationOptions(
+                  conceptManifest as EntityManifest
+                )
+              : {},
+          uniques: conceptManifest['authenticable']
+            ? [{ columns: ['email'] }]
+            : []
         })
 
         return entitySchema
