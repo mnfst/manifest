@@ -64,6 +64,8 @@
                   ></app-input>
                 </div>
               </div>
+
+              <!-- Relations -->
               <div
                 class="field mt-2 mb-4"
                 *ngFor="let relationship of entityManifest.relationships"
@@ -87,6 +89,47 @@
                       })
                     "
                   ></app-input>
+                </div>
+              </div>
+
+              <!-- Groups (nested relations)-->
+              <div
+                class="field mt-2 mb-4"
+                *ngFor="let relationship of entityManifest.relationships"
+              >
+                <div class="control" *ngIf="relationship.nested">
+                  <h2 class="title is-2">{{ relationship.name }}</h2>
+                  <button
+                    class="button is-primary is-small"
+                    type="button"
+                    (click)="addNestedItem(relationship)"
+                  >
+                    <span class="icon is-small">
+                      <i class="icon icon-plus"></i>
+                    </span>
+                    <span>Add {{ relationship.entity }}</span>
+                  </button>
+
+                  <p *ngIf="getFormArray(relationship.name).length === 0">
+                    No items added yet. Click on "Add {{ relationship.entity }}"
+                    to create a new item.
+                  </p>
+
+                  <div
+                    class="card nested-item"
+                    *ngFor="
+                      let nestedItem of getFormArray(relationship.name)
+                        .controls;
+                      let i = index
+                    "
+                  >
+                    <button
+                      class="delete is-small"
+                      type="button"
+                      (click)="removeNestedItem(relationship, i)"
+                    ></button>
+                    {{ i }}
+                  </div>
                 </div>
               </div>
             </div>

@@ -150,6 +150,7 @@ export class RelationshipManifestService {
           name: camelize(oppositeRelationship.entity.namePlural),
           entity: oppositeRelationship.entity.className,
           eager: oppositeRelationship.entity.nested,
+          nested: oppositeRelationship.entity.nested,
           type: 'one-to-many',
           inverseSide: oppositeRelationship.relationship.name
         }

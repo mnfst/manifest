@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Data, Params, Router } from '@angular/router'
 import {
   BaseEntity,
@@ -80,7 +80,7 @@ export class CreateEditComponent {
               }
             )
           }
-        } catch (err) {
+        } catch (_err) {
           this.router.navigate(['/404'])
         }
         this.metaService.setTitle(`Edit ${this.entityManifest.nameSingular}`)
@@ -103,6 +103,7 @@ export class CreateEditComponent {
         this.form.addControl(prop.name, new FormControl(value))
       })
 
+      // Show relationships in the form for many-to-one and many-to-many (owning side only).
       this.entityManifest.relationships
         .filter((r) => r.type !== 'one-to-many')
         .filter((r) => r.type !== 'many-to-many' || r.owningSide)
@@ -122,6 +123,26 @@ export class CreateEditComponent {
             new FormControl(value)
           )
         })
+
+      // Show nested relationships in the form.
+      this.entityManifest.relationships
+        .filter((r) => r.nested)
+        .forEach(async (relationship: RelationshipManifest) => {
+          // Get entity manifest.
+          const nestedEntityManifest: EntityManifest =
+            await this.manifestService.getEntityManifest({
+              className: relationship.entity
+            })
+          console.log(
+            `Nested entity manifest for ${relationship.name}:`,
+            nestedEntityManifest
+          )
+
+          // Generate form array for nested items
+          this.form.addControl(relationship.name, this.formBuilder.array([]))
+        })
+
+      console.log(this.form.value)
     })
   }
 
@@ -217,6 +238,58 @@ export class CreateEditComponent {
     }
   }
 
+  /**
+   * Add a new item to a nested relationship.
+   *
+   * @param relationship the relationship manifest
+   */
+  async addNestedItem(relationship: RelationshipManifest): Promise<void> {
+    const nestedFormArray: FormArray = this.form.get(
+      relationship.name
+    ) as FormArray
+    const nestedEntityManifest: EntityManifest =
+      await this.manifestService.getEntityManifest({
+        className: relationship.entity
+      })
+
+    // Create a new form group for the nested item
+    const newNestedItem = this.formBuilder.group({})
+
+    // Add properties to the nested item form group
+    nestedEntityManifest.properties.forEach((prop: PropertyManifest) => {
+      newNestedItem.addControl(prop.name, new FormControl(null))
+    })
+
+    // Add the new nested item to the form array
+    nestedFormArray.push(newNestedItem)
+
+    console.log(this.form.value)
+  }
+
+  /**
+   * Remove a nested item from the form array.
+   *
+   * @param relationship the relationship manifest
+   * @param index the index of the item to remove
+   */
+  removeNestedItem(relationship: RelationshipManifest, index: number): void {
+    const nestedFormArray: FormArray = this.form.get(
+      relationship.name
+    ) as FormArray
+    nestedFormArray.removeAt(index)
+    console.log(this.form.value)
+  }
+
+  getFormArray(relationshipName: string): FormArray {
+    return this.form.get(relationshipName) as FormArray
+  }
+
+  /**
+   * Get error messages from validation errors.
+   *
+   * @param validationErrors the validation errors
+   * @returns an object with property names as keys and an array of error messages as values
+   */
   getErrorMessages(validationErrors: ValidationError[]): {
     [name: string]: string[]
   } {
