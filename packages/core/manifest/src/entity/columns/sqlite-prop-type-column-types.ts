@@ -18,5 +18,5 @@ export const sqlitePropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Location]: 'json',
   [PropType.File]: 'varchar',
   [PropType.Image]: 'json',
-  [PropType.Group]: 'varchar' // Will be overridden afterwards.
+  [PropType.Nested]: 'varchar' // Will be overridden afterwards.
 }

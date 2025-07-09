@@ -79,20 +79,17 @@ export class ManifestService {
 
     const appManifest: AppManifest = {
       name: appSchema.name || 'Manifest App',
-      version: appSchema.version || '0.0.1',
+      version: appSchema.version || '1.0.0',
       production: this.configService.get('NODE_ENV') === 'production',
-      entities: [
-        ...this.entityManifestService.transformEntityManifests(
-          appSchema.entities || {}
-        ),
-        ...this.entityManifestService.transformEntityManifests(
-          appSchema.groups || {},
-          true // Mark groups as nested entities
-        )
-      ].reduce((acc, entityManifest: EntityManifest) => {
-        acc[entityManifest.className] = entityManifest
-        return acc
-      }, {}),
+      entities: this.entityManifestService
+        .transformEntityManifests({
+          entities: appSchema.entities || {},
+          groups: appSchema.groups || {}
+        })
+        .reduce((acc, entityManifest: EntityManifest) => {
+          acc[entityManifest.className] = entityManifest
+          return acc
+        }, {}),
       endpoints: this.endpointService.transformEndpointsSchemaObject(
         appSchema.endpoints
       ),

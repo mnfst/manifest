@@ -21,5 +21,5 @@ export const propTypeTsType: Record<PropType, TsType> = {
   [PropType.Location]: '{ lat: number; lng: number }',
   [PropType.File]: 'string',
   [PropType.Image]: 'string', // Will be overridden with sizes
-  [PropType.Group]: 'string' // Will be overridden afterwards
+  [PropType.Nested]: 'string' // Will be overridden afterwards
 }

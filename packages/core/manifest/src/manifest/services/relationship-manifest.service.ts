@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import {
   EntityManifest,
   PropertyManifest,
+  PropType,
   RelationshipManifest,
   RelationshipSchema
 } from '../../../../types/src'
@@ -66,23 +67,39 @@ export class RelationshipManifestService {
   }
 
   /**
-   * Transform a "group" property manifest into a relationship manifest.
-   * This is used for group properties to create a relationship to the group entity.
+   * Generate the ManyToOne relationships from the nested properties of the entity schema.
    *
-   * @param property The property manifest to transform.
+   * @param nestedEntitySchema The entity schema that contains the nested properties.
+   * @param allEntitySchemas The list of all entity schemas to search for nested properties.
    *
-   * @returns The relationship manifest.
+   * @returns The ManyToOne relationships generated from the nested properties.
    */
-  transformGroupPropertyIntoRelationship(
-    property: PropertyManifest
-  ): RelationshipManifest {
-    return {
-      name: camelize(property.name),
-      entity: property.options?.group as string,
-      eager: true,
-      type: 'one-to-many',
-      nested: true
-    }
+  getRelationshipManifestsFromNestedProperties(
+    nestedEntityManifest: EntityManifest,
+    allEntityManifests: EntityManifest[]
+  ): RelationshipManifest[] {
+    return allEntityManifests.reduce(
+      (acc: RelationshipManifest[], entityManifest: EntityManifest) => {
+        entityManifest.properties
+          .filter(
+            (property: PropertyManifest) =>
+              property.type === PropType.Nested &&
+              property.options?.group === nestedEntityManifest.className
+          )
+          .forEach((property: PropertyManifest) => {
+            acc.push({
+              name: camelize(entityManifest.nameSingular),
+              inverseSide: property.name,
+              entity: entityManifest.className,
+              type: 'many-to-one',
+              eager: false
+            })
+          })
+
+        return acc
+      },
+      []
+    )
   }
 
   /**
@@ -132,7 +149,7 @@ export class RelationshipManifestService {
         const relationship: RelationshipManifest = {
           name: camelize(oppositeRelationship.entity.namePlural),
           entity: oppositeRelationship.entity.className,
-          eager: false,
+          eager: oppositeRelationship.entity.nested,
           type: 'one-to-many',
           inverseSide: oppositeRelationship.relationship.name
         }

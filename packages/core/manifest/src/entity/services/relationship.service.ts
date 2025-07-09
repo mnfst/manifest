@@ -80,10 +80,6 @@ export class RelationshipService {
         }
       })
 
-    // Transform groups into one-to-many relationships.
-
-    // TODO: Each group is a oneToMany relationship with the entity.
-
     return relationOptions
   }
 

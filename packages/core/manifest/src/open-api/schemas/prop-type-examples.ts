@@ -24,5 +24,5 @@ export const propTypeExamples: Record<PropType, unknown> = {
   },
   [PropType.File]: 'https://example.com/uploads/documents/report.pdf',
   [PropType.Image]: null, // This would be overridden with actual image URLs or sizes.
-  [PropType.Group]: null // This would be overridden with a $reference to a group entity.
+  [PropType.Nested]: null // This would be overridden with a $reference to a group entity.
 }

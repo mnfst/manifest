@@ -18,5 +18,5 @@ export const propTypeFormats: Record<PropType, string | null> = {
   [PropType.Location]: null,
   [PropType.File]: 'uri',
   [PropType.Image]: null,
-  [PropType.Group]: null
+  [PropType.Nested]: null
 }

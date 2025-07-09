@@ -18,5 +18,5 @@ export const postgresPropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Location]: 'jsonb',
   [PropType.File]: 'varchar',
   [PropType.Image]: 'jsonb',
-  [PropType.Group]: 'varchar' // Will be overridden afterwards.
+  [PropType.Nested]: 'varchar' // Will be overridden afterwards.
 }

@@ -18,5 +18,5 @@ export const mysqlPropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Location]: 'json',
   [PropType.File]: 'varchar',
   [PropType.Image]: 'json',
-  [PropType.Group]: 'varchar' // Gets overridden afterwards.
+  [PropType.Nested]: 'varchar' // Gets overridden afterwards.
 }

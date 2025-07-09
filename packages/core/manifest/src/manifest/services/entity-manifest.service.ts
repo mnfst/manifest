@@ -18,6 +18,7 @@ import {
   crudEventNames,
   MiddlewaresSchema,
   MiddlewareManifest,
+  GroupSchema,
   PropertyManifest
 } from '@repo/types'
 import pluralize from 'pluralize'
@@ -124,37 +125,40 @@ export class EntityManifestService {
    * Transform an entityObject into an EntityManifest array ensuring that undefined properties are filled in with defaults
    * and short form properties are transformed into long form.
    *
-   * @param an object with the class name as key and the EntitySchema as value.
-   * @param bested Whether the entity is nested (group) or not. Defaults to false.
+   * @param an object with entities and groups properties.
    *
    * @returns the entity manifests with defaults filled in and short form properties transformed into long form.
    */
-  transformEntityManifests(
-    entitySchemaObject: {
-      [keyof: string]: EntitySchema
-    },
-    nested: boolean = false
-  ): EntityManifest[] {
-    const entityManifests: EntityManifest[] = Object.entries(
-      entitySchemaObject
-    ).map(([className, entitySchema]: [string, EntitySchema]) => {
+  transformEntityManifests({
+    entities,
+    groups
+  }: {
+    entities: { [k: string]: EntitySchema }
+    groups?: { [k: string]: GroupSchema }
+  }): EntityManifest[] {
+    const entityManifests: EntityManifest[] = [
+      ...Object.entries(entities || {}),
+      ...Object.entries(groups || {})
+    ].map(([className, entitySchema]: [string, EntitySchema | GroupSchema]) => {
       // Build the partial entity manifest with common properties of both collection and single entities.
       const partialEntityManifest: EntityManifestCommonFields = {
-        className: entitySchema.className || className,
+        className: entitySchema['className'] || className,
         nameSingular:
-          entitySchema.nameSingular?.toLowerCase() ||
-          pluralize.singular(entitySchema.className || className).toLowerCase(),
+          entitySchema['nameSingular']?.toLowerCase() ||
+          pluralize
+            .singular(entitySchema['className'] || className)
+            .toLowerCase(),
         slug:
-          entitySchema.slug ||
+          entitySchema['slug'] ||
           slugify(
             dasherize(
-              entitySchema.single
-                ? entitySchema.className || className
-                : entitySchema.namePlural ||
-                    pluralize.plural(entitySchema.className || className)
+              entitySchema['single']
+                ? entitySchema['className'] || className
+                : entitySchema['namePlural'] ||
+                    pluralize.plural(entitySchema['className'] || className)
             ).toLowerCase()
           ),
-        single: entitySchema.single || false,
+        single: entitySchema['single'] || false,
         properties: (entitySchema.properties || [])
           // Filter out the eventual id property as we are adding it manually.
           .filter(
@@ -168,12 +172,12 @@ export class EntityManifestService {
               entitySchema
             )
           ),
-        hooks: this.transformHookObject(entitySchema.hooks),
-        middlewares: entitySchema.middlewares || {},
-        nested
+        hooks: this.transformHookObject(entitySchema['hooks']) || {},
+        middlewares: entitySchema['middlewares'] || {},
+        nested: Object.prototype.hasOwnProperty.call(groups || {}, className)
       }
 
-      if (entitySchema.single) {
+      if (entitySchema['single']) {
         return this.getSingleEntityManifestProps(
           partialEntityManifest,
           entitySchema
@@ -183,6 +187,20 @@ export class EntityManifestService {
       return this.getCollectionEntityManifestProps(
         partialEntityManifest,
         entitySchema
+      )
+    })
+
+    // Add nested entities relationships.
+    const nestedEntityManifests: EntityManifest[] = entityManifests.filter(
+      (entityManifest: EntityManifest) => entityManifest.nested
+    )
+
+    nestedEntityManifests.forEach((nestedEntity: EntityManifest) => {
+      nestedEntity.relationships.push(
+        ...this.relationshipManifestService.getRelationshipManifestsFromNestedProperties(
+          nestedEntity,
+          entityManifests.filter((e) => !e.nested)
+        )
       )
     })
 
@@ -213,7 +231,7 @@ export class EntityManifestService {
     // Remove "group" properties from the manifest as they have been transformed into relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
       entityManifest.properties = entityManifest.properties.filter(
-        (prop: PropertyManifest) => prop.type !== PropType.Group
+        (prop: PropertyManifest) => prop.type !== PropType.Nested
       )
     })
 
@@ -266,14 +284,7 @@ export class EntityManifestService {
               'many-to-many',
               partialEntityManifest.className
             )
-        ),
-        ...partialEntityManifest.properties
-          .filter((prop: PropertyManifest) => prop.type === PropType.Group)
-          .map((prop: PropertyManifest) =>
-            this.relationshipManifestService.transformGroupPropertyIntoRelationship(
-              prop
-            )
-          )
+        )
       ],
       authenticable: entitySchema.authenticable || false,
       policies: {
