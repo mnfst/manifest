@@ -76,6 +76,8 @@ export class EntityManifestService {
    *
    * @param className The class name of the entity to load.
    * @param slug The slug of the entity to load.
+   * @param fullVersion Whether to return the full version of the entity manifest or not.
+   * @param includeNested Whether to include nested entities in the manifest. Defaults to false as nested entities cannot be accessed directly.
    *
    * @returns The entity manifest.
    *
@@ -83,11 +85,13 @@ export class EntityManifestService {
   getEntityManifest({
     className,
     slug,
-    fullVersion
+    fullVersion,
+    includeNested = false
   }: {
     className?: string
     slug?: string
     fullVersion?: boolean
+    includeNested?: boolean
   }): EntityManifest {
     if (!className && !slug) {
       throw new HttpException(
@@ -106,7 +110,7 @@ export class EntityManifestService {
       entityManifest = entities.find((entity) => entity.slug === slug)
     }
 
-    if (!entityManifest) {
+    if (!entityManifest || (entityManifest.nested && !includeNested)) {
       throw new HttpException(
         `Entity ${className || slug} not found in manifest`,
         HttpStatus.NOT_FOUND
@@ -206,8 +210,6 @@ export class EntityManifestService {
 
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
-      if (entityManifest.single) return
-
       entityManifest.relationships.push(
         ...this.relationshipManifestService.getOneToManyRelationships(
           entityManifests,

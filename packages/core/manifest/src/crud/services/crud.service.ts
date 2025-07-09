@@ -603,7 +603,8 @@ export class CrudService {
 
       const relationEntityManifest: EntityManifest =
         this.entityManifestService.getEntityManifest({
-          className: relationMetadata.inverseEntityMetadata.targetName
+          className: relationMetadata.inverseEntityMetadata.targetName,
+          includeNested: true
         })
 
       query.addSelect(

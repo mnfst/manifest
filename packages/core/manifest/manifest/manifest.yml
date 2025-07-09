@@ -19,6 +19,12 @@ entities:
     belongsTo:
       - Parent
 
+  Homepage:
+    single: true
+    properties:
+      - { name: title, type: text }
+      - { name: testimonials, type: group, options: { group: Testimonial } }
+
 groups:
   Testimonial:
     properties:

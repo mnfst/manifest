@@ -25,6 +25,7 @@ export class SideMenuComponent implements OnInit {
             entityManifest.className !== ADMIN_CLASS_NAME
         )
         .filter((entityManifest: EntityManifest) => !entityManifest.single)
+        .filter((entityManifest: EntityManifest) => !entityManifest.nested)
 
       this.singles = Object.values(res.entities || {}).filter(
         (entityManifest: EntityManifest) => entityManifest.single
