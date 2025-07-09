@@ -76,7 +76,8 @@ export class RelationshipService {
           target: oneToManyRelationship.entity,
           type: 'one-to-many',
           eager: false,
-          inverseSide: oneToManyRelationship.inverseSide
+          inverseSide: oneToManyRelationship.inverseSide,
+          cascade: oneToManyRelationship.nested // If the relationship is nested, we want to cascade the operations.
         }
       })
 

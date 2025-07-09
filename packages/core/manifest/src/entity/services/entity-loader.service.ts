@@ -10,7 +10,7 @@ import {
 import { Injectable } from '@nestjs/common'
 import {
   ColumnType,
-  EntitySchema,
+  EntitySchema as TypeORMEntitySchema, // Alias to avoid conflict with Manifest EntitySchema.
   EntitySchemaColumnOptions,
   ValueTransformer
 } from 'typeorm'
@@ -36,10 +36,10 @@ export class EntityLoaderService {
    *
    * @param dbConnection The database connection type (mysql, postgres, sqlite).
    *
-   * @returns EntitySchema[] the entities
+   * @returns TypeORMEntitySchema[] the entities
    *
    **/
-  loadEntities(dbConnection: DatabaseConnection): EntitySchema[] {
+  loadEntities(dbConnection: DatabaseConnection): TypeORMEntitySchema[] {
     const appManifest: AppManifest = this.manifestService.getAppManifest({
       fullVersion: true
     })
@@ -60,10 +60,10 @@ export class EntityLoaderService {
     }
 
     // Convert Manifest Entities to TypeORM Entities.
-    const entitySchemas: EntitySchema[] = Object.values(
+    const entitySchemas: TypeORMEntitySchema[] = Object.values(
       appManifest.entities
     ).map((entityManifest: EntityManifest) => {
-      const entitySchema: EntitySchema = new EntitySchema({
+      const entitySchema: TypeORMEntitySchema = new TypeORMEntitySchema({
         name: entityManifest.className,
 
         // Convert properties to columns.

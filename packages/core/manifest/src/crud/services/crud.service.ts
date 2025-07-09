@@ -75,6 +75,17 @@ export class CrudService {
       (rel) => rel.propertyName
     )
 
+    const validNestedRelationships: string[] = entityMetadata.relations
+      .filter(
+        (relation: RelationMetadata) =>
+          relation.relationType === 'one-to-many' &&
+          this.entityManifestService.getEntityManifest({
+            className: relation.type as string,
+            includeNested: true
+          }).nested
+      )
+      .map((r) => r.propertyName)
+
     // Valid properties are columns that are NOT also relations
     const validProperties = allColumns.filter(
       (col) => !validRelationships.includes(col)
@@ -92,6 +103,11 @@ export class CrudService {
           key.endsWith('Id') &&
           validRelationships.includes(key.slice(0, -2))
         ) {
+          return true
+        }
+
+        // Allow nested relationships if they are defined in the manifest.
+        if (validNestedRelationships.includes(key)) {
           return true
         }
 
