@@ -36,18 +36,6 @@ export class PropertyManifestService {
       }
     }
 
-    // TODO: Temporary remove group props.
-    if (propSchema.type === 'group') {
-      return {
-        name: propSchema.name,
-        type: PropType.String,
-        hidden: false,
-        validation:
-          (entitySchema?.validation?.[propSchema.name] as ValidationManifest) ||
-          {}
-      }
-    }
-
     return {
       name: propSchema.name,
       type: (propSchema.type as PropType) || PropType.String,

@@ -17,11 +17,12 @@ export const propTypeExamples: Record<PropType, unknown> = {
   [PropType.Email]: 'user@example.com',
   [PropType.Boolean]: true,
   [PropType.Password]: '********',
-  [PropType.Choice]: null, // This would typically be overridden with actual enum values.
+  [PropType.Choice]: null, // This would be overridden with actual enum values.
   [PropType.Location]: {
     lat: 45.1666,
     lng: 5.7167
   },
   [PropType.File]: 'https://example.com/uploads/documents/report.pdf',
-  [PropType.Image]: null // This would typically be overridden with actual image URLs or sizes.
+  [PropType.Image]: null, // This would be overridden with actual image URLs or sizes.
+  [PropType.Group]: null // This would be overridden with a $reference to a group entity.
 }

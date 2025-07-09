@@ -17,5 +17,6 @@ export const mysqlPropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Choice]: 'varchar', // TODO: Consider Enums in MySQL. https://orkhan.gitbook.io/typeorm/docs/entities#enum-column-type
   [PropType.Location]: 'json',
   [PropType.File]: 'varchar',
-  [PropType.Image]: 'json'
+  [PropType.Image]: 'json',
+  [PropType.Group]: 'varchar' // Gets overridden afterwards.
 }

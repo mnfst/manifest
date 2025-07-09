@@ -75,5 +75,6 @@ export const typeValidators: Record<
       : 'The value must be a valid latitude and longitude',
 
   [PropType.File]: () => null, // TODO: Type validators for files
-  [PropType.Image]: () => null // TODO: Type validators for images
+  [PropType.Image]: () => null, // TODO: Type validators for images
+  [PropType.Group]: () => null // TODO: Type validators for groups
 }

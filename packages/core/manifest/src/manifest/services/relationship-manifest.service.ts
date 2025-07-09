@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import {
   EntityManifest,
+  PropertyManifest,
   RelationshipManifest,
   RelationshipSchema
 } from '../../../../types/src'
@@ -61,6 +62,26 @@ export class RelationshipManifestService {
         owningSide: true,
         inverseSide: pluralize(camelize(entityClassName))
       }
+    }
+  }
+
+  /**
+   * Transform a "group" property manifest into a relationship manifest.
+   * This is used for group properties to create a relationship to the group entity.
+   *
+   * @param property The property manifest to transform.
+   *
+   * @returns The relationship manifest.
+   */
+  transformGroupPropertyIntoRelationship(
+    property: PropertyManifest
+  ): RelationshipManifest {
+    return {
+      name: camelize(property.name),
+      entity: property.options?.group as string,
+      eager: true,
+      type: 'one-to-many',
+      nested: true
     }
   }
 

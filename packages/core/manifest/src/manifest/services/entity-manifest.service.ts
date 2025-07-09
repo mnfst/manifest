@@ -17,7 +17,8 @@ import {
   EntityManifestCommonFields,
   crudEventNames,
   MiddlewaresSchema,
-  MiddlewareManifest
+  MiddlewareManifest,
+  PropertyManifest
 } from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
@@ -209,6 +210,13 @@ export class EntityManifestService {
       )
     })
 
+    // Remove "group" properties from the manifest as they have been transformed into relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.properties = entityManifest.properties.filter(
+        (prop: PropertyManifest) => prop.type !== PropType.Group
+      )
+    })
+
     return entityManifests
   }
 
@@ -258,7 +266,14 @@ export class EntityManifestService {
               'many-to-many',
               partialEntityManifest.className
             )
-        )
+        ),
+        ...partialEntityManifest.properties
+          .filter((prop: PropertyManifest) => prop.type === PropType.Group)
+          .map((prop: PropertyManifest) =>
+            this.relationshipManifestService.transformGroupPropertyIntoRelationship(
+              prop
+            )
+          )
       ],
       authenticable: entitySchema.authenticable || false,
       policies: {
