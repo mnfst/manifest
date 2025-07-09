@@ -30,6 +30,6 @@ groups:
     properties:
       - { name: author, type: text }
       - { name: content, type: text }
-      - { name: rating, type: number }
+      - { name: rating, type: number, helpText: "1 to 5 stars" }
     validation:
       rating: { isNotEmpty: true }

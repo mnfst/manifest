@@ -129,6 +129,29 @@
                       (click)="removeNestedItem(relationship, i)"
                     ></button>
                     {{ i }}
+                    <div
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <div class="control">
+                        <app-input
+                          [prop]="prop"
+                          [entityManifest]="entityManifest"
+                          [value]="edit ? item[prop.name] : null"
+                          [errors]="errors[prop.name]"
+                          (valueChanged)="
+                            onNestedItemChange({
+                              relationship,
+                              propName: prop.name,
+                              index: i,
+                              newValue: $event
+                            })
+                          "
+                        ></app-input>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

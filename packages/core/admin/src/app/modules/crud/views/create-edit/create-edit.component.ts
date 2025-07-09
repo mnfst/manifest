@@ -27,6 +27,7 @@ import { MetaService } from '../../../shared/services/meta.service'
 export class CreateEditComponent {
   item: any
   entityManifest: EntityManifest
+  nestedEntityManifests: { [relationshipName: string]: EntityManifest } = {}
   errors: { [propName: string]: string[] } = {}
 
   singleMode: boolean
@@ -133,6 +134,9 @@ export class CreateEditComponent {
             await this.manifestService.getEntityManifest({
               className: relationship.entity
             })
+
+          this.nestedEntityManifests[relationship.name] = nestedEntityManifest
+
           console.log(
             `Nested entity manifest for ${relationship.name}:`,
             nestedEntityManifest
@@ -170,6 +174,23 @@ export class CreateEditComponent {
       newValue: params.newValue,
       propName: getDtoPropertyNameFromRelationship(params.relationship)
     })
+  }
+
+  onNestedItemChange(params: {
+    newValue: any
+    relationship: RelationshipManifest
+    propName: string
+    index: number
+  }): void {
+    const nestedFormArray: FormArray = this.getFormArray(
+      params.relationship.name
+    )
+
+    const nestedItem: FormGroup = nestedFormArray.at(params.index) as FormGroup
+
+    nestedItem.controls[params.propName].setValue(params.newValue)
+
+    console.log(this.form.value)
   }
 
   submit(): void {
@@ -277,7 +298,6 @@ export class CreateEditComponent {
       relationship.name
     ) as FormArray
     nestedFormArray.removeAt(index)
-    console.log(this.form.value)
   }
 
   getFormArray(relationshipName: string): FormArray {
