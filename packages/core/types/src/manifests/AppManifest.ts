@@ -1,7 +1,6 @@
 import { EndpointManifest } from '../endpoints'
 import { AppSettings } from './AppSettings'
 import { EntityManifest } from './EntityManifest'
-import { GroupManifest } from './GroupManifest'
 
 export interface AppManifest {
   /**
@@ -24,13 +23,6 @@ export interface AppManifest {
    */
   entities?: {
     [k: string]: EntityManifest
-  }
-
-  /**
-   * Groups of reusable properties to be used in entities.
-   */
-  groups?: {
-    [k: string]: GroupManifest
   }
 
   /**

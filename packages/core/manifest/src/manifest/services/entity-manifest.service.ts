@@ -17,9 +17,7 @@ import {
   EntityManifestCommonFields,
   crudEventNames,
   MiddlewaresSchema,
-  MiddlewareManifest,
-  GroupManifest,
-  RelationshipManifest
+  MiddlewareManifest
 } from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
@@ -126,6 +124,7 @@ export class EntityManifestService {
    * and short form properties are transformed into long form.
    *
    * @param an object with the class name as key and the EntitySchema as value.
+   * @param bested Whether the entity is nested (group) or not. Defaults to false.
    *
    * @returns the entity manifests with defaults filled in and short form properties transformed into long form.
    */
@@ -133,7 +132,7 @@ export class EntityManifestService {
     entitySchemaObject: {
       [keyof: string]: EntitySchema
     },
-    groupManifests: GroupManifest[]
+    nested: boolean = false
   ): EntityManifest[] {
     const entityManifests: EntityManifest[] = Object.entries(
       entitySchemaObject
@@ -170,27 +169,7 @@ export class EntityManifestService {
           ),
         hooks: this.transformHookObject(entitySchema.hooks),
         middlewares: entitySchema.middlewares || {},
-        relationships: groupManifests.reduce(
-          (acc: RelationshipManifest[], current: GroupManifest) => {
-            current.relationships
-              .filter(
-                (relationship: RelationshipManifest) =>
-                  relationship.entity === className
-              )
-              .forEach((relationship: RelationshipManifest) => {
-                acc.push({
-                  name: relationship.inverseSide,
-                  entity: current.className,
-                  type: 'one-to-many',
-                  eager: true,
-                  isGroup: true
-                })
-              })
-
-            return acc
-          },
-          []
-        )
+        nested
       }
 
       if (entitySchema.single) {
@@ -265,7 +244,6 @@ export class EntityManifestService {
         'id',
       seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,
       relationships: [
-        ...partialEntityManifest.relationships,
         ...(entitySchema.belongsTo || []).map(
           (relationship: RelationshipSchema) =>
             this.relationshipManifestService.transformRelationship(
@@ -330,7 +308,7 @@ export class EntityManifestService {
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
       seedCount: 1,
-      relationships: partialEntityManifest.relationships, // Single entity has group relationships (nested) only.
+      relationships: [],
       policies: {
         create: [FORBIDDEN_ACCESS_POLICY],
         read: this.policyService.transformPolicies(

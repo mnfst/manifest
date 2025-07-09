@@ -6,15 +6,13 @@ import {
   AppManifest,
   Manifest,
   EntityManifest,
-  EntitySchema,
-  GroupManifest
+  EntitySchema
 } from '@repo/types'
 
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from './entity-manifest.service'
 import { EndpointService } from '../../endpoint/endpoint.service'
 import { ConfigService } from '@nestjs/config'
-import { GroupManifestService } from './group-manifest.service'
 
 @Injectable()
 export class ManifestService {
@@ -26,7 +24,6 @@ export class ManifestService {
     private schemaService: SchemaService,
     @Inject(forwardRef(() => EntityManifestService))
     private entityManifestService: EntityManifestService,
-    private groupManifestService: GroupManifestService,
     private endpointService: EndpointService,
     private readonly configService: ConfigService
   ) {}
@@ -80,27 +77,25 @@ export class ManifestService {
 
     this.schemaService.validate(appSchema)
 
-    // Get first the groups as we are going to need them for building the entities.
-    const groupManifests: GroupManifest[] =
-      this.groupManifestService.transformGroupManifests(appSchema)
-
     const appManifest: AppManifest = {
-      ...appSchema,
+      name: appSchema.name || 'Manifest App',
       version: appSchema.version || '0.0.1',
       production: this.configService.get('NODE_ENV') === 'production',
-      entities: this.entityManifestService
-        .transformEntityManifests(appSchema.entities, groupManifests)
-        .reduce((acc, entityManifest: EntityManifest) => {
-          acc[entityManifest.className] = entityManifest
-          return acc
-        }, {}),
-      endpoints: this.endpointService.transformEndpointsSchemaObject(
-        appSchema.endpoints
-      ),
-      groups: groupManifests.reduce((acc, entityManifest: EntityManifest) => {
+      entities: [
+        ...this.entityManifestService.transformEntityManifests(
+          appSchema.entities || {}
+        ),
+        ...this.entityManifestService.transformEntityManifests(
+          appSchema.groups || {},
+          true // Mark groups as nested entities
+        )
+      ].reduce((acc, entityManifest: EntityManifest) => {
         acc[entityManifest.className] = entityManifest
         return acc
       }, {}),
+      endpoints: this.endpointService.transformEndpointsSchemaObject(
+        appSchema.endpoints
+      ),
       settings: appSchema.settings || {}
     }
 

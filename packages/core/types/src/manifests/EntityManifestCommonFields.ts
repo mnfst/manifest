@@ -12,5 +12,5 @@ export interface EntityManifestCommonFields
     | 'properties'
     | 'hooks'
     | 'middlewares'
-    | 'relationships'
+    | 'nested'
   > {}
