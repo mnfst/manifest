@@ -97,6 +97,10 @@
               >
                 {{ relationship.name }}
               </p>
+              <p *ngIf="!getMultipleRelations(item, relationship).length">
+                No
+                {{ nestedEntityManifests[relationship.name].nameSingular }}.
+              </p>
               <div
                 class="nested-item"
                 *ngFor="

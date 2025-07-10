@@ -128,7 +128,6 @@
                       type="button"
                       (click)="removeNestedItem(relationship, i)"
                     ></button>
-                    {{ i }}
                     <div
                       *ngFor="
                         let prop of nestedEntityManifests[relationship.name]
@@ -139,7 +138,9 @@
                         <app-input
                           [prop]="prop"
                           [entityManifest]="entityManifest"
-                          [value]="edit ? item[prop.name] : null"
+                          [value]="
+                            edit ? nestedItem.get(prop.name)?.value : null
+                          "
                           [errors]="errors[prop.name]"
                           (valueChanged)="
                             onNestedItemChange({

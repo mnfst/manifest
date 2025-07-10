@@ -144,6 +144,17 @@ export class CreateEditComponent {
 
           // Generate form array for nested items
           this.form.addControl(relationship.name, this.formBuilder.array([]))
+
+          // Include existing items in "edit" mode.
+          if (
+            this.edit &&
+            this.item &&
+            Array.isArray(this.item[relationship.name])
+          ) {
+            this.item[relationship.name].forEach((item: BaseEntity) => {
+              this.addNestedItem(relationship, item)
+            })
+          }
         })
 
       console.log(this.form.value)
@@ -264,7 +275,10 @@ export class CreateEditComponent {
    *
    * @param relationship the relationship manifest
    */
-  async addNestedItem(relationship: RelationshipManifest): Promise<void> {
+  async addNestedItem(
+    relationship: RelationshipManifest,
+    item?: BaseEntity
+  ): Promise<void> {
     const nestedFormArray: FormArray = this.form.get(
       relationship.name
     ) as FormArray
@@ -278,8 +292,16 @@ export class CreateEditComponent {
 
     // Add properties to the nested item form group
     nestedEntityManifest.properties.forEach((prop: PropertyManifest) => {
-      newNestedItem.addControl(prop.name, new FormControl(null))
+      newNestedItem.addControl(
+        prop.name,
+        new FormControl(item ? item[prop.name] : null)
+      )
     })
+
+    // Add the id control if editing an existing item
+    if (item && item.id) {
+      newNestedItem.addControl('id', new FormControl(item.id))
+    }
 
     // Add the new nested item to the form array
     nestedFormArray.push(newNestedItem)

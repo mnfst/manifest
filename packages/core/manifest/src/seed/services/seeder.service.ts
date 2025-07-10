@@ -131,7 +131,8 @@ export class SeederService {
       const entityManifest: EntityManifest =
         this.entityManifestService.getEntityManifest({
           className: entityMetadata.name,
-          fullVersion: true
+          fullVersion: true,
+          includeNested: true
         })
 
       console.log(
@@ -152,11 +153,24 @@ export class SeederService {
           )
         }
 
-        const manyToOneRelationships: RelationshipManifest[] =
+        let manyToOneRelationships: RelationshipManifest[] =
           entityManifest.relationships.filter(
             (relationship: RelationshipManifest) =>
               relationship.type === 'many-to-one'
           )
+
+        // On nested entities, if related to several entities, we only seed to one as it's is not possible to be related to multiple items.
+        if (entityManifest.nested) {
+          // Get a random many to one relationship.
+          manyToOneRelationships = [
+            manyToOneRelationships[
+              faker.number.int({
+                min: 0,
+                max: manyToOneRelationships.length - 1
+              })
+            ]
+          ]
+        }
 
         for (const relationship of manyToOneRelationships) {
           newRecord[relationship.name] =
@@ -174,7 +188,8 @@ export class SeederService {
       const entityManifest: EntityManifest =
         this.entityManifestService.getEntityManifest({
           className: entityMetadata.name,
-          fullVersion: true
+          fullVersion: true,
+          includeNested: true
         })
 
       const repository: Repository<BaseEntity> =
