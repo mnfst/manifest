@@ -141,7 +141,11 @@
                           [value]="
                             edit ? nestedItem.get(prop.name)?.value : null
                           "
-                          [errors]="errors[prop.name]"
+                          [errors]="
+                            errors[
+                              relationship.name + '[' + i + '].' + prop.name
+                            ]
+                          "
                           (valueChanged)="
                             onNestedItemChange({
                               relationship,

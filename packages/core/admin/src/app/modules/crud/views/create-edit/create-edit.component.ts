@@ -137,11 +137,6 @@ export class CreateEditComponent {
 
           this.nestedEntityManifests[relationship.name] = nestedEntityManifest
 
-          console.log(
-            `Nested entity manifest for ${relationship.name}:`,
-            nestedEntityManifest
-          )
-
           // Generate form array for nested items
           this.form.addControl(relationship.name, this.formBuilder.array([]))
 
@@ -156,8 +151,6 @@ export class CreateEditComponent {
             })
           }
         })
-
-      console.log(this.form.value)
     })
   }
 
@@ -167,7 +160,7 @@ export class CreateEditComponent {
    * @param params the new value and the property name
    *
    */
-  onChange(params: { newValue: any; propName: string }): void {
+  onChange(params: { newValue: unknown; propName: string }): void {
     this.form.controls[params.propName].setValue(params.newValue)
   }
 
@@ -188,7 +181,7 @@ export class CreateEditComponent {
   }
 
   onNestedItemChange(params: {
-    newValue: any
+    newValue: unknown
     relationship: RelationshipManifest
     propName: string
     index: number
@@ -200,8 +193,6 @@ export class CreateEditComponent {
     const nestedItem: FormGroup = nestedFormArray.at(params.index) as FormGroup
 
     nestedItem.controls[params.propName].setValue(params.newValue)
-
-    console.log(this.form.value)
   }
 
   submit(): void {
@@ -305,8 +296,6 @@ export class CreateEditComponent {
 
     // Add the new nested item to the form array
     nestedFormArray.push(newNestedItem)
-
-    console.log(this.form.value)
   }
 
   /**
@@ -341,6 +330,15 @@ export class CreateEditComponent {
       errorMessages[validationError.property] = Object.values(
         validationError.constraints
       )
+
+      // If the error is a nested property, add it to the error messages.
+      if (validationError.property.includes('.')) {
+        const nestedProperty = validationError.property.split('.')[1]
+        errorMessages[nestedProperty] = [
+          ...(errorMessages[nestedProperty] || []),
+          ...Object.values(validationError.constraints)
+        ]
+      }
     })
 
     return errorMessages

@@ -3,9 +3,12 @@ import { Injectable } from '@nestjs/common'
 import { ValidationError } from 'class-validator'
 import { typeValidators } from '../records/type-validators'
 import { customValidators } from '../records/custom-validators'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class ValidationService {
+  constructor(private entityManifestService: EntityManifestService) {}
+
   /**
    *
    * Validate an item DTO against an entity manifest.
@@ -18,7 +21,7 @@ export class ValidationService {
    *
    */
   validate(
-    itemDto: any,
+    itemDto: unknown,
     entityManifest: EntityManifest,
     options?: { isUpdate?: boolean }
   ): ValidationError[] {
@@ -38,6 +41,31 @@ export class ValidationService {
 
       errors.push(...this.validateProperty(propValue, propertyManifest))
     })
+
+    // Validate nested entities.
+    if (entityManifest.relationships) {
+      for (const relationshipManifest of entityManifest.relationships.filter(
+        (r) => r.nested
+      )) {
+        const propValue: unknown[] = itemDto[relationshipManifest.name]
+        const nestedEntityManifest: EntityManifest =
+          this.entityManifestService.getEntityManifest({
+            className: relationshipManifest.entity,
+            includeNested: true
+          })
+
+        for (let i = 0; i < propValue.length; i++) {
+          const item = propValue[i]
+          const nestedErrors = this.validate(item, nestedEntityManifest)
+          nestedErrors.forEach((err) => {
+            errors.push({
+              ...err,
+              property: `${relationshipManifest.name}[${i}].${err.property}`
+            })
+          })
+        }
+      }
+    }
 
     return errors
   }
