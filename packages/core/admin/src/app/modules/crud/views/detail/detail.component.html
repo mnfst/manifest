@@ -76,10 +76,7 @@
                 <ng-container *ngIf="relationship.type === 'many-to-many'">
                   <ng-container
                     *ngFor="
-                      let relation of getManyToManyRelations(
-                        item,
-                        relationship
-                      );
+                      let relation of getMultipleRelations(item, relationship);
                       let last = last
                     "
                   >
@@ -91,6 +88,41 @@
                   </ng-container>
                 </ng-container>
               </p>
+            </ng-container>
+
+            <!-- Nested relations -->
+            <ng-container *ngIf="relationship.nested">
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <div
+                class="nested-item"
+                *ngFor="
+                  let nestedItem of getMultipleRelations(item, relationship)
+                "
+              >
+                <div
+                  class="properties"
+                  *ngFor="
+                    let prop of nestedEntityManifests[relationship.name]
+                      .properties
+                  "
+                >
+                  <p
+                    class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                  >
+                    {{ prop.name }}
+                  </p>
+                  <p class="is-property-value">
+                    <app-yield
+                      [value]="nestedItem[prop.name]"
+                      [prop]="prop"
+                    ></app-yield>
+                  </p>
+                </div>
+              </div>
             </ng-container>
           </div>
         </div>

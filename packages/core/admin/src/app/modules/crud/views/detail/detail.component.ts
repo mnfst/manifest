@@ -14,6 +14,7 @@ import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-firs
 export class DetailComponent {
   item: BaseEntity
   entityManifest: EntityManifest
+  nestedEntityManifests: { [relationshipName: string]: EntityManifest } = {}
 
   singleMode: boolean
 
@@ -31,6 +32,21 @@ export class DetailComponent {
       this.entityManifest = await this.manifestService.getEntityManifest({
         slug: params['entitySlug']
       })
+
+      // Get the nested entity manifests.
+      if (this.entityManifest.relationships) {
+        for (const relationship of this.entityManifest.relationships) {
+          if (relationship.nested) {
+            const nestedManifest = await this.manifestService.getEntityManifest(
+              {
+                className: relationship.entity
+              }
+            )
+            this.nestedEntityManifests[relationship.name] = nestedManifest
+          }
+        }
+      }
+      console.log(this.nestedEntityManifests)
 
       if (!this.entityManifest) {
         this.router.navigate(['/404'])
@@ -69,14 +85,14 @@ export class DetailComponent {
   }
 
   /**
-   * Get the many-to-one relations of an item.
+   * Get the multiple relations (one-to-many or many-to-many) of an item.
    *
    * @param item The item to get the relations from.
    * @param relationship The relationship manifest.
    *
    * @returns The related items as an array.
    */
-  getManyToManyRelations(
+  getMultipleRelations(
     item: BaseEntity,
     relationship: RelationshipManifest
   ): BaseEntity[] {
