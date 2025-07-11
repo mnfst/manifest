@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.3.2
+
+### Patch Changes
+
+- cf54306: fix install failing on windows because of "&&" management on powershell
+
 ## 1.3.1
 
 ### Patch Changes
