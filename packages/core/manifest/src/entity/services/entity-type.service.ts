@@ -171,6 +171,8 @@ export class EntityTypeService {
         // Skip one-to-many relationships as they are not included in CreateDTO.
         if (relationship.type === 'one-to-many') {
           return
+        } else if (relationship.type === 'one-to-one') {
+          return // TODO: Add one-to-one relationships to CreateDTO.
         }
 
         const dtoPropertyName = getDtoPropertyNameFromRelationship(relationship)

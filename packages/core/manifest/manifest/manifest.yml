@@ -12,7 +12,15 @@ entities:
     properties:
       - name
       - { name: description }
-      - { name: testimonials, type: group, options: { group: Testimonial } }
+      - {
+          name: testimonials,
+          type: group,
+          options: { group: Testimonial },
+          validation: { isNotEmpty: true }
+        }
+
+    validation:
+      name: { isNotEmpty: true }
     policies:
       create:
         - { access: restricted, allow: [Service] }
@@ -23,13 +31,27 @@ entities:
     single: true
     properties:
       - { name: title, type: text }
-      - { name: testimonials, type: group, options: { group: Testimonial } }
+      - {
+          name: callToAction,
+          type: group,
+          options: { group: CallToAction, multiple: false }
+        }
 
 groups:
   Testimonial:
     properties:
       - { name: author, type: text }
-      - { name: content, type: text }
+      - { name: content, type: text, validation: { isNotEmpty: true } }
       - { name: rating, type: number, helpText: "1 to 5 stars" }
     validation:
       rating: { isNotEmpty: true }
+
+  CallToAction:
+    properties:
+      - { name: title, type: text }
+      - { name: description, type: text }
+      - { name: buttonText, type: text }
+      - { name: buttonLink, type: text }
+    validation:
+      title: { isNotEmpty: true }
+      description: { isNotEmpty: true }

@@ -46,7 +46,6 @@ export class DetailComponent {
           }
         }
       }
-      console.log(this.nestedEntityManifests)
 
       if (!this.entityManifest) {
         this.router.navigate(['/404'])

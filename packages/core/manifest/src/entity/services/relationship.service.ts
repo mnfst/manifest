@@ -70,14 +70,29 @@ export class RelationshipService {
           relationship.type === 'one-to-many'
       )
       .forEach((oneToManyRelationship: RelationshipManifest) => {
-        const relationshipName: string = oneToManyRelationship.name
-
-        relationOptions[relationshipName] = {
+        relationOptions[oneToManyRelationship.name] = {
           target: oneToManyRelationship.entity,
           type: 'one-to-many',
           eager: false,
           inverseSide: oneToManyRelationship.inverseSide,
           cascade: oneToManyRelationship.nested // If the relationship is nested, we want to cascade the operations.
+        }
+      })
+
+    // Get the one-to-one relationships (nested relationships).
+    entityManifest.relationships
+      .filter(
+        (relationship: RelationshipManifest) =>
+          relationship.type === 'one-to-one'
+      )
+      .forEach((oneToOneRelationship: RelationshipManifest) => {
+        relationOptions[oneToOneRelationship.name] = {
+          target: oneToOneRelationship.entity,
+          type: 'one-to-one',
+          eager: false,
+          inverseSide: oneToOneRelationship.inverseSide,
+          cascade: !!oneToOneRelationship.nested, // If the relationship is nested, we want to cascade the operations.
+          joinColumn: !!entityManifest.nested // Join column is on the nested entity side.
         }
       })
 

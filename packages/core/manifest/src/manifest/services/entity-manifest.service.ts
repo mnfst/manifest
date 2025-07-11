@@ -37,6 +37,7 @@ import { ManifestService } from './manifest.service'
 import { HookService } from '../../hook/hook.service'
 import { PolicyService } from '../../policy/policy.service'
 import { PropertyManifestService } from './property-manifest.service'
+import { camelize } from '../../../../common/src'
 
 @Injectable()
 export class EntityManifestService {
@@ -147,11 +148,11 @@ export class EntityManifestService {
       // Build the partial entity manifest with common properties of both collection and single entities.
       const partialEntityManifest: EntityManifestCommonFields = {
         className: entitySchema['className'] || className,
-        nameSingular:
-          entitySchema['nameSingular']?.toLowerCase() ||
-          pluralize
-            .singular(entitySchema['className'] || className)
-            .toLowerCase(),
+        nameSingular: entitySchema['nameSingular']
+          ? camelize(entitySchema['nameSingular'])
+          : camelize(
+              pluralize.singular(entitySchema['className'] || className)
+            ),
         slug:
           entitySchema['slug'] ||
           slugify(
@@ -211,7 +212,7 @@ export class EntityManifestService {
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
       entityManifest.relationships.push(
-        ...this.relationshipManifestService.getOneToManyRelationships(
+        ...this.relationshipManifestService.getOppositeOneToManyRelationships(
           entityManifests,
           entityManifest
         )
@@ -224,6 +225,16 @@ export class EntityManifestService {
 
       entityManifest.relationships.push(
         ...this.relationshipManifestService.getOppositeManyToManyRelationships(
+          entityManifests,
+          entityManifest
+        )
+      )
+    })
+
+    // Generate the OneToOne relationships from the opposite OneToOne relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.relationships.push(
+        ...this.relationshipManifestService.getOppositeOneToOneRelationships(
           entityManifests,
           entityManifest
         )
@@ -261,9 +272,9 @@ export class EntityManifestService {
       ...partialEntityManifest,
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
-      namePlural:
-        entitySchema.namePlural ||
-        pluralize.plural(partialEntityManifest.className).toLowerCase(),
+      namePlural: entitySchema.namePlural
+        ? camelize(entitySchema.namePlural)
+        : camelize(pluralize.plural(partialEntityManifest.className)),
       mainProp:
         entitySchema.mainProp ||
         partialEntityManifest.properties.find(

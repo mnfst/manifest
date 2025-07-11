@@ -37,7 +37,7 @@ export class ValidationService {
     }
 
     entityManifest.properties.forEach((propertyManifest: PropertyManifest) => {
-      const propValue: any = itemDto[propertyManifest.name]
+      const propValue: unknown = itemDto[propertyManifest.name]
 
       errors.push(...this.validateProperty(propValue, propertyManifest))
     })
@@ -81,7 +81,7 @@ export class ValidationService {
    *
    */
   validateProperty(
-    propValue: any,
+    propValue: unknown,
     propertyManifest: PropertyManifest
   ): ValidationError[] {
     const errors: ValidationError[] = []
@@ -104,7 +104,7 @@ export class ValidationService {
 
     // Validate the property value against the validation schema.
     Object.entries(propertyManifest.validation || {}).forEach(
-      ([key, context]: [string, any]) => {
+      ([key, context]: [string, unknown]) => {
         let validationError: string | null
 
         // If the property is optional and the value is undefined or null, skip validation.
