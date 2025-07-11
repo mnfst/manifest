@@ -1,6 +1,6 @@
 import { Args, Command, Flags } from '@oclif/core'
 import axios from 'axios'
-import { exec as execCp, PromiseWithChild } from 'node:child_process'
+import { exec as execCp, spawn, ChildProcess } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as crypto from 'node:crypto'
 import * as path from 'node:path'
@@ -20,6 +20,47 @@ import { slugify } from '../utils/helpers.js'
 import chalk from 'chalk'
 
 const exec = promisify(execCp)
+
+/**
+ * Execute a command in a specific directory with cross-platform support
+ * @param command - The command to execute
+ * @param cwd - The working directory
+ * @returns Promise with stdout and stderr
+ */
+async function execInDirectory(
+  command: string,
+  cwd: string
+): Promise<{ stdout: string; stderr: string }> {
+  return exec(command, { cwd })
+}
+
+/**
+ * Spawn a command in a specific directory that runs in the background
+ * @param command - The command to execute
+ * @param args - The command arguments
+ * @param cwd - The working directory
+ * @returns ChildProcess
+ */
+function spawnInDirectory(command: string, args: string[], cwd: string) {
+  const isWindows = process.platform === 'win32'
+
+  if (isWindows) {
+    // On Windows, use shell to resolve npm command
+    return spawn(command, args, {
+      cwd,
+      stdio: 'pipe',
+      detached: false,
+      shell: true
+    })
+  } else {
+    // On Unix systems, spawn directly
+    return spawn(command, args, {
+      cwd,
+      stdio: 'pipe',
+      detached: false
+    })
+  }
+}
 
 export default class CreateManifest extends Command {
   static description =
@@ -422,7 +463,7 @@ export default class CreateManifest extends Command {
 
     // Install deps.
     try {
-      await exec(`cd ${projectName} && npm install --silent`)
+      await execInDirectory(`npm install --silent`, projectName)
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
     }
@@ -451,22 +492,31 @@ export default class CreateManifest extends Command {
     spinner.succeed()
     spinner.start('Building the database...')
 
-    let serveTask: PromiseWithChild<{ stdout: string; stderr: string }> | null =
-      null
+    let serverProcess: ChildProcess | null = null
 
     try {
-      // We run the manifest script to build the database.
-      serveTask = exec(`cd ${projectName} && npm run start`)
+      // We run the manifest script to build the database in the background
+      serverProcess = spawnInDirectory('npm', ['run', 'start'], projectName)
 
+      // Wait for the server to be ready
       await this.waitForServerToBeReady()
       spinner.succeed()
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
+      // If server failed to start, try to kill it
+      if (serverProcess && serverProcess.pid) {
+        try {
+          await this.silentKill(serverProcess.pid)
+        } catch {
+          // Ignore errors when killing the process
+        }
+      }
+      throw error
     }
 
     spinner.start('Seeding initial data...')
     try {
-      await exec(`cd ${projectName} && npm run seed`)
+      await execInDirectory(`npm run seed`, projectName)
     } catch (error) {
       spinner.fail(`Execution error: ${error}`)
     }
@@ -482,7 +532,15 @@ export default class CreateManifest extends Command {
     console.log(chalk.bold('  npm run start'))
     console.log()
 
-    await this.silentKill(serveTask?.child?.pid || 0)
+    // Kill the background server process if it exists
+    if (serverProcess && serverProcess.pid) {
+      try {
+        await this.silentKill(serverProcess.pid)
+      } catch {
+        // Ignore errors when killing the process
+      }
+    }
+
     process.exit()
   }
 
@@ -493,10 +551,15 @@ export default class CreateManifest extends Command {
    *
    **/
   async isServerReady(): Promise<boolean> {
-    return axios
-      .get('http://localhost:1111/api/health')
-      .then(() => true)
-      .catch(() => false)
+    try {
+      const response = await axios.get('http://localhost:1111/api/health', {
+        timeout: 5000 // 5 second timeout
+      })
+      return response.status === 200
+    } catch {
+      // Server is not ready yet
+      return false
+    }
   }
 
   /**
@@ -507,11 +570,19 @@ export default class CreateManifest extends Command {
    **/
   async waitForServerToBeReady(): Promise<void> {
     let serverReady = false
-    while (!serverReady) {
+    let attempts = 0
+    const maxAttempts = 30 // 30 seconds timeout
+
+    while (!serverReady && attempts < maxAttempts) {
       serverReady = await this.isServerReady()
       if (!serverReady) {
+        attempts++
         await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s before retrying
       }
+    }
+
+    if (!serverReady) {
+      throw new Error('Server failed to start within 30 seconds')
     }
   }
 
