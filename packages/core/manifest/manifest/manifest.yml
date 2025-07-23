@@ -18,6 +18,11 @@ entities:
           options: { group: Testimonial },
           validation: { isNotEmpty: true }
         }
+      - {
+          name: callToAction,
+          type: group,
+          options: { group: CallToAction, multiple: false }
+        }
 
     validation:
       name: { isNotEmpty: true }

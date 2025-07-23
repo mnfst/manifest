@@ -190,13 +190,21 @@ export class CreateEditComponent {
     newValue: unknown
     relationship: RelationshipManifest
     propName: string
-    index: number
+    index?: number
   }): void {
-    const nestedFormArray: FormArray = this.getMultipleRelations(
-      params.relationship.name
-    )
+    let nestedItem: FormGroup
 
-    const nestedItem: FormGroup = nestedFormArray.at(params.index) as FormGroup
+    if (params.index === undefined) {
+      nestedItem = this.form.get(params.relationship.name) as FormGroup
+    } else {
+      // If index is provided, we are dealing with a FormArray.
+      // We need to get the specific item in the array.
+      const nestedFormArray: FormArray = this.getMultipleRelations(
+        params.relationship.name
+      )
+
+      nestedItem = nestedFormArray.at(params.index) as FormGroup
+    }
 
     nestedItem.controls[params.propName].setValue(params.newValue)
   }

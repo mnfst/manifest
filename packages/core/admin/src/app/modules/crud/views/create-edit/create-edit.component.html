@@ -148,15 +148,12 @@
                                 : null
                             "
                             [errors]="
-                              errors[
-                                relationship.name + '[' + 1 + '].' + prop.name
-                              ]
+                              errors[relationship.name + '.' + prop.name]
                             "
                             (valueChanged)="
                               onNestedItemChange({
                                 relationship,
                                 propName: prop.name,
-                                index: 1,
                                 newValue: $event
                               })
                             "
