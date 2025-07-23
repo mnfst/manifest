@@ -92,7 +92,7 @@
                 </div>
               </div>
 
-              <!-- Groups (nested relations)-->
+              <!-- Groups (nested relations) -->
               <div
                 class="field mt-2 mb-4"
                 *ngFor="let relationship of entityManifest.relationships"
@@ -103,61 +103,125 @@
                     class="button is-primary is-small"
                     type="button"
                     (click)="addNestedItem(relationship)"
+                    *ngIf="
+                      relationship.type !== 'one-to-one' ||
+                      getSingleRelation(relationship.name) === null
+                    "
                   >
                     <span class="icon is-small">
-                      <i class="icon icon-plus"></i>
+                      <i class="icon icon-plus"></i>-
                     </span>
                     <span>Add {{ relationship.entity }}</span>
                   </button>
 
-                  <p *ngIf="getFormArray(relationship.name).length === 0">
-                    No items added yet. Click on "Add {{ relationship.entity }}"
-                    to create a new item.
-                  </p>
+                  <!-- Nested relations (single) -->
+                  <ng-container *ngIf="relationship.type === 'one-to-one'">
+                    <p *ngIf="!form.get(relationship.name).value">
+                      No {{ relationship.name }} added yet. Click on "Add
+                      {{ relationship.entity }}" to create a new item.
+                    </p>
 
-                  <div
-                    class="card nested-item"
-                    *ngFor="
-                      let nestedItem of getFormArray(relationship.name)
-                        .controls;
-                      let i = index
-                    "
-                  >
-                    <button
-                      class="delete is-small"
-                      type="button"
-                      (click)="removeNestedItem(relationship, i)"
-                    ></button>
                     <div
-                      *ngFor="
-                        let prop of nestedEntityManifests[relationship.name]
-                          .properties
-                      "
+                      class="card nested-item"
+                      *ngIf="getSingleRelation(relationship.name)"
                     >
-                      <div class="control">
-                        <app-input
-                          [prop]="prop"
-                          [entityManifest]="entityManifest"
-                          [value]="
-                            edit ? nestedItem.get(prop.name)?.value : null
-                          "
-                          [errors]="
-                            errors[
-                              relationship.name + '[' + i + '].' + prop.name
-                            ]
-                          "
-                          (valueChanged)="
-                            onNestedItemChange({
-                              relationship,
-                              propName: prop.name,
-                              index: i,
-                              newValue: $event
-                            })
-                          "
-                        ></app-input>
+                      <button
+                        class="delete is-small"
+                        type="button"
+                        (click)="removeSingleNestedItem(relationship)"
+                      ></button>
+                      <div
+                        *ngFor="
+                          let prop of nestedEntityManifests[relationship.name]
+                            .properties
+                        "
+                      >
+                        <div class="control">
+                          <app-input
+                            [prop]="prop"
+                            [entityManifest]="entityManifest"
+                            [value]="
+                              edit
+                                ? getSingleRelation(relationship.name).get(
+                                    prop.name
+                                  )?.value
+                                : null
+                            "
+                            [errors]="
+                              errors[
+                                relationship.name + '[' + 1 + '].' + prop.name
+                              ]
+                            "
+                            (valueChanged)="
+                              onNestedItemChange({
+                                relationship,
+                                propName: prop.name,
+                                index: 1,
+                                newValue: $event
+                              })
+                            "
+                          ></app-input>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </ng-container>
+
+                  <!-- Nested relations (multiple) -->
+                  <ng-container *ngIf="relationship.type !== 'one-to-one'">
+                    <p
+                      *ngIf="
+                        getMultipleRelations(relationship.name).length === 0
+                      "
+                    >
+                      No {{ relationship.name }} added yet. Click on "Add
+                      {{ relationship.entity }}" to create a new item.
+                    </p>
+
+                    <div
+                      class="card nested-item"
+                      *ngFor="
+                        let nestedItem of getMultipleRelations(
+                          relationship.name
+                        ).controls;
+                        let i = index
+                      "
+                    >
+                      <button
+                        class="delete is-small"
+                        type="button"
+                        (click)="removeNestedItem(relationship, i)"
+                      ></button>
+                      <div
+                        *ngFor="
+                          let prop of nestedEntityManifests[relationship.name]
+                            .properties
+                        "
+                      >
+                        <div class="control">
+                          <app-input
+                            [prop]="prop"
+                            [entityManifest]="entityManifest"
+                            [value]="
+                              edit ? nestedItem.get(prop.name)?.value : null
+                            "
+                            [errors]="
+                              errors[
+                                relationship.name + '[' + i + '].' + prop.name
+                              ]
+                            "
+                            (valueChanged)="
+                              onNestedItemChange({
+                                relationship,
+                                propName: prop.name,
+                                index: i,
+                                newValue: $event
+                              })
+                            "
+                          ></app-input>
+                        </div>
+                      </div>
+                    </div>
+                  </ng-container>
                 </div>
               </div>
             </div>

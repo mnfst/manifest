@@ -106,7 +106,7 @@ export class CreateEditComponent {
 
       // Show relationships in the form for many-to-one and many-to-many (owning side only).
       this.entityManifest.relationships
-        .filter((r) => r.type !== 'one-to-many')
+        .filter((r) => r.type !== 'one-to-many' && r.type !== 'one-to-one')
         .filter((r) => r.type !== 'many-to-many' || r.owningSide)
         .forEach((relationship: RelationshipManifest) => {
           let value: number | number[] = null
@@ -129,6 +129,8 @@ export class CreateEditComponent {
       this.entityManifest.relationships
         .filter((r) => r.nested)
         .forEach(async (relationship: RelationshipManifest) => {
+          const isMultiple: boolean = relationship.type !== 'one-to-one'
+
           // Get entity manifest.
           const nestedEntityManifest: EntityManifest =
             await this.manifestService.getEntityManifest({
@@ -137,10 +139,14 @@ export class CreateEditComponent {
 
           this.nestedEntityManifests[relationship.name] = nestedEntityManifest
 
-          // Generate form array for nested items
-          this.form.addControl(relationship.name, this.formBuilder.array([]))
+          // Generate controls for nested items.
+          this.form.addControl(
+            relationship.name,
+            isMultiple ? this.formBuilder.array([]) : this.formBuilder.group({})
+          )
 
           // Include existing items in "edit" mode.
+          // TODO: Edit for non-multiple nested relationships.
           if (
             this.edit &&
             this.item &&
@@ -186,7 +192,7 @@ export class CreateEditComponent {
     propName: string
     index: number
   }): void {
-    const nestedFormArray: FormArray = this.getFormArray(
+    const nestedFormArray: FormArray = this.getMultipleRelations(
       params.relationship.name
     )
 
@@ -270,9 +276,46 @@ export class CreateEditComponent {
     relationship: RelationshipManifest,
     item?: BaseEntity
   ): Promise<void> {
-    const nestedFormArray: FormArray = this.form.get(
-      relationship.name
-    ) as FormArray
+    // Create a new form group for the nested item
+    const newNestedItem = await this.createNestedItemFormGroup(
+      relationship,
+      item
+    )
+
+    // Add the id control if editing an existing item.
+    if (item && item.id) {
+      newNestedItem.addControl('id', new FormControl(item.id))
+    }
+
+    const isMultiple: boolean = relationship.type !== 'one-to-one'
+
+    if (!isMultiple) {
+      this.form.setControl(relationship.name, newNestedItem as FormGroup)
+      return
+    } else {
+      const nestedFormArray: FormArray = this.form.get(
+        relationship.name
+      ) as FormArray
+
+      // Add the new nested item to the form array
+      nestedFormArray.push(newNestedItem)
+
+      return
+    }
+  }
+
+  /**
+   * Create a new form group for a nested item.
+   *
+   * @param relationship the relationship manifest
+   * @param item the item to populate the form group with (optional)
+   *
+   * @returns A promise that resolves to the new form group.
+   */
+  async createNestedItemFormGroup(
+    relationship: RelationshipManifest,
+    item?: any
+  ): Promise<FormGroup> {
     const nestedEntityManifest: EntityManifest =
       await this.manifestService.getEntityManifest({
         className: relationship.entity
@@ -289,13 +332,7 @@ export class CreateEditComponent {
       )
     })
 
-    // Add the id control if editing an existing item
-    if (item && item.id) {
-      newNestedItem.addControl('id', new FormControl(item.id))
-    }
-
-    // Add the new nested item to the form array
-    nestedFormArray.push(newNestedItem)
+    return newNestedItem
   }
 
   /**
@@ -311,8 +348,19 @@ export class CreateEditComponent {
     nestedFormArray.removeAt(index)
   }
 
-  getFormArray(relationshipName: string): FormArray {
+  removeSingleNestedItem(relationship: RelationshipManifest): void {
+    this.form.setControl(relationship.name, this.formBuilder.group({}))
+  }
+
+  getMultipleRelations(relationshipName: string): FormArray {
     return this.form.get(relationshipName) as FormArray
+  }
+
+  getSingleRelation(relationshipName: string): FormGroup {
+    if (JSON.stringify(this.form.get(relationshipName).value) === '{}') {
+      return null
+    }
+    return this.form.get(relationshipName) as FormGroup
   }
 
   /**

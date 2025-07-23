@@ -131,6 +131,7 @@
                 </div>
               </div>
             </ng-container>
+
             <!-- Nested relations (non-multiple) -->
             <ng-container
               *ngIf="relationship.nested && relationship.type === 'one-to-one'"
@@ -144,7 +145,7 @@
                 No
                 {{ nestedEntityManifests[relationship.name].nameSingular }}.
               </p>
-              <div class="nested-item">
+              <div class="nested-item" *ngIf="item[relationship.name]">
                 <div
                   class="properties"
                   *ngFor="
