@@ -274,7 +274,8 @@ export class RelationshipManifestService {
           eager: oppositeRelationship.entity.nested,
           type: 'one-to-one',
           owningSide: false,
-          inverseSide: oppositeRelationship.relationship.name
+          inverseSide: oppositeRelationship.relationship.name,
+          nested: oppositeRelationship.entity.nested
         }
 
         return relationship

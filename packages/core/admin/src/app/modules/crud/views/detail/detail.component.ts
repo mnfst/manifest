@@ -97,4 +97,19 @@ export class DetailComponent {
   ): BaseEntity[] {
     return item[relationship.name] as BaseEntity[]
   }
+
+  /**
+   * Get the single relation (one-to-one) of an item.
+   *
+   * @param item The item to get the relation from.
+   * @param relationship The relationship manifest.
+   *
+   * @returns The related item or null if not present.
+   */
+  getSingleRelation(
+    item: BaseEntity,
+    relationship: RelationshipManifest
+  ): BaseEntity | null {
+    return item[relationship.name] as BaseEntity | null
+  }
 }

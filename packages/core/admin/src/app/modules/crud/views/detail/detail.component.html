@@ -58,7 +58,8 @@
               *ngIf="
                 relationship.type === 'many-to-one' ||
                 (relationship.type === 'many-to-many' &&
-                  relationship.owningSide)
+                  relationship.owningSide &&
+                  !relationship.nested)
               "
             >
               <p
@@ -90,8 +91,10 @@
               </p>
             </ng-container>
 
-            <!-- Nested relations -->
-            <ng-container *ngIf="relationship.nested">
+            <!-- Nested relations (multiple) -->
+            <ng-container
+              *ngIf="relationship.nested && relationship.type === 'one-to-many'"
+            >
               <p
                 class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
               >
@@ -122,6 +125,41 @@
                   <p class="is-property-value">
                     <app-yield
                       [value]="nestedItem[prop.name]"
+                      [prop]="prop"
+                    ></app-yield>
+                  </p>
+                </div>
+              </div>
+            </ng-container>
+            <!-- Nested relations (non-multiple) -->
+            <ng-container
+              *ngIf="relationship.nested && relationship.type === 'one-to-one'"
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <p *ngIf="!item[relationship.name]">
+                No
+                {{ nestedEntityManifests[relationship.name].nameSingular }}.
+              </p>
+              <div class="nested-item">
+                <div
+                  class="properties"
+                  *ngFor="
+                    let prop of nestedEntityManifests[relationship.name]
+                      .properties
+                  "
+                >
+                  <p
+                    class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                  >
+                    {{ prop.name }}
+                  </p>
+                  <p class="is-property-value">
+                    <app-yield
+                      [value]="getSingleRelation(item, relationship)[prop.name]"
                       [prop]="prop"
                     ></app-yield>
                   </p>
