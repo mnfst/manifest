@@ -37,6 +37,17 @@ entities:
           options: { group: CallToAction, multiple: false }
         }
 
+  Aboutpage:
+    single: true
+    properties:
+      - { name: title, type: text }
+      - { name: description, type: text }
+      - {
+          name: callToAction,
+          type: group,
+          options: { group: CallToAction, multiple: false }
+        }
+
 groups:
   Testimonial:
     properties:

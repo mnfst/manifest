@@ -159,22 +159,52 @@ export class SeederService {
               relationship.type === 'many-to-one'
           )
 
+        let oneToOneRelationships: RelationshipManifest[] =
+          entityManifest.relationships.filter(
+            (relationship: RelationshipManifest) =>
+              relationship.type === 'one-to-one' && relationship.owningSide
+          )
+
         // On nested entities, if related to several entities, we only seed to one as it's is not possible to be related to multiple items.
+
         if (entityManifest.nested) {
-          // Get a random many to one relationship.
-          manyToOneRelationships = [
-            manyToOneRelationships[
-              faker.number.int({
-                min: 0,
-                max: manyToOneRelationships.length - 1
-              })
+          if (manyToOneRelationships.length > 1) {
+            // Get a random many to one relationship.
+            manyToOneRelationships = [
+              manyToOneRelationships[
+                faker.number.int({
+                  min: 0,
+                  max: manyToOneRelationships.length - 1
+                })
+              ]
             ]
-          ]
+          }
+          if (oneToOneRelationships.length > 1) {
+            // Get a random one to one relationship.
+            oneToOneRelationships = [
+              oneToOneRelationships[
+                faker.number.int({
+                  min: 0,
+                  max: oneToOneRelationships.length - 1
+                })
+              ]
+            ]
+          }
         }
 
         for (const relationship of manyToOneRelationships) {
           newRecord[relationship.name] =
             await this.seedRelationships(relationship)
+        }
+
+        for (const relationship of oneToOneRelationships) {
+          newRecord[relationship.name] =
+            await this.seedRelationships(relationship)
+          console.log(
+            `✅ Seeding one-to-one relationship ${relationship.name} for ${entityManifest.nameSingular}...`
+          )
+
+          console.log(newRecord[relationship.name])
         }
 
         await repository.save(newRecord)
@@ -419,6 +449,14 @@ export class SeederService {
         ),
         numberOfRelations
       ).map((id: string) => ({ id }))
+    } else if (relationshipManifest.type === 'one-to-one') {
+      // For one-to-one relationships, we only need one related item.
+      return this.getRandomUniqueIds(
+        this.records[relationshipManifest.entity].map(
+          (item: BaseEntity) => item.id
+        ),
+        1
+      )[0]
     }
   }
 

@@ -67,12 +67,12 @@ export class RelationshipManifestService {
   }
 
   /**
-   * Generate the ManyToOne relationships from the nested properties of the entity schema.
+   * Generate the ManyToOne and OneToOne relationships from the nested properties of the entity schema.
    *
    * @param nestedEntitySchema The entity schema that contains the nested properties.
    * @param allEntitySchemas The list of all entity schemas to search for nested properties.
    *
-   * @returns The ManyToOne relationships generated from the nested properties.
+   * @returns The relationships generated from the nested properties.
    */
   getRelationshipManifestsFromNestedProperties(
     nestedEntityManifest: EntityManifest,
@@ -268,7 +268,6 @@ export class RelationshipManifestService {
         entity: EntityManifest
         relationship: RelationshipManifest
       }) => {
-        console.log('oppositeRelationship', oppositeRelationship)
         const relationship: RelationshipManifest = {
           name: camelize(oppositeRelationship.entity.nameSingular),
           entity: oppositeRelationship.entity.className,

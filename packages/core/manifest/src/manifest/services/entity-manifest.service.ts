@@ -196,18 +196,25 @@ export class EntityManifestService {
     })
 
     // Add nested entities relationships.
-    const nestedEntityManifests: EntityManifest[] = entityManifests.filter(
-      (entityManifest: EntityManifest) => entityManifest.nested
-    )
-
-    nestedEntityManifests.forEach((nestedEntity: EntityManifest) => {
-      nestedEntity.relationships.push(
-        ...this.relationshipManifestService.getRelationshipManifestsFromNestedProperties(
-          nestedEntity,
-          entityManifests.filter((e) => !e.nested)
+    entityManifests
+      .filter((entityManifest: EntityManifest) => entityManifest.nested)
+      .forEach((nestedEntity: EntityManifest) => {
+        nestedEntity.relationships.push(
+          ...this.relationshipManifestService.getRelationshipManifestsFromNestedProperties(
+            nestedEntity,
+            entityManifests.filter((e) => !e.nested)
+          )
         )
-      )
-    })
+
+        // Set seed count to 1 for nested entities that have one-to-one relationships as we only can seed one nested entity per parent entity.
+        if (
+          nestedEntity.relationships.some(
+            (relationship) => relationship.type === 'one-to-one'
+          )
+        ) {
+          nestedEntity.seedCount = 1
+        }
+      })
 
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
