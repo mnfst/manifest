@@ -135,9 +135,11 @@ export class SeederService {
           includeNested: true
         })
 
-      console.log(
-        `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
-      )
+      if (!entityManifest.nested) {
+        console.log(
+          `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
+        )
+      }
 
       for (let i = 0; i < entityManifest.seedCount; i++) {
         const newRecord: BaseEntity = repository.create()

@@ -11,17 +11,20 @@ entities:
   Service:
     properties:
       - name
-      - { name: description }
+      - { name: description, helpText: "Description of the service" }
       - {
           name: testimonials,
           type: group,
+          helpText: "Add some testimonials for the service",
           options: { group: Testimonial },
           validation: { isNotEmpty: true }
         }
       - {
           name: callToAction,
+          helpText: "Call to Action for the service",
           type: group,
-          options: { group: CallToAction, multiple: false }
+          options: { group: CallToAction, multiple: false },
+          validation: { isNotEmpty: true }
         }
 
     validation:
@@ -30,7 +33,7 @@ entities:
       create:
         - { access: public }
     belongsTo:
-      - Parent
+      - { name: parent, entity: Parent, helpText: "Choose the parent entity" }
 
   Homepage:
     single: true

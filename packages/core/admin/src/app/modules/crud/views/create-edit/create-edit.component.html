@@ -99,6 +99,12 @@
               >
                 <div class="control" *ngIf="relationship.nested">
                   <h2 class="title is-2">{{ relationship.name }}</h2>
+
+                  <!-- Display help text if available -->
+                  <p class="help" *ngIf="relationship.helpText">
+                    {{ relationship.helpText }}
+                  </p>
+
                   <button
                     class="button is-primary is-small"
                     type="button"

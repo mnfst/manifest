@@ -96,7 +96,8 @@ export class RelationshipManifestService {
                 property.options?.multiple === false
                   ? 'one-to-one'
                   : 'many-to-one',
-              eager: false
+              eager: false,
+              helpText: property.helpText || ''
             })
           })
 
@@ -156,7 +157,8 @@ export class RelationshipManifestService {
           eager: oppositeRelationship.entity.nested,
           nested: oppositeRelationship.entity.nested,
           type: 'one-to-many',
-          inverseSide: oppositeRelationship.relationship.name
+          inverseSide: oppositeRelationship.relationship.name,
+          helpText: oppositeRelationship.relationship.helpText || ''
         }
 
         return relationship
@@ -275,7 +277,8 @@ export class RelationshipManifestService {
           type: 'one-to-one',
           owningSide: false,
           inverseSide: oppositeRelationship.relationship.name,
-          nested: oppositeRelationship.entity.nested
+          nested: oppositeRelationship.entity.nested,
+          helpText: oppositeRelationship.relationship.helpText || ''
         }
 
         return relationship
