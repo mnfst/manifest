@@ -59,8 +59,9 @@ export class BaseSDK {
       )
     }
 
+    const spacedOperator = ` ${whereOperator} `
     const [propName, propValue] = whereClause
-      .split(whereOperator)
+      .split(spacedOperator)
       .map((str) => str.trim())
 
     const suffix: string = whereOperatorKeySuffix[whereOperator]
