@@ -47,22 +47,39 @@ export class ValidationService {
       for (const relationshipManifest of entityManifest.relationships.filter(
         (r) => r.nested
       )) {
-        const propValue: unknown[] = itemDto[relationshipManifest.name]
         const nestedEntityManifest: EntityManifest =
           this.entityManifestService.getEntityManifest({
             className: relationshipManifest.entity,
             includeNested: true
           })
 
-        for (let i = 0; i < propValue.length; i++) {
-          const item = propValue[i]
-          const nestedErrors = this.validate(item, nestedEntityManifest)
-          nestedErrors.forEach((err) => {
-            errors.push({
-              ...err,
-              property: `${relationshipManifest.name}[${i}].${err.property}`
+        if (relationshipManifest.type === 'one-to-many') {
+          // For one-to-many relationships, we expect an array of items.
+          const propValue: unknown[] = itemDto[relationshipManifest.name]
+
+          for (let i = 0; i < propValue.length; i++) {
+            const item = propValue[i]
+            const nestedErrors = this.validate(item, nestedEntityManifest)
+            nestedErrors.forEach((err) => {
+              errors.push({
+                ...err,
+                property: `${relationshipManifest.name}[${i}].${err.property}`
+              })
             })
-          })
+          }
+        } else {
+          // For one-to-one relationships, we expect a single item.
+          const propValue: unknown = itemDto[relationshipManifest.name]
+
+          if (propValue !== undefined && propValue !== null) {
+            const nestedErrors = this.validate(propValue, nestedEntityManifest)
+            nestedErrors.forEach((err) => {
+              errors.push({
+                ...err,
+                property: `${relationshipManifest.name}.${err.property}`
+              })
+            })
+          }
         }
       }
     }

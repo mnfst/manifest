@@ -146,15 +146,14 @@ export class CreateEditComponent {
           )
 
           // Include existing items in "edit" mode.
-          // TODO: Edit for non-multiple nested relationships.
-          if (
-            this.edit &&
-            this.item &&
-            Array.isArray(this.item[relationship.name])
-          ) {
-            this.item[relationship.name].forEach((item: BaseEntity) => {
-              this.addNestedItem(relationship, item)
-            })
+          if (this.edit && this.item[relationship.name]) {
+            if (Array.isArray(this.item[relationship.name])) {
+              this.item[relationship.name].forEach((item: BaseEntity) => {
+                this.addNestedItem(relationship, item)
+              })
+            } else {
+              this.addNestedItem(relationship, this.item[relationship.name])
+            }
           }
         })
     })
@@ -209,19 +208,25 @@ export class CreateEditComponent {
     nestedItem.controls[params.propName].setValue(params.newValue)
   }
 
+  /**
+   * Submit the form to create or update an item.
+   *
+   */
   submit(): void {
+    // Remove empty nested items from the form.
+    const dto: { [key: string]: any } = this.form.value
+
+    Object.entries(dto).forEach(([key, value]) => {
+      if (typeof value === 'object' && JSON.stringify(value) === '{}') {
+        dto[key] = null
+      }
+    })
+
     this.loading = true
     if (this.edit) {
       const updateAction: Promise<BaseEntity> = this.singleMode
-        ? this.crudService.updateSingle(
-            this.entityManifest.slug,
-            this.form.value
-          )
-        : this.crudService.update(
-            this.entityManifest.slug,
-            this.item.id,
-            this.form.value
-          )
+        ? this.crudService.updateSingle(this.entityManifest.slug, dto)
+        : this.crudService.update(this.entityManifest.slug, this.item.id, dto)
 
       updateAction
         .then(() => {

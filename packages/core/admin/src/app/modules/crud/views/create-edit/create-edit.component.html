@@ -116,7 +116,7 @@
 
                   <!-- Nested relations (single) -->
                   <ng-container *ngIf="relationship.type === 'one-to-one'">
-                    <p *ngIf="!form.get(relationship.name).value">
+                    <p *ngIf="!form.get(relationship.name)?.value">
                       No {{ relationship.name }} added yet. Click on "Add
                       {{ relationship.entity }}" to create a new item.
                     </p>

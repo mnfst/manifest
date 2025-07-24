@@ -78,7 +78,8 @@ export class CrudService {
     const validNestedRelationships: string[] = entityMetadata.relations
       .filter(
         (relation: RelationMetadata) =>
-          relation.relationType === 'one-to-many' &&
+          (relation.relationType === 'one-to-many' ||
+            relation.relationType === 'one-to-one') &&
           this.entityManifestService.getEntityManifest({
             className: relation.type as string,
             includeNested: true
@@ -319,9 +320,11 @@ export class CrudService {
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
-        relationships: entityManifest.relationships
-          .filter((r) => r.type !== 'one-to-many')
-          .filter((r) => r.type !== 'many-to-many' || r.owningSide)
+        relationships: entityManifest.relationships.filter(
+          (r) =>
+            r.type === 'many-to-one' ||
+            (r.type === 'many-to-many' && r.owningSide)
+        )
       })
 
     const newItem: BaseEntity = this.createWithDefaults({
@@ -416,9 +419,11 @@ export class CrudService {
     const relationItems: { [key: string]: BaseEntity | BaseEntity[] } =
       await this.relationshipService.fetchRelationItemsFromDto({
         itemDto,
-        relationships: entityManifest.relationships
-          .filter((r) => r.type !== 'one-to-many')
-          .filter((r) => r.type !== 'many-to-many' || r.owningSide),
+        relationships: entityManifest.relationships.filter(
+          (r) =>
+            r.type === 'many-to-one' ||
+            (r.type === 'many-to-many' && r.owningSide)
+        ),
         emptyMissing: !partialReplacement
       })
 

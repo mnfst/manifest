@@ -28,7 +28,7 @@ entities:
       name: { isNotEmpty: true }
     policies:
       create:
-        - { access: restricted, allow: [Service] }
+        - { access: public }
     belongsTo:
       - Parent
 
