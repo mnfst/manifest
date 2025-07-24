@@ -492,7 +492,7 @@ export class CrudService {
         .getEntityManifest({
           slug: entitySlug
         })
-        .relationships.filter((r) => r.type === 'one-to-many')
+        .relationships.filter((r) => r.type === 'one-to-many' && !r.nested)
 
     const item = await entityRepository.findOne({
       where: { id },
@@ -503,7 +503,7 @@ export class CrudService {
       throw new NotFoundException('Item not found')
     }
 
-    // Throw an error if the item has related items in a one-to-many relationship.
+    // Throw an error if the item has related items in a standard one-to-many relationship.
     if (oneToManyRelationships.length) {
       oneToManyRelationships.forEach((relationship: RelationshipManifest) => {
         const relatedItems: BaseEntity[] = item[
@@ -519,7 +519,7 @@ export class CrudService {
       })
     }
 
-    await entityRepository.delete(id)
+    await entityRepository.remove(item)
 
     return item
   }

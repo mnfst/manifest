@@ -37,7 +37,8 @@ export class RelationshipService {
         relationOptions[belongsToRelationShip.name] = {
           target: belongsToRelationShip.entity,
           type: 'many-to-one',
-          eager: !!belongsToRelationShip.eager
+          eager: !!belongsToRelationShip.eager,
+          onDelete: entityManifest.nested ? 'CASCADE' : 'SET NULL' // Nested entities get deleted when the parent is deleted.
         }
       })
 
@@ -92,6 +93,7 @@ export class RelationshipService {
           eager: false,
           inverseSide: oneToOneRelationship.inverseSide,
           cascade: !!oneToOneRelationship.nested, // If the relationship is nested, we want to cascade the operations.
+          onDelete: entityManifest.nested ? 'CASCADE' : 'SET NULL', // Nested entities get deleted when the parent is deleted.
           joinColumn: !!entityManifest.nested // Join column is on the nested entity side.
         }
       })

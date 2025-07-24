@@ -202,11 +202,6 @@ export class SeederService {
         for (const relationship of oneToOneRelationships) {
           newRecord[relationship.name] =
             await this.seedRelationships(relationship)
-          console.log(
-            `✅ Seeding one-to-one relationship ${relationship.name} for ${entityManifest.nameSingular}...`
-          )
-
-          console.log(newRecord[relationship.name])
         }
 
         await repository.save(newRecord)

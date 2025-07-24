@@ -391,15 +391,6 @@ export class CreateEditComponent {
       errorMessages[validationError.property] = Object.values(
         validationError.constraints
       )
-
-      // If the error is a nested property, add it to the error messages.
-      if (validationError.property.includes('.')) {
-        const nestedProperty = validationError.property.split('.')[1]
-        errorMessages[nestedProperty] = [
-          ...(errorMessages[nestedProperty] || []),
-          ...Object.values(validationError.constraints)
-        ]
-      }
     })
 
     return errorMessages
