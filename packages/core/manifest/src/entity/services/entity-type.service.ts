@@ -105,30 +105,32 @@ export class EntityTypeService {
     })
 
     // Add relationships as properties if they exist.
-    entityManifest.relationships.forEach((relationship) => {
-      if (
-        relationship.type === 'many-to-many' ||
-        relationship.type === 'one-to-many'
-      ) {
-        propertyTypeInfos.push({
-          name: relationship.name,
-          type: `${relationship.entity}[]`,
-          isRelationship: true,
-          optional: true
-        })
-      } else {
-        propertyTypeInfos.push({
-          name: relationship.name,
-          type: relationship.entity,
-          isRelationship: true,
-          optional: true
-        })
-      }
-    })
-
+    if (!entityManifest.nested) {
+      entityManifest.relationships.forEach((relationship) => {
+        if (
+          relationship.type === 'many-to-many' ||
+          relationship.type === 'one-to-many'
+        ) {
+          propertyTypeInfos.push({
+            name: relationship.name,
+            type: `${relationship.entity}[]`,
+            isRelationship: true,
+            optional: true
+          })
+        } else {
+          propertyTypeInfos.push({
+            name: relationship.name,
+            type: relationship.entity,
+            isRelationship: true,
+            optional: true
+          })
+        }
+      })
+    }
     return {
       name: entityManifest.className,
-      properties: propertyTypeInfos
+      properties: propertyTypeInfos,
+      nested: entityManifest.nested
     }
   }
 

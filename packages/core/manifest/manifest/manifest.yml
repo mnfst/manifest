@@ -7,6 +7,15 @@ entities:
   Parent:
     properties:
       - name
+    policies:
+      create:
+        - { access: public }
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
 
   Service:
     properties:
@@ -32,6 +41,12 @@ entities:
     policies:
       create:
         - { access: public }
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
     belongsTo:
       - { name: parent, entity: Parent, helpText: "Choose the parent entity" }
 
@@ -67,10 +82,10 @@ groups:
 
   CallToAction:
     properties:
-      - { name: title, type: text }
+      - { name: title, type: string }
       - { name: description, type: text }
-      - { name: buttonText, type: text }
-      - { name: buttonLink, type: text }
+      - { name: buttonText, type: string, helpText: "Text for the button" }
+      - { name: buttonLink, type: link }
     validation:
       title: { isNotEmpty: true }
       description: { isNotEmpty: true }
