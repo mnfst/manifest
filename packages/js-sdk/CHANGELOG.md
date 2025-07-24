@@ -1,5 +1,11 @@
 # @mnfst/sdk
 
+## 1.3.2
+
+### Patch Changes
+
+- 4878629: fix where function acts strangely when using search query that contains where operator, thanks @davidhidvegi
+
 ## 1.3.1
 
 ### Patch Changes
