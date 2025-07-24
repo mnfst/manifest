@@ -8,11 +8,11 @@
       "type": "object",
       "properties": {
         "name": {
-          "description": "The name of the property. Doc: https://manifest.build/docs/properties",
+          "description": "The name of the property. Doc: https://manifest.build/docs/entities#properties",
           "type": "string"
         },
         "type": {
-          "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://manifest.build/docs/properties#property-types",
+          "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://manifest.build/docs/entities#property-types",
           "type": "string",
           "enum": [
             "string",
@@ -29,7 +29,8 @@
             "choice",
             "location",
             "file",
-            "image"
+            "image",
+            "group"
           ]
         },
         "helpText": {
@@ -41,11 +42,11 @@
           "$ref": "./validation-schema.json"
         },
         "default": {
-          "description": "The default value of the property. Doc: https://manifest.build/docs/properties#property-params",
+          "description": "The default value of the property. Doc: https://manifest.build/docs/entities#property-params",
           "type": ["string", "number", "boolean", "object", "array"]
         },
         "hidden": {
-          "description": "If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params",
+          "description": "If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/entities#property-params",
           "type": "boolean"
         },
         "options": {
@@ -80,6 +81,15 @@
               },
               "then": {
                 "$ref": "./property-options/image-options-schema.json"
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "group" } }
+              },
+              "then": {
+                "$ref": "./property-options/group-options-schema.json"
               }
             }
           ]

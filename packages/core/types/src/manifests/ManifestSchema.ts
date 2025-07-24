@@ -11,11 +11,11 @@
 export type PropertySchema =
   | {
       /**
-       * The name of the property. Doc: https://manifest.build/docs/properties
+       * The name of the property. Doc: https://manifest.build/docs/entities#properties
        */
       name: string
       /**
-       * The type of the property: text, number, link, currency... Default "string". Doc: https://manifest.build/docs/properties#property-types
+       * The type of the property: text, number, link, currency... Default "string". Doc: https://manifest.build/docs/entities#property-types
        */
       type?:
         | 'string'
@@ -33,13 +33,14 @@ export type PropertySchema =
         | 'location'
         | 'file'
         | 'image'
+        | 'group'
       /**
        * Optional help text to provide additional guidance for the property in the admin UI.
        */
       helpText?: string
       validation?: ValidationSchema
       /**
-       * The default value of the property. Doc: https://manifest.build/docs/properties#property-params
+       * The default value of the property. Doc: https://manifest.build/docs/entities#property-params
        */
       default?:
         | string
@@ -50,14 +51,14 @@ export type PropertySchema =
           }
         | unknown[]
       /**
-       * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/properties#property-params
+       * If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/entities#property-params
        */
       hidden?: boolean
       options?: GlobalPropertyOptionsSchema
     }
   | string
 /**
- * A relationship between two entities
+ * A relationship between two entities. Doc: https://manifest.build/docs/entities#relations
  */
 export type RelationshipSchema =
   | {
@@ -100,6 +101,12 @@ export interface Manifest {
     [k: string]: EntitySchema
   }
   /**
+   * Groups of reusable properties to be used in entities. Doc: https://manifest.build/docs/entities#groups
+   */
+  groups?: {
+    [k: string]: GroupSchema
+  }
+  /**
    * The endpoints in your app. Create your own endpoints linking a path and an HTTP method to a handler function. Doc: https://manifest.build/docs/endpoints
    */
   endpoints?: {
@@ -136,7 +143,7 @@ export interface EntitySchema {
    */
   seedCount?: number
   /**
-   * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
+   * Whether the entity is authenticable. Doc: https://manifest.build/docs/authentication#authenticable-entities
    */
   authenticable?: boolean
   /**
@@ -144,7 +151,7 @@ export interface EntitySchema {
    */
   single?: boolean
   /**
-   * The properties of the entity. Doc: https://manifest.build/docs/entities
+   * The properties of the entity. Doc: https://manifest.build/docs/entities#properties
    */
   properties?: PropertySchema[]
   /**
@@ -152,7 +159,7 @@ export interface EntitySchema {
    */
   belongsTo?: RelationshipSchema[]
   /**
-   * The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/relations
+   * The ManyToMany relationships of the entity. Doc: https://manifest.build/docs/entities#relations
    */
   belongsToMany?: RelationshipSchema[]
   policies?: PoliciesSchema
@@ -266,7 +273,7 @@ export interface GlobalPropertyOptionsSchema {
   [k: string]: unknown
 }
 /**
- * The policies of the entity. Doc: https://manifest.build/docs/policies
+ * The policies of the entity. Doc: https://manifest.build/docs/access
  */
 export interface PoliciesSchema {
   create?: PolicySchema[]
@@ -466,6 +473,22 @@ export interface MiddlewareSchema {
   handler: string
 }
 /**
+ * A group of reusable properties to be used in entities. Doc: https://manifest.build/docs/entities#groups
+ */
+export interface GroupSchema {
+  /**
+   * The properties of the group. Doc: https://manifest.build/docs/entities#properties
+   */
+  properties?: PropertySchema[]
+  /**
+   * Validation object for the properties. Doc: https://manifest.build/docs/validation
+   */
+  validation?: {
+    '*'?: ValidationSchema1
+    [k: string]: unknown
+  }
+}
+/**
  * Defines a custom endpoint in Manifest: https://manifest.build/docs/endpoints
  */
 export interface EndpointSchema {
@@ -478,7 +501,7 @@ export interface EndpointSchema {
    */
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   /**
-   * The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints#handlers
+   * The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints
    */
   handler: string
   /**
@@ -506,7 +529,7 @@ export interface PolicySchema1 {
  */
 export interface SettingsSchema {
   /**
-   * Rate limiting configuration for your app
+   * Rate limiting configuration for your app. Doc: https://manifest.build/docs/security#rate-limiting
    */
   rateLimits?: {
     /**

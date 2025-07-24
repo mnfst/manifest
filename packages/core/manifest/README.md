@@ -2,9 +2,6 @@
   <a href="https://manifest.build/#gh-light-mode-only">
     <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - The backend for AI code editors" />
   </a>
-  <a href="https://manifest.build/#gh-dark-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - The backend for AI code editors" />
-  </a>
 </p>
 
 <p align='center'>
@@ -22,7 +19,7 @@
 <br>
 
 </p>
-[Manifest](https://manifest.build) is a **backend** your AI can understand and your team can trust.
+Manifest is a backend your AI can understand and your team can trust.
 
 It allows you to create a backend with data, storage, logic and an admin panel. All is defined in **1 YAML file** that both humans and LLMs can understand and edit. ✨
 

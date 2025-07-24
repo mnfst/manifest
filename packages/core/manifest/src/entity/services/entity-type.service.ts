@@ -36,9 +36,13 @@ export class EntityTypeService {
     )
 
     // Generate CreateDTO TS type.
-    Object.values(appManifest.entities).map((entity) => {
-      entityTsTypeInfos.push(this.generateCreateDtoTypeInfoFromManifest(entity))
-    })
+    Object.values(appManifest.entities)
+      .filter((entity) => !entity.nested) // Nested entities cannot be created directly.
+      .map((entity) => {
+        entityTsTypeInfos.push(
+          this.generateCreateDtoTypeInfoFromManifest(entity)
+        )
+      })
 
     return entityTsTypeInfos
   }
@@ -101,30 +105,32 @@ export class EntityTypeService {
     })
 
     // Add relationships as properties if they exist.
-    entityManifest.relationships.forEach((relationship) => {
-      if (
-        relationship.type === 'many-to-many' ||
-        relationship.type === 'one-to-many'
-      ) {
-        propertyTypeInfos.push({
-          name: relationship.name,
-          type: `${relationship.entity}[]`,
-          isRelationship: true,
-          optional: true
-        })
-      } else {
-        propertyTypeInfos.push({
-          name: relationship.name,
-          type: relationship.entity,
-          isRelationship: true,
-          optional: true
-        })
-      }
-    })
-
+    if (!entityManifest.nested) {
+      entityManifest.relationships.forEach((relationship) => {
+        if (
+          relationship.type === 'many-to-many' ||
+          relationship.type === 'one-to-many'
+        ) {
+          propertyTypeInfos.push({
+            name: relationship.name,
+            type: `${relationship.entity}[]`,
+            isRelationship: true,
+            optional: true
+          })
+        } else {
+          propertyTypeInfos.push({
+            name: relationship.name,
+            type: relationship.entity,
+            isRelationship: true,
+            optional: true
+          })
+        }
+      })
+    }
     return {
       name: entityManifest.className,
-      properties: propertyTypeInfos
+      properties: propertyTypeInfos,
+      nested: entityManifest.nested
     }
   }
 
@@ -168,17 +174,24 @@ export class EntityTypeService {
     // Add relationships using the helper function.
     entityManifest.relationships.forEach(
       (relationship: RelationshipManifest) => {
-        // Skip one-to-many relationships as they are not included in CreateDTO.
-        if (relationship.type === 'one-to-many') {
+        // Skip standard one-to-many relationships as they are not included in CreateDTO.
+        if (relationship.type === 'one-to-many' && !relationship.nested) {
           return
         }
 
         const dtoPropertyName = getDtoPropertyNameFromRelationship(relationship)
-        const isMultiple = relationship.type === 'many-to-many'
+        const isMultiple =
+          relationship.type === 'many-to-many' ||
+          relationship.type === 'one-to-many'
+
+        // For nested relationships, we pass the entire object, not just the ID.
+        const type: string = relationship.nested
+          ? relationship.entity
+          : `string`
 
         propertyTypeInfos.push({
           name: dtoPropertyName,
-          type: isMultiple ? 'string[]' : 'string',
+          type: isMultiple ? `${type}[]` : type,
           isRelationship: true,
           optional: true
         })

@@ -15,6 +15,8 @@ import endpointSchema from './schema/definitions/endpoint-schema.json'
 import middlewareSchema from './schema/definitions/middlewares/middleware-schema.json'
 import middlewaresSchema from './schema/definitions/middlewares/middlewares-schema.json'
 import settingsSchema from './schema/definitions/settings-schema.json'
+import groupSchema from './schema/definitions/group-schema.json'
+import groupOptionsSchema from './schema/definitions/property-options/group-options-schema.json'
 
 export default [
   manifestSchema,
@@ -28,6 +30,7 @@ export default [
   choiceOptionsSchema,
   moneyOptionsSchema,
   imageOptionsSchema,
+  groupOptionsSchema,
 
   // Policies.
   policiesSchema,
@@ -43,6 +46,9 @@ export default [
 
   // Endpoints.
   endpointSchema,
+
+  // Groups.
+  groupSchema,
 
   // Settings.
   settingsSchema

@@ -16,7 +16,7 @@
       "enum": ["GET", "POST", "PATCH", "PUT", "DELETE"]
     },
     "handler": {
-      "description": "The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints#handlers",
+      "description": "The name of the handler function for this endpoint. Doc: https://manifest.build/docs/endpoints",
       "type": "string"
     },
     "description": {

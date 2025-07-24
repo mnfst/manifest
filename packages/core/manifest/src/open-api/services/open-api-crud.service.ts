@@ -36,7 +36,10 @@ export class OpenApiCrudService {
 
     // Collection paths.
     entityManifests
-      .filter((entityManifest: EntityManifest) => !entityManifest.single)
+      .filter(
+        (entityManifest: EntityManifest) =>
+          !entityManifest.single && !entityManifest.nested
+      )
       .forEach((entityManifest: EntityManifest) => {
         paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}`] = {}
         paths[`/${COLLECTIONS_PATH}/${entityManifest.slug}/{id}`] = {}
@@ -150,8 +153,7 @@ export class OpenApiCrudService {
             required: false,
             schema: {
               type: 'string',
-              enum: entityManifest.properties.map((property) => property.name),
-              default: 'createdAt'
+              enum: entityManifest.properties.map((property) => property.name)
             }
           },
           {
@@ -161,8 +163,7 @@ export class OpenApiCrudService {
             required: false,
             schema: {
               type: 'string',
-              enum: ['ASC', 'DESC'],
-              default: 'DESC'
+              enum: ['ASC', 'DESC']
             }
           },
           {

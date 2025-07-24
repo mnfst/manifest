@@ -47,6 +47,11 @@ export class OpenApiSchemaService {
           properties[property.name] = this.generatePropertySchema(property)
         })
 
+      if (entityTsTypeInfo.nested) {
+        // For nested entities, we remove the ID property in schemas to prevent 400 responses on create/update examples with the UI.
+        delete properties['id']
+      }
+
       // Add relationship schemas for the entity.
       entityTsTypeInfo.properties
         .filter((property) => property.isRelationship)

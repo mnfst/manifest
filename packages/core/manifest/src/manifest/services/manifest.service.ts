@@ -78,11 +78,14 @@ export class ManifestService {
     this.schemaService.validate(appSchema)
 
     const appManifest: AppManifest = {
-      ...appSchema,
-      version: appSchema.version || '0.0.1',
+      name: appSchema.name || 'Manifest App',
+      version: appSchema.version || '1.0.0',
       production: this.configService.get('NODE_ENV') === 'production',
       entities: this.entityManifestService
-        .transformEntityManifests(appSchema.entities)
+        .transformEntityManifests({
+          entities: appSchema.entities || {},
+          groups: appSchema.groups || {}
+        })
         .reduce((acc, entityManifest: EntityManifest) => {
           acc[entityManifest.className] = entityManifest
           return acc

@@ -9,30 +9,37 @@ export interface EntityManifest {
    * The class name. Used widely on the admin panel. Default: class name.
    */
   className: string
+
   /**
    * The singular lowercase name of your entity. Used widely on the admin panel. Default: singular lowercase name.
    */
   nameSingular: string
+
   /**
    * The plural lowercase name of your entity. Used widely on the admin panel. Default: plural lowercase name.
    */
   namePlural: string
+
   /**
    * The kebab-case slug of the entity that will define API endpoints. Default: plural dasherized name.
    */
   slug: string
+
   /**
    * The main prop of the entity. Used widely on the admin panel. Default: first string field.
    */
   mainProp: string
+
   /**
    * The number of entities to seed when running the seed command. Default: 50.
    */
   seedCount?: number
+
   /**
    * Whether the entity is authenticable. Doc: https://manifest.build/docs/auth
    */
   authenticable?: boolean
+
   /**
    * Whether the entity is a single type instead of a collection. Doc: https://manifest.build/docs/entities#singles
    */
@@ -137,4 +144,10 @@ export interface EntityManifest {
      */
     afterDelete?: MiddlewareManifest[]
   }
+
+  /**
+   * Whether the entity is a group (nested entity).
+   * Groups entities that serve as reusable components and can only be nested inside other entities and cannot be accessed directly via the API.
+   */
+  nested?: boolean
 }
