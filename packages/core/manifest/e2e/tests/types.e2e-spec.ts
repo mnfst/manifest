@@ -11,7 +11,7 @@ describe('Types (e2e)', () => {
     )
   })
 
-  it('It should generate a valid TypeScript types.ts file', async () => {
+  it('should generate a valid TypeScript types.ts file', async () => {
     // Use TypeScript's compiler API to parse the file content and check for syntax errors.
     const sourceFile = ts.createSourceFile(
       'test.ts',
@@ -32,17 +32,29 @@ describe('Types (e2e)', () => {
     expect(diagnostics).toHaveLength(0)
   })
 
-  it('Should include entity types', async () => {
+  it('should include entity types', async () => {
     expect(fileContent).toContain('export interface User {')
     expect(fileContent).toContain('export interface Bird {')
     expect(fileContent).toContain('export interface Cat {')
     expect(fileContent).toContain('export interface Snake {')
   })
 
-  it('Should include entity DTO types', async () => {
+  it('should include entity DTO types', async () => {
     expect(fileContent).toContain('export interface CreateUpdateUserDto {')
     expect(fileContent).toContain('export interface CreateUpdateBirdDto {')
     expect(fileContent).toContain('export interface CreateUpdateCatDto {')
     expect(fileContent).toContain('export interface CreateUpdateSnakeDto {')
+  })
+
+  it('should generate nested entity types', async () => {
+    return false // TODO: Implement this test
+  })
+
+  it('should include nested types in entities and DTOs', async () => {
+    return false // TODO: Implement this test
+  })
+
+  it('should not generate DTOs for nested entities', async () => {
+    return false // TODO: Implement this test
   })
 })

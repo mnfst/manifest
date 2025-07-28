@@ -185,4 +185,8 @@ describe('Validation (e2e)', () => {
       expect(updateResponse.status).toBe(200)
     })
   })
+
+  it('should validate nested entities properties', async () => {
+    return false // TODO: Implement this test
+  })
 })
