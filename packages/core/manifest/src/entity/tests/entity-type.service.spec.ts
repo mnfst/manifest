@@ -166,7 +166,7 @@ describe('EntityTypeService', () => {
   describe('generateEntityTypeInfos', () => {
     it('should generate type infos for entities with properties', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos).toHaveLength(4) // One for the entity and one for the DTO
+      expect(entityTypeInfos).toHaveLength(5) // One for the entity and one for the DTO
 
       expect(entityTypeInfos[0].name).toBe('User')
       expect(entityTypeInfos[0].properties).toHaveLength(
@@ -281,8 +281,8 @@ describe('EntityTypeService', () => {
 
     it('should create DTO types for entities with properties', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos[2].name).toBe('CreateUpdateUserDto')
-      expect(entityTypeInfos[2].properties).toHaveLength(
+      expect(entityTypeInfos[3].name).toBe('CreateUpdateUserDto')
+      expect(entityTypeInfos[3].properties).toHaveLength(
         appManifest.entities.user.properties.length +
           appManifest.entities.user.relationships.filter(
             (relationship) => relationship.type !== 'one-to-many' // Exclude one-to-many relationships from DTOs as they are on the opposite side.
@@ -305,7 +305,7 @@ describe('EntityTypeService', () => {
 
     it('should create DTO types for entities with relationships', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos[2].properties).toEqual(
+      expect(entityTypeInfos[3].properties).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             name: 'groupId',
