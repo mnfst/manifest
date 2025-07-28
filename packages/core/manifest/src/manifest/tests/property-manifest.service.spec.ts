@@ -88,4 +88,18 @@ describe('PropertyManifestService', () => {
       default: undefined
     })
   })
+
+  it('should create an empty options object if not provided', () => {
+    const propSchema: PropertySchema = {
+      name: 'stringProp',
+      type: 'string'
+    }
+    const entitySchema = {
+      validation: {}
+    }
+
+    const result = service.transformPropertyManifest(propSchema, entitySchema)
+
+    expect(JSON.stringify(result.options)).toBe('{}')
+  })
 })

@@ -335,6 +335,28 @@ describe('OpenApiSchemaService', () => {
       )
     })
 
+    it('should not include the ID when the entity is nested', () => {
+      const nestedEntityTsTypeInfos: EntityTsTypeInfo[] = [
+        {
+          name: 'NestedEntity',
+          properties: [
+            { name: 'name', type: 'string', manifestPropType: PropType.String },
+            {
+              name: 'description',
+              type: 'string',
+              manifestPropType: PropType.Text
+            }
+          ]
+        }
+      ]
+      const schemas = service.generateEntitySchemas(nestedEntityTsTypeInfos)
+      expect(schemas).toBeDefined()
+      expect(schemas.NestedEntity).toBeDefined()
+      expect(schemas.NestedEntity.type).toBe('object')
+      expect(schemas.NestedEntity.properties).toBeDefined()
+      expect(schemas.NestedEntity.properties.id).toBeUndefined()
+    })
+
     it('should throw an error if the TS type is not found', () => {
       const invalidEntityTsTypeInfos: EntityTsTypeInfo[] = [
         {

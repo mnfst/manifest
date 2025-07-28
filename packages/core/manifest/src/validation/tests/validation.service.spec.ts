@@ -5,6 +5,7 @@ import { EntityManifestService } from '../../manifest/services/entity-manifest.s
 
 describe('ValidationService', () => {
   let service: ValidationService
+  let entityManifestService: EntityManifestService
 
   const catDto = {
     name: 'Fluffy',
@@ -66,6 +67,9 @@ describe('ValidationService', () => {
     }).compile()
 
     service = module.get<ValidationService>(ValidationService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
   })
 
   it('should be defined', () => {
@@ -104,6 +108,121 @@ describe('ValidationService', () => {
           }
         })
       })
+    })
+
+    it('should validate nested entities', () => {
+      const parentEntityManifest: EntityManifest = {
+        className: 'ParentEntity',
+        nameSingular: 'parent',
+        namePlural: 'parents',
+        slug: 'parents',
+        mainProp: 'title',
+        policies: {
+          create: [],
+          read: [],
+          update: [],
+          delete: [],
+          signup: []
+        },
+        properties: [
+          {
+            name: 'title',
+            type: PropType.String
+          }
+        ],
+        relationships: [
+          {
+            name: 'child',
+            type: 'one-to-one',
+            entity: 'ChildEntity',
+            nested: true
+          },
+          {
+            name: 'children',
+            type: 'one-to-many',
+            entity: 'ChildEntity',
+            nested: true
+          }
+        ]
+      } as EntityManifest
+
+      const childEntityManifest: EntityManifest = {
+        className: 'ChildEntity',
+        nameSingular: 'child',
+        namePlural: 'children',
+        slug: 'children',
+        mainProp: 'name',
+        policies: {
+          create: [],
+          read: [],
+          update: [],
+          delete: [],
+          signup: []
+        },
+        relationships: [
+          {
+            name: 'parent',
+            type: 'one-to-one',
+            entity: 'ParentEntity',
+            nested: true
+          },
+          {
+            name: 'parents',
+            type: 'one-to-many',
+            entity: 'ParentEntity',
+            nested: true
+          }
+        ],
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          },
+          {
+            name: 'age',
+            type: PropType.Number,
+            validation: { min: 99 }
+          }
+        ]
+      } as EntityManifest
+
+      const parentDto = {
+        title: 'Parent Title',
+        child: {
+          name: 'Child Name',
+          age: 5
+        },
+        children: [
+          {
+            name: 'Child 1',
+            age: 3
+          },
+          {
+            name: 'Child 2',
+            age: 100 // This one passes validation.
+          },
+          {
+            name: 'Child 3',
+            age: 2
+          }
+        ]
+      }
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(childEntityManifest)
+
+      const validation = service.validate(parentDto, parentEntityManifest)
+
+      expect(validation.length).toBe(3)
+      expect(validation[0].property).toBe('child.age')
+      expect(validation[0].constraints.min).toBeDefined()
+
+      // Validate children array with correct indices.
+      expect(validation[1].property).toBe('children[0].age')
+      expect(validation[1].constraints.min).toBeDefined()
+      expect(validation[2].property).toBe('children[2].age')
+      expect(validation[2].constraints.min).toBeDefined()
     })
   })
 

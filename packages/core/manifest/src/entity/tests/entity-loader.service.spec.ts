@@ -8,6 +8,7 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 describe('EntityLoaderService', () => {
   let service: EntityLoaderService
   let relationshipService: RelationshipService
+  let manifestService: ManifestService
 
   const dummyEntityManifest: EntityManifest = {
     className: 'Cat',
@@ -81,6 +82,7 @@ describe('EntityLoaderService', () => {
 
     service = module.get<EntityLoaderService>(EntityLoaderService)
     relationshipService = module.get<RelationshipService>(RelationshipService)
+    manifestService = module.get<ManifestService>(ManifestService)
   })
 
   it('should be defined', () => {
@@ -191,6 +193,24 @@ describe('EntityLoaderService', () => {
       ).toHaveBeenCalled()
 
       expect(result[0].options.relations).toBeDefined()
+    })
+
+    it('should add authenticable entity columns if the entity is authenticable', () => {
+      const authenticableEntityManifest: EntityManifest = {
+        ...dummyEntityManifest,
+        authenticable: true
+      }
+
+      jest.spyOn(manifestService, 'getAppManifest').mockReturnValue({
+        entities: {
+          Cat: authenticableEntityManifest
+        }
+      } as any)
+
+      const result: EntitySchema[] = service.loadEntities('sqlite')
+
+      expect(result[0].options.columns['email']).toBeDefined()
+      expect(result[0].options.columns['password']).toBeDefined()
     })
   })
 

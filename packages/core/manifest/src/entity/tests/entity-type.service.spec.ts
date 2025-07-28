@@ -59,11 +59,6 @@ describe('EntityTypeService', () => {
                 }
               }
             }
-          },
-          {
-            name: 'group',
-            type: PropType.Nested,
-            options: { group: 'NestedEntity', multiple: false }
           }
         ],
         relationships: [
@@ -73,9 +68,16 @@ describe('EntityTypeService', () => {
             type: 'one-to-many'
           },
           {
-            name: 'group',
-            entity: 'Group',
-            type: 'many-to-one'
+            name: 'widget',
+            entity: 'NestedEntity',
+            nested: true,
+            type: 'one-to-one'
+          },
+          {
+            name: 'testimonials',
+            entity: 'Testimonial',
+            type: 'one-to-many',
+            nested: true
           },
           {
             name: 'favoriteFruits',
@@ -102,11 +104,6 @@ describe('EntityTypeService', () => {
           {
             name: 'name',
             type: PropType.String
-          },
-          {
-            name: 'group',
-            type: PropType.Nested,
-            options: { group: 'NestedEntity' }
           }
         ],
         relationships: [],
@@ -287,19 +284,6 @@ describe('EntityTypeService', () => {
           appManifest.entities.user.relationships.filter(
             (relationship) => relationship.type !== 'one-to-many' // Exclude one-to-many relationships from DTOs as they are on the opposite side.
           ).length
-      ) // No id property in DTO.
-    })
-
-    it('should not create DTO types for nested entities', () => {
-      const entityTypeInfos = service.generateEntityTypeInfos()
-      const nestedEntityInfo = entityTypeInfos.find(
-        (info) => info.name === 'NestedEntity'
-      )
-      expect(nestedEntityInfo).toBeDefined()
-      expect(nestedEntityInfo.nested).toBe(true)
-      expect(nestedEntityInfo.properties).toHaveLength(2) // id + title
-      expect(entityTypeInfos).not.toContainEqual(
-        expect.objectContaining({ name: 'CreateUpdateNestedEntityDto' })
       )
     })
 
@@ -320,6 +304,46 @@ describe('EntityTypeService', () => {
             optional: true
           })
         ])
+      )
+    })
+
+    it('should create DTO types for entities with multiple nested entities', () => {
+      const entityTypeInfos = service.generateEntityTypeInfos()
+
+      const parentEntityInfo = entityTypeInfos.find(
+        (info) => info.name === 'User'
+      )
+
+      const groupProperty = parentEntityInfo.properties.find(
+        (prop) => prop.name === 'widget'
+      )
+      expect(groupProperty).toBeDefined()
+      expect(groupProperty.type).toBe('NestedEntity')
+    })
+
+    it('should create DTO types for non multiple nested entities', () => {
+      const entityTypeInfos = service.generateEntityTypeInfos()
+      const parentEntityInfo = entityTypeInfos.find(
+        (info) => info.name === 'User'
+      )
+
+      const groupProperty = parentEntityInfo.properties.find(
+        (prop) => prop.name === 'testimonials'
+      )
+      expect(groupProperty).toBeDefined()
+      expect(groupProperty.type).toBe('Testimonial[]')
+    })
+
+    it('should not create DTO types for nested entities', () => {
+      const entityTypeInfos = service.generateEntityTypeInfos()
+      const nestedEntityInfo = entityTypeInfos.find(
+        (info) => info.name === 'NestedEntity'
+      )
+      expect(nestedEntityInfo).toBeDefined()
+      expect(nestedEntityInfo.nested).toBe(true)
+      expect(nestedEntityInfo.properties).toHaveLength(2) // id + title
+      expect(entityTypeInfos).not.toContainEqual(
+        expect.objectContaining({ name: 'CreateUpdateNestedEntityDto' })
       )
     })
   })
