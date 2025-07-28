@@ -59,7 +59,15 @@ describe('RelationshipManifestService', () => {
             type: PropType.String
           }
         ],
-        relationships: [],
+        relationships: [
+          {
+            name: 'profile',
+            entity: 'UserProfile',
+            type: 'one-to-one',
+            owningSide: true,
+            eager: false
+          }
+        ],
         policies: {
           create: [],
           read: [],
@@ -74,6 +82,28 @@ describe('RelationshipManifestService', () => {
         namePlural: 'Dogs',
         mainProp: 'name',
         slug: 'dogs',
+        seedCount: 10,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [],
+        policies: {
+          create: [],
+          read: [],
+          update: [],
+          delete: [],
+          signup: []
+        }
+      },
+      UserProfile: {
+        className: 'UserProfile',
+        nameSingular: 'UserProfile',
+        namePlural: 'UserProfiles',
+        mainProp: 'name',
+        slug: 'user-profiles',
         seedCount: 10,
         properties: [
           {
@@ -227,5 +257,23 @@ describe('RelationshipManifestService', () => {
         inverseSide: 'friends'
       }
     ])
+  })
+
+  it('should generate one-to-one relationships based on opposite relationships', () => {
+    const relationshipManifests: RelationshipManifest[] =
+      service.getOppositeOneToOneRelationships(
+        [dummyManifest.entities.UserProfile, dummyManifest.entities.Owner],
+        dummyManifest.entities.UserProfile
+      )
+
+    expect(relationshipManifests[0]).toEqual(
+      expect.objectContaining({
+        name: 'owner',
+        entity: 'Owner',
+        type: 'one-to-one',
+        inverseSide: 'profile',
+        owningSide: false
+      })
+    )
   })
 })

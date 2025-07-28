@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { EntityTypeService } from '../services/entity-type.service'
 import { ManifestService } from '../../manifest/services/manifest.service'
 import { AppManifest, PropType } from '../../../../types/src'
+import { EntityTsTypeInfo } from '../types/entity-ts-type-info'
 
 describe('EntityTypeService', () => {
   let service: EntityTypeService
@@ -58,6 +59,11 @@ describe('EntityTypeService', () => {
                 }
               }
             }
+          },
+          {
+            name: 'group',
+            type: PropType.Nested,
+            options: { group: 'NestedEntity', multiple: false }
           }
         ],
         relationships: [
@@ -96,6 +102,11 @@ describe('EntityTypeService', () => {
           {
             name: 'name',
             type: PropType.String
+          },
+          {
+            name: 'group',
+            type: PropType.Nested,
+            options: { group: 'NestedEntity' }
           }
         ],
         relationships: [],
@@ -106,6 +117,28 @@ describe('EntityTypeService', () => {
           delete: [],
           signup: []
         }
+      },
+      nestedEntity: {
+        className: 'NestedEntity',
+        nameSingular: 'nestedEntity',
+        namePlural: 'nestedEntities',
+        slug: 'nested-entities',
+        mainProp: 'title',
+        properties: [
+          {
+            name: 'title',
+            type: PropType.String
+          }
+        ],
+        relationships: [],
+        policies: {
+          create: [],
+          read: [],
+          update: [],
+          delete: [],
+          signup: []
+        },
+        nested: true
       }
     }
   }
@@ -166,6 +199,43 @@ describe('EntityTypeService', () => {
       )
     })
 
+    it('should generate type infos for multiple nested entities', () => {
+      const entityTypeInfos: EntityTsTypeInfo[] =
+        service.generateEntityTypeInfos()
+
+      console.log(entityTypeInfos[1].properties)
+
+      const nestedEntityInfo = entityTypeInfos.find(
+        (info) => info.name === 'NestedEntity'
+      )
+      const parentEntityInfo = entityTypeInfos.find(
+        (info) => info.name === 'Contributor'
+      )
+
+      // Nested entity should be included in the type infos.
+      expect(nestedEntityInfo).toBeDefined()
+      expect(nestedEntityInfo.nested).toBe(true)
+      expect(nestedEntityInfo.properties).toHaveLength(2) // id + title
+
+      const groupProperty = parentEntityInfo.properties.find(
+        (prop) => prop.name === 'group'
+      )
+      expect(groupProperty).toBeDefined()
+      expect(groupProperty.type).toBe('string') // Should be string as it will be overridden later.
+      expect(groupProperty.manifestPropType).toBe(PropType.Nested)
+    })
+
+    it('should generate type infos for non multiple nested entities', () => {
+      const entityTypeInfos = service.generateEntityTypeInfos()
+      const userProperties = entityTypeInfos[0].properties
+      const groupProperty = userProperties.find((prop) => prop.name === 'group')
+
+      console.log(groupProperty)
+
+      expect(groupProperty).toBeDefined()
+      expect(groupProperty.type).toBe('string') // Should be string as it will be overridden later.
+    })
+
     it('should include values in the property type is Choice (enum)', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
       const userProperties = entityTypeInfos[0].properties
@@ -218,6 +288,19 @@ describe('EntityTypeService', () => {
             (relationship) => relationship.type !== 'one-to-many' // Exclude one-to-many relationships from DTOs as they are on the opposite side.
           ).length
       ) // No id property in DTO.
+    })
+
+    it('should not create DTO types for nested entities', () => {
+      const entityTypeInfos = service.generateEntityTypeInfos()
+      const nestedEntityInfo = entityTypeInfos.find(
+        (info) => info.name === 'NestedEntity'
+      )
+      expect(nestedEntityInfo).toBeDefined()
+      expect(nestedEntityInfo.nested).toBe(true)
+      expect(nestedEntityInfo.properties).toHaveLength(2) // id + title
+      expect(entityTypeInfos).not.toContainEqual(
+        expect.objectContaining({ name: 'CreateUpdateNestedEntityDto' })
+      )
     })
 
     it('should create DTO types for entities with relationships', () => {

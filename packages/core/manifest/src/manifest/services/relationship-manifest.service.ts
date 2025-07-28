@@ -154,8 +154,8 @@ export class RelationshipManifestService {
         const relationship: RelationshipManifest = {
           name: camelize(oppositeRelationship.entity.namePlural),
           entity: oppositeRelationship.entity.className,
-          eager: oppositeRelationship.entity.nested,
-          nested: oppositeRelationship.entity.nested,
+          eager: !!oppositeRelationship.entity.nested,
+          nested: !!oppositeRelationship.entity.nested,
           type: 'one-to-many',
           inverseSide: oppositeRelationship.relationship.name,
           helpText: oppositeRelationship.relationship.helpText || ''
@@ -273,11 +273,11 @@ export class RelationshipManifestService {
         const relationship: RelationshipManifest = {
           name: camelize(oppositeRelationship.entity.nameSingular),
           entity: oppositeRelationship.entity.className,
-          eager: oppositeRelationship.entity.nested,
+          eager: !!oppositeRelationship.entity.nested,
           type: 'one-to-one',
           owningSide: false,
           inverseSide: oppositeRelationship.relationship.name,
-          nested: oppositeRelationship.entity.nested,
+          nested: !!oppositeRelationship.entity.nested,
           helpText: oppositeRelationship.relationship.helpText || ''
         }
 

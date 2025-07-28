@@ -152,6 +152,46 @@ describe('RelationshipService', () => {
         inverseSide: 'users'
       })
     })
+
+    it('should return the one-to-one relationship options', () => {
+      const oneToOneRelationManifest: RelationshipManifest = {
+        name: 'profile',
+        entity: 'UserProfile',
+        type: 'one-to-one',
+        owningSide: true
+      }
+      const entityManifest = Object.assign({}, dummyEntityManifest, {
+        relationships: [oneToOneRelationManifest]
+      })
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(entityManifest)
+
+      expect(relationOptions.profile).toEqual(
+        expect.objectContaining({
+          target: 'UserProfile',
+          type: 'one-to-one',
+          eager: false,
+          joinColumn: false
+        })
+      )
+    })
+
+    it('should set onDelete to SET NULL for non-nested entities', () => {
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(dummyEntityManifest)
+
+      expect(relationOptions.owner.onDelete).toBe('SET NULL')
+    })
+
+    it('should set onDelete to CASCADE for nested entities', () => {
+      const nestedEntityManifest = Object.assign({}, dummyEntityManifest, {
+        nested: true
+      })
+      const relationOptions =
+        service.getEntitySchemaRelationOptions(nestedEntityManifest)
+
+      expect(relationOptions.owner.onDelete).toBe('CASCADE')
+    })
   })
 
   describe('fetchRelationItemsFromDto', () => {
