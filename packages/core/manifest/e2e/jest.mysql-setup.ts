@@ -81,6 +81,8 @@ beforeAll(async () => {
   await seedService.seed('author')
   await seedService.seed('tag')
   await seedService.seed('note')
+  await seedService.seed('tutorial')
+  await seedService.seed('step')
 
   // Store request object in global scope to use in tests.
   global.request = supertest(app.getHttpServer())
