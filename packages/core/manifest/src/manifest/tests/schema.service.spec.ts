@@ -10,7 +10,18 @@ describe('SchemaService', () => {
     name: 'test app',
     entities: {
       Cat: {
-        className: 'Cat'
+        className: 'Cat',
+        properties: [
+          {
+            name: 'name',
+            type: 'string'
+          },
+          {
+            name: 'age',
+            type: 'number',
+            default: 18
+          }
+        ]
       }
     }
   }
@@ -53,6 +64,17 @@ describe('SchemaService', () => {
         entities: {
           Cat: {
             className: 'Cat',
+            properties: [
+              {
+                name: 'name',
+                type: 'string'
+              },
+              {
+                name: 'age',
+                type: 'number',
+                default: 18
+              }
+            ],
             belongsTo: [
               {
                 name: 'Dragon',

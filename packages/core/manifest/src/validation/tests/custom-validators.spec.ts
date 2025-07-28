@@ -1,13 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { PropType } from '@repo/types'
 import { ValidationService } from '../services/validation.service'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('Custom validators', () => {
   let service: ValidationService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ValidationService]
+      providers: [
+        ValidationService,
+        {
+          provide: EntityManifestService,
+          useValue: {
+            getEntityManifest: jest.fn().mockReturnValue({
+              className: 'TestEntity',
+              properties: [
+                { name: 'name', type: PropType.String },
+                { name: 'age', type: PropType.Number }
+              ]
+            })
+          }
+        }
+      ]
     }).compile()
 
     service = module.get<ValidationService>(ValidationService)

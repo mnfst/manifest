@@ -86,7 +86,8 @@ describe('EntityService', () => {
 
       expect(entityManifestService.getEntityManifest).toHaveBeenCalledWith({
         slug: 'entity',
-        fullVersion: true
+        fullVersion: true,
+        includeNested: true
       })
 
       expect(result.targetName).toBe('Entity')

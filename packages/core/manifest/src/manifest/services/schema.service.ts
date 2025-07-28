@@ -128,10 +128,9 @@ export class SchemaService {
       )
 
       // Validate that all groups exist.
-
       const groupProperties: PropertySchema[] = entity.properties
-        .filter((property) => typeof property !== 'string')
-        .filter((property) => property.type === 'group')
+        .filter((property: PropertySchema) => typeof property !== 'string')
+        .filter((property: PropertySchema) => property['type'].group)
 
       groupProperties.forEach((property: PropertySchema) => {
         const propertyGroup: string = (property as any).options?.group

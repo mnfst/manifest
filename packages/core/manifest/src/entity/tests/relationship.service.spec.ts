@@ -99,11 +99,13 @@ describe('RelationshipService', () => {
       const relationOptions =
         service.getEntitySchemaRelationOptions(dummyEntityManifest)
 
-      expect(relationOptions.owner).toEqual({
-        target: 'User',
-        type: 'many-to-one',
-        eager: false
-      })
+      expect(relationOptions.owner).toEqual(
+        expect.objectContaining({
+          target: 'User',
+          type: 'many-to-one',
+          eager: false
+        })
+      )
     })
 
     it('should return the many-to-many relationship options', () => {

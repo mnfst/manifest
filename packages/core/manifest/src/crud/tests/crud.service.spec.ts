@@ -101,6 +101,7 @@ describe('CrudService', () => {
     save: jest.fn((item) => item),
     createQueryBuilder: jest.fn(() => queryBuilder),
     delete: jest.fn(() => Promise.resolve({})),
+    remove: jest.fn(() => Promise.resolve({})),
     metadata: entityMetadata
   } as any
 

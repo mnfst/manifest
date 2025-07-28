@@ -14,6 +14,7 @@ import { RelationshipManifestService } from '../services/relationship-manifest.s
 import { ManifestService } from '../services/manifest.service'
 import { HookService } from '../../hook/hook.service'
 import { PolicyService } from '../../policy/policy.service'
+import { PropertyManifestService } from '../services/property-manifest.service'
 
 describe('EntityManifestService', () => {
   let service: EntityManifestService
@@ -71,7 +72,9 @@ describe('EntityManifestService', () => {
             getRelationshipManifests: jest.fn(),
             transformRelationship: jest.fn(),
             getOneToManyRelationships: jest.fn(() => []),
-            getOppositeManyToManyRelationships: jest.fn(() => [])
+            getOppositeManyToManyRelationships: jest.fn(() => []),
+            getOppositeOneToManyRelationships: jest.fn(() => []),
+            getOppositeOneToOneRelationships: jest.fn(() => [])
           }
         },
         {
@@ -92,6 +95,18 @@ describe('EntityManifestService', () => {
           provide: PolicyService,
           useValue: {
             transformPolicies: jest.fn()
+          }
+        },
+        {
+          provide: PropertyManifestService,
+          useValue: {
+            transformPropertyManifest: jest.fn((prop) => ({
+              name: prop.name,
+              type: (prop.type as PropType) || PropType.String,
+              hidden: prop.hidden || false,
+              helpText: prop.helpText || '',
+              default: prop.default
+            }))
           }
         }
       ]
@@ -186,7 +201,7 @@ describe('EntityManifestService', () => {
       }
 
       const entityManifests: EntityManifest[] =
-        service.transformEntityManifests(entitySchemaObject)
+        service.transformEntityManifests({ entities: entitySchemaObject })
 
       expect(entityManifests.length).toBe(1)
       expect(entityManifests[0].seedCount).toBe(10)
@@ -211,15 +226,16 @@ describe('EntityManifestService', () => {
       }
     }
 
-    const entityManifests: EntityManifest[] =
-      service.transformEntityManifests(entitySchemaObject)
+    const entityManifests: EntityManifest[] = service.transformEntityManifests({
+      entities: entitySchemaObject
+    })
 
     expect(entityManifests.length).toBe(1)
     expect(entityManifests[0].properties.length).toBe(2)
     expect(entityManifests[0].single).toBe(true)
     expect(entityManifests[0].relationships.length).toBe(0)
     expect(entityManifests[0].mainProp).toBe(null) // No main prop for single entities.
-    expect(entityManifests[0].namePlural).toBe('homecontent')
+    expect(entityManifests[0].namePlural).toBe('homeContent')
     expect(entityManifests[0].authenticable).toBe(false)
     expect(entityManifests[0].seedCount).toBe(1)
     expect(entityManifests[0]).not.toHaveProperty('belongsTo')

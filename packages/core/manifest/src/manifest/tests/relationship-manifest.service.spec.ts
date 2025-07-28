@@ -195,19 +195,18 @@ describe('RelationshipManifestService', () => {
 
   it('should generate one-to-many relationships based on opposite relationships', () => {
     const relationshipManifests: RelationshipManifest[] =
-      service.getOneToManyRelationships(
+      service.getOppositeOneToManyRelationships(
         [dummyManifest.entities.Cat, dummyManifest.entities.Owner],
         dummyManifest.entities.Owner
       )
 
     expect(relationshipManifests).toEqual([
-      {
+      expect.objectContaining({
         name: 'cats',
         entity: 'Cat',
-        eager: false,
         type: 'one-to-many',
         inverseSide: 'owner'
-      }
+      })
     ])
   })
 

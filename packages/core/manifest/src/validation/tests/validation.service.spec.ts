@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ValidationService } from '../services/validation.service'
 import { EntityManifest, PropType, PropertyManifest } from '@repo/types'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 describe('ValidationService', () => {
   let service: ValidationService
@@ -53,7 +54,15 @@ describe('ValidationService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ValidationService]
+      providers: [
+        ValidationService,
+        {
+          provide: EntityManifestService,
+          useValue: {
+            getEntityManifest: jest.fn().mockReturnValue(catManifest)
+          }
+        }
+      ]
     }).compile()
 
     service = module.get<ValidationService>(ValidationService)

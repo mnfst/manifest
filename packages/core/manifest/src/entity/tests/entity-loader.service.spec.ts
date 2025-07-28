@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EntityLoaderService } from '../services/entity-loader.service'
 import { RelationshipService } from '../services/relationship.service'
-import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { EntitySchema, ValueTransformer } from 'typeorm'
 import { EntityManifest, PropType } from '../../../../types/src'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 describe('EntityLoaderService', () => {
   let service: EntityLoaderService
@@ -61,10 +61,13 @@ describe('EntityLoaderService', () => {
       providers: [
         EntityLoaderService,
         {
-          provide: EntityManifestService,
+          provide: ManifestService,
           useValue: {
-            getEntityManifest: jest.fn(),
-            getEntityManifests: jest.fn(() => [dummyEntityManifest])
+            getAppManifest: jest.fn(() => ({
+              entities: {
+                Cat: dummyEntityManifest
+              }
+            }))
           }
         },
         {
