@@ -187,6 +187,48 @@ describe('Validation (e2e)', () => {
   })
 
   it('should validate nested entities properties', async () => {
-    return false // TODO: Implement this test
+    const goodTutorial = {
+      title: 'Test tutorial',
+      content: 'This is a test tutorial',
+      steps: [
+        {
+          title: 'Step 1',
+          description: 'This is the first step'
+        },
+        {
+          title: 'Step 2',
+          description: 'This is the second step'
+        }
+      ]
+    }
+
+    const badTutorial = {
+      title: 'Test tutorial',
+      content: 'This is a test tutorial',
+      steps: [
+        {
+          title: 'Step 1',
+          description: 'This is the first step'
+        },
+        {
+          title: 'A',
+          description: 'This is the second step'
+        }
+      ]
+    }
+
+    const goodResponse = await global.request
+      .post('/collections/tutorials')
+      .send(goodTutorial)
+
+    const badResponse = await global.request
+      .post('/collections/tutorials')
+      .send(badTutorial)
+
+    expect(goodResponse.status).toBe(201)
+    expect(badResponse.status).toBe(400)
+    expect(badResponse.body.length).toBe(1)
+    expect(badResponse.body[0].property).toBe('steps[1].title')
+    expect(badResponse.body[0].constraints).toHaveProperty('minLength')
   })
 })

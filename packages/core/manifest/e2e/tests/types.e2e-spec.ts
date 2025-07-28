@@ -47,14 +47,14 @@ describe('Types (e2e)', () => {
   })
 
   it('should generate nested entity types', async () => {
-    return false // TODO: Implement this test
+    expect(fileContent).toContain('export interface Step {')
   })
 
   it('should include nested types in entities and DTOs', async () => {
-    return false // TODO: Implement this test
+    expect(fileContent).toContain('steps?: Step[];')
   })
 
   it('should not generate DTOs for nested entities', async () => {
-    return false // TODO: Implement this test
+    expect(fileContent).not.toContain('export interface CreateUpdateStepDto {')
   })
 })

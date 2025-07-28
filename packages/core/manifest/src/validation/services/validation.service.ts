@@ -57,15 +57,17 @@ export class ValidationService {
           // For one-to-many relationships, we expect an array of items.
           const propValue: unknown[] = itemDto[relationshipManifest.name]
 
-          for (let i = 0; i < propValue.length; i++) {
-            const item = propValue[i]
-            const nestedErrors = this.validate(item, nestedEntityManifest)
-            nestedErrors.forEach((err) => {
-              errors.push({
-                ...err,
-                property: `${relationshipManifest.name}[${i}].${err.property}`
+          if (Array.isArray(propValue) && propValue.length > 0) {
+            for (let i = 0; i < propValue.length; i++) {
+              const item = propValue[i]
+              const nestedErrors = this.validate(item, nestedEntityManifest)
+              nestedErrors.forEach((err) => {
+                errors.push({
+                  ...err,
+                  property: `${relationshipManifest.name}[${i}].${err.property}`
+                })
               })
-            })
+            }
           }
         } else {
           // For one-to-one relationships, we expect a single item.
