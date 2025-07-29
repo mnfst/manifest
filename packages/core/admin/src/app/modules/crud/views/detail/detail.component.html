@@ -104,30 +104,34 @@
                 No
                 {{ nestedEntityManifests[relationship.name].nameSingular }}.
               </p>
-              <div
-                class="nested-item"
-                *ngFor="
-                  let nestedItem of getMultipleRelations(item, relationship)
-                "
-              >
+              <div class="boxes pl-5">
                 <div
-                  class="properties"
+                  class="nested-item"
                   *ngFor="
-                    let prop of nestedEntityManifests[relationship.name]
-                      .properties
+                    let nestedItem of getMultipleRelations(item, relationship)
                   "
                 >
-                  <p
-                    class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
-                  >
-                    {{ prop.name }}
-                  </p>
-                  <p class="is-property-value">
-                    <app-yield
-                      [value]="nestedItem[prop.name]"
-                      [prop]="prop"
-                    ></app-yield>
-                  </p>
+                  <div class="box is-shadowless is-bordered p-5 mb-5">
+                    <div
+                      class="properties"
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <p
+                        class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                      >
+                        {{ prop.name }}
+                      </p>
+                      <p class="is-property-value">
+                        <app-yield
+                          [value]="nestedItem[prop.name]"
+                          [prop]="prop"
+                        ></app-yield>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </ng-container>
