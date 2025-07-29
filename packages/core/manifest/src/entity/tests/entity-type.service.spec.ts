@@ -83,6 +83,11 @@ describe('EntityTypeService', () => {
             name: 'favoriteFruits',
             entity: 'Fruit',
             type: 'many-to-many'
+          },
+          {
+            name: 'parent',
+            entity: 'Parent',
+            type: 'many-to-one'
           }
         ],
         policies: {
@@ -163,10 +168,13 @@ describe('EntityTypeService', () => {
   describe('generateEntityTypeInfos', () => {
     it('should generate type infos for entities with properties', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos).toHaveLength(5) // One for the entity and one for the DTO
+      expect(entityTypeInfos).toHaveLength(5) // One for the entity and one for the DTO (unless nested entity that has no DTO)
 
-      expect(entityTypeInfos[0].name).toBe('User')
-      expect(entityTypeInfos[0].properties).toHaveLength(
+      const userEntityTypeInfo = entityTypeInfos.find(
+        (e: EntityTsTypeInfo) => e.name === 'User'
+      )
+
+      expect(userEntityTypeInfo.properties).toHaveLength(
         appManifest.entities.user.properties.length +
           appManifest.entities.user.relationships.length +
           1
@@ -175,7 +183,12 @@ describe('EntityTypeService', () => {
 
     it('should generate type infos for entities with relationships', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos[0].properties).toEqual(
+
+      const userEntityTypeInfo = entityTypeInfos.find(
+        (e: EntityTsTypeInfo) => e.name === 'User'
+      )
+
+      expect(userEntityTypeInfo.properties).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             name: 'posts',
@@ -183,8 +196,8 @@ describe('EntityTypeService', () => {
             isRelationship: true
           }),
           expect.objectContaining({
-            name: 'group',
-            type: 'Group',
+            name: 'widget',
+            type: 'NestedEntity',
             isRelationship: true
           }),
           expect.objectContaining({
@@ -200,13 +213,11 @@ describe('EntityTypeService', () => {
       const entityTypeInfos: EntityTsTypeInfo[] =
         service.generateEntityTypeInfos()
 
-      console.log(entityTypeInfos[1].properties)
-
       const nestedEntityInfo = entityTypeInfos.find(
         (info) => info.name === 'NestedEntity'
       )
-      const parentEntityInfo = entityTypeInfos.find(
-        (info) => info.name === 'Contributor'
+      const userEntityTypeInfo = entityTypeInfos.find(
+        (e: EntityTsTypeInfo) => e.name === 'User'
       )
 
       // Nested entity should be included in the type infos.
@@ -214,23 +225,28 @@ describe('EntityTypeService', () => {
       expect(nestedEntityInfo.nested).toBe(true)
       expect(nestedEntityInfo.properties).toHaveLength(2) // id + title
 
-      const groupProperty = parentEntityInfo.properties.find(
-        (prop) => prop.name === 'group'
+      const groupProperty = userEntityTypeInfo.properties.find(
+        (prop) => prop.name === 'testimonials'
       )
       expect(groupProperty).toBeDefined()
-      expect(groupProperty.type).toBe('string') // Should be string as it will be overridden later.
-      expect(groupProperty.manifestPropType).toBe(PropType.Nested)
+      expect(groupProperty.type).toBe('Testimonial[]')
+      expect(groupProperty.manifestPropType).toBeUndefined() // Should not have a manifestPropType as it is a nested entity.
     })
 
     it('should generate type infos for non multiple nested entities', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      const userProperties = entityTypeInfos[0].properties
-      const groupProperty = userProperties.find((prop) => prop.name === 'group')
 
-      console.log(groupProperty)
+      const userEntityTypeInfo = entityTypeInfos.find(
+        (e: EntityTsTypeInfo) => e.name === 'User'
+      )
+
+      const userProperties = userEntityTypeInfo.properties
+      const groupProperty = userProperties.find(
+        (prop) => prop.name === 'widget'
+      )
 
       expect(groupProperty).toBeDefined()
-      expect(groupProperty.type).toBe('string') // Should be string as it will be overridden later.
+      expect(groupProperty.type).toBe('NestedEntity')
     })
 
     it('should include values in the property type is Choice (enum)', () => {
@@ -278,21 +294,32 @@ describe('EntityTypeService', () => {
 
     it('should create DTO types for entities with properties', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos[3].name).toBe('CreateUpdateUserDto')
-      expect(entityTypeInfos[3].properties).toHaveLength(
+
+      const userDtoEntityTypeInfo = entityTypeInfos.find(
+        (e: EntityTsTypeInfo) => e.name === 'CreateUpdateUserDto'
+      )
+      expect(userDtoEntityTypeInfo).toBeDefined()
+      expect(userDtoEntityTypeInfo.properties).toHaveLength(
         appManifest.entities.user.properties.length +
           appManifest.entities.user.relationships.filter(
-            (relationship) => relationship.type !== 'one-to-many' // Exclude one-to-many relationships from DTOs as they are on the opposite side.
+            (relationship) =>
+              relationship.type !== 'one-to-many' || relationship.nested
           ).length
       )
     })
 
     it('should create DTO types for entities with relationships', () => {
       const entityTypeInfos = service.generateEntityTypeInfos()
-      expect(entityTypeInfos[3].properties).toEqual(
+
+      const userDtoEntityTypeInfo = entityTypeInfos.find(
+        (e: EntityTsTypeInfo) => e.name === 'CreateUpdateUserDto'
+      )
+
+      expect(userDtoEntityTypeInfo).toBeDefined()
+      expect(userDtoEntityTypeInfo.properties).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            name: 'groupId',
+            name: 'parentId',
             type: 'string',
             isRelationship: true,
             optional: true
@@ -366,8 +393,10 @@ describe('EntityTypeService', () => {
       expect(tsInterface).toContain('medium: string;')
       expect(tsInterface).toContain('large: string')
       expect(tsInterface).toContain('posts?: Post[];')
-      expect(tsInterface).toContain('group?: Group;')
+      expect(tsInterface).toContain('widget?: NestedEntity;')
+      expect(tsInterface).toContain('testimonials?: Testimonial[];')
       expect(tsInterface).toContain('favoriteFruits?: Fruit[];')
+      expect(tsInterface).toContain('parent?: Parent;')
     })
   })
 })
