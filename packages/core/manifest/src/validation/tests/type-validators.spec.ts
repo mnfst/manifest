@@ -424,4 +424,19 @@ describe('Validators for property types', () => {
       true
     )
   })
+
+  it('file, image and nested types always return null', async () => {
+    const types = [PropType.File, PropType.Image, PropType.Nested]
+
+    const goodValidations = types.map((type) =>
+      service.validateProperty(null, {
+        name: 'test',
+        type
+      })
+    )
+
+    expect(goodValidations.every((validation) => validation.length === 0)).toBe(
+      true
+    )
+  })
 })
