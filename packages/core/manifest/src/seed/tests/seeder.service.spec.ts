@@ -622,7 +622,25 @@ describe('SeederService', () => {
         .spyOn(entityManifestService, 'getEntityManifest')
         .mockReturnValue(dummyEntityManifest as any)
 
-      await service.seed('Child')
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Child',
+          tableName: 'child',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      await service.seed('child')
 
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('Seeding')
