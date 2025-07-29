@@ -612,6 +612,7 @@ describe('SeederService', () => {
       const dummyEntityManifest: EntityManifest = {
         className: 'Child',
         nameSingular: 'child',
+        namePlural: 'children',
         properties: [],
         relationships: [],
         nested: true,
@@ -643,7 +644,9 @@ describe('SeederService', () => {
       await service.seed('child')
 
       expect(console.log).not.toHaveBeenCalledWith(
-        expect.stringContaining('Seeding')
+        expect.stringContaining(
+          `Seeding ${dummyEntityManifest.seedCount} ${dummyEntityManifest.namePlural}...`
+        )
       )
     })
   })
