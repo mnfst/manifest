@@ -81,40 +81,6 @@ describe('StorageService', () => {
       expect(mkdirp.sync).toHaveBeenCalledTimes(2)
     })
 
-    it('should store an image in several sizes', async () => {
-      const imageSizes: ImageSizesObject = {
-        tiny: {
-          height: 100
-        },
-        huge: {
-          width: 1000
-        }
-      }
-
-      jest
-        .spyOn(sharp.prototype, 'jpeg')
-        .mockImplementation(() => sharp.prototype)
-      jest
-        .spyOn(sharp.prototype, 'resize')
-        .mockImplementation(() => sharp.prototype)
-      jest
-        .spyOn(sharp.prototype, 'toBuffer')
-        .mockImplementation(() => Promise.resolve(Buffer.from('')))
-
-      const filePaths = await service.storeImage(
-        entity,
-        property,
-        image,
-        imageSizes
-      )
-
-      expect(filePaths).toBeDefined()
-      expect(Object.keys(filePaths).length).toBe(2)
-      expect(Object.keys(filePaths)).toMatchObject(Object.keys(imageSizes))
-      expect(sharp.prototype.resize).toHaveBeenCalledTimes(2)
-      expect(sharp.prototype.toBuffer).toHaveBeenCalledTimes(2)
-    })
-
     it('should prepend the storage url before the path', async () => {
       const filePath: string = await service.store(entity, property, file)
       const imagePaths: { [key: string]: string } = await service.storeImage(
@@ -190,6 +156,59 @@ describe('StorageService', () => {
       expect(uploadToS3Spy).toHaveBeenCalledTimes(2)
       expect(filePaths.tiny).toBe('s3-image-url')
       expect(filePaths.huge).toBe('s3-image-url')
+    })
+  })
+
+  describe('Images', () => {
+    it('should store an image in several sizes', async () => {
+      const imageSizes: ImageSizesObject = {
+        tiny: {
+          height: 100
+        },
+        huge: {
+          width: 1000
+        }
+      }
+
+      jest
+        .spyOn(sharp.prototype, 'jpeg')
+        .mockImplementation(() => sharp.prototype)
+      jest
+        .spyOn(sharp.prototype, 'resize')
+        .mockImplementation(() => sharp.prototype)
+      jest
+        .spyOn(sharp.prototype, 'toBuffer')
+        .mockImplementation(() => Promise.resolve(Buffer.from('')))
+
+      const filePaths = await service.storeImage(
+        entity,
+        property,
+        image,
+        imageSizes
+      )
+
+      expect(filePaths).toBeDefined()
+      expect(Object.keys(filePaths).length).toBe(2)
+      expect(Object.keys(filePaths)).toMatchObject(Object.keys(imageSizes))
+      expect(sharp.prototype.resize).toHaveBeenCalledTimes(2)
+      expect(sharp.prototype.toBuffer).toHaveBeenCalledTimes(2)
+    })
+
+    it('should fail if the image format is unsupported', async () => {
+      const unsupportedImage = {
+        buffer: Buffer.from('unsupported-image'),
+        originalname: 'test.txt'
+      }
+
+      const imageSizes: ImageSizesObject = {
+        tiny: {
+          height: 100
+        }
+      }
+
+      await expect(
+        service.storeImage(entity, property, unsupportedImage, imageSizes)
+      ).rejects.toThrow('Unsupported image format: .txt')
     })
   })
 })

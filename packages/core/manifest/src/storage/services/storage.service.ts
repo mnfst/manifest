@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 import { kebabize } from '@repo/common'
 import { DEFAULT_IMAGE_SIZES, STORAGE_PATH } from '../../constants'
 
@@ -113,18 +113,42 @@ export class StorageService {
     const uniqueName: string = uniqid()
     const imagePaths: { [key: string]: string } = {}
 
-    for (const sizeName in imageSizes || DEFAULT_IMAGE_SIZES) {
-      const imagePath: string = `${folder}/${uniqueName}-${sizeName}.jpg`
+    console.log(image.originalname)
 
-      const resizedImage: Buffer = await sharp(image.buffer)
-        .jpeg({ quality: 80 })
+    for (const sizeName in imageSizes || DEFAULT_IMAGE_SIZES) {
+      const imageExtension: string = path.extname(image.originalname)
+
+      if (
+        [
+          '.jpg',
+          '.jpeg',
+          '.png',
+          '.webp',
+          '.gif',
+          '.avif',
+          '.tiff',
+          '.dzi'
+        ].indexOf(imageExtension) === -1
+      ) {
+        throw new HttpException(
+          `Unsupported image format: ${imageExtension}`,
+          400
+        )
+      }
+
+      const imagePath: string = `${folder}/${uniqueName}-${sizeName}${imageExtension}`
+
+      const resizedImageBuffer: Buffer = await sharp(image.buffer)
         .resize(imageSizes[sizeName].width, imageSizes[sizeName].height, {
           fit: imageSizes[sizeName].fit
         })
         .toBuffer()
 
       if (this.isS3Enabled) {
-        imagePaths[sizeName] = await this.uploadToS3(imagePath, resizedImage)
+        imagePaths[sizeName] = await this.uploadToS3(
+          imagePath,
+          resizedImageBuffer
+        )
       } else {
         const publicFolderPath: string = path.resolve(
           this.configService.get('paths.publicFolder'),
@@ -142,7 +166,7 @@ export class StorageService {
         ) {
           throw new Error('Invalid image path')
         }
-        fs.writeFileSync(publicFolderPath, resizedImage)
+        fs.writeFileSync(publicFolderPath, resizedImageBuffer)
         imagePaths[sizeName] = this.prependStorageUrl(imagePath)
       }
     }
