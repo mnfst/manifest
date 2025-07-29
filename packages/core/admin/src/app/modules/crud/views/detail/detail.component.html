@@ -98,13 +98,14 @@
               <p
                 class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
               >
-                {{ relationship.name }}
+                {{ relationship.name }} <span class="tag">Multiple group</span>
               </p>
               <p *ngIf="!getMultipleRelations(item, relationship).length">
                 No
                 {{ nestedEntityManifests[relationship.name].nameSingular }}.
+                <span class="tag">Non-multiple group</span>
               </p>
-              <div class="boxes pl-5">
+              <div class="group-wrapper pl-5">
                 <div
                   class="nested-item"
                   *ngFor="
@@ -144,30 +145,37 @@
                 class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
               >
                 {{ relationship.name }}
+                <span class="tag">Non-multiple group</span>
               </p>
               <p *ngIf="!item[relationship.name]">
                 No
                 {{ nestedEntityManifests[relationship.name].nameSingular }}.
               </p>
-              <div class="nested-item" *ngIf="item[relationship.name]">
-                <div
-                  class="properties"
-                  *ngFor="
-                    let prop of nestedEntityManifests[relationship.name]
-                      .properties
-                  "
-                >
-                  <p
-                    class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
-                  >
-                    {{ prop.name }}
-                  </p>
-                  <p class="is-property-value">
-                    <app-yield
-                      [value]="getSingleRelation(item, relationship)[prop.name]"
-                      [prop]="prop"
-                    ></app-yield>
-                  </p>
+              <div class="group-wrapper pl-5">
+                <div class="nested-item" *ngIf="item[relationship.name]">
+                  <div class="box is-shadowless is-bordered p-5 mb-5">
+                    <div
+                      class="properties"
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <p
+                        class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                      >
+                        {{ prop.name }}
+                      </p>
+                      <p class="is-property-value">
+                        <app-yield
+                          [value]="
+                            getSingleRelation(item, relationship)[prop.name]
+                          "
+                          [prop]="prop"
+                        ></app-yield>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </ng-container>
