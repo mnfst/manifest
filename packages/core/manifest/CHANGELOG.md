@@ -1,5 +1,11 @@
 # manifest
 
+## 4.16.3
+
+### Patch Changes
+
+- 1afa7eb: accept png image format, thanks @myurtsev
+
 ## 4.16.2
 
 ### Patch Changes
