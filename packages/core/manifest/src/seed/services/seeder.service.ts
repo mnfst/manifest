@@ -318,7 +318,7 @@ export class SeederService {
         entityManifest.slug,
         propertyManifest.name,
         {
-          originalname: DUMMY_FILE_NAME,
+          originalname: DUMMY_IMAGE_NAME,
           buffer: dummyImageContent
         },
         propertyManifest.options?.['sizes'] as ImageSizesObject
