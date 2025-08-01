@@ -1,5 +1,5 @@
 ---
-'manifest': minor
+'manifest': patch
 ---
 
-accept more image formats: png, webp, gif, avif, tiff and dzi, thanks @myurtsev
+accept png image format, thanks @myurtsev
