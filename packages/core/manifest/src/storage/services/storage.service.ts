@@ -113,8 +113,6 @@ export class StorageService {
     const uniqueName: string = uniqid()
     const imagePaths: { [key: string]: string } = {}
 
-    console.log(image.originalname)
-
     for (const sizeName in imageSizes || DEFAULT_IMAGE_SIZES) {
       const imageExtension: string = path.extname(image.originalname)
 
