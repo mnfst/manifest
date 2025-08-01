@@ -116,18 +116,7 @@ export class StorageService {
     for (const sizeName in imageSizes || DEFAULT_IMAGE_SIZES) {
       const imageExtension: string = path.extname(image.originalname)
 
-      if (
-        [
-          '.jpg',
-          '.jpeg',
-          '.png',
-          '.webp',
-          '.gif',
-          '.avif',
-          '.tiff',
-          '.dzi'
-        ].indexOf(imageExtension) === -1
-      ) {
+      if (['.jpg', '.jpeg', '.png'].indexOf(imageExtension) === -1) {
         throw new HttpException(
           `Unsupported image format: ${imageExtension}`,
           400
