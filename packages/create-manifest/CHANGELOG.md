@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.3.3
+
+### Patch Changes
+
+- b0e1501: fixed JSON schema not applied on manifest file
+
 ## 1.3.2
 
 ### Patch Changes
