@@ -1,4 +1,5 @@
 import {
+  AppManifest,
   AuthenticableEntity,
   BaseEntity,
   DatabaseConnection,
@@ -9,24 +10,24 @@ import {
 import { Injectable } from '@nestjs/common'
 import {
   ColumnType,
-  EntitySchema,
+  EntitySchema as TypeORMEntitySchema, // Alias to avoid conflict with Manifest EntitySchema.
   EntitySchemaColumnOptions,
   ValueTransformer
 } from 'typeorm'
 import { sqlitePropTypeColumnTypes } from '../columns/sqlite-prop-type-column-types'
 import { RelationshipService } from './relationship.service'
-import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { mysqlPropTypeColumnTypes } from '../columns/mysql-prop-type-column-types'
 import { postgresPropTypeColumnTypes } from '../columns/postgres-prop-type-column-types copy'
 import { ColumnService } from './column.service'
 import { BooleanTransformer } from '../transformers/boolean-transformer'
 import { NumberTransformer } from '../transformers/number-transformer'
 import { TimestampTransformer } from '../transformers/timestamp-transformer'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 @Injectable()
 export class EntityLoaderService {
   constructor(
-    private entityManifestService: EntityManifestService,
+    private manifestService: ManifestService,
     private relationshipService: RelationshipService
   ) {}
 
@@ -35,12 +36,13 @@ export class EntityLoaderService {
    *
    * @param dbConnection The database connection type (mysql, postgres, sqlite).
    *
-   * @returns EntitySchema[] the entities
+   * @returns TypeORMEntitySchema[] the entities
    *
    **/
-  loadEntities(dbConnection: DatabaseConnection): EntitySchema[] {
-    const entityManifests: EntityManifest[] =
-      this.entityManifestService.getEntityManifests({ fullVersion: true })
+  loadEntities(dbConnection: DatabaseConnection): TypeORMEntitySchema[] {
+    const appManifest: AppManifest = this.manifestService.getAppManifest({
+      fullVersion: true
+    })
 
     // Set column types based on the database connection.
     let columns: Record<PropType, ColumnType>
@@ -58,59 +60,59 @@ export class EntityLoaderService {
     }
 
     // Convert Manifest Entities to TypeORM Entities.
-    const entitySchemas: EntitySchema[] = entityManifests.map(
-      (entityManifest: EntityManifest) => {
-        const entitySchema: EntitySchema = new EntitySchema({
-          name: entityManifest.className,
+    const entitySchemas: TypeORMEntitySchema[] = Object.values(
+      appManifest.entities
+    ).map((entityManifest: EntityManifest) => {
+      const entitySchema: TypeORMEntitySchema = new TypeORMEntitySchema({
+        name: entityManifest.className,
 
-          // Convert properties to columns.
-          columns: entityManifest.properties.reduce(
-            (
-              acc: { [key: string]: EntitySchemaColumnOptions },
-              propManifest: PropertyManifest
-            ) => {
-              // Set transformer for number properties (Postgres stores numbers as strings).
-              let transformer: ValueTransformer | undefined = undefined
-              if (
-                propManifest.type === PropType.Number ||
-                propManifest.type === PropType.Money
-              ) {
-                transformer = new NumberTransformer()
-              }
+        // Convert properties to columns.
+        columns: entityManifest.properties.reduce(
+          (
+            acc: { [key: string]: EntitySchemaColumnOptions },
+            propManifest: PropertyManifest
+          ) => {
+            // Set transformer for number properties (Postgres stores numbers as strings).
+            let transformer: ValueTransformer | undefined = undefined
+            if (
+              propManifest.type === PropType.Number ||
+              propManifest.type === PropType.Money
+            ) {
+              transformer = new NumberTransformer()
+            }
 
-              // Ensure it returns strings for timestamps (SQLite returns Date objects by default).
-              if (propManifest.type === PropType.Timestamp) {
-                transformer = new TimestampTransformer()
-              }
+            // Ensure it returns strings for timestamps (SQLite returns Date objects by default).
+            if (propManifest.type === PropType.Timestamp) {
+              transformer = new TimestampTransformer()
+            }
 
-              if (propManifest.type === PropType.Boolean) {
-                transformer = new BooleanTransformer(dbConnection)
-              }
+            if (propManifest.type === PropType.Boolean) {
+              transformer = new BooleanTransformer(dbConnection)
+            }
 
-              acc[propManifest.name] = {
-                name: propManifest.name,
-                type: columns[propManifest.type],
-                transformer,
-                nullable: true // Everything is nullable on the database (validation is done on the application layer).
-              }
+            acc[propManifest.name] = {
+              name: propManifest.name,
+              type: columns[propManifest.type],
+              transformer,
+              nullable: true // Everything is nullable on the database (validation is done on the application layer).
+            }
 
-              return acc
-            },
-            // Merge with base entities for base columns.
-            entityManifest.authenticable
-              ? { ...this.getBaseAuthenticableEntityColumns(dbConnection) }
-              : { ...this.getBaseEntityColumns(dbConnection) }
-          ) as { [key: string]: EntitySchemaColumnOptions },
-          relations:
-            this.relationshipService.getEntitySchemaRelationOptions(
-              entityManifest
-            ),
-          uniques: entityManifest.authenticable ? [{ columns: ['email'] }] : []
-        })
+            return acc
+          },
+          // Merge with base entities for base columns.
+          entityManifest['authenticable']
+            ? { ...this.getBaseAuthenticableEntityColumns(dbConnection) }
+            : { ...this.getBaseEntityColumns(dbConnection) }
+        ) as { [key: string]: EntitySchemaColumnOptions },
+        relations:
+          this.relationshipService.getEntitySchemaRelationOptions(
+            entityManifest
+          ),
+        uniques: entityManifest['authenticable'] ? [{ columns: ['email'] }] : []
+      })
 
-        return entitySchema
-      }
-    )
+      return entitySchema
+    })
 
     return entitySchemas
   }

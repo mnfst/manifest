@@ -58,7 +58,8 @@
               *ngIf="
                 relationship.type === 'many-to-one' ||
                 (relationship.type === 'many-to-many' &&
-                  relationship.owningSide)
+                  relationship.owningSide &&
+                  !relationship.nested)
               "
             >
               <p
@@ -76,10 +77,7 @@
                 <ng-container *ngIf="relationship.type === 'many-to-many'">
                   <ng-container
                     *ngFor="
-                      let relation of getManyToManyRelations(
-                        item,
-                        relationship
-                      );
+                      let relation of getMultipleRelations(item, relationship);
                       let last = last
                     "
                   >
@@ -91,6 +89,87 @@
                   </ng-container>
                 </ng-container>
               </p>
+            </ng-container>
+
+            <!-- Nested relations (multiple) -->
+            <ng-container
+              *ngIf="relationship.nested && relationship.type === 'one-to-many'"
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <p *ngIf="!getMultipleRelations(item, relationship).length">-</p>
+              <div class="group-wrapper pl-5">
+                <div
+                  class="nested-item"
+                  *ngFor="
+                    let nestedItem of getMultipleRelations(item, relationship)
+                  "
+                >
+                  <div class="box is-shadowless is-bordered p-5 mb-5">
+                    <div
+                      class="properties"
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <p
+                        class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                      >
+                        {{ prop.name }}
+                      </p>
+                      <p class="is-property-value">
+                        <app-yield
+                          [value]="nestedItem[prop.name]"
+                          [prop]="prop"
+                        ></app-yield>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Nested relations (non-multiple) -->
+            <ng-container
+              *ngIf="relationship.nested && relationship.type === 'one-to-one'"
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <p *ngIf="!item[relationship.name]">-</p>
+              <div class="group-wrapper pl-5">
+                <div class="nested-item" *ngIf="item[relationship.name]">
+                  <div class="box is-shadowless is-bordered p-5 mb-5">
+                    <div
+                      class="properties"
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <p
+                        class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                      >
+                        {{ prop.name }}
+                      </p>
+                      <p class="is-property-value">
+                        <app-yield
+                          [value]="
+                            getSingleRelation(item, relationship)[prop.name]
+                          "
+                          [prop]="prop"
+                        ></app-yield>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </ng-container>
           </div>
         </div>

@@ -11,7 +11,11 @@ import {
   DEFAULT_IMAGE_SIZES,
   DEFAULT_MAX_MANY_TO_MANY_RELATIONS
 } from '../../constants'
-import { PropType, RelationshipManifest } from '../../../../types/src'
+import {
+  EntityManifest,
+  PropType,
+  RelationshipManifest
+} from '../../../../types/src'
 
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
@@ -25,6 +29,9 @@ jest.mock('bcryptjs', () => ({
 // TODO: Ensure that the storeFile and storeImage methods are only called once per property.
 describe('SeederService', () => {
   let service: SeederService
+  let entityService: EntityService
+  let entityManifestService: EntityManifestService
+
   let dataSource: DataSource
 
   let originalConsoleLog: any
@@ -112,6 +119,10 @@ describe('SeederService', () => {
     }).compile()
 
     service = module.get<SeederService>(SeederService)
+    entityManifestService = module.get<EntityManifestService>(
+      EntityManifestService
+    )
+    entityService = module.get<EntityService>(EntityService)
     dataSource = module.get<DataSource>(DataSource)
   })
 
@@ -160,6 +171,483 @@ describe('SeederService', () => {
           `TRUNCATE TABLE \`${entityMetadata.tableName}\``
         )
       })
+    })
+
+    it('should seed a record', async () => {
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Dog',
+        nameSingular: 'Dog',
+        namePlural: 'dogs',
+        mainProp: 'name',
+        slug: 'dogs',
+        seedCount: 10,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [],
+        policies: {
+          create: [],
+          read: [],
+          update: [],
+          delete: [],
+          signup: []
+        }
+      }
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Dog',
+          tableName: 'dog',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      await service.seed('dog')
+
+      expect(repository.create).toHaveBeenCalledTimes(
+        dummyEntityManifest.seedCount
+      )
+      expect(repository.save).toHaveBeenCalledTimes(
+        dummyEntityManifest.seedCount
+      )
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `Seeding ${dummyEntityManifest.seedCount} ${dummyEntityManifest.namePlural}...`
+        )
+      )
+    })
+
+    it('should seed email and password for authenticable entities', async () => {
+      const dummyEntityManifest: EntityManifest = {
+        className: 'User',
+        nameSingular: 'User',
+        namePlural: 'Users',
+        mainProp: 'email',
+        slug: 'users',
+        seedCount: 10,
+        authenticable: true,
+        properties: [],
+        relationships: []
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'User',
+          tableName: 'user',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      await service.seed('user')
+
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: expect.any(String),
+          password: expect.any(String)
+        })
+      )
+    })
+
+    it('should seed many-to-one relationships', async () => {
+      const dummyId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Dog',
+        nameSingular: 'Dog',
+        namePlural: 'dogs',
+        mainProp: 'name',
+        slug: 'dogs',
+        seedCount: 1,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [
+          {
+            name: 'owner',
+            entity: 'User',
+            type: 'many-to-one'
+          }
+        ]
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Dog',
+          tableName: 'dog',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      jest.spyOn(service, 'seedRelationships').mockResolvedValue(dummyId)
+
+      await service.seed('dog')
+
+      expect(service.seedRelationships).toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[0]
+      )
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          owner: dummyId
+        })
+      )
+    })
+
+    it('should seed one-to-one relationships if owning side', async () => {
+      const dummyId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Dog',
+        nameSingular: 'Dog',
+        namePlural: 'dogs',
+        mainProp: 'name',
+        slug: 'dogs',
+        seedCount: 1,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [
+          {
+            name: 'profile',
+            entity: 'UserProfile',
+            type: 'one-to-one',
+            owningSide: true
+          },
+          {
+            name: 'oneToOneNotOwning',
+            entity: 'OtherEntity',
+            type: 'one-to-one',
+            owningSide: false
+          }
+        ]
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Dog',
+          tableName: 'dog',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      jest.spyOn(service, 'seedRelationships').mockResolvedValue(dummyId)
+
+      await service.seed('dog')
+
+      expect(service.seedRelationships).toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[0]
+      )
+
+      expect(service.seedRelationships).not.toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[1]
+      )
+
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          profile: dummyId
+        })
+      )
+    })
+
+    it('should seed many-to-many relationships if owning side', async () => {
+      const dummyItems = [
+        { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+        { id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' }
+      ]
+
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Dog',
+        nameSingular: 'Dog',
+        namePlural: 'dogs',
+        mainProp: 'name',
+        slug: 'dogs',
+        seedCount: 1,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [
+          {
+            name: 'tags',
+            entity: 'Tag',
+            type: 'many-to-many',
+            owningSide: true
+          },
+          {
+            name: 'manyToManyNotOwning',
+            entity: 'OtherEntity',
+            type: 'many-to-many',
+            owningSide: false
+          }
+        ]
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Dog',
+          tableName: 'dog',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve(dummyItems))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      jest.spyOn(service, 'seedRelationships').mockResolvedValue(dummyItems)
+
+      await service.seed('dog')
+
+      expect(service.seedRelationships).toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[0]
+      )
+      expect(service.seedRelationships).not.toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[1]
+      )
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: dummyItems
+        })
+      )
+    })
+
+    it('should only seed one relationship if nested (one-to-one)', async () => {
+      const dummyId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Widget',
+        nameSingular: 'widget',
+        namePlural: 'widgets',
+        mainProp: 'name',
+        slug: 'widgets',
+        seedCount: 1,
+        nested: true,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [
+          {
+            name: 'homePage',
+            entity: 'HomePage',
+            type: 'one-to-one',
+            owningSide: true
+          }
+        ]
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Widget',
+          tableName: 'widget',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      jest.spyOn(service, 'seedRelationships').mockResolvedValue(dummyId)
+
+      await service.seed('widget')
+
+      expect(service.seedRelationships).toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[0]
+      )
+      expect(service.seedRelationships).toHaveBeenCalledTimes(1)
+    })
+
+    it('should only seed one relationship if nested (many-to-one)', async () => {
+      const dummyId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Widget',
+        nameSingular: 'widget',
+        namePlural: 'widgets',
+        mainProp: 'name',
+        slug: 'widgets',
+        seedCount: 1,
+        nested: true,
+        properties: [
+          {
+            name: 'name',
+            type: PropType.String
+          }
+        ],
+        relationships: [
+          {
+            name: 'owner',
+            entity: 'User',
+            type: 'many-to-one'
+          }
+        ]
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Widget',
+          tableName: 'widget',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      jest.spyOn(service, 'seedRelationships').mockResolvedValue(dummyId)
+
+      await service.seed('widget')
+
+      expect(service.seedRelationships).toHaveBeenCalledWith(
+        dummyEntityManifest.relationships[0]
+      )
+      expect(service.seedRelationships).toHaveBeenCalledTimes(1)
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          owner: dummyId
+        })
+      )
+    })
+
+    it('should not console log when entity is nested', async () => {
+      const dummyEntityManifest: EntityManifest = {
+        className: 'Child',
+        nameSingular: 'child',
+        namePlural: 'children',
+        properties: [],
+        relationships: [],
+        nested: true,
+        seedCount: 10
+      } as any
+
+      jest
+        .spyOn(entityManifestService, 'getEntityManifest')
+        .mockReturnValue(dummyEntityManifest as any)
+
+      jest.spyOn(entityService, 'getEntityMetadatas').mockReturnValue([
+        {
+          targetName: 'Child',
+          tableName: 'child',
+          tableType: 'regular'
+        }
+      ] as any)
+
+      const repository = {
+        create: jest.fn(() => ({})),
+        save: jest.fn(),
+        find: jest.fn(() => Promise.resolve([]))
+      } as any
+
+      jest
+        .spyOn(entityService, 'getEntityRepository')
+        .mockReturnValue(repository)
+
+      await service.seed('child')
+
+      expect(console.log).not.toHaveBeenCalledWith(
+        expect.stringContaining(
+          `Seeding ${dummyEntityManifest.seedCount} ${dummyEntityManifest.namePlural}...`
+        )
+      )
     })
   })
 
@@ -358,6 +846,23 @@ describe('SeederService', () => {
 
       const uniqueIds = new Set(seedValue.map((item) => item.id))
       expect(uniqueIds.size).toBe(seedValue.length)
+    })
+
+    it('should return a single random id for one-to-one relationships', async () => {
+      const oneToOneRelationManifest: RelationshipManifest = {
+        name: 'profile',
+        entity: 'UserProfile',
+        type: 'one-to-one'
+      }
+
+      const seedValue = await service.seedRelationships(
+        oneToOneRelationManifest
+      )
+
+      expect(typeof seedValue).toBe('string')
+      expect(seedValue).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
     })
   })
 

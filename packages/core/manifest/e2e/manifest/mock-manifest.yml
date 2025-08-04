@@ -311,7 +311,7 @@ entities:
         }
       - { name: document, type: file }
 
-    # Testing single entity with the ContactPage entity.
+  # Testing single entity with the ContactPage entity.
   ContactPage:
     single: true
     nameSingular: Contact
@@ -331,6 +331,27 @@ entities:
       delete:
         - access: public
 
+  # Testing nested entities with Tutorial and steps.
+  Tutorial:
+    properties:
+      - title
+      - { name: content, type: text }
+      - { name: steps, type: group, options: { group: Step } }
+      - {
+          name: widget,
+          type: group,
+          options: { group: Widget, multiple: false }
+        }
+    policies:
+      create:
+        - access: public
+      update:
+        - access: public
+      read:
+        - access: public
+      delete:
+        - access: public
+
 # Testing endpoints
 endpoints:
   basicEndpoint:
@@ -344,3 +365,20 @@ endpoints:
     description: A basic endpoint that creates a dog with the backend SDK.
     method: POST
     handler: createDog
+
+# Testing nested entities with Tutorial and steps.
+groups:
+  Step:
+    properties:
+      - title
+      - { name: description, type: text }
+    validation:
+      title: { minLength: 3 }
+
+  Widget:
+    properties:
+      - name
+      - { name: description, type: text }
+    validation:
+      name: { minLength: 3 }
+      description: { maxLength: 100 }

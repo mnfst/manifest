@@ -4,78 +4,125 @@
 name: Pokemon app 🐣
 
 entities:
-  Pokemon 🐉:
+  Parent:
     properties:
       - name
+      - { name: age, helpText: "Test helptext", type: number }
+      - { name: website, helpText: "Test helptext", type: link }
       - {
-          name: type,
-          type: choice,
-          options: { values: [Fire, Water, Grass, Electric] }
+          name: price,
+          helpText: "Test helptext",
+          type: money,
+          options: { currency: "EUR" }
         }
-      - { name: level, type: number }
-    belongsTo:
-      - Trainer
-    belongsToMany:
-      - Fruit
+      - { name: startDate, helpText: "Test helptext", type: date }
+      - { name: email, helpText: "Test helptext", type: email }
+      - { name: acquiredAt, helpText: "Test helptext", type: timestamp }
+      - { name: isActive, helpText: "Test helptext", type: boolean }
+      - {
+          name: photo,
+          helpText: "Test helptext",
+          type: image,
+          options:
+            {
+              sizes: { small: { height: 90, width: 90 }, large: { width: 200 } }
+            }
+        }
+      - { name: password, helpText: "Test helptext", type: password }
+      - {
+          name: sex,
+          helpText: "Test helptext",
+          type: choice,
+          options: { values: [male, female] }
+        }
+      # Sequential if the values are ordered in a logical sense..
+      - {
+          name: status,
+          helpText: "Test helptext",
+          type: choice,
+          options: { values: [draft, submitted, published], sequential: true }
+        }
+      - { name: location, helpText: "Test helptext", type: location }
 
-  Fruit:
-    properties:
-      - name
     policies:
       create:
-        - { access: restricted, allow: [Trainer, User] }
+        - { access: public }
       read:
-        - { access: restricted, allow: Trainer }
+        - access: public
       update:
         - access: public
       delete:
         - access: public
 
-  Trainer 🧑‍🎤:
-    authenticable: true
+  Service:
     properties:
       - name
-      - { name: isChampion, type: boolean }
+      - { name: description, helpText: "Description of the service" }
+      - {
+          name: testimonials,
+          type: group,
+          helpText: "Add some testimonials for the service",
+          options: { group: Testimonial },
+          validation: { isNotEmpty: true }
+        }
+      - {
+          name: callToAction,
+          helpText: "Call to Action for the service",
+          type: group,
+          options: { group: CallToAction, multiple: false },
+          validation: { isNotEmpty: true }
+        }
+
+    validation:
+      name: { isNotEmpty: true }
     policies:
       create:
-        - access: public
+        - { access: public }
       read:
         - access: public
       update:
         - access: public
       delete:
         - access: public
-
-  Dog:
     belongsTo:
-      - Trainer
-    belongsToMany:
-      - Fruit
+      - { name: parent, entity: Parent, helpText: "Choose the parent entity" }
+
+  Homepage:
+    single: true
     properties:
-      - name
+      - { name: title, type: text }
+      - {
+          name: callToAction,
+          type: group,
+          options: { group: CallToAction, multiple: false }
+        }
+
+  Aboutpage:
+    single: true
+    properties:
+      - { name: title, type: text }
       - { name: description, type: text }
-      - { name: age, type: number }
-      - { name: website, type: link }
-      - { name: price, type: money, options: { currency: EUR } }
-      - { name: birthdate, type: date }
-      - { name: isGoodBoy, type: boolean }
-      - { name: acquiredAt, type: timestamp }
-      - { name: password, type: password }
-      - { name: email, type: email }
       - {
-          name: favoriteToy,
-          type: choice,
-          options: { values: [ball, bone, frisbee] }
+          name: callToAction,
+          type: group,
+          options: { group: CallToAction, multiple: false }
         }
-      - { name: location, type: location }
-      - { name: certificate, type: file }
-      - { name: photo, type: image }
-    policies:
-      create:
-        - access: public
-      read:
-        - access: public
-      update:
-        - access: public
-      delete:
-        - access: public
+
+groups:
+  Testimonial:
+    properties:
+      - { name: author, type: text }
+      - { name: content, type: text, validation: { isNotEmpty: true } }
+      - { name: rating, type: number, helpText: "1 to 5 stars" }
+    validation:
+      rating: { isNotEmpty: true }
+
+  CallToAction:
+    properties:
+      - { name: title, type: string }
+      - { name: description, type: text }
+      - { name: buttonText, type: string, helpText: "Text for the button" }
+      - { name: buttonLink, type: link }
+    validation:
+      title: { isNotEmpty: true }
+      description: { isNotEmpty: true }

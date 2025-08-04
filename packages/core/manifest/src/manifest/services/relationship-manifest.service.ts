@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import {
   EntityManifest,
+  PropertyManifest,
+  PropType,
   RelationshipManifest,
   RelationshipSchema
 } from '../../../../types/src'
@@ -65,6 +67,47 @@ export class RelationshipManifestService {
   }
 
   /**
+   * Generate the ManyToOne and OneToOne relationships from the nested properties of the entity schema.
+   *
+   * @param nestedEntitySchema The entity schema that contains the nested properties.
+   * @param allEntitySchemas The list of all entity schemas to search for nested properties.
+   *
+   * @returns The relationships generated from the nested properties.
+   */
+  getRelationshipManifestsFromNestedProperties(
+    nestedEntityManifest: EntityManifest,
+    allEntityManifests: EntityManifest[]
+  ): RelationshipManifest[] {
+    return allEntityManifests.reduce(
+      (acc: RelationshipManifest[], entityManifest: EntityManifest) => {
+        entityManifest.properties
+          .filter(
+            (property: PropertyManifest) =>
+              property.type === PropType.Nested &&
+              property.options?.group === nestedEntityManifest.className
+          )
+          .forEach((property: PropertyManifest) => {
+            acc.push({
+              name: camelize(entityManifest.nameSingular),
+              inverseSide: property.name,
+              entity: entityManifest.className,
+              owningSide: true,
+              type:
+                property.options?.multiple === false
+                  ? 'one-to-one'
+                  : 'many-to-one',
+              eager: false,
+              helpText: property.helpText || ''
+            })
+          })
+
+        return acc
+      },
+      []
+    )
+  }
+
+  /**
    * Generate the OneToMany relationships from the opposite ManyToOne relationships.
    *
    * @param entityManifests The entity manifests.
@@ -72,7 +115,7 @@ export class RelationshipManifestService {
    *
    * @returns The OneToMany relationships.
    */
-  getOneToManyRelationships(
+  getOppositeOneToManyRelationships(
     entityManifests: EntityManifest[],
     currentEntityManifest: EntityManifest
   ): RelationshipManifest[] {
@@ -111,9 +154,11 @@ export class RelationshipManifestService {
         const relationship: RelationshipManifest = {
           name: camelize(oppositeRelationship.entity.namePlural),
           entity: oppositeRelationship.entity.className,
-          eager: false,
+          eager: !!oppositeRelationship.entity.nested,
+          nested: !!oppositeRelationship.entity.nested,
           type: 'one-to-many',
-          inverseSide: oppositeRelationship.relationship.name
+          inverseSide: oppositeRelationship.relationship.name,
+          helpText: oppositeRelationship.relationship.helpText || ''
         }
 
         return relationship
@@ -173,6 +218,67 @@ export class RelationshipManifestService {
           type: 'many-to-many',
           owningSide: false,
           inverseSide: oppositeRelationship.relationship.name
+        }
+
+        return relationship
+      }
+    )
+  }
+
+  /**
+   * Generate the OneToOne relationships from the opposite OneToOne relationships.
+   *
+   * @param entityManifests The entity manifests.
+   * @param currentEntityManifest The entity manifest for which to generate the OneToOne relationships.
+   *
+   * @returns The OneToOne relationships.
+   */
+  getOppositeOneToOneRelationships(
+    entityManifests: EntityManifest[],
+    currentEntityManifest: EntityManifest
+  ): RelationshipManifest[] {
+    // We need to get the entities that have OneToOne relationships to the current entity to create the opposite OneToOne relationships.
+    const oppositeRelationships: {
+      entity: EntityManifest
+      relationship: RelationshipManifest
+    }[] = entityManifests
+      .filter(
+        (otherEntityManifest: EntityManifest) =>
+          otherEntityManifest.className !== currentEntityManifest.className
+      )
+      .reduce((acc, otherEntityManifest: EntityManifest) => {
+        const oppositeRelationship: RelationshipManifest =
+          otherEntityManifest.relationships.find(
+            (relationship: RelationshipManifest) =>
+              relationship.entity === currentEntityManifest.className &&
+              relationship.type === 'one-to-one' &&
+              relationship.owningSide === true
+          )
+
+        if (oppositeRelationship) {
+          acc.push({
+            entity: otherEntityManifest,
+            relationship: oppositeRelationship
+          })
+        }
+
+        return acc
+      }, [])
+
+    return oppositeRelationships.map(
+      (oppositeRelationship: {
+        entity: EntityManifest
+        relationship: RelationshipManifest
+      }) => {
+        const relationship: RelationshipManifest = {
+          name: camelize(oppositeRelationship.entity.nameSingular),
+          entity: oppositeRelationship.entity.className,
+          eager: !!oppositeRelationship.entity.nested,
+          type: 'one-to-one',
+          owningSide: false,
+          inverseSide: oppositeRelationship.relationship.name,
+          nested: !!oppositeRelationship.entity.nested,
+          helpText: oppositeRelationship.relationship.helpText || ''
         }
 
         return relationship

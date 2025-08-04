@@ -104,6 +104,11 @@ export function getRandomIntExcluding({
 export function getDtoPropertyNameFromRelationship(
   relationship: RelationshipManifest
 ): string {
+  if (relationship.nested) {
+    // Nested relationships are passed as objects, not as references.
+    return relationship.name
+  }
+
   if (relationship?.type === 'many-to-one') {
     return relationship.name + 'Id'
   } else if (relationship?.type === 'many-to-many') {

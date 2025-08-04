@@ -104,7 +104,8 @@ export const PROP_TYPE_VALID_WHERE_OPERATORS: Record<
   ],
 
   [PropType.Image]: [],
-  [PropType.Password]: []
+  [PropType.Password]: [],
+  [PropType.Nested]: []
 }
 
 // Helper function to check if a combination is valid

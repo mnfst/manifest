@@ -12,14 +12,14 @@ import {
   HookManifest,
   HooksSchema,
   PropType,
-  PropertyManifest,
   PropertySchema,
   RelationshipSchema,
-  ValidationManifest,
   EntityManifestCommonFields,
   crudEventNames,
   MiddlewaresSchema,
-  MiddlewareManifest
+  MiddlewareManifest,
+  GroupSchema,
+  PropertyManifest
 } from '@repo/types'
 import pluralize from 'pluralize'
 import slugify from 'slugify'
@@ -28,7 +28,6 @@ import { RelationshipManifestService } from './relationship-manifest.service'
 import {
   ADMIN_ACCESS_POLICY,
   AUTHENTICABLE_PROPS,
-  DEFAULT_IMAGE_SIZES,
   DEFAULT_SEED_COUNT,
   FORBIDDEN_ACCESS_POLICY,
   PUBLIC_ACCESS_POLICY
@@ -37,6 +36,8 @@ import {
 import { ManifestService } from './manifest.service'
 import { HookService } from '../../hook/hook.service'
 import { PolicyService } from '../../policy/policy.service'
+import { PropertyManifestService } from './property-manifest.service'
+import { camelize } from '../../../../common/src'
 
 @Injectable()
 export class EntityManifestService {
@@ -44,6 +45,7 @@ export class EntityManifestService {
     private relationshipManifestService: RelationshipManifestService,
     @Inject(forwardRef(() => ManifestService))
     private manifestService: ManifestService,
+    private propertyManifestService: PropertyManifestService,
     private hookService: HookService,
     private policyService: PolicyService
   ) {}
@@ -75,6 +77,8 @@ export class EntityManifestService {
    *
    * @param className The class name of the entity to load.
    * @param slug The slug of the entity to load.
+   * @param fullVersion Whether to return the full version of the entity manifest or not.
+   * @param includeNested Whether to include nested entities in the manifest. Defaults to false as nested entities cannot be accessed directly.
    *
    * @returns The entity manifest.
    *
@@ -82,11 +86,13 @@ export class EntityManifestService {
   getEntityManifest({
     className,
     slug,
-    fullVersion
+    fullVersion,
+    includeNested = false
   }: {
     className?: string
     slug?: string
     fullVersion?: boolean
+    includeNested?: boolean
   }): EntityManifest {
     if (!className && !slug) {
       throw new HttpException(
@@ -105,7 +111,7 @@ export class EntityManifestService {
       entityManifest = entities.find((entity) => entity.slug === slug)
     }
 
-    if (!entityManifest) {
+    if (!entityManifest || (entityManifest.nested && !includeNested)) {
       throw new HttpException(
         `Entity ${className || slug} not found in manifest`,
         HttpStatus.NOT_FOUND
@@ -124,33 +130,40 @@ export class EntityManifestService {
    * Transform an entityObject into an EntityManifest array ensuring that undefined properties are filled in with defaults
    * and short form properties are transformed into long form.
    *
-   * @param an object with the class name as key and the EntitySchema as value.
+   * @param an object with entities and groups properties.
    *
    * @returns the entity manifests with defaults filled in and short form properties transformed into long form.
    */
-  transformEntityManifests(entitySchemaObject: {
-    [keyof: string]: EntitySchema
+  transformEntityManifests({
+    entities,
+    groups
+  }: {
+    entities: { [k: string]: EntitySchema }
+    groups?: { [k: string]: GroupSchema }
   }): EntityManifest[] {
-    const entityManifests: EntityManifest[] = Object.entries(
-      entitySchemaObject
-    ).map(([className, entitySchema]: [string, EntitySchema]) => {
+    const entityManifests: EntityManifest[] = [
+      ...Object.entries(entities || {}),
+      ...Object.entries(groups || {})
+    ].map(([className, entitySchema]: [string, EntitySchema | GroupSchema]) => {
       // Build the partial entity manifest with common properties of both collection and single entities.
       const partialEntityManifest: EntityManifestCommonFields = {
-        className: entitySchema.className || className,
-        nameSingular:
-          entitySchema.nameSingular?.toLowerCase() ||
-          pluralize.singular(entitySchema.className || className).toLowerCase(),
+        className: entitySchema['className'] || className,
+        nameSingular: entitySchema['nameSingular']
+          ? camelize(entitySchema['nameSingular'])
+          : camelize(
+              pluralize.singular(entitySchema['className'] || className)
+            ),
         slug:
-          entitySchema.slug ||
+          entitySchema['slug'] ||
           slugify(
             dasherize(
-              entitySchema.single
-                ? entitySchema.className || className
-                : entitySchema.namePlural ||
-                    pluralize.plural(entitySchema.className || className)
+              entitySchema['single']
+                ? entitySchema['className'] || className
+                : entitySchema['namePlural'] ||
+                    pluralize.plural(entitySchema['className'] || className)
             ).toLowerCase()
           ),
-        single: entitySchema.single || false,
+        single: entitySchema['single'] || false,
         properties: (entitySchema.properties || [])
           // Filter out the eventual id property as we are adding it manually.
           .filter(
@@ -159,13 +172,17 @@ export class EntityManifestService {
               (propSchema as { name: string }).name !== 'id'
           )
           .map((propSchema: PropertySchema) =>
-            this.transformProperty(propSchema, entitySchema)
+            this.propertyManifestService.transformPropertyManifest(
+              propSchema,
+              entitySchema
+            )
           ),
-        hooks: this.transformHookObject(entitySchema.hooks),
-        middlewares: entitySchema.middlewares || {}
+        hooks: this.transformHookObject(entitySchema['hooks']) || {},
+        middlewares: entitySchema['middlewares'] || {},
+        nested: Object.prototype.hasOwnProperty.call(groups || {}, className)
       }
 
-      if (entitySchema.single) {
+      if (entitySchema['single']) {
         return this.getSingleEntityManifestProps(
           partialEntityManifest,
           entitySchema
@@ -178,12 +195,31 @@ export class EntityManifestService {
       )
     })
 
+    // Add nested entities relationships.
+    entityManifests
+      .filter((entityManifest: EntityManifest) => entityManifest.nested)
+      .forEach((nestedEntity: EntityManifest) => {
+        nestedEntity.relationships.push(
+          ...this.relationshipManifestService.getRelationshipManifestsFromNestedProperties(
+            nestedEntity,
+            entityManifests.filter((e) => !e.nested)
+          )
+        )
+
+        // Set seed count to 1 for nested entities that have one-to-one relationships as we only can seed one nested entity per parent entity.
+        if (
+          nestedEntity.relationships.some(
+            (relationship) => relationship.type === 'one-to-one'
+          )
+        ) {
+          nestedEntity.seedCount = 1
+        }
+      })
+
     // Generate the OneToMany relationships from the opposite ManyToOne relationships.
     entityManifests.forEach((entityManifest: EntityManifest) => {
-      if (entityManifest.single) return
-
       entityManifest.relationships.push(
-        ...this.relationshipManifestService.getOneToManyRelationships(
+        ...this.relationshipManifestService.getOppositeOneToManyRelationships(
           entityManifests,
           entityManifest
         )
@@ -199,6 +235,23 @@ export class EntityManifestService {
           entityManifests,
           entityManifest
         )
+      )
+    })
+
+    // Generate the OneToOne relationships from the opposite OneToOne relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.relationships.push(
+        ...this.relationshipManifestService.getOppositeOneToOneRelationships(
+          entityManifests,
+          entityManifest
+        )
+      )
+    })
+
+    // Remove "group" properties from the manifest as they have been transformed into relationships.
+    entityManifests.forEach((entityManifest: EntityManifest) => {
+      entityManifest.properties = entityManifest.properties.filter(
+        (prop: PropertyManifest) => prop.type !== PropType.Nested
       )
     })
 
@@ -226,9 +279,9 @@ export class EntityManifestService {
       ...partialEntityManifest,
       properties: partialEntityManifest.properties,
       hooks: partialEntityManifest.hooks,
-      namePlural:
-        entitySchema.namePlural ||
-        pluralize.plural(partialEntityManifest.className).toLowerCase(),
+      namePlural: entitySchema.namePlural
+        ? camelize(entitySchema.namePlural)
+        : camelize(pluralize.plural(partialEntityManifest.className)),
       mainProp:
         entitySchema.mainProp ||
         partialEntityManifest.properties.find(
@@ -315,51 +368,6 @@ export class EntityManifestService {
         delete: [FORBIDDEN_ACCESS_POLICY],
         signup: [FORBIDDEN_ACCESS_POLICY]
       }
-    }
-  }
-
-  /**
-   *
-   * Transform  PropertySchema into a PropertyManifest.
-   *
-   * @param propSchema the property schema.
-   * @param entitySchema the entity schema to which the property belongs.
-   *
-   *
-   * @returns the property with the short form properties transformed into long form.
-   *
-   */
-  transformProperty(
-    propSchema: PropertySchema,
-    entitySchema: EntitySchema
-  ): PropertyManifest {
-    // Short syntax.
-    if (typeof propSchema === 'string') {
-      return {
-        name: propSchema,
-        type: PropType.String,
-        hidden: false,
-        validation:
-          (entitySchema.validation?.[propSchema] as ValidationManifest) || {}
-      }
-    }
-
-    return {
-      name: propSchema.name,
-      type: (propSchema.type as PropType) || PropType.String,
-      hidden: propSchema.hidden || false,
-      options:
-        propSchema.options ||
-        (propSchema.type === PropType.Image
-          ? { sizes: DEFAULT_IMAGE_SIZES }
-          : {}),
-      validation: Object.assign(
-        (entitySchema.validation?.[propSchema.name] as ValidationManifest) ||
-          {},
-        propSchema.validation
-      ),
-      helpText: propSchema.helpText || '',
-      default: propSchema.default
     }
   }
 

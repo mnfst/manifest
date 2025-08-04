@@ -25,6 +25,7 @@
   },
   "packageManager": "npm@10.7.0",
   "dependencies": {
-    "@changesets/cli": "^2.27.11"
+    "@changesets/cli": "^2.27.11",
+    "sharp": "^0.34.3"
   }
 }

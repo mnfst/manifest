@@ -17,5 +17,6 @@ export const postgresPropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Choice]: 'text', // TODO: Enum should be handled separately with CREATE TYPE
   [PropType.Location]: 'jsonb',
   [PropType.File]: 'varchar',
-  [PropType.Image]: 'jsonb'
+  [PropType.Image]: 'jsonb',
+  [PropType.Nested]: 'varchar' // Will be overridden afterwards.
 }

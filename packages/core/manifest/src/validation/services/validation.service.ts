@@ -3,9 +3,12 @@ import { Injectable } from '@nestjs/common'
 import { ValidationError } from 'class-validator'
 import { typeValidators } from '../records/type-validators'
 import { customValidators } from '../records/custom-validators'
+import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 
 @Injectable()
 export class ValidationService {
+  constructor(private entityManifestService: EntityManifestService) {}
+
   /**
    *
    * Validate an item DTO against an entity manifest.
@@ -18,7 +21,7 @@ export class ValidationService {
    *
    */
   validate(
-    itemDto: any,
+    itemDto: unknown,
     entityManifest: EntityManifest,
     options?: { isUpdate?: boolean }
   ): ValidationError[] {
@@ -34,10 +37,54 @@ export class ValidationService {
     }
 
     entityManifest.properties.forEach((propertyManifest: PropertyManifest) => {
-      const propValue: any = itemDto[propertyManifest.name]
+      const propValue: unknown = itemDto[propertyManifest.name]
 
       errors.push(...this.validateProperty(propValue, propertyManifest))
     })
+
+    // Validate nested entities.
+    if (entityManifest.relationships) {
+      for (const relationshipManifest of entityManifest.relationships.filter(
+        (r) => r.nested
+      )) {
+        const nestedEntityManifest: EntityManifest =
+          this.entityManifestService.getEntityManifest({
+            className: relationshipManifest.entity,
+            includeNested: true
+          })
+
+        if (relationshipManifest.type === 'one-to-many') {
+          // For one-to-many relationships, we expect an array of items.
+          const propValue: unknown[] = itemDto[relationshipManifest.name]
+
+          if (Array.isArray(propValue) && propValue.length > 0) {
+            for (let i = 0; i < propValue.length; i++) {
+              const item = propValue[i]
+              const nestedErrors = this.validate(item, nestedEntityManifest)
+              nestedErrors.forEach((err) => {
+                errors.push({
+                  ...err,
+                  property: `${relationshipManifest.name}[${i}].${err.property}`
+                })
+              })
+            }
+          }
+        } else {
+          // For one-to-one relationships, we expect a single item.
+          const propValue: unknown = itemDto[relationshipManifest.name]
+
+          if (propValue !== undefined && propValue !== null) {
+            const nestedErrors = this.validate(propValue, nestedEntityManifest)
+            nestedErrors.forEach((err) => {
+              errors.push({
+                ...err,
+                property: `${relationshipManifest.name}.${err.property}`
+              })
+            })
+          }
+        }
+      }
+    }
 
     return errors
   }
@@ -53,7 +100,7 @@ export class ValidationService {
    *
    */
   validateProperty(
-    propValue: any,
+    propValue: unknown,
     propertyManifest: PropertyManifest
   ): ValidationError[] {
     const errors: ValidationError[] = []
@@ -76,7 +123,7 @@ export class ValidationService {
 
     // Validate the property value against the validation schema.
     Object.entries(propertyManifest.validation || {}).forEach(
-      ([key, context]: [string, any]) => {
+      ([key, context]: [string, unknown]) => {
         let validationError: string | null
 
         // If the property is optional and the value is undefined or null, skip validation.

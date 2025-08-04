@@ -43,7 +43,8 @@ export class EntityService {
     if (slug) {
       className = this.entityManifestService.getEntityManifest({
         slug,
-        fullVersion: true
+        fullVersion: true,
+        includeNested: true
       }).className
     }
 

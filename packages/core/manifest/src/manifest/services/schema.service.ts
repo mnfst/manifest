@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common'
 
-import { Manifest, RelationshipSchema, EntitySchema } from '@repo/types'
+import {
+  Manifest,
+  RelationshipSchema,
+  EntitySchema,
+  PropertySchema,
+  PoliciesSchema,
+  PolicySchema,
+  GroupSchema
+} from '@repo/types'
 import Ajv from 'ajv'
 import schemas from '@repo/json-schema'
 import chalk from 'chalk'
@@ -63,8 +71,9 @@ export class SchemaService {
    * @returns true if the manifest is valid, otherwise throws an error.
    */
   validateCustomLogic(manifest: Manifest): boolean {
-    // 1.Validate that all entities in relationships exist.
     const entityNames: string[] = Object.keys(manifest.entities || {})
+    const groupNames: string[] = Object.keys(manifest.groups || {})
+
     Object.values(manifest.entities || {}).forEach((entity: EntitySchema) => {
       const relationshipNames = Object.values(entity.belongsTo || []).map(
         (relationship: RelationshipSchema) => {
@@ -75,6 +84,7 @@ export class SchemaService {
         }
       )
 
+      // Validate that all entities in relationships exist.
       relationshipNames.forEach((relationship: any) => {
         if (!entityNames.includes(relationship)) {
           console.log(
@@ -83,15 +93,102 @@ export class SchemaService {
             )
           )
 
+          console.log(chalk.red(`Entity ${relationship} does not exist`))
+          process.exit(1)
+        }
+      })
+
+      // Validate that entities in policies exist
+      this.flattenPolicies(entity.policies).forEach(
+        (policySchema: PolicySchema) => {
+          if (!policySchema.allow) {
+            return
+          }
+
+          if (typeof policySchema.allow === 'string') {
+            policySchema.allow = [policySchema.allow] // Force array.
+          }
+
+          policySchema.allow.forEach((allowedEntityName: string) => {
+            if (!entityNames.includes(allowedEntityName)) {
+              console.log(
+                chalk.red(
+                  'JSON Schema Validation failed. Please fix the following:'
+                )
+              )
+              console.log(
+                chalk.red(
+                  `Entity ${allowedEntityName} in policies does not exist`
+                )
+              )
+              process.exit(1)
+            }
+          })
+        }
+      )
+
+      // Validate that all groups exist.
+      const groupProperties: PropertySchema[] = entity.properties
+        .filter((property: PropertySchema) => typeof property !== 'string')
+        .filter((property: PropertySchema) => property['options']?.group)
+
+      groupProperties.forEach((property: PropertySchema) => {
+        const propertyGroup: string = (property as any).options?.group
+
+        if (propertyGroup && !groupNames.includes(propertyGroup)) {
           console.log(
-            chalk.red(`Entity ${relationship} does not exist in the manifest`)
+            chalk.red(
+              'JSON Schema Validation failed. Please fix the following:'
+            )
           )
+
+          console.log(chalk.red(`Group ${propertyGroup} does not exist`))
           process.exit(1)
         }
       })
     })
-    // TODO: Same for policies "allow".
+
+    // Validate that groups cannot have nested group properties.
+    Object.values(manifest.groups || {}).forEach((group: GroupSchema) => {
+      group.properties.forEach((property: PropertySchema) => {
+        if (typeof property === 'string') {
+          return
+        }
+
+        if (property.type === 'group') {
+          console.log(
+            chalk.red(
+              'JSON Schema Validation failed. Please fix the following:'
+            )
+          )
+
+          console.log(chalk.red(`Groups cannot have nested group properties.`))
+          process.exit(1)
+        }
+      })
+    })
 
     return true
+  }
+
+  private flattenPolicies(policies: PoliciesSchema): PolicySchema[] {
+    const result: PolicySchema[] = []
+
+    // Iterate through all possible keys
+    const keys: (keyof PoliciesSchema)[] = [
+      'create',
+      'read',
+      'update',
+      'delete',
+      'signup'
+    ]
+
+    keys.forEach((key) => {
+      if (policies?.[key]) {
+        result.push(...policies[key]!)
+      }
+    })
+
+    return result
   }
 }

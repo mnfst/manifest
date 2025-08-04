@@ -19,7 +19,7 @@ export type RelationshipManifest = {
   /**
    * The type of the relationship.
    */
-  type: 'many-to-one' | 'many-to-many' | 'one-to-many'
+  type: 'many-to-one' | 'many-to-many' | 'one-to-many' | 'one-to-one'
 
   /**
    * Optional help text to provide additional guidance for the relationship in the admin UI.
@@ -35,4 +35,9 @@ export type RelationshipManifest = {
    * The inverse side of the relationship.
    */
   inverseSide?: string
+
+  /**
+   * Whether this related entity is a nested entity (group).
+   */
+  nested?: boolean
 }

@@ -17,5 +17,6 @@ export const sqlitePropTypeColumnTypes: Record<PropType, ColumnType> = {
   [PropType.Choice]: 'simple-enum',
   [PropType.Location]: 'json',
   [PropType.File]: 'varchar',
-  [PropType.Image]: 'json'
+  [PropType.Image]: 'json',
+  [PropType.Nested]: 'varchar' // Will be overridden afterwards.
 }

@@ -16,5 +16,6 @@ export enum PropType {
   Choice = 'choice',
   Location = 'location',
   File = 'file',
-  Image = 'image'
+  Image = 'image',
+  Nested = 'group'
 }

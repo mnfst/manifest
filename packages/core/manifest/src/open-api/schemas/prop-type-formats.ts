@@ -17,5 +17,6 @@ export const propTypeFormats: Record<PropType, string | null> = {
   [PropType.Choice]: null,
   [PropType.Location]: null,
   [PropType.File]: 'uri',
-  [PropType.Image]: null
+  [PropType.Image]: null,
+  [PropType.Nested]: null
 }

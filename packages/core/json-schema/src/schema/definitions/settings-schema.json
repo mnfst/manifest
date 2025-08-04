@@ -6,7 +6,7 @@
   "type": "object",
   "properties": {
     "rateLimits": {
-      "description": "Rate limiting configuration for your app",
+      "description": "Rate limiting configuration for your app. Doc: https://manifest.build/docs/security#rate-limiting",
       "type": "array",
       "items": {
         "type": "object",
