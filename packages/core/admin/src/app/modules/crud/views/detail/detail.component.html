@@ -98,13 +98,9 @@
               <p
                 class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
               >
-                {{ relationship.name }} <span class="tag">Multiple group</span>
+                {{ relationship.name }}
               </p>
-              <p *ngIf="!getMultipleRelations(item, relationship).length">
-                No
-                {{ nestedEntityManifests[relationship.name].nameSingular }}.
-                <span class="tag">Non-multiple group</span>
-              </p>
+              <p *ngIf="!getMultipleRelations(item, relationship).length">-</p>
               <div class="group-wrapper pl-5">
                 <div
                   class="nested-item"
@@ -145,12 +141,8 @@
                 class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
               >
                 {{ relationship.name }}
-                <span class="tag">Non-multiple group</span>
               </p>
-              <p *ngIf="!item[relationship.name]">
-                No
-                {{ nestedEntityManifests[relationship.name].nameSingular }}.
-              </p>
+              <p *ngIf="!item[relationship.name]">-</p>
               <div class="group-wrapper pl-5">
                 <div class="nested-item" *ngIf="item[relationship.name]">
                   <div class="box is-shadowless is-bordered p-5 mb-5">

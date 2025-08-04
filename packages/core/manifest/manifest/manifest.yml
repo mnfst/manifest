@@ -7,6 +7,43 @@ entities:
   Parent:
     properties:
       - name
+      - { name: age, helpText: "Test helptext", type: number }
+      - { name: website, helpText: "Test helptext", type: link }
+      - {
+          name: price,
+          helpText: "Test helptext",
+          type: money,
+          options: { currency: "EUR" }
+        }
+      - { name: startDate, helpText: "Test helptext", type: date }
+      - { name: email, helpText: "Test helptext", type: email }
+      - { name: acquiredAt, helpText: "Test helptext", type: timestamp }
+      - { name: isActive, helpText: "Test helptext", type: boolean }
+      - {
+          name: photo,
+          helpText: "Test helptext",
+          type: image,
+          options:
+            {
+              sizes: { small: { height: 90, width: 90 }, large: { width: 200 } }
+            }
+        }
+      - { name: password, helpText: "Test helptext", type: password }
+      - {
+          name: sex,
+          helpText: "Test helptext",
+          type: choice,
+          options: { values: [male, female] }
+        }
+      # Sequential if the values are ordered in a logical sense..
+      - {
+          name: status,
+          helpText: "Test helptext",
+          type: choice,
+          options: { values: [draft, submitted, published], sequential: true }
+        }
+      - { name: location, helpText: "Test helptext", type: location }
+
     policies:
       create:
         - { access: public }
