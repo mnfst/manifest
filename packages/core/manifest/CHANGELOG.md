@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.0
+
+### Minor Changes
+
+- 0050a83: added groups (nested entities)
+
 ## 4.16.3
 
 ### Patch Changes
