@@ -132,7 +132,8 @@
                   <div
                     class="box is-shadowless mb-0"
                     [ngClass]="{
-                      'is-bordered p-5 ':
+                      'is-bordered p-5':
+                        relationship.type === 'one-to-one' ||
                         getMultipleRelations(relationship.name).length === 0
                     }"
                   >
@@ -140,23 +141,27 @@
                     <ng-container *ngIf="relationship.type === 'one-to-one'">
                       <div
                         class="has-text-centered is-fullwidth"
-                        *ngIf="!form.get(relationship.name)?.value"
+                        *ngIf="!getSingleRelation(relationship.name)"
                       >
-                        <p class="mb-5">
-                          No {{ relationship.name }} added yet. Click on "Add
-                          {{ relationship.entity }}" to create a new item.
+                        <p class="is-size-5 has-text-weight-bold">
+                          No {{ relationship.name }} added yet.
+                        </p>
+                        <p class="mb-4">
+                          Click on "Add
+                          {{ relationship.entity }}" to add the item.
                         </p>
                       </div>
 
-                      <div
-                        class="card nested-item"
+                      <ng-container
                         *ngIf="getSingleRelation(relationship.name)"
                       >
-                        <button
-                          class="delete is-small"
-                          type="button"
+                        <a
+                          class="is-inline-flex is-fullwidth has-text-dark is-justify-content-flex-end"
                           (click)="removeSingleNestedItem(relationship)"
-                        ></button>
+                        >
+                          <i class="icon icon-trash-2"></i>
+                        </a>
+
                         <div
                           *ngFor="
                             let prop of nestedEntityManifests[relationship.name]
@@ -187,6 +192,24 @@
                             ></app-input>
                           </div>
                         </div>
+                      </ng-container>
+                    </ng-container>
+                    <ng-container *ngIf="!getSingleRelation(relationship.name)">
+                      <div class="has-text-centered is-fullwidth">
+                        <button
+                          class="button is-dark is-small has-icon"
+                          type="button"
+                          (click)="addNestedItem(relationship)"
+                          *ngIf="
+                            relationship.type === 'one-to-one' ||
+                            getSingleRelation(relationship.name) === null
+                          "
+                        >
+                          <span class="icon is-small">
+                            <i class="icon icon-plus"></i>-
+                          </span>
+                          <span>Add {{ relationship.entity }}</span>
+                        </button>
                       </div>
                     </ng-container>
 
@@ -198,10 +221,10 @@
                           getMultipleRelations(relationship.name).length === 0
                         "
                       >
-                        <p class="is-size-5 has-text-weight-bold mb-5">
+                        <p class="is-size-5 has-text-weight-bold">
                           No {{ relationship.name }} yet.
                         </p>
-                        <p class="mb-5">
+                        <p class="mb-4">
                           Click on "Add
                           {{ relationship.entity }}" to add the first item.
                         </p>
@@ -216,21 +239,13 @@
                           let i = index
                         "
                       >
-                        <div
-                          class="is-flex is-align-items-center is-justify-content-space-between is-fullwidth mb-4"
+                        <a
+                          class="is-inline-flex is-fullwidth has-text-dark is-justify-content-flex-end"
+                          (click)="removeNestedItem(relationship, i)"
                         >
-                          <h3
-                            class="is-inline-flex is-fullwidth title is-5 mb-0"
-                          >
-                            {{ relationship.name }} #{{ i + 1 }}
-                          </h3>
-                          <a
-                            class="is-inline-flex is-fullwidth has-text-dark is-justify-content-flex-end"
-                            (click)="removeNestedItem(relationship, i)"
-                          >
-                            <i class="icon icon-trash-2"></i>
-                          </a>
-                        </div>
+                          <i class="icon icon-trash-2"></i>
+                        </a>
+
                         <div
                           *ngFor="
                             let prop of nestedEntityManifests[relationship.name]
