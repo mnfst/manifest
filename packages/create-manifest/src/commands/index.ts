@@ -306,7 +306,7 @@ export default class CreateManifest extends Command {
         fileContent: settingsJson,
         settings: {
           'yaml.schemas': {
-            'https://schema.manifest.build/schema.json': '**/manifest/**.yml'
+            'https://schema.manifest.build/schema.json': '**/manifest.yml'
           }
         }
       })
