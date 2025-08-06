@@ -19,15 +19,11 @@
   overflow-x: hidden;
 
   @include mixins.desktop {
-    height: calc(
-      100vh - var(--logo-height) - var(--footer-height) + 1px - 220px
-    );
+    height: calc(100vh - var(--logo-height) - var(--footer-height) + 1px);
   }
 
   @include mixins.touch {
-    height: calc(
-      100vh - #{all.$navbar-height-touch} - var(--footer-height) + 1px - 220px
-    );
+    height: calc(100vh - #{all.$navbar-height-touch} - var(--footer-height) + 1px);
   }
 
   li {

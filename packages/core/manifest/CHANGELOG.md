@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.1
+
+### Patch Changes
+
+- be965bd: fix error on image uploads on nested entities
+
 ## 4.17.0
 
 ### Minor Changes
