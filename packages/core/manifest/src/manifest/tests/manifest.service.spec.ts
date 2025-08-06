@@ -83,7 +83,8 @@ describe('ManifestService', () => {
         {
           provide: LockFileService,
           useValue: {
-            getLockFile: jest.fn()
+            getLockFile: jest.fn(),
+            getInstalledVersion: jest.fn(() => '0.0.0-test')
           }
         }
       ]
