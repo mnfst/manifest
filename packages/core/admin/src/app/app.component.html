@@ -29,7 +29,7 @@
               <ng-container
                 *ngIf="
                   newVersionAvailable ||
-                  appManifest?.environment === 'production'
+                  (appManifest?.environment && 'production')
                 "
               >
                 - Manifest {{ latestVersion }} is available! Please notify your
@@ -38,7 +38,7 @@
               <ng-container
                 *ngIf="
                   newVersionAvailable ||
-                  appManifest?.environment === 'development'
+                  (appManifest?.environment && 'development')
                 "
               >
                 - Manifest {{ latestVersion }} is available!

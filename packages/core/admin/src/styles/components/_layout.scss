@@ -82,6 +82,7 @@ main {
   &__content {
     @include touch {
       flex-direction: column;
+      text-align: center;
     }
   }
 }
