@@ -6,13 +6,15 @@ import {
   AppManifest,
   Manifest,
   EntityManifest,
-  EntitySchema
+  EntitySchema,
+  AppEnvironment
 } from '@repo/types'
 
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from './entity-manifest.service'
 import { EndpointService } from '../../endpoint/endpoint.service'
 import { ConfigService } from '@nestjs/config'
+import { LockFileService } from './lock-file.service'
 
 @Injectable()
 export class ManifestService {
@@ -25,7 +27,8 @@ export class ManifestService {
     @Inject(forwardRef(() => EntityManifestService))
     private entityManifestService: EntityManifestService,
     private endpointService: EndpointService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly lockFileService: LockFileService
   ) {}
 
   /**
@@ -80,7 +83,9 @@ export class ManifestService {
     const appManifest: AppManifest = {
       name: appSchema.name || 'Manifest App',
       version: appSchema.version || '1.0.0',
-      production: this.configService.get('NODE_ENV') === 'production',
+      manifestVersion: this.lockFileService.getInstalledVersion('manifest'),
+      environment:
+        this.configService.get<AppEnvironment>('NODE_ENV') || 'development',
       entities: this.entityManifestService
         .transformEntityManifests({
           entities: appSchema.entities || {},

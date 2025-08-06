@@ -85,6 +85,7 @@
     "@nestjs/swagger": "^7.3.1",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/typeorm": "^10.0.2",
+    "@yarnpkg/lockfile": "^1.1.0",
     "ajv": "^8.17.1",
     "bcryptjs": "^3.0.2",
     "chalk": "^4.1.2",

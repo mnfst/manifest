@@ -11,6 +11,7 @@ import { HookModule } from '../hook/hook.module'
 import { PolicyModule } from '../policy/policy.module'
 import { EndpointModule } from '../endpoint/endpoint.module'
 import { PropertyManifestService } from './services/property-manifest.service'
+import { LockFileService } from './services/lock-file.service'
 
 /**
  *
@@ -33,7 +34,8 @@ import { PropertyManifestService } from './services/property-manifest.service'
     SchemaService,
     EntityManifestService,
     PropertyManifestService,
-    RelationshipManifestService
+    RelationshipManifestService,
+    LockFileService
   ],
   controllers: [ManifestController],
   exports: [ManifestService, EntityManifestService, RelationshipManifestService]
