@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.2
+
+### Patch Changes
+
+- 4d12ad8: feat: display version and upgrade message depending on dev environment
+
 ## 4.17.1
 
 ### Patch Changes
