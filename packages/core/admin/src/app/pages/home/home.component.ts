@@ -4,7 +4,6 @@ import { AppManifest, EntityManifest } from '@repo/types'
 import { ManifestService } from '../../modules/shared/services/manifest.service'
 import { MetaService } from '../../modules/shared/services/meta.service'
 import { ADMIN_CLASS_NAME } from '../../../constants'
-import { VersionService } from '../../modules/shared/services/version.service'
 
 @Component({
   selector: 'app-home',
@@ -16,13 +15,9 @@ export class HomeComponent implements OnInit {
   collections: EntityManifest[]
   singles: EntityManifest[]
 
-  newVersionAvailable: boolean = false
-  latestVersion: string = ''
-
   constructor(
     private manifestService: ManifestService,
-    private metaService: MetaService,
-    private versionService: VersionService
+    private metaService: MetaService
   ) {}
 
   ngOnInit(): void {
@@ -41,23 +36,6 @@ export class HomeComponent implements OnInit {
       this.singles = Object.values(res.entities || {}).filter(
         (entity) => entity.single
       )
-
-      this.checkForUpdates()
     })
-  }
-
-  checkForUpdates(): void {
-    this.versionService
-      .checkForUpdates({
-        currentVersion: this.appManifest.manifestVersion,
-        currentEnv: this.appManifest.environment
-      })
-      .then((result) => {
-        this.newVersionAvailable = result.isUpdateAvailable
-        this.latestVersion = result.latestVersion
-      })
-      .catch((error) => {
-        console.error('Error checking for updates:', error)
-      })
   }
 }

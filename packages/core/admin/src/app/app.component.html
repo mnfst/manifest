@@ -13,6 +13,27 @@
       <main>
         <router-outlet></router-outlet>
       </main>
+      <div class="columns">
+        <div class="column is-4 is-offset-8">
+          <p class="is-size-5">
+            <br /><br /><br /><br /><br />
+            Proudly built with
+            <a href="https://manifest.build" target="_blank">Manifest</a>.
+            <i>v{{ appManifest?.manifestVersion }}</i>
+            <br />
+            <ng-container *ngIf="appManifest?.environment !== 'production'">
+              <span class="has-text-weight-bold">Environment:</span>
+              {{ appManifest?.environment }}
+            </ng-container>
+            <ng-container *ngIf="newVersionAvailable">
+              <p class="has-text-weight-bold">
+                version {{ latestVersion }} available!
+                <!-- TODO: Link to update guide ?  -->
+              </p>
+            </ng-container>
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
