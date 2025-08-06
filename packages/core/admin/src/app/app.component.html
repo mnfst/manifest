@@ -22,20 +22,34 @@
             Proudly built with
             <a href="https://manifest.build" target="_blank">Manifest</a>
           </div>
-          <div>
-            <span>Version </span>
-            <i>{{ appManifest?.manifestVersion }}</i>
-            <ng-container *ngIf="appManifest?.environment !== 'production'">
-              <span class="has-text-weight-bold">Environment:</span>
-              {{ appManifest?.environment }}
-            </ng-container>
-            <ng-container *ngIf="newVersionAvailable">
-              <p class="has-text-weight-bold">
-                version {{ latestVersion }} available!
-                <!-- TODO: Link to update guide ?  -->
-              </p>
-            </ng-container>
-          </div>
+          <ng-container *ngIf="appManifest?.environment !== 'contribution'">
+            <div>
+              <span>Version </span>
+              <i>{{ appManifest?.manifestVersion }}</i>
+              <ng-container
+                *ngIf="
+                  newVersionAvailable ||
+                  appManifest?.environment === 'production'
+                "
+              >
+                - Manifest {{ latestVersion }} is available! Please notify your
+                administrator.
+              </ng-container>
+              <ng-container
+                *ngIf="
+                  newVersionAvailable ||
+                  appManifest?.environment === 'development'
+                "
+              >
+                - Manifest {{ latestVersion }} is available!
+                <a
+                  target="_blank"
+                  href="https://github.com/mnfst/manifest/releases"
+                  >Please update now.</a
+                >
+              </ng-container>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
