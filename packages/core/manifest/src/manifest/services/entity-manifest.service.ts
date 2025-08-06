@@ -282,10 +282,14 @@ export class EntityManifestService {
       namePlural: entitySchema.namePlural
         ? camelize(entitySchema.namePlural)
         : camelize(pluralize.plural(partialEntityManifest.className)),
+      // Guess the main prop if not provided.
       mainProp:
         entitySchema.mainProp ||
         partialEntityManifest.properties.find(
           (prop) => prop.type === PropType.String
+        )?.name ||
+        partialEntityManifest.properties.find(
+          (prop) => prop.type === PropType.Text
         )?.name ||
         'id',
       seedCount: entitySchema.seedCount || DEFAULT_SEED_COUNT,

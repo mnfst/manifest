@@ -66,7 +66,8 @@ export class UploadService {
 
     const entityManifest: EntityManifest =
       this.entityManifestService.getEntityManifest({
-        slug: entity
+        slug: entity,
+        includeNested: true
       })
 
     const propertyManifest: PropertyManifest = entityManifest.properties.find(

@@ -172,7 +172,9 @@
                           <div class="control">
                             <app-input
                               [prop]="prop"
-                              [entityManifest]="entityManifest"
+                              [entityManifest]="
+                                nestedEntityManifests[relationship.name]
+                              "
                               [value]="
                                 edit
                                   ? getSingleRelation(relationship.name).get(
@@ -257,7 +259,9 @@
                           <div class="control">
                             <app-input
                               [prop]="prop"
-                              [entityManifest]="entityManifest"
+                              [entityManifest]="
+                                nestedEntityManifests[relationship.name]
+                              "
                               [value]="
                                 edit ? nestedItem.get(prop.name)?.value : null
                               "
