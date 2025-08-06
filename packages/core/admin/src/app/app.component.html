@@ -13,14 +13,18 @@
       <main>
         <router-outlet></router-outlet>
       </main>
-      <div class="columns">
-        <div class="column is-4 is-offset-8">
-          <p class="is-size-5">
-            <br /><br /><br /><br /><br />
+
+      <div class="version-checker" *ngIf="!isLogin">
+        <div
+          class="version-checker__content is-flex is-justify-content-space-between is-align-items-center is-size-5 is-fullwidth"
+        >
+          <div>
             Proudly built with
-            <a href="https://manifest.build" target="_blank">Manifest</a>.
-            <i>v{{ appManifest?.manifestVersion }}</i>
-            <br />
+            <a href="https://manifest.build" target="_blank">Manifest</a>
+          </div>
+          <div>
+            <span>Version </span>
+            <i>{{ appManifest?.manifestVersion }}</i>
             <ng-container *ngIf="appManifest?.environment !== 'production'">
               <span class="has-text-weight-bold">Environment:</span>
               {{ appManifest?.environment }}
@@ -31,7 +35,7 @@
                 <!-- TODO: Link to update guide ?  -->
               </p>
             </ng-container>
-          </p>
+          </div>
         </div>
       </div>
     </div>
