@@ -49,8 +49,8 @@ export class HomeComponent implements OnInit {
   checkForUpdates(): void {
     this.versionService
       .checkForUpdates({
-        currentVersion: this.appManifest.version || '0.0.0',
-        currentEnv: this.appManifest.environment || 'development'
+        currentVersion: this.appManifest.manifestVersion,
+        currentEnv: this.appManifest.environment
       })
       .then((result) => {
         this.newVersionAvailable = result.isUpdateAvailable
