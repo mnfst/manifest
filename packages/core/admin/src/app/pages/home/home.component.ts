@@ -21,6 +21,8 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.metaService.setTitle('Admin panel')
+
     this.manifestService.getManifest().then((res: AppManifest) => {
       this.appManifest = res
       this.collections = Object.values(res.entities || {})
@@ -34,8 +36,6 @@ export class HomeComponent implements OnInit {
       this.singles = Object.values(res.entities || {}).filter(
         (entity) => entity.single
       )
-
-      this.metaService.setTitle('Admin panel')
     })
   }
 }

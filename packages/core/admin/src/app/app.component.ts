@@ -3,6 +3,9 @@ import { NavigationEnd, Router } from '@angular/router'
 import { AuthService } from './modules/auth/auth.service'
 import { TOKEN_KEY } from '../constants'
 import { Subscription } from 'rxjs'
+import { VersionService } from './modules/shared/services/version.service'
+import { ManifestService } from './modules/shared/services/manifest.service'
+import { AppManifest } from '../../../types/src'
 
 @Component({
   selector: 'app-root',
@@ -11,13 +14,18 @@ import { Subscription } from 'rxjs'
 export class AppComponent implements OnInit, OnDestroy {
   isLogin = true
   private currentUserSubscription: Subscription
+  appManifest: AppManifest
+  newVersionAvailable: boolean = false
+  latestVersion: string = ''
 
   constructor(
     private authService: AuthService,
+    private manifestService: ManifestService,
+    private versionService: VersionService,
     private router: Router
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.router.events.subscribe((routeChanged) => {
       if (routeChanged instanceof NavigationEnd) {
         window.scrollTo(0, 0)
@@ -34,11 +42,29 @@ export class AppComponent implements OnInit, OnDestroy {
         )
       }
     })
+
+    this.appManifest = await this.manifestService.getManifest()
+    this.checkForUpdates()
   }
 
   ngOnDestroy(): void {
     if (this.currentUserSubscription) {
       this.currentUserSubscription.unsubscribe()
     }
+  }
+
+  checkForUpdates(): void {
+    this.versionService
+      .checkForUpdates({
+        currentVersion: this.appManifest.manifestVersion,
+        currentEnv: this.appManifest.environment
+      })
+      .then((result) => {
+        this.newVersionAvailable = result.isUpdateAvailable
+        this.latestVersion = result.latestVersion
+      })
+      .catch((error) => {
+        console.error('Error checking for updates:', error)
+      })
   }
 }

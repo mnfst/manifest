@@ -1,6 +1,7 @@
 import { EndpointManifest } from '../endpoints'
 import { AppSettings } from './AppSettings'
 import { EntityManifest } from './EntityManifest'
+import { AppEnvironment } from '../common'
 
 export interface AppManifest {
   /**
@@ -14,9 +15,14 @@ export interface AppManifest {
   version?: string
 
   /**
-   * Whether the app is in production.
+   * Manifest version.
    */
-  production?: boolean
+  manifestVersion?: string
+
+  /**
+   * The environment of the app.
+   */
+  environment?: AppEnvironment
 
   /**
    * The entities of the app.

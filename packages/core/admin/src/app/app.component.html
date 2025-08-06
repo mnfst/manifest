@@ -13,6 +13,45 @@
       <main>
         <router-outlet></router-outlet>
       </main>
+
+      <div class="version-checker" *ngIf="!isLogin">
+        <div
+          class="version-checker__content is-flex is-justify-content-space-between is-align-items-center is-size-5 is-fullwidth"
+        >
+          <div>
+            Proudly built with
+            <a href="https://manifest.build" target="_blank">Manifest</a>
+          </div>
+          <ng-container *ngIf="appManifest?.environment !== 'contribution'">
+            <div>
+              <span>Version </span>
+              <i>{{ appManifest?.manifestVersion }}</i>
+              <ng-container
+                *ngIf="
+                  newVersionAvailable ||
+                  (appManifest?.environment && 'production')
+                "
+              >
+                - Manifest {{ latestVersion }} is available! Please notify your
+                administrator.
+              </ng-container>
+              <ng-container
+                *ngIf="
+                  newVersionAvailable ||
+                  (appManifest?.environment && 'development')
+                "
+              >
+                - Manifest {{ latestVersion }} is available!
+                <a
+                  target="_blank"
+                  href="https://github.com/mnfst/manifest/releases"
+                  >Please update now.</a
+                >
+              </ng-container>
+            </div>
+          </ng-container>
+        </div>
+      </div>
     </div>
   </div>
 </div>

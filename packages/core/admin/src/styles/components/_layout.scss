@@ -65,9 +65,26 @@ aside {
 
 main {
   transition: all $transition-duration $transition-timing;
-  min-height: 100%;
+
   margin-top: $gap;
   padding-bottom: $gap;
+  min-height: calc(100vh - #{$version-checker-height} - #{$gap});
+  @include touch {
+    min-height: calc(
+      100vh - #{$version-checker-height} - #{$gap} - #{$navbar-height-touch}
+    );
+  }
+}
+
+.version-checker {
+  min-height: #{$version-checker-height};
+
+  &__content {
+    @include touch {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
 }
 
 .pointer {
