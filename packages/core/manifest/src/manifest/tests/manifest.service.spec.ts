@@ -4,7 +4,6 @@ import { AppManifest, PropType } from '@repo/types'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EndpointService } from '../../endpoint/endpoint.service'
 import { EntityManifestService } from '../services/entity-manifest.service'
-import { LockFileService } from '../services/lock-file.service'
 import { ManifestService } from '../services/manifest.service'
 import { SchemaService } from '../services/schema.service'
 import { YamlService } from '../services/yaml.service'
@@ -78,13 +77,6 @@ describe('ManifestService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn(() => 'production')
-          }
-        },
-        {
-          provide: LockFileService,
-          useValue: {
-            getLockFile: jest.fn(),
-            getInstalledVersion: jest.fn(() => '0.0.0-test')
           }
         }
       ]
