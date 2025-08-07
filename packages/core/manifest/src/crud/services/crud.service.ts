@@ -451,11 +451,16 @@ export class CrudService {
     })
 
     // Hash password if it exists.
-    if (entityManifest.authenticable && filteredItemDto.password) {
+    if (
+      entityManifest.authenticable &&
+      (filteredItemDto.password as string)?.length
+    ) {
       updatedItem.password = bcrypt.hashSync(
         filteredItemDto['password'] as string,
         SALT_ROUNDS
       )
+    } else {
+      delete updatedItem.password // Remove password if not provided.
     }
 
     const errors = this.validationService.validate(
