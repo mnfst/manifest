@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.3
+
+### Patch Changes
+
+- f7a5e57: fix new version available displayed twice
+
 ## 4.17.2
 
 ### Patch Changes
