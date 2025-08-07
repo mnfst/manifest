@@ -7,21 +7,17 @@ import * as jwt from 'jsonwebtoken'
 import { Repository } from 'typeorm'
 import { EntityService } from '../entity/services/entity.service'
 import { SignupAuthenticableEntityDto } from './dtos/signup-authenticable-entity.dto'
-import {
-  ADMIN_ENTITY_MANIFEST,
-  DEFAULT_ADMIN_CREDENTIALS,
-  SALT_ROUNDS
-} from '../constants'
-import { validate } from 'class-validator'
+import { ADMIN_ENTITY_MANIFEST, DEFAULT_ADMIN_CREDENTIALS } from '../constants'
 import { EntityManifestService } from '../manifest/services/entity-manifest.service'
-import { plainToClass } from 'class-transformer'
+import { CrudService } from '../crud/services/crud.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly entityService: EntityService,
-    private readonly entityManifestService: EntityManifestService
+    private readonly entityManifestService: EntityManifestService,
+    private readonly crudService: CrudService
   ) {}
   /**
    * Creates a JWT token for a user. This user can be of any entity that extends AuthenticableEntity.
@@ -107,27 +103,10 @@ export class AuthService {
       )
     }
 
-    const newUserClass = plainToClass(
-      SignupAuthenticableEntityDto,
-      signupUserDto
-    )
-
-    const errors = await validate(newUserClass)
-    if (errors.length) {
-      throw new HttpException(errors, HttpStatus.BAD_REQUEST)
-    }
-
-    const entityRepository: Repository<AuthenticableEntity> =
-      this.entityService.getEntityRepository({
-        entitySlug
-      }) as Repository<AuthenticableEntity>
-
-    const newUser: AuthenticableEntity = entityRepository.create({
-      email: signupUserDto.email
-    })
-    newUser.password = bcrypt.hashSync(signupUserDto.password, SALT_ROUNDS)
-
-    const savedUser = await entityRepository.save(newUser)
+    const savedUser: AuthenticableEntity = (await this.crudService.store(
+      entitySlug,
+      signupUserDto as Partial<AuthenticableEntity>
+    )) as AuthenticableEntity
 
     return this.createToken(entitySlug, {
       email: savedUser.email,

@@ -6,6 +6,7 @@ import { AuthService } from '../auth.service'
 import { EntityService } from '../../entity/services/entity.service'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { CrudService } from '../../crud/services/crud.service'
 
 jest.mock('bcryptjs', () => ({
   compareSync: jest.fn().mockResolvedValue(true),
@@ -45,6 +46,12 @@ describe('AuthService', () => {
           provide: EntityManifestService,
           useValue: {
             getEntityManifest: jest.fn().mockReturnValue(ADMIN_ENTITY_MANIFEST)
+          }
+        },
+        {
+          provide: CrudService,
+          useValue: {
+            store: jest.fn().mockReturnValue(Promise.resolve(mockUser))
           }
         }
       ]
@@ -124,6 +131,20 @@ describe('AuthService', () => {
       const result = await authService.signup('users', mockUser)
 
       expect(result).toHaveProperty('token')
+    })
+
+    it('should save the user as a regular entity', async () => {
+      const storeSpy = jest.spyOn(authService['crudService'], 'store')
+
+      await authService.signup('users', mockUser)
+
+      expect(storeSpy).toHaveBeenCalledWith(
+        'users',
+        expect.objectContaining({
+          email: mockUser.email,
+          password: mockUser.password
+        })
+      )
     })
   })
 
