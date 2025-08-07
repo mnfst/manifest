@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.4
+
+### Patch Changes
+
+- c62d097: fix signup does not store non authenticable props
+
 ## 4.17.3
 
 ### Patch Changes
