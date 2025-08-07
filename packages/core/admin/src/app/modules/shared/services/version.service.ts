@@ -11,19 +11,26 @@ export class VersionService {
 
   checkForUpdates({
     currentVersion,
-    currentEnv
+    currentEnv,
+    disableTelemetry = false
   }: {
     currentVersion: string
     currentEnv: string
+    disableTelemetry?: boolean
   }): Promise<{ latestVersion: string; isUpdateAvailable: boolean }> {
+    const params: { [key: string]: string } = {
+      currentVersion,
+      currentEnv
+    }
+    if (disableTelemetry) {
+      params['disableTelemetry'] = disableTelemetry.toString()
+    }
+
     return firstValueFrom(
       this.http.get<{ latestVersion: string }>(
         `${environment.platformBaseUrl}/version/check`,
         {
-          params: {
-            currentVersion,
-            currentEnv
-          }
+          params
         }
       )
     )

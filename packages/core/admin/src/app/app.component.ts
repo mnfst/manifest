@@ -57,7 +57,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.versionService
       .checkForUpdates({
         currentVersion: this.appManifest.manifestVersion,
-        currentEnv: this.appManifest.environment
+        currentEnv: this.appManifest.environment,
+        disableTelemetry: this.appManifest.disableTelemetry || false
       })
       .then((result) => {
         this.newVersionAvailable = result.isUpdateAvailable
