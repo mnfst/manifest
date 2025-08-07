@@ -101,6 +101,11 @@ export class ManifestService {
       settings: appSchema.settings || {}
     }
 
+    // Disable telemetry if the environment variable is set.
+    if (this.configService.get<boolean>('MANIFEST_TELEMETRY_DISABLED')) {
+      appManifest.disableTelemetry = true
+    }
+
     // Add Admin entity.
     appManifest.entities.Admin = ADMIN_ENTITY_MANIFEST
 

@@ -40,4 +40,9 @@ export interface AppManifest {
    * The settings of the app.
    */
   settings?: AppSettings
+
+  /**
+   * Whether to disable telemetry for the app.
+   */
+  disableTelemetry?: boolean
 }

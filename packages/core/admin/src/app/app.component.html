@@ -20,33 +20,31 @@
         >
           <div>
             Proudly built with
-            <a href="https://manifest.build" target="_blank">Manifest</a>
+            <a href="https://manifest.build" target="_blank">Manifest</a>.
           </div>
-          <ng-container *ngIf="appManifest?.environment !== 'contribution'">
+          <ng-container *ngIf="appManifest">
             <div>
-              <span>Version </span>
-              <i>{{ appManifest?.manifestVersion }}</i>
+              <span>v</span>
+              <i>{{ appManifest.manifestVersion }}</i>
               <ng-container
                 *ngIf="
-                  newVersionAvailable ||
-                  (appManifest?.environment && 'production')
-                "
-              >
-                - Manifest {{ latestVersion }} is available! Please notify your
-                administrator.
-              </ng-container>
-              <ng-container
-                *ngIf="
-                  newVersionAvailable ||
-                  (appManifest?.environment && 'development')
+                  latestVersion &&
+                  newVersionAvailable &&
+                  appManifest.environment !== 'contribution'
                 "
               >
                 - Manifest {{ latestVersion }} is available!
-                <a
-                  target="_blank"
-                  href="https://github.com/mnfst/manifest/releases"
-                  >Please update now.</a
-                >
+
+                <ng-container *ngIf="appManifest.environment === 'production'">
+                  Please notify your administrator.
+                </ng-container>
+                <ng-container *ngIf="appManifest.environment === 'development'">
+                  <a
+                    target="_blank"
+                    href="https://github.com/mnfst/manifest/releases"
+                    >Please update now.</a
+                  >
+                </ng-container>
               </ng-container>
             </div>
           </ng-container>
