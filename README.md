@@ -49,13 +49,16 @@ entities:
 
 ## Why Manifest?
 
-While LLMs and vibe-coding tools are great at generating frontend code, they often fail to deliver a clean and secure backend. Manifest fills that gap.
+Most backend platforms feel too heavy when all you want is to build something simple.
+
+They come with dashboards, setup flows, forms to fill, and rules you didn’t ask for. Even for a prototype, you end up creating an account, switching between tabs, and learning how the tool works before your app even starts.
 
 Manifest allows you to create a backend with data, storage, logic and an admin panel. All is defined in a single file of code. ✨
 
-- 1 YAML file that both humans and LLMs can understand and edit
-- Works across all dev environments, from Cursor to custom workflows
-- Uses up to 10 times fewer LLM tokens than other backends
+- Setup in seconds with no friction
+- Get your backend live fast so you can focus on your app
+- Simple for LLMs to create and edit
+- Deploy and run anywhere
 
 ## Use cases
 
@@ -63,7 +66,7 @@ Manifest fits great in those type of projects:
 
 - 🛠️ Rapid prototyping: POCs and MVPs
 - 🧩 Micro services: notification, payment, logging, file services...
-- 🏭 CRUD-heavy apps: mobile apps, directories, PIMs, E-shops
+- 🏭 CRUD apps: mobile apps, directories, PIMs, E-shops
 - 🌐 Headless CMS: dynamic corporate websites, portfolios, blogs...
 
 ## Key features
