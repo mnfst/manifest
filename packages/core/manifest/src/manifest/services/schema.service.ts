@@ -74,79 +74,69 @@ export class SchemaService {
     const entityNames: string[] = Object.keys(manifest.entities || {})
     const groupNames: string[] = Object.keys(manifest.groups || {})
 
-    Object.values(manifest.entities || {}).forEach((entity: EntitySchema) => {
-      const relationshipNames = Object.values(entity.belongsTo || []).map(
-        (relationship: RelationshipSchema) => {
-          if (typeof relationship === 'string') {
-            return relationship
+    Object.entries(manifest.entities || {}).forEach(
+      ([entityName, entity]: [string, EntitySchema]) => {
+        const relationshipNames = Object.values(entity.belongsTo || []).map(
+          (relationship: RelationshipSchema) => {
+            if (typeof relationship === 'string') {
+              return relationship
+            }
+            return relationship.entity
           }
-          return relationship.entity
-        }
-      )
+        )
 
-      // Validate that all entities in relationships exist.
-      relationshipNames.forEach((relationship: any) => {
-        if (!entityNames.includes(relationship)) {
-          console.log(
-            chalk.red(
-              'JSON Schema Validation failed. Please fix the following:'
-            )
+        // Validate that entity relationship names are unique.
+        const uniqueRelationshipNames = new Set(relationshipNames)
+        if (uniqueRelationshipNames.size !== relationshipNames.length) {
+          this.logValidationError(
+            `Entity ${entityName} has duplicate relationship names : ${relationshipNames.join(', ')}`
           )
-
-          console.log(chalk.red(`Entity ${relationship} does not exist`))
-          process.exit(1)
         }
-      })
 
-      // Validate that entities in policies exist
-      this.flattenPolicies(entity.policies).forEach(
-        (policySchema: PolicySchema) => {
-          if (!policySchema.allow) {
-            return
+        // Validate that all entities in relationships exist.
+        relationshipNames.forEach((relationship: any) => {
+          if (!entityNames.includes(relationship)) {
+            this.logValidationError(
+              `Entity ${relationship} in relationships does not exist`
+            )
           }
+        })
 
-          if (typeof policySchema.allow === 'string') {
-            policySchema.allow = [policySchema.allow] // Force array.
-          }
+        // Validate that entities in policies exist
+        this.flattenPolicies(entity.policies).forEach(
+          (policySchema: PolicySchema) => {
+            if (!policySchema.allow) {
+              return
+            }
 
-          policySchema.allow.forEach((allowedEntityName: string) => {
-            if (!entityNames.includes(allowedEntityName)) {
-              console.log(
-                chalk.red(
-                  'JSON Schema Validation failed. Please fix the following:'
-                )
-              )
-              console.log(
-                chalk.red(
+            if (typeof policySchema.allow === 'string') {
+              policySchema.allow = [policySchema.allow] // Force array.
+            }
+
+            policySchema.allow.forEach((allowedEntityName: string) => {
+              if (!entityNames.includes(allowedEntityName)) {
+                this.logValidationError(
                   `Entity ${allowedEntityName} in policies does not exist`
                 )
-              )
-              process.exit(1)
-            }
-          })
-        }
-      )
+              }
+            })
+          }
+        )
 
-      // Validate that all groups exist.
-      const groupProperties: PropertySchema[] = entity.properties
-        .filter((property: PropertySchema) => typeof property !== 'string')
-        .filter((property: PropertySchema) => property['options']?.group)
+        // Validate that all groups exist.
+        const groupProperties: PropertySchema[] = entity.properties
+          .filter((property: PropertySchema) => typeof property !== 'string')
+          .filter((property: PropertySchema) => property['options']?.group)
 
-      groupProperties.forEach((property: PropertySchema) => {
-        const propertyGroup: string = (property as any).options?.group
+        groupProperties.forEach((property: PropertySchema) => {
+          const propertyGroup: string = (property as any).options?.group
 
-        if (propertyGroup && !groupNames.includes(propertyGroup)) {
-          console.log(
-            chalk.red(
-              'JSON Schema Validation failed. Please fix the following:'
-            )
-          )
-
-          console.log(chalk.red(`Group ${propertyGroup} does not exist`))
-          process.exit(1)
-        }
-      })
-    })
+          if (propertyGroup && !groupNames.includes(propertyGroup)) {
+            this.logValidationError(`Group ${propertyGroup} does not exist`)
+          }
+        })
+      }
+    )
 
     // Validate that groups cannot have nested group properties.
     Object.values(manifest.groups || {}).forEach((group: GroupSchema) => {
@@ -156,19 +146,21 @@ export class SchemaService {
         }
 
         if (property.type === 'group') {
-          console.log(
-            chalk.red(
-              'JSON Schema Validation failed. Please fix the following:'
-            )
-          )
-
-          console.log(chalk.red(`Groups cannot have nested group properties.`))
-          process.exit(1)
+          this.logValidationError(`Groups cannot have nested group properties.`)
         }
       })
     })
 
     return true
+  }
+
+  logValidationError(message: string): void {
+    console.log(chalk.red(''))
+    console.log(chalk.red('Validation failed. Please fix the following:'))
+    console.log(chalk.red(''))
+    console.log(chalk.red('    - ' + message))
+    console.log(chalk.red(''))
+    process.exit(1)
   }
 
   private flattenPolicies(policies: PoliciesSchema): PolicySchema[] {
