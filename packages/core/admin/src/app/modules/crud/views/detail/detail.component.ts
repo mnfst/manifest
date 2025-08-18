@@ -1,10 +1,11 @@
-import { Component } from '@angular/core'
+import { Component, Renderer2 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { BaseEntity, EntityManifest, RelationshipManifest } from '@repo/types'
 import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
 import { MetaService } from '../../../shared/services/meta.service'
 import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
+import { FlashMessageService } from '../../../shared/services/flash-message.service'
 
 @Component({
   selector: 'app-detail',
@@ -17,13 +18,16 @@ export class DetailComponent {
   nestedEntityManifests: { [relationshipName: string]: EntityManifest } = {}
 
   singleMode: boolean
+  showDeleteModal: boolean = false
 
   constructor(
     private crudService: CrudService,
     private manifestService: ManifestService,
     private activatedRoute: ActivatedRoute,
     private metaService: MetaService,
-    private router: Router
+    private router: Router,
+    private renderer: Renderer2,
+    private flashMessageService: FlashMessageService
   ) {}
 
   ngOnInit(): void {
@@ -111,5 +115,41 @@ export class DetailComponent {
     relationship: RelationshipManifest
   ): BaseEntity | null {
     return item[relationship.name] as BaseEntity | null
+  }
+  /**
+   * Toggle the delete modal.
+   */
+  toggleDeleteModal(): void {
+    if (this.showDeleteModal) {
+      this.showDeleteModal = false
+      this.renderer.removeClass(document.querySelector('html'), 'is-clipped')
+    } else {
+      this.showDeleteModal = true
+      this.renderer.addClass(document.querySelector('html'), 'is-clipped')
+    }
+  }
+
+  /**
+   * Delete an item
+   *
+   * @param id The ID of the item to delete
+   *
+   * @returns void
+   */
+  delete(id: string): void {
+    if (this.entityManifest.single) {
+      throw new Error('Cannot delete a single item.')
+    }
+    this.crudService
+      .delete(this.entityManifest.slug, id)
+      .then(() => {
+        this.flashMessageService.success(
+          `The ${this.entityManifest.nameSingular} has been deleted.`
+        )
+        this.router.navigate(['/collections', this.entityManifest.slug])
+      })
+      .catch((err) => {
+        this.flashMessageService.error(err.error.message)
+      })
   }
 }

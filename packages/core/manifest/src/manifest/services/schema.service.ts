@@ -74,79 +74,72 @@ export class SchemaService {
     const entityNames: string[] = Object.keys(manifest.entities || {})
     const groupNames: string[] = Object.keys(manifest.groups || {})
 
-    Object.values(manifest.entities || {}).forEach((entity: EntitySchema) => {
-      const relationshipNames = Object.values(entity.belongsTo || []).map(
-        (relationship: RelationshipSchema) => {
-          if (typeof relationship === 'string') {
-            return relationship
+    Object.entries(manifest.entities || {}).forEach(
+      ([entityName, entity]: [string, EntitySchema]) => {
+        const relationshipNames = Object.values(entity.belongsTo || []).map(
+          (relationship: RelationshipSchema) => {
+            if (typeof relationship === 'string') {
+              return relationship
+            }
+            return relationship.entity
           }
-          return relationship.entity
-        }
-      )
+        )
 
-      // Validate that all entities in relationships exist.
-      relationshipNames.forEach((relationship: any) => {
-        if (!entityNames.includes(relationship)) {
-          console.log(
-            chalk.red(
-              'JSON Schema Validation failed. Please fix the following:'
-            )
+        // Validate that entity relationship names are unique.
+        const uniqueRelationshipNames = new Set(relationshipNames)
+        if (uniqueRelationshipNames.size !== relationshipNames.length) {
+          this.logValidationError(
+            `Entity ${entityName} has duplicate relationship names : ${relationshipNames.join(', ')}`
           )
-
-          console.log(chalk.red(`Entity ${relationship} does not exist`))
-          process.exit(1)
         }
-      })
 
-      // Validate that entities in policies exist
-      this.flattenPolicies(entity.policies).forEach(
-        (policySchema: PolicySchema) => {
-          if (!policySchema.allow) {
-            return
+        // Validate that all entities in relationships exist.
+        relationshipNames.forEach((relationship: string) => {
+          if (!entityNames.includes(relationship)) {
+            this.logValidationError(
+              `Entity ${relationship} in relationships does not exist`
+            )
           }
+        })
 
-          if (typeof policySchema.allow === 'string') {
-            policySchema.allow = [policySchema.allow] // Force array.
-          }
+        // Validate that entities in policies exist
+        this.flattenPolicies(entity.policies).forEach(
+          (policySchema: PolicySchema) => {
+            if (!policySchema.allow) {
+              return
+            }
 
-          policySchema.allow.forEach((allowedEntityName: string) => {
-            if (!entityNames.includes(allowedEntityName)) {
-              console.log(
-                chalk.red(
-                  'JSON Schema Validation failed. Please fix the following:'
-                )
-              )
-              console.log(
-                chalk.red(
+            if (typeof policySchema.allow === 'string') {
+              policySchema.allow = [policySchema.allow] // Force array.
+            }
+
+            policySchema.allow.forEach((allowedEntityName: string) => {
+              if (!entityNames.includes(allowedEntityName)) {
+                this.logValidationError(
                   `Entity ${allowedEntityName} in policies does not exist`
                 )
-              )
-              process.exit(1)
-            }
-          })
-        }
-      )
+              }
+            })
+          }
+        )
 
-      // Validate that all groups exist.
-      const groupProperties: PropertySchema[] = entity.properties
-        .filter((property: PropertySchema) => typeof property !== 'string')
-        .filter((property: PropertySchema) => property['options']?.group)
+        // Validate that all groups exist.
+        const groupProperties: PropertySchema[] = entity.properties
+          .filter((property: PropertySchema) => typeof property !== 'string')
+          .filter((property: PropertySchema) => property['options']?.group)
 
-      groupProperties.forEach((property: PropertySchema) => {
-        const propertyGroup: string = (property as any).options?.group
+        groupProperties.forEach((property: PropertySchema) => {
+          const propertyGroup: string = (property as any).options?.group
 
-        if (propertyGroup && !groupNames.includes(propertyGroup)) {
-          console.log(
-            chalk.red(
-              'JSON Schema Validation failed. Please fix the following:'
-            )
-          )
+          if (propertyGroup && !groupNames.includes(propertyGroup)) {
+            this.logValidationError(`Group ${propertyGroup} does not exist`)
+          }
+        })
+      }
+    )
 
-          console.log(chalk.red(`Group ${propertyGroup} does not exist`))
-          process.exit(1)
-        }
-      })
-    })
+    // Validate that many-to-many relationships are only declared on one side (owning side)
+    this.validateManyToManyOwnership(manifest.entities || {})
 
     // Validate that groups cannot have nested group properties.
     Object.values(manifest.groups || {}).forEach((group: GroupSchema) => {
@@ -156,19 +149,45 @@ export class SchemaService {
         }
 
         if (property.type === 'group') {
-          console.log(
-            chalk.red(
-              'JSON Schema Validation failed. Please fix the following:'
-            )
-          )
-
-          console.log(chalk.red(`Groups cannot have nested group properties.`))
-          process.exit(1)
+          this.logValidationError(`Groups cannot have nested group properties.`)
         }
       })
     })
 
     return true
+  }
+
+  /**
+   * Log a validation error and exit the process.
+   *
+   * @param message The error message to log.
+   */
+  logValidationError(message: string): void {
+    console.log('')
+    console.log(
+      chalk.red(
+        '┌─────────────────────────────────────────────────────────────┐'
+      )
+    )
+    console.log(
+      chalk.red('│                      ') +
+        chalk.red.bold('VALIDATION FAILED') +
+        chalk.red('                      │')
+    )
+    console.log(
+      chalk.red(
+        '└─────────────────────────────────────────────────────────────┘'
+      )
+    )
+    console.log('')
+    console.log(chalk.red('❌ ') + chalk.bold('Error: ') + chalk.white(message))
+    console.log('')
+    console.log(
+      chalk.yellow('💡 ') +
+        chalk.dim('Please fix the above issue and try again.')
+    )
+    console.log('')
+    process.exit(1)
   }
 
   private flattenPolicies(policies: PoliciesSchema): PolicySchema[] {
@@ -190,5 +209,44 @@ export class SchemaService {
     })
 
     return result
+  }
+
+  /**
+   * Validate that many-to-many relationships are only declared on one side (owning side).
+   * Both entities in a many-to-many relationship should not have belongsToMany declarations.
+   *
+   * @param entities The entities object from the manifest
+   */
+  private validateManyToManyOwnership(entities: {
+    [key: string]: EntitySchema
+  }): void {
+    // Track all many-to-many relationships by creating a unique key for each pair
+    const manyToManyPairs: Set<string> = new Set()
+
+    Object.entries(entities).forEach(
+      ([entityName, entity]: [string, EntitySchema]) => {
+        if (!entity.belongsToMany) {
+          return
+        }
+
+        entity.belongsToMany.forEach((relationship: RelationshipSchema) => {
+          const targetEntity =
+            typeof relationship === 'string'
+              ? relationship
+              : relationship.entity
+
+          // Create a normalized pair key (alphabetically ordered to ensure consistency)
+          const pairKey = [entityName, targetEntity].sort().join('|')
+
+          if (manyToManyPairs.has(pairKey)) {
+            this.logValidationError(
+              `Many-to-many relationship between ${entityName} and ${targetEntity} is declared on both entities. Only one entity should declare the belongsToMany relationship (the owning side).`
+            )
+          }
+
+          manyToManyPairs.add(pairKey)
+        })
+      }
+    )
   }
 }
