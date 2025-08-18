@@ -94,7 +94,7 @@ export class SchemaService {
         }
 
         // Validate that all entities in relationships exist.
-        relationshipNames.forEach((relationship: any) => {
+        relationshipNames.forEach((relationship: string) => {
           if (!entityNames.includes(relationship)) {
             this.logValidationError(
               `Entity ${relationship} in relationships does not exist`
@@ -138,6 +138,9 @@ export class SchemaService {
       }
     )
 
+    // Validate that many-to-many relationships are only declared on one side (owning side)
+    this.validateManyToManyOwnership(manifest.entities || {})
+
     // Validate that groups cannot have nested group properties.
     Object.values(manifest.groups || {}).forEach((group: GroupSchema) => {
       group.properties.forEach((property: PropertySchema) => {
@@ -154,12 +157,36 @@ export class SchemaService {
     return true
   }
 
+  /**
+   * Log a validation error and exit the process.
+   *
+   * @param message The error message to log.
+   */
   logValidationError(message: string): void {
-    console.log(chalk.red(''))
-    console.log(chalk.red('Validation failed. Please fix the following:'))
-    console.log(chalk.red(''))
-    console.log(chalk.red('    - ' + message))
-    console.log(chalk.red(''))
+    console.log('')
+    console.log(
+      chalk.red(
+        '┌─────────────────────────────────────────────────────────────┐'
+      )
+    )
+    console.log(
+      chalk.red('│                      ') +
+        chalk.red.bold('VALIDATION FAILED') +
+        chalk.red('                      │')
+    )
+    console.log(
+      chalk.red(
+        '└─────────────────────────────────────────────────────────────┘'
+      )
+    )
+    console.log('')
+    console.log(chalk.red('❌ ') + chalk.bold('Error: ') + chalk.white(message))
+    console.log('')
+    console.log(
+      chalk.yellow('💡 ') +
+        chalk.dim('Please fix the above issue and try again.')
+    )
+    console.log('')
     process.exit(1)
   }
 
@@ -182,5 +209,44 @@ export class SchemaService {
     })
 
     return result
+  }
+
+  /**
+   * Validate that many-to-many relationships are only declared on one side (owning side).
+   * Both entities in a many-to-many relationship should not have belongsToMany declarations.
+   *
+   * @param entities The entities object from the manifest
+   */
+  private validateManyToManyOwnership(entities: {
+    [key: string]: EntitySchema
+  }): void {
+    // Track all many-to-many relationships by creating a unique key for each pair
+    const manyToManyPairs: Set<string> = new Set()
+
+    Object.entries(entities).forEach(
+      ([entityName, entity]: [string, EntitySchema]) => {
+        if (!entity.belongsToMany) {
+          return
+        }
+
+        entity.belongsToMany.forEach((relationship: RelationshipSchema) => {
+          const targetEntity =
+            typeof relationship === 'string'
+              ? relationship
+              : relationship.entity
+
+          // Create a normalized pair key (alphabetically ordered to ensure consistency)
+          const pairKey = [entityName, targetEntity].sort().join('|')
+
+          if (manyToManyPairs.has(pairKey)) {
+            this.logValidationError(
+              `Many-to-many relationship between ${entityName} and ${targetEntity} is declared on both entities. Only one entity should declare the belongsToMany relationship (the owning side).`
+            )
+          }
+
+          manyToManyPairs.add(pairKey)
+        })
+      }
+    )
   }
 }

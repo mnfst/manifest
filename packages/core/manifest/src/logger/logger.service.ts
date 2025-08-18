@@ -21,22 +21,41 @@ export class LoggerService {
     const adminUrl =
       nodeEnv === 'contribution' ? 'http://localhost:4200' : `${baseUrl}`
 
-    console.log()
-
-    console.log(chalk.blue('Manifest backend successfully started! '))
-    console.log()
-
-    console.log(chalk.blue('🖥️  Admin Panel: ', chalk.underline.blue(adminUrl)))
+    console.log('')
+    console.log(
+      chalk.green(
+        '┌─────────────────────────────────────────────────────────────┐'
+      )
+    )
+    console.log(
+      chalk.green('│                   ') +
+        chalk.green.bold('MANIFEST BACKEND STARTED') +
+        chalk.green('                  │')
+    )
+    console.log(
+      chalk.green(
+        '└─────────────────────────────────────────────────────────────┘'
+      )
+    )
+    console.log('')
+    console.log(
+      chalk.green('🖥️  ') +
+        chalk.bold('Admin Panel: ') +
+        chalk.cyan.underline(adminUrl)
+    )
 
     if (this.configService.get('showOpenApiDocs')) {
       console.log(
-        chalk.blue(
-          '📚 API Doc: ',
-          chalk.underline.blue(`${baseUrl}/${API_PATH}`)
-        )
+        chalk.green('📚 ') +
+          chalk.bold('API Documentation: ') +
+          chalk.cyan.underline(`${baseUrl}/${API_PATH}`)
       )
     }
 
-    console.log()
+    console.log('')
+    console.log(
+      chalk.yellow('🚀 ') + chalk.dim('Ready to create and ship fast!')
+    )
+    console.log('')
   }
 }

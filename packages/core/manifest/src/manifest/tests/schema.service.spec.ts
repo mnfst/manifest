@@ -212,5 +212,57 @@ describe('SchemaService', () => {
         expect.stringContaining('Validation failed')
       )
     })
+
+    it('should throw error when many-to-many relationship is declared on both sides', () => {
+      const manifestWithDuplicateManyToMany: Manifest = {
+        name: 'test app',
+        entities: {
+          User: {
+            className: 'User',
+            properties: [{ name: 'name', type: 'string' }],
+            belongsToMany: ['Role']
+          },
+          Role: {
+            className: 'Role',
+            properties: [{ name: 'name', type: 'string' }],
+            belongsToMany: ['User']
+          }
+        }
+      }
+
+      jest.spyOn(console, 'log').mockImplementation(() => {})
+      jest.spyOn(process, 'exit').mockImplementation(() => {
+        return null as never
+      })
+
+      service.validateCustomLogic(manifestWithDuplicateManyToMany)
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Validation failed')
+      )
+    })
+
+    it('should allow many-to-many relationship declared on only one side', () => {
+      const manifestWithCorrectManyToMany: Manifest = {
+        name: 'test app',
+        entities: {
+          User: {
+            className: 'User',
+            properties: [{ name: 'name', type: 'string' }],
+            belongsToMany: ['Role']
+          },
+          Role: {
+            className: 'Role',
+            properties: [{ name: 'name', type: 'string' }]
+            // No belongsToMany declaration - this is correct
+          }
+        }
+      }
+
+      // Should not throw any errors
+      expect(() =>
+        service.validateCustomLogic(manifestWithCorrectManyToMany)
+      ).not.toThrow()
+    })
   })
 })
