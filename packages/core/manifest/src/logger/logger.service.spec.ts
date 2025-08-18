@@ -57,7 +57,7 @@ describe('LoggerService', () => {
     service.initMessage()
 
     expect(consoleLogSpy).toHaveBeenNthCalledWith(
-      5,
+      7,
       expect.stringContaining(`http://localhost:${port}/api`)
     )
   })

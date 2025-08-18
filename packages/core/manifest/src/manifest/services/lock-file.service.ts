@@ -45,16 +45,22 @@ export class LockFileService {
         Object.entries(lockFile.packages).forEach(
           ([path, info]: [string, any]) => {
             if (path.startsWith('node_modules/')) {
-              // Extract the package name from the path
-              const pathWithoutNodeModules = path.replace('node_modules/', '')
+              const relativePath = path.replace('node_modules/', '')
               
-              // For nested dependencies like "node_modules/@nestjs/core/node_modules/dependency",
-              // we need to extract just the "dependency" part
-              const pathParts = pathWithoutNodeModules.split('/node_modules/')
-              const lastPackagePath = pathParts[pathParts.length - 1]
-              const packageName = this.extractPackageName(lastPackagePath)
+              // Handle nested node_modules (e.g., node_modules/@nestjs/core/node_modules/dependency)
+              let packageName: string
+              if (relativePath.includes('/node_modules/')) {
+                // Extract just the final dependency name for nested packages
+                const parts = relativePath.split('/node_modules/')
+                packageName = this.extractPackageName(parts[parts.length - 1])
+              } else {
+                packageName = this.extractPackageName(relativePath)
+              }
               
-              this.installedPackages[packageName] = info.version
+              // Only set if we haven't seen this package before (prefer top-level versions)
+              if (!this.installedPackages[packageName]) {
+                this.installedPackages[packageName] = info.version
+              }
             }
             // Root package (empty string key)
             else if (path === '' && info.name) {
@@ -74,10 +80,14 @@ export class LockFileService {
 
   private extractFromNpmDependencies(deps: any, prefix = '') {
     Object.entries(deps).forEach(([name, info]: [string, any]) => {
-      // For root level dependencies, use the name directly
-      // For nested dependencies, extract the package name from the full path
-      const packageName = prefix ? this.extractPackageName(name) : name
-      this.installedPackages[packageName] = info.version
+      // For top-level dependencies, use the name directly
+      // For nested dependencies, still track them but don't overwrite main packages
+      const packageName = prefix ? name : name
+      
+      // Only set if we haven't seen this package before (prefer top-level versions)
+      if (!this.installedPackages[packageName]) {
+        this.installedPackages[packageName] = info.version
+      }
 
       if (info.dependencies) {
         this.extractFromNpmDependencies(info.dependencies, name)
@@ -97,8 +107,8 @@ export class LockFileService {
       for (const line of lines) {
         const trimmed = line.trim()
 
-        // Package declaration line (handle quoted and unquoted package names)
-        if ((trimmed.includes('@') && trimmed.endsWith(':')) || (trimmed.startsWith('"') && trimmed.endsWith('":"'))) {
+        // Package declaration line - handle both quoted and unquoted formats
+        if ((trimmed.includes('@') || /^[a-zA-Z]/.test(trimmed)) && trimmed.endsWith(':')) {
           // Extract package name (handle scoped packages)
           const packageDeclaration = trimmed.replace(':', '').replace(/"/g, '')
           currentPackage = this.extractYarnPackageName(packageDeclaration)
@@ -107,6 +117,7 @@ export class LockFileService {
         else if (trimmed.startsWith('version ') && currentPackage) {
           currentVersion = trimmed.replace('version ', '').replace(/"/g, '')
           this.installedPackages[currentPackage] = currentVersion
+          currentPackage = '' // Reset after processing
         }
       }
     } catch (error) {
@@ -224,14 +235,16 @@ export class LockFileService {
   }
 
   private extractYarnPackageName(declaration: string): string {
-    // Handle formats like: "package@^1.0.0", "@scope/package@^1.0.0"
-    if (declaration.startsWith('@')) {
-      // Scoped package: @scope/package@version
-      const match = declaration.match(/^(@[^/]+\/[^@]+)/)
-      return match ? match[1] : declaration.split('@')[0]
+    // Remove quotes and handle formats like: "package@^1.0.0", "@scope/package@^1.0.0"
+    const cleanDeclaration = declaration.replace(/"/g, '')
+    
+    if (cleanDeclaration.startsWith('@')) {
+      // Scoped package: @scope/package@version or "@scope/package@^version"
+      const match = cleanDeclaration.match(/^(@[^/]+\/[^@]+)/)
+      return match ? match[1] : cleanDeclaration.split('@')[0]
     }
     // Regular package: package@version
-    return declaration.split('@')[0]
+    return cleanDeclaration.split('@')[0]
   }
 
   private extractPnpmPackageName(path: string): string {
