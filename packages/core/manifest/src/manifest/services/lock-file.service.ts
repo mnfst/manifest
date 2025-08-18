@@ -45,9 +45,15 @@ export class LockFileService {
         Object.entries(lockFile.packages).forEach(
           ([path, info]: [string, any]) => {
             if (path.startsWith('node_modules/')) {
-              const packageName = this.extractPackageName(
-                path.replace('node_modules/', '')
-              )
+              // Extract the package name from the path
+              const pathWithoutNodeModules = path.replace('node_modules/', '')
+              
+              // For nested dependencies like "node_modules/@nestjs/core/node_modules/dependency",
+              // we need to extract just the "dependency" part
+              const pathParts = pathWithoutNodeModules.split('/node_modules/')
+              const lastPackagePath = pathParts[pathParts.length - 1]
+              const packageName = this.extractPackageName(lastPackagePath)
+              
               this.installedPackages[packageName] = info.version
             }
             // Root package (empty string key)
@@ -68,12 +74,13 @@ export class LockFileService {
 
   private extractFromNpmDependencies(deps: any, prefix = '') {
     Object.entries(deps).forEach(([name, info]: [string, any]) => {
-      const packageName = prefix ? `${prefix}/${name}` : name
-      this.installedPackages[this.extractPackageName(packageName)] =
-        info.version
+      // For root level dependencies, use the name directly
+      // For nested dependencies, extract the package name from the full path
+      const packageName = prefix ? this.extractPackageName(name) : name
+      this.installedPackages[packageName] = info.version
 
       if (info.dependencies) {
-        this.extractFromNpmDependencies(info.dependencies, packageName)
+        this.extractFromNpmDependencies(info.dependencies, name)
       }
     })
   }
@@ -90,10 +97,10 @@ export class LockFileService {
       for (const line of lines) {
         const trimmed = line.trim()
 
-        // Package declaration line
-        if (trimmed.includes('@') && trimmed.endsWith(':')) {
+        // Package declaration line (handle quoted and unquoted package names)
+        if ((trimmed.includes('@') && trimmed.endsWith(':')) || (trimmed.startsWith('"') && trimmed.endsWith('":"'))) {
           // Extract package name (handle scoped packages)
-          const packageDeclaration = trimmed.replace(':', '')
+          const packageDeclaration = trimmed.replace(':', '').replace(/"/g, '')
           currentPackage = this.extractYarnPackageName(packageDeclaration)
         }
         // Version line
