@@ -19,7 +19,11 @@
       </h1>
     </div>
     <div class="right-part is-flex is-flex-direction-row">
-      <a class="button is-link is-light is-hidden-desktop is-circle">
+      <a
+        class="button is-link is-light is-hidden-desktop is-circle"
+        (click)="toggleDeleteModal()"
+        *ngIf="!entityManifest.single"
+      >
         <i class="icon icon-trash-2"></i>
       </a>
       <a routerLink="edit" class="button is-link ml-2 is-hidden-touch">Edit </a>
@@ -177,3 +181,35 @@
     </div>
   </div>
 </section>
+
+<div class="modal is-active" *ngIf="showDeleteModal">
+  <div (click)="toggleDeleteModal()" class="modal-background"></div>
+  <div class="modal-card">
+    <div class="modal-card-body content is-normal">
+      <p>
+        Do you really want to delete
+        <strong>{{ item[entityManifest.mainProp] }}</strong>
+        {{ entityManifest.nameSingular }} ? This action cannot be undone.
+      </p>
+      <p>
+        If {{ item[entityManifest.mainProp] }} has related items, you should
+        delete them first.
+      </p>
+      <div
+        class="is-flex is-align-items-center is-justify-content-space-between mt-6"
+      >
+        <button class="button is-white" (click)="toggleDeleteModal()">
+          Cancel
+        </button>
+        <button class="button is-danger" (click)="delete(item['id'])">
+          Delete
+        </button>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        (click)="toggleDeleteModal()"
+      ></button>
+    </div>
+  </div>
+</div>
