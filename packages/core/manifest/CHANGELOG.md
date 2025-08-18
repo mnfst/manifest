@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.5
+
+### Patch Changes
+
+- b8d889d: validate that no duplicate declaration of belongsToMany relationship
+
 ## 4.17.4
 
 ### Patch Changes
