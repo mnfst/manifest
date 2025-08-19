@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.6
+
+### Patch Changes
+
+- 5a5ab4e: added S3 folder prefix
+
 ## 4.17.5
 
 ### Patch Changes
