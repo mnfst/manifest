@@ -204,15 +204,17 @@ export class StorageService {
    * @returns The S3 file URL.
    */
   private async uploadToS3(key: string, buffer: Buffer): Promise<string> {
+    const path: string = `${this.configService.get('storage.s3FolderPrefix') || ''}/${key}`
+
     await this.s3Client.send(
       new PutObjectCommand({
         Bucket: this.s3Bucket,
-        Key: `${STORAGE_PATH}/${key}`,
+        Key: path,
         Body: buffer,
         ChecksumAlgorithm: undefined,
         ACL: this.s3provider === 'digitalocean' ? 'public-read' : undefined
       })
     )
-    return `${this.s3Endpoint}/${this.s3Bucket}/${STORAGE_PATH}/${key}`
+    return `${this.s3Endpoint}/${this.s3Bucket}/${path}`
   }
 }
