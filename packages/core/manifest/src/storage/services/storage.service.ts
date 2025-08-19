@@ -22,7 +22,7 @@ export class StorageService {
   private s3AccessKeyId: string
   private s3SecretAccessKey: string
   private s3provider: string
-
+  private s3FolderPrefix: string
   constructor(private configService: ConfigService) {
     this.isS3Enabled = !!this.configService.get('storage.s3Bucket')
     this.s3Endpoint = this.configService.get('storage.s3Endpoint')
@@ -35,6 +35,7 @@ export class StorageService {
       : this.s3Endpoint?.includes('digitalocean')
         ? 'digitalocean'
         : 'other'
+    this.s3FolderPrefix = this.configService.get('storage.s3FolderPrefix') || ''
 
     if (this.isS3Enabled) {
       this.s3Client = new S3Client({
@@ -204,15 +205,17 @@ export class StorageService {
    * @returns The S3 file URL.
    */
   private async uploadToS3(key: string, buffer: Buffer): Promise<string> {
+    const path: string = `${this.s3FolderPrefix}/${key}`
+
     await this.s3Client.send(
       new PutObjectCommand({
         Bucket: this.s3Bucket,
-        Key: `${STORAGE_PATH}/${key}`,
+        Key: path,
         Body: buffer,
         ChecksumAlgorithm: undefined,
         ACL: this.s3provider === 'digitalocean' ? 'public-read' : undefined
       })
     )
-    return `${this.s3Endpoint}/${this.s3Bucket}/${STORAGE_PATH}/${key}`
+    return `${this.s3Endpoint}/${this.s3Bucket}/${path}`
   }
 }
