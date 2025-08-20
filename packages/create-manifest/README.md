@@ -3,23 +3,19 @@
 The `create manifest` create a new project with [Manifest](https://manifest.build).
 
 ```bash
-yarn create manifest my-project --cursor
-```
-
-This will create a new folder named my-project, install Manifest, and configure it for Cursor.
-
-You can replace `--cursor` with:
-
-- `--copilot` for GitHub Copilot
-- `--windsurf` for Windsurf
-- or remove it entirely if you're not using an AI coding tool
-
-You can also specify your project name directly (my-project in the example).
-If omitted, the CLI will prompt you for it during setup.
-
-```bash
 npx create-manifest@latest
 ```
+
+This will create a folder named my-project and install Manifest inside it.
+If you leave out the name, the CLI will ask you for it during setup.
+
+You can add a flag to set up rules for your AI code Editor:
+
+- `--cursor` for **Cursor**
+- `--copilot` for **GitHub Copilot**
+- `--windsurf` for **Windsurf**
+
+You can also use `yarn create manifest`.
 
 ## Develop
 

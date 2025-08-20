@@ -1,11 +1,11 @@
 <p align="center">
   <a href="https://manifest.build/#gh-light-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - The backend for AI code editors" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - 1-file backend to ship fast" />
   </a>
 </p>
 
 <p align='center'>
-<strong>The backend for AI code editors</strong>
+<strong>1-file backend to ship fast</strong>
 <br><br>  
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm download" src="https://img.shields.io/npm/dt/manifest.svg"></a>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
@@ -17,12 +17,10 @@
   <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
   <a href="https://www.jsdelivr.com/package/npm/manifest" target="_blank"><img alt="jsdelivr" src="https://data.jsdelivr.com/v1/package/npm/manifest/badge"></a>
 <br>
-
 </p>
-Manifest is a backend your AI can understand and your team can trust.
-
-It allows you to create a backend with data, storage, logic and an admin panel. All is defined in **1 YAML file** that both humans and LLMs can understand and edit. ✨
-
+Manifest is an open source, portable backend that bundles data, storage, logic, auth and even an admin panel to speed up your prototypes and MVPs.
+<br>
+<br>
 Here is an example of a complete Manifest app:
 
 ```yaml

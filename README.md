@@ -1,14 +1,16 @@
 <p align="center">
   <a href="https://manifest.build/#gh-light-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - The backend for AI code editors" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-transparent.svg" height="55px" alt="Manifest logo" title="Manifest - 1-file backend to ship fast
+" />
   </a>
   <a href="https://manifest.build/#gh-dark-mode-only">
-    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - The backend for AI code editors" />
+    <img alt="manifest" src="https://manifest.build/assets/images/logo-light.svg" height="55px" alt="Manifest logo" title="Manifest - 1-file backend to ship fast
+" />
   </a>
 </p>
 
 <p align='center'>
-<strong>The backend for AI code editors</strong>
+<strong>1-file backend to ship fast</strong>
 <br><br>  
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm download" src="https://img.shields.io/npm/dt/manifest.svg"></a>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
@@ -76,19 +78,19 @@ Manifest fits great in those type of projects:
 
 ## Getting started
 
-Run this command to create a new project with Manifest, specifying your AI-powered IDE if needed:
+Run this command to create a new project with Manifest:
 
 ```bash
-yarn create manifest my-project --cursor
+npx create-manifest@latest
 ```
 
-Replace `--cursor` with:
+You can add a flag to set up rules for your AI code Editor:
 
-- `--copilot` if you're using **GitHub Copilot**
+- `--cursor` for **Cursor**
+- `--copilot` for **GitHub Copilot**
 - `--windsurf` for **Windsurf**
-- or remove it entirely if you're not using any AI coding tool
 
-You can also use `npm create` instead of `yarn create`.
+You can also use `yarn create manifest`.
 
 > [!NOTE]  
 > Manifest is currently in BETA, use it at your own risk. It is stable enough to power small projects, prototypes and MVPs but we do not recommend to use it on critical platforms.
