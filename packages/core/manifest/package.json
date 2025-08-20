@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.17.5",
+  "version": "4.17.6",
   "description": "The backend for AI code editors",
   "author": "Manifest",
   "license": "MIT",
