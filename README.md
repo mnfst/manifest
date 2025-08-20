@@ -84,10 +84,10 @@ Run this command to create a new project with Manifest:
 npx create-manifest@latest
 ```
 
-You can add a flag to set up rules for your IDE:
+You can add a flag to set up rules for your AI code Editor:
 
 - `--cursor` for **Cursor**
-- `--copilot` if you're using **GitHub Copilot**
+- `--copilot` for **GitHub Copilot**
 - `--windsurf` for **Windsurf**
 
 You can also use `yarn create manifest`.

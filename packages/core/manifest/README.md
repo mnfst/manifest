@@ -17,12 +17,10 @@
   <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
   <a href="https://www.jsdelivr.com/package/npm/manifest" target="_blank"><img alt="jsdelivr" src="https://data.jsdelivr.com/v1/package/npm/manifest/badge"></a>
 <br>
-
 </p>
-Manifest is a backend your AI can understand and your team can trust.
-
-It allows you to create a backend with data, storage, logic and an admin panel. All is defined in **1 YAML file** that both humans and LLMs can understand and edit. ✨
-
+Manifest is an open source, portable backend that bundles data, storage, logic, auth and even an admin panel to speed up your prototypes and MVPs.
+<br>
+<br>
 Here is an example of a complete Manifest app:
 
 ```yaml
