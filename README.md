@@ -78,19 +78,19 @@ Manifest fits great in those type of projects:
 
 ## Getting started
 
-Run this command to create a new project with Manifest, specifying your AI-powered IDE if needed:
+Run this command to create a new project with Manifest:
 
 ```bash
-yarn create manifest my-project --cursor
+npx create-manifest@latest
 ```
 
-Replace `--cursor` with:
+You can add a flag to set up rules for your IDE:
 
+- `--cursor` for **Cursor**
 - `--copilot` if you're using **GitHub Copilot**
 - `--windsurf` for **Windsurf**
-- or remove it entirely if you're not using any AI coding tool
 
-You can also use `npm create` instead of `yarn create`.
+You can also use `yarn create manifest`.
 
 > [!NOTE]  
 > Manifest is currently in BETA, use it at your own risk. It is stable enough to power small projects, prototypes and MVPs but we do not recommend to use it on critical platforms.
