@@ -83,7 +83,7 @@ export type RelationshipSchema =
   | string
 
 /**
- * The backend for AI code editors
+ * 1-file backend to ship fast
  */
 export interface Manifest {
   /**
@@ -286,7 +286,15 @@ export interface PoliciesSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema {
-  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  access:
+    | 'public'
+    | 'restricted'
+    | 'forbidden'
+    | 'admin'
+    | '🌐'
+    | '🚫'
+    | '🔒'
+    | '️👨🏻‍💻'
   allow?: string | string[]
   /**
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)
@@ -517,7 +525,15 @@ export interface EndpointSchema {
  * The policies of the entity. Doc: https://manifest.build/docs/policies
  */
 export interface PolicySchema1 {
-  access: 'public' | 'restricted' | 'forbidden' | 'admin' | '🌐' | '🚫' | '🔒' | '️👨🏻‍💻'
+  access:
+    | 'public'
+    | 'restricted'
+    | 'forbidden'
+    | 'admin'
+    | '🌐'
+    | '🚫'
+    | '🔒'
+    | '️👨🏻‍💻'
   allow?: string | string[]
   /**
    * When set to 'self', restricts access to records owned by the authenticated user (requires belongsTo relationship)

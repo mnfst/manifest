@@ -9,7 +9,8 @@
 </p>
 
 <p align='center'>
-<strong>The backend for AI code editors</strong> <br> <span>Manifest is a backend your AI can understand and your team can trust.</span>
+<strong>1-file backend to ship fast</strong> <br> <span>Manifest is an open source, portable backend with data, storage, logic, auth and admin UI to ship Prototypes and MVPs.
+</span>
 
 ## Description
 
