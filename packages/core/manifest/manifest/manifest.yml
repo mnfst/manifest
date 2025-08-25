@@ -4,12 +4,25 @@
 name: Pokemon app 🐣
 
 entities:
-  User:
-    authenticable: true
+  Service:
     properties:
-      - username
-    validation:
-      username: { required: true }
+      - namess
+      - { name: description, helpText: "Description of the service" }
+      - {
+          name: testimonials,
+          type: group, # Group type indicates that it is a group.
+          helpText: "Add some testimonials for the service",
+          options: { group: Testimonial } # Pass the name of the group in the "group" option
+        }
     policies:
-      signup:
+      read:
         - access: public
+
+groups:
+  Testimonial: # We create a testimonial group with 3 properties.
+    properties:
+      - { name: author, type: text }
+      - { name: content, type: text }
+      - { name: rating, type: number, helpText: "1 to 5 stars" }
+    validation:
+      rating: { isNotEmpty: true }

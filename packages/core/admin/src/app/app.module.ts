@@ -10,6 +10,7 @@ import { LayoutModule } from './modules/layout/layout.module'
 import { SharedModule } from './modules/shared/shared.module'
 import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2'
 
 @NgModule({
   declarations: [AppComponent, HomeComponent, Error404Component],
@@ -22,6 +23,7 @@ import { HomeComponent } from './pages/home/home.component'
         allowedDomains: ['localhost:1111']
       }
     }),
+    MonacoEditorModule.forRoot(),
     AppRoutingModule,
     SharedModule,
     LayoutModule,

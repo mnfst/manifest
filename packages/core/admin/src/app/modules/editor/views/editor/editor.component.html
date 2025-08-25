@@ -1,0 +1,16 @@
+<div style="height: 800px">
+  <a
+    class="button is-primary mb-4"
+    [ngClass]="{ 'is-loading': loadingSave }"
+    (click)="save()"
+    *ngIf="code !== savedCode"
+    >Save</a
+  >
+  <ngx-monaco-editor
+    [options]="editorOptions"
+    [(ngModel)]="code"
+    style="height: 100%"
+    (ngModelChange)="onCodeChange($event)"
+    *ngIf="code"
+  ></ngx-monaco-editor>
+</div>

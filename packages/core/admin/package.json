@@ -24,6 +24,8 @@
     "@auth0/angular-jwt": "^5.2.0",
     "bulma": "^0.9.4",
     "bulma-tooltip": "^3.0.2",
+    "monaco-editor": "^0.44.0",
+    "ngx-monaco-editor-v2": "^17.0.1",
     "ngx-quill": "^25.3.3",
     "rxjs": "~7.8.1",
     "tslib": "^2.3.0",

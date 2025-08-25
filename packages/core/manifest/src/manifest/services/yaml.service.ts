@@ -17,15 +17,7 @@ export class YamlService {
    *
    **/
   async load(manifestFilePath: string): Promise<Manifest> {
-    let fileContent: string
-
-    if (manifestFilePath.startsWith('http')) {
-      fileContent = await this.loadManifestFromUrl(manifestFilePath)
-    } else {
-      fileContent = fs.readFileSync(manifestFilePath, 'utf8')
-    }
-
-    fileContent = this.interpolateDotEnvVariables(fileContent)
+    const fileContent = await this.loadFileContent(manifestFilePath)
 
     const manifestSchema: Manifest = yaml.load(fileContent) as Manifest
 
@@ -40,6 +32,34 @@ export class YamlService {
     })
 
     return manifestSchema
+  }
+
+  async loadFileContent(manifestFilePath: string): Promise<string> {
+    let fileContent: string
+
+    if (manifestFilePath.startsWith('http')) {
+      fileContent = await this.loadManifestFromUrl(manifestFilePath)
+    } else {
+      fileContent = fs.readFileSync(manifestFilePath, 'utf8')
+    }
+
+    fileContent = this.interpolateDotEnvVariables(fileContent)
+
+    return fileContent
+  }
+
+  async saveFileContent(
+    manifestFilePath: string,
+    content: string
+  ): Promise<void> {
+    if (manifestFilePath.startsWith('http')) {
+      // TODO: Implement saving to a URL using storage.
+      throw new Error('Saving to a URL is not supported')
+    } else {
+      fs.writeFileSync(manifestFilePath, content, 'utf8')
+    }
+
+    return
   }
 
   /**

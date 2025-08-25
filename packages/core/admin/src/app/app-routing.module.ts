@@ -35,6 +35,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'editor',
+    loadChildren: () =>
+      import('./modules/editor/editor.module').then((m) => m.EditorModule)
+  },
+  {
     path: '404',
     component: Error404Component,
     canActivate: [AuthGuard]
