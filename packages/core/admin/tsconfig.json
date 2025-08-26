@@ -26,7 +26,10 @@
     "lib": ["ES2022", "dom"],
     "paths": {
       "@repo/types": ["../types/src"],
-      "@repo/common": ["../common/src"]
+      "@repo/common": ["../common/src"],
+      "codemirror-json-schema/yaml": [
+        "../../../node_modules/codemirror-json-schema/dist/yaml"
+      ]
     }
   },
   "angularCompilerOptions": {

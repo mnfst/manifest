@@ -4,6 +4,12 @@
 name: Pokemon app 🐣
 
 entities:
+  Cat:
+    properties:
+      - name
+  Dog:
+    properties:
+      - name
   Service:
     properties:
       - namess

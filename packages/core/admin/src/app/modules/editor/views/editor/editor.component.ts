@@ -1,40 +1,67 @@
 import { HttpClient } from '@angular/common/http'
 import { Component } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { MonacoEditorModule } from 'ngx-monaco-editor-v2'
 import { environment } from '../../../../../environments/environment'
-import { NgIf, NgClass } from '@angular/common'
+import { CodeEditorModule } from '@acrodata/code-editor'
+import { NgIf } from '@angular/common'
+import { yaml } from '@codemirror/lang-yaml'
+import { yamlSchema } from 'codemirror-json-schema/yaml'
+import { Extension } from '@codemirror/state'
+import $RefParser from '@apidevtools/json-schema-ref-parser'
 
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [MonacoEditorModule, FormsModule, NgIf, NgClass],
+  imports: [FormsModule, CodeEditorModule, NgIf],
   templateUrl: './editor.component.html',
   styleUrl: './editor.component.scss'
 })
 export class EditorComponent {
-  editorOptions = {
-    language: 'yaml',
-    minimap: {
-      enabled: false
-    }
-  }
   code: string
   savedCode: string
   loadingSave: boolean
 
+  schema: any = {
+    type: 'object',
+    properties: {
+      example: {
+        type: 'boolean'
+      }
+    },
+    additionalProperties: false
+  }
+
+  extensions: Extension[] = []
+
   constructor(private http: HttpClient) {}
-  ngOnInit() {
+
+  async ngOnInit() {
+    await this.loadSchema()
+
+    await this.loadInitialFile()
+  }
+
+  onCodeChange(newCode: string) {
+    this.code = newCode
+  }
+
+  private async loadSchema() {
+    this.http
+      .get<string>(`https://schema.manifest.build/schema.json`)
+      .subscribe(async (response) => {
+        this.schema = await $RefParser.dereference(response)
+        console.log('Schema loaded:', this.schema)
+        this.extensions = [yaml(), yamlSchema(this.schema)]
+      })
+  }
+
+  private async loadInitialFile() {
     this.http
       .get<{ content: string }>(`${environment.apiBaseUrl}/manifest/file`)
       .subscribe((response) => {
         this.code = response.content
         this.savedCode = response.content
       })
-  }
-
-  onCodeChange(newCode: string) {
-    this.code = newCode
   }
 
   save() {
