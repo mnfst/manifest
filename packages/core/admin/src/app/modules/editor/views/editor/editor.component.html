@@ -1,3 +1,16 @@
-<div style="height: 800px">
-  <code-editor [(ngModel)]="code" [extensions]="extensions"></code-editor>
+<button
+  class="button is-primary"
+  [ngClass]="{ 'is-loading': loadingSave }"
+  [disabled]="code === savedCode || loadingSave"
+  (click)="save()"
+>
+  Save
+</button>
+
+<div style="height: 800px" *ngIf="code !== undefined">
+  <code-editor
+    [(ngModel)]="code"
+    [extensions]="extensions"
+    (change)="onCodeChange($event)"
+  ></code-editor>
 </div>

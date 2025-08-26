@@ -3,16 +3,17 @@ import { Component } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { environment } from '../../../../../environments/environment'
 import { CodeEditorModule } from '@acrodata/code-editor'
-import { NgIf } from '@angular/common'
+import { NgIf, NgClass } from '@angular/common'
 import { yaml } from '@codemirror/lang-yaml'
 import { yamlSchema } from 'codemirror-json-schema/yaml'
 import { Extension } from '@codemirror/state'
 import $RefParser from '@apidevtools/json-schema-ref-parser'
+import { firstValueFrom } from 'rxjs'
 
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [FormsModule, CodeEditorModule, NgIf],
+  imports: [FormsModule, CodeEditorModule, NgIf, NgClass],
   templateUrl: './editor.component.html',
   styleUrl: './editor.component.scss'
 })
@@ -21,15 +22,7 @@ export class EditorComponent {
   savedCode: string
   loadingSave: boolean
 
-  schema: any = {
-    type: 'object',
-    properties: {
-      example: {
-        type: 'boolean'
-      }
-    },
-    additionalProperties: false
-  }
+  schema: any
 
   extensions: Extension[] = []
 
@@ -37,7 +30,6 @@ export class EditorComponent {
 
   async ngOnInit() {
     await this.loadSchema()
-
     await this.loadInitialFile()
   }
 
@@ -45,23 +37,25 @@ export class EditorComponent {
     this.code = newCode
   }
 
-  private async loadSchema() {
-    this.http
-      .get<string>(`https://schema.manifest.build/schema.json`)
-      .subscribe(async (response) => {
-        this.schema = await $RefParser.dereference(response)
-        console.log('Schema loaded:', this.schema)
-        this.extensions = [yaml(), yamlSchema(this.schema)]
-      })
+  async loadSchema() {
+    return firstValueFrom(
+      this.http.get<string>(`https://schema.manifest.build/schema.json`)
+    ).then(async (response) => {
+      this.schema = await $RefParser.dereference(response)
+      console.log('Schema loaded:', this.schema)
+      this.extensions = [yaml(), yamlSchema(this.schema)]
+    })
   }
 
-  private async loadInitialFile() {
-    this.http
-      .get<{ content: string }>(`${environment.apiBaseUrl}/manifest/file`)
-      .subscribe((response) => {
-        this.code = response.content
-        this.savedCode = response.content
-      })
+  async loadInitialFile() {
+    return firstValueFrom(
+      this.http.get<{ content: string }>(
+        `${environment.apiBaseUrl}/manifest/file`
+      )
+    ).then((response) => {
+      this.code = response.content
+      this.savedCode = response.content
+    })
   }
 
   save() {
