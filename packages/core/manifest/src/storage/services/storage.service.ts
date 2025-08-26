@@ -204,7 +204,7 @@ export class StorageService {
    * @param buffer The file buffer.
    * @returns The S3 file URL.
    */
-  private async uploadToS3(key: string, buffer: Buffer): Promise<string> {
+  async uploadToS3(key: string, buffer: Buffer): Promise<string> {
     const path: string = `${this.s3FolderPrefix}/${key}`
 
     await this.s3Client.send(

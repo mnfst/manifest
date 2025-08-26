@@ -4,9 +4,16 @@ import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
 import { Manifest } from '@repo/types'
+import { StorageService } from '../../storage/services/storage.service'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class YamlService {
+  constructor(
+    private readonly storageService: StorageService,
+    private readonly configService: ConfigService
+  ) {}
+
   /**
    *
    * Load the manifest from the YML file, transform it into a Manifest object and store it in the service.
@@ -53,8 +60,10 @@ export class YamlService {
     content: string
   ): Promise<void> {
     if (manifestFilePath.startsWith('http')) {
-      // TODO: Implement saving to a URL using storage.
-      throw new Error('Saving to a URL is not supported')
+      this.storageService.uploadToS3(
+        this.configService.get('storage').s3ManifestFilePath,
+        Buffer.from(content, 'utf8')
+      )
     } else {
       fs.writeFileSync(manifestFilePath, content, 'utf8')
     }

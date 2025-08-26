@@ -57,6 +57,7 @@ export default (): {
     s3AccessKeyId: string
     s3SecretAccessKey: string
     s3FolderPrefix?: string
+    s3ManifestFilePath?: string
   }
 } => {
   const projectRoot: string =
@@ -87,8 +88,9 @@ export default (): {
       publicFolder: process.env.PUBLIC_FOLDER || `${projectRoot}/public`,
       projectRoot: projectRoot,
       generatedFolder: generatedFolder,
-      manifestFile:
-        process.env.MANIFEST_FILE_PATH || `${projectRoot}/manifest.yml`,
+      manifestFile: process.env.S3_MANIFEST_FILE_PATH
+        ? `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET}/${process.env.S3_FOLDER_PREFIX}/${process.env.S3_MANIFEST_FILE_PATH}`
+        : `${projectRoot}/manifest.yml`,
       handlersFolder:
         process.env.MANIFEST_HANDLERS_FOLDER ||
         path.join(projectRoot, 'handlers')
@@ -104,7 +106,8 @@ export default (): {
       s3Region: process.env.S3_REGION,
       s3AccessKeyId: process.env.S3_ACCESS_KEY_ID,
       s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-      s3FolderPrefix: process.env.S3_FOLDER_PREFIX
+      s3FolderPrefix: process.env.S3_FOLDER_PREFIX || 'storage',
+      s3ManifestFilePath: process.env.S3_MANIFEST_FILE_PATH
     }
   }
 }

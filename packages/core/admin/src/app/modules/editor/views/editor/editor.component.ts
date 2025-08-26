@@ -50,7 +50,7 @@ export class EditorComponent {
   async loadInitialFile() {
     return firstValueFrom(
       this.http.get<{ content: string }>(
-        `${environment.apiBaseUrl}/manifest/file`
+        `${environment.apiBaseUrl}/manifest-file`
       )
     ).then((response) => {
       this.code = response.content
@@ -61,7 +61,7 @@ export class EditorComponent {
   save() {
     this.loadingSave = true
     this.http
-      .post(`${environment.apiBaseUrl}/manifest/file`, {
+      .post(`${environment.apiBaseUrl}/manifest-file`, {
         content: this.code
       })
       .subscribe({

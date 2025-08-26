@@ -1,13 +1,5 @@
 import { AppManifest, EntityManifest } from '@repo/types'
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards
-} from '@nestjs/common'
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
 import { ManifestService } from '../services/manifest.service'
 import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
@@ -65,26 +57,5 @@ export class ManifestController {
       slug,
       fullVersion: true
     })
-  }
-
-  @Get('file')
-  @UseGuards(IsAdminGuard)
-  async getManifestFileContent(): Promise<{ content: string }> {
-    return {
-      content: await this.yamlService.loadFileContent(
-        this.configService.get('paths').manifestFile
-      )
-    }
-  }
-
-  @Post('file')
-  @UseGuards(IsAdminGuard)
-  async saveManifestFileContent(
-    @Body() body: { content: string }
-  ): Promise<void> {
-    await this.yamlService.saveFileContent(
-      this.configService.get('paths').manifestFile,
-      body.content
-    )
   }
 }
