@@ -42,7 +42,6 @@ export class EditorComponent {
       this.http.get<string>(`https://schema.manifest.build/schema.json`)
     ).then(async (response) => {
       this.schema = await $RefParser.dereference(response)
-      console.log('Schema loaded:', this.schema)
       this.extensions = [yaml(), yamlSchema(this.schema)]
     })
   }

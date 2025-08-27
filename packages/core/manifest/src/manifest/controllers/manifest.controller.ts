@@ -1,9 +1,9 @@
 import { AppManifest, EntityManifest } from '@repo/types'
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common'
-import { Request } from 'express'
+import { Controller, Get, Param, UseGuards } from '@nestjs/common'
 import { ManifestService } from '../services/manifest.service'
 import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 import { EntityManifestService } from '../services/entity-manifest.service'
+import { AdminEntityGuard } from '../../crud/guards/admin-entity.guard'
 
 @Controller('manifest')
 export class ManifestController {
@@ -44,10 +44,9 @@ export class ManifestController {
    * @returns The entity manifest.
    */
   @Get('entities/:slug')
-  @UseGuards(IsAdminGuard)
+  @UseGuards(IsAdminGuard, AdminEntityGuard)
   async getEntityManifest(
-    @Param('slug') slug: string,
-    @Req() req: Request
+    @Param('slug') slug: string
   ): Promise<EntityManifest> {
     return this.entityManifestService.getEntityManifest({
       slug,

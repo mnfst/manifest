@@ -5,6 +5,7 @@ import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { HomeDeveloperComponent } from './pages/home-developer/home-developer.component'
 import { IsDevAdminGuard } from './modules/auth/guards/is-dev-admin.guard'
+import { RestrictAdminCollectionGuard } from './modules/auth/guards/restrict-admin-collection.guard'
 
 const routes: Routes = [
   {
@@ -23,9 +24,10 @@ const routes: Routes = [
       import('./modules/crud/crud-collection.module').then(
         (m) => m.CrudCollectionModule
       ),
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RestrictAdminCollectionGuard],
     data: {
-      mode: 'collection'
+      mode: 'collection',
+      isDeveloperAccess: false
     }
   },
   {
@@ -55,7 +57,8 @@ const routes: Routes = [
       ),
     canActivate: [IsDevAdminGuard],
     data: {
-      mode: 'collection'
+      mode: 'collection',
+      isDeveloperAccess: true
     }
   },
   {

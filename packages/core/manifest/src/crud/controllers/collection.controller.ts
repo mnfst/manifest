@@ -25,9 +25,10 @@ import { HookInterceptor } from '../../hook/hook.interceptor'
 import { COLLECTIONS_PATH } from '../../constants'
 import { MiddlewareInterceptor } from '../../middleware/middleware.interceptor'
 import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
+import { AdminEntityGuard } from '../guards/admin-entity.guard'
 
 @Controller(COLLECTIONS_PATH)
-@UseGuards(PolicyGuard, IsCollectionGuard)
+@UseGuards(PolicyGuard, IsCollectionGuard, AdminEntityGuard)
 @UseInterceptors(HookInterceptor, MiddlewareInterceptor)
 export class CollectionController {
   constructor(

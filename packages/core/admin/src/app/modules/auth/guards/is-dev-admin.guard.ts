@@ -24,7 +24,7 @@ export class IsDevAdminGuard {
           return true
         }
         this.router.navigate(['/'])
-        this.flashMessageService.info(
+        this.flashMessageService.error(
           'You do not have the access to this page.'
         )
         return false
