@@ -3,6 +3,9 @@ import { AppManifest, EntityManifest } from '@repo/types'
 import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { ManifestService } from '../../shared/services/manifest.service'
 import { Router, NavigationEnd } from '@angular/router'
+import { AuthService } from '../../auth/auth.service'
+import { filter } from 'rxjs'
+import { Admin } from '../../../typescript/interfaces/admin.interface'
 
 @Component({
   selector: 'app-side-menu',
@@ -16,9 +19,12 @@ export class SideMenuComponent implements OnInit {
   isContentManager = false
   isDeveloperPanel = false
 
+  hasDeveloperAccess = false
+
   constructor(
     private manifestService: ManifestService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +51,12 @@ export class SideMenuComponent implements OnInit {
         this.setActiveMenuItem(url)
       }
     })
+
+    this.authService.currentUser$
+      .pipe(filter((admin) => !!admin))
+      .subscribe((admin: Admin) => {
+        this.hasDeveloperAccess = admin.hasDeveloperPanelAccess
+      })
   }
 
   goToFirstEntity() {

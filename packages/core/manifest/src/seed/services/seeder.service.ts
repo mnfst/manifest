@@ -1,5 +1,5 @@
 import {
-  AuthenticableEntity,
+  AdminEntity,
   BaseEntity,
   DatabaseConnection,
   EntityManifest,
@@ -387,10 +387,10 @@ export class SeederService {
       `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
     )
 
-    const admin: AuthenticableEntity =
-      repository.create() as AuthenticableEntity
+    const admin: AdminEntity = repository.create() as AdminEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
     admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
+    admin.hasDeveloperPanelAccess = true
 
     await repository.save(admin)
   }

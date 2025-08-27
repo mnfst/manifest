@@ -23,7 +23,7 @@
         >Content Manager</a
       >
     </li>
-    <li>
+    <li *ngIf="hasDeveloperAccess">
       <a routerLink="/dev" [routerLinkActive]="['is-active']"
         >Developer panel</a
       >
@@ -72,23 +72,24 @@
     </li>
   </ul>
 
-  <h3 class="title is-3" *ngIf="isDeveloperPanel">Developer panel</h3>
-  <ul *ngIf="isDeveloperPanel">
-    <li>
-      <a
-        [routerLink]="['/dev', 'collections', 'admins']"
-        [routerLinkActive]="['is-active']"
-        >Admins</a
-      >
-    </li>
+  <ng-container *ngIf="hasDeveloperAccess">
+    <h3 class="title is-3" *ngIf="isDeveloperPanel">Developer panel</h3>
+    <ul *ngIf="isDeveloperPanel">
+      <li>
+        <a
+          [routerLink]="['/dev', 'collections', 'admins']"
+          [routerLinkActive]="['is-active']"
+          >Admins</a
+        >
+      </li>
 
-    <!-- Editor -->
-    <li>
-      <a [routerLink]="['/dev', 'editor']" [routerLinkActive]="['is-active']"
-        >Editor</a
-      >
-    </li>
-  </ul>
-
+      <!-- Editor -->
+      <li>
+        <a [routerLink]="['/dev', 'editor']" [routerLinkActive]="['is-active']"
+          >Editor</a
+        >
+      </li>
+    </ul>
+  </ng-container>
   <app-user-menu-item></app-user-menu-item>
 </div>

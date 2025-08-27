@@ -3,7 +3,7 @@ import { Router } from '@angular/router'
 import { Admin } from '../../../typescript/interfaces/admin.interface'
 import { AuthService } from '../auth.service'
 import { Observable } from 'rxjs'
-import { map, take } from 'rxjs/operators'
+import { map, take, filter } from 'rxjs/operators'
 import { FlashMessageService } from '../../shared/services/flash-message.service'
 
 @Injectable({
@@ -18,9 +18,10 @@ export class IsDevAdminGuard {
 
   canActivate(): Observable<boolean> {
     return this.authService.currentUser$.pipe(
+      filter((currentUser: Admin | null) => currentUser !== null),
       take(1),
-      map((currentUser: Admin | null) => {
-        if (currentUser && currentUser.hasDeveloperPanelAccess) {
+      map((currentUser: Admin) => {
+        if (currentUser.hasDeveloperPanelAccess) {
           return true
         }
         this.router.navigate(['/'])
