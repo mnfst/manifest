@@ -6,12 +6,39 @@
       <img src="/assets/images/logo.svg" class="logo--image" width="155" />
     </a>
   </div>
-  <ul class="menu-list">
+
+  <ul class="panel-menu">
+    <li>
+      <a
+        routerLink="/"
+        [routerLinkActive]="['is-active']"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Home</a
+      >
+    </li>
+    <li>
+      <a
+        (click)="goToFirstEntity()"
+        [ngClass]="{ 'is-active': isContentManager }"
+        >Content Manager</a
+      >
+    </li>
+    <li>
+      <a routerLink="/dev" [routerLinkActive]="['is-active']"
+        >Developer panel</a
+      >
+    </li>
+  </ul>
+  <hr />
+
+  <h3 class="title is-3" *ngIf="isContentManager">Content manager</h3>
+
+  <ul>
     <!-- Singles -->
-    <ng-container *ngIf="singles?.length">
+    <ng-container *ngIf="singles?.length && isContentManager">
       <li *ngFor="let single of singles">
         <a
-          [routerLink]="['/singles', single.slug]"
+          [routerLink]="['/content/singles', single.slug]"
           routerLinkActive="is-active"
         >
           <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
@@ -21,24 +48,14 @@
     </ng-container>
 
     <!-- Collections -->
-    <li *ngIf="collections">
-      <a
-        (click)="isCollectionsOpen = !isCollectionsOpen"
-        class="has-submenu is-flex is-justify-content-space-between"
-      >
-        <span
-          class="is-inline-flex is-align-items-center is-justify-content-space-between"
-        >
-          <i class="icon mr-2 icon-database is-size-4"></i>
-          <span class="pl-1">Collections</span>
-        </span>
-        <i class="icon icon-chevron-down" *ngIf="!isCollectionsOpen"></i>
-        <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
-      </a>
-      <ul *ngIf="isCollectionsOpen">
+    <li *ngIf="collections && isContentManager">
+      <i class="icon mr-2 icon-database is-size-4"></i>
+      <span class="pl-1">Collections</span>
+
+      <ul>
         <li *ngFor="let collection of collections">
           <a
-            [routerLink]="['/collections', collection.slug]"
+            [routerLink]="['/content/collections', collection.slug]"
             routerLinkActive="is-active"
           >
             <span>{{ collection.namePlural | capitalizeFirstLetter }}</span>
@@ -53,33 +70,23 @@
         </li>
       </ul>
     </li>
+  </ul>
 
-    <hr />
-
+  <h3 class="title is-3" *ngIf="isDeveloperPanel">Developer panel</h3>
+  <ul *ngIf="isDeveloperPanel">
     <li>
       <a
-        (click)="isSettingsOpen = !isSettingsOpen"
-        class="has-submenu is-flex is-justify-content-space-between"
+        [routerLink]="['/dev', 'collections', 'admins']"
+        [routerLinkActive]="['is-active']"
+        >Admins</a
       >
-        <span
-          class="is-inline-flex is-align-items-center is-justify-content-space-between"
-        >
-          <i class="icon mr-2 icon-sliders is-size-4"></i>
-          <span class="pl-1">Settings</span>
-        </span>
-        <i class="icon icon-chevron-down" *ngIf="!isSettingsOpen"></i>
-        <i class="icon icon-chevron-up" *ngIf="isSettingsOpen"></i>
-      </a>
-      <ul *ngIf="isSettingsOpen">
-        <li>
-          <a routerLink="/collections/admins">Admins</a>
-        </li>
-      </ul>
     </li>
 
     <!-- Editor -->
     <li>
-      <a routerLink="/editor">Editor</a>
+      <a [routerLink]="['/dev', 'editor']" [routerLinkActive]="['is-active']"
+        >Editor</a
+      >
     </li>
   </ul>
 

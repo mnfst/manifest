@@ -146,7 +146,7 @@ export class DetailComponent {
         this.flashMessageService.success(
           `The ${this.entityManifest.nameSingular} has been deleted.`
         )
-        this.router.navigate(['/collections', this.entityManifest.slug])
+        this.router.navigate(['/content/collections', this.entityManifest.slug])
       })
       .catch((err) => {
         this.flashMessageService.error(err.error.message)

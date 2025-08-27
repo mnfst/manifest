@@ -22,6 +22,7 @@
                         <app-input
                           [prop]="{
                             name: 'email',
+                            label: 'email',
                             type: PropType.Email
                           }"
                           (valueChanged)="patchValue('email', $event)"
@@ -33,6 +34,7 @@
                         <app-input
                           [prop]="{
                             name: 'password',
+                            label: 'password',
                             type: PropType.Password
                           }"
                           (valueChanged)="patchValue('password', $event)"
@@ -45,6 +47,7 @@
                         <app-input
                           [prop]="{
                             name: 'confirm password',
+                            label: 'confirm password',
                             type: PropType.Password
                           }"
                           (valueChanged)="patchValue('confirmPassword', $event)"

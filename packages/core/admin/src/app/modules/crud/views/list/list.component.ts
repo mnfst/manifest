@@ -127,7 +127,7 @@ export class ListComponent implements OnInit {
   }
 
   goToDetailPage(id: number): void {
-    this.router.navigate(['/collections', this.entityManifest.slug, id])
+    this.router.navigate(['/content/collections', this.entityManifest.slug, id])
   }
 
   toggleDeleteModal(itemToDelete?: any): void {

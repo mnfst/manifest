@@ -10,9 +10,15 @@ import { LayoutModule } from './modules/layout/layout.module'
 import { SharedModule } from './modules/shared/shared.module'
 import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
+import { HomeDeveloperComponent } from './pages/home-developer/home-developer.component'
 
 @NgModule({
-  declarations: [AppComponent, HomeComponent, Error404Component],
+  declarations: [
+    AppComponent,
+    HomeComponent,
+    HomeDeveloperComponent,
+    Error404Component
+  ],
   imports: [
     BrowserModule,
     JwtModule.forRoot({

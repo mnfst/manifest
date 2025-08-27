@@ -23,7 +23,9 @@
   }
 
   @include mixins.touch {
-    height: calc(100vh - #{all.$navbar-height-touch} - var(--footer-height) + 1px);
+    height: calc(
+      100vh - #{all.$navbar-height-touch} - var(--footer-height) + 1px
+    );
   }
 
   li {
@@ -59,15 +61,11 @@
     min-height: $item-min-height;
     line-height: $item-min-height;
     padding: 0 all.$column-gap;
-    transition:
-      color 0.35s ease,
-      background-color 0.05s ease-out;
+    transition: color 0.35s ease, background-color 0.05s ease-out;
 
     &:hover {
       @extend %is-hovered;
-      transition:
-        color 0.35s ease,
-        background-color 0.05s ease-in;
+      transition: color 0.35s ease, background-color 0.05s ease-in;
     }
 
     &.is-active {
@@ -110,4 +108,9 @@ app-user-menu-item {
 
 .side-menu-wrapper {
   height: 100%;
+}
+
+a.is-active {
+  background-color: all.$sidenav-item-color;
+  color: all.$white;
 }

@@ -235,7 +235,7 @@ export class CreateEditComponent {
             `The ${this.entityManifest.nameSingular} has been updated`
           )
           this.router.navigate([
-            this.singleMode ? '/singles' : '/collections',
+            this.singleMode ? '/content/singles' : '/content/collections',
             this.entityManifest.slug
           ])
         })
@@ -258,7 +258,7 @@ export class CreateEditComponent {
             `The ${this.entityManifest.nameSingular} has been created successfully`
           )
           this.router.navigate([
-            '/collections',
+            '/content/collections',
             this.entityManifest.slug,
             createdItem.id
           ])
