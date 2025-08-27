@@ -4,6 +4,7 @@ import { join } from 'path'
 import * as yaml from 'js-yaml'
 import * as yarnLockfile from '@yarnpkg/lockfile'
 import { ConfigService } from '@nestjs/config'
+import { AppEnvironment } from '../../../../types/src'
 
 @Injectable()
 export class LockFileService {
@@ -11,7 +12,9 @@ export class LockFileService {
   private packageManager: 'npm' | 'yarn' | 'pnpm' | 'unknown' = 'unknown'
 
   constructor(private readonly configService: ConfigService) {
-    this.detectAndParseLockFile()
+    if (this.configService.get<AppEnvironment>('NODE_ENV') !== 'contribution') {
+      this.detectAndParseLockFile()
+    }
   }
 
   private detectAndParseLockFile() {
@@ -46,7 +49,7 @@ export class LockFileService {
           ([path, info]: [string, any]) => {
             if (path.startsWith('node_modules/')) {
               const relativePath = path.replace('node_modules/', '')
-              
+
               // Handle nested node_modules (e.g., node_modules/@nestjs/core/node_modules/dependency)
               let packageName: string
               if (relativePath.includes('/node_modules/')) {
@@ -56,7 +59,7 @@ export class LockFileService {
               } else {
                 packageName = this.extractPackageName(relativePath)
               }
-              
+
               // Only set if we haven't seen this package before (prefer top-level versions)
               if (!this.installedPackages[packageName]) {
                 this.installedPackages[packageName] = info.version
@@ -83,7 +86,7 @@ export class LockFileService {
       // For top-level dependencies, use the name directly
       // For nested dependencies, still track them but don't overwrite main packages
       const packageName = prefix ? name : name
-      
+
       // Only set if we haven't seen this package before (prefer top-level versions)
       if (!this.installedPackages[packageName]) {
         this.installedPackages[packageName] = info.version
@@ -108,7 +111,10 @@ export class LockFileService {
         const trimmed = line.trim()
 
         // Package declaration line - handle both quoted and unquoted formats
-        if ((trimmed.includes('@') || /^[a-zA-Z]/.test(trimmed)) && trimmed.endsWith(':')) {
+        if (
+          (trimmed.includes('@') || /^[a-zA-Z]/.test(trimmed)) &&
+          trimmed.endsWith(':')
+        ) {
           // Extract package name (handle scoped packages)
           const packageDeclaration = trimmed.replace(':', '').replace(/"/g, '')
           currentPackage = this.extractYarnPackageName(packageDeclaration)
@@ -237,7 +243,7 @@ export class LockFileService {
   private extractYarnPackageName(declaration: string): string {
     // Remove quotes and handle formats like: "package@^1.0.0", "@scope/package@^1.0.0"
     const cleanDeclaration = declaration.replace(/"/g, '')
-    
+
     if (cleanDeclaration.startsWith('@')) {
       // Scoped package: @scope/package@version or "@scope/package@^version"
       const match = cleanDeclaration.match(/^(@[^/]+\/[^@]+)/)

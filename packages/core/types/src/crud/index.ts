@@ -1,4 +1,5 @@
 export * from './AuthenticableEntity'
+export * from './AdminEntity'
 export * from './BaseEntity'
 export * from './Paginator'
 export * from './PropType'

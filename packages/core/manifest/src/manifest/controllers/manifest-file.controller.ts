@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'
-import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 import { YamlService } from '../services/yaml.service'
 import { ConfigService } from '@nestjs/config'
+import { IsDevAdminGuard } from '../../auth/guards/is-dev-admin.guard'
 
 @Controller('manifest-file')
 export class ManifestFileController {
@@ -11,7 +11,7 @@ export class ManifestFileController {
   ) {}
 
   @Get()
-  @UseGuards(IsAdminGuard)
+  @UseGuards(IsDevAdminGuard)
   async getManifestFileContent(): Promise<{ content: string }> {
     return {
       content: await this.yamlService.loadFileContent(
@@ -21,7 +21,7 @@ export class ManifestFileController {
   }
 
   @Post()
-  @UseGuards(IsAdminGuard)
+  @UseGuards(IsDevAdminGuard)
   async saveManifestFileContent(
     @Body() body: { content: string }
   ): Promise<void> {

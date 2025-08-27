@@ -4,6 +4,7 @@ import { AuthGuard } from './modules/auth/guards/auth.guard'
 import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { HomeDeveloperComponent } from './pages/home-developer/home-developer.component'
+import { IsDevAdminGuard } from './modules/auth/guards/is-dev-admin.guard'
 
 const routes: Routes = [
   {
@@ -37,12 +38,14 @@ const routes: Routes = [
   },
   {
     path: 'dev',
-    component: HomeDeveloperComponent
+    component: HomeDeveloperComponent,
+    canActivate: [IsDevAdminGuard]
   },
   {
     path: 'dev/editor',
     loadChildren: () =>
-      import('./modules/editor/editor.module').then((m) => m.EditorModule)
+      import('./modules/editor/editor.module').then((m) => m.EditorModule),
+    canActivate: [IsDevAdminGuard]
   },
   {
     path: 'dev/collections',
@@ -50,7 +53,7 @@ const routes: Routes = [
       import('./modules/crud/crud-collection.module').then(
         (m) => m.CrudCollectionModule
       ),
-    canActivate: [AuthGuard],
+    canActivate: [IsDevAdminGuard],
     data: {
       mode: 'collection'
     }
