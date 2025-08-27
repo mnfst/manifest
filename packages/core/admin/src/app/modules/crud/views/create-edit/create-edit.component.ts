@@ -234,10 +234,8 @@ export class CreateEditComponent {
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been updated`
           )
-          this.router.navigate([
-            this.singleMode ? '/content/singles' : '/content/collections',
-            this.entityManifest.slug
-          ])
+          // Navigate back to the detail page relative to current route.
+          this.router.navigate(['..'], { relativeTo: this.activatedRoute })
         })
         .catch((err: HttpErrorResponse) => {
           if (err.status === 400) {
@@ -257,11 +255,10 @@ export class CreateEditComponent {
           this.flashMessageService.success(
             `The ${this.entityManifest.nameSingular} has been created successfully`
           )
-          this.router.navigate([
-            '/content/collections',
-            this.entityManifest.slug,
-            createdItem.id
-          ])
+          // Navigate to the detail page relative to current route.
+          this.router.navigate(['..', createdItem.id], {
+            relativeTo: this.activatedRoute
+          })
         })
         .catch((err: HttpErrorResponse) => {
           if (err.status === 400) {
