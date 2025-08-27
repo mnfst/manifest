@@ -13,6 +13,7 @@ import { EditorView } from '@codemirror/view'
 import { hoverTooltip } from '@codemirror/view'
 import $RefParser from '@apidevtools/json-schema-ref-parser'
 import { firstValueFrom } from 'rxjs'
+import { FlashMessageService } from '../../../shared/services/flash-message.service'
 
 @Component({
   selector: 'app-editor',
@@ -37,7 +38,8 @@ export class EditorComponent implements AfterViewInit {
 
   constructor(
     private http: HttpClient,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private flashMessageService: FlashMessageService
   ) {}
 
   async ngOnInit() {
@@ -75,7 +77,26 @@ export class EditorComponent implements AfterViewInit {
           activateOnTyping: true,
           maxRenderedOptions: 10
         }),
-        keymap.of(completionKeymap),
+        keymap.of([
+          ...completionKeymap,
+          // Add save shortcuts
+          {
+            key: 'Ctrl-s',
+            preventDefault: true,
+            run: () => {
+              this.save()
+              return true
+            }
+          },
+          {
+            key: 'Cmd-s', // For Mac users
+            preventDefault: true,
+            run: () => {
+              this.save()
+              return true
+            }
+          }
+        ]),
         hoverTooltip((view, pos, side) => {
           // This ensures hover tooltips work properly
           return null
@@ -166,12 +187,13 @@ export class EditorComponent implements AfterViewInit {
       })
       .subscribe({
         error: (error) => {
-          console.error('Error saving file:', error)
           this.loadingSave = false
+          this.flashMessageService.error('Error saving file:' + error)
         },
         complete: () => {
           this.savedCode = this.code
           this.loadingSave = false
+          this.flashMessageService.success('File saved successfully')
         }
       })
   }
