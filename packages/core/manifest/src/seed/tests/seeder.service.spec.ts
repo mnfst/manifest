@@ -184,6 +184,7 @@ describe('SeederService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],

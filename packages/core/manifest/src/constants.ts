@@ -43,12 +43,14 @@ export const DEFAULT_IMAGE_SIZES: ImageSizesObject = {
 export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
   {
     name: 'email',
+    label: 'email',
     type: PropType.Email,
     hidden: true,
     validation: { isNotEmpty: true }
   },
   {
     name: 'password',
+    label: 'password',
     type: PropType.Password,
     hidden: true,
     validation: { isNotEmpty: true }
@@ -67,7 +69,12 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   authenticable: true,
   nameSingular: 'admin',
   namePlural: 'admins',
-  properties: AUTHENTICABLE_PROPS,
+  properties: AUTHENTICABLE_PROPS.concat({
+    name: 'hasDeveloperPanelAccess',
+    label: 'Dev access',
+    type: PropType.Boolean,
+    default: false
+  }),
   relationships: [],
   policies: {
     create: [{ access: 'admin' }],

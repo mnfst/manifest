@@ -14,7 +14,7 @@ import { PropertyManifest } from '@repo/types'
   selector: 'app-currency-input',
   standalone: true,
   imports: [NgClass],
-  template: ` <label [for]="prop.name">{{ prop.name }}</label>
+  template: ` <label [for]="prop.label">{{ prop.label }}</label>
     <p class="control has-icons-left">
       <span class="icon is-left">
         <span class="is-family-sans-serif	">

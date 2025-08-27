@@ -21,30 +21,37 @@ describe('EntityLoaderService', () => {
     properties: [
       {
         name: 'string-prop',
+        label: 'string-prop',
         type: PropType.String
       },
       {
         name: 'number-prop',
+        label: 'number-prop',
         type: PropType.Number
       },
       {
         name: 'money-prop',
+        label: 'money-prop',
         type: PropType.Money
       },
       {
         name: 'timestamp-prop',
+        label: 'timestamp-prop',
         type: PropType.Timestamp
       },
       {
         name: 'choice-prop',
+        label: 'choice-prop',
         type: PropType.Choice
       },
       {
         name: 'location-prop',
+        label: 'location-prop',
         type: PropType.Location
       },
       {
         name: 'image-prop',
+        label: 'image-prop',
         type: PropType.Image
       }
     ],

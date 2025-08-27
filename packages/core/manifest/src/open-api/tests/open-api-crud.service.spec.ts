@@ -24,10 +24,12 @@ describe('OpenApiCrudService', () => {
     properties: [
       {
         name: 'name',
+        label: 'Name',
         type: PropType.String
       },
       {
         name: 'isActive',
+        label: 'Is Active',
         type: PropType.Boolean
       }
     ],
@@ -62,10 +64,12 @@ describe('OpenApiCrudService', () => {
     properties: [
       {
         name: 'projectName',
+        label: 'Project name',
         type: PropType.String
       },
       {
         name: 'projectValue',
+        label: 'Project value',
         type: PropType.String
       }
     ],

@@ -19,6 +19,7 @@ describe('OpenApiManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],

@@ -8,6 +8,11 @@ export type PropertyManifest = {
   name: string
 
   /**
+   * The label of the property. Replaces the name in the UI if provided.
+   */
+  label: string
+
+  /**
    * The property type.
    */
   type: PropType

@@ -12,6 +12,7 @@ describe('UploadService', () => {
 
   const dummyImageProp: PropertyManifest = {
     name: 'avatar',
+    label: 'Avatar',
     type: PropType.Image,
     options: {
       sizes: DEFAULT_IMAGE_SIZES

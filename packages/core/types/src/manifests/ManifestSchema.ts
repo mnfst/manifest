@@ -15,6 +15,10 @@ export type PropertySchema =
        */
       name: string
       /**
+       * The optional label of the property that replaces the name in the admin UI if provided. Doc: https://manifest.build/docs/entities#properties
+       */
+      label?: string
+      /**
        * The type of the property: text, number, link, currency... Default "string". Doc: https://manifest.build/docs/entities#property-types
        */
       type?:

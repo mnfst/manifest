@@ -23,7 +23,7 @@ describe('RelationshipManifestService', () => {
   beforeEach(async () => {
     // Reset the mock before each test
     mockCamelize.mockClear()
-    
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [RelationshipManifestService]
     }).compile()
@@ -46,6 +46,7 @@ describe('RelationshipManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],
@@ -80,6 +81,7 @@ describe('RelationshipManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],
@@ -110,6 +112,7 @@ describe('RelationshipManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],
@@ -132,6 +135,7 @@ describe('RelationshipManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],

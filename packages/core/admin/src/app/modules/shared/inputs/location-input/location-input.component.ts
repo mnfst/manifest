@@ -14,7 +14,7 @@ import { PropertyManifest } from '@repo/types'
   standalone: true,
   imports: [NgClass],
   template: `
-    <label for="">{{ prop.name }}</label>
+    <label for="">{{ prop.label }}</label>
     <div class="columns is-mobile">
       <div class="column">
         <div class="field">

@@ -27,6 +27,7 @@ describe('ManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],

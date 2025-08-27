@@ -33,11 +33,13 @@ describe('ValidationService', () => {
 
   const numberPropertyManifest: PropertyManifest = {
     name: 'count',
+    label: 'Count',
     type: PropType.Number
   }
 
   const numberPropertyManifestWithValidation: PropertyManifest = {
     name: 'count',
+    label: 'Count',
     type: PropType.Number,
     validation: {
       min: 3
@@ -46,6 +48,7 @@ describe('ValidationService', () => {
 
   const optionalPropertyManifest: PropertyManifest = {
     name: 'website',
+    label: 'Website',
     type: PropType.Link,
     validation: {
       contains: '.com',

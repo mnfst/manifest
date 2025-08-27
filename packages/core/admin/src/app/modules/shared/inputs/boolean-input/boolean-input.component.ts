@@ -22,7 +22,7 @@ import { PropertyManifest } from '@repo/types'
         (click)="toggleCheck()"
         [ngClass]="{ 'is-checked': checked }"
         #input
-        >{{ prop.name }}
+        >{{ prop.label }}
         <span class="checkmark"></span>
       </label>
       <p class="help" *ngIf="helpText">{{ helpText }}</p>

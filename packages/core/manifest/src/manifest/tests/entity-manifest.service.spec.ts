@@ -36,17 +36,20 @@ describe('EntityManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           },
           {
             name: 'password',
+            label: 'Password',
             type: PropType.Password,
             hidden: true
           },
           {
             name: 'nestedProp',
+            label: 'Nested Prop',
             type: PropType.Nested,
-            options: { group: 'NestedEntity  ' }
+            options: { group: 'NestedEntity' }
           }
         ],
         relationships: [],
@@ -68,6 +71,7 @@ describe('EntityManifestService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],

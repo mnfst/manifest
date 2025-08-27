@@ -7,6 +7,7 @@ import {
   ValidationManifest
 } from '@repo/types'
 import { DEFAULT_IMAGE_SIZES } from '../../constants'
+import { upperCaseFirstLetter } from '../../../../common/src'
 
 @Injectable()
 export class PropertyManifestService {
@@ -29,6 +30,7 @@ export class PropertyManifestService {
     if (typeof propSchema === 'string') {
       return {
         name: propSchema,
+        label: propSchema,
         type: PropType.String,
         hidden: false,
         validation:
@@ -38,6 +40,7 @@ export class PropertyManifestService {
 
     return {
       name: propSchema.name,
+      label: propSchema.label || upperCaseFirstLetter(propSchema.name),
       type: (propSchema.type as PropType) || PropType.String,
       hidden: propSchema.hidden || false,
       options:

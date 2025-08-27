@@ -9,7 +9,7 @@ import { QuillModule } from 'ngx-quill'
   selector: 'app-rich-text-input',
   standalone: true,
   imports: [NgClass, QuillModule, ReactiveFormsModule],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+  template: `<label [for]="prop.label">{{ prop.label }}</label>
     <form [formGroup]="form">
       <div class="control" [ngClass]="{ 'is-danger': isError }">
         <quill-editor

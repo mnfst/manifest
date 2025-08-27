@@ -29,6 +29,7 @@ describe('PropertyManifestService', () => {
 
     expect(result).toEqual({
       name: 'title',
+      label: 'title',
       type: 'string',
       hidden: false,
       validation: { required: true }
@@ -38,6 +39,7 @@ describe('PropertyManifestService', () => {
   it('should transform long-syntax property schema into a full property manifest', () => {
     const propSchema: PropertySchema = {
       name: 'description',
+      label: 'Description',
       type: 'text',
       hidden: true,
       options: { maxLength: 500 },
@@ -53,6 +55,7 @@ describe('PropertyManifestService', () => {
 
     expect(result).toEqual({
       name: 'description',
+      label: 'Description',
       type: 'text',
       hidden: true,
       options: { maxLength: 500 },
@@ -75,6 +78,7 @@ describe('PropertyManifestService', () => {
 
     expect(result).toEqual({
       name: 'profileImage',
+      label: 'ProfileImage',
       type: 'image',
       hidden: false,
       options: {

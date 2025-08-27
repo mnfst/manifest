@@ -19,22 +19,27 @@ describe('EntityTypeService', () => {
         properties: [
           {
             name: 'username',
+            label: 'Username',
             type: PropType.String
           },
           {
             name: 'age',
+            label: 'Age',
             type: PropType.Number
           },
           {
             name: 'email',
+            label: 'Email',
             type: PropType.String
           },
           {
             name: 'date',
+            label: 'Date',
             type: PropType.Date
           },
           {
             name: 'category',
+            label: 'Category',
             type: PropType.Choice,
             options: {
               values: ['admin', 'user', 'guest']
@@ -42,6 +47,7 @@ describe('EntityTypeService', () => {
           },
           {
             name: 'avatar',
+            label: 'Avatar',
             type: PropType.Image,
             options: {
               sizes: {
@@ -108,6 +114,7 @@ describe('EntityTypeService', () => {
         properties: [
           {
             name: 'name',
+            label: 'Name',
             type: PropType.String
           }
         ],
@@ -129,6 +136,7 @@ describe('EntityTypeService', () => {
         properties: [
           {
             name: 'title',
+            label: 'Title',
             type: PropType.String
           }
         ],

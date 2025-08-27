@@ -35,6 +35,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Number,
         validation: { min: 3 }
       })
@@ -43,6 +44,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Number,
         validation: { min: 3 }
       })
@@ -63,6 +65,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Number,
         validation: { max: 3 }
       })
@@ -71,6 +74,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Number,
         validation: { max: 3 }
       })
@@ -91,6 +95,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isEmpty: true }
       })
@@ -99,6 +104,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isEmpty: true }
       })
@@ -119,6 +125,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isNotEmpty: true }
       })
@@ -127,6 +134,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isNotEmpty: true }
       })
@@ -147,6 +155,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { required: true }
       })
@@ -155,6 +164,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { required: true }
       })
@@ -175,6 +185,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isDefined: true }
       })
@@ -183,6 +194,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isDefined: true }
       })
@@ -205,6 +217,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isIn: ['1', 'test'] }
       })
@@ -213,6 +226,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isIn: ['1', 'test'] }
       })
@@ -233,6 +247,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isNotIn: ['1', 'test'] }
       })
@@ -241,6 +256,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isNotIn: ['1', 'test'] }
       })
@@ -261,6 +277,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { contains: 'test' }
       })
@@ -269,6 +286,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { contains: 'test' }
       })
@@ -289,6 +307,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { notContains: 'test' }
       })
@@ -297,6 +316,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { notContains: 'test' }
       })
@@ -317,6 +337,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isAlpha: true }
       })
@@ -325,6 +346,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isAlpha: true }
       })
@@ -345,6 +367,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isAlphanumeric: true }
       })
@@ -353,6 +376,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isAlphanumeric: true }
       })
@@ -373,6 +397,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isAscii: true }
       })
@@ -381,6 +406,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isAscii: true }
       })
@@ -401,6 +427,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isEmail: true }
       })
@@ -409,6 +436,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isEmail: true }
       })
@@ -429,6 +457,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isJSON: true }
       })
@@ -437,6 +466,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { isJSON: true }
       })
@@ -457,6 +487,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { minLength: 4 }
       })
@@ -465,6 +496,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { minLength: 6 }
       })
@@ -485,6 +517,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { maxLength: 7 }
       })
@@ -493,6 +526,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { maxLength: 2 }
       })
@@ -513,6 +547,7 @@ describe('Custom validators', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { matches: /^[a-z]+$/ } as any
       })
@@ -521,6 +556,7 @@ describe('Custom validators', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String,
         validation: { matches: /^[a-z]+$/ } as any
       })
@@ -539,6 +575,7 @@ describe('Custom validators', () => {
 
     const validation = service.validateProperty(value, {
       name: 'test',
+      label: 'Test',
       type: PropType.String,
       validation: { isOptional: true }
     })

@@ -61,6 +61,7 @@ export class EntityTypeService {
     const properties: PropertyManifest[] = [
       {
         name: 'id',
+        label: 'id',
         type: PropType.String
       }
     ]

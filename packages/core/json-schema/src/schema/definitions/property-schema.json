@@ -11,6 +11,10 @@
           "description": "The name of the property. Doc: https://manifest.build/docs/entities#properties",
           "type": "string"
         },
+        "label": {
+          "description": "The optional label of the property that replaces the name in the admin UI if provided. Doc: https://manifest.build/docs/entities#properties",
+          "type": "string"
+        },
         "type": {
           "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://manifest.build/docs/entities#property-types",
           "type": "string",

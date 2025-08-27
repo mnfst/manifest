@@ -4,16 +4,12 @@ import { Request } from 'express'
 import { ManifestService } from '../services/manifest.service'
 import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 import { EntityManifestService } from '../services/entity-manifest.service'
-import { YamlService } from '../services/yaml.service'
-import { ConfigService } from '@nestjs/config'
 
 @Controller('manifest')
 export class ManifestController {
   constructor(
     private manifestService: ManifestService,
-    private yamlService: YamlService,
-    private entityManifestService: EntityManifestService,
-    private configService: ConfigService
+    private entityManifestService: EntityManifestService
   ) {}
 
   /**

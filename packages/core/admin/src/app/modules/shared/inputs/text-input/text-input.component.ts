@@ -14,7 +14,7 @@ import { PropertyManifest } from '@repo/types'
   selector: 'app-text-input',
   standalone: true,
   imports: [NgClass],
-  template: `<label [for]="prop.name">{{ prop.name }}</label>
+  template: `<label [for]="prop.label">{{ prop.label }}</label>
     <input
       class="input form-control"
       [ngClass]="{ 'is-danger': isError }"

@@ -28,28 +28,34 @@ describe('RelationshipService', () => {
     properties: [
       {
         name: 'name',
+        label: 'Name',
         type: PropType.String
       },
       {
         name: 'age',
+        label: 'Age',
         type: PropType.Number,
         default: 18
       },
       {
         name: 'color',
+        label: 'Color',
         type: PropType.String
       },
       {
         name: 'secretProperty',
+        label: 'Secret Property',
         type: PropType.String,
         hidden: true
       },
       {
         name: 'password',
+        label: 'Password',
         type: PropType.Password
       },
       {
         name: 'secondPassword',
+        label: 'Second Password',
         type: PropType.Password
       }
     ],

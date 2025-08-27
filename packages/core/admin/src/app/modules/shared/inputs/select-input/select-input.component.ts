@@ -67,7 +67,7 @@ export class SelectInputComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.label = this.prop?.name || this.relationship.name
+    this.label = this.prop?.label || this.relationship.name
 
     if (this.relationship) {
       this.entityManifest = await this.manifestService.getEntityManifest({

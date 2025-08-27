@@ -15,7 +15,7 @@ import { PropertyManifest } from '@repo/types'
   standalone: true,
   imports: [NgClass],
   template: `
-    <label [for]="prop.name">{{ prop.name }}</label>
+    <label [for]="prop.label">{{ prop.label }}</label>
     <input
       class="input"
       [ngClass]="{ 'is-danger': isError }"

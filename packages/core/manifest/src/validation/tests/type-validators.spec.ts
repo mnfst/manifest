@@ -47,6 +47,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String
       })
     )
@@ -54,6 +55,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.String
       })
     )
@@ -73,6 +75,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Text
       })
     )
@@ -80,6 +83,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Text
       })
     )
@@ -99,6 +103,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.RichText
       })
     )
@@ -106,6 +111,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.RichText
       })
     )
@@ -125,6 +131,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Password
       })
     )
@@ -132,6 +139,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Password
       })
     )
@@ -151,6 +159,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Number
       })
     )
@@ -158,6 +167,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Number
       })
     )
@@ -182,6 +192,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Link
       })
     )
@@ -189,6 +200,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Link
       })
     )
@@ -208,6 +220,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Money
       })
     )
@@ -215,6 +228,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Money
       })
     )
@@ -241,6 +255,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Date
       })
     )
@@ -248,6 +263,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Date
       })
     )
@@ -267,6 +283,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Boolean
       })
     )
@@ -274,6 +291,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Boolean
       })
     )
@@ -302,6 +320,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Timestamp
       })
     )
@@ -309,6 +328,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Timestamp
       })
     )
@@ -335,6 +355,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Email
       })
     )
@@ -342,6 +363,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Email
       })
     )
@@ -363,6 +385,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Choice,
         options: { values: valuesArray }
       })
@@ -371,6 +394,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Choice,
         options: { values: valuesArray }
       })
@@ -405,6 +429,7 @@ describe('Validators for property types', () => {
     const goodValidations = goodValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Location
       })
     )
@@ -412,6 +437,7 @@ describe('Validators for property types', () => {
     const badValidations = badValues.map((value) =>
       service.validateProperty(value, {
         name: 'test',
+        label: 'Test',
         type: PropType.Location
       })
     )
@@ -431,6 +457,7 @@ describe('Validators for property types', () => {
     const goodValidations = types.map((type) =>
       service.validateProperty(null, {
         name: 'test',
+        label: 'Test',
         type
       })
     )
