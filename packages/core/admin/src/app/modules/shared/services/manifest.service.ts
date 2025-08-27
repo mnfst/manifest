@@ -10,11 +10,9 @@ import { AuthService } from '../../auth/auth.service'
 })
 export class ManifestService {
   private manifestPromise: Promise<AppManifest> | null = null
+  private appManifest: AppManifest | null = null
 
-  constructor(
-    private authService: AuthService,
-    private http: HttpClient
-  ) {}
+  constructor(private authService: AuthService, private http: HttpClient) {}
 
   /**
    * Gets the manifest. If the manifest has already been fetched, it returns the cached manifest.
@@ -22,20 +20,30 @@ export class ManifestService {
    * @returns A Promise of the manifest.
    **/
   getManifest(): Promise<AppManifest> {
-    if (!this.manifestPromise) {
-      this.manifestPromise = firstValueFrom(
-        this.authService.currentUser$.pipe(
-          filter((user) => !!user),
-          switchMap(() =>
-            this.http.get<AppManifest>(`${environment.apiBaseUrl}/manifest`)
-          )
+    if (this.appManifest) {
+      return Promise.resolve(this.appManifest)
+    }
+
+    if (this.manifestPromise) {
+      return this.manifestPromise
+    }
+
+    return (this.manifestPromise = firstValueFrom(
+      this.authService.currentUser$.pipe(
+        filter((user) => !!user),
+        switchMap(() =>
+          this.http.get<AppManifest>(`${environment.apiBaseUrl}/manifest`)
         )
-      ).catch((error) => {
+      )
+    )
+      .then((manifest) => {
+        this.appManifest = manifest // Cache the manifest
+        return manifest
+      })
+      .catch((error) => {
         this.manifestPromise = null
         throw error
-      })
-    }
-    return this.manifestPromise
+      }))
   }
 
   /**
@@ -73,18 +81,12 @@ export class ManifestService {
       throw new Error('Either slug or className must be provided')
     }
 
-    if (this.manifestPromise) {
-      return this.manifestPromise.then((manifest) => {
-        return Object.values(manifest.entities).find(
-          (entity) => entity.slug === slug || entity.className === className
-        )
-      })
-    }
+    const manifest: AppManifest = await this.getManifest()
 
-    return firstValueFrom(
-      this.http.get<EntityManifest>(
-        `${environment.apiBaseUrl}/manifest/entities/${slug}`
-      )
+    return (
+      Object.values(manifest.entities).find(
+        (entity) => entity.slug === slug || entity.className === className
+      ) || null
     )
   }
 }
