@@ -20,12 +20,13 @@ export class SchemaService {
    * Validate the manifest against the JSON schema and custom logic.
    *
    * @param manifest the manifest to validate
+   * @param throwErrors whether to throw errors or not. If set to false (default), the function will console log the errors and exit the process.
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validate(manifest: Manifest): boolean {
-    this.validateAgainstSchema(manifest, schemas[0])
-    this.validateCustomLogic(manifest)
+  validate(manifest: Manifest, throwErrors: boolean = false): boolean {
+    this.validateAgainstSchema(manifest, schemas[0], throwErrors)
+    this.validateCustomLogic(manifest, throwErrors)
 
     return true
   }
@@ -36,10 +37,15 @@ export class SchemaService {
    *
    * @param manifest the manifest to validate
    * @param schema the schema to validate against
+   * @param throwErrors whether to throw errors or not. If set to false (default), the function will console log the errors and exit the process.
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateAgainstSchema(manifest: Manifest, schema: any): boolean {
+  validateAgainstSchema(
+    manifest: Manifest,
+    schema: any,
+    throwErrors: boolean
+  ): boolean {
     let validate: any = new Ajv({
       schemas,
       allowUnionTypes: true
@@ -49,14 +55,16 @@ export class SchemaService {
     const valid = validate(manifest)
 
     if (!valid) {
-      console.log(
-        chalk.red('JSON Schema Validation failed. Please fix the following:')
+      this.logValidationError(
+        'JSON Schema Validation failed. Please fix the following: \n' +
+          validate.errors
+            .map(
+              (err: any) =>
+                `\n - ${JSON.stringify(err, null, 2).replace(/\n/g, '\n   ')}`
+            )
+            .join(''),
+        throwErrors
       )
-
-      validate.errors.forEach((error: any) => {
-        console.log(chalk.red(JSON.stringify(error, null, 2)))
-      })
-      process.exit(1)
     }
 
     return true
@@ -67,10 +75,11 @@ export class SchemaService {
    * Validate custom logic that cannot be expressed in the JSON schema.
    *
    * @param manifest the manifest to validate
+   * @param throwErrors whether to throw errors or not. If set to false (default), the function will console log the errors and exit the process.
    *
    * @returns true if the manifest is valid, otherwise throws an error.
    */
-  validateCustomLogic(manifest: Manifest): boolean {
+  validateCustomLogic(manifest: Manifest, throwErrors: boolean): boolean {
     const entityNames: string[] = Object.keys(manifest.entities || {})
     const groupNames: string[] = Object.keys(manifest.groups || {})
 
@@ -89,7 +98,8 @@ export class SchemaService {
         const uniqueRelationshipNames = new Set(relationshipNames)
         if (uniqueRelationshipNames.size !== relationshipNames.length) {
           this.logValidationError(
-            `Entity ${entityName} has duplicate relationship names : ${relationshipNames.join(', ')}`
+            `Entity ${entityName} has duplicate relationship names : ${relationshipNames.join(', ')}`,
+            throwErrors
           )
         }
 
@@ -97,7 +107,8 @@ export class SchemaService {
         relationshipNames.forEach((relationship: string) => {
           if (!entityNames.includes(relationship)) {
             this.logValidationError(
-              `Entity ${relationship} in relationships does not exist`
+              `Entity ${relationship} in relationships does not exist`,
+              throwErrors
             )
           }
         })
@@ -116,7 +127,8 @@ export class SchemaService {
             policySchema.allow.forEach((allowedEntityName: string) => {
               if (!entityNames.includes(allowedEntityName)) {
                 this.logValidationError(
-                  `Entity ${allowedEntityName} in policies does not exist`
+                  `Entity ${allowedEntityName} in policies does not exist`,
+                  throwErrors
                 )
               }
             })
@@ -132,14 +144,17 @@ export class SchemaService {
           const propertyGroup: string = (property as any).options?.group
 
           if (propertyGroup && !groupNames.includes(propertyGroup)) {
-            this.logValidationError(`Group ${propertyGroup} does not exist`)
+            this.logValidationError(
+              `Group ${propertyGroup} does not exist`,
+              throwErrors
+            )
           }
         })
       }
     )
 
     // Validate that many-to-many relationships are only declared on one side (owning side)
-    this.validateManyToManyOwnership(manifest.entities || {})
+    this.validateManyToManyOwnership(manifest.entities || {}, throwErrors)
 
     // Validate that groups cannot have nested group properties.
     Object.values(manifest.groups || {}).forEach((group: GroupSchema) => {
@@ -149,7 +164,10 @@ export class SchemaService {
         }
 
         if (property.type === 'group') {
-          this.logValidationError(`Groups cannot have nested group properties.`)
+          this.logValidationError(
+            `Groups cannot have nested group properties.`,
+            throwErrors
+          )
         }
       })
     })
@@ -161,8 +179,13 @@ export class SchemaService {
    * Log a validation error and exit the process.
    *
    * @param message The error message to log.
+   * @param throwErrors Whether to throw errors or not.
    */
-  logValidationError(message: string): void {
+  logValidationError(message: string, throwErrors: boolean): void {
+    if (throwErrors) {
+      throw new Error(message)
+    }
+
     console.log('')
     console.log(
       chalk.red(
@@ -216,10 +239,12 @@ export class SchemaService {
    * Both entities in a many-to-many relationship should not have belongsToMany declarations.
    *
    * @param entities The entities object from the manifest
+   * @param throwErrors Whether to throw errors or not.
    */
-  private validateManyToManyOwnership(entities: {
-    [key: string]: EntitySchema
-  }): void {
+  private validateManyToManyOwnership(
+    entities: { [key: string]: EntitySchema },
+    throwErrors: boolean
+  ): void {
     // Track all many-to-many relationships by creating a unique key for each pair
     const manyToManyPairs: Set<string> = new Set()
 
@@ -240,7 +265,8 @@ export class SchemaService {
 
           if (manyToManyPairs.has(pairKey)) {
             this.logValidationError(
-              `Many-to-many relationship between ${entityName} and ${targetEntity} is declared on both entities. Only one entity should declare the belongsToMany relationship (the owning side).`
+              `Many-to-many relationship between ${entityName} and ${targetEntity} is declared on both entities. Only one entity should declare the belongsToMany relationship (the owning side).`,
+              throwErrors
             )
           }
 

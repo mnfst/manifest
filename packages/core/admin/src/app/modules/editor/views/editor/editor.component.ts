@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http'
+import { HttpClient, HttpErrorResponse } from '@angular/common/http'
 import { Component, AfterViewInit, ElementRef } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { environment } from '../../../../../environments/environment'
@@ -186,9 +186,11 @@ export class EditorComponent implements AfterViewInit {
         content: this.code
       })
       .subscribe({
-        error: (error) => {
+        error: (error: HttpErrorResponse) => {
           this.loadingSave = false
-          this.flashMessageService.error('Error saving file:' + error)
+          this.flashMessageService.error(
+            'Error saving file:' + error.error.message
+          )
         },
         complete: () => {
           this.savedCode = this.code

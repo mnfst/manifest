@@ -76,7 +76,9 @@ export class ManifestService {
    *
    **/
   async doLoadManifest(manifestFilePath: string): Promise<AppManifest> {
-    const appSchema: Manifest = await this.yamlService.load(manifestFilePath)
+    const appSchema: Manifest = await this.yamlService.load({
+      manifestFilePath
+    })
 
     this.schemaService.validate(appSchema)
 

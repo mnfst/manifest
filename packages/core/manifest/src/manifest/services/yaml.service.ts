@@ -16,15 +16,28 @@ export class YamlService {
 
   /**
    *
-   * Load the manifest from the YML file, transform it into a Manifest object and store it in the service.
+   * Load the manifest from the YAML file, transform it into a Manifest object and store it in the service.
    *
    * @param manifestFilePath the path to the manifest file
    *
    * @returns void
    *
    **/
-  async load(manifestFilePath: string): Promise<Manifest> {
-    const fileContent = await this.loadFileContent(manifestFilePath)
+  async load({
+    manifestFilePath,
+    manifestFileContent
+  }: {
+    manifestFilePath?: string
+    manifestFileContent?: string
+  }): Promise<Manifest> {
+    if (!manifestFileContent && !manifestFilePath) {
+      throw new Error(
+        'Either manifestFilePath or manifestFileContent must be provided'
+      )
+    }
+
+    const fileContent =
+      manifestFileContent || (await this.loadFileContent(manifestFilePath))
 
     const manifestSchema: Manifest = yaml.load(fileContent) as Manifest
 
