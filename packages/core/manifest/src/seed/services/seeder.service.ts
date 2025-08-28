@@ -1,5 +1,6 @@
 import {
   AdminEntity,
+  AppManifest,
   BaseEntity,
   DatabaseConnection,
   EntityManifest,
@@ -29,6 +30,7 @@ import {
 
 import { StorageService } from '../../storage/services/storage.service'
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
+import { ManifestService } from '../../manifest/services/manifest.service'
 
 @Injectable()
 export class SeederService {
@@ -38,6 +40,7 @@ export class SeederService {
 
   constructor(
     private entityService: EntityService,
+    private manifestService: ManifestService,
     private entityManifestService: EntityManifestService,
     private storageService: StorageService,
     private dataSource: DataSource
@@ -52,6 +55,12 @@ export class SeederService {
    *
    */
   async seed(tableName?: string): Promise<void> {
+    const appManifest: AppManifest = this.manifestService.getAppManifest()
+
+    if (appManifest.environment === 'production') {
+      throw new Error('Seeding is not allowed in production environment')
+    }
+
     let entityMetadatas: EntityMetadata[] =
       this.entityService.getEntityMetadatas()
 

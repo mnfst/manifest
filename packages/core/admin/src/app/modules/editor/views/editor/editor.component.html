@@ -8,6 +8,15 @@
   Save
 </button>
 
+<button
+  class="button is-info"
+  [ngClass]="{ 'is-loading': loadingSeed }"
+  [disabled]="isProduction || loadingSeed"
+  (click)="seed()"
+>
+  Seed DB
+</button>
+
 <div style="height: 800px" *ngIf="code !== undefined">
   <code-editor
     [(ngModel)]="code"

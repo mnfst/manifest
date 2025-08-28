@@ -14,6 +14,8 @@ import { hoverTooltip } from '@codemirror/view'
 import $RefParser from '@apidevtools/json-schema-ref-parser'
 import { firstValueFrom } from 'rxjs'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
+import { ManifestService } from '../../../shared/services/manifest.service'
+import { AppManifest } from '../../../../../../../types/src'
 
 @Component({
   selector: 'app-editor',
@@ -26,6 +28,9 @@ export class EditorComponent implements AfterViewInit {
   code: string
   savedCode: string
   loadingSave: boolean
+  loadingSeed: boolean
+
+  isProduction: boolean
 
   schema: any
 
@@ -39,12 +44,17 @@ export class EditorComponent implements AfterViewInit {
   constructor(
     private http: HttpClient,
     private elementRef: ElementRef,
-    private flashMessageService: FlashMessageService
+    private flashMessageService: FlashMessageService,
+    private manifestService: ManifestService
   ) {}
 
   async ngOnInit() {
     await this.loadSchema()
     await this.loadInitialFile()
+
+    this.manifestService.getManifest().then((manifest: AppManifest) => {
+      this.isProduction = manifest.environment === 'production'
+    })
   }
 
   ngAfterViewInit() {
@@ -198,5 +208,23 @@ export class EditorComponent implements AfterViewInit {
           this.flashMessageService.success('File saved successfully')
         }
       })
+  }
+
+  /**
+   * Seed the database with dummy data.
+   */
+  async seed(): Promise<void> {
+    this.loadingSeed = true
+    try {
+      await firstValueFrom(
+        this.http.post(`${environment.apiBaseUrl}/seeder/seed`, {})
+      )
+
+      this.flashMessageService.success('Database seeded successfully')
+    } catch (error) {
+      this.flashMessageService.error('Error seeding database:' + error)
+    } finally {
+      this.loadingSeed = false
+    }
   }
 }
