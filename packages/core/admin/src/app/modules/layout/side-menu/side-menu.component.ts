@@ -60,17 +60,21 @@ export class SideMenuComponent implements OnInit {
   }
 
   goToFirstEntity() {
-    const firstCollection: EntityManifest | undefined = this.collections.filter(
+    let firstEntity: EntityManifest | undefined = this.collections.filter(
       (entityManifest: EntityManifest) =>
         entityManifest.className !== ADMIN_CLASS_NAME
     )[0]
 
-    if (firstCollection) {
-      const firstCollectionLink = firstCollection.single
-        ? `/content/singles/${firstCollection.slug}`
-        : `/content/collections/${firstCollection.slug}`
+    if (!firstEntity) {
+      firstEntity = this.singles[0]
+    }
 
-      this.router.navigateByUrl(firstCollectionLink)
+    if (firstEntity) {
+      const firstEntityLink = firstEntity.single
+        ? `/content/singles/${firstEntity.slug}`
+        : `/content/collections/${firstEntity.slug}`
+
+      this.router.navigateByUrl(firstEntityLink)
     }
   }
 

@@ -34,21 +34,8 @@
   <h3 class="title is-3" *ngIf="isContentManager">Content manager</h3>
 
   <ul>
-    <!-- Singles -->
-    <ng-container *ngIf="singles?.length && isContentManager">
-      <li *ngFor="let single of singles">
-        <a
-          [routerLink]="['/content/singles', single.slug]"
-          routerLinkActive="is-active"
-        >
-          <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
-        </a>
-      </li>
-      <hr />
-    </ng-container>
-
     <!-- Collections -->
-    <li *ngIf="collections && isContentManager">
+    <li *ngIf="collections?.length && isContentManager">
       <i class="icon mr-2 icon-database is-size-4"></i>
       <span class="pl-1">Collections</span>
 
@@ -70,6 +57,20 @@
         </li>
       </ul>
     </li>
+
+    <!-- Singles -->
+    <ng-container *ngIf="singles?.length && isContentManager">
+      <span class="pl-1">Singles</span>
+      <li *ngFor="let single of singles">
+        <a
+          [routerLink]="['/content/singles', single.slug]"
+          routerLinkActive="is-active"
+        >
+          <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
+        </a>
+      </li>
+      <hr />
+    </ng-container>
   </ul>
 
   <ng-container *ngIf="hasDeveloperAccess">
