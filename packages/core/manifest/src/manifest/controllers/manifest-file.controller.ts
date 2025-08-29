@@ -25,8 +25,8 @@ export class ManifestFileController {
   @UseGuards(IsDevAdminGuard, JsonSchemaGuard)
   async saveManifestFileContent(
     @Body() body: { content: string }
-  ): Promise<void> {
-    await this.yamlService.saveFileContent(
+  ): Promise<{ success: boolean }> {
+    return this.yamlService.saveFileContent(
       this.configService.get('paths').manifestFile,
       body.content
     )

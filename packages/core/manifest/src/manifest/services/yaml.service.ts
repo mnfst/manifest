@@ -71,7 +71,7 @@ export class YamlService {
   async saveFileContent(
     manifestFilePath: string,
     content: string
-  ): Promise<void> {
+  ): Promise<{ success: boolean }> {
     if (manifestFilePath.startsWith('http')) {
       this.storageService.uploadToS3(
         this.configService.get('storage').s3ManifestFilePath,
@@ -81,7 +81,7 @@ export class YamlService {
       fs.writeFileSync(manifestFilePath, content, 'utf8')
     }
 
-    return
+    return { success: true }
   }
 
   /**
