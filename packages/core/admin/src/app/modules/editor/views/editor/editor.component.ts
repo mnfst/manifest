@@ -27,6 +27,7 @@ import { AppManifest } from '../../../../../../../types/src'
 export class EditorComponent implements AfterViewInit {
   code: string
   savedCode: string
+  loadingEditor: boolean
   loadingSave: boolean
   loadingSeed: boolean
 
@@ -49,8 +50,10 @@ export class EditorComponent implements AfterViewInit {
   ) {}
 
   async ngOnInit() {
+    this.loadingEditor = true
     await this.loadSchema()
     await this.loadInitialFile()
+    this.loadingEditor = false
 
     this.manifestService.getManifest().then((manifest: AppManifest) => {
       this.isProduction = manifest.environment === 'production'

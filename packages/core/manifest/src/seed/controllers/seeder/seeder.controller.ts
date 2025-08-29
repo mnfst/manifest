@@ -7,6 +7,8 @@ export class SeederController {
 
   @Post('seed')
   seed() {
-    return this.seederService.seed()
+    return this.seederService.seed({
+      silent: true
+    })
   }
 }

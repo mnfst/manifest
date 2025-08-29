@@ -24,3 +24,7 @@
     (change)="onCodeChange($event)"
   ></code-editor>
 </div>
+
+<div *ngIf="loadingEditor">
+  <span class="title is-2">Loading editor...</span>
+</div>

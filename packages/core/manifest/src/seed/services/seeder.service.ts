@@ -54,7 +54,13 @@ export class SeederService {
    * @returns A promise that resolves when the seeding is complete.
    *
    */
-  async seed(tableName?: string): Promise<void> {
+  async seed({
+    tableName,
+    silent
+  }: {
+    tableName?: string
+    silent?: boolean
+  } = {}): Promise<void> {
     const appManifest: AppManifest = this.manifestService.getAppManifest()
 
     if (appManifest.environment === 'production') {
@@ -70,12 +76,12 @@ export class SeederService {
       )
     }
 
-    // Truncate all tables.
     const queryRunner: QueryRunner = this.dataSource.createQueryRunner()
 
     const dbConnection: DatabaseConnection = this.dataSource.options
       .type as DatabaseConnection
 
+    // Truncate all tables.
     switch (dbConnection) {
       case 'postgres':
         // Disable foreign key checks for Postgres by using CASCADE
@@ -133,7 +139,10 @@ export class SeederService {
         })
 
       if (entityMetadata.name === ADMIN_ENTITY_MANIFEST.className) {
-        await this.seedAdmin(repository)
+        await this.seedAdmin({
+          repository,
+          silent
+        })
         continue
       }
 
@@ -144,7 +153,7 @@ export class SeederService {
           includeNested: true
         })
 
-      if (!entityManifest.nested) {
+      if (!entityManifest.nested && !silent) {
         console.log(
           `✅ Seeding ${entityManifest.seedCount} ${entityManifest.seedCount > 1 ? entityManifest.namePlural : entityManifest.nameSingular}...`
         )
@@ -391,10 +400,18 @@ export class SeederService {
    *
    * @param repository The repository for the Admin entity.
    */
-  async seedAdmin(repository: Repository<BaseEntity>): Promise<void> {
-    console.log(
-      `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
-    )
+  async seedAdmin({
+    repository,
+    silent
+  }: {
+    repository: Repository<BaseEntity>
+    silent?: boolean
+  }): Promise<void> {
+    if (!silent) {
+      console.log(
+        `✅ Seeding default admin ${DEFAULT_ADMIN_CREDENTIALS.email} with password "${DEFAULT_ADMIN_CREDENTIALS.password}"...`
+      )
+    }
 
     const admin: AdminEntity = repository.create() as AdminEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
