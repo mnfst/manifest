@@ -6,6 +6,7 @@ import { HomeComponent } from './pages/home/home.component'
 import { HomeDeveloperComponent } from './pages/home-developer/home-developer.component'
 import { AdminAccessGuard } from './modules/auth/guards/admin-access.guard'
 import { RestrictAdminCollectionGuard } from './modules/auth/guards/restrict-admin-collection.guard'
+import { ApiDocsComponent } from './pages/api-docs/api-docs.component'
 
 const routes: Routes = [
   {
@@ -66,6 +67,14 @@ const routes: Routes = [
       mode: 'collection',
       isDeveloperAccess: true,
       requiredAccess: 'hasBackendBuilderAccess'
+    }
+  },
+  {
+    path: 'api-docs',
+    component: ApiDocsComponent,
+    canActivate: [AdminAccessGuard],
+    data: {
+      requiredAccess: 'hasApiDocsAccess'
     }
   },
   {

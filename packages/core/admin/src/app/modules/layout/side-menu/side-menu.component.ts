@@ -17,9 +17,12 @@ export class SideMenuComponent implements OnInit {
   singles: EntityManifest[]
 
   isContentManager = false
-  isDeveloperPanel = false
+  isBackendBuilder = false
+  isApiDocs = false
 
+  hasContentManagerAccess = false
   hasBackendBuilderAccess = false
+  hasApiDocsAccess = false
 
   constructor(
     private manifestService: ManifestService,
@@ -56,6 +59,8 @@ export class SideMenuComponent implements OnInit {
       .pipe(filter((admin) => !!admin))
       .subscribe((admin: Admin) => {
         this.hasBackendBuilderAccess = admin.hasBackendBuilderAccess
+        this.hasContentManagerAccess = admin.hasContentManagerAccess
+        this.hasApiDocsAccess = admin.hasApiDocsAccess
       })
   }
 
@@ -80,6 +85,7 @@ export class SideMenuComponent implements OnInit {
 
   setActiveMenuItem(routerUrl: string) {
     this.isContentManager = routerUrl.startsWith('/content')
-    this.isDeveloperPanel = routerUrl.startsWith('/dev')
+    this.isBackendBuilder = routerUrl.startsWith('/dev')
+    this.isApiDocs = routerUrl.startsWith('/api-docs')
   }
 }
