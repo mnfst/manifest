@@ -16,6 +16,11 @@ import { EntityTypeService } from './services/entity-type.service'
     RelationshipService,
     ColumnService
   ],
-  exports: [EntityLoaderService, EntityService, RelationshipService]
+  exports: [
+    EntityLoaderService,
+    EntityService,
+    RelationshipService,
+    EntityTypeService
+  ]
 })
 export class EntityModule {}

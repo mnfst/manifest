@@ -7,9 +7,12 @@ import { OpenApiAuthService } from './services/open-api-auth.service'
 import { OpenApiEndpointService } from './services/open-api.endpoint.service'
 import { OpenApiUtilsService } from './services/open-api-utils.service'
 import { OpenApiSchemaService } from './services/open-api-schema.service'
+import { OpenApiController } from './controllers/open-api.controller'
+import { AuthModule } from '../auth/auth.module'
+import { EntityModule } from '../entity/entity.module'
 
 @Module({
-  imports: [ManifestModule],
+  imports: [ManifestModule, AuthModule, EntityModule],
   providers: [
     OpenApiService,
     OpenApiCrudService,
@@ -18,6 +21,7 @@ import { OpenApiSchemaService } from './services/open-api-schema.service'
     OpenApiEndpointService,
     OpenApiSchemaService,
     OpenApiUtilsService
-  ]
+  ],
+  controllers: [OpenApiController]
 })
 export class OpenApiModule {}

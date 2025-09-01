@@ -1,13 +1,12 @@
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
-import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
+import { OpenAPIObject } from '@nestjs/swagger'
 import connectLiveReload from 'connect-livereload'
 import * as express from 'express'
 import * as livereload from 'livereload'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { readFileSync } from 'fs'
 import { join } from 'path'
 import { AppModule } from './app.module'
 import {
@@ -104,15 +103,6 @@ async function bootstrap() {
 
     const openApiObject: OpenAPIObject =
       openApiService.generateOpenApiObject(entityTypeInfos)
-
-    SwaggerModule.setup(API_PATH, app, openApiObject, {
-      customfavIcon: 'assets/images/open-api/favicon.ico',
-      customSiteTitle: 'Manifest API Doc',
-      customCss: readFileSync(
-        join(__dirname, '../../open-api/styles/swagger-custom.css'),
-        'utf8'
-      )
-    })
 
     // Write OpenAPI spec to file.
     const yamlString: string = yaml.dump(openApiObject)
