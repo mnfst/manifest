@@ -1,27 +1,30 @@
 import { Injectable } from '@angular/core'
-import { Router } from '@angular/router'
+import { ActivatedRouteSnapshot, Router } from '@angular/router'
 import { Admin } from '../../../typescript/interfaces/admin.interface'
 import { AuthService } from '../auth.service'
 import { Observable } from 'rxjs'
 import { map, take, filter } from 'rxjs/operators'
 import { FlashMessageService } from '../../shared/services/flash-message.service'
+import { AdminAccess } from '@repo/types'
 
 @Injectable({
   providedIn: 'root'
 })
-export class IsDevAdminGuard {
+export class AdminAccessGuard {
   constructor(
     private authService: AuthService,
     private router: Router,
     private flashMessageService: FlashMessageService
   ) {}
 
-  canActivate(): Observable<boolean> {
+  canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
+    const requiredAccess = route.data['requiredAccess'] as AdminAccess
+
     return this.authService.currentUser$.pipe(
       filter((currentUser: Admin | null) => currentUser !== null),
       take(1),
       map((currentUser: Admin) => {
-        if (currentUser.hasDeveloperPanelAccess) {
+        if (currentUser[requiredAccess]) {
           return true
         }
         this.router.navigate(['/'])

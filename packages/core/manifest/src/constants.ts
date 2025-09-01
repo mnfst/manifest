@@ -69,12 +69,31 @@ export const ADMIN_ENTITY_MANIFEST: EntityManifest = {
   authenticable: true,
   nameSingular: 'admin',
   namePlural: 'admins',
-  properties: AUTHENTICABLE_PROPS.concat({
-    name: 'hasDeveloperPanelAccess',
-    label: 'Dev access',
-    type: PropType.Boolean,
-    default: false
-  }),
+  properties: AUTHENTICABLE_PROPS.concat(
+    {
+      name: 'hasBackendBuilderAccess',
+      label: 'Backend Builder access',
+      helpText:
+        'Check this box to grant access to the backend builder to manage DB structure and settings',
+      type: PropType.Boolean,
+      default: false
+    },
+    {
+      name: 'hasContentManagerAccess',
+      label: 'Content Manager access',
+      helpText:
+        'Check this box to grant access to the content manager to manage content',
+      type: PropType.Boolean,
+      default: false
+    },
+    {
+      name: 'hasApiDocsAccess',
+      label: 'API Docs access',
+      helpText: 'Check this box to grant access to the API documentation',
+      type: PropType.Boolean,
+      default: false
+    }
+  ),
   relationships: [],
   policies: {
     create: [{ access: 'admin' }],

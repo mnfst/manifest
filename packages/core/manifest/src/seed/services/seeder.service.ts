@@ -416,7 +416,11 @@ export class SeederService {
     const admin: AdminEntity = repository.create() as AdminEntity
     admin.email = DEFAULT_ADMIN_CREDENTIALS.email
     admin.password = bcrypt.hashSync(DEFAULT_ADMIN_CREDENTIALS.password, 1)
-    admin.hasDeveloperPanelAccess = true
+
+    // Full access for initial admin.
+    admin.hasBackendBuilderAccess = true
+    admin.hasContentManagerAccess = true
+    admin.hasApiDocsAccess = true
 
     await repository.save(admin)
   }

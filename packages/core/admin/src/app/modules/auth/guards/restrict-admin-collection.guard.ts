@@ -4,7 +4,9 @@ import {
   RouterStateSnapshot,
   Router
 } from '@angular/router'
+import { AdminAccess } from '../../../../../../types/src'
 
+// Prevent access to admins collection if access outside of backend builder.
 @Injectable({
   providedIn: 'root'
 })
@@ -15,12 +17,12 @@ export class RestrictAdminCollectionGuard {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
-    const isDeveloperAccess = route.data['isDeveloperAccess'] || false
+    const requiredAccess = route.data['requiredAccess'] as AdminAccess
     const urlSegments = state.url.split('/')
     const hasAdminsSlug = urlSegments.includes('admins')
 
-    // If trying to access admins collection without developer access
-    if (hasAdminsSlug && !isDeveloperAccess) {
+    // If trying to access admins collection without backend builder access
+    if (hasAdminsSlug && requiredAccess !== 'hasBackendBuilderAccess') {
       this.router.navigate(['/404'])
       return false
     }

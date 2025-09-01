@@ -19,7 +19,7 @@ export class SideMenuComponent implements OnInit {
   isContentManager = false
   isDeveloperPanel = false
 
-  hasDeveloperAccess = false
+  hasBackendBuilderAccess = false
 
   constructor(
     private manifestService: ManifestService,
@@ -55,7 +55,7 @@ export class SideMenuComponent implements OnInit {
     this.authService.currentUser$
       .pipe(filter((admin) => !!admin))
       .subscribe((admin: Admin) => {
-        this.hasDeveloperAccess = admin.hasDeveloperPanelAccess
+        this.hasBackendBuilderAccess = admin.hasBackendBuilderAccess
       })
   }
 

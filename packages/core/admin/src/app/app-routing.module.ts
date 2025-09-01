@@ -4,7 +4,7 @@ import { AuthGuard } from './modules/auth/guards/auth.guard'
 import { Error404Component } from './pages/error404/error404.component'
 import { HomeComponent } from './pages/home/home.component'
 import { HomeDeveloperComponent } from './pages/home-developer/home-developer.component'
-import { IsDevAdminGuard } from './modules/auth/guards/is-dev-admin.guard'
+import { AdminAccessGuard } from './modules/auth/guards/admin-access.guard'
 import { RestrictAdminCollectionGuard } from './modules/auth/guards/restrict-admin-collection.guard'
 
 const routes: Routes = [
@@ -27,7 +27,7 @@ const routes: Routes = [
     canActivate: [AuthGuard, RestrictAdminCollectionGuard],
     data: {
       mode: 'collection',
-      isDeveloperAccess: false
+      requiredAccess: 'hasContentManagerAccess'
     }
   },
   {
@@ -41,13 +41,19 @@ const routes: Routes = [
   {
     path: 'dev',
     component: HomeDeveloperComponent,
-    canActivate: [IsDevAdminGuard]
+    canActivate: [AdminAccessGuard],
+    data: {
+      requiredAccess: 'hasBackendBuilderAccess'
+    }
   },
   {
     path: 'dev/editor',
     loadChildren: () =>
       import('./modules/editor/editor.module').then((m) => m.EditorModule),
-    canActivate: [IsDevAdminGuard]
+    canActivate: [AdminAccessGuard],
+    data: {
+      requiredAccess: 'hasBackendBuilderAccess'
+    }
   },
   {
     path: 'dev/collections',
@@ -55,10 +61,11 @@ const routes: Routes = [
       import('./modules/crud/crud-collection.module').then(
         (m) => m.CrudCollectionModule
       ),
-    canActivate: [IsDevAdminGuard],
+    canActivate: [AdminAccessGuard],
     data: {
       mode: 'collection',
-      isDeveloperAccess: true
+      isDeveloperAccess: true,
+      requiredAccess: 'hasBackendBuilderAccess'
     }
   },
   {

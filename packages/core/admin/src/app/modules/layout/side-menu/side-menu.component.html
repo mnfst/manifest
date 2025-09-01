@@ -23,7 +23,7 @@
         >Content Manager</a
       >
     </li>
-    <li *ngIf="hasDeveloperAccess">
+    <li *ngIf="hasBackendBuilderAccess">
       <a routerLink="/dev" [routerLinkActive]="['is-active']"
         >Developer panel</a
       >
@@ -73,7 +73,7 @@
     </ng-container>
   </ul>
 
-  <ng-container *ngIf="hasDeveloperAccess">
+  <ng-container *ngIf="hasBackendBuilderAccess">
     <h3 class="title is-3" *ngIf="isDeveloperPanel">Developer panel</h3>
     <ul *ngIf="isDeveloperPanel">
       <li>

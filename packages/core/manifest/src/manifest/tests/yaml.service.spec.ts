@@ -44,7 +44,9 @@ describe('YamlService', () => {
 
   describe('load', () => {
     it('should load the manifest  file from the file path', async () => {
-      const appSchema: Manifest = await service.load('mocked manifest path')
+      const appSchema: Manifest = await service.load({
+        manifestFilePath: 'mocked manifest path'
+      })
 
       expect(appSchema).toEqual(dummyAppSchema)
     })
@@ -52,7 +54,9 @@ describe('YamlService', () => {
     it('should load the manifest file from a URL', async () => {
       const dummyUrl: string = 'http://mocked-manifest-url.com'
 
-      const remoteAppSchema: Manifest = await service.load(dummyUrl)
+      const remoteAppSchema: Manifest = await service.load({
+        manifestFilePath: dummyUrl
+      })
 
       expect(remoteAppSchema).toEqual(dummyRemoteAppSchema)
     })

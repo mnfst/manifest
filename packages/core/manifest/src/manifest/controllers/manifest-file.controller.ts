@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'
 import { YamlService } from '../services/yaml.service'
 import { ConfigService } from '@nestjs/config'
-import { IsDevAdminGuard } from '../../auth/guards/is-dev-admin.guard'
-import { JsonSchemaGuard } from '../guards/json-schema.guard'
+import { AdminAccess } from '../../auth/decorators/admin-access.decorator'
+import { AdminAccessGuard } from '../../auth/guards/admin-access.guard'
 
 @Controller('manifest-file')
 export class ManifestFileController {
@@ -12,7 +12,8 @@ export class ManifestFileController {
   ) {}
 
   @Get()
-  @UseGuards(IsDevAdminGuard)
+  @AdminAccess('hasBackendBuilderAccess')
+  @UseGuards(AdminAccessGuard)
   async getManifestFileContent(): Promise<{ content: string }> {
     return {
       content: await this.yamlService.loadFileContent(
@@ -22,7 +23,8 @@ export class ManifestFileController {
   }
 
   @Post()
-  @UseGuards(IsDevAdminGuard, JsonSchemaGuard)
+  @AdminAccess('hasBackendBuilderAccess')
+  @UseGuards(AdminAccessGuard)
   async saveManifestFileContent(
     @Body() body: { content: string }
   ): Promise<{ success: boolean }> {

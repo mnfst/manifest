@@ -10,7 +10,7 @@ import { Request } from 'express'
 import { ADMIN_ENTITY_MANIFEST } from '../../constants'
 
 /**
- * Guard that checks if the user is a dev admin when accessing the admin entity.
+ * Guard that checks if the user has the "hasBackendBuilder" rights when accessing the admin entity.
  */
 @Injectable()
 export class AdminEntityGuard implements CanActivate {
@@ -31,7 +31,7 @@ export class AdminEntityGuard implements CanActivate {
       const hasDevAccess =
         !!user &&
         entitySlug === ADMIN_ENTITY_MANIFEST.slug &&
-        user.hasDeveloperPanelAccess
+        user.hasBackendBuilderAccess
 
       if (!hasDevAccess) {
         throw new ForbiddenException(
