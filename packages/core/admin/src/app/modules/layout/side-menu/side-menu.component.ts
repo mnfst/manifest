@@ -85,7 +85,7 @@ export class SideMenuComponent implements OnInit {
 
   setActiveMenuItem(routerUrl: string) {
     this.isContentManager = routerUrl.startsWith('/content')
-    this.isBackendBuilder = routerUrl.startsWith('/dev')
+    this.isBackendBuilder = routerUrl.startsWith('/builder')
     this.isApiDocs = routerUrl.startsWith('/api-docs')
   }
 }

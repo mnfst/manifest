@@ -40,7 +40,7 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'dev',
+    path: 'builder',
     component: HomeDeveloperComponent,
     canActivate: [AdminAccessGuard],
     data: {
@@ -48,7 +48,7 @@ const routes: Routes = [
     }
   },
   {
-    path: 'dev/editor',
+    path: 'builder/editor',
     loadChildren: () =>
       import('./modules/editor/editor.module').then((m) => m.EditorModule),
     canActivate: [AdminAccessGuard],
@@ -57,7 +57,7 @@ const routes: Routes = [
     }
   },
   {
-    path: 'dev/collections',
+    path: 'builder/collections',
     loadChildren: () =>
       import('./modules/crud/crud-collection.module').then(
         (m) => m.CrudCollectionModule

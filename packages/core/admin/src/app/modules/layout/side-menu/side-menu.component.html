@@ -27,8 +27,8 @@
       <a routerLink="/api-docs" [routerLinkActive]="['is-active']">API Docs</a>
     </li>
     <li *ngIf="hasBackendBuilderAccess">
-      <a routerLink="/dev" [routerLinkActive]="['is-active']"
-        >Developer panel</a
+      <a routerLink="/builder" [routerLinkActive]="['is-active']"
+        >Backend builder</a
       >
     </li>
   </ul>
@@ -77,11 +77,11 @@
   </ul>
 
   <ng-container *ngIf="hasBackendBuilderAccess">
-    <h3 class="title is-3" *ngIf="isBackendBuilder">Developer panel</h3>
+    <h3 class="title is-3" *ngIf="isBackendBuilder">Backend builder</h3>
     <ul *ngIf="isBackendBuilder">
       <li>
         <a
-          [routerLink]="['/dev', 'collections', 'admins']"
+          [routerLink]="['/builder', 'collections', 'admins']"
           [routerLinkActive]="['is-active']"
           >Admins</a
         >
@@ -89,7 +89,9 @@
 
       <!-- Editor -->
       <li>
-        <a [routerLink]="['/dev', 'editor']" [routerLinkActive]="['is-active']"
+        <a
+          [routerLink]="['/builder', 'editor']"
+          [routerLinkActive]="['is-active']"
           >Editor</a
         >
       </li>

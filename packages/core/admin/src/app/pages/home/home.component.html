@@ -1,1 +1,48 @@
-<h1 class="title is-1">TODO: New home</h1>
+<span>Admin panel</span>
+<h1 class="title is-1" *ngIf="appManifest">
+  {{ appManifest.name }}
+
+  <span
+    class="tag"
+    [ngClass]="{
+      'is-info': appManifest.environment === 'development',
+      'is-warning': appManifest.environment === 'contribution',
+      'is-success': appManifest.environment === 'production'
+    }"
+    >{{ appManifest.environment }}</span
+  >
+</h1>
+
+<div class="container">
+  <div class="columns">
+    <div class="column button">
+      <a routerLink="/builder">Backend builder</a>
+    </div>
+    <div class="column button">
+      <a (click)="goToFirstEntity()">Content manager</a>
+    </div>
+
+    <div class="column button">
+      <a routerLink="/api-docs">API Docs</a>
+    </div>
+    <div class="column button">
+      <a href="https://manifest.build/docs">Manifest docs</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="columns">
+    <div class="column">
+      <h2 class="title is-2">API information</h2>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      %% Base URL for API access:
+      <button (click)="copyToClipboard(apiBaseUrl)">{{ apiBaseUrl }}</button>
+      <span *ngIf="urlCopied" class="copied-message">URL copied!</span>
+      <!-- TODO: This will not work on production -->
+    </div>
+  </div>
+</div>
