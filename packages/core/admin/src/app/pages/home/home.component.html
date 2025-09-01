@@ -15,23 +15,26 @@
 
 <div class="container">
   <div class="columns">
-    <div class="column button">
+    <div class="column button" *ngIf="hasBackendBuilderAccess">
       <a routerLink="/builder">Backend builder</a>
     </div>
-    <div class="column button">
+    <div class="column button" *ngIf="hasContentManagerAccess">
       <a (click)="goToFirstEntity()">Content manager</a>
     </div>
 
-    <div class="column button">
+    <div class="column button" *ngIf="hasApiDocsAccess">
       <a routerLink="/api-docs">API Docs</a>
     </div>
-    <div class="column button">
-      <a href="https://manifest.build/docs">Manifest docs</a>
+    <div
+      class="column button"
+      *ngIf="hasApiDocsAccess || hasBackendBuilderAccess"
+    >
+      <a href="https://manifest.build/docs" target="_blank">-> Manifest docs</a>
     </div>
   </div>
 </div>
 
-<div class="container">
+<div class="container" *ngIf="hasApiDocsAccess || hasBackendBuilderAccess">
   <div class="columns">
     <div class="column">
       <h2 class="title is-2">API information</h2>
@@ -43,6 +46,113 @@
       <button (click)="copyToClipboard(apiBaseUrl)">{{ apiBaseUrl }}</button>
       <span *ngIf="urlCopied" class="copied-message">URL copied!</span>
       <!-- TODO: This will not work on production -->
+    </div>
+  </div>
+</div>
+
+<div class="container" *ngIf="hasContentManagerAccess">
+  <div class="columns">
+    <div class="column">
+      <h2 class="title is-2">Collections overview</h2>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column collection" *ngFor="let collection of collections">
+      <a
+        [routerLink]="[
+          '/',
+          collection.className === adminClassName ? 'builder' : 'content',
+          'collections',
+          collection.slug
+        ]"
+      >
+        <h3 class="title is-3">
+          {{ collection.namePlural | capitalizeFirstLetter }}
+        </h3>
+      </a>
+      <span class="title is-1">{{
+        collectionItemCounts[collection.slug] || 0
+      }}</span>
+
+      <p>
+        <a
+          [routerLink]="[
+            '/',
+            collection.className === adminClassName ? 'builder' : 'content',
+            'collections',
+            collection.slug,
+            'create'
+          ]"
+          >Create a new {{ collection.nameSingular }}</a
+        >
+      </p>
+    </div>
+    <div class="columns" *ngIf="!collections?.length">
+      <div class="column">
+        <p>
+          No collection yet. Learn how to
+          <a
+            href="https://manifest.build/docs/entities#collections"
+            target="_blank"
+            >create a collection entity</a
+          >.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" *ngIf="hasContentManagerAccess">
+  <div class="columns">
+    <div class="column">
+      <h2 class="title is-2">Singles overview</h2>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column single" *ngFor="let single of singles">
+      <a [routerLink]="['/content', 'singles', single.slug]">
+        <h3 class="title is-3">
+          {{ single.namePlural | capitalizeFirstLetter }}
+        </h3>
+      </a>
+    </div>
+    <div class="columns" *ngIf="!singles?.length">
+      <div class="column">
+        <p>
+          No single yet. Learn how to
+          <a href="https://manifest.build/docs/entities#singles" target="_blank"
+            >create a single entity</a
+          >.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" *ngIf="hasBackendBuilderAccess || hasApiDocsAccess">
+  <div class="columns">
+    <div class="column">
+      <h2 class="title is-2">Community</h2>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <a class="card-link" href="https://manifest.build/docs" target="_blank"
+        >Documentation</a
+      >
+    </div>
+    <div class="column">
+      <a
+        class="card-link"
+        href="https://github.com/mnfst/manifest"
+        target="_blank"
+        >GitHub</a
+      >
+    </div>
+    <div class="column">
+      <a class="card-link" href="https://discord.gg/FepAked3W7t" target="_blank"
+        >Discord</a
+      >
     </div>
   </div>
 </div>

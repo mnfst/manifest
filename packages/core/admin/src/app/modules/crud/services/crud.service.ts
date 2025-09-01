@@ -43,12 +43,12 @@ export class CrudService {
   ): Promise<Paginator<BaseEntity>> {
     const queryParams: Params = {
       page: options.filters?.['page'] || 1,
-      perPage: 20
+      perPage: options.filters?.['perPage'] || 20
     }
 
     // Add filters with _eq suffix.
     Object.keys(options.filters || {}).forEach((key: string) => {
-      if (key !== 'page') {
+      if (key !== 'page' && key !== 'perPage') {
         queryParams[`${key}_eq`] = options.filters[key]
       }
     })
@@ -156,5 +156,18 @@ export class CrudService {
     )
 
     return this.handleRequest(promise)
+  }
+
+  /**
+   * Gets the item count of a collection.
+   *
+   * @param entitySlug The entity slug.
+   *
+   * @returns The item count.
+   */
+  async getItemCount(entitySlug: string): Promise<number> {
+    return this.list(entitySlug, { filters: { perPage: '1' } }).then(
+      (response: Paginator<BaseEntity>) => response.total
+    )
   }
 }
