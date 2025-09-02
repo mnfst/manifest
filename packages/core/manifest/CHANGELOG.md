@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.7
+
+### Patch Changes
+
+- 2ad3ad5: updated readme.md file
+
 ## 4.17.6
 
 ### Patch Changes
