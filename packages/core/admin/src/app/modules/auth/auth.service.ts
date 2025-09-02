@@ -116,7 +116,6 @@ export class AuthService {
         tap((user: Admin) => {
           this.isUserLoaded = true
           this.currentUserSubject.next(user)
-          console.log('Loaded current user', user)
         }),
         catchError((error) => {
           this.logout()

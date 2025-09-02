@@ -83,7 +83,6 @@ export class HomeComponent implements OnInit {
             },
             {} as { [key: string]: boolean }
           )
-          console.log(this.canCreateByEntity)
         })
       })
   }

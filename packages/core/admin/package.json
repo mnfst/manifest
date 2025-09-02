@@ -31,6 +31,7 @@
     "codemirror-json-schema": "^0.8.1",
     "ngx-quill": "^25.3.3",
     "rxjs": "~7.8.1",
+    "swagger-ui-dist": "^5.28.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.4"
   },
@@ -38,6 +39,7 @@
     "@angular-devkit/build-angular": "^17.3.1",
     "@angular/cli": "~17.3.1",
     "@angular/compiler-cli": "^17.3.1",
+    "@types/swagger-ui-dist": "^3.30.6",
     "buffer": "^6.0.3",
     "jasmine-core": "~4.5.0",
     "karma": "~6.4.0",
@@ -47,5 +49,8 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "process": "^0.11.10",
     "typescript": "~5.4.3"
+  },
+  "scarfSettings": {
+    "enabled": false
   }
 }
