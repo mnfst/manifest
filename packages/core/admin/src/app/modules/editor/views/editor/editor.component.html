@@ -2,7 +2,7 @@
 <button
   class="button is-primary"
   [ngClass]="{ 'is-loading': loadingSave }"
-  [disabled]="hasUnsavedChanges || loadingSave"
+  [disabled]="!hasUnsavedChanges || loadingSave"
   (click)="save()"
 >
   Save
