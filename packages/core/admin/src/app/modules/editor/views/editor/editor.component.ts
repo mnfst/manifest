@@ -1,5 +1,11 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http'
-import { Component, AfterViewInit, ElementRef, OnDestroy } from '@angular/core'
+import {
+  Component,
+  AfterViewInit,
+  ElementRef,
+  OnDestroy,
+  HostListener
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { environment } from '../../../../../environments/environment'
 import { CodeEditorModule } from '@acrodata/code-editor'
@@ -237,6 +243,14 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   save() {
+    if (
+      !window.confirm(
+        'This action may result in data loss. Are you sure you want to continue?'
+      )
+    ) {
+      return
+    }
+
     this.loadingSave = true
     this.http
       .post(`${environment.apiBaseUrl}/manifest-file`, {
@@ -251,6 +265,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
         },
         complete: () => {
           this.savedCode = this.code
+          this.hasUnsavedChanges = false
           this.loadingSave = false
           this.flashMessageService.success('File saved successfully')
         }
@@ -261,6 +276,14 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
    * Seed the database with dummy data.
    */
   async seed(): Promise<void> {
+    if (
+      !window.confirm(
+        'This will erase existing data and replace it with new data. Do you want to continue?'
+      )
+    ) {
+      return
+    }
+
     this.loadingSeed = true
     try {
       await firstValueFrom(
@@ -273,6 +296,25 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     } finally {
       this.loadingSeed = false
     }
+  }
+
+  // Handle browser refresh/close
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: BeforeUnloadEvent) {
+    if (this.hasUnsavedChanges) {
+      return 'You have unsaved changes. Are you sure you want to leave?'
+    }
+    return null
+  }
+
+  // Handle Angular navigation (for route guard)
+  canDeactivate(): boolean {
+    if (this.hasUnsavedChanges) {
+      return confirm(
+        'You have unsaved changes. Are you sure you want to leave this page?'
+      )
+    }
+    return true
   }
 
   ngOnDestroy() {
