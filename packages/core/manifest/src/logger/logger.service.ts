@@ -54,7 +54,7 @@ export class LoggerService {
 
     console.log('')
     console.log(
-      chalk.yellow('🚀 ') + chalk.dim('Ready to create and ship fast!')
+      chalk.yellow('🦚 ') + chalk.dim('Ready to create and ship fast!')
     )
     console.log('')
   }
