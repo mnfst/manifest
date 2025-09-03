@@ -19,7 +19,7 @@ export class LoggerService {
 
     // On contribution mode, we use the watch mode of the admin panel.
     const adminUrl =
-      nodeEnv === 'contribution' ? 'http://localhost:4200' : `${baseUrl}`
+      nodeEnv === 'contribution' ? 'http://localhost:1111' : `${baseUrl}`
 
     console.log('')
     console.log(

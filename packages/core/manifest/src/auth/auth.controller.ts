@@ -38,7 +38,15 @@ export class AuthController {
   ): Promise<{
     token: string
   }> {
-    return this.authService.signup('admins', signupUserDto, true)
+    return this.authService.signup(
+      'admins',
+      Object.assign(signupUserDto, {
+        hasBackendBuilderAccess: true,
+        hasContentManagerAccess: true,
+        hasApiDocsAccess: true
+      }),
+      true
+    )
   }
 
   @Post(':entity/signup')

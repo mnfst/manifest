@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment'
 export class VersionService {
   constructor(private http: HttpClient) {}
 
-  checkForUpdates({
+  async checkForUpdates({
     currentVersion,
     currentEnv,
     disableTelemetry = false
@@ -22,6 +22,7 @@ export class VersionService {
       currentVersion,
       currentEnv
     }
+
     if (disableTelemetry) {
       params['disableTelemetry'] = disableTelemetry.toString()
     }
