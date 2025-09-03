@@ -64,22 +64,22 @@ export class ManifestService {
       return this.loadingPromise
     }
 
-    return this.doLoadManifest(manifestFilePath)
+    const appSchema: Manifest = await this.yamlService.load({
+      manifestFilePath
+    })
+
+    return this.doLoadManifest(appSchema)
   }
 
   /**
    * Load the manifest from the file, validate it and transform it to store it in the service.
    *
-   * @param manifestFilePath The path to the manifest file.
+   * @param appSchema The app schema to load.
    *
    * @returns A promise that resolves when the manifest is loaded.
    *
    **/
-  async doLoadManifest(manifestFilePath: string): Promise<AppManifest> {
-    const appSchema: Manifest = await this.yamlService.load({
-      manifestFilePath
-    })
-
+  async doLoadManifest(appSchema: Manifest): Promise<AppManifest> {
     this.schemaService.validate(appSchema)
 
     const appManifest: AppManifest = {

@@ -41,6 +41,12 @@ import { StorageModule } from '../storage/storage.module'
     LockFileService
   ],
   controllers: [ManifestController, ManifestFileController],
-  exports: [ManifestService, EntityManifestService, RelationshipManifestService]
+  exports: [
+    ManifestService,
+    EntityManifestService,
+    RelationshipManifestService,
+    YamlService,
+    SchemaService
+  ]
 })
 export class ManifestModule {}

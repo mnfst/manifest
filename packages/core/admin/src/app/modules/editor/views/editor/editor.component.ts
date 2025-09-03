@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http'
-import { Component, AfterViewInit, ElementRef } from '@angular/core'
+import { Component, AfterViewInit, ElementRef, OnDestroy } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { environment } from '../../../../../environments/environment'
 import { CodeEditorModule } from '@acrodata/code-editor'
@@ -12,42 +12,57 @@ import { keymap } from '@codemirror/view'
 import { EditorView } from '@codemirror/view'
 import { hoverTooltip } from '@codemirror/view'
 import $RefParser from '@apidevtools/json-schema-ref-parser'
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom, Subject } from 'rxjs'
+import { debounceTime, takeUntil } from 'rxjs/operators'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'
-import { ManifestService } from '../../../shared/services/manifest.service'
-import { AppManifest } from '../../../../../../../types/src'
+import { SwaggerUiComponent } from 'src/app/shared/components/swagger-ui/swagger-ui.component'
 
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [FormsModule, CodeEditorModule, NgIf, NgClass],
+  imports: [FormsModule, CodeEditorModule, NgIf, NgClass, SwaggerUiComponent],
   templateUrl: './editor.component.html',
   styleUrl: './editor.component.scss'
 })
-export class EditorComponent implements AfterViewInit {
+export class EditorComponent implements AfterViewInit, OnDestroy {
   code: string
   savedCode: string
+  apiDocs: any
+
   loadingEditor: boolean
+  loadingApiDocs: boolean
+
   loadingSave: boolean
   loadingSeed: boolean
-
-  isProduction: boolean
 
   schema: any
 
   extensions: Extension[] = []
 
-  // Editor options to disable line numbers
-  options = {
-    lineNumbers: false
-  }
+  hasUnsavedChanges: boolean = false
+
+  activeTab: 'editor' | 'apiDocs' = 'editor'
+
+  private codeChangeSubject = new Subject<string>()
+  private destroy$ = new Subject<void>()
 
   constructor(
     private http: HttpClient,
     private elementRef: ElementRef,
-    private flashMessageService: FlashMessageService,
-    private manifestService: ManifestService
-  ) {}
+    private flashMessageService: FlashMessageService
+  ) {
+    // Setup debounced API docs generation
+    this.codeChangeSubject
+      .pipe(
+        debounceTime(1000), // Wait 1 second after user stops typing
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: async (code) => {
+          this.apiDocs = await this.generateApiDocs(code)
+        }
+      })
+  }
 
   async ngOnInit() {
     this.loadingEditor = true
@@ -55,9 +70,7 @@ export class EditorComponent implements AfterViewInit {
     await this.loadInitialFile()
     this.loadingEditor = false
 
-    this.manifestService.getManifest().then((manifest: AppManifest) => {
-      this.isProduction = manifest.environment === 'production'
-    })
+    this.apiDocs = await this.generateApiDocs(this.code)
   }
 
   ngAfterViewInit() {
@@ -75,7 +88,9 @@ export class EditorComponent implements AfterViewInit {
   }
 
   onCodeChange(newCode: string) {
-    this.code = newCode
+    this.hasUnsavedChanges = newCode !== this.savedCode
+    // Trigger debounced API docs generation
+    this.codeChangeSubject.next(newCode)
   }
 
   async loadSchema() {
@@ -192,6 +207,35 @@ export class EditorComponent implements AfterViewInit {
     })
   }
 
+  /**
+   * Fetches the server to generate the API docs from a manifest file content and store it in this.apiDocs.
+   *
+   * @param content The manifest file content.
+   *
+   * @returns
+   */
+  async generateApiDocs(content: string): Promise<any> {
+    // TODO: This does not load the API doc on first load. Find a way to prevent sending useless requests
+    // if (this.code === this.savedCode) {
+    //   return
+    // }
+
+    this.loadingApiDocs = true
+    return firstValueFrom(
+      this.http.post(`${environment.apiBaseUrl}/open-api/from-manifest`, {
+        content
+      })
+    )
+      .then((res) => {
+        this.loadingApiDocs = false
+        return res
+      })
+      .catch((error: HttpErrorResponse) => {
+        this.loadingApiDocs = false
+        this.flashMessageService.error('Error generating API Docs: ' + error)
+      })
+  }
+
   save() {
     this.loadingSave = true
     this.http
@@ -229,5 +273,11 @@ export class EditorComponent implements AfterViewInit {
     } finally {
       this.loadingSeed = false
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next()
+    this.destroy$.complete()
+    this.codeChangeSubject.complete()
   }
 }

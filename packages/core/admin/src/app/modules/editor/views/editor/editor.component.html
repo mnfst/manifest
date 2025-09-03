@@ -2,7 +2,7 @@
 <button
   class="button is-primary"
   [ngClass]="{ 'is-loading': loadingSave }"
-  [disabled]="code === savedCode || loadingSave"
+  [disabled]="hasUnsavedChanges || loadingSave"
   (click)="save()"
 >
   Save
@@ -11,20 +11,59 @@
 <button
   class="button is-info"
   [ngClass]="{ 'is-loading': loadingSeed }"
-  [disabled]="isProduction || loadingSeed"
   (click)="seed()"
 >
   Seed DB
 </button>
 
-<div style="height: 800px" *ngIf="code !== undefined">
-  <code-editor
-    [(ngModel)]="code"
-    [extensions]="extensions"
-    (change)="onCodeChange($event)"
-  ></code-editor>
+<div class="tabs">
+  <ul>
+    <li [class.is-active]="activeTab === 'editor'">
+      <a (click)="activeTab = 'editor'">
+        <img
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtoVpwrxH6ITH1P3i-YH9W_-97G-OVVd-IInX2Az1sTqvR6NcNcL_P5GYQJr7nTJisHuA&usqp=CAU"
+          width="20"
+          alt="Loading editor"
+          *ngIf="loadingEditor"
+        />
+        Code editor
+        <span style="font-size: 50" *ngIf="hasUnsavedChanges">&nbsp;●</span>
+      </a>
+    </li>
+    <li [class.is-active]="activeTab === 'apiDocs'">
+      <a (click)="activeTab = 'apiDocs'">
+        <img
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtoVpwrxH6ITH1P3i-YH9W_-97G-OVVd-IInX2Az1sTqvR6NcNcL_P5GYQJr7nTJisHuA&usqp=CAU"
+          width="20"
+          alt="Loading API Docs"
+          *ngIf="loadingApiDocs"
+        />
+        API Docs preview</a
+      >
+    </li>
+  </ul>
 </div>
 
-<div *ngIf="loadingEditor">
-  <span class="title is-2">Loading editor...</span>
+<div *ngIf="activeTab === 'editor'">
+  <div style="height: 800px" *ngIf="!loadingEditor">
+    <code-editor
+      [(ngModel)]="code"
+      [extensions]="extensions"
+      (change)="onCodeChange($event)"
+    ></code-editor>
+  </div>
+
+  <div *ngIf="loadingEditor">
+    <span class="title is-2">Loading editor...</span>
+  </div>
+</div>
+
+<div *ngIf="activeTab === 'apiDocs'">
+  <app-swagger-ui
+    [apiDocs]="apiDocs"
+    *ngIf="apiDocs && !loadingApiDocs"
+  ></app-swagger-ui>
+  <div *ngIf="loadingApiDocs">
+    <span class="title is-2">Loading API Docs...</span>
+  </div>
 </div>

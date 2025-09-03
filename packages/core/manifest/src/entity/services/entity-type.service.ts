@@ -22,12 +22,10 @@ export class EntityTypeService {
   /**
    * Generates the entity types based on the application manifest.
    *
-
+   * @param appManifest The application manifest to generate the entity types from.
    * @returns An array of EntityTypeInfo objects, each representing an entity type.
    */
-  generateEntityTypeInfos(): EntityTsTypeInfo[] {
-    const appManifest: AppManifest = this.manifestService.getAppManifest()
-
+  generateEntityTypeInfos(appManifest: AppManifest): EntityTsTypeInfo[] {
     const entityTsTypeInfos: EntityTsTypeInfo[] = []
 
     // Generate entity TS type.

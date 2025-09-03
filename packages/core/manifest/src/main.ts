@@ -18,6 +18,8 @@ import {
 import { OpenApiService } from './open-api/services/open-api.service'
 import { EntityTypeService } from './entity/services/entity-type.service'
 import { EntityTsTypeInfo } from './entity/types/entity-ts-type-info'
+import { AppManifest } from '../../types/src'
+import { ManifestService } from './manifest/services/manifest.service'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -82,9 +84,12 @@ async function bootstrap() {
 
   if (configService.get('showOpenApiDocs')) {
     // Start with generating types.
+    const manifestService: ManifestService = app.get(ManifestService)
+    const appManifest: AppManifest = manifestService.getAppManifest()
+
     const entityTypeService: EntityTypeService = app.get(EntityTypeService)
     const entityTypeInfos: EntityTsTypeInfo[] =
-      entityTypeService.generateEntityTypeInfos()
+      entityTypeService.generateEntityTypeInfos(appManifest)
 
     // Write TypeScript interfaces to file.
     fs.writeFileSync(
