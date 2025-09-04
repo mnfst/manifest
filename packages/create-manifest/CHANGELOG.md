@@ -1,5 +1,11 @@
 # create-manifest
 
+## 1.3.4
+
+### Patch Changes
+
+- 63b7387: updated assets and readme
+
 ## 1.3.3
 
 ### Patch Changes
