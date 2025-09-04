@@ -10,10 +10,13 @@ import { HookService } from '../../hook/hook.service'
 import { EventService } from '../../event/event.service'
 import { HandlerService } from '../../handler/handler.service'
 import { EntityService } from '../../entity/services/entity.service'
+import { ADMIN_ENTITY_MANIFEST } from '../../constants'
+import { HttpException } from '@nestjs/common'
 
 describe('CollectionController', () => {
   let controller: CollectionController
   let crudService: CrudService
+  let authService: AuthService
 
   const randomUuid: string = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
@@ -24,7 +27,8 @@ describe('CollectionController', () => {
         {
           provide: AuthService,
           useValue: {
-            isReqUserAdmin: jest.fn(() => Promise.resolve(false))
+            isReqUserAdmin: jest.fn(() => Promise.resolve(false)),
+            getUserFromRequest: jest.fn()
           }
         },
         {
@@ -91,6 +95,7 @@ describe('CollectionController', () => {
 
     controller = module.get<CollectionController>(CollectionController)
     crudService = module.get<CrudService>(CrudService)
+    authService = module.get<AuthService>(AuthService)
   })
 
   it('should be defined', () => {
@@ -180,8 +185,38 @@ describe('CollectionController', () => {
   it('should call crudService.delete', async () => {
     const entitySlug = 'cats'
 
-    await controller.delete(entitySlug, randomUuid)
+    await controller.delete(entitySlug, randomUuid, {} as any)
 
     expect(crudService.delete).toHaveBeenCalledWith(entitySlug, randomUuid)
+  })
+
+  it("should prevent an admin from deleting their own account", async () => {
+    const adminSlug = ADMIN_ENTITY_MANIFEST.slug
+    const req = {} as any
+
+    ;(authService.getUserFromRequest as jest.Mock).mockResolvedValue({
+      user: { id: randomUuid },
+      entitySlug: adminSlug
+    })
+
+    await expect(
+      controller.delete(adminSlug, randomUuid, req)
+    ).rejects.toThrow(HttpException)
+
+    expect(crudService.delete).not.toHaveBeenCalled()
+  })
+
+  it('should allow deleting another admin account', async () => {
+    const adminSlug = ADMIN_ENTITY_MANIFEST.slug
+    const req = {} as any
+
+    ;(authService.getUserFromRequest as jest.Mock).mockResolvedValue({
+      user: { id: 'different-id' },
+      entitySlug: adminSlug
+    })
+
+    await controller.delete(adminSlug, randomUuid, req)
+
+    expect(crudService.delete).toHaveBeenCalledWith(adminSlug, randomUuid)
   })
 })
