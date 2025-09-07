@@ -14,6 +14,8 @@ import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
 import { MetaService } from '../../../shared/services/meta.service'
 import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
+import { AuthService } from '../../../auth/auth.service'
+import { Admin } from '../../../../typescript/interfaces/admin.interface'
 
 @Component({
   selector: 'app-list',
@@ -27,6 +29,7 @@ export class ListComponent implements OnInit {
 
   entityManifest: EntityManifest
   properties: PropertyManifest[]
+  currentUser: Admin | null = null
 
   queryParams: Params
   PropType = PropType
@@ -38,10 +41,14 @@ export class ListComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private metaService: MetaService,
     private flashMessageService: FlashMessageService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    // Load current user
+    this.currentUser = this.authService.getCurrentUserValue()
+    
     combineLatest([
       this.activatedRoute.queryParams,
       this.activatedRoute.params
@@ -79,7 +86,7 @@ export class ListComponent implements OnInit {
             .filter((r) => r.type !== 'many-to-many' || r.owningSide)
             .map((relation: RelationshipManifest) => relation.name)
         })
-        .catch(() => {
+        .catch((): null => {
           this.loadingPaginator = false
           return null
         })
@@ -138,5 +145,20 @@ export class ListComponent implements OnInit {
       this.itemToDelete = itemToDelete
       this.renderer.addClass(document.querySelector('html'), 'is-clipped')
     }
+  }
+
+  /**
+   * Check if the given item is the current logged-in user
+   * 
+   * @param item The item to check
+   * 
+   * @returns true if the item is the current user, false otherwise
+   */
+  isCurrentUser(item: any): boolean {
+    if (!this.currentUser || !item) {
+      return false
+    }
+    
+    return this.currentUser.email === item.email
   }
 }
