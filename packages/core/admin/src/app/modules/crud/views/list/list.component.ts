@@ -148,14 +148,20 @@ export class ListComponent implements OnInit {
   }
 
   /**
-   * Check if the given item is the current logged-in user
+   * Check if the given item is the current logged-in admin user
+   * Only applies to admin entities, returns false for other entity types
    * 
    * @param item The item to check
    * 
-   * @returns true if the item is the current user, false otherwise
+   * @returns true if the item is the current admin user, false otherwise
    */
   isCurrentUser(item: any): boolean {
-    if (!this.currentUser || !item) {
+    if (!this.currentUser || !item || !this.entityManifest) {
+      return false
+    }
+    
+    // Only check for admin self-deletion when viewing admins
+    if (this.entityManifest.slug !== 'admins') {
       return false
     }
     
