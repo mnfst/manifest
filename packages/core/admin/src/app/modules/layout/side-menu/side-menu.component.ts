@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core'
+import { NavigationEnd, Router } from '@angular/router'
 import { AppManifest, EntityManifest } from '@repo/types'
-import { ADMIN_CLASS_NAME } from '../../../../constants'
-import { ManifestService } from '../../shared/services/manifest.service'
-import { Router, NavigationEnd } from '@angular/router'
-import { AuthService } from '../../auth/auth.service'
 import { filter } from 'rxjs'
+import { ADMIN_CLASS_NAME } from '../../../../constants'
 import { Admin } from '../../../typescript/interfaces/admin.interface'
+import { AuthService } from '../../auth/auth.service'
+import { ManifestService } from '../../shared/services/manifest.service'
 
 @Component({
   selector: 'app-side-menu',
@@ -15,6 +15,9 @@ import { Admin } from '../../../typescript/interfaces/admin.interface'
 export class SideMenuComponent implements OnInit {
   collections: EntityManifest[]
   singles: EntityManifest[]
+
+  isCollectionsOpen = false
+  isSettingsOpen = false
 
   isContentManager = false
   isBackendBuilder = false
