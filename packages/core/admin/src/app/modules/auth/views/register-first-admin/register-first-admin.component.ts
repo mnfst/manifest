@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 import { FormControl, FormGroup, Validators } from '@angular/forms'
 import { PropType } from '@repo/types'
-import { confirmPasswordValidator } from '../../utlis/confirm-password-validator'
+import { confirmPasswordValidator } from '../../utils/confirm-password-validator'
 import { AuthService } from '../../auth.service'
 import { Router } from '@angular/router'
 import { FlashMessageService } from '../../../shared/services/flash-message.service'

@@ -32,6 +32,15 @@ export class AuthService {
     private flashMessageService: FlashMessageService
   ) {}
 
+  /**
+   * Logs in an admin user.
+   *
+   * @param {Object} credentials - The credentials of the admin user
+   * @param {string} credentials.email - The email of the admin user
+   * @param {string} credentials.password - The password of the admin user
+   *
+   * @returns {Promise<string>} The token of the admin user
+   */
   async login(credentials: {
     email: string
     password: string
@@ -45,11 +54,12 @@ export class AuthService {
       ) as Promise<{
         token: string
       }>
-    ).then((res: { token: string }) => {
+    ).then(async (res: { token: string }) => {
       const token = res?.token
       if (token) {
         localStorage.setItem(TOKEN_KEY, token)
       }
+      this.currentUserSubject.next(await firstValueFrom(this.loadCurrentUser()))
       return token
     })
   }
