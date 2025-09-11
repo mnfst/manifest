@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.8
+
+### Patch Changes
+
+- d0dc03d: fixed whitescreen on reload admin panel deep pages, thanks Emilien
+
 ## 4.17.7
 
 ### Patch Changes
