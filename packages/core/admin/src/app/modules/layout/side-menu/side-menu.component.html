@@ -7,6 +7,12 @@
     </a>
   </div>
   <ul class="menu-list">
+    <li>
+      <span
+        class="menu-title is-uppercase has-text-weight-semibold has-text-grey is-size-5"
+        >Content manager
+      </span>
+    </li>
     <!-- Singles -->
     <ng-container *ngIf="singles?.length">
       <li *ngFor="let single of singles">
@@ -17,7 +23,6 @@
           <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
         </a>
       </li>
-      <hr />
     </ng-container>
 
     <!-- Collections -->
@@ -44,16 +49,12 @@
           </a>
         </li>
         <li *ngIf="collections.length === 0">
-          <a
-            style="pointer-events: none"
-            class="has-background-white-bis has-text-grey"
-            ><span>No collection yet</span></a
+          <a style="pointer-events: none" class="has-text-grey">
+            <span>No collection yet</span></a
           >
         </li>
       </ul>
     </li>
-
-    <hr />
 
     <li>
       <a
