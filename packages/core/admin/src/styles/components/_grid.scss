@@ -7,25 +7,26 @@
     overflow-y: overlay;
     overflow-x: hidden;
     min-height: 100%;
+    left: $primary-sidebar-width-touch;
   }
 
   @include desktop {
     padding: $column-gap $gap;
     width: calc(100% - #{$aside-width-desktop});
     max-width: calc(100% - #{$aside-width-desktop});
-    left: calc(#{$aside-width-desktop});
+    left: calc(#{$aside-width-desktop} + #{$primary-sidebar-width});
   }
 
   @include widescreen {
     width: calc(100vw - #{$aside-width-widescreen} - #{$gap});
     max-width: calc(100vw - #{$aside-width-widescreen} - #{$gap});
-    left: calc(#{$aside-width-widescreen});
+    left: calc(#{$aside-width-widescreen} + #{$primary-sidebar-width});
   }
 
   @include fullhd {
     padding: $column-gap 110px;
     width: calc(100vw - #{$aside-width-fullhd});
     max-width: calc(100vw - #{$aside-width-fullhd});
-    left: calc(#{$aside-width-fullhd});
+    left: calc(#{$aside-width-fullhd} + #{$primary-sidebar-width});
   }
 }

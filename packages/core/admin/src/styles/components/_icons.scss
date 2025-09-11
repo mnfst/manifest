@@ -94,3 +94,29 @@
     content: $icon-external-link;
   }
 }
+
+.icon-seed {
+  &:before {
+    content: $icon-seed;
+  }
+}
+.icon-pen {
+  &:before {
+    content: $icon-pen;
+  }
+}
+.icon-hexagon {
+  &:before {
+    content: $icon-hexagon;
+  }
+}
+.icon-book-open {
+  &:before {
+    content: $icon-book-open;
+  }
+}
+.icon-home {
+  &:before {
+    content: $icon-home;
+  }
+}

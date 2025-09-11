@@ -2,6 +2,12 @@
   background: $sidenav-background-color;
   flex: none;
   @include aside-width;
+  @include desktop {
+    left: #{$primary-sidebar-width};
+  }
+  @include touch {
+    left: #{$primary-sidebar-width-touch};
+  }
 }
 
 .sidebar {
@@ -55,5 +61,33 @@ app-user-menu-item,
   }
   @include mobile {
     width: 100%;
+  }
+}
+
+.primary-sidebar {
+  background-color: $sidenav-background-color;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  width: 72px;
+  border-right: 1px solid $border-color;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include desktop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  @include touch {
+    position: absolute;
+    top: $navbar-height-touch;
+    left: 0;
+    z-index: 1;
+    height: calc(100vh - $navbar-height-touch);
   }
 }
