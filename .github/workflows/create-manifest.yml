@@ -2,7 +2,7 @@ name: Create Manifest E2E
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, main, develop]
   pull_request:
     branches: [main, develop]
 
