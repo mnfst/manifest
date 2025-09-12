@@ -26,7 +26,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies (workspaces)
-        run: npm ci --workspaces
+        run: npm i --workspaces
 
       - name: Run create-manifest (with parameters)
         env:
