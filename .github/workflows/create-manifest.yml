@@ -2,9 +2,7 @@ name: Create Manifest E2E
 
 on:
   push:
-    branches: [master, main, develop]
   pull_request:
-    branches: [main, develop]
 
 jobs:
   create-manifest:
