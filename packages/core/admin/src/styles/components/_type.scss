@@ -46,7 +46,7 @@ a {
     cursor: default;
   }
 
-  .main & {
+  .main &:not(.card--link) {
     span {
       @include underlined-text;
     }

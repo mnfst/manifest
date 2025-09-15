@@ -6,18 +6,3 @@
   display: flex;
   align-items: center;
 }
-
-.card-link {
-  border-color: all.$border;
-  transition: border-color 0.54s all.$transition-timing;
-
-  span:before {
-    display: none;
-  }
-
-  &:hover .card {
-    transition: border-color 0.54s all.$transition-timing;
-    color: all.$black;
-    border-color: all.$link;
-  }
-}

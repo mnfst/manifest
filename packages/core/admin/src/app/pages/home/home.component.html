@@ -1,171 +1,247 @@
-<span
-  class="is-block mb-4 menu-title is-uppercase has-text-weight-semibold has-text-grey is-size-5"
-  >Project overview</span
->
-<h1 class="title is-2" *ngIf="appManifest">
-  <span>{{ appManifest.name }}</span>
-
-  <span class="tag is-rounded is-white ml-2"
-    ><span
-      class="is-size-1"
-      [ngClass]="{
-        'has-text-info': appManifest.environment === 'development',
-        'has-text-warning': appManifest.environment === 'contribution',
-        'has-text-success': appManifest.environment === 'production'
-      }"
-      >•</span
-    ><span>{{ appManifest.environment }}</span></span
-  >
-</h1>
-
-<div class="container">
+<div class="container-fluid">
   <div class="columns">
-    <div class="column button" *ngIf="hasBackendBuilderAccess">
-      <a routerLink="/builder">Backend builder</a>
-    </div>
-    <div class="column button" *ngIf="hasContentManagerAccess">
-      <a (click)="goToFirstEntity()">Content manager</a>
-    </div>
-
-    <div class="column button" *ngIf="hasApiDocsAccess">
-      <a routerLink="/api-docs">API Docs</a>
-    </div>
-    <div
-      class="column button"
-      *ngIf="hasApiDocsAccess || hasBackendBuilderAccess"
-    >
-      <a href="https://manifest.build/docs" target="_blank">-> Manifest docs</a>
-    </div>
-  </div>
-</div>
-
-<br /><br /><br /><br />
-
-<div class="container" *ngIf="hasApiDocsAccess || hasBackendBuilderAccess">
-  <div class="columns">
-    <div class="column">
-      <h2 class="title is-2">API information</h2>
-    </div>
-  </div>
-  <div class="columns">
-    <div class="column">
-      %% Base URL for API access:
-      <button (click)="copyToClipboard(apiBaseUrl)">{{ apiBaseUrl }}</button>
-      <span *ngIf="urlCopied" class="copied-message">URL copied!</span>
-      <!-- TODO: This will not work on production -->
-    </div>
-  </div>
-</div>
-
-<br /><br /><br /><br />
-
-<div class="container" *ngIf="hasContentManagerAccess">
-  <div class="columns">
-    <div class="column">
-      <h2 class="title is-2">Collections overview</h2>
-    </div>
-  </div>
-  <div class="columns">
-    <div class="column collection" *ngFor="let collection of collections">
-      <a
-        [routerLink]="[
-          '/',
-          collection.className === adminClassName ? 'builder' : 'content',
-          'collections',
-          collection.slug
-        ]"
+    <div class="column is-12">
+      <span
+        class="is-block mb-4 menu-title is-uppercase has-text-weight-semibold has-text-grey is-size-5"
+        >Project overview</span
       >
-        <h3 class="title is-3">
-          {{ collection.namePlural | capitalizeFirstLetter }}
-        </h3>
-      </a>
-      <span class="title is-1">{{
-        collectionItemCounts[collection.slug] || 0
-      }}</span>
+      <h1 class="title is-2" *ngIf="appManifest">
+        <span>{{ appManifest.name }}</span>
 
-      <p>
-        <a
-          [routerLink]="[
-            '/',
-            collection.className === adminClassName ? 'builder' : 'content',
-            'collections',
-            collection.slug,
-            'create'
-          ]"
-          >Create a new {{ collection.nameSingular }}</a
+        <span class="tag is-rounded is-white ml-2"
+          ><span
+            class="is-size-1"
+            [ngClass]="{
+              'has-text-info': appManifest.environment === 'development',
+              'has-text-warning': appManifest.environment === 'contribution',
+              'has-text-success': appManifest.environment === 'production'
+            }"
+            >•</span
+          ><span>{{ appManifest.environment }}</span></span
         >
-      </p>
+      </h1>
     </div>
-    <div class="columns" *ngIf="!collections?.length">
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="columns">
+    <div class="column is-12">
+      <div
+        class="card card--welcome has-background-success-light is-bordered is-shadowless"
+      >
+        <div class="card-content">
+          <div class="content">
+            <h3>
+              <span class="icon-text">
+                <span class="icon has-text-success mr-1">
+                  <span class="icon icon-check-circle"></span>
+                </span>
+                <span>Your backend is running</span>
+              </span>
+            </h3>
+
+            <div class="columns" *ngIf="hasBackendBuilderAccess">
+              <div class="column is-3">
+                <a routerLink="/builder" class="card--link">
+                  <div class="card is-shadowless">
+                    <div class="card-content">
+                      <div class="content is-normal">
+                        <div
+                          class="is-flex is-align-items-center is-justify-content-space-between has-text-weight-bold mb-2 is-size-5"
+                        >
+                          <span class="icon-text">
+                            <span class="icon mr-1">
+                              <span class="icon icon-hexagon"></span>
+                            </span>
+                            <span>Backend builder</span>
+                          </span>
+                          <div class="icon icon-arrow-right"></div>
+                        </div>
+                        <span>Manage all your content and permissions</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="column is-3" *ngIf="hasContentManagerAccess">
+                <a (click)="goToFirstEntity()" class="card--link">
+                  <div class="card is-shadowless">
+                    <div class="card-content">
+                      <div class="content is-normal">
+                        <div
+                          class="is-flex is-align-items-center is-justify-content-space-between has-text-weight-bold mb-2 is-size-5"
+                        >
+                          <span class="icon-text">
+                            <span class="icon mr-1">
+                              <span class="icon icon-pen"></span>
+                            </span>
+                            <span>Content manager</span>
+                          </span>
+                          <div class="icon icon-arrow-right"></div>
+                        </div>
+                        <span>Add and manage content</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div
+                class="column is-3"
+                *ngIf="hasApiDocsAccess || hasBackendBuilderAccess"
+              >
+                <a href="https://manifest.build/docs" target="_blank"
+                  >-> Manifest docs</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="container-fluid"
+    *ngIf="hasApiDocsAccess || hasBackendBuilderAccess"
+  >
+    <div class="columns">
       <div class="column">
-        <p>
-          No collection yet. Learn how to
+        <h2 class="title is-2">API information</h2>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column">
+        %% Base URL for API access:
+        <button (click)="copyToClipboard(apiBaseUrl)">{{ apiBaseUrl }}</button>
+        <span *ngIf="urlCopied" class="copied-message">URL copied!</span>
+        <!-- TODO: This will not work on production -->
+      </div>
+      >
+      <div class="column" *ngIf="hasApiDocsAccess">
+        <a routerLink="/api-docs">API Docs</a>
+      </div>
+    </div>
+
+    <div class="container-fluid" *ngIf="hasContentManagerAccess">
+      <div class="columns">
+        <div class="column">
+          <h2 class="title is-2">Collections overview</h2>
+        </div>
+      </div>
+      <div class="columns">
+        <div class="column" *ngFor="let collection of collections">
+          <div class="collection">
+            <a
+              [routerLink]="[
+                '/',
+                collection.className === adminClassName ? 'builder' : 'content',
+                'collections',
+                collection.slug
+              ]"
+            >
+              <h3 class="title is-3">
+                {{ collection.namePlural | capitalizeFirstLetter }}
+              </h3>
+            </a>
+            <span class="title is-1">{{
+              collectionItemCounts[collection.slug] || 0
+            }}</span>
+
+            <p>
+              <a
+                [routerLink]="[
+                  '/',
+                  collection.className === adminClassName
+                    ? 'builder'
+                    : 'content',
+                  'collections',
+                  collection.slug,
+                  'create'
+                ]"
+                >Create a new {{ collection.nameSingular }}</a
+              >
+            </p>
+          </div>
+        </div>
+        <div class="columns" *ngIf="!collections?.length">
+          <div class="column">
+            <p>
+              No collection yet. Learn how to
+              <a
+                href="https://manifest.build/docs/entities#collections"
+                target="_blank"
+                >create a collection entity</a
+              >.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid" *ngIf="hasContentManagerAccess">
+      <div class="columns">
+        <div class="column">
+          <h2 class="title is-2">Singles overview</h2>
+        </div>
+      </div>
+      <div class="columns">
+        <div class="column single" *ngFor="let single of singles">
+          <a [routerLink]="['/content', 'singles', single.slug]">
+            <h3 class="title is-3">
+              {{ single.namePlural | capitalizeFirstLetter }}
+            </h3>
+          </a>
+        </div>
+
+        <div class="column" *ngIf="!singles?.length">
+          <p>
+            No single yet. Learn how to
+            <a
+              href="https://manifest.build/docs/entities#singles"
+              target="_blank"
+              >create a single entity</a
+            >.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="container-fluid"
+      *ngIf="hasBackendBuilderAccess || hasApiDocsAccess"
+    >
+      <div class="columns">
+        <div class="column">
+          <h2 class="title is-2">Community</h2>
+        </div>
+      </div>
+      <div class="columns">
+        <div class="column">
           <a
-            href="https://manifest.build/docs/entities#collections"
+            class="card--link"
+            href="https://manifest.build/docs"
             target="_blank"
-            >create a collection entity</a
-          >.
-        </p>
+            >Documentation</a
+          >
+        </div>
+        <div class="column">
+          <a
+            class="card--link"
+            href="https://github.com/mnfst/manifest"
+            target="_blank"
+            >GitHub</a
+          >
+        </div>
+        <div class="column">
+          <a
+            class="card--link"
+            href="https://discord.gg/FepAked3W7t"
+            target="_blank"
+            >Discord</a
+          >
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<br /><br /><br /><br />
-
-<div class="container" *ngIf="hasContentManagerAccess">
-  <div class="columns">
-    <div class="column">
-      <h2 class="title is-2">Singles overview</h2>
-    </div>
-  </div>
-  <div class="columns">
-    <div class="column single" *ngFor="let single of singles">
-      <a [routerLink]="['/content', 'singles', single.slug]">
-        <h3 class="title is-3">
-          {{ single.namePlural | capitalizeFirstLetter }}
-        </h3>
-      </a>
-    </div>
-    <div class="columns" *ngIf="!singles?.length">
-      <div class="column">
-        <p>
-          No single yet. Learn how to
-          <a href="https://manifest.build/docs/entities#singles" target="_blank"
-            >create a single entity</a
-          >.
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<br /><br /><br /><br />
-
-<div class="container" *ngIf="hasBackendBuilderAccess || hasApiDocsAccess">
-  <div class="columns">
-    <div class="column">
-      <h2 class="title is-2">Community</h2>
-    </div>
-  </div>
-  <div class="columns">
-    <div class="column">
-      <a class="card-link" href="https://manifest.build/docs" target="_blank"
-        >Documentation</a
-      >
-    </div>
-    <div class="column">
-      <a
-        class="card-link"
-        href="https://github.com/mnfst/manifest"
-        target="_blank"
-        >GitHub</a
-      >
-    </div>
-    <div class="column">
-      <a class="card-link" href="https://discord.gg/FepAked3W7t" target="_blank"
-        >Discord</a
-      >
     </div>
   </div>
 </div>
