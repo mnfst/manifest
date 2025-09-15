@@ -9,4 +9,16 @@ li {
   justify-content: center;
   align-items: center;
   gap: 4px;
+
+  &:hover,
+  &.is-active {
+    .button {
+      background-color: all.$white-bis;
+    }
+  }
+
+  > a {
+    margin-bottom: all.$column-gap;
+    color: all.$dark;
+  }
 }
