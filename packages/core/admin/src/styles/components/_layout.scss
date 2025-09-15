@@ -29,6 +29,9 @@ html {
 
 body {
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
   overflow: hidden;
   background: $main-background;
   color: $dark;

@@ -28,7 +28,12 @@
   <div class="columns">
     <div class="column is-12">
       <div
-        class="card card--welcome has-background-success-light is-bordered is-shadowless"
+        class="card card--welcome is-bordered is-shadowless"
+        [ngClass]="{
+          'has-background-success-light': hasBackendBuilderAccess,
+          'has-background-primary-light':
+            !hasBackendBuilderAccess && hasContentManagerAccess
+        }"
       >
         <div class="card-content">
           <div class="content">
@@ -40,11 +45,18 @@
                 <span>Your backend is running</span>
               </span>
             </h3>
+            <p class="is-size-5">
+              Your Manifest backend is up and running. Here is a quick access to
+              the next steps:
+            </p>
 
-            <div class="columns" *ngIf="hasBackendBuilderAccess">
-              <div class="column is-3">
+            <div class="columns is-multiline">
+              <div
+                class="column is-4 is-3-fullhd"
+                *ngIf="hasBackendBuilderAccess"
+              >
                 <a routerLink="/builder" class="card--link">
-                  <div class="card is-shadowless">
+                  <div class="card is-shadowless is-fullheight">
                     <div class="card-content">
                       <div class="content is-normal">
                         <div
@@ -64,9 +76,12 @@
                   </div>
                 </a>
               </div>
-              <div class="column is-3" *ngIf="hasContentManagerAccess">
+              <div
+                class="column is-4 is-3-fullhd"
+                *ngIf="hasContentManagerAccess"
+              >
                 <a (click)="goToFirstEntity()" class="card--link">
-                  <div class="card is-shadowless">
+                  <div class="card is-shadowless is-fullheight">
                     <div class="card-content">
                       <div class="content is-normal">
                         <div
@@ -87,12 +102,67 @@
                 </a>
               </div>
               <div
-                class="column is-3"
+                class="column is-4 is-3-fullhd"
+                *ngIf="hasBackendBuilderAccess"
+              >
+                <a
+                  routerLink="/builder/collections/admins/create"
+                  class="card--link"
+                >
+                  <div class="card is-shadowless is-fullheight">
+                    <div class="card-content">
+                      <div class="content is-normal">
+                        <div
+                          class="is-flex is-align-items-center is-justify-content-space-between has-text-weight-bold mb-2 is-size-5"
+                        >
+                          <span class="icon-text">
+                            <span class="icon mr-1">
+                              <span class="icon icon-user"></span>
+                            </span>
+                            <span>Add administrators</span>
+                          </span>
+                          <div class="icon icon-arrow-right"></div>
+                        </div>
+                        <span
+                          >Invite new administrators with custom
+                          permissions</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div
+                class="column is-4 is-3-fullhd"
                 *ngIf="hasApiDocsAccess || hasBackendBuilderAccess"
               >
-                <a href="https://manifest.build/docs" target="_blank"
-                  >-> Manifest docs</a
+                <a
+                  href="https://manifest.build/docs"
+                  target="_blank"
+                  class="card--link"
                 >
+                  <div class="card is-shadowless is-fullheight">
+                    <div class="card-content">
+                      <div class="content is-normal">
+                        <div
+                          class="is-flex is-align-items-center is-justify-content-space-between has-text-weight-bold mb-2 is-size-5"
+                        >
+                          <span class="icon-text">
+                            <span class="icon mr-1">
+                              <span class="icon icon-pen"></span>
+                            </span>
+                            <span>Manifest documentation</span>
+                          </span>
+                          <div class="icon icon-external-link"></div>
+                        </div>
+                        <span
+                          >Learn how to use and customize your Manifest
+                          backend</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </a>
               </div>
             </div>
           </div>
