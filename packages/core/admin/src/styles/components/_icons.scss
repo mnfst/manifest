@@ -135,3 +135,13 @@
     content: $icon-logout;
   }
 }
+.icon-globe {
+  &:before {
+    content: $icon-globe;
+  }
+}
+.icon-code {
+  &:before {
+    content: $icon-code;
+  }
+}

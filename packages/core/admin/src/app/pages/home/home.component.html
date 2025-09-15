@@ -35,11 +35,11 @@
             !hasBackendBuilderAccess && hasContentManagerAccess
         }"
       >
-        <div class="card-content">
+        <div class="card-content p-6">
           <div class="content">
-            <h3>
+            <h3 class="title is-3 mb-0">
               <span class="icon-text">
-                <span class="icon has-text-success mr-1">
+                <span class="icon has-text-success mr-3">
                   <span class="icon icon-check-circle"></span>
                 </span>
                 <span>Your backend is running</span>
@@ -175,21 +175,62 @@
     class="container-fluid"
     *ngIf="hasApiDocsAccess || hasBackendBuilderAccess"
   >
-    <div class="columns">
-      <div class="column">
-        <h2 class="title is-2">API information</h2>
-      </div>
-    </div>
-    <div class="columns">
-      <div class="column">
-        %% Base URL for API access:
-        <button (click)="copyToClipboard(apiBaseUrl)">{{ apiBaseUrl }}</button>
-        <span *ngIf="urlCopied" class="copied-message">URL copied!</span>
-        <!-- TODO: This will not work on production -->
-      </div>
-      >
-      <div class="column" *ngIf="hasApiDocsAccess">
-        <a routerLink="/api-docs">API Docs</a>
+    <div class="card card--welcome is-bordered is-shadowless">
+      <div class="card-content p-6">
+        <div class="content is-normal">
+          <div class="columns">
+            <div class="column">
+              <h3 class="title is-3 mb-0">
+                <span class="icon-text">
+                  <span class="icon mr-3">
+                    <i class="icon icon-globe"></i>
+                  </span>
+                  <span>API information</span>
+                </span>
+              </h3>
+            </div>
+          </div>
+          <div class="columns">
+            <div class="column is-6">
+              <p class="">%% Base URL for API access</p>
+              <div class="control is-fullwidth">
+                <div class="field has-addons is-fullwidth mb-0 is-grouped">
+                  <p class="control">
+                    <a class="button" (click)="copyToClipboard(apiBaseUrl)">
+                      <i class="icon icon-save" *ngIf="!urlCopied"></i>
+                      <i
+                        class="icon icon-check-circle has-text-success"
+                        *ngIf="urlCopied"
+                      ></i>
+                    </a>
+                  </p>
+                  <p class="control is-fullwidth mb-0">
+                    <input
+                      type="text"
+                      class="input is-bordered"
+                      value="{{ apiBaseUrl }}"
+                      readonly
+                      (click)="copyToClipboard(apiBaseUrl)"
+                    />
+                  </p>
+                  <p class="control" *ngIf="hasApiDocsAccess">
+                    <a
+                      routerLink="/api-docs"
+                      class="button is-outlined has-icon"
+                    >
+                      <i class="icon icon-code"></i>
+                      <span>View API documentation</span>
+                    </a>
+                  </p>
+                </div>
+                <p *ngIf="urlCopied" class="is-coppied has-text-success">
+                  URL copied!
+                </p>
+                <!-- TODO: This will not work on production -->
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

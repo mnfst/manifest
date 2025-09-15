@@ -45,12 +45,6 @@ a {
   .is-default & {
     cursor: default;
   }
-
-  .main &:not(.card--link) {
-    span {
-      @include underlined-text;
-    }
-  }
 }
 
 *[routerLink],
