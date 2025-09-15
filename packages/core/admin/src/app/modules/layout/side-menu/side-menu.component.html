@@ -12,7 +12,7 @@
     <ng-container *ngIf="singles?.length">
       <li *ngFor="let single of singles">
         <a
-          [routerLink]="['/singles', single.slug]"
+          [routerLink]="['/content/singles', single.slug]"
           routerLinkActive="is-active"
         >
           <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
@@ -37,7 +37,7 @@
       <ul *ngIf="isCollectionsOpen">
         <li *ngFor="let collection of collections">
           <a
-            [routerLink]="['/collections', collection.slug]"
+            [routerLink]="['/content/collections', collection.slug]"
             routerLinkActive="is-active"
           >
             <span>{{ collection.namePlural | capitalizeFirstLetter }}</span>
@@ -71,6 +71,4 @@
       </ul>
     </li>
   </ul>
-
-  <app-user-menu-item></app-user-menu-item>
 </div>

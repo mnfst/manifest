@@ -41,36 +41,15 @@ aside .has-submenu + ul {
   }
 }
 
-app-user-menu-item,
-.ad {
-  background-color: $white;
-  @include aside-width;
-  @include tablet-only {
-    width: 260px;
-  }
-}
-
-.ad {
-  bottom: 53px;
-  position: fixed;
-  padding: 8px;
-  background: transparent;
-
-  @include tablet-only {
-    width: 260px;
-  }
-  @include mobile {
-    width: 100%;
-  }
-}
-
 .primary-sidebar {
   background-color: $sidenav-background-color;
   height: 100vh;
   overflow-y: auto;
   scrollbar-width: none;
-  width: 72px;
+  width: $primary-sidebar-width;
   border-right: 1px solid $border-color;
+  z-index: 1;
+  overflow: visible;
 
   &::-webkit-scrollbar {
     display: none;

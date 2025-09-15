@@ -103,18 +103,6 @@
   display: flex;
 }
 
-app-user-menu-item {
-  border-top: 1px solid all.$border-color;
-  border-right: 1px solid all.$border-color;
-  z-index: 99;
-  padding: 8px;
-
-  @include mixins.tablet {
-    position: fixed;
-    bottom: 0;
-  }
-}
-
 .side-menu-wrapper {
   height: 100%;
 }

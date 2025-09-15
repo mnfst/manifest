@@ -1,19 +1,22 @@
-<span>Admin panel</span>
-<h1 class="title is-1" *ngIf="appManifest">
-  {{ appManifest.name }}
+<span
+  class="is-block mb-4 menu-title is-uppercase has-text-weight-semibold has-text-grey is-size-5"
+  >Project overview</span
+>
+<h1 class="title is-2" *ngIf="appManifest">
+  <span>{{ appManifest.name }}</span>
 
-  <span
-    class="tag"
-    [ngClass]="{
-      'is-info': appManifest.environment === 'development',
-      'is-warning': appManifest.environment === 'contribution',
-      'is-success': appManifest.environment === 'production'
-    }"
-    >{{ appManifest.environment }}</span
+  <span class="tag is-rounded is-white ml-2"
+    ><span
+      class="is-size-1"
+      [ngClass]="{
+        'has-text-info': appManifest.environment === 'development',
+        'has-text-warning': appManifest.environment === 'contribution',
+        'has-text-success': appManifest.environment === 'production'
+      }"
+      >•</span
+    ><span>{{ appManifest.environment }}</span></span
   >
 </h1>
-
-<br /><br /><br /><br />
 
 <div class="container">
   <div class="columns">

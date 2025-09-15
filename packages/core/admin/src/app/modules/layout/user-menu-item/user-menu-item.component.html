@@ -11,19 +11,25 @@
         alt="currentUser.name"
         class="avatar"
       />
-      <span class="dropdown-item pr-0" *ngIf="currentUser">
-        <strong>{{ currentUser.email }}</strong>
-      </span>
     </a>
   </div>
   <div class="dropdown-menu is-small" role="menu">
     <div class="dropdown-content">
+      <span class="dropdown-item" *ngIf="currentUser">
+        <strong>{{ currentUser.email }}</strong>
+        <!-- TODO: Set a dynamic tag depending on the currentUser admin role -->
+        <span class="tag is-rounded is-dark ml-1">SuperAdmin</span>
+      </span>
+      <hr />
       <a
         routerLink="/auth/logout"
-        class="dropdown-item"
+        class="dropdown-item icon-text"
         (click)="showUserMenu = false"
       >
-        Sign out
+        <span class="icon">
+          <i class="icon icon-logout"></i>
+        </span>
+        <span>Logout</span>
       </a>
     </div>
   </div>
