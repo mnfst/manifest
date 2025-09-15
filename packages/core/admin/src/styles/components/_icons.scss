@@ -120,3 +120,18 @@
     content: $icon-home;
   }
 }
+.icon-credit-card {
+  &:before {
+    content: $icon-credit-card;
+  }
+}
+.icon-user {
+  &:before {
+    content: $icon-user;
+  }
+}
+.icon-logout {
+  &:before {
+    content: $icon-logout;
+  }
+}
