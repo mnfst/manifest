@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.9
+
+### Patch Changes
+
+- efe4936: removed ai editor rules flag on install
+
 ## 4.17.8
 
 ### Patch Changes
