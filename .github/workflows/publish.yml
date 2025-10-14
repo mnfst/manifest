@@ -35,7 +35,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Commit changes made by postpublish script
+      - name: Update examples dependencies
+        run: node scripts/update-example-package.js
+
+      - name: Commit changes made by "update examples dependencies" script
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"

@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "4.17.8",
+  "version": "4.17.10",
   "description": "1-file backend to ship fast",
   "author": "Manifest",
   "license": "MIT",
@@ -70,8 +70,7 @@
     "test:e2e:ci": "npm run test:e2e:sqlite -- --ci && npm run test:e2e:postgres -- --ci && npm run test:e2e:mysql -- --ci",
     "test:unit": "jest --config ./jest.config.json",
     "test:unit:ci": "jest --config ./jest.config.json --ci --coverage",
-    "postbuild": "shx rm -rf ./dist/admin/dist && shx rm ./dist/tsconfig.build.tsbuildinfo",
-    "postpublish": "node ../../../scripts/update-package.js"
+    "postbuild": "rm -fr ./dist/admin/dist && rm ./dist/tsconfig.build.tsbuildinfo"
   },
   "files": [
     "/dist",
