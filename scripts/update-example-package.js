@@ -21,7 +21,7 @@ function getCurrentVersion() {
       'manifest',
       'package.json'
     )
-    console.log('Reading package.json from:', packageJsonPath)
+
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
     return packageJson.version
   } catch (err) {
@@ -44,6 +44,41 @@ function isBetaVersion(version) {
   ]
 
   return betaPatterns.some((pattern) => pattern.test(version))
+}
+
+async function waitForPackageOnNpm(
+  packageName,
+  version,
+  maxAttempts = 30,
+  delayMs = 10000
+) {
+  console.log(`Waiting for ${packageName}@${version} to be available on npm...`)
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const result = execSync(`npm view ${packageName}@${version} version`, {
+        encoding: 'utf-8',
+        stdio: 'pipe'
+      }).trim()
+
+      if (result === version) {
+        console.log(`✅ ${packageName}@${version} is now available on npm!`)
+        return true
+      }
+    } catch (err) {
+      // Package version not found yet
+    }
+
+    console.log(
+      `Attempt ${attempt}/${maxAttempts}: Package not available yet. Waiting ${delayMs / 1000}s...`
+    )
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+
+  console.error(
+    `❌ Package ${packageName}@${version} did not become available after ${maxAttempts} attempts`
+  )
+  return false
 }
 
 function updatePackage() {
@@ -80,7 +115,7 @@ function updatePackage() {
       ) {
         console.log(`Updating ${MAIN_PACKAGE} in ${folder}...`)
         try {
-          execSync(`npm install ${MAIN_PACKAGE}@latest`, {
+          execSync(`npm install ${MAIN_PACKAGE}@${currentVersion}`, {
             cwd: folder,
             stdio: 'inherit'
           })
@@ -98,4 +133,23 @@ function updatePackage() {
   })
 }
 
-updatePackage()
+async function main() {
+  const currentVersion = getCurrentVersion()
+
+  if (!currentVersion || isBetaVersion(currentVersion)) {
+    updatePackage() // Will handle the early exit
+    return
+  }
+
+  // Wait for the package to be available on npm
+  const isAvailable = await waitForPackageOnNpm(MAIN_PACKAGE, currentVersion)
+
+  if (!isAvailable) {
+    console.error('Aborting example updates due to package unavailability.')
+    process.exit(1)
+  }
+
+  updatePackage()
+}
+
+main()
