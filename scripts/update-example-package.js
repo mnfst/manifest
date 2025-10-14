@@ -1,4 +1,4 @@
-// This script updates the package.json files with the latest version of the "manifest" package.
+// This script updates the package.json files of the example projects with the latest version of the "manifest" package.
 // It skips updates for beta releases to avoid updating examples with unstable versions.
 
 const fs = require('fs')
@@ -8,6 +8,7 @@ const { execSync } = require('child_process')
 const MAIN_PACKAGE = 'manifest'
 const FOLDERS = [
   // Paths are relative to the root of the "manifest" package where this script is executed.
+  // * Add paths to other example projects as needed.
   '../../../examples/main-demo'
 ]
 
