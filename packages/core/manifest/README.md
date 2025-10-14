@@ -55,11 +55,3 @@ npx create-manifest@latest
 # Yarn
 yarn create manifest
 ```
-
-Using an AI coding editor or LLM-powered workflow? These commands configure your project to work seamlessly with it:
-
-```bash
-yarn create manifest --cursor # Installs Cursor IDE rules
-yarn create manifest --copilot # Installs Copilot rules
-yarn create manifest --windsurf # Install Windsurf rules
-```
