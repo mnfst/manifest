@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.10
+
+### Patch Changes
+
+- 7d60d32: removed ai code editor rules flag on core readme
+
 ## 4.17.9
 
 ### Patch Changes
