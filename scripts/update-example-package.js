@@ -9,12 +9,19 @@ const MAIN_PACKAGE = 'manifest'
 const FOLDERS = [
   // Paths are relative to the root of the "manifest" package where this script is executed.
   // * Add paths to other example projects as needed.
-  '../../../examples/main-demo'
+  './examples/main-demo'
 ]
 
 function getCurrentVersion() {
   try {
-    const packageJsonPath = path.join(process.cwd(), 'package.json')
+    const packageJsonPath = path.join(
+      process.cwd(),
+      'packages',
+      'core',
+      'manifest',
+      'package.json'
+    )
+    console.log('Reading package.json from:', packageJsonPath)
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
     return packageJson.version
   } catch (err) {
