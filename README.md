@@ -81,16 +81,12 @@ Manifest fits great in those type of projects:
 Run this command to create a new project with Manifest:
 
 ```bash
+# Using npx
 npx create-manifest@latest
+
+# Using Yarn
+yarn create manifest
 ```
-
-You can add a flag to set up rules for your AI code Editor:
-
-- `--cursor` for **Cursor**
-- `--copilot` for **GitHub Copilot**
-- `--windsurf` for **Windsurf**
-
-You can also use `yarn create manifest`.
 
 > [!NOTE]  
 > Manifest is currently in BETA, use it at your own risk. It is stable enough to power small projects, prototypes and MVPs but we do not recommend to use it on critical platforms.
@@ -106,7 +102,7 @@ You can also use `yarn create manifest`.
 
 Here is a few small things you can do:
 
-- Star the Manifest repository (this one)
+- Star the [Manifest repository](https://github.com/mnfst/manifest)
 - Give us your feedback on [Discord](https://discord.gg/FepAked3W7)
 - Sponsor Manifest through [Github](https://github.com/sponsors/mnfst) or [OpenCollective](https://opencollective.com/mnfst)
 
