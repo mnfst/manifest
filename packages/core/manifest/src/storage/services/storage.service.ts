@@ -10,7 +10,11 @@ import uniqid from 'uniqid'
 import { ImageSizesObject } from '@repo/types'
 import slugify from 'slugify'
 import { ConfigService } from '@nestjs/config'
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import {
+  PutObjectCommand,
+  S3Client,
+  ListObjectsV2Command
+} from '@aws-sdk/client-s3'
 
 @Injectable()
 export class StorageService {
@@ -217,5 +221,82 @@ export class StorageService {
       })
     )
     return `${this.s3Endpoint}/${this.s3Bucket}/${path}`
+  }
+
+  /**
+   * List files in S3 bucket by folder prefix.
+   *
+   * @param folderPath The folder path to list files from (e.g., 'entity-name/property-name/').
+   * @param maxKeys Maximum number of keys to return (default: 1000).
+   * @returns Array of file objects with key, size, and lastModified.
+   */
+  async listFiles(
+    folderPath: string = '',
+    maxKeys: number = 1000,
+    continuationToken?: string
+  ): Promise<{
+    files: Array<{
+      key: string
+      size: number
+      lastModified: Date
+      url: string
+    }>
+    folders: Array<{
+      prefix: string
+      name: string
+    }>
+    count: number
+    isTruncated: boolean
+    nextContinuationToken?: string
+  }> {
+    if (!this.isS3Enabled) {
+      throw new HttpException('S3 storage is not enabled', 400)
+    }
+
+    const prefix = this.s3FolderPrefix
+      ? `${this.s3FolderPrefix}/${folderPath}`
+      : folderPath
+
+    console.log(
+      'Listing S3 files with prefix:',
+      prefix,
+      maxKeys,
+      continuationToken
+    )
+
+    try {
+      const command = new ListObjectsV2Command({
+        Bucket: this.s3Bucket,
+        Prefix: prefix,
+        MaxKeys: maxKeys,
+        Delimiter: '/', // This limits results to the current folder level
+        ContinuationToken: continuationToken
+      })
+
+      const response = await this.s3Client.send(command)
+
+      return {
+        files:
+          response.Contents?.filter((item) => item.Key !== prefix) // Exclude the folder itself
+            .map((item) => ({
+              key: item.Key!.replace(this.s3FolderPrefix, ''),
+              size: item.Size!,
+              lastModified: item.LastModified!,
+              url: `${this.s3Endpoint}/${this.s3Bucket}/${item.Key}`
+            })) || [],
+        folders:
+          response.CommonPrefixes?.map((commonPrefix) => ({
+            prefix: commonPrefix.Prefix!.replace(this.s3FolderPrefix, ''),
+            name: commonPrefix.Prefix!.replace(prefix, '').replace(/\/$/, '')
+          })) || [],
+        count:
+          (response.KeyCount || 0) + (response.CommonPrefixes?.length || 0),
+        isTruncated: response.IsTruncated || false,
+        nextContinuationToken: response.NextContinuationToken
+      }
+    } catch (error) {
+      console.error('Error listing S3 files:', error)
+      throw new HttpException(`Failed to list S3 files: ${error.message}`, 500)
+    }
   }
 }
