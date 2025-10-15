@@ -1,0 +1,48 @@
+<h1 class="title is-1">Files</h1>
+
+<ul class="breadcrumbs">
+  <li>
+    <strong> <a (click)="navigateTo('')"> Files</a></strong>
+  </li>
+  <li *ngFor="let breadcrumb of breadcrumbs">
+    <a (click)="navigateTo(breadcrumb.path)">{{ breadcrumb.label }}</a>
+  </li>
+</ul>
+
+<table class="table">
+  <tr>
+    <th>Name</th>
+    <th>Size</th>
+    <th>Last Modified</th>
+  </tr>
+  <ng-container *ngIf="!loading">
+    <tr *ngFor="let folder of folders">
+      <td>
+        <a (click)="navigateTo(folder.prefix)">
+          <td>
+            <span class="icon is-size-4">
+              <i class="icon icon-hexagon"></i>
+            </span>
+          </td>
+          {{ folder.name }}</a
+        >
+      </td>
+      <td>-</td>
+      <td>-</td>
+    </tr>
+    <tr *ngFor="let file of files">
+      <td>
+        <span class="icon is-size-4">
+          <i class="icon icon-map-pin"></i>
+        </span>
+
+        {{ file.label }}
+      </td>
+      <td>{{ file.size | fileSize }}</td>
+      <td>{{ file.lastModified | date: 'short' }}</td>
+    </tr>
+  </ng-container>
+</table>
+<div class="is-loading" *ngIf="loading">
+  <span class="list-meta"></span>
+</div>

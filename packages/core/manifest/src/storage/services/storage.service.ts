@@ -7,7 +7,7 @@ import * as path from 'path'
 import sharp from 'sharp'
 import * as mkdirp from 'mkdirp'
 import uniqid from 'uniqid'
-import { ImageSizesObject } from '@repo/types'
+import { ImageSizesObject, StorageFile, StorageFolder } from '@repo/types'
 import slugify from 'slugify'
 import { ConfigService } from '@nestjs/config'
 import {
@@ -235,16 +235,8 @@ export class StorageService {
     maxKeys: number = 1000,
     continuationToken?: string
   ): Promise<{
-    files: Array<{
-      key: string
-      size: number
-      lastModified: Date
-      url: string
-    }>
-    folders: Array<{
-      prefix: string
-      name: string
-    }>
+    files: StorageFile[]
+    folders: StorageFolder[]
     count: number
     isTruncated: boolean
     nextContinuationToken?: string
@@ -256,13 +248,6 @@ export class StorageService {
     const prefix = this.s3FolderPrefix
       ? `${this.s3FolderPrefix}/${folderPath}`
       : folderPath
-
-    console.log(
-      'Listing S3 files with prefix:',
-      prefix,
-      maxKeys,
-      continuationToken
-    )
 
     try {
       const command = new ListObjectsV2Command({
@@ -279,14 +264,15 @@ export class StorageService {
         files:
           response.Contents?.filter((item) => item.Key !== prefix) // Exclude the folder itself
             .map((item) => ({
-              key: item.Key!.replace(this.s3FolderPrefix, ''),
+              key: item.Key!.replace(`${this.s3FolderPrefix}/`, ''),
+              label: item.Key!.split('/').pop()!,
               size: item.Size!,
               lastModified: item.LastModified!,
               url: `${this.s3Endpoint}/${this.s3Bucket}/${item.Key}`
             })) || [],
         folders:
           response.CommonPrefixes?.map((commonPrefix) => ({
-            prefix: commonPrefix.Prefix!.replace(this.s3FolderPrefix, ''),
+            prefix: commonPrefix.Prefix!.replace(`${this.s3FolderPrefix}/`, ''),
             name: commonPrefix.Prefix!.replace(prefix, '').replace(/\/$/, '')
           })) || [],
         count:

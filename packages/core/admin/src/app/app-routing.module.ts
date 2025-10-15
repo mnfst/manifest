@@ -40,6 +40,15 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'files',
+    loadChildren: () =>
+      import('./modules/files/files.module').then((m) => m.FilesModule),
+    canActivate: [AdminAccessGuard],
+    data: {
+      requiredAccess: 'hasBackendBuilderAccess'
+    }
+  },
+  {
     path: 'builder',
     component: HomeDeveloperComponent,
     canActivate: [AdminAccessGuard],
