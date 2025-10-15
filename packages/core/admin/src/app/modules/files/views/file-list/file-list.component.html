@@ -1,48 +1,83 @@
-<h1 class="title is-1">Files</h1>
+<div class="container">
+  <div class="colunms">
+    <div class="column">
+      <h1 class="title is-1">Files</h1>
+    </div>
+  </div>
 
-<ul class="breadcrumbs">
-  <li>
-    <strong> <a (click)="navigateTo('')"> Files</a></strong>
-  </li>
-  <li *ngFor="let breadcrumb of breadcrumbs">
-    <a (click)="navigateTo(breadcrumb.path)">{{ breadcrumb.label }}</a>
-  </li>
-</ul>
+  <div class="columns">
+    <div class="column">
+      <ul class="breadcrumbs">
+        <li>
+          <strong> <a (click)="navigateTo('')"> Files</a></strong>
+        </li>
+        <li *ngFor="let breadcrumb of breadcrumbs">
+          <a (click)="navigateTo(breadcrumb.path)">{{ breadcrumb.label }}</a>
+        </li>
+      </ul>
+    </div>
+    <div class="column" *ngIf="!loadingList">
+      {{ files.length + folders.length }} item{{
+        files.length + folders.length !== 1 ? 's' : ''
+      }}
+    </div>
+  </div>
 
-<table class="table">
-  <tr>
-    <th>Name</th>
-    <th>Size</th>
-    <th>Last Modified</th>
-  </tr>
-  <ng-container *ngIf="!loading">
-    <tr *ngFor="let folder of folders">
-      <td>
-        <a (click)="navigateTo(folder.prefix)">
+  <div class="columns">
+    <div class="column">
+      <div class="column is-offset-4">
+        <button class="button is-white">%% Create folder</button>
+        <button
+          class="button is-primary"
+          (click)="uploadFile(currentPath)"
+          [ngClass]="{ 'is-loading': loadingUpload }"
+        >
+          Upload File
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="columns">
+    <table class="table">
+      <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th>Last Modified</th>
+      </tr>
+      <ng-container *ngIf="!loadingList">
+        <tr *ngFor="let folder of folders">
+          <td>
+            <a (click)="navigateTo(folder.prefix)">
+              <td>
+                <span class="icon is-size-4">
+                  <i class="icon icon-hexagon"></i>
+                </span>
+              </td>
+              {{ folder.name }}</a
+            >
+          </td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+        <tr
+          *ngFor="let file of files"
+          [ngClass]="{ 'highlight-file': highlightedFileName === file.label }"
+        >
           <td>
             <span class="icon is-size-4">
-              <i class="icon icon-hexagon"></i>
+              <i class="icon icon-map-pin"></i>
             </span>
-          </td>
-          {{ folder.name }}</a
-        >
-      </td>
-      <td>-</td>
-      <td>-</td>
-    </tr>
-    <tr *ngFor="let file of files">
-      <td>
-        <span class="icon is-size-4">
-          <i class="icon icon-map-pin"></i>
-        </span>
 
-        {{ file.label }}
-      </td>
-      <td>{{ file.size | fileSize }}</td>
-      <td>{{ file.lastModified | date: 'short' }}</td>
-    </tr>
-  </ng-container>
-</table>
-<div class="is-loading" *ngIf="loading">
-  <span class="list-meta"></span>
+            {{ file.label }}
+          </td>
+          <td>{{ file.size | fileSize }}</td>
+          <td>{{ file.lastModified | date: 'short' }}</td>
+        </tr>
+      </ng-container>
+    </table>
+    <div class="is-loading" *ngIf="loadingList">
+      <span class="list-meta"></span>
+    </div>
+  </div>
 </div>

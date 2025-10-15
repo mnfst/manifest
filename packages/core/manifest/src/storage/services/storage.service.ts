@@ -55,7 +55,7 @@ export class StorageService {
   }
 
   /**
-   * Store a file.
+   * Store a file for an entity property.
    *
    * @param entity The entity slug.
    * @param property The property name.
@@ -64,7 +64,7 @@ export class StorageService {
    * @returns The file path.
    *
    */
-  store(
+  storeFileForProperty(
     entity: string,
     property: string,
     file: { buffer: Buffer; originalname: string }
@@ -97,9 +97,23 @@ export class StorageService {
     }
   }
 
+  async storeFileAtPath(
+    file: { buffer: Buffer; originalname: string },
+    path: string
+  ): Promise<string> {
+    if (this.isS3Enabled) {
+      return this.uploadToS3(path, file.buffer)
+    } else {
+      throw new HttpException(
+        'Storing files at custom paths is only supported with S3 storage',
+        400
+      )
+    }
+  }
+
   /**
    *
-   * Store an image
+   * Store an image for an entity property, generating multiple sizes.
    *
    * @param entity The entity slug.
    * @param property The property name.
@@ -108,7 +122,7 @@ export class StorageService {
    *
    * @returns The file path.
    */
-  async storeImage(
+  async storeImageForProperty(
     entity: string,
     property: string,
     image: { buffer: Buffer; originalname: string },

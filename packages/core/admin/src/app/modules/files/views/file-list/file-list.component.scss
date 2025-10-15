@@ -31,3 +31,22 @@ ul.breadcrumbs li a:hover {
 ul.breadcrumbs li strong {
   color: #363636;
 }
+
+// Highlight animation for newly uploaded files
+tr.highlight-file {
+  animation: highlight-fade 3s ease-out;
+}
+
+@keyframes highlight-fade {
+  0% {
+    background-color: #48c774;
+    transform: scale(1.02);
+  }
+  50% {
+    background-color: #d4f5dd;
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}

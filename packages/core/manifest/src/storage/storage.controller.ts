@@ -1,6 +1,15 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UploadedFile,
+  UseInterceptors
+} from '@nestjs/common'
 import { StorageService } from './services/storage.service'
 import { StorageFile, StorageFolder } from '@repo/types'
+import { FileInterceptor } from '@nestjs/platform-express'
 
 @Controller('storage')
 export class StorageController {
@@ -32,5 +41,14 @@ export class StorageController {
       maxKeys ? parseInt(maxKeys, 10) : undefined,
       continuationToken
     )
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: any,
+    @Body('path') path: string
+  ): Promise<{ url: string }> {
+    return { url: await this.storageService.uploadToS3(path, file.buffer) }
   }
 }

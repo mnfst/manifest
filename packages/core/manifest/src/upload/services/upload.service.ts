@@ -41,7 +41,7 @@ export class UploadService {
       )
     }
 
-    return this.storageService.store(entity, property, file)
+    return this.storageService.storeFileForProperty(entity, property, file)
   }
 
   storeImage({
@@ -88,7 +88,7 @@ export class UploadService {
       )
     }
 
-    return this.storageService.storeImage(
+    return this.storageService.storeImageForProperty(
       entity,
       property,
       image,

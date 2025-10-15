@@ -345,7 +345,7 @@ export class SeederService {
       path.join(__dirname, '..', '..', '..', '..', 'assets', DUMMY_FILE_NAME)
     )
 
-    const filePath: string = await this.storageService.store(
+    const filePath: string = await this.storageService.storeFileForProperty(
       entityManifest.slug,
       propertyManifest.name,
       {
@@ -374,7 +374,7 @@ export class SeederService {
     )
 
     const images: { [key: string]: string } =
-      await this.storageService.storeImage(
+      await this.storageService.storeImageForProperty(
         entityManifest.slug,
         propertyManifest.name,
         {

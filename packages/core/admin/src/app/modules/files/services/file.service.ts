@@ -48,4 +48,26 @@ export class FileService {
       nextContinuationToken?: string
     }>
   }
+
+  async create(
+    file: File,
+    path: string
+  ): Promise<{ key: string; url: string }> {
+    const arrayBuffer = await file.arrayBuffer()
+    const blob = new Blob([arrayBuffer], { type: file.type })
+
+    const formData = new FormData()
+    formData.append('file', blob, file.name)
+    formData.append('path', path)
+
+    return firstValueFrom(
+      this.http.post<{ key: string; url: string }>(
+        `${environment.apiBaseUrl}/storage/upload`,
+        formData
+      )
+    ).catch((error) => {
+      console.error('Error uploading file:', error)
+      throw error
+    })
+  }
 }
