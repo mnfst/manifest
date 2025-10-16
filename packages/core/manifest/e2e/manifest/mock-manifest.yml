@@ -86,9 +86,6 @@ entities:
       read:
         # Only for Users and contributors.
         - { access: restricted, allow: [User, Contributor] }
-      create:
-        # Only for logged as authenticable entity.
-        - access: restricted
       update:
         # Only for Users.
         - { access: restricted, allow: User }

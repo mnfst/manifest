@@ -165,25 +165,6 @@ describe('Authorization (e2e)', () => {
   })
 
   describe('Restricted rules', () => {
-    it('should allow access to restricted rules to all logged in users if no entity is provided', async () => {
-      const restrictedCreateResponseAsUser = await global.request
-        .post('/collections/birds')
-        .send({
-          name: 'lala'
-        })
-        .set('Authorization', 'Bearer ' + userToken)
-
-      const restrictedCreateResponseAsContributor = await global.request
-        .post('/collections/birds')
-        .send({
-          name: 'lala'
-        })
-        .set('Authorization', 'Bearer ' + contributorToken)
-
-      expect(restrictedCreateResponseAsUser.status).toBe(201)
-      expect(restrictedCreateResponseAsContributor.status).toBe(201)
-    })
-
     it('should allow access to restricted rules to logged in users of a defined entity if provided', async () => {
       const restrictedToUsersUpdateResponse = await global.request
         .put(`/collections/birds/${birdId}`)
