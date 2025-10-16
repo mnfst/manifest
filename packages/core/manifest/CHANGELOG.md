@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.11
+
+### Patch Changes
+
+- 293da2d: fixed collections not showing in admin panel on first admin signup
+
 ## 4.17.10
 
 ### Patch Changes
