@@ -86,11 +86,12 @@ export class AuthService {
       ) as Promise<{
         token: string
       }>
-    ).then((res: { token: string }) => {
+    ).then(async (res: { token: string }) => {
       const token = res?.token
       if (token) {
         localStorage.setItem(TOKEN_KEY, token)
       }
+      this.currentUserSubject.next(await firstValueFrom(this.loadCurrentUser()))
       return token
     })
   }
