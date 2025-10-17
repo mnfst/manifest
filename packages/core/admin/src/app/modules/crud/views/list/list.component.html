@@ -137,7 +137,10 @@
                 ></a>
                 <a
                   class="button is-light is-small is-circle"
-                  (click)="toggleDeleteModal(item)"
+                  [class.is-disabled]="entityManifest.slug === 'admins' && item['id'] === currentAdminId"
+                  [attr.aria-disabled]="entityManifest.slug === 'admins' && item['id'] === currentAdminId ? true : null"
+                  [attr.title]="entityManifest.slug === 'admins' && item['id'] === currentAdminId ? 'You cannot delete your own admin account' : null"
+                  (click)="entityManifest.slug === 'admins' && item['id'] === currentAdminId ? null : toggleDeleteModal(item)"
                   ><i class="icon icon-trash-2"></i
                 ></a>
               </div>
@@ -198,10 +201,18 @@
         <button class="button is-white" (click)="toggleDeleteModal()">
           Cancel
         </button>
-        <button class="button is-danger" (click)="delete(itemToDelete['id'])">
+        <button
+          class="button is-danger"
+          [disabled]="entityManifest.slug === 'admins' && itemToDelete && itemToDelete['id'] === currentAdminId"
+          [attr.title]="entityManifest.slug === 'admins' && itemToDelete && itemToDelete['id'] === currentAdminId ? 'You cannot delete your own admin account' : null"
+          (click)="delete(itemToDelete['id'])"
+        >
           Delete
         </button>
       </div>
+      <p class="help is-danger mt-2" *ngIf="entityManifest.slug === 'admins' && itemToDelete && itemToDelete['id'] === currentAdminId">
+        You cannot delete your own admin account.
+      </p>
       <button
         class="modal-close is-large"
         aria-label="close"

@@ -14,6 +14,7 @@ import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
 import { MetaService } from '../../../shared/services/meta.service'
 import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
+import { AuthService } from '../../../auth/auth.service'
 
 @Component({
   selector: 'app-list',
@@ -28,6 +29,9 @@ export class ListComponent implements OnInit {
   entityManifest: EntityManifest
   properties: PropertyManifest[]
 
+  // Current admin ID used to prevent self-deletion in admin listing
+  currentAdminId: string | null = null
+
   queryParams: Params
   PropType = PropType
 
@@ -38,10 +42,17 @@ export class ListComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private metaService: MetaService,
     private flashMessageService: FlashMessageService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    // Ensure current admin is loaded and keep ID in sync
+    this.authService.currentUser$.subscribe((admin) => {
+      this.currentAdminId = admin?.id || null
+    })
+    this.authService.loadCurrentUser().subscribe()
+
     combineLatest([
       this.activatedRoute.queryParams,
       this.activatedRoute.params
