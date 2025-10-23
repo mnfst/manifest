@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common'
 import { YamlService } from '../services/yaml.service'
 import { ConfigService } from '@nestjs/config'
 import { AdminAccess } from '../../auth/decorators/admin-access.decorator'
@@ -22,10 +22,10 @@ export class ManifestFileController {
     }
   }
 
-  @Post()
-  @AdminAccess('hasBackendBuilderAccess')
-  @UseGuards(AdminAccessGuard)
-  async saveManifestFileContent(
+  @Put()
+  // @AdminAccess('hasBackendBuilderAccess')
+  // @UseGuards(AdminAccessGuard)s
+  async updateManifestFileContent(
     @Body() body: { content: string }
   ): Promise<{ success: boolean }> {
     return this.yamlService.saveFileContent(

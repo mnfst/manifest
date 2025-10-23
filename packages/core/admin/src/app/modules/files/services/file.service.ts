@@ -49,6 +49,17 @@ export class FileService {
     }>
   }
 
+  async updateManifestFile(content: string): Promise<any> {
+    return firstValueFrom(
+      this.http.put(`${environment.apiBaseUrl}/manifest-file`, {
+        content
+      })
+    ).catch((error) => {
+      console.error('Error updating manifest file:', error)
+      throw error
+    })
+  }
+
   async create(
     file: File,
     path: string

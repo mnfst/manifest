@@ -38,7 +38,6 @@ export class OnboardingComponent {
     this.assistantService
       .createProject(formValue.prompt, formValue.attachment)
       .then(async (project: Project) => {
-        this.isLoading = false
         console.log('Project created:', project)
 
         const manifestFileCode: string = project.messages.filter(
@@ -49,14 +48,13 @@ export class OnboardingComponent {
         ].code!
         console.log('Manifest File Code:', manifestFileCode)
 
-        const file = new File([manifestFileCode], 'manifest.yml', {
-          type: 'text/yaml',
-          lastModified: Date.now()
-        })
+        await this.fileService.updateManifestFile(manifestFileCode)
 
-        await this.fileService.create(file, 'manifest.yml')
-
-        return this.router.navigate(['/'])
+        // Wait for reload to complete (current status).
+        setTimeout(() => {
+          this.isLoading = false
+          this.router.navigate(['/'])
+        }, 10000)
       })
       .catch((error) => {
         this.isLoading = false

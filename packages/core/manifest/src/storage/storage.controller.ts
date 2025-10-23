@@ -49,6 +49,6 @@ export class StorageController {
     @UploadedFile() file: any,
     @Body('path') path: string
   ): Promise<{ url: string }> {
-    return { url: await this.storageService.uploadToS3(path, file.buffer) }
+    return { url: await this.storageService.storeFileAtPath(file.buffer, path) }
   }
 }
