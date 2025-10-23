@@ -6,6 +6,7 @@ import * as yaml from 'js-yaml'
 import { Manifest } from '@repo/types'
 import { StorageService } from '../../storage/services/storage.service'
 import { ConfigService } from '@nestjs/config'
+import { EMPTY_MANIFEST_NAME } from '../../constants'
 
 @Injectable()
 export class YamlService {
@@ -29,15 +30,19 @@ export class YamlService {
   }: {
     manifestFilePath?: string
     manifestFileContent?: string
-  }): Promise<Manifest> {
+  }): Promise<Manifest | null> {
     if (!manifestFileContent && !manifestFilePath) {
       throw new Error(
         'Either manifestFilePath or manifestFileContent must be provided'
       )
     }
 
-    const fileContent =
+    let fileContent: string =
       manifestFileContent || (await this.loadFileContent(manifestFilePath))
+
+    if (fileContent === null) {
+      fileContent = `name: ${EMPTY_MANIFEST_NAME}`
+    }
 
     const manifestSchema: Manifest = yaml.load(fileContent) as Manifest
 
@@ -54,13 +59,20 @@ export class YamlService {
     return manifestSchema
   }
 
-  async loadFileContent(manifestFilePath: string): Promise<string> {
+  async loadFileContent(manifestFilePath: string): Promise<string | null> {
     let fileContent: string
 
     if (manifestFilePath.startsWith('http')) {
       fileContent = await this.loadManifestFromUrl(manifestFilePath)
     } else {
-      fileContent = fs.readFileSync(manifestFilePath, 'utf8')
+      try {
+        fileContent = fs.readFileSync(manifestFilePath, 'utf8')
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          return null
+        }
+        throw error
+      }
     }
 
     fileContent = this.interpolateDotEnvVariables(fileContent)

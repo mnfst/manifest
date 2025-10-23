@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core'
 import { NavigationEnd, Router } from '@angular/router'
 import { AuthService } from './modules/auth/auth.service'
-import { TOKEN_KEY } from '../constants'
+import { EMPTY_MANIFEST_NAME, TOKEN_KEY } from '../constants'
 import { Subscription } from 'rxjs'
 import { VersionService } from './modules/shared/services/version.service'
 import { ManifestService } from './modules/shared/services/manifest.service'
@@ -44,7 +44,12 @@ export class AppComponent implements OnInit, OnDestroy {
     })
 
     this.appManifest = await this.manifestService.getManifest()
-    this.checkForUpdates()
+
+    if (this.appManifest.name === EMPTY_MANIFEST_NAME) {
+      this.router.navigate(['/onboarding'])
+    }
+
+    // this.checkForUpdates()
   }
 
   ngOnDestroy(): void {

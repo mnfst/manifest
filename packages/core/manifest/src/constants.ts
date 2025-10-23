@@ -17,6 +17,7 @@ export const GENERATED_FOLDER_PATH: string = '.manifest'
 // Default values.
 export const DEFAULT_PORT: number = 1111
 export const DEFAULT_RESULTS_PER_PAGE: number = 20
+export const EMPTY_MANIFEST_NAME: string = 'empty_manifest'
 
 // Security.
 export const SALT_ROUNDS: number = 10

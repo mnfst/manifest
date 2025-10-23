@@ -6,3 +6,5 @@ export const DEFAULT_ADMIN_CREDENTIALS = {
   email: 'admin@manifest.build',
   password: 'admin'
 }
+
+export const EMPTY_MANIFEST_NAME: string = 'empty_manifest'
