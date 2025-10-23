@@ -39,7 +39,8 @@ export class AppComponent implements OnInit, OnDestroy {
         window.scrollTo(0, 0)
         this.isLogin =
           routeChanged.url.includes('/auth/login') ||
-          routeChanged.url.includes('/auth/welcome')
+          routeChanged.url.includes('/auth/welcome') ||
+          routeChanged.url.includes('/onboarding')
       }
     })
 
