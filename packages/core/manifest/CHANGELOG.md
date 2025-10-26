@@ -1,5 +1,11 @@
 # manifest
 
+## 4.17.12
+
+### Patch Changes
+
+- d44ae0a: Fixed validation error when 2 relation with same entity even if different names, thanks @avikejariwal
+
 ## 4.17.11
 
 ### Patch Changes
