@@ -12,6 +12,7 @@ import {
 import Ajv from 'ajv'
 import schemas from '@repo/json-schema'
 import chalk from 'chalk'
+import { RelationshipManifestService } from './relationship-manifest.service'
 
 @Injectable()
 export class SchemaService {
@@ -76,31 +77,51 @@ export class SchemaService {
 
     Object.entries(manifest.entities || {}).forEach(
       ([entityName, entity]: [string, EntitySchema]) => {
-        const relationshipNames = Object.values(entity.belongsTo || []).map(
-          (relationship: RelationshipSchema) => {
-            if (typeof relationship === 'string') {
-              return relationship
-            }
-            return relationship.entity
-          }
-        )
+        const relationshipNames = Object.values(entity.belongsTo || [])
+          .map((relationship: RelationshipSchema) =>
+            RelationshipManifestService.generateRelationshipName(
+              relationship,
+              'many-to-one'
+            )
+          )
+          .concat(
+            Object.values(entity.belongsToMany || []).map(
+              (relationship: RelationshipSchema) =>
+                RelationshipManifestService.generateRelationshipName(
+                  relationship,
+                  'many-to-many'
+                )
+            )
+          )
 
         // Validate that entity relationship names are unique.
         const uniqueRelationshipNames = new Set(relationshipNames)
         if (uniqueRelationshipNames.size !== relationshipNames.length) {
           this.logValidationError(
-            `Entity ${entityName} has duplicate relationship names : ${relationshipNames.join(', ')}`
+            `Entity ${entityName} has duplicate relationship names. Relations: ${relationshipNames.join(', ')}`
           )
         }
 
         // Validate that all entities in relationships exist.
-        relationshipNames.forEach((relationship: string) => {
-          if (!entityNames.includes(relationship)) {
-            this.logValidationError(
-              `Entity ${relationship} in relationships does not exist`
+        Object.values(entity.belongsTo || {})
+          .map((relationship: RelationshipSchema) =>
+            RelationshipManifestService.generateRelationshipEntity(relationship)
+          )
+          .concat(
+            Object.values(entity.belongsToMany || {}).map(
+              (relationship: RelationshipSchema) =>
+                RelationshipManifestService.generateRelationshipEntity(
+                  relationship
+                )
             )
-          }
-        })
+          )
+          .forEach((relationship: string) => {
+            if (!entityNames.includes(relationship)) {
+              this.logValidationError(
+                `Entity ${relationship} in relationships does not exist`
+              )
+            }
+          })
 
         // Validate that entities in policies exist
         this.flattenPolicies(entity.policies).forEach(

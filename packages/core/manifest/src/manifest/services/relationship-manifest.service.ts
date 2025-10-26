@@ -26,18 +26,24 @@ export class RelationshipManifestService {
     type: 'many-to-one' | 'many-to-many',
     entityClassName?: string
   ): RelationshipManifest {
+    const relationshipName: string =
+      RelationshipManifestService.generateRelationshipName(relationship, type)
+
+    const relationshipEntity: string =
+      RelationshipManifestService.generateRelationshipEntity(relationship)
+
     if (type === 'many-to-one') {
       if (typeof relationship === 'string') {
         return {
-          name: camelize(relationship),
-          entity: relationship,
+          name: relationshipName,
+          entity: relationshipEntity,
           eager: false,
           type
         }
       }
       return {
-        name: camelize(relationship.name || relationship.entity),
-        entity: relationship.entity,
+        name: relationshipName,
+        entity: relationshipEntity,
         eager: relationship.eager || false,
         helpText: relationship.helpText || '',
         type
@@ -46,17 +52,18 @@ export class RelationshipManifestService {
       // Many-to-many.
       if (typeof relationship === 'string') {
         return {
-          name: pluralize(camelize(relationship)),
-          entity: relationship,
+          name: relationshipName,
+          entity: relationshipEntity,
           eager: false,
           type,
           owningSide: true,
           inverseSide: pluralize(camelize(entityClassName))
         }
       }
+
       return {
-        name: pluralize(camelize(relationship.name || relationship.entity)),
-        entity: relationship.entity,
+        name: relationshipName,
+        entity: relationshipEntity,
         eager: relationship.eager || false,
         helpText: relationship.helpText || '',
         type,
@@ -284,5 +291,45 @@ export class RelationshipManifestService {
         return relationship
       }
     )
+  }
+
+  /**
+   * Generate a relationship name based on the relationship schema.
+   *
+   * @param relationship The relationship schema.
+   * @param type The type of the relationship.
+   *
+   * @returns The generated relationship name.
+   */
+  static generateRelationshipName(
+    relationship: RelationshipSchema,
+    type: 'many-to-many' | 'many-to-one'
+  ): string {
+    if (type === 'many-to-one') {
+      if (typeof relationship === 'string') {
+        return camelize(relationship)
+      }
+      return camelize(relationship.name || relationship.entity)
+    } else {
+      // Many-to-many.
+      if (typeof relationship === 'string') {
+        return pluralize(camelize(relationship))
+      }
+      return camelize(relationship.name || relationship.entity)
+    }
+  }
+
+  /**
+   * Generate the entity name based on the relationship schema.
+   *
+   * @param relationship The relationship schema.
+   *
+   * @returns The entity name.
+   */
+  static generateRelationshipEntity(relationship: RelationshipSchema): string {
+    if (typeof relationship === 'string') {
+      return relationship
+    }
+    return relationship.entity
   }
 }
