@@ -9,7 +9,7 @@
     "ng": "ng",
     "start": "ng serve",
     "dev": "ng serve",
-    "build-admin-in-bundle": "ng build --configuration production && cp -r ./dist ../manifest/dist/admin",
+    "build-admin-in-bundle": "ng build --configuration production && shx cp -r ./dist ../manifest/dist/admin",
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {
@@ -39,6 +39,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
+    "shx": "^0.4.0",
     "typescript": "~5.4.3"
   }
 }

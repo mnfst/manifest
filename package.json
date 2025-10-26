@@ -26,6 +26,8 @@
   "packageManager": "npm@10.7.0",
   "dependencies": {
     "@changesets/cli": "^2.27.11",
-    "sharp": "^0.34.3"
+    "rxjs": "^7.8.2",
+    "sharp": "^0.34.3",
+    "sqlite3": "^5.1.7"
   }
 }
