@@ -3,7 +3,11 @@
 The `create manifest` create a new project with [Manifest](https://manifest.build).
 
 ```bash
+# NPM
 npx create-manifest@latest
+
+# Yarn
+yarn create manifest
 ```
 
 This will create a folder named my-project and install Manifest inside it.
@@ -14,8 +18,6 @@ You can add a flag to set up rules for your AI code Editor:
 - `--cursor` for **Cursor**
 - `--copilot` for **GitHub Copilot**
 - `--windsurf` for **Windsurf**
-
-You can also use `yarn create manifest`.
 
 ## Develop
 
