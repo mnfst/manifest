@@ -7,7 +7,6 @@ import { HomeDeveloperComponent } from './pages/home-developer/home-developer.co
 import { AdminAccessGuard } from './modules/auth/guards/admin-access.guard'
 import { RestrictAdminCollectionGuard } from './modules/auth/guards/restrict-admin-collection.guard'
 import { ApiDocsComponent } from './pages/api-docs/api-docs.component'
-import { OnboardingComponent } from './pages/onboarding/onboarding.component'
 
 const routes: Routes = [
   {
@@ -39,15 +38,6 @@ const routes: Routes = [
         (m) => m.CrudSingleModule
       ),
     canActivate: [AuthGuard]
-  },
-  {
-    path: 'files',
-    loadChildren: () =>
-      import('./modules/files/files.module').then((m) => m.FilesModule),
-    canActivate: [AdminAccessGuard],
-    data: {
-      requiredAccess: 'hasBackendBuilderAccess'
-    }
   },
   {
     path: 'builder',
@@ -86,10 +76,6 @@ const routes: Routes = [
     data: {
       requiredAccess: 'hasApiDocsAccess'
     }
-  },
-  {
-    path: 'onboarding',
-    component: OnboardingComponent
   },
   {
     path: '404',

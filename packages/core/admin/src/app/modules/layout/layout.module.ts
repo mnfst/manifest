@@ -4,7 +4,6 @@ import { RouterModule } from '@angular/router'
 import { SharedModule } from '../shared/shared.module'
 import { FlashMessageComponent } from './flash-message/flash-message.component'
 import { FooterComponent } from './footer/footer.component'
-import { PrimarySidebarComponent } from './primary-sidebar/primary-sidebar.component'
 import { SideMenuComponent } from './side-menu/side-menu.component'
 import { TouchMenuComponent } from './touch-menu/touch-menu.component'
 import { UserMenuItemComponent } from './user-menu-item/user-menu-item.component'
@@ -17,7 +16,6 @@ import { ModalComponent } from './modal/modal.component'
     ModalComponent,
     FooterComponent,
     SideMenuComponent,
-    PrimarySidebarComponent,
     TouchMenuComponent,
     UserMenuItemComponent
   ],
@@ -33,7 +31,6 @@ import { ModalComponent } from './modal/modal.component'
     ModalComponent,
     FooterComponent,
     SideMenuComponent,
-    PrimarySidebarComponent,
     TouchMenuComponent,
     UserMenuItemComponent
   ]
