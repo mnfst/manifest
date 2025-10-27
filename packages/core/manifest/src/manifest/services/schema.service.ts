@@ -46,11 +46,10 @@ export class SchemaService {
     schema: any,
     throwErrors: boolean
   ): boolean {
-    let validate: any = new Ajv({
+    const validate = new Ajv({
       schemas,
       allowUnionTypes: true
-    })
-    validate = validate.getSchema(schema.$id)
+    }).getSchema(schema.$id)
 
     const valid = validate(manifest)
 
@@ -136,7 +135,7 @@ export class SchemaService {
         )
 
         // Validate that all groups exist.
-        const groupProperties: PropertySchema[] = entity.properties
+        const groupProperties: PropertySchema[] = (entity.properties || [])
           .filter((property: PropertySchema) => typeof property !== 'string')
           .filter((property: PropertySchema) => property['options']?.group)
 

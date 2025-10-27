@@ -14,6 +14,8 @@ import { PropertyManifestService } from './services/property-manifest.service'
 import { LockFileService } from './services/lock-file.service'
 import { ManifestFileController } from './controllers/manifest-file.controller'
 import { StorageModule } from '../storage/storage.module'
+import { ManifestWriterService } from './services/manifest-writer.service'
+import { ManifestWriterController } from './controllers/manifest-writer.controller'
 
 /**
  *
@@ -38,9 +40,14 @@ import { StorageModule } from '../storage/storage.module'
     EntityManifestService,
     PropertyManifestService,
     RelationshipManifestService,
-    LockFileService
+    LockFileService,
+    ManifestWriterService
   ],
-  controllers: [ManifestController, ManifestFileController],
+  controllers: [
+    ManifestController,
+    ManifestFileController,
+    ManifestWriterController
+  ],
   exports: [
     ManifestService,
     EntityManifestService,

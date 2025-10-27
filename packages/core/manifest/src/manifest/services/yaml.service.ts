@@ -30,7 +30,7 @@ export class YamlService {
   }: {
     manifestFilePath?: string
     manifestFileContent?: string
-  }): Promise<Manifest | null> {
+  }): Promise<Manifest> {
     if (!manifestFileContent && !manifestFilePath) {
       throw new Error(
         'Either manifestFilePath or manifestFileContent must be provided'
@@ -80,10 +80,35 @@ export class YamlService {
     return fileContent
   }
 
+  /**
+   *
+   * Save the manifest file content to the given path. Either content in YAML or manifest object must be provided.
+   *
+   * @param manifestFilePath
+   * @param content string
+   * @param manifestSchema: Manifest
+   *
+   * @returns { success: boolean }
+   *
+   **/
   async saveFileContent(
     manifestFilePath: string,
-    content: string
+    { content, manifestSchema }: { content?: string; manifestSchema?: Manifest }
   ): Promise<{ success: boolean }> {
+    if (!content && !manifestSchema) {
+      throw new Error('Either content or manifest must be provided')
+    }
+
+    if (!content && manifestSchema) {
+      // Convert manifest object to YAML string and format it.
+      content = yaml.dump(manifestSchema, {
+        indent: 2,
+        flowLevel: 4, // Only objects at depth 4+ use inline syntax
+        lineWidth: -1,
+        noRefs: true
+      })
+    }
+
     if (manifestFilePath.startsWith('http')) {
       this.storageService.uploadToS3(
         this.configService.get('storage').s3ManifestFilePath,

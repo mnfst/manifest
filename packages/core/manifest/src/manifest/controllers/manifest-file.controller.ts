@@ -30,7 +30,7 @@ export class ManifestFileController {
   ): Promise<{ success: boolean }> {
     return this.yamlService.saveFileContent(
       this.configService.get('paths').manifestFile,
-      body.content
+      { content: body.content }
     )
   }
 }
