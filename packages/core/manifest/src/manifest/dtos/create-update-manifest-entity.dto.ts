@@ -1,6 +1,6 @@
 import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
 
-export class CreateManifestEntityDto {
+export class CreateUpdateManifestEntityDto {
   @IsString()
   className: string
 
