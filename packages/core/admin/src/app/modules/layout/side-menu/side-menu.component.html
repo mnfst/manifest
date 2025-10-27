@@ -22,19 +22,15 @@
 
     <!-- Collections -->
     <li *ngIf="collections">
-      <a
-        (click)="isCollectionsOpen = !isCollectionsOpen"
-        class="has-submenu is-flex is-justify-content-space-between"
+      <span
+        class="is-inline-flex is-align-items-center is-justify-content-space-between"
       >
-        <span
-          class="is-inline-flex is-align-items-center is-justify-content-space-between"
-        >
-          <span>Collections</span>
-        </span>
-        <i class="icon icon-chevron-down" *ngIf="!isCollectionsOpen"></i>
-        <i class="icon icon-chevron-up" *ngIf="isCollectionsOpen"></i>
-      </a>
-      <ul *ngIf="isCollectionsOpen">
+        <span>Collections</span>
+        <a (click)="addEntity()" title="Add new collection">
+          <i class="icon icon-plus"></i>
+        </a>
+      </span>
+      <ul>
         <li *ngFor="let collection of collections">
           <a
             [routerLink]="['/content/collections', collection.slug]"
@@ -52,19 +48,14 @@
     </li>
 
     <li>
-      <a
-        (click)="isSettingsOpen = !isSettingsOpen"
-        class="has-submenu is-flex is-justify-content-space-between"
-      >
+      <a class="has-submenu is-flex is-justify-content-space-between">
         <span
           class="is-inline-flex is-align-items-center is-justify-content-space-between"
         >
           <span>Settings</span>
         </span>
-        <i class="icon icon-chevron-down" *ngIf="!isSettingsOpen"></i>
-        <i class="icon icon-chevron-up" *ngIf="isSettingsOpen"></i>
       </a>
-      <ul *ngIf="isSettingsOpen">
+      <ul>
         <li>
           <a routerLink="/collections/admins">Admins</a>
         </li>

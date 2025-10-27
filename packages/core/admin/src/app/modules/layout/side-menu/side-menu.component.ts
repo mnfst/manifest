@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core'
-import { NavigationEnd, Router } from '@angular/router'
+import { Router } from '@angular/router'
 import { AppManifest, EntityManifest } from '@repo/types'
-import { filter } from 'rxjs'
 import { ADMIN_CLASS_NAME } from '../../../../constants'
-import { Admin } from '../../../typescript/interfaces/admin.interface'
-import { AuthService } from '../../auth/auth.service'
 import { ManifestService } from '../../shared/services/manifest.service'
+import { ModalService } from '../../shared/services/modal.service'
+import { EntityManifestCreateEditComponent } from '../../manifest/components/entity-manifest-create-edit/entity-manifest-create-edit.component'
 
 @Component({
   selector: 'app-side-menu',
@@ -16,21 +15,10 @@ export class SideMenuComponent implements OnInit {
   collections: EntityManifest[]
   singles: EntityManifest[]
 
-  isCollectionsOpen = false
-  isSettingsOpen = false
-
-  isContentManager = false
-  isBackendBuilder = false
-  isApiDocs = false
-
-  hasContentManagerAccess = false
-  hasBackendBuilderAccess = false
-  hasApiDocsAccess = false
-
   constructor(
     private manifestService: ManifestService,
     private router: Router,
-    private authService: AuthService
+    private modalService: ModalService
   ) {}
 
   ngOnInit(): void {
@@ -47,24 +35,6 @@ export class SideMenuComponent implements OnInit {
         (entityManifest: EntityManifest) => entityManifest.single
       )
     })
-
-    // Set active menu item on first load
-    this.setActiveMenuItem(this.router.url)
-
-    this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        const url = event.urlAfterRedirects || event.url
-        this.setActiveMenuItem(url)
-      }
-    })
-
-    this.authService.currentUser$
-      .pipe(filter((admin) => !!admin))
-      .subscribe((admin: Admin) => {
-        this.hasBackendBuilderAccess = admin.hasBackendBuilderAccess
-        this.hasContentManagerAccess = admin.hasContentManagerAccess
-        this.hasApiDocsAccess = admin.hasApiDocsAccess
-      })
   }
 
   goToFirstEntity() {
@@ -86,9 +56,9 @@ export class SideMenuComponent implements OnInit {
     }
   }
 
-  setActiveMenuItem(routerUrl: string) {
-    this.isContentManager = routerUrl.startsWith('/content')
-    this.isBackendBuilder = routerUrl.startsWith('/builder')
-    this.isApiDocs = routerUrl.startsWith('/api-docs')
+  addEntity() {
+    this.modalService.open({
+      component: EntityManifestCreateEditComponent
+    })
   }
 }

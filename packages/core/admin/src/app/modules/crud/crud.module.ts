@@ -10,6 +10,8 @@ import { CreateEditComponent } from './views/create-edit/create-edit.component'
 import { DetailComponent } from './views/detail/detail.component'
 import { ListComponent } from './views/list/list.component'
 import { RouterModule } from '@angular/router'
+import { CapitalizeFirstLetterPipe } from '../shared/pipes/capitalize-first-letter.pipe'
+import { EntityManifestCreateEditComponent } from 'src/app/modules/manifest/components/entity-manifest-create-edit/entity-manifest-create-edit.component'
 
 @NgModule({
   declarations: [
@@ -25,7 +27,14 @@ import { RouterModule } from '@angular/router'
     ReactiveFormsModule,
     YieldComponent,
     InputComponent,
-    RelationYieldComponent
+    RelationYieldComponent,
+
+    // Standalone components
+    EntityManifestCreateEditComponent,
+
+    // Pipes
+    CapitalizeFirstLetterPipe,
+    EntityManifestCreateEditComponent
   ],
   exports: [CreateEditComponent, DetailComponent, ListComponent]
 })

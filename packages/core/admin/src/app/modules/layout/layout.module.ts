@@ -8,19 +8,29 @@ import { PrimarySidebarComponent } from './primary-sidebar/primary-sidebar.compo
 import { SideMenuComponent } from './side-menu/side-menu.component'
 import { TouchMenuComponent } from './touch-menu/touch-menu.component'
 import { UserMenuItemComponent } from './user-menu-item/user-menu-item.component'
+import { EntityManifestCreateEditComponent } from '../manifest/components/entity-manifest-create-edit/entity-manifest-create-edit.component'
+import { ModalComponent } from './modal/modal.component'
 
 @NgModule({
   declarations: [
     FlashMessageComponent,
+    ModalComponent,
     FooterComponent,
     SideMenuComponent,
     PrimarySidebarComponent,
     TouchMenuComponent,
     UserMenuItemComponent
   ],
-  imports: [CommonModule, RouterModule, SharedModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    SharedModule,
+
+    EntityManifestCreateEditComponent
+  ],
   exports: [
     FlashMessageComponent,
+    ModalComponent,
     FooterComponent,
     SideMenuComponent,
     PrimarySidebarComponent,

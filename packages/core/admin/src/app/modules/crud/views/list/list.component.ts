@@ -14,6 +14,8 @@ import { ManifestService } from '../../../shared/services/manifest.service'
 import { CrudService } from '../../services/crud.service'
 import { MetaService } from '../../../shared/services/meta.service'
 import { CapitalizeFirstLetterPipe } from '../../../shared/pipes/capitalize-first-letter.pipe'
+import { ModalService } from '../../../shared/services/modal.service'
+import { EntityManifestCreateEditComponent } from '../../../manifest/components/entity-manifest-create-edit/entity-manifest-create-edit.component'
 
 @Component({
   selector: 'app-list',
@@ -38,7 +40,8 @@ export class ListComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private metaService: MetaService,
     private flashMessageService: FlashMessageService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private modalService: ModalService
   ) {}
 
   ngOnInit(): void {
@@ -138,5 +141,17 @@ export class ListComponent implements OnInit {
       this.itemToDelete = itemToDelete
       this.renderer.addClass(document.querySelector('html'), 'is-clipped')
     }
+  }
+
+  /**
+   * Open the edit entity manifest modal to edit the current entity manifest.
+   */
+  editEntity() {
+    this.modalService.open({
+      component: EntityManifestCreateEditComponent,
+      data: {
+        entityManifest: this.entityManifest
+      }
+    })
   }
 }

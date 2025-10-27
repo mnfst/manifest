@@ -1,0 +1,65 @@
+<h2 class="title is-2">{{ title }}</h2>
+
+<form [formGroup]="form">
+  <label class="checkbox">
+    <input
+      type="checkbox"
+      formControlName="authenticable"
+      name="authenticable"
+    />
+    Authenticable
+  </label>
+
+  <label for="className">Class Name</label>
+  <input
+    type="text"
+    formControlName="className"
+    name="className"
+    class="input"
+  />
+
+  <label for="slug">Slug</label>
+  <input type="text" formControlName="slug" name="slug" class="input" />
+
+  <label for="nameSingular">Singular name</label>
+  <input
+    type="text"
+    formControlName="nameSingular"
+    name="nameSingular"
+    class="input"
+  />
+
+  <label for="namePlural">Plural name</label>
+  <input
+    type="text"
+    formControlName="namePlural"
+    name="namePlural"
+    class="input"
+  />
+
+  <label for="seedCount">Seed Count</label>
+  <input
+    type="number"
+    formControlName="seedCount"
+    name="seedCount"
+    class="input"
+  />
+
+  <div class="container mt-6">
+    <div class="columns">
+      <div class="column">
+        <button class="button">Cancel</button>
+      </div>
+      <div class="column">
+        <button
+          type="submit"
+          class="button is-primary"
+          (click)="submit(form.value)"
+          [disabled]="form.invalid"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</form>

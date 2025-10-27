@@ -4,8 +4,10 @@
   >
     <div class="left-part">
       <h1 class="title is-2 has-text-weight-light">
-        List of {{ entityManifest.namePlural }}
+        {{ entityManifest.namePlural | capitalizeFirstLetter }}
       </h1>
+      <!-- TODO: Style -->
+      <a (click)="editEntity()">Edit entity</a>
     </div>
 
     <!-- Create a new entity -->
@@ -167,6 +169,7 @@
   ></app-pagination>
 </ng-container>
 
+<!-- TODO: This could be refactored using modal service -->
 <div class="modal is-active" *ngIf="itemToDelete && entityManifest">
   <div (click)="toggleDeleteModal()" class="modal-background"></div>
   <div class="modal-card">

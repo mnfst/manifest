@@ -13,11 +13,12 @@ export class ManifestWriterController {
     return this.manifestWriterService.createEntityManifest(entityDto)
   }
 
-  @Put('entities')
+  @Put('entities/:className')
   updateEntity(
+    @Param('className') className: string,
     @Body() entityDto: CreateUpdateEntityManifestDto
   ): Promise<{ success: boolean }> {
-    return this.manifestWriterService.updateEntityManifest(entityDto)
+    return this.manifestWriterService.updateEntityManifest(className, entityDto)
   }
 
   @Delete('entities/:className')

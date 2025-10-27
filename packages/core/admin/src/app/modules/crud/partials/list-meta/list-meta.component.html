@@ -4,7 +4,7 @@
   </span>
   <span>
     <ng-container [ngPlural]="paginator.total">
-      <ng-template ngPluralCase="0">No result</ng-template>
+      <ng-template ngPluralCase="0"></ng-template>
       <ng-template ngPluralCase="1">1 result</ng-template>
       <ng-template ngPluralCase="other">
         {{ paginator.total }} results

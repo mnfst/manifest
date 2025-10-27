@@ -49,10 +49,12 @@ export class ManifestWriterService {
   /**
    * Update an existing Manifest Entity in the Manifest file.
    *
+   * @param className The class name of the entity to be updated.
    * @param entityDto The data transfer object containing the updated entity details.
    * @returns A success message.
    */
   async updateEntityManifest(
+    className: string,
     entityDto: CreateUpdateEntityManifestDto
   ): Promise<{ success: boolean }> {
     const manifestFilePath: string =
@@ -63,14 +65,14 @@ export class ManifestWriterService {
       manifestFilePath
     })
 
-    if (!manifestSchema.entities[entityDto.className]) {
+    if (!manifestSchema.entities[className]) {
       throw new Error(
-        `Entity with className ${entityDto.className} does not exist in the manifest.`
+        `Entity with className ${className} does not exist in the manifest.`
       )
     }
 
-    manifestSchema.entities[entityDto.className] = {
-      ...manifestSchema.entities[entityDto.className],
+    manifestSchema.entities[className] = {
+      ...manifestSchema.entities[className],
       ...entityDto
     }
 
