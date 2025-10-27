@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common'
 import { ManifestWriterService } from '../services/manifest-writer.service'
-import { CreateUpdateManifestEntityDto } from '../dtos/create-update-manifest-entity.dto'
+import { CreateUpdateEntityManifestDto } from '../dtos/create-update-entity-manifest.dto'
 
 @Controller('manifest-writer')
 export class ManifestWriterController {
@@ -8,22 +8,22 @@ export class ManifestWriterController {
 
   @Post('entities')
   createEntity(
-    @Body() entityDto: CreateUpdateManifestEntityDto
+    @Body() entityDto: CreateUpdateEntityManifestDto
   ): Promise<{ success: boolean }> {
-    return this.manifestWriterService.createManifestEntity(entityDto)
+    return this.manifestWriterService.createEntityManifest(entityDto)
   }
 
   @Put('entities')
   updateEntity(
-    @Body() entityDto: CreateUpdateManifestEntityDto
+    @Body() entityDto: CreateUpdateEntityManifestDto
   ): Promise<{ success: boolean }> {
-    return this.manifestWriterService.updateManifestEntity(entityDto)
+    return this.manifestWriterService.updateEntityManifest(entityDto)
   }
 
   @Delete('entities/:className')
   deleteEntity(
     @Param('className') className: string
   ): Promise<{ success: boolean }> {
-    return this.manifestWriterService.deleteManifestEntity(className)
+    return this.manifestWriterService.deleteEntityManifest(className)
   }
 }
