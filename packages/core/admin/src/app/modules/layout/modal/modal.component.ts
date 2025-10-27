@@ -17,9 +17,9 @@ export class ModalComponent implements OnInit {
   dynamicComponent!: ViewContainerRef
 
   config: ModalConfig | null = null
-  private componentRef?: ComponentRef<any>
+  private componentRef?: ComponentRef<unknown>
 
-  constructor(private modalService: ModalService) {}
+  constructor(public modalService: ModalService) {}
 
   ngOnInit(): void {
     this.modalService.modalConfig.subscribe((config: ModalConfig) => {
@@ -39,9 +39,5 @@ export class ModalComponent implements OnInit {
         Object.assign(this.componentRef.instance, this.config.data)
       }
     }
-  }
-
-  close() {
-    this.config = null
   }
 }
