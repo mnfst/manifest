@@ -1,6 +1,17 @@
 <h2 class="title is-2">{{ title }}</h2>
 
 <form [formGroup]="form">
+  <label for="className"
+    >Class Name
+    <span class="has-text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    formControlName="className"
+    name="className"
+    class="input"
+  />
+
   <label class="checkbox">
     <input
       type="checkbox"
@@ -10,41 +21,72 @@
     Authenticable
   </label>
 
-  <label for="className">Class Name</label>
-  <input
-    type="text"
-    formControlName="className"
-    name="className"
-    class="input"
-  />
+  <div class="tabs">
+    <ul>
+      <li [ngClass]="{ 'is-active': activeTab === 'fields' }">
+        <a (click)="activeTab = 'fields'">Fields</a>
+      </li>
+      <li [ngClass]="{ 'is-active': activeTab === 'policies' }">
+        <a (click)="activeTab = 'policies'">Policies</a>
+      </li>
+      <li [ngClass]="{ 'is-active': activeTab === 'options' }">
+        <a (click)="activeTab = 'options'">Options</a>
+      </li>
+    </ul>
+  </div>
 
-  <label for="slug">Slug</label>
-  <input type="text" formControlName="slug" name="slug" class="input" />
+  <!-- Fields tab content -->
+  <ng-container *ngIf="activeTab === 'fields'">
+    <!-- Fields tab content goes here -->
+    <p>Fields</p>
 
-  <label for="nameSingular">Singular name</label>
-  <input
-    type="text"
-    formControlName="nameSingular"
-    name="nameSingular"
-    class="input"
-  />
+    <app-property-manifest-create-edit
+      *ngFor="let property of propertiesFormArray.controls; let i = index"
+      [propertyFormGroup]="$any(property)"
+    ></app-property-manifest-create-edit>
 
-  <label for="namePlural">Plural name</label>
-  <input
-    type="text"
-    formControlName="namePlural"
-    name="namePlural"
-    class="input"
-  />
+    <button class="button is-info" (click)="addField()">New field</button>
+  </ng-container>
 
-  <label for="seedCount">Seed Count</label>
-  <input
-    type="number"
-    formControlName="seedCount"
-    name="seedCount"
-    class="input"
-  />
+  <!-- Policies tab content -->
+  <ng-container *ngIf="activeTab === 'policies'">
+    <!-- Policies tab content goes here -->
+    <p>Policies</p>
+  </ng-container>
 
+  <!-- Options tab content -->
+  <ng-container *ngIf="activeTab === 'options'">
+    <!-- Fields tab content goes here -->
+
+    <label for="slug">Slug</label>
+    <input type="text" formControlName="slug" name="slug" class="input" />
+
+    <label for="nameSingular">Singular name</label>
+    <input
+      type="text"
+      formControlName="nameSingular"
+      name="nameSingular"
+      class="input"
+    />
+
+    <label for="namePlural">Plural name</label>
+    <input
+      type="text"
+      formControlName="namePlural"
+      name="namePlural"
+      class="input"
+    />
+
+    <label for="seedCount">Seed Count</label>
+    <input
+      type="number"
+      formControlName="seedCount"
+      name="seedCount"
+      class="input"
+    />
+  </ng-container>
+
+  <!-- Buttons -->
   <div class="container mt-6">
     <div class="columns">
       <div class="column">
