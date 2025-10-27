@@ -10,11 +10,28 @@ import { environment } from '../../../../environments/environment'
 export class EntityManifestService {
   constructor(private http: HttpClient) {}
 
+  create(entityManifestDto: EntityManifest): Promise<EntityManifest> {
+    return firstValueFrom(
+      this.http.post<EntityManifest>(
+        `${environment.apiBaseUrl}/manifest-writer/entities`,
+        entityManifestDto
+      )
+    )
+  }
+
   update(entityManifestDto: EntityManifest): Promise<EntityManifest> {
     return firstValueFrom(
       this.http.put<EntityManifest>(
         `${environment.apiBaseUrl}/manifest-writer/entities/${entityManifestDto.className}`,
         entityManifestDto
+      )
+    )
+  }
+
+  delete(className: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>(
+        `${environment.apiBaseUrl}/manifest-writer/entities/${className}`
       )
     )
   }

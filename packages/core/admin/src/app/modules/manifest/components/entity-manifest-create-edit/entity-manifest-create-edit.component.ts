@@ -2,6 +2,8 @@ import { Component, Input } from '@angular/core'
 import { EntityManifest } from '../../../../../../../types/src'
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { EntityManifestService } from '../../services/entity-manifest.service'
+import { FlashMessageService } from '../../../shared/services/flash-message.service'
+import { ModalService } from '../../../shared/services/modal.service'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -16,14 +18,22 @@ export class EntityManifestCreateEditComponent {
   form: FormGroup
   title: string
 
+  mode: 'create' | 'edit' = 'create'
   isLoading: boolean = false
 
-  constructor(private entityManifestService: EntityManifestService) {}
+  constructor(
+    private entityManifestService: EntityManifestService,
+    private flashMessageService: FlashMessageService,
+    private modalService: ModalService
+  ) {}
 
   ngOnInit() {
-    this.title = this.entityManifest
-      ? `Edit collection: ${this.entityManifest.namePlural}`
-      : 'Create collection'
+    this.mode = this.entityManifest ? 'edit' : 'create'
+
+    this.title =
+      this.mode === 'edit'
+        ? `Edit collection: ${this.entityManifest.namePlural}`
+        : 'Create collection'
 
     this.form = new FormGroup({
       authenticable: new FormControl(
@@ -41,16 +51,30 @@ export class EntityManifestCreateEditComponent {
 
   async submit(formValue: EntityManifest) {
     this.isLoading = true
-    await this.entityManifestService
-      .update(formValue)
+
+    const operation: Promise<EntityManifest> =
+      this.mode === 'create'
+        ? this.entityManifestService.create(formValue)
+        : this.entityManifestService.update(formValue)
+
+    await operation
       .catch(() => {
-        console.log('Error updating entity manifest')
+        this.flashMessageService.error(
+          `Error ${this.mode === 'create' ? 'creating' : 'updating'} entity manifest`
+        )
       })
       .then(() => {
-        console.log('Entity manifest updated successfully')
+        this.flashMessageService.success(
+          `Entity manifest ${this.mode === 'create' ? 'created' : 'updated'} successfully`
+        )
+        this.closeModal()
       })
       .finally(() => {
         this.isLoading = false
       })
+  }
+
+  closeModal() {
+    this.modalService.close()
   }
 }
