@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { Rule } from './types/rule.type'
+import { Rule } from '../../../types/src/policies/Rule'
 import { EntityManifest, PolicyManifest } from '@repo/types'
 import { AuthService } from '../auth/auth.service'
 import { Request } from 'express'

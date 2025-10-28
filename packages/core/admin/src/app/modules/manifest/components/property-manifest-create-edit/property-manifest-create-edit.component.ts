@@ -4,20 +4,11 @@ import {
   EventEmitter,
   HostListener,
   Input,
-  OnChanges,
   Output,
-  SimpleChanges,
   ViewChild
 } from '@angular/core'
-import {
-  FormGroup,
-  FormControl,
-  FormBuilder,
-  Validators,
-  AbstractControl,
-  ValidationErrors
-} from '@angular/forms'
-import { PropertyManifest, PropType } from '../../../../../../../types/src'
+import { FormGroup, AbstractControl, ValidationErrors } from '@angular/forms'
+import { PropType } from '../../../../../../../types/src'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { ReactiveFormsModule } from '@angular/forms'
 
@@ -28,10 +19,9 @@ import { ReactiveFormsModule } from '@angular/forms'
   templateUrl: './property-manifest-create-edit.component.html',
   styleUrl: './property-manifest-create-edit.component.scss'
 })
-export class PropertyManifestCreateEditComponent implements OnChanges {
-  @Input() propertyManifest: PropertyManifest
-  @Output() formChange: EventEmitter<PropertyManifest> =
-    new EventEmitter<PropertyManifest>()
+export class PropertyManifestCreateEditComponent {
+  @Input() propertyManifestFormGroup: FormGroup
+  @Output() removeProperty: EventEmitter<null> = new EventEmitter<null>()
 
   @ViewChild('nameInput', { static: false })
   nameInput: ElementRef<HTMLInputElement>
@@ -45,9 +35,7 @@ export class PropertyManifestCreateEditComponent implements OnChanges {
     value: type
   }))
 
-  form: FormGroup
-
-  constructor(private formBuilder: FormBuilder) {}
+  constructor() {}
 
   // Custom validator to ensure the value is a valid PropType enum
   propTypeValidator(control: AbstractControl): ValidationErrors | null {
@@ -64,35 +52,13 @@ export class PropertyManifestCreateEditComponent implements OnChanges {
     return null
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log('ngOnChanges called with changes:', changes, this.form?.value)
-    if (!this.form) {
-      this.form = this.formBuilder.group({
-        type: new FormControl(this.propertyManifest?.type, [
-          Validators.required,
-          this.propTypeValidator.bind(this)
-        ]),
-        name: new FormControl(this.propertyManifest?.name, Validators.required),
-        helpText: new FormControl(this.propertyManifest?.helpText || ''),
-        default: new FormControl(this.propertyManifest?.default || '')
-      })
-
-      this.form.valueChanges.subscribe(() => {
-        if (this.form.valid) {
-          // console.log('Emitting form change', this.form)
-          this.formChange.emit(this.form.value)
-        }
-      })
-    }
-  }
-
   /**
    * Set the property type and focus the name input.
    *
    * @param type The property type to set.
    */
   setType(type: PropType): void {
-    this.form.get('type')?.setValue(type)
+    this.propertyManifestFormGroup.get('type')?.setValue(type)
     this.typeSelected = true
 
     // Wait for the input to be rendered before focusing.
@@ -102,7 +68,7 @@ export class PropertyManifestCreateEditComponent implements OnChanges {
   }
 
   remove(): void {
-    this.formChange.emit(null)
+    this.removeProperty.emit()
   }
 
   @HostListener('document:click', ['$event.target'])

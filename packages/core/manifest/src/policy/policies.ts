@@ -7,7 +7,7 @@ import {
   WhereKeySuffix
 } from '@repo/types'
 import { ADMIN_ENTITY_MANIFEST } from '../constants'
-import { Rule } from './types/rule.type'
+import { Rule } from '../../../types/src/policies/Rule'
 import { getDtoPropertyNameFromRelationship } from '../../../common/src'
 import { Request } from 'express'
 import { Repository } from 'typeorm'

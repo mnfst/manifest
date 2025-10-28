@@ -7,6 +7,7 @@ import {
 } from 'class-validator'
 import { CreateUpdatePropertyManifestDto } from './create-update-property-manifest.dto'
 import { Type } from 'class-transformer'
+import { CreateUpdatePolicyManifestDto } from './create-update-policy-manifest.dto'
 
 export class CreateUpdateEntityManifestDto {
   @IsString()
@@ -40,4 +41,14 @@ export class CreateUpdateEntityManifestDto {
   @Type(() => CreateUpdatePropertyManifestDto)
   @IsOptional()
   properties?: CreateUpdatePropertyManifestDto[]
+
+  @ValidateNested({ each: true })
+  @Type(() => CreateUpdatePolicyManifestDto)
+  @IsOptional()
+  policies?: {
+    create?: CreateUpdatePolicyManifestDto[]
+    read?: CreateUpdatePolicyManifestDto[]
+    write?: CreateUpdatePolicyManifestDto[]
+    delete?: CreateUpdatePolicyManifestDto[]
+  }
 }

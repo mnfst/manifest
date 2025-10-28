@@ -1,7 +1,8 @@
 import { Component, Input } from '@angular/core'
 import {
   EntityManifest,
-  PropertyManifest
+  PolicyManifest,
+  Rule
 } from '../../../../../../../types/src'
 import {
   FormArray,
@@ -15,6 +16,7 @@ import { FlashMessageService } from '../../../shared/services/flash-message.serv
 import { ModalService } from '../../../shared/services/modal.service'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { PropertyManifestCreateEditComponent } from '../property-manifest-create-edit/property-manifest-create-edit.component'
+import { PolicyManifestCreateEditComponent } from '../policy-manifest-create-edit/policy-manifest-create-edit.component'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -24,7 +26,8 @@ import { PropertyManifestCreateEditComponent } from '../property-manifest-create
     NgClass,
     NgIf,
     NgFor,
-    PropertyManifestCreateEditComponent
+    PropertyManifestCreateEditComponent,
+    PolicyManifestCreateEditComponent
   ],
   templateUrl: './entity-manifest-create-edit.component.html',
   styleUrl: './entity-manifest-create-edit.component.scss'
@@ -32,7 +35,13 @@ import { PropertyManifestCreateEditComponent } from '../property-manifest-create
 export class EntityManifestCreateEditComponent {
   @Input() entityManifest: EntityManifest
 
-  propertyManifests: PropertyManifest[]
+  policyManifests: {
+    create: PolicyManifest[]
+    read: PolicyManifest[]
+    update: PolicyManifest[]
+    delete: PolicyManifest[]
+    signup: PolicyManifest[]
+  }
 
   form: FormGroup
   title: string
@@ -40,6 +49,40 @@ export class EntityManifestCreateEditComponent {
   mode: 'create' | 'edit' = 'create'
   activeTab: 'fields' | 'policies' | 'options' = 'fields'
   isLoading: boolean = false
+
+  policyRules: {
+    id: Rule
+    label: string
+    description: string
+    hidden?: boolean
+  }[] = [
+    {
+      id: 'signup',
+      label: 'Signup',
+      description: 'Allow new user registrations',
+      hidden: true
+    },
+    {
+      id: 'create',
+      label: 'Create',
+      description: 'Add new records'
+    },
+    {
+      id: 'read',
+      label: 'Read',
+      description: 'View records'
+    },
+    {
+      id: 'update',
+      label: 'Update',
+      description: 'Modify existing records'
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      description: 'Remove records'
+    }
+  ]
 
   constructor(
     private entityManifestService: EntityManifestService,
@@ -73,10 +116,25 @@ export class EntityManifestCreateEditComponent {
       properties: new FormArray([]) // TODO: initial values on edit.
     })
 
-    // Initialize property manifests separately for easier handling.
-    this.propertyManifests = this.entityManifest
-      ? this.entityManifest.properties
-      : []
+    this.policyManifests = this.entityManifest
+      ? this.entityManifest.policies
+      : {
+          create: [],
+          read: [],
+          update: [],
+          delete: [],
+          signup: []
+        }
+
+    this.form.valueChanges.subscribe((value) => {
+      console.log('Form value changed:', value)
+      const signupRule = this.policyRules.find((rule) => rule.id === 'signup')
+      if (value.authenticable) {
+        signupRule.hidden = false
+      } else {
+        signupRule.hidden = true
+      }
+    })
   }
 
   /**
@@ -128,30 +186,31 @@ export class EntityManifestCreateEditComponent {
   }
 
   /**
-   * Adds a new field to the properties form array.
+   * Gets the properties FormArray.
    */
-  addField() {
-    this.propertyManifests.push(null)
+  get properties(): FormArray<FormGroup> {
+    return this.form.controls['properties'] as FormArray<FormGroup>
   }
 
   /**
-   * Handles changes to a property form.
-   *
-   * @param form The updated property form group.
-   * @param index The index of the property in the properties array.
+   * Adds a new property to the properties form array.
    */
-  onPropertyFormChange(propertyManifest: PropertyManifest, index: number) {
-    if (propertyManifest === null) {
-      // Remove property
-
-      this.propertyManifests.splice(index, 1)
-      this.form.controls['properties'].value.splice(index, 1)
-      return
+  addProperty() {
+    const newProperty = {
+      name: new FormControl('', Validators.required),
+      type: new FormControl(null)
     }
 
-    // Update property
-    this.form.controls['properties'].value[index] = propertyManifest
+    this.properties.push(new FormGroup(newProperty))
+  }
 
-    console.log(this.form.value['properties'])
+  /**
+   * Removes a property from the properties form array.
+   *
+   * @param index The index of the property to remove.
+   */
+  removeProperty(index: number) {
+    this.properties.removeAt(index)
+    console.log('Removed property at index', index, this.form)
   }
 }

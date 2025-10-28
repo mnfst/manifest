@@ -41,22 +41,36 @@
     <p>Fields</p>
 
     <div style="border: 1px solid blue">
-      <p><i>ID: UUID</i></p>
+      <p><i>ID: UUID</i> (primary column)</p>
     </div>
 
-    <app-property-manifest-create-edit
-      *ngFor="let propertyManifest of propertyManifests; let i = index"
-      [propertyManifest]="propertyManifest"
-      (formChange)="onPropertyFormChange($event, i)"
-    ></app-property-manifest-create-edit>
+    <div formArrayName="properties">
+      <app-property-manifest-create-edit
+        *ngFor="let property of properties.controls; let i = index"
+        [propertyManifestFormGroup]="property"
+        (removeProperty)="removeProperty(i)"
+      ></app-property-manifest-create-edit>
+    </div>
 
-    <button class="button is-info" (click)="addField()">New field</button>
+    <button class="button is-info" (click)="addProperty()">New field</button>
   </ng-container>
 
   <!-- Policies tab content -->
   <ng-container *ngIf="activeTab === 'policies'">
-    <!-- Policies tab content goes here -->
-    <p>Policies</p>
+    <div
+      style="border: 1px solid salmon"
+      *ngFor="let policyRule of policyRules"
+    >
+      <ng-container *ngIf="!policyRule.hidden">
+        <h3 class="title is-3">{{ policyRule.label }}</h3>
+        <p>{{ policyRule.description }}</p>
+
+        <!-- TODO: Right now we have only one policy per rule. We should allow more -->
+        <app-policy-manifest-create-edit
+          [policyManifest]="entityManifest?.policies.create[0]"
+        ></app-policy-manifest-create-edit>
+      </ng-container>
+    </div>
   </ng-container>
 
   <!-- Options tab content -->

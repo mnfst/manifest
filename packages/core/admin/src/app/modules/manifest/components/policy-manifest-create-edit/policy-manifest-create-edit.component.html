@@ -1,0 +1,24 @@
+<div class="container">
+  <!-- Access selection-->
+  <div class="columns is-multiline">
+    <div class="column is-3" *ngFor="let access of accesses">
+      <label class="radio">
+        <input
+          type="radio"
+          name="type"
+          [value]="access"
+          (click)="setAccess(access)"
+        />
+
+        <!-- TODO: Add real icons -->
+        {{ access }}
+      </label>
+    </div>
+  </div>
+
+  <!-- Restricted access options -->
+  <div *ngIf="form.get('access')?.value === 'restricted'">
+    %% TODO: Add restricted access options %% (pass authenticable entities for
+    selection)
+  </div>
+</div>

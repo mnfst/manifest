@@ -1,7 +1,7 @@
 <div class="container" style="border: 1px solid blue">
   <!-- Type selection-->
   <div class="columns is-multiline" *ngIf="!typeSelected">
-    <div class="column is-4" *ngFor="let propType of propTypesArray">
+    <div class="column is-3" *ngFor="let propType of propTypesArray">
       <label class="radio">
         <input
           type="radio"
@@ -16,11 +16,13 @@
     </div>
   </div>
 
-  <form [formGroup]="form">
+  <form [formGroup]="propertyManifestFormGroup">
     <ng-container *ngIf="typeSelected">
       <!-- Name input-->
       <div class="columns">
-        <div class="column is-3">({{ form.get('type')?.value }}-icon)</div>
+        <div class="column is-3">
+          ({{ propertyManifestFormGroup.get('type')?.value }}-icon)
+        </div>
         <div class="column is-7">
           <input type="text" class="input" formControlName="name" #nameInput />
         </div>
@@ -73,7 +75,7 @@
           <div class="dropdown-content">
             <!-- TODO: Duplicate field -->
             <a href="#" class="dropdown-item">%% Duplicate field </a>
-            <a href="#" class="dropdown-item" (click)="remove()"
+            <a class="dropdown-item" (click)="remove()"
               ><span class="has-text-danger">Remove field</span>
             </a>
           </div>
