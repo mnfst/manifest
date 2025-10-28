@@ -36,7 +36,10 @@ export class PropertyManifestCreateEditComponent {
     value: type
   }))
 
-  constructor() {}
+  ngOnInit(): void {
+    // Skip type selection if type is already set (edit mode).
+    this.typeSelected = !!this.propertyManifestFormGroup.get('type')?.value
+  }
 
   /**
    * Set the property type and focus the name input.

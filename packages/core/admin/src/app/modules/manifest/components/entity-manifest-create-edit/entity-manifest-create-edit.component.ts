@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core'
+import { Component, ElementRef, Input, ViewChild } from '@angular/core'
 import {
   EntityManifest,
   PolicyManifest,
@@ -35,6 +35,8 @@ import { propTypeValidator } from '../../utils/prop-type-validator'
 })
 export class EntityManifestCreateEditComponent {
   @Input() entityManifest: EntityManifest
+
+  @ViewChild('classNameInput') classNameInput: ElementRef<HTMLInputElement>
 
   policyManifests: {
     create: PolicyManifest[]
@@ -99,6 +101,13 @@ export class EntityManifestCreateEditComponent {
         ? `Edit collection: ${this.entityManifest.namePlural}`
         : 'Create collection'
 
+    if (this.mode === 'create') {
+      // Focus the className input after view init.
+      setTimeout(() => {
+        this.classNameInput.nativeElement.focus()
+      }, 0)
+    }
+
     // Initialize the form.
     this.form = new FormGroup({
       authenticable: new FormControl(
@@ -114,7 +123,17 @@ export class EntityManifestCreateEditComponent {
       nameSingular: new FormControl(this.entityManifest?.nameSingular || ''),
       namePlural: new FormControl(this.entityManifest?.namePlural || ''),
       seedCount: new FormControl(this.entityManifest?.seedCount || 50),
-      properties: new FormArray([]) // TODO: initial values on edit.
+      properties: new FormArray(
+        this.entityManifest?.properties.map((prop) => {
+          return new FormGroup({
+            name: new FormControl(prop.name, Validators.required),
+            type: new FormControl(prop.type, propTypeValidator),
+            helpText: new FormControl(prop.helpText || ''),
+            default: new FormControl(prop.default || ''),
+            hidden: new FormControl(prop.hidden || false)
+          })
+        }) || []
+      )
     })
 
     this.policyManifests = this.entityManifest
@@ -201,7 +220,8 @@ export class EntityManifestCreateEditComponent {
       name: new FormControl('', Validators.required),
       type: new FormControl(null, propTypeValidator),
       helpText: new FormControl(''),
-      default: new FormControl('')
+      default: new FormControl(''),
+      hidden: new FormControl(false)
     }
 
     this.properties.push(new FormGroup(newProperty))

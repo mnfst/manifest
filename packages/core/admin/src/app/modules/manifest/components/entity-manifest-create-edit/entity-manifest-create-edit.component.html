@@ -10,6 +10,7 @@
     formControlName="className"
     name="className"
     class="input"
+    #classNameInput
   />
 
   <label class="checkbox">
@@ -37,9 +38,6 @@
 
   <!-- Fields tab content -->
   <ng-container *ngIf="activeTab === 'fields'">
-    <!-- Fields tab content goes here -->
-    <p>Fields</p>
-
     <div style="border: 1px solid blue">
       <p><i>ID: UUID</i> (primary column)</p>
     </div>

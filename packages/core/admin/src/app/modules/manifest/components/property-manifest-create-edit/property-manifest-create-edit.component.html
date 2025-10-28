@@ -37,6 +37,11 @@
       </div>
 
       <ng-container *ngIf="extended">
+        <label class="checkbox">
+          <input type="checkbox" formControlName="hidden" name="hidden" />
+          Hidden
+        </label>
+
         <label for="helpText">Help text</label>
         <input
           class="input form-control"
@@ -52,6 +57,7 @@
         />
       </ng-container>
 
+      <!-- Dropdown menu -->
       <div class="dropdown is-active">
         <div class="dropdown-trigger">
           <button
