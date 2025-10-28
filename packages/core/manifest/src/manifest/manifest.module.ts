@@ -12,7 +12,6 @@ import { PolicyModule } from '../policy/policy.module'
 import { EndpointModule } from '../endpoint/endpoint.module'
 import { PropertyManifestService } from './services/property-manifest.service'
 import { LockFileService } from './services/lock-file.service'
-import { ManifestFileController } from './controllers/manifest-file.controller'
 import { StorageModule } from '../storage/storage.module'
 import { ManifestWriterService } from './services/manifest-writer.service'
 import { ManifestWriterController } from './controllers/manifest-writer.controller'
@@ -43,11 +42,7 @@ import { ManifestWriterController } from './controllers/manifest-writer.controll
     LockFileService,
     ManifestWriterService
   ],
-  controllers: [
-    ManifestController,
-    ManifestFileController,
-    ManifestWriterController
-  ],
+  controllers: [ManifestController, ManifestWriterController],
   exports: [
     ManifestService,
     EntityManifestService,

@@ -92,22 +92,18 @@ export class YamlService {
    *
    **/
   async saveFileContent(
-    manifestFilePath: string,
-    { content, manifestSchema }: { content?: string; manifestSchema?: Manifest }
+    manifestSchema: Manifest
   ): Promise<{ success: boolean }> {
-    if (!content && !manifestSchema) {
-      throw new Error('Either content or manifest must be provided')
-    }
+    // Convert manifest object to YAML string and format it.
+    const content = yaml.dump(manifestSchema, {
+      indent: 2,
+      flowLevel: 4, // Only objects at depth 4+ use inline syntax
+      lineWidth: -1,
+      noRefs: true
+    })
 
-    if (!content && manifestSchema) {
-      // Convert manifest object to YAML string and format it.
-      content = yaml.dump(manifestSchema, {
-        indent: 2,
-        flowLevel: 4, // Only objects at depth 4+ use inline syntax
-        lineWidth: -1,
-        noRefs: true
-      })
-    }
+    const manifestFilePath: string =
+      this.configService.get('paths').manifestFile
 
     if (manifestFilePath.startsWith('http')) {
       this.storageService.uploadToS3(

@@ -41,9 +41,7 @@ export class ManifestWriterService {
       properties: entityDto.properties
     }
 
-    return this.yamlService.saveFileContent(manifestFilePath, {
-      manifestSchema
-    })
+    return this.yamlService.saveFileContent(manifestSchema)
   }
 
   /**
@@ -76,9 +74,7 @@ export class ManifestWriterService {
       ...entityDto
     }
 
-    return this.yamlService.saveFileContent(manifestFilePath, {
-      manifestSchema
-    })
+    return this.yamlService.saveFileContent(manifestSchema)
   }
 
   /**
@@ -105,8 +101,6 @@ export class ManifestWriterService {
 
     delete manifestSchema.entities[className]
 
-    return this.yamlService.saveFileContent(manifestFilePath, {
-      manifestSchema
-    })
+    return this.yamlService.saveFileContent(manifestSchema)
   }
 }
