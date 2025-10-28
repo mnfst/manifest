@@ -1,10 +1,84 @@
-<div class="container">
+<div class="container" style="border: 1px solid blue">
   <!-- Type selection-->
-  <div class="columns is-multiline">
+  <div class="columns is-multiline" *ngIf="!typeSelected">
     <div class="column is-4" *ngFor="let propType of propTypesArray">
-      <button class="button">
+      <label class="radio">
+        <input
+          type="radio"
+          name="type"
+          [value]="propType.value"
+          (click)="setType(propType.value)"
+        />
+
+        <!-- TODO: Add real icons -->
         {{ propType.label }}
-      </button>
+      </label>
     </div>
   </div>
+
+  <form [formGroup]="form">
+    <ng-container *ngIf="typeSelected">
+      <!-- Name input-->
+      <div class="columns">
+        <div class="column is-3">({{ form.get('type')?.value }}-icon)</div>
+        <div class="column is-7">
+          <input type="text" class="input" formControlName="name" #nameInput />
+        </div>
+        <div class="column">
+          <a (click)="extended = !extended">
+            <i
+              class="icon"
+              [ngClass]="extended ? 'icon-chevron-up' : 'icon-chevron-down'"
+            ></i>
+          </a>
+        </div>
+      </div>
+
+      <ng-container *ngIf="extended">
+        <label for="helpText">Help text</label>
+        <input
+          class="input form-control"
+          type="text"
+          formControlName="helpText"
+        />
+
+        <label for="default">Default value</label>
+        <input
+          class="input form-control"
+          type="text"
+          formControlName="default"
+        />
+      </ng-container>
+
+      <div class="dropdown is-active">
+        <div class="dropdown-trigger">
+          <button
+            class="button dropdown-button"
+            aria-haspopup="true"
+            aria-controls="dropdown-menu"
+            (click)="showDropdown = !showDropdown"
+          >
+            Dropdown button
+            <span class="icon is-small">
+              <i class="icon icon-chevron-down" aria-hidden="true"></i>
+            </span>
+          </button>
+        </div>
+        <div
+          class="dropdown-menu"
+          id="dropdown-menu"
+          role="menu"
+          *ngIf="showDropdown"
+        >
+          <div class="dropdown-content">
+            <!-- TODO: Duplicate field -->
+            <a href="#" class="dropdown-item">%% Duplicate field </a>
+            <a href="#" class="dropdown-item" (click)="remove()"
+              ><span class="has-text-danger">Remove field</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </form>
 </div>

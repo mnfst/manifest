@@ -40,9 +40,14 @@
     <!-- Fields tab content goes here -->
     <p>Fields</p>
 
+    <div style="border: 1px solid blue">
+      <p><i>ID: UUID</i></p>
+    </div>
+
     <app-property-manifest-create-edit
-      *ngFor="let property of propertiesFormArray.controls; let i = index"
-      [propertyFormGroup]="$any(property)"
+      *ngFor="let propertyManifest of propertyManifests; let i = index"
+      [propertyManifest]="propertyManifest"
+      (formChange)="onPropertyFormChange($event, i)"
     ></app-property-manifest-create-edit>
 
     <button class="button is-info" (click)="addField()">New field</button>

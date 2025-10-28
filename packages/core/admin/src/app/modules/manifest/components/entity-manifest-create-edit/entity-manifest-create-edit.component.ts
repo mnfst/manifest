@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core'
-import { EntityManifest } from '../../../../../../../types/src'
+import {
+  EntityManifest,
+  PropertyManifest
+} from '../../../../../../../types/src'
 import {
   FormArray,
   FormControl,
@@ -28,6 +31,8 @@ import { PropertyManifestCreateEditComponent } from '../property-manifest-create
 })
 export class EntityManifestCreateEditComponent {
   @Input() entityManifest: EntityManifest
+
+  propertyManifests: PropertyManifest[]
 
   form: FormGroup
   title: string
@@ -65,24 +70,31 @@ export class EntityManifestCreateEditComponent {
       nameSingular: new FormControl(this.entityManifest?.nameSingular || ''),
       namePlural: new FormControl(this.entityManifest?.namePlural || ''),
       seedCount: new FormControl(this.entityManifest?.seedCount || 50),
-      properties: new FormArray([]) // TODO: Add existing properties if in edit mode.
+      properties: new FormArray([]) // TODO: initial values on edit.
     })
+
+    // Initialize property manifests separately for easier handling.
+    this.propertyManifests = this.entityManifest
+      ? this.entityManifest.properties
+      : []
   }
 
   /**
    * Submits the form to create or update the entity manifest.
    *
-   * @param formValue The value of the form to submit.
+   * @param entityManifest The value of the form to submit.
    *
    * @returns A promise that resolves when the operation is complete.
    */
-  async submit(formValue: EntityManifest) {
+  async submit(entityManifest: EntityManifest) {
     this.isLoading = true
+
+    console.log('Submitting entity manifest form', entityManifest)
 
     const operation: Promise<EntityManifest> =
       this.mode === 'create'
-        ? this.entityManifestService.create(formValue)
-        : this.entityManifestService.update(formValue)
+        ? this.entityManifestService.create(entityManifest)
+        : this.entityManifestService.update(entityManifest)
 
     await operation
       .catch(() => {
@@ -119,11 +131,27 @@ export class EntityManifestCreateEditComponent {
    * Adds a new field to the properties form array.
    */
   addField() {
-    const properties = this.form.get('properties') as FormArray
-    const newPropertyGroup = new FormGroup({
-      name: new FormControl(''),
-      type: new FormControl('string')
-    })
-    properties.push(newPropertyGroup)
+    this.propertyManifests.push(null)
+  }
+
+  /**
+   * Handles changes to a property form.
+   *
+   * @param form The updated property form group.
+   * @param index The index of the property in the properties array.
+   */
+  onPropertyFormChange(propertyManifest: PropertyManifest, index: number) {
+    if (propertyManifest === null) {
+      // Remove property
+
+      this.propertyManifests.splice(index, 1)
+      this.form.controls['properties'].value.splice(index, 1)
+      return
+    }
+
+    // Update property
+    this.form.controls['properties'].value[index] = propertyManifest
+
+    console.log(this.form.value['properties'])
   }
 }
