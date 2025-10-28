@@ -36,6 +36,21 @@
         </div>
       </div>
 
+      <!-- Conditional options -->
+      <div formGroupName="options" style="background-color: aquamarine">
+        <!-- Money type options-->
+        <div *ngIf="propertyManifestFormGroup.value.type === PropType.Money">
+          <label for="currency">Currency</label>
+          <select class="input form-control" formControlName="currency">
+            <option value=""></option>
+            <option *ngFor="let currency of currencies" [value]="currency.id">
+              {{ currency.id }} - {{ currency.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Extended options -->
       <ng-container *ngIf="extended">
         <label class="checkbox">
           <input type="checkbox" formControlName="hidden" name="hidden" />

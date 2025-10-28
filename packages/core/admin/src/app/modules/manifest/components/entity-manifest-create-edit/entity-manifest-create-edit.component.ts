@@ -2,6 +2,7 @@ import { Component, ElementRef, Input, ViewChild } from '@angular/core'
 import {
   EntityManifest,
   PolicyManifest,
+  PropertyManifest,
   Rule
 } from '../../../../../../../types/src'
 import {
@@ -114,25 +115,19 @@ export class EntityManifestCreateEditComponent {
         this.entityManifest?.authenticable || false
       ),
       single: new FormControl(this.entityManifest?.single || false),
-      mainProp: new FormControl(this.entityManifest?.mainProp || ''),
-      slug: new FormControl(this.entityManifest?.slug || ''),
+      mainProp: new FormControl(this.entityManifest?.mainProp || null),
+      slug: new FormControl(this.entityManifest?.slug || null),
       className: new FormControl(
-        this.entityManifest?.className || '',
+        this.entityManifest?.className || null,
         Validators.required
       ),
-      nameSingular: new FormControl(this.entityManifest?.nameSingular || ''),
-      namePlural: new FormControl(this.entityManifest?.namePlural || ''),
+      nameSingular: new FormControl(this.entityManifest?.nameSingular || null),
+      namePlural: new FormControl(this.entityManifest?.namePlural || null),
       seedCount: new FormControl(this.entityManifest?.seedCount || 50),
       properties: new FormArray(
-        this.entityManifest?.properties.map((prop) => {
-          return new FormGroup({
-            name: new FormControl(prop.name, Validators.required),
-            type: new FormControl(prop.type, propTypeValidator),
-            helpText: new FormControl(prop.helpText || ''),
-            default: new FormControl(prop.default || ''),
-            hidden: new FormControl(prop.hidden || false)
-          })
-        }) || []
+        this.entityManifest?.properties.map((prop: PropertyManifest) =>
+          this.initPropertyFormGroup(prop)
+        ) || []
       )
     })
 
@@ -147,7 +142,6 @@ export class EntityManifestCreateEditComponent {
         }
 
     this.form.valueChanges.subscribe((value) => {
-      console.log('Form value changed:', value)
       const signupRule = this.policyRules.find((rule) => rule.id === 'signup')
       if (value.authenticable) {
         signupRule.hidden = false
@@ -166,6 +160,32 @@ export class EntityManifestCreateEditComponent {
    */
   async submit(entityManifest: EntityManifest) {
     this.isLoading = true
+
+    // Clean the object removing null values and empty options.
+    Object.keys(entityManifest).forEach((key: string) => {
+      const typedKey = key as keyof EntityManifest
+      if (entityManifest[typedKey] === null) {
+        delete entityManifest[typedKey]
+      }
+    })
+
+    entityManifest.properties.forEach((property: PropertyManifest) => {
+      Object.keys(property).forEach((key: string) => {
+        const typedKey = key as keyof PropertyManifest
+        if (property[typedKey] === null) {
+          delete property[typedKey]
+        }
+      })
+      Object.keys(property.options).forEach((key: string) => {
+        if (property.options[key] === null) {
+          delete property.options[key]
+        }
+      })
+
+      if (Object.keys(property.options).length === 0) {
+        delete property.options
+      }
+    })
 
     console.log('Submitting entity manifest form', entityManifest)
 
@@ -216,15 +236,7 @@ export class EntityManifestCreateEditComponent {
    * Adds a new property to the properties form array.
    */
   addProperty() {
-    const newProperty = {
-      name: new FormControl('', Validators.required),
-      type: new FormControl(null, propTypeValidator),
-      helpText: new FormControl(''),
-      default: new FormControl(''),
-      hidden: new FormControl(false)
-    }
-
-    this.properties.push(new FormGroup(newProperty))
+    this.properties.push(this.initPropertyFormGroup())
   }
 
   /**
@@ -260,5 +272,18 @@ export class EntityManifestCreateEditComponent {
 
     this.properties.insert(index + 1, duplicatedProperty)
     console.log('Duplicated property at index', index, this.form)
+  }
+
+  initPropertyFormGroup(propertyManifest?: PropertyManifest): FormGroup {
+    return new FormGroup({
+      name: new FormControl(propertyManifest?.name, Validators.required),
+      type: new FormControl(propertyManifest?.type, propTypeValidator),
+      helpText: new FormControl(propertyManifest?.helpText || null),
+      default: new FormControl(propertyManifest?.default || null),
+      hidden: new FormControl(propertyManifest?.hidden || false),
+      options: new FormGroup({
+        currency: new FormControl(propertyManifest?.options['currency'])
+      })
+    })
   }
 }

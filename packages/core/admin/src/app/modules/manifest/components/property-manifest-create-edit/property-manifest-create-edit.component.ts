@@ -11,6 +11,7 @@ import { FormGroup } from '@angular/forms'
 import { PropType } from '../../../../../../../types/src'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { ReactiveFormsModule } from '@angular/forms'
+import { currencies } from './currencies.content'
 
 @Component({
   selector: 'app-property-manifest-create-edit',
@@ -35,6 +36,9 @@ export class PropertyManifestCreateEditComponent {
     label: type,
     value: type
   }))
+  PropType = PropType
+
+  currencies: { id: string; label: string }[] = currencies
 
   ngOnInit(): void {
     // Skip type selection if type is already set (edit mode).
