@@ -17,6 +17,7 @@ import { ModalService } from '../../../shared/services/modal.service'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { PropertyManifestCreateEditComponent } from '../property-manifest-create-edit/property-manifest-create-edit.component'
 import { PolicyManifestCreateEditComponent } from '../policy-manifest-create-edit/policy-manifest-create-edit.component'
+import { propTypeValidator } from '../../utils/prop-type-validator'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -198,7 +199,9 @@ export class EntityManifestCreateEditComponent {
   addProperty() {
     const newProperty = {
       name: new FormControl('', Validators.required),
-      type: new FormControl(null)
+      type: new FormControl(null, propTypeValidator),
+      helpText: new FormControl(''),
+      default: new FormControl('')
     }
 
     this.properties.push(new FormGroup(newProperty))
@@ -212,5 +215,30 @@ export class EntityManifestCreateEditComponent {
   removeProperty(index: number) {
     this.properties.removeAt(index)
     console.log('Removed property at index', index, this.form)
+  }
+
+  /**
+   *
+   * Duplicates a property in the properties form array.
+   *
+   * @param index The index of the property to duplicate.
+   */
+  duplicateProperty(index: number): void {
+    const propertyToDuplicate = this.properties.at(index) as FormGroup
+    const duplicatedProperty = new FormGroup({
+      name: new FormControl(
+        propertyToDuplicate.get('name')?.value + ' Copy',
+        Validators.required
+      ),
+      type: new FormControl(
+        propertyToDuplicate.get('type')?.value,
+        propTypeValidator
+      ),
+      helpText: new FormControl(propertyToDuplicate.get('helpText')?.value),
+      default: new FormControl(propertyToDuplicate.get('default')?.value)
+    })
+
+    this.properties.insert(index + 1, duplicatedProperty)
+    console.log('Duplicated property at index', index, this.form)
   }
 }

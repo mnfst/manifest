@@ -7,7 +7,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { FormGroup, AbstractControl, ValidationErrors } from '@angular/forms'
+import { FormGroup } from '@angular/forms'
 import { PropType } from '../../../../../../../types/src'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { ReactiveFormsModule } from '@angular/forms'
@@ -22,6 +22,7 @@ import { ReactiveFormsModule } from '@angular/forms'
 export class PropertyManifestCreateEditComponent {
   @Input() propertyManifestFormGroup: FormGroup
   @Output() removeProperty: EventEmitter<null> = new EventEmitter<null>()
+  @Output() duplicateProperty: EventEmitter<null> = new EventEmitter<null>()
 
   @ViewChild('nameInput', { static: false })
   nameInput: ElementRef<HTMLInputElement>
@@ -36,21 +37,6 @@ export class PropertyManifestCreateEditComponent {
   }))
 
   constructor() {}
-
-  // Custom validator to ensure the value is a valid PropType enum
-  propTypeValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value
-    if (!value) {
-      return null // Let the required validator handle empty values
-    }
-
-    const validPropTypes = Object.values(PropType)
-    if (!validPropTypes.includes(value)) {
-      return { invalidPropType: { value, validTypes: validPropTypes } }
-    }
-
-    return null
-  }
 
   /**
    * Set the property type and focus the name input.
@@ -69,6 +55,10 @@ export class PropertyManifestCreateEditComponent {
 
   remove(): void {
     this.removeProperty.emit()
+  }
+
+  duplicate(): void {
+    this.duplicateProperty.emit()
   }
 
   @HostListener('document:click', ['$event.target'])

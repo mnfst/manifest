@@ -49,6 +49,7 @@
         *ngFor="let property of properties.controls; let i = index"
         [propertyManifestFormGroup]="property"
         (removeProperty)="removeProperty(i)"
+        (duplicateProperty)="duplicateProperty(i)"
       ></app-property-manifest-create-edit>
     </div>
 
