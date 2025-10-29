@@ -1,6 +1,7 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core'
 import {
   EntityManifest,
+  ImageSize,
   PolicyManifest,
   PropertyManifest,
   PropType,
@@ -22,6 +23,7 @@ import { PolicyManifestCreateEditComponent } from '../policy-manifest-create-edi
 import { propTypeValidator } from '../../utils/prop-type-validator'
 import { Observable } from 'rxjs'
 import { HttpErrorResponse } from '@angular/common/http'
+import { propTypeOptionsRecord } from '../../../../typescript/records/prop-type-options.record'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -173,27 +175,17 @@ export class EntityManifestCreateEditComponent {
     })
 
     entityManifest.properties.forEach((property: PropertyManifest) => {
+      property.options = this.cleanOptionsObject(
+        property.options,
+        property.type
+      )
+
       Object.keys(property).forEach((key: string) => {
         const typedKey = key as keyof PropertyManifest
         if (property[typedKey] === null) {
           delete property[typedKey]
         }
       })
-
-      // Only some property types have options.
-      if (
-        ![PropType.Choice, PropType.Money, PropType.Image].includes(
-          property.type
-        )
-      ) {
-        delete property.options
-      } else {
-        Object.keys(property.options).forEach((key: string) => {
-          if (property.options[key] === null) {
-            delete property.options[key]
-          }
-        })
-      }
     })
 
     console.log('Submitting entity manifest form', entityManifest)
@@ -299,8 +291,41 @@ export class EntityManifestCreateEditComponent {
         sequential: new FormControl(
           propertyManifest?.options['sequential'] || false
         ),
-        sizes: new FormArray([]) // TODO: Existing sizes initialization.
+        sizes: new FormArray(
+          ((propertyManifest?.options['sizes'] as ImageSize[]) || []).map(
+            (size) =>
+              new FormGroup({
+                name: new FormControl(size.name, Validators.required),
+                width: new FormControl(size.width, [Validators.min(1)]),
+                height: new FormControl(size.height, [Validators.min(1)])
+              })
+          )
+        )
       })
     })
+  }
+
+  /**
+   * Cleans the options object of a property manifest, removing any keys that are not allowed for the given property type.
+   *
+   * @param options The options object to clean.
+   * @param type The property type.
+   *
+   * @returns The cleaned options object.
+   */
+  cleanOptionsObject(options: PropertyManifest['options'], type: PropType) {
+    const allowedOptions = propTypeOptionsRecord[type]
+
+    if (!allowedOptions) {
+      return null
+    }
+
+    Object.keys(options).forEach((key) => {
+      if (!allowedOptions.includes(key)) {
+        delete options[key]
+      }
+    })
+
+    return options
   }
 }

@@ -16,11 +16,11 @@
             "description": "The name identifier for this size variant."
           },
           "width": {
-            "type": "number",
+            "type": ["number", "null"],
             "description": "The width of the image."
           },
           "height": {
-            "type": "number",
+            "type": ["number", "null"],
             "description": "The height of the image."
           },
           "fit": {
