@@ -7,11 +7,12 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { FormArray, FormControl, FormGroup } from '@angular/forms'
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms'
 import { PropType } from '../../../../../../../types/src'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { ReactiveFormsModule } from '@angular/forms'
-import { currencies } from './currencies.content'
+import { currencies } from '../../content/currencies.content'
+import { validators, ValidatorUI } from '../../content/validators.content'
 
 @Component({
   selector: 'app-property-manifest-create-edit',
@@ -28,6 +29,9 @@ export class PropertyManifestCreateEditComponent {
   @ViewChild('nameInput', { static: false })
   nameInput: ElementRef<HTMLInputElement>
 
+  @ViewChild('addValidatorRuleSelect', { static: false })
+  addValidatorRuleSelect: ElementRef<HTMLSelectElement>
+
   extended: boolean = false
   showDropdown: boolean = false
   typeSelected: boolean = false
@@ -37,6 +41,8 @@ export class PropertyManifestCreateEditComponent {
     value: type
   }))
   PropType = PropType
+
+  validators = validators
 
   currencies: { id: string; label: string }[] = currencies
 
@@ -112,5 +118,38 @@ export class PropertyManifestCreateEditComponent {
 
   removeImageSize(index: number): void {
     this.imageSizes.removeAt(index)
+  }
+
+  get validation(): FormGroup {
+    return this.propertyManifestFormGroup.get('validation') as FormGroup
+  }
+
+  getValidatorControls(): string[] {
+    return Object.keys(this.validation.controls)
+  }
+
+  addValidatorRule(ruleEvent: any): void {
+    const validator: ValidatorUI = this.validators.find(
+      (v) => v.id === ruleEvent.target.value
+    )!
+
+    this.validation.addControl(
+      validator.id,
+      new FormControl(
+        validator.input ? null : true, // Validators without input are "true" values. Ex: isDefined, isJSON, etc.
+        Validators.required
+      )
+    )
+
+    // Reset select value
+    this.addValidatorRuleSelect.nativeElement.value = ''
+  }
+
+  removeValidatorRule(validatorId: string): void {
+    this.validation.removeControl(validatorId)
+  }
+
+  getValidatorFromId(validatorId: string): ValidatorUI | undefined {
+    return this.validators.find((v) => v.id === validatorId)
   }
 }

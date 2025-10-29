@@ -118,6 +118,48 @@
 
       <!-- Extended options -->
       <ng-container *ngIf="extended">
+        <!-- Validation rules -->
+        <div formGroupName="validation" style="background-color: lightgray">
+          <ul>
+            <li *ngFor="let validator of getValidatorControls()">
+              <div class="columns">
+                <div class="colunm">
+                  {{ getValidatorFromId(validator).description }}
+                </div>
+                <div class="colunm">
+                  <input
+                    *ngIf="getValidatorFromId(validator).input"
+                    [type]="getValidatorFromId(validator).input"
+                    class="input"
+                    [formControlName]="validator"
+                    placeholder="Value..."
+                  />
+                </div>
+                <div class="colunm">
+                  <a (click)="removeValidatorRule(validator)">X</a>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <h4 class="title is-4">Validation rules</h4>
+          <p>
+            Add validation rules to ensure that the data you are receiving is
+            correctly formatted.
+          </p>
+
+          <select
+            class="select"
+            (change)="addValidatorRule($event)"
+            #addValidatorRuleSelect
+          >
+            <option value="" selected disabled>Add validation rule</option>
+            <option [value]="validator.id" *ngFor="let validator of validators">
+              {{ validator.label }}
+            </option>
+          </select>
+        </div>
+
         <label class="checkbox">
           <input type="checkbox" formControlName="hidden" name="hidden" />
           Hidden

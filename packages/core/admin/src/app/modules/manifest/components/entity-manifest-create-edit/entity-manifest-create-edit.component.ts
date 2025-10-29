@@ -4,8 +4,7 @@ import {
   ImageSize,
   PolicyManifest,
   PropertyManifest,
-  PropType,
-  Rule
+  PropType
 } from '../../../../../../../types/src'
 import {
   FormArray,
@@ -24,6 +23,7 @@ import { propTypeValidator } from '../../utils/prop-type-validator'
 import { Observable } from 'rxjs'
 import { HttpErrorResponse } from '@angular/common/http'
 import { propTypeOptionsRecord } from '../../../../typescript/records/prop-type-options.record'
+import { policyRules } from '../../content/policy-rules.content'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -52,46 +52,14 @@ export class EntityManifestCreateEditComponent {
     signup: PolicyManifest[]
   }
 
+  policyRules = policyRules
+
   form: FormGroup
   title: string
 
   mode: 'create' | 'edit' = 'create'
   activeTab: 'fields' | 'policies' | 'options' = 'fields'
   isLoading: boolean = false
-
-  policyRules: {
-    id: Rule
-    label: string
-    description: string
-    hidden?: boolean
-  }[] = [
-    {
-      id: 'signup',
-      label: 'Signup',
-      description: 'Allow new user registrations',
-      hidden: true
-    },
-    {
-      id: 'create',
-      label: 'Create',
-      description: 'Add new records'
-    },
-    {
-      id: 'read',
-      label: 'Read',
-      description: 'View records'
-    },
-    {
-      id: 'update',
-      label: 'Update',
-      description: 'Modify existing records'
-    },
-    {
-      id: 'delete',
-      label: 'Delete',
-      description: 'Remove records'
-    }
-  ]
 
   constructor(
     private entityManifestService: EntityManifestService,
@@ -281,6 +249,19 @@ export class EntityManifestCreateEditComponent {
       helpText: new FormControl(propertyManifest?.helpText || null),
       default: new FormControl(propertyManifest?.default || null),
       hidden: new FormControl(propertyManifest?.hidden || false),
+      validation: new FormGroup(
+        Object.keys(propertyManifest?.validation || {}).reduce(
+          (acc: { [key: string]: FormControl }, key) => {
+            acc[key] = new FormControl(
+              propertyManifest?.validation[
+                key as keyof typeof propertyManifest.validation
+              ]
+            )
+            return acc
+          },
+          {}
+        )
+      ),
       options: new FormGroup({
         currency: new FormControl(propertyManifest?.options['currency']),
         values: new FormArray(
