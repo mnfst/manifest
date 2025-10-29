@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core'
 import { EntityManifest } from '../../../../../../types/src'
 import { HttpClient } from '@angular/common/http'
-import { firstValueFrom } from 'rxjs'
 import { environment } from '../../../../environments/environment'
+import { Observable } from 'rxjs'
 
 @Injectable({
   providedIn: 'root'
@@ -10,29 +10,23 @@ import { environment } from '../../../../environments/environment'
 export class EntityManifestService {
   constructor(private http: HttpClient) {}
 
-  create(entityManifestDto: EntityManifest): Promise<EntityManifest> {
-    return firstValueFrom(
-      this.http.post<EntityManifest>(
-        `${environment.apiBaseUrl}/manifest-writer/entities`,
-        entityManifestDto
-      )
+  create(entityManifestDto: EntityManifest): Observable<EntityManifest> {
+    return this.http.post<EntityManifest>(
+      `${environment.apiBaseUrl}/manifest-writer/entities`,
+      entityManifestDto
     )
   }
 
-  update(entityManifestDto: EntityManifest): Promise<EntityManifest> {
-    return firstValueFrom(
-      this.http.put<EntityManifest>(
-        `${environment.apiBaseUrl}/manifest-writer/entities/${entityManifestDto.className}`,
-        entityManifestDto
-      )
+  update(entityManifestDto: EntityManifest): Observable<EntityManifest> {
+    return this.http.put<EntityManifest>(
+      `${environment.apiBaseUrl}/manifest-writer/entities/${entityManifestDto.className}`,
+      entityManifestDto
     )
   }
 
-  delete(className: string): Promise<void> {
-    return firstValueFrom(
-      this.http.delete<void>(
-        `${environment.apiBaseUrl}/manifest-writer/entities/${className}`
-      )
+  delete(className: string): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiBaseUrl}/manifest-writer/entities/${className}`
     )
   }
 }

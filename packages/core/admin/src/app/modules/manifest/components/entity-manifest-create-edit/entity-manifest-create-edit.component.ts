@@ -3,6 +3,7 @@ import {
   EntityManifest,
   PolicyManifest,
   PropertyManifest,
+  PropType,
   Rule
 } from '../../../../../../../types/src'
 import {
@@ -19,6 +20,8 @@ import { NgClass, NgFor, NgIf } from '@angular/common'
 import { PropertyManifestCreateEditComponent } from '../property-manifest-create-edit/property-manifest-create-edit.component'
 import { PolicyManifestCreateEditComponent } from '../policy-manifest-create-edit/policy-manifest-create-edit.component'
 import { propTypeValidator } from '../../utils/prop-type-validator'
+import { Observable } from 'rxjs'
+import { HttpErrorResponse } from '@angular/common/http'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -176,39 +179,46 @@ export class EntityManifestCreateEditComponent {
           delete property[typedKey]
         }
       })
-      Object.keys(property.options).forEach((key: string) => {
-        if (property.options[key] === null) {
-          delete property.options[key]
-        }
-      })
 
-      if (Object.keys(property.options).length === 0) {
+      // Only some property types have options.
+      if (
+        ![PropType.Choice, PropType.Money, PropType.Image].includes(
+          property.type
+        )
+      ) {
         delete property.options
+      } else {
+        Object.keys(property.options).forEach((key: string) => {
+          if (property.options[key] === null) {
+            delete property.options[key]
+          }
+        })
       }
     })
 
     console.log('Submitting entity manifest form', entityManifest)
 
-    const operation: Promise<EntityManifest> =
+    const operation: Observable<EntityManifest> =
       this.mode === 'create'
         ? this.entityManifestService.create(entityManifest)
         : this.entityManifestService.update(entityManifest)
 
-    await operation
-      .catch(() => {
+    return operation.subscribe({
+      error: (error: HttpErrorResponse) => {
         this.flashMessageService.error(
-          `Error ${this.mode === 'create' ? 'creating' : 'updating'} entity manifest`
+          `Error ${this.mode === 'create' ? 'creating' : 'updating'} entity manifest: ${error.error.message}`
         )
-      })
-      .then(() => {
+      },
+      next: () => {
         this.flashMessageService.success(
           `Entity manifest ${this.mode === 'create' ? 'created' : 'updated'} successfully`
         )
         this.closeModal()
-      })
-      .finally(() => {
+      },
+      complete: () => {
         this.isLoading = false
-      })
+      }
+    })
   }
 
   /**
@@ -257,17 +267,10 @@ export class EntityManifestCreateEditComponent {
    */
   duplicateProperty(index: number): void {
     const propertyToDuplicate = this.properties.at(index) as FormGroup
-    const duplicatedProperty = new FormGroup({
-      name: new FormControl(
-        propertyToDuplicate.get('name')?.value + ' Copy',
-        Validators.required
-      ),
-      type: new FormControl(
-        propertyToDuplicate.get('type')?.value,
-        propTypeValidator
-      ),
-      helpText: new FormControl(propertyToDuplicate.get('helpText')?.value),
-      default: new FormControl(propertyToDuplicate.get('default')?.value)
+
+    const duplicatedProperty = this.initPropertyFormGroup({
+      ...propertyToDuplicate.value,
+      name: propertyToDuplicate.get('name')?.value + ' Copy'
     })
 
     this.properties.insert(index + 1, duplicatedProperty)
@@ -282,7 +285,15 @@ export class EntityManifestCreateEditComponent {
       default: new FormControl(propertyManifest?.default || null),
       hidden: new FormControl(propertyManifest?.hidden || false),
       options: new FormGroup({
-        currency: new FormControl(propertyManifest?.options['currency'])
+        currency: new FormControl(propertyManifest?.options['currency']),
+        values: new FormArray(
+          ((propertyManifest?.options['values'] as string[]) || []).map(
+            (value) => new FormControl(value)
+          )
+        ),
+        sequential: new FormControl(
+          propertyManifest?.options['sequential'] || false
+        )
       })
     })
   }

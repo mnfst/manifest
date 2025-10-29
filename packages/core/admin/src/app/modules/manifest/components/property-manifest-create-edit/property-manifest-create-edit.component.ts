@@ -7,7 +7,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core'
-import { FormGroup } from '@angular/forms'
+import { FormArray, FormControl, FormGroup } from '@angular/forms'
 import { PropType } from '../../../../../../../types/src'
 import { NgClass, NgFor, NgIf } from '@angular/common'
 import { ReactiveFormsModule } from '@angular/forms'
@@ -54,6 +54,10 @@ export class PropertyManifestCreateEditComponent {
     this.propertyManifestFormGroup.get('type')?.setValue(type)
     this.typeSelected = true
 
+    if (type === PropType.Choice) {
+      this.addValue()
+    }
+
     // Wait for the input to be rendered before focusing.
     setTimeout(() => {
       this.nameInput.nativeElement.focus()
@@ -78,5 +82,17 @@ export class PropertyManifestCreateEditComponent {
     ) {
       this.showDropdown = false
     }
+  }
+
+  get values(): FormArray {
+    return this.propertyManifestFormGroup.get('options.values') as FormArray
+  }
+
+  addValue(): void {
+    this.values.push(new FormControl(''))
+  }
+
+  removeValue(index: number): void {
+    this.values.removeAt(index)
   }
 }

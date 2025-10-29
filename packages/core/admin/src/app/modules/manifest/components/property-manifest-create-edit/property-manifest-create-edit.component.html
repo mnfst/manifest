@@ -48,6 +48,34 @@
             </option>
           </select>
         </div>
+
+        <!-- Choice type options -->
+        <div *ngIf="propertyManifestFormGroup.value.type === PropType.Choice">
+          <!-- Values -->
+          <label for="values">Options</label>
+          <button (click)="addValue()">Add Option</button>
+          <div formArrayName="values">
+            <div *ngFor="let value of values.controls; let i = index">
+              <input
+                type="text"
+                [formControlName]="i"
+                placeholder="Option {{ i + 1 }}"
+              />
+              <button (click)="removeValue(i)">Remove</button>
+            </div>
+          </div>
+
+          <!-- Sequential -->
+          <label for="sequential">List type</label>
+          <select
+            formControlName="sequential"
+            class="input form-control"
+            name="sequential"
+          >
+            <option [ngValue]="false">Flat list</option>
+            <option [ngValue]="true">Sequential</option>
+          </select>
+        </div>
       </div>
 
       <!-- Extended options -->
