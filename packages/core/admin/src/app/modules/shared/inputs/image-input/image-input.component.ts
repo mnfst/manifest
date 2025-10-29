@@ -10,7 +10,7 @@ import {
 
 import { UploadService } from '../../services/upload.service'
 import { FlashMessageService } from '../../services/flash-message.service'
-import { ImageSizesObject, PropertyManifest } from '@repo/types'
+import { ImageSize, PropertyManifest } from '@repo/types'
 import { NgClass, NgIf } from '@angular/common'
 import { getSmallestImageSize } from '@repo/common'
 
@@ -41,11 +41,11 @@ export class ImageInputComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.value) {
-      const smallestSize: string = getSmallestImageSize(
-        this.prop.options?.['sizes'] as ImageSizesObject
+      const smallestSize: ImageSize | undefined = getSmallestImageSize(
+        this.prop.options?.['sizes'] as ImageSize[]
       )
 
-      this.displayedImage = this.value[smallestSize]
+      this.displayedImage = this.value[smallestSize?.name]
     }
   }
 
@@ -70,7 +70,7 @@ export class ImageInputComponent implements OnInit {
             this.valueChanged.emit(this.value)
           }, 100)
         },
-        (err) => {
+        () => {
           this.loading = false
           this.flashMessageService.error(
             'There was an error uploading your image.'

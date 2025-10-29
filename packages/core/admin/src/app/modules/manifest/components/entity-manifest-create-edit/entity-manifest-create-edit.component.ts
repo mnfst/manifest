@@ -256,7 +256,6 @@ export class EntityManifestCreateEditComponent {
    */
   removeProperty(index: number) {
     this.properties.removeAt(index)
-    console.log('Removed property at index', index, this.form)
   }
 
   /**
@@ -274,9 +273,15 @@ export class EntityManifestCreateEditComponent {
     })
 
     this.properties.insert(index + 1, duplicatedProperty)
-    console.log('Duplicated property at index', index, this.form)
   }
 
+  /**
+   * Initializes a FormGroup for a property manifest.
+   *
+   * @param propertyManifest The property manifest to initialize the form group with.
+   *
+   * @returns The initialized FormGroup.
+   */
   initPropertyFormGroup(propertyManifest?: PropertyManifest): FormGroup {
     return new FormGroup({
       name: new FormControl(propertyManifest?.name, Validators.required),
@@ -293,7 +298,8 @@ export class EntityManifestCreateEditComponent {
         ),
         sequential: new FormControl(
           propertyManifest?.options['sequential'] || false
-        )
+        ),
+        sizes: new FormArray([]) // TODO: Existing sizes initialization.
       })
     })
   }

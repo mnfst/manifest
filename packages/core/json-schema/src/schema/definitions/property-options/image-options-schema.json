@@ -6,11 +6,15 @@
   "type": "object",
   "properties": {
     "sizes": {
-      "type": "object",
-      "description": "An object containing named size options for the image.",
-      "additionalProperties": {
+      "type": "array",
+      "description": "An array containing named size options for the image.",
+      "items": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name identifier for this size variant."
+          },
           "width": {
             "type": "number",
             "description": "The width of the image."
@@ -25,8 +29,9 @@
             "enum": ["contain", "cover", "fill", "inside", "outside"]
           }
         },
+        "required": ["name"],
         "additionalProperties": false,
-        "description": "An object representing the size options such as width, height, and fit for a specific size name."
+        "description": "An object representing the size options such as name, width, height, and fit for a specific size variant."
       }
     }
   },

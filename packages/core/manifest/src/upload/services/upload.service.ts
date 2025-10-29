@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common'
 
-import { EntityManifest, ImageSizesObject, PropertyManifest } from '@repo/types'
+import { EntityManifest, ImageSize, PropertyManifest } from '@repo/types'
 
 import { EntityManifestService } from '../../manifest/services/entity-manifest.service'
 import { StorageService } from '../../storage/services/storage.service'
@@ -92,7 +92,7 @@ export class UploadService {
       entity,
       property,
       image,
-      propertyManifest.options.sizes as ImageSizesObject
+      propertyManifest.options.sizes as ImageSize[]
     )
   }
 }

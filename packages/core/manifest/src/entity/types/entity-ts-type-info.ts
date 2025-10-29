@@ -1,4 +1,4 @@
-import { ImageSizesObject, PropType } from '../../../../types/src'
+import { ImageSize, PropType } from '../../../../types/src'
 
 export interface EntityTsTypeInfo {
   name: string
@@ -13,5 +13,5 @@ export interface PropertyTsTypeInfo {
   isRelationship?: boolean
   optional?: boolean
   values?: string[] | null
-  sizes?: ImageSizesObject
+  sizes?: ImageSize[]
 }

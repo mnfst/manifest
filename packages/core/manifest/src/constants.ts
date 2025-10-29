@@ -2,8 +2,8 @@ import {
   EntityManifest,
   PropType,
   PropertyManifest,
-  ImageSizesObject,
-  PolicyManifest
+  PolicyManifest,
+  ImageSize
 } from '@repo/types'
 
 // Paths.
@@ -30,16 +30,18 @@ export const DUMMY_IMAGE_NAME: string = 'dummy-image.jpg'
 export const DEFAULT_TOKEN_SECRET_KEY: string = 'REPLACE_ME'
 
 // Uploads.
-export const DEFAULT_IMAGE_SIZES: ImageSizesObject = {
-  thumbnail: {
+export const DEFAULT_IMAGE_SIZES: ImageSize[] = [
+  {
+    name: 'thumbnail',
     width: 80,
     height: 80
   },
-  medium: {
+  {
+    name: 'medium',
     width: 160,
     height: 160
   }
-}
+]
 
 export const AUTHENTICABLE_PROPS: PropertyManifest[] = [
   {

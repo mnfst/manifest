@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { PropType, PropertyManifest } from '@repo/types'
+import { PropType, PropertyManifest, ImageSize } from '@repo/types'
 
 import { YieldType } from '../../../typescript/enums/yield-type.enum'
 import { BooleanYieldComponent } from './boolean-yield/boolean-yield.component'
@@ -104,7 +104,7 @@ import { RichTextYieldComponent } from './rich-text-yield/rich-text-yield.compon
     <app-image-yield
       *ngIf="prop.type === PropType.Image"
       [value]="value"
-      [sizes]="prop.options?.['sizes']"
+      [sizes]="getImageSizes()"
     ></app-image-yield>
   `
 })
@@ -115,4 +115,8 @@ export class YieldComponent {
 
   PropType = PropType
   YieldType = YieldType
+
+  getImageSizes(): ImageSize[] {
+    return (this.prop.options?.['sizes'] as ImageSize[]) || []
+  }
 }

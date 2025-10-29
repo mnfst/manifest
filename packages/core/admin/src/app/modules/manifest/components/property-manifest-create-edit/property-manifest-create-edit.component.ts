@@ -55,7 +55,7 @@ export class PropertyManifestCreateEditComponent {
     this.typeSelected = true
 
     if (type === PropType.Choice) {
-      this.addValue()
+      this.addOptionValue()
     }
 
     // Wait for the input to be rendered before focusing.
@@ -84,15 +84,33 @@ export class PropertyManifestCreateEditComponent {
     }
   }
 
-  get values(): FormArray {
+  get optionValues(): FormArray {
     return this.propertyManifestFormGroup.get('options.values') as FormArray
   }
 
-  addValue(): void {
-    this.values.push(new FormControl(''))
+  addOptionValue(): void {
+    this.optionValues.push(new FormControl(''))
   }
 
-  removeValue(index: number): void {
-    this.values.removeAt(index)
+  removeOptionValue(index: number): void {
+    this.optionValues.removeAt(index)
+  }
+
+  get imageSizes(): FormArray {
+    return this.propertyManifestFormGroup.get('options.sizes') as FormArray
+  }
+
+  addImageSize(): void {
+    this.imageSizes.push(
+      new FormGroup({
+        name: new FormControl(null),
+        width: new FormControl(null),
+        height: new FormControl(null)
+      })
+    )
+  }
+
+  removeImageSize(index: number): void {
+    this.imageSizes.removeAt(index)
   }
 }

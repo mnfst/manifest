@@ -1,1 +1,1 @@
-export * from './ImageSizesObject'
+export * from './ImageSize'

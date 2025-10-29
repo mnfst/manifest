@@ -3,7 +3,7 @@ import { ManifestService } from '../../manifest/services/manifest.service'
 import {
   AppManifest,
   EntityManifest,
-  ImageSizesObject,
+  ImageSize,
   PropertyManifest,
   PropType,
   RelationshipManifest
@@ -82,22 +82,16 @@ export class EntityTypeService {
       if (prop.type === PropType.Choice) {
         propertyTsTypeInfo.values = (prop.options?.values as string[]) || null
       } else if (prop.type === PropType.Image) {
-        propertyTsTypeInfo.type = Object.keys(
-          (prop.options?.sizes as ImageSizesObject) || {}
-        ).reduce(
-          (
-            acc: { [key: string]: { width: number; height: number } },
-            size: string
-          ) => {
-            acc[size] = {
-              width: prop.options?.sizes[size].width || 0,
-              height: prop.options?.sizes[size].height || 0
-            }
-            return acc
-          },
-          {}
-        )
-        propertyTsTypeInfo.sizes = prop.options?.sizes as ImageSizesObject
+        propertyTsTypeInfo.type = (
+          (prop.options?.sizes as ImageSize[]) || []
+        ).reduce((acc, size: ImageSize) => {
+          acc[size.name] = {
+            width: size.width || 0,
+            height: size.height || 0
+          }
+          return acc
+        }, {})
+        propertyTsTypeInfo.sizes = prop.options?.sizes as ImageSize[]
       }
 
       return propertyTsTypeInfo
@@ -164,7 +158,7 @@ export class EntityTypeService {
       if (prop.type === PropType.Choice) {
         propertyTsTypeInfo.values = (prop.options?.values as string[]) || null
       } else if (prop.type === PropType.Image) {
-        propertyTsTypeInfo.sizes = prop.options?.sizes as ImageSizesObject
+        propertyTsTypeInfo.sizes = prop.options?.sizes as ImageSize[]
       }
 
       return propertyTsTypeInfo

@@ -53,15 +53,15 @@
         <div *ngIf="propertyManifestFormGroup.value.type === PropType.Choice">
           <!-- Values -->
           <label for="values">Options</label>
-          <button (click)="addValue()">Add Option</button>
+          <button (click)="addOptionValue()">Add Option</button>
           <div formArrayName="values">
-            <div *ngFor="let value of values.controls; let i = index">
+            <div *ngFor="let value of optionValues.controls; let i = index">
               <input
                 type="text"
                 [formControlName]="i"
                 placeholder="Option {{ i + 1 }}"
               />
-              <button (click)="removeValue(i)">Remove</button>
+              <button (click)="removeOptionValue(i)">Remove</button>
             </div>
           </div>
 
@@ -75,6 +75,42 @@
             <option [ngValue]="false">Flat list</option>
             <option [ngValue]="true">Sequential</option>
           </select>
+        </div>
+
+        <!-- Image type options -->
+        <div *ngIf="propertyManifestFormGroup.value.type === PropType.Image">
+          <label for="sizes"
+            >Sizes <a (click)="addImageSize()">Add image size</a></label
+          >
+          <div formGroupName="sizes">
+            <div *ngFor="let sizeName of imageSizes.controls; let i = index">
+              <div [formGroupName]="i" class="container">
+                <div class="columns">
+                  <input
+                    class="input form-control"
+                    type="text"
+                    formControlName="name"
+                    placeholder="Image name (ex: thumbnail, large...)"
+                  />
+                  <input
+                    class="input form-control"
+                    type="number"
+                    step="1"
+                    formControlName="height"
+                    placeholder="Height"
+                  />
+                  <input
+                    class="input form-control"
+                    type="number"
+                    step="1"
+                    formControlName="width"
+                    placeholder="Width"
+                  />
+                  <button (click)="removeImageSize(i)">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

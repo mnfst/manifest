@@ -1,5 +1,5 @@
 // src/index.ts
-import { ImageSizesObject, RelationshipManifest } from '@repo/types'
+import { ImageSize, RelationshipManifest } from '@repo/types'
 
 /**
  * Get record key by its value.
@@ -160,29 +160,21 @@ export function forceNumberArray(
 }
 
 /**
- * Get the smallest size from an ImageSizesObject based on the width.
+ * Get the smallest size from an array of ImageSize based on the width.
  *
- * @param imageSizesObject The ImageSizesObject.
+ * @param imageSizes The array of ImageSize.
  *
- * @returns The smallest size name.
+ * @returns The smallest image size.
  */
 export function getSmallestImageSize(
-  imageSizesObject: ImageSizesObject
-): string {
-  return Object.keys(imageSizesObject).reduce(
-    (smallestSize: string, currentSize: string) => {
-      const currentImageSize = imageSizesObject?.[currentSize]
-      const smallestImageSize = imageSizesObject?.[smallestSize]
-
-      if (
-        currentImageSize?.width !== undefined &&
-        smallestImageSize?.width !== undefined &&
-        currentImageSize.width < smallestImageSize.width
-      ) {
-        return currentSize
-      }
-      return smallestSize
-    }
+  imageSizes: ImageSize[]
+): ImageSize | undefined {
+  return imageSizes.reduce(
+    (smallestSize: ImageSize | undefined, currentSize: ImageSize) => {
+      if (!smallestSize) return currentSize
+      return currentSize.width < smallestSize.width ? currentSize : smallestSize
+    },
+    undefined
   )
 }
 

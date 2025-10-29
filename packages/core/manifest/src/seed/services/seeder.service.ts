@@ -4,7 +4,7 @@ import {
   BaseEntity,
   DatabaseConnection,
   EntityManifest,
-  ImageSizesObject,
+  ImageSize,
   PropType,
   PropertyManifest,
   RelationshipManifest
@@ -381,7 +381,7 @@ export class SeederService {
           originalname: DUMMY_IMAGE_NAME,
           buffer: dummyImageContent
         },
-        propertyManifest.options?.['sizes'] as ImageSizesObject
+        propertyManifest.options?.['sizes'] as ImageSize[]
       )
 
     this.seededImages[imageKey] = images

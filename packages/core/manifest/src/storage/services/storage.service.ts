@@ -7,7 +7,7 @@ import * as path from 'path'
 import sharp from 'sharp'
 import * as mkdirp from 'mkdirp'
 import uniqid from 'uniqid'
-import { ImageSizesObject, StorageFile, StorageFolder } from '@repo/types'
+import { ImageSize, StorageFile, StorageFolder } from '@repo/types'
 import slugify from 'slugify'
 import { ConfigService } from '@nestjs/config'
 import {
@@ -126,13 +126,13 @@ export class StorageService {
     entity: string,
     property: string,
     image: { buffer: Buffer; originalname: string },
-    imageSizes: ImageSizesObject
+    imageSizes: ImageSize[]
   ): Promise<{ [key: string]: string }> {
     const folder: string = this.createUploadFolder(entity, property)
     const uniqueName: string = uniqid()
     const imagePaths: { [key: string]: string } = {}
 
-    for (const sizeName in imageSizes || DEFAULT_IMAGE_SIZES) {
+    for (const size of imageSizes || DEFAULT_IMAGE_SIZES) {
       const imageExtension: string = path.extname(image.originalname)
 
       if (['.jpg', '.jpeg', '.png'].indexOf(imageExtension) === -1) {
@@ -142,16 +142,16 @@ export class StorageService {
         )
       }
 
-      const imagePath: string = `${folder}/${uniqueName}-${sizeName}${imageExtension}`
+      const imagePath: string = `${folder}/${uniqueName}-${size.name}${imageExtension}`
 
       const resizedImageBuffer: Buffer = await sharp(image.buffer)
-        .resize(imageSizes[sizeName].width, imageSizes[sizeName].height, {
-          fit: imageSizes[sizeName].fit
+        .resize(size.width, size.height, {
+          fit: size.fit
         })
         .toBuffer()
 
       if (this.isS3Enabled) {
-        imagePaths[sizeName] = await this.uploadToS3(
+        imagePaths[size.name] = await this.uploadToS3(
           imagePath,
           resizedImageBuffer
         )
@@ -173,7 +173,7 @@ export class StorageService {
           throw new Error('Invalid image path')
         }
         fs.writeFileSync(publicFolderPath, resizedImageBuffer)
-        imagePaths[sizeName] = this.prependStorageUrl(imagePath)
+        imagePaths[size.name] = this.prependStorageUrl(imagePath)
       }
     }
 
