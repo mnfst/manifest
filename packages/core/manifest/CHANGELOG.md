@@ -1,5 +1,47 @@
 # manifest
 
+## 4.17.13
+
+### Patch Changes
+
+- f017cb1: Fixed validation error when 2 relation with same entity even if different names, thanks @avikejariwal
+
+## 4.17.12
+
+### Patch Changes
+
+- d44ae0a: Fixed validation error when 2 relation with same entity even if different names, thanks @avikejariwal
+
+## 4.17.11
+
+### Patch Changes
+
+- 293da2d: fixed collections not showing in admin panel on first admin signup
+
+## 4.17.10
+
+### Patch Changes
+
+- 7d60d32: removed ai code editor rules flag on core readme
+
+## 4.17.9
+
+### Patch Changes
+
+- efe4936: removed ai editor rules flag on install
+
+## 4.17.8
+
+### Patch Changes
+
+- d0dc03d: fixed whitescreen on reload admin panel deep pages, thanks Emilien
+
+## 4.17.7
+
+### Patch Changes
+
+- 2ad3ad5: updated readme.md file
+
 ## 4.17.6
 
 ### Patch Changes

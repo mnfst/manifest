@@ -58,6 +58,118 @@ describe('SchemaService', () => {
   })
 
   describe('Validate custom logic', () => {
+    it('should throw an error when 2 relationships have the same name', () => {
+      const manifestWithDuplicateBelongsToRelationships: Manifest = {
+        name: 'test app',
+        entities: {
+          Cat: {
+            className: 'Cat',
+            properties: [
+              {
+                name: 'name',
+                type: 'string'
+              },
+              {
+                name: 'age',
+                type: 'number',
+                default: 18
+              }
+            ],
+            belongsTo: [
+              {
+                name: 'owner',
+                entity: 'User'
+              },
+              {
+                name: 'owner',
+                entity: 'User'
+              }
+            ]
+          }
+        }
+      }
+      const manifestWithDuplicateMixedRelationships: Manifest = {
+        name: 'test app',
+        entities: {
+          Cat: {
+            className: 'Cat',
+            properties: [
+              {
+                name: 'name',
+                type: 'string'
+              },
+              {
+                name: 'age',
+                type: 'number',
+                default: 18
+              }
+            ],
+            belongsTo: [
+              {
+                name: 'owner',
+                entity: 'User'
+              }
+            ],
+            belongsToMany: [
+              {
+                name: 'owner',
+                entity: 'SomethingElse'
+              }
+            ]
+          }
+        }
+      }
+      const manifestWithDuplicateMixedSyntaxRelationships: Manifest = {
+        name: 'test app',
+        entities: {
+          Cat: {
+            className: 'Cat',
+            properties: [
+              {
+                name: 'name',
+                type: 'string'
+              },
+              {
+                name: 'age',
+                type: 'number',
+                default: 18
+              }
+            ],
+            belongsTo: [
+              {
+                name: 'owners',
+                entity: 'User'
+              }
+            ],
+            belongsToMany: ['owner'] // Gets pluralized
+          }
+        }
+      }
+
+      jest.spyOn(console, 'log').mockImplementation(() => {})
+      jest.spyOn(process, 'exit').mockImplementation(() => {
+        return null as never
+      })
+
+      service.validateCustomLogic(manifestWithDuplicateBelongsToRelationships)
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('VALIDATION FAILED')
+      )
+
+      service.validateCustomLogic(manifestWithDuplicateMixedRelationships)
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('VALIDATION FAILED')
+      )
+
+      service.validateCustomLogic(manifestWithDuplicateMixedSyntaxRelationships)
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('VALIDATION FAILED')
+      )
+    })
+
     it('should throw error when relationship entities do not exist', () => {
       const manifestWithNonExistingRelationships: Manifest = {
         name: 'test app',
@@ -93,7 +205,7 @@ describe('SchemaService', () => {
       service.validateCustomLogic(manifestWithNonExistingRelationships)
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Validation failed')
+        expect.stringContaining('VALIDATION FAILED')
       )
     })
 
@@ -131,7 +243,7 @@ describe('SchemaService', () => {
       service.validateCustomLogic(manifestWithNonExistingGroups)
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Validation failed')
+        expect.stringContaining('VALIDATION FAILED')
       )
     })
 
@@ -173,7 +285,7 @@ describe('SchemaService', () => {
       service.validateCustomLogic(manifestWithGroupProperties)
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Validation failed')
+        expect.stringContaining('VALIDATION FAILED')
       )
     })
 
@@ -209,7 +321,7 @@ describe('SchemaService', () => {
       service.validateCustomLogic(manifestWithNonExistingPolicies)
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Validation failed')
+        expect.stringContaining('VALIDATION FAILED')
       )
     })
 
@@ -238,7 +350,7 @@ describe('SchemaService', () => {
       service.validateCustomLogic(manifestWithDuplicateManyToMany)
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Validation failed')
+        expect.stringContaining('VALIDATION FAILED')
       )
     })
 

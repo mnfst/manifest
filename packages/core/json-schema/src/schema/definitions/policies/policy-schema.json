@@ -38,5 +38,15 @@
     }
   },
   "required": ["access"],
+  "if": {
+    "properties": {
+      "access": {
+        "enum": ["restricted", "🔒"]
+      }
+    }
+  },
+  "then": {
+    "required": ["access", "allow"]
+  },
   "additionalProperties": false
 }

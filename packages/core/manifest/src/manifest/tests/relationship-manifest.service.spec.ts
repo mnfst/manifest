@@ -4,7 +4,8 @@ import {
   AppManifest,
   EntityManifest,
   PropType,
-  RelationshipManifest
+  RelationshipManifest,
+  RelationshipSchema
 } from '../../../../types/src'
 
 // Mock the camelize function
@@ -228,11 +229,10 @@ describe('RelationshipManifestService', () => {
     })
 
     it('should transform long-syntax many-to-many relationshipSchema into a relationshipManifest', () => {
-      const relationship = {
+      const relationship: RelationshipSchema = {
         name: 'user',
         entity: 'User',
         eager: true,
-        type: 'many-to-many',
         helpText: 'this is the help text'
       }
       const entityClassName = 'Role'
@@ -242,7 +242,7 @@ describe('RelationshipManifestService', () => {
         entityClassName
       )
       expect(result).toEqual({
-        name: 'users',
+        name: 'user',
         entity: 'User',
         eager: true,
         inverseSide: 'roles',
