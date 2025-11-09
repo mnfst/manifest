@@ -1,6 +1,6 @@
 import { NgFor, NgIf, NgClass } from '@angular/common'
 import { Component, Input } from '@angular/core'
-import { AccessPolicy } from '../../../../../../../types/src'
+import { AccessPolicy, EntityManifest } from '../../../../../../../types/src'
 import {
   FormArray,
   FormControl,
@@ -18,22 +18,11 @@ import { ADMIN_ACCESS_POLICY } from '../../../../../constants'
 })
 export class PolicyManifestCreateEditComponent {
   @Input() policyManifestFormArray: FormArray
+  @Input() authenticableEntities: EntityManifest[] = []
+
   accesses: AccessPolicy[] = ['public', 'restricted', 'forbidden', 'admin']
 
-  ngOnInit(): void {
-    console.log('Initial ', this.policyManifestFormArray.value)
-
-    this.policyManifestFormArray.valueChanges.subscribe((value) => {
-      console.log(value)
-    })
-  }
-
   getPolicyFormGroup(index: number): FormGroup {
-    console.log(
-      'getting form group at index:',
-      index,
-      this.policyManifestFormArray.at(index).value
-    )
     return this.policyManifestFormArray.at(index) as FormGroup
   }
 
@@ -66,5 +55,27 @@ export class PolicyManifestCreateEditComponent {
       (policyManifestControl) =>
         policyManifestControl.get('access')?.value === 'restricted'
     )
+  }
+
+  toggleEntityAllow(index: number, entity: EntityManifest) {
+    const policyManifestControl = this.getPolicyFormGroup(index)
+    const allowFormArray = policyManifestControl.get('allow') as FormArray
+
+    const entityIndex = allowFormArray.value.indexOf(entity.className)
+
+    if (entityIndex > -1) {
+      // Entity is already allowed, remove it
+      allowFormArray.removeAt(entityIndex)
+    } else {
+      // Entity is not allowed, add it
+      allowFormArray.push(new FormControl(entity.className))
+    }
+  }
+
+  isEntityAllowed(index: number, entity: EntityManifest): boolean {
+    const policyManifestControl = this.getPolicyFormGroup(index)
+    const allowFormArray = policyManifestControl.get('allow') as FormArray
+
+    return allowFormArray.value.includes(entity.className)
   }
 }

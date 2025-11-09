@@ -9,6 +9,9 @@
       <button
         class="button"
         (click)="setAccess(i, access)"
+        [disabled]="
+          access === 'restricted' && authenticableEntities.length === 0
+        "
         [ngClass]="{
           'is-info': policyManifest.get('access')?.value === access
         }"
@@ -31,8 +34,23 @@
 
   <!-- Restricted access options -->
   <div *ngIf="policyManifest.get('access')?.value === 'restricted'">
-    %% TODO: Add restricted access options %% (pass authenticable entities for
-    selection)
+    <div class="columns is-multiline">
+      <div
+        class="column is-6"
+        *ngFor="let authenticableEntity of authenticableEntities"
+      >
+        <button
+          class="button"
+          type="button"
+          (click)="toggleEntityAllow(i, authenticableEntity)"
+          [ngClass]="{
+            'is-info': isEntityAllowed(i, authenticableEntity)
+          }"
+        >
+          {{ authenticableEntity.className }}
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 

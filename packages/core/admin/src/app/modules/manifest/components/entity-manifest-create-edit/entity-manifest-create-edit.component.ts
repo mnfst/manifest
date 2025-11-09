@@ -1,6 +1,7 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core'
 import {
   EntityManifest,
+  EntityRule,
   ImageSize,
   PolicyManifest,
   PropertyManifest,
@@ -43,6 +44,7 @@ import { ADMIN_ACCESS_POLICY } from '../../../../../constants'
 })
 export class EntityManifestCreateEditComponent {
   @Input() entityManifest: EntityManifest
+  @Input() authenticableEntities: EntityManifest[] = []
 
   @ViewChild('classNameInput') classNameInput: ElementRef<HTMLInputElement>
 
@@ -107,7 +109,7 @@ export class EntityManifestCreateEditComponent {
       policies: new FormGroup(
         policyRules.reduce((acc: { [key: string]: FormArray }, policyRule) => {
           acc[policyRule.id] = new FormArray(
-            this.entityManifest?.policies[policyRule.id as Rule]?.map(
+            this.entityManifest?.policies[policyRule.id as EntityRule]?.map(
               (policy: PolicyManifest) => this.initPolicyFormGroup(policy)
             ) || [this.initPolicyFormGroup()]
           )
@@ -156,6 +158,18 @@ export class EntityManifestCreateEditComponent {
           delete property[typedKey]
         }
       })
+    })
+
+    // Clean policies allow array if not restricted
+    Object.keys(entityManifest.policies).forEach((rule: string) => {
+      entityManifest.policies[rule as EntityRule].forEach(
+        (policyManifest: PolicyManifest) => {
+          if (policyManifest.access !== 'restricted') {
+            console.log('Deleting allow array from policy', policyManifest)
+            delete policyManifest.allow
+          }
+        }
+      )
     })
 
     console.log('Submitting entity manifest form', entityManifest)

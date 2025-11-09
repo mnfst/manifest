@@ -1,6 +1,6 @@
 import { HookManifest } from '../hooks'
 import { MiddlewareManifest } from '../middlewares'
-import { Rule } from '../policies'
+import { EntityRule } from '../policies'
 import { PolicyManifest } from './PolicyManifest'
 import { PropertyManifest } from './PropertyManifest'
 import { RelationshipManifest } from './RelationshipManifest'
@@ -59,7 +59,7 @@ export interface EntityManifest {
   /**
    * The policies of the entity.
    */
-  policies: Record<Rule, PolicyManifest[]>
+  policies: Record<EntityRule, PolicyManifest[]>
 
   hooks?: {
     /**

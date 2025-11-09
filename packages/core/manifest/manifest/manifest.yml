@@ -14,6 +14,17 @@ entities:
         - { access: public }
 
   Customer 👤:
+    authenticable: true
+    properties:
+      - { name: name, type: string }
+      - { name: phone, type: string }
+      - { name: email, type: email }
+    policies:
+      read:
+        - { access: public }
+
+  User 👤:
+    authenticable: true
     properties:
       - { name: name, type: string }
       - { name: phone, type: string }

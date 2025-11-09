@@ -4,6 +4,7 @@ import { AppManifest, EntityManifest } from '@repo/types'
 import { filter, firstValueFrom, switchMap } from 'rxjs'
 import { environment } from '../../../../environments/environment'
 import { AuthService } from '../../auth/auth.service'
+import { ADMIN_CLASS_NAME } from '../../../../constants'
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,10 @@ export class ManifestService {
   private manifestPromise: Promise<AppManifest> | null = null
   private appManifest: AppManifest | null = null
 
-  constructor(private authService: AuthService, private http: HttpClient) {}
+  constructor(
+    private authService: AuthService,
+    private http: HttpClient
+  ) {}
 
   /**
    * Gets the manifest. If the manifest has already been fetched, it returns the cached manifest.
@@ -87,6 +91,14 @@ export class ManifestService {
       Object.values(manifest.entities).find(
         (entity) => entity.slug === slug || entity.className === className
       ) || null
+    )
+  }
+
+  async getAuthenticableEntities(): Promise<EntityManifest[]> {
+    const manifest: AppManifest = await this.getManifest()
+
+    return Object.values(manifest.entities).filter(
+      (entity) => entity.authenticable && entity.className !== ADMIN_CLASS_NAME
     )
   }
 }

@@ -146,11 +146,13 @@ export class ListComponent implements OnInit {
   /**
    * Open the edit entity manifest modal to edit the current entity manifest.
    */
-  editEntity() {
+  async editEntity() {
     this.modalService.open({
       component: EntityManifestCreateEditComponent,
       data: {
-        entityManifest: this.entityManifest
+        entityManifest: this.entityManifest,
+        authenticableEntities:
+          await this.manifestService.getAuthenticableEntities()
       }
     })
   }

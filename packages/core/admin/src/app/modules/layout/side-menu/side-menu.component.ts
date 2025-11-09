@@ -56,9 +56,13 @@ export class SideMenuComponent implements OnInit {
     }
   }
 
-  addEntity() {
+  async addEntity() {
     this.modalService.open({
-      component: EntityManifestCreateEditComponent
+      component: EntityManifestCreateEditComponent,
+      data: {
+        authenticableEntities:
+          await this.manifestService.getAuthenticableEntities()
+      }
     })
   }
 }
