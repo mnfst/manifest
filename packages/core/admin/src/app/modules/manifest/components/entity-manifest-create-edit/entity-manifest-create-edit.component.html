@@ -14,7 +14,7 @@
     #classNameInput
   />
 
-  <label class="checkbox">
+  <label class="checkbox" for="authenticable" *ngIf="!single">
     <input
       type="checkbox"
       formControlName="authenticable"
@@ -88,21 +88,25 @@
       class="input"
     />
 
-    <label for="namePlural">Plural name</label>
-    <input
-      type="text"
-      formControlName="namePlural"
-      name="namePlural"
-      class="input"
-    />
+    <ng-container *ngIf="!single">
+      <label for="namePlural">Plural name</label>
+      <input
+        type="text"
+        formControlName="namePlural"
+        name="namePlural"
+        class="input"
+      />
+    </ng-container>
 
-    <label for="seedCount">Seed Count</label>
-    <input
-      type="number"
-      formControlName="seedCount"
-      name="seedCount"
-      class="input"
-    />
+    <ng-container *ngIf="!single">
+      <label for="seedCount">Seed Count</label>
+      <input
+        type="number"
+        formControlName="seedCount"
+        name="seedCount"
+        class="input"
+      />
+    </ng-container>
   </ng-container>
 
   <!-- Buttons -->

@@ -25,7 +25,7 @@ import { propTypeValidator } from '../../utils/prop-type-validator'
 import { Observable } from 'rxjs'
 import { HttpErrorResponse } from '@angular/common/http'
 import { propTypeOptionsRecord } from '../../../../typescript/records/prop-type-options.record'
-import { policyRules } from '../../content/policy-rules.content'
+import { PolicyRule, policyRules } from '../../content/policy-rules.content'
 import { ADMIN_ACCESS_POLICY } from '../../../../../constants'
 
 @Component({
@@ -45,6 +45,7 @@ import { ADMIN_ACCESS_POLICY } from '../../../../../constants'
 export class EntityManifestCreateEditComponent {
   @Input() entityManifest: EntityManifest
   @Input() authenticableEntities: EntityManifest[] = []
+  @Input() single: boolean = false
 
   @ViewChild('classNameInput') classNameInput: ElementRef<HTMLInputElement>
 
@@ -56,7 +57,7 @@ export class EntityManifestCreateEditComponent {
     signup: PolicyManifest[]
   }
 
-  policyRules = policyRules
+  policyRules: PolicyRule[]
 
   form: FormGroup
   title: string
@@ -76,8 +77,14 @@ export class EntityManifestCreateEditComponent {
     this.mode = this.entityManifest ? 'edit' : 'create'
     this.title =
       this.mode === 'edit'
-        ? `Edit collection: ${this.entityManifest.namePlural}`
-        : 'Create collection'
+        ? `Edit ${this.entityManifest.single ? 'single' : 'collection'}: ${this.entityManifest.className}`
+        : `Create new ${this.single ? 'single' : 'collection'}`
+    // Prepare policy rules
+    this.policyRules = policyRules.filter(
+      (rule) =>
+        !(rule.id === 'signup' && !this.form?.get('authenticable')?.value) &&
+        (!this.single || (rule.id !== 'create' && rule.id !== 'delete'))
+    )
 
     if (this.mode === 'create') {
       // Focus the className input after view init.
@@ -91,7 +98,7 @@ export class EntityManifestCreateEditComponent {
       authenticable: new FormControl(
         this.entityManifest?.authenticable || false
       ),
-      single: new FormControl(this.entityManifest?.single || false),
+      single: new FormControl(this.entityManifest?.single || this.single),
       mainProp: new FormControl(this.entityManifest?.mainProp || null),
       slug: new FormControl(this.entityManifest?.slug || null),
       className: new FormControl(

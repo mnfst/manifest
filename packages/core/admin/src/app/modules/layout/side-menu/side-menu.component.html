@@ -8,17 +8,6 @@
         >Content manager
       </span>
     </li>
-    <!-- Singles -->
-    <ng-container *ngIf="singles?.length">
-      <li *ngFor="let single of singles">
-        <a
-          [routerLink]="['/content/singles', single.slug]"
-          routerLinkActive="is-active"
-        >
-          <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
-        </a>
-      </li>
-    </ng-container>
 
     <!-- Collections -->
     <li *ngIf="collections">
@@ -45,6 +34,33 @@
           >
         </li>
       </ul>
+      <hr />
+    </li>
+
+    <!-- Singles -->
+    <li *ngIf="singles">
+      <span
+        class="is-inline-flex is-align-items-center is-justify-content-space-between"
+      >
+        <span>Singles</span>
+        <a (click)="addEntity({ single: true })" title="Add new single">
+          <i class="icon icon-plus"></i>
+        </a>
+      </span>
+
+      <ng-container *ngIf="singles?.length">
+        <ul>
+          <li *ngFor="let single of singles">
+            <a
+              [routerLink]="['/content/singles', single.slug]"
+              routerLinkActive="is-active"
+            >
+              <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
+            </a>
+          </li>
+        </ul>
+      </ng-container>
+      <hr />
     </li>
 
     <li>

@@ -1,11 +1,6 @@
 import { Rule } from '../../../../../../types/src'
 
-export const policyRules: {
-  id: Rule
-  label: string
-  description: string
-  hidden?: boolean
-}[] = [
+export const policyRules: PolicyRule[] = [
   {
     id: 'signup',
     label: 'Signup',
@@ -33,3 +28,10 @@ export const policyRules: {
     description: 'Remove records'
   }
 ]
+
+export interface PolicyRule {
+  id: Rule
+  label: string
+  description: string
+  hidden?: boolean
+}
