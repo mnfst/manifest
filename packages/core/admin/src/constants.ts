@@ -1,3 +1,5 @@
+import { PolicyManifest } from '../../types/src'
+
 export const TOKEN_KEY = 'manifestToken'
 export const ADMIN_CLASS_NAME = 'Admin'
 
@@ -8,3 +10,6 @@ export const DEFAULT_ADMIN_CREDENTIALS = {
 }
 
 export const EMPTY_MANIFEST_NAME: string = 'empty_manifest'
+
+export const ADMIN_ACCESS_POLICY: PolicyManifest = { access: 'admin' }
+export const FORBIDDEN_ACCESS_POLICY: PolicyManifest = { access: 'forbidden' }

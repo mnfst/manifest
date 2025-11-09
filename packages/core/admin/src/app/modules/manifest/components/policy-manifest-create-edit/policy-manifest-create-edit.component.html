@@ -1,24 +1,41 @@
-<div class="container">
+<div
+  class="container"
+  *ngFor="let policyManifest of policyManifestFormArray.controls; let i = index"
+  [formGroup]="getPolicyFormGroup(i)"
+>
   <!-- Access selection-->
   <div class="columns is-multiline">
-    <div class="column is-3" *ngFor="let access of accesses">
-      <label class="radio">
-        <input
-          type="radio"
-          name="type"
-          [value]="access"
-          (click)="setAccess(access)"
-        />
+    <div class="column is-2" *ngFor="let access of accesses">
+      <button
+        class="button"
+        (click)="setAccess(i, access)"
+        [ngClass]="{
+          'is-info': policyManifest.get('access')?.value === access
+        }"
+      >
+        <i class="icon icon-save"></i>
 
-        <!-- TODO: Add real icons -->
         {{ access }}
-      </label>
+      </button>
+    </div>
+    <div class="column is-2">
+      <button
+        class="button is-danger"
+        (click)="removePolicy(i)"
+        *ngIf="policyManifestFormArray.length > 1"
+      >
+        X
+      </button>
     </div>
   </div>
 
   <!-- Restricted access options -->
-  <div *ngIf="form.get('access')?.value === 'restricted'">
+  <div *ngIf="policyManifest.get('access')?.value === 'restricted'">
     %% TODO: Add restricted access options %% (pass authenticable entities for
     selection)
   </div>
 </div>
+
+<a (click)="addPolicyManifest()" *ngIf="isAllPoliciesRestricted()"
+  >New policy</a
+>

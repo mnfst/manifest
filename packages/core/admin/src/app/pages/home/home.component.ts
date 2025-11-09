@@ -75,9 +75,9 @@ export class HomeComponent implements OnInit {
 
           this.canCreateByEntity = Object.values(res.entities || {}).reduce(
             (acc, entityManifest: EntityManifest) => {
-              acc[entityManifest.slug] = entityManifest.policies.create.every(
-                (policy: PolicyManifest) => policy.access !== 'forbidden'
-              )
+              acc[entityManifest.slug] = entityManifest.policies[
+                'create'
+              ].every((policy: PolicyManifest) => policy.access !== 'forbidden')
 
               return acc
             },

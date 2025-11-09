@@ -1,42 +1,70 @@
-import { NgFor, NgIf } from '@angular/common'
-import { Component, EventEmitter, Input, Output } from '@angular/core'
-import { AccessPolicy, PolicyManifest } from '../../../../../../../types/src'
-import { FormControl, FormGroup } from '@angular/forms'
+import { NgFor, NgIf, NgClass } from '@angular/common'
+import { Component, Input } from '@angular/core'
+import { AccessPolicy } from '../../../../../../../types/src'
+import {
+  FormArray,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule
+} from '@angular/forms'
+import { ADMIN_ACCESS_POLICY } from '../../../../../constants'
 
 @Component({
   selector: 'app-policy-manifest-create-edit',
   standalone: true,
-  imports: [NgFor, NgIf],
+  imports: [NgFor, NgIf, ReactiveFormsModule, NgClass],
   templateUrl: './policy-manifest-create-edit.component.html',
   styleUrl: './policy-manifest-create-edit.component.scss'
 })
 export class PolicyManifestCreateEditComponent {
-  @Input() policyManifest: PolicyManifest
-
-  @Output() policyManifestChange: EventEmitter<PolicyManifest> =
-    new EventEmitter<PolicyManifest>()
-
+  @Input() policyManifestFormArray: FormArray
   accesses: AccessPolicy[] = ['public', 'restricted', 'forbidden', 'admin']
 
-  form: FormGroup
-
   ngOnInit(): void {
-    this.form = new FormGroup({
-      access: new FormControl(this.policyManifest?.access || 'admin'),
-      allow: new FormControl(this.policyManifest?.allow || []),
-      condition: new FormControl(this.policyManifest?.condition || null)
-    })
+    console.log('Initial ', this.policyManifestFormArray.value)
 
-    this.form.valueChanges.subscribe((value) => {
-      this.policyManifestChange.emit({
-        access: value.access,
-        allow: value.allow.length > 0 ? value.allow : undefined,
-        condition: value.condition || undefined
-      })
+    this.policyManifestFormArray.valueChanges.subscribe((value) => {
+      console.log(value)
     })
   }
 
-  setAccess(access: AccessPolicy) {
-    this.form.get('access').setValue(access)
+  getPolicyFormGroup(index: number): FormGroup {
+    console.log(
+      'getting form group at index:',
+      index,
+      this.policyManifestFormArray.at(index).value
+    )
+    return this.policyManifestFormArray.at(index) as FormGroup
+  }
+
+  setAccess(index: number, access: AccessPolicy): void {
+    const policyFormGroup = this.getPolicyFormGroup(index)
+    policyFormGroup.get('access')?.setValue(access)
+  }
+
+  addPolicyManifest() {
+    const policyManifestFormGroup = new FormGroup({
+      access: new FormControl<AccessPolicy>(ADMIN_ACCESS_POLICY.access),
+      allow: new FormArray([]),
+      condition: new FormControl(null)
+    })
+
+    this.policyManifestFormArray.push(policyManifestFormGroup)
+  }
+
+  removePolicy(index: number) {
+    this.policyManifestFormArray.removeAt(index)
+  }
+
+  /**
+   * Checks if all policies in the form array have 'restricted' access.
+   *
+   * @return boolean - True if all policies are 'restricted', false otherwise.
+   */
+  isAllPoliciesRestricted(): boolean {
+    return this.policyManifestFormArray.controls.every(
+      (policyManifestControl) =>
+        policyManifestControl.get('access')?.value === 'restricted'
+    )
   }
 }

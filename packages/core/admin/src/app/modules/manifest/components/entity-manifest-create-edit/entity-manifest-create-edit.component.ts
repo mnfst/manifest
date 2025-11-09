@@ -4,7 +4,8 @@ import {
   ImageSize,
   PolicyManifest,
   PropertyManifest,
-  PropType
+  PropType,
+  Rule
 } from '../../../../../../../types/src'
 import {
   FormArray,
@@ -24,6 +25,7 @@ import { Observable } from 'rxjs'
 import { HttpErrorResponse } from '@angular/common/http'
 import { propTypeOptionsRecord } from '../../../../typescript/records/prop-type-options.record'
 import { policyRules } from '../../content/policy-rules.content'
+import { ADMIN_ACCESS_POLICY } from '../../../../../constants'
 
 @Component({
   selector: 'app-entity-manifest-create-edit',
@@ -101,18 +103,18 @@ export class EntityManifestCreateEditComponent {
         this.entityManifest?.properties.map((prop: PropertyManifest) =>
           this.initPropertyFormGroup(prop)
         ) || []
+      ),
+      policies: new FormGroup(
+        policyRules.reduce((acc: { [key: string]: FormArray }, policyRule) => {
+          acc[policyRule.id] = new FormArray(
+            this.entityManifest?.policies[policyRule.id as Rule]?.map(
+              (policy: PolicyManifest) => this.initPolicyFormGroup(policy)
+            ) || [this.initPolicyFormGroup()]
+          )
+          return acc
+        }, {})
       )
     })
-
-    this.policyManifests = this.entityManifest
-      ? this.entityManifest.policies
-      : {
-          create: [],
-          read: [],
-          update: [],
-          delete: [],
-          signup: []
-        }
 
     this.form.valueChanges.subscribe((value) => {
       const signupRule = this.policyRules.find((rule) => rule.id === 'signup')
@@ -283,6 +285,29 @@ export class EntityManifestCreateEditComponent {
           )
         )
       })
+    })
+  }
+
+  /**
+   * Gets the policies FormArray for a given rule.
+   *
+   * @param rule The rule to get the policies for.
+   *
+   * @returns The policies FormArray for the given rule.
+   */
+  getPolicies(rule: Rule): FormArray {
+    return this.form.get('policies')?.get(rule) as FormArray
+  }
+
+  initPolicyFormGroup(policyManifest?: PolicyManifest): FormGroup {
+    return new FormGroup({
+      access: new FormControl(
+        policyManifest?.access || ADMIN_ACCESS_POLICY.access
+      ),
+      allow: new FormArray(
+        (policyManifest?.allow || []).map((item) => new FormControl(item))
+      ),
+      condition: new FormControl(policyManifest?.condition || null)
     })
   }
 

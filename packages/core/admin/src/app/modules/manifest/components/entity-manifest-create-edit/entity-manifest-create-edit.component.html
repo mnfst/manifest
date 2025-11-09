@@ -65,9 +65,8 @@
         <h3 class="title is-3">{{ policyRule.label }}</h3>
         <p>{{ policyRule.description }}</p>
 
-        <!-- TODO: Right now we have only one policy per rule. We should allow more -->
         <app-policy-manifest-create-edit
-          [policyManifest]="entityManifest?.policies.create[0]"
+          [policyManifestFormArray]="getPolicies(policyRule.id)"
         ></app-policy-manifest-create-edit>
       </ng-container>
     </div>
