@@ -137,7 +137,10 @@
                 ></a>
                 <a
                   class="button is-light is-small is-circle"
-                  (click)="toggleDeleteModal(item)"
+                  [ngClass]="{ 'is-invisible': isCurrentUser(item) }"
+                  [attr.aria-disabled]="isCurrentUser(item) ? true : null"
+                  [attr.tabindex]="isCurrentUser(item) ? -1 : 0"
+                  (click)="!isCurrentUser(item) && toggleDeleteModal(item)"
                   ><i class="icon icon-trash-2"></i
                 ></a>
               </div>
