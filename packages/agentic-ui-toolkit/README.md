@@ -1,23 +1,104 @@
-# registry-template
+# Agentic UI Toolkit
 
-You can use the `shadcn` CLI to run your own component registry. Running your own
-component registry allows you to distribute your custom components, hooks, pages, and
-other files to any React project.
-
-> [!IMPORTANT]  
-> This template uses Tailwind v4. For Tailwind v3, see [registry-template-v3](https://github.com/shadcn-ui/registry-template-v3).
+A custom shadcn component registry built with Next.js 15 and Tailwind v4.
 
 ## Getting Started
 
-This is a template for creating a custom registry using Next.js.
+### Install dependencies
 
-- The template uses a `registry.json` file to define components and their files.
-- The `shadcn build` command is used to build the registry.
-- The registry items are served as static files under `public/r/[name].json`.
-- The template also includes a route handler for serving registry items.
-- Every registry item are compatible with the `shadcn` CLI.
-- We have also added v0 integration using the `Open in v0` api.
+```bash
+pnpm install
+```
+
+### Serve the development UI
+
+```bash
+pnpm dev
+```
+
+This starts the Next.js development server with Turbopack at `http://localhost:3000`.
+
+### Build the registry
+
+```bash
+pnpm registry:build
+```
+
+This generates static JSON files in `public/r/` that can be consumed by the shadcn CLI.
+
+## Creating a New Component
+
+1. **Create the component folder and file**
+
+   ```
+   registry/misc/<component-name>/<component-name>.tsx
+   ```
+
+   Example structure:
+   ```
+   registry/
+   └── misc/
+       └── my-component/
+           └── my-component.tsx
+   ```
+
+2. **Write the component**
+
+   ```tsx
+   // registry/misc/my-component/my-component.tsx
+   "use client"
+
+   import { Card } from "@/components/ui/card"
+
+   export function MyComponent() {
+     return (
+       <Card>
+         <p>Hello from MyComponent!</p>
+       </Card>
+     )
+   }
+   ```
+
+3. **Register the component in `registry.json`**
+
+   ```json
+   {
+     "name": "my-component",
+     "type": "registry:component",
+     "title": "My Component",
+     "description": "A description of my component.",
+     "dependencies": ["lucide-react"],
+     "registryDependencies": ["card"],
+     "files": [
+       {
+         "path": "registry/misc/my-component/my-component.tsx",
+         "type": "registry:component"
+       }
+     ]
+   }
+   ```
+
+   - `dependencies`: npm packages required (e.g., `lucide-react`, `zod`)
+   - `registryDependencies`: other shadcn components this depends on (e.g., `button`, `card`, `input`)
+
+4. **Build the registry**
+
+   ```bash
+   pnpm registry:build
+   ```
+
+5. **Preview the component** (optional)
+
+   Import and render it in `app/page.tsx` to see it in the dev server.
+
+## Installing Components
+
+Users can install components from your registry using the shadcn CLI:
+
+```bash
+npx shadcn add my-component --registry https://your-registry-url
+```
 
 ## Documentation
 
-Visit the [shadcn documentation](https://ui.shadcn.com/docs/registry) to view the full documentation.
+Visit the [shadcn documentation](https://ui.shadcn.com/docs/registry) for more details on the registry system.
