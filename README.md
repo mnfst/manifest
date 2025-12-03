@@ -10,7 +10,7 @@
 </p>
 
 > [!WARNING]
-> 🚧 **Pivot in progress.** This repo contains our previous BaaS product. We're now building  a tool that turns databases into MCP servers for AI agents. More information here → [manifest.build](https://manifest.build)
+> 🚧 **Pivot in progress.** This repo contains our previous BaaS product. We're now building  a tool that allows to create Agentic UIs. More information here → [manifest.build](https://manifest.build)
 
 ---
 
