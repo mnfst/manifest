@@ -1,0 +1,342 @@
+'use client'
+
+import { cn } from '@/lib/utils'
+import { ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+
+// Components imports
+import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
+import { InlineBarChart } from '@/registry/inline/inline-bar-chart'
+import { InlineCardForm } from '@/registry/inline/inline-card-form'
+import { InlineOptionList } from '@/registry/inline/inline-option-list'
+import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
+import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
+import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
+import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
+import { InlinePieChart } from '@/registry/inline/inline-pie-chart'
+import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
+import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
+import {
+  InlineProductHorizontal,
+  InlineProductHorizontalCarousel,
+  InlineProductHorizontalGrid
+} from '@/registry/inline/inline-product-horizontal'
+import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
+import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
+import { InlineStats } from '@/registry/inline/inline-stat-card'
+import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
+import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
+import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
+
+interface BlockItem {
+  id: string
+  name: string
+  component: React.ReactNode
+  padding?: 'none' | 'sm' | 'md' | 'lg'
+}
+
+interface Category {
+  id: string
+  name: string
+  blocks: BlockItem[]
+}
+
+const categories: Category[] = [
+  {
+    id: 'payment',
+    name: 'Payment',
+    blocks: [
+      {
+        id: 'order-confirm',
+        name: 'Order Confirmation',
+        component: <InlineOrderConfirm />,
+        padding: 'none'
+      },
+      {
+        id: 'payment-methods',
+        name: 'Payment Methods',
+        component: <InlinePaymentMethods />,
+        padding: 'none'
+      },
+      {
+        id: 'card-form',
+        name: 'Card Form',
+        component: <InlineCardForm />,
+        padding: 'lg'
+      },
+      {
+        id: 'amount-input',
+        name: 'Amount Input',
+        component: <InlineAmountInput />,
+        padding: 'none'
+      },
+      {
+        id: 'payment-success',
+        name: 'Payment Success',
+        component: <InlinePaymentSuccessCompact />,
+        padding: 'lg'
+      },
+      {
+        id: 'payment-confirmed',
+        name: 'Payment Confirmed',
+        component: <InlinePaymentConfirmed />,
+        padding: 'lg'
+      }
+    ]
+  },
+  {
+    id: 'products',
+    name: 'Products',
+    blocks: [
+      {
+        id: 'product-grid',
+        name: 'Product Grid',
+        component: <InlineProductGrid columns={4} />,
+        padding: 'lg'
+      },
+      {
+        id: 'product-carousel',
+        name: 'Product Carousel',
+        component: <InlineProductCarousel />,
+        padding: 'lg'
+      },
+      {
+        id: 'product-horizontal',
+        name: 'Product Horizontal',
+        component: <InlineProductHorizontal />,
+        padding: 'lg'
+      },
+      {
+        id: 'product-horizontal-grid',
+        name: 'Product Horizontal Grid',
+        component: <InlineProductHorizontalGrid />,
+        padding: 'lg'
+      },
+      {
+        id: 'product-horizontal-carousel',
+        name: 'Product Horizontal Carousel',
+        component: <InlineProductHorizontalCarousel />,
+        padding: 'lg'
+      }
+    ]
+  },
+  {
+    id: 'selection',
+    name: 'Selection',
+    blocks: [
+      {
+        id: 'option-list',
+        name: 'Option List',
+        component: <InlineOptionList />,
+        padding: 'lg'
+      },
+      {
+        id: 'tag-select',
+        name: 'Tag Select',
+        component: <InlineTagSelect />,
+        padding: 'lg'
+      },
+      {
+        id: 'quick-reply',
+        name: 'Quick Reply',
+        component: <InlineQuickReply />,
+        padding: 'lg'
+      }
+    ]
+  },
+  {
+    id: 'status',
+    name: 'Status & Progress',
+    blocks: [
+      {
+        id: 'progress-steps',
+        name: 'Progress Steps',
+        component: <InlineProgressSteps />,
+        padding: 'lg'
+      },
+      {
+        id: 'status-badges',
+        name: 'Status Badges',
+        padding: 'lg',
+        component: (
+          <div className="flex flex-wrap gap-2">
+            <InlineStatusBadge status="success" />
+            <InlineStatusBadge status="pending" />
+            <InlineStatusBadge status="processing" />
+            <InlineStatusBadge status="shipped" />
+            <InlineStatusBadge status="delivered" />
+            <InlineStatusBadge status="error" />
+          </div>
+        )
+      }
+    ]
+  },
+  {
+    id: 'charts',
+    name: 'Charts & Stats',
+    blocks: [
+      {
+        id: 'stats',
+        name: 'Stats Cards',
+        component: <InlineStats />,
+        padding: 'lg'
+      },
+      {
+        id: 'bar-chart',
+        name: 'Bar Chart',
+        component: <InlineBarChart title="Monthly Sales" />,
+        padding: 'none'
+      },
+      {
+        id: 'pie-chart',
+        name: 'Pie Chart',
+        component: <InlinePieChart title="Categories" />,
+        padding: 'none'
+      }
+    ]
+  },
+  {
+    id: 'misc',
+    name: 'Miscellaneous',
+    blocks: [
+      {
+        id: 'weather',
+        name: 'Weather Widget',
+        component: <WeatherWidget />,
+        padding: 'none'
+      }
+    ]
+  }
+]
+
+export default function BlocksPage() {
+  const searchParams = useSearchParams()
+  const blockId = searchParams.get('block')
+
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(
+    categories.map((c) => c.id)
+  )
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    )
+  }
+
+  // Find the selected block
+  const selectedBlock = blockId
+    ? categories.flatMap((c) => c.blocks).find((b) => b.id === blockId)
+    : null
+
+  const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg') => {
+    switch (padding) {
+      case 'none':
+        return ''
+      case 'sm':
+        return 'p-2'
+      case 'md':
+        return 'p-4'
+      case 'lg':
+      default:
+        return 'p-6'
+    }
+  }
+
+  return (
+    <div className="flex min-h-[calc(100vh-3.5rem)]">
+      {/* Sidebar */}
+      <aside className="w-64 border-r bg-card/50 p-4 overflow-y-auto">
+        <nav className="space-y-2">
+          {categories.map((category) => (
+            <div key={category.id}>
+              <button
+                onClick={() => toggleCategory(category.id)}
+                className="flex w-full items-center justify-between px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted rounded-md transition-colors"
+              >
+                {category.name}
+                <ChevronRight
+                  className={cn(
+                    'h-4 w-4 transition-transform',
+                    expandedCategories.includes(category.id) && 'rotate-90'
+                  )}
+                />
+              </button>
+              {expandedCategories.includes(category.id) && (
+                <div className="ml-2 mt-1 space-y-0.5">
+                  {category.blocks.map((block) => (
+                    <Link
+                      key={block.id}
+                      href={`/blocks?block=${block.id}`}
+                      className={cn(
+                        'block px-3 py-1.5 text-sm rounded-md transition-colors',
+                        blockId === block.id
+                          ? 'bg-muted text-foreground font-medium'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      {block.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 p-8">
+        {selectedBlock ? (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
+              <p className="text-muted-foreground mt-1">
+                Preview of the {selectedBlock.name} component
+              </p>
+            </div>
+            <div
+              className={cn(
+                'rounded-lg border bg-card shadow-block',
+                getPaddingClass(selectedBlock.padding)
+              )}
+            >
+              {selectedBlock.component}
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-2xl font-bold">Blocks</h1>
+            <p className="text-muted-foreground mt-1">
+              Select a block from the sidebar to preview it.
+            </p>
+            <div className="mt-8 grid gap-4">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="rounded-lg border bg-card p-4"
+                >
+                  <h2 className="font-semibold mb-2">{category.name}</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {category.blocks.map((block) => (
+                      <Link
+                        key={block.id}
+                        href={`/blocks?block=${block.id}`}
+                        className="px-3 py-1.5 text-sm rounded-md bg-muted hover:bg-muted/80 transition-colors"
+                      >
+                        {block.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

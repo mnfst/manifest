@@ -1,212 +1,221 @@
-import { Separator } from '@/components/ui/separator'
-import { ThemeToggle } from '@/components/theme/theme-toggle'
-import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
-import { InlineBarChart } from '@/registry/inline/inline-bar-chart'
-import { InlineCardForm } from '@/registry/inline/inline-card-form'
-import { InlineOptionList } from '@/registry/inline/inline-option-list'
+'use client'
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ChatDemo } from '@/components/chat/chat-demo'
+import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
 import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
-import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
-import { InlinePieChart } from '@/registry/inline/inline-pie-chart'
-import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
-import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
-import {
-  InlineProductHorizontal,
-  InlineProductHorizontalGrid,
-  InlineProductHorizontalCarousel,
-} from '@/registry/inline/inline-product-horizontal'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
-import {
-  SkeletonWeather,
-  SkeletonProductGrid,
-  SkeletonProductCarousel,
-  SkeletonPricingPlans,
-  SkeletonInlineForm,
-  SkeletonOptionList,
-  SkeletonTagSelect,
-  SkeletonQuickReply,
-  SkeletonProgressSteps,
-  SkeletonStatusBadge,
-  SkeletonStats,
-  SkeletonPaymentMethods,
-  SkeletonOrderConfirm,
-  SkeletonAmountInput,
-  SkeletonPaymentSuccess,
-  SkeletonPaymentSuccessCompact,
-} from '@/registry/inline/inline-skeleton'
+import { InlineOptionList } from '@/registry/inline/inline-option-list'
 import { InlineStats } from '@/registry/inline/inline-stat-card'
-import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
-import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
-import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
-// This page displays items from the custom registry.
-// You are free to implement this with your own design as needed.
+
+const useCases = [
+  {
+    id: 'product-selection',
+    label: 'Product selection',
+    messages: [
+      {
+        id: '1',
+        role: 'user' as const,
+        content: "I'm looking for new running shoes",
+      },
+      {
+        id: '2',
+        role: 'assistant' as const,
+        content: "Here are some popular running shoes that might interest you:",
+        component: <InlineProductCarousel />,
+      },
+      {
+        id: '3',
+        role: 'user' as const,
+        content: "I'll take the Air Force 1",
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: "Great choice! Here's your order summary:",
+        component: <InlineOrderConfirm />,
+      },
+    ],
+  },
+  {
+    id: 'payment-workflow',
+    label: 'Payment workflow',
+    messages: [
+      {
+        id: '1',
+        role: 'user' as const,
+        content: "I'd like to complete my purchase",
+      },
+      {
+        id: '2',
+        role: 'assistant' as const,
+        content: "Please select your payment method:",
+        component: <InlinePaymentMethods />,
+      },
+      {
+        id: '3',
+        role: 'user' as const,
+        content: "Using my Visa card",
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: "Payment successful!",
+        component: <InlinePaymentConfirmed />,
+      },
+    ],
+  },
+  {
+    id: 'book-meeting',
+    label: 'Book a meeting',
+    messages: [
+      {
+        id: '1',
+        role: 'user' as const,
+        content: "I need to schedule a meeting with the design team",
+      },
+      {
+        id: '2',
+        role: 'assistant' as const,
+        content: "What type of meeting would you like to book?",
+        component: <InlineOptionList />,
+      },
+      {
+        id: '3',
+        role: 'user' as const,
+        content: "Design review",
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: "Here's the booking progress:",
+        component: <InlineProgressSteps />,
+      },
+    ],
+  },
+  {
+    id: 'ticket-buying',
+    label: 'Ticket buying',
+    messages: [
+      {
+        id: '1',
+        role: 'user' as const,
+        content: "I want to buy tickets for the concert next week",
+      },
+      {
+        id: '2',
+        role: 'assistant' as const,
+        content: "How many tickets would you like?",
+        component: <InlineQuickReply />,
+      },
+      {
+        id: '3',
+        role: 'user' as const,
+        content: "2 tickets please",
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: "Your order is being processed:",
+        component: <InlineProgressSteps />,
+      },
+    ],
+  },
+  {
+    id: 'messaging',
+    label: 'Messaging',
+    messages: [
+      {
+        id: '1',
+        role: 'user' as const,
+        content: "What are my notification preferences?",
+      },
+      {
+        id: '2',
+        role: 'assistant' as const,
+        content: "Here are your current notification settings:",
+        component: <InlineOptionList />,
+      },
+      {
+        id: '3',
+        role: 'user' as const,
+        content: "Enable email notifications",
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: "Settings updated! What else can I help with?",
+        component: <InlineQuickReply />,
+      },
+    ],
+  },
+  {
+    id: 'bank-account',
+    label: 'Bank account overview',
+    messages: [
+      {
+        id: '1',
+        role: 'user' as const,
+        content: "Show me my account overview",
+      },
+      {
+        id: '2',
+        role: 'assistant' as const,
+        content: "Here's your account summary:",
+        component: <InlineStats />,
+      },
+      {
+        id: '3',
+        role: 'user' as const,
+        content: "What quick actions can I take?",
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: "Here are some quick actions:",
+        component: <InlineQuickReply />,
+      },
+    ],
+  },
+]
 
 export default function Home() {
   return (
-    <div className="max-w-3xl mx-auto flex flex-col min-h-svh px-4 py-8 gap-8">
-      <header className="flex items-start justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Manifest Registry
+    <div className="container py-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Agentic UI Components
           </h1>
-          <p className="text-muted-foreground">
-            A custom registry for distributing code using shadcn.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            A collection of UI components designed for conversational interfaces.
+            See how they work in a ChatGPT-like experience.
           </p>
         </div>
-        <ThemeToggle />
-      </header>
 
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Weather</h2>
-        <WeatherWidget />
-      </section>
+        <Tabs defaultValue="product-selection" className="w-full">
+          <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-center">
+            {useCases.map((useCase) => (
+              <TabsTrigger
+                key={useCase.id}
+                value={useCase.id}
+                className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full px-4 py-1.5 text-sm"
+              >
+                {useCase.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Payment</h2>
-        <p className="text-sm text-muted-foreground">
-          Components for direct use in chat flow (vs Card components for
-          modals/panels)
-        </p>
-        <InlineOrderConfirm />
-        <Separator />
-        <InlinePaymentMethods />
-        <Separator />
-        <InlineCardForm />
-        <Separator />
-        <InlineAmountInput />
-        <Separator />
-        <InlinePaymentSuccessCompact />
-        <Separator />
-        <InlinePaymentConfirmed />
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Product Lists</h2>
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Grid (4 columns, stretched)
-        </h3>
-        <InlineProductGrid columns={4} />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Grid (3 columns, stretched)
-        </h3>
-        <InlineProductGrid columns={3} />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Carousel (with gradient fade)
-        </h3>
-        <InlineProductCarousel />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Horizontal (single column)
-        </h3>
-        <InlineProductHorizontal />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Horizontal Grid (2 columns)
-        </h3>
-        <InlineProductHorizontalGrid />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Horizontal Carousel (with gradient fade)
-        </h3>
-        <InlineProductHorizontalCarousel />
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Selection</h2>
-        <InlineOptionList />
-        <Separator />
-        <InlineTagSelect />
-        <Separator />
-        <InlineQuickReply />
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Status & Progress</h2>
-        <InlineProgressSteps />
-        <Separator />
-        <div className="flex flex-wrap gap-2">
-          <InlineStatusBadge status="success" />
-          <InlineStatusBadge status="pending" />
-          <InlineStatusBadge status="processing" />
-          <InlineStatusBadge status="shipped" />
-          <InlineStatusBadge status="delivered" />
-          <InlineStatusBadge status="error" />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Charts & Stats</h2>
-        <InlineStats />
-        <Separator />
-        <InlineBarChart title="Monthly Sales" />
-        <Separator />
-        <InlinePieChart title="Categories" />
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Loading Skeletons</h2>
-        <p className="text-sm text-muted-foreground">
-          Placeholder components with pulse animation for loading states
-        </p>
-        <h3 className="text-sm font-medium text-muted-foreground">Weather</h3>
-        <SkeletonWeather />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">Pricing</h3>
-        <SkeletonPricingPlans />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">Payment</h3>
-        <SkeletonOrderConfirm />
-        <Separator />
-        <SkeletonPaymentMethods />
-        <Separator />
-        <SkeletonInlineForm />
-        <Separator />
-        <SkeletonAmountInput />
-        <Separator />
-        <SkeletonPaymentSuccess />
-        <Separator />
-        <SkeletonPaymentSuccessCompact />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">Products</h3>
-        <SkeletonProductGrid columns={4} />
-        <Separator />
-        <SkeletonProductCarousel />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">Selection</h3>
-        <SkeletonOptionList />
-        <Separator />
-        <SkeletonTagSelect />
-        <Separator />
-        <SkeletonQuickReply />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">Status & Progress</h3>
-        <SkeletonProgressSteps />
-        <Separator />
-        <div className="flex flex-wrap gap-2">
-          <SkeletonStatusBadge />
-          <SkeletonStatusBadge />
-          <SkeletonStatusBadge />
-        </div>
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">Charts & Stats</h3>
-        <SkeletonStats />
-      </section>
+          {useCases.map((useCase) => (
+            <TabsContent key={useCase.id} value={useCase.id} className="mt-6">
+              <ChatDemo messages={useCase.messages} />
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
     </div>
   )
 }
