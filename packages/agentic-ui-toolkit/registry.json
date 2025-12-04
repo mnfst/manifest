@@ -172,6 +172,20 @@
       ]
     },
     {
+      "name": "inline-payment-confirmed",
+      "type": "registry:component",
+      "title": "Inline Payment Confirmed",
+      "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-payment-confirmed.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "inline-product-list",
       "type": "registry:component",
       "title": "Inline Product List",
@@ -209,6 +223,48 @@
       "files": [
         {
           "path": "registry/inline/inline-product-carousel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-horizontal",
+      "type": "registry:component",
+      "title": "Inline Product Horizontal",
+      "description": "Horizontal product card with image on left and content on right, in single column layout.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-horizontal.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-horizontal-grid",
+      "type": "registry:component",
+      "title": "Inline Product Horizontal Grid",
+      "description": "Horizontal product cards in a 2-column grid layout.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-horizontal.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-horizontal-carousel",
+      "type": "registry:component",
+      "title": "Inline Product Horizontal Carousel",
+      "description": "Horizontal product cards in a carousel showing 2 full cards with partial 3rd visible.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-horizontal.tsx",
           "type": "registry:component"
         }
       ]

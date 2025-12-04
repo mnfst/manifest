@@ -106,7 +106,7 @@ export function InlineProductGrid({
             className={cn(
               "rounded-lg border text-left transition-all overflow-hidden",
               selected === product.id
-                ? "bg-foreground text-background border-foreground"
+                ? "bg-card border-foreground ring-1 ring-foreground"
                 : "bg-card border-border hover:border-foreground/50",
               !product.inStock && "opacity-50 cursor-not-allowed"
             )}
@@ -137,10 +137,7 @@ export function InlineProductGrid({
             <div className="p-3 space-y-1">
               <p className="text-sm font-medium line-clamp-1">{product.name}</p>
               {product.description && (
-                <p className={cn(
-                  "text-xs line-clamp-1",
-                  selected === product.id ? "text-background/70" : "text-muted-foreground"
-                )}>
+                <p className="text-xs line-clamp-1 text-muted-foreground">
                   {product.description}
                 </p>
               )}
@@ -150,19 +147,13 @@ export function InlineProductGrid({
                     {formatCurrency(product.price)}
                   </span>
                   {product.originalPrice && (
-                    <span className={cn(
-                      "text-xs line-through",
-                      selected === product.id ? "text-background/70" : "text-muted-foreground"
-                    )}>
+                    <span className="text-xs line-through text-muted-foreground">
                       {formatCurrency(product.originalPrice)}
                     </span>
                   )}
                 </div>
                 {product.rating && (
-                  <div className={cn(
-                    "flex items-center gap-0.5 text-xs",
-                    selected === product.id ? "text-background/70" : "text-muted-foreground"
-                  )}>
+                  <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                     {product.rating}
                   </div>

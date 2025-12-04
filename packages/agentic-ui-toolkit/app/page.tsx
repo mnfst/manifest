@@ -7,9 +7,15 @@ import { InlineOptionList } from '@/registry/inline/inline-option-list'
 import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentSuccess } from '@/registry/inline/inline-payment-success'
+import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
 import { InlinePieChart } from '@/registry/inline/inline-pie-chart'
 import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
 import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
+import {
+  InlineProductHorizontal,
+  InlineProductHorizontalGrid,
+  InlineProductHorizontalCarousel,
+} from '@/registry/inline/inline-product-horizontal'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
 import {
@@ -35,8 +41,6 @@ import { InlineStats } from '@/registry/inline/inline-stat-card'
 import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
-import { PricingPlans } from '@/registry/pricing/pricing-plans'
-import { PricingPlansGrid } from '@/registry/pricing/pricing-plans-grid'
 // This page displays items from the custom registry.
 // You are free to implement this with your own design as needed.
 
@@ -63,21 +67,6 @@ export default function Home() {
       <Separator />
 
       <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Pricing</h2>
-        <h3 className="text-sm font-medium text-muted-foreground">
-          List (full width)
-        </h3>
-        <PricingPlans />
-        <Separator />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Grid (3 columns)
-        </h3>
-        <PricingPlansGrid />
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
         <h2 className="text-xl font-semibold">Payment</h2>
         <p className="text-sm text-muted-foreground">
           Components for direct use in chat flow (vs Card components for
@@ -92,6 +81,8 @@ export default function Home() {
         <InlineAmountInput />
         <Separator />
         <InlinePaymentSuccess />
+        <Separator />
+        <InlinePaymentConfirmed />
       </section>
 
       <Separator />
@@ -112,6 +103,21 @@ export default function Home() {
           Carousel (with gradient fade)
         </h3>
         <InlineProductCarousel />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">
+          Horizontal (single column)
+        </h3>
+        <InlineProductHorizontal />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">
+          Horizontal Grid (2 columns)
+        </h3>
+        <InlineProductHorizontalGrid />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">
+          Horizontal Carousel (with gradient fade)
+        </h3>
+        <InlineProductHorizontalCarousel />
       </section>
 
       <Separator />

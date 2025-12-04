@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Star, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -85,6 +85,9 @@ const defaultProducts: Product[] = [
   },
 ]
 
+const CARD_WIDTH = 160 // w-40 = 10rem = 160px
+const GAP = 12 // gap-3 = 0.75rem = 12px
+
 export function InlineProductCarousel({
   products = defaultProducts,
   currency = "EUR",
@@ -92,7 +95,8 @@ export function InlineProductCarousel({
   selectedProductId,
 }: InlineProductCarouselProps) {
   const [selected, setSelected] = useState<string | undefined>(selectedProductId)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const maxIndex = Math.max(0, products.length - 3)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -108,37 +112,48 @@ export function InlineProductCarousel({
   }
 
   const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 200
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      })
+    if (direction === "left" && currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1)
+    } else if (direction === "right" && currentIndex < maxIndex) {
+      setCurrentIndex(currentIndex + 1)
     }
   }
 
   return (
-    <div className="w-full relative group">
+    <div className="w-full relative">
       {/* Left scroll button */}
       <button
         onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity -translate-x-1/2"
+        disabled={currentIndex === 0}
+        className={cn(
+          "absolute -left-4 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center transition-opacity",
+          currentIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-muted"
+        )}
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-      {/* Carousel container with gradient masks */}
-      <div className="relative overflow-hidden">
-        {/* Left gradient fade */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-[1] pointer-events-none opacity-0" />
+      {/* Right scroll button */}
+      <button
+        onClick={() => scroll("right")}
+        disabled={currentIndex >= maxIndex}
+        className={cn(
+          "absolute -right-4 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center transition-opacity",
+          currentIndex >= maxIndex ? "opacity-30 cursor-not-allowed" : "hover:bg-muted"
+        )}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
 
+      <div className="overflow-hidden">
         {/* Right gradient fade */}
-        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-[1] pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />
 
         <div
-          ref={scrollRef}
-          className="flex gap-3 overflow-x-auto pb-2 scrollbar-none"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="flex gap-3 transition-transform duration-300 ease-out pb-2"
+          style={{
+            transform: `translateX(-${currentIndex * (CARD_WIDTH + GAP)}px)`,
+          }}
         >
           {products.map((product) => (
             <button
@@ -148,7 +163,7 @@ export function InlineProductCarousel({
               className={cn(
                 "flex-shrink-0 w-40 rounded-lg border text-left transition-all overflow-hidden",
                 selected === product.id
-                  ? "bg-foreground text-background border-foreground"
+                  ? "bg-card border-foreground ring-1 ring-foreground"
                   : "bg-card border-border hover:border-foreground/50",
                 !product.inStock && "opacity-50 cursor-not-allowed"
               )}
@@ -179,10 +194,7 @@ export function InlineProductCarousel({
               <div className="p-3 space-y-1">
                 <p className="text-sm font-medium line-clamp-1">{product.name}</p>
                 {product.description && (
-                  <p className={cn(
-                    "text-xs line-clamp-1",
-                    selected === product.id ? "text-background/70" : "text-muted-foreground"
-                  )}>
+                  <p className="text-xs line-clamp-1 text-muted-foreground">
                     {product.description}
                   </p>
                 )}
@@ -192,19 +204,13 @@ export function InlineProductCarousel({
                       {formatCurrency(product.price)}
                     </span>
                     {product.originalPrice && (
-                      <span className={cn(
-                        "text-xs line-through",
-                        selected === product.id ? "text-background/70" : "text-muted-foreground"
-                      )}>
+                      <span className="text-xs line-through text-muted-foreground">
                         {formatCurrency(product.originalPrice)}
                       </span>
                     )}
                   </div>
                   {product.rating && (
-                    <div className={cn(
-                      "flex items-center gap-0.5 text-xs",
-                      selected === product.id ? "text-background/70" : "text-muted-foreground"
-                    )}>
+                    <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       {product.rating}
                     </div>
@@ -218,14 +224,6 @@ export function InlineProductCarousel({
           ))}
         </div>
       </div>
-
-      {/* Right scroll button */}
-      <button
-        onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
     </div>
   )
 }
