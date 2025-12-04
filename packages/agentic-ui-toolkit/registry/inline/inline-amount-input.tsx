@@ -78,7 +78,7 @@ export function InlineAmountInput({
   }, [isEditing])
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full rounded-lg bg-card p-2 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">{label}</span>
         <div className="flex items-center gap-2">
