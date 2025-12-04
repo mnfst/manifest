@@ -1,14 +1,14 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Lock, Plus, CreditCard } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { CreditCard, Lock, Plus } from 'lucide-react'
+import { useState } from 'react'
 
 export interface PaymentMethod {
   id: string
-  type: "card" | "apple_pay" | "google_pay" | "paypal"
-  brand?: "visa" | "mastercard" | "amex" | "cb"
+  type: 'card' | 'apple_pay' | 'google_pay' | 'paypal'
+  brand?: 'visa' | 'mastercard' | 'amex' | 'cb'
   last4?: string
   isDefault?: boolean
 }
@@ -25,14 +25,20 @@ export interface InlinePaymentMethodsProps {
 }
 
 const defaultMethods: PaymentMethod[] = [
-  { id: "1", type: "card", brand: "visa", last4: "4242" },
-  { id: "2", type: "card", brand: "mastercard", last4: "8888", isDefault: true },
-  { id: "3", type: "apple_pay" },
+  { id: '1', type: 'card', brand: 'visa', last4: '4242' },
+  {
+    id: '2',
+    type: 'card',
+    brand: 'mastercard',
+    last4: '8888',
+    isDefault: true
+  },
+  { id: '3', type: 'apple_pay' }
 ]
 
 const BrandLogo = ({ brand }: { brand?: string }) => {
   switch (brand) {
-    case "visa":
+    case 'visa':
       return (
         <svg viewBox="0 0 48 32" className="h-5 w-auto">
           <rect width="48" height="32" rx="4" fill="#1A1F71" />
@@ -42,7 +48,7 @@ const BrandLogo = ({ brand }: { brand?: string }) => {
           />
         </svg>
       )
-    case "mastercard":
+    case 'mastercard':
       return (
         <svg viewBox="0 0 48 32" className="h-5 w-auto">
           <rect width="48" height="32" rx="4" fill="#000" />
@@ -54,7 +60,7 @@ const BrandLogo = ({ brand }: { brand?: string }) => {
           />
         </svg>
       )
-    case "amex":
+    case 'amex':
       return (
         <svg viewBox="0 0 48 32" className="h-5 w-auto">
           <rect width="48" height="32" rx="4" fill="#006FCF" />
@@ -64,7 +70,7 @@ const BrandLogo = ({ brand }: { brand?: string }) => {
           />
         </svg>
       )
-    case "cb":
+    case 'cb':
       return (
         <svg viewBox="0 0 48 32" className="h-5 w-auto">
           <rect width="48" height="32" rx="4" fill="#1E4B9E" />
@@ -80,7 +86,7 @@ const BrandLogo = ({ brand }: { brand?: string }) => {
 }
 
 const MethodIcon = ({ method }: { method: PaymentMethod }) => {
-  if (method.type === "apple_pay") {
+  if (method.type === 'apple_pay') {
     return (
       <svg viewBox="0 0 48 32" className="h-5 w-auto">
         <rect width="48" height="32" rx="4" fill="#000" />
@@ -91,7 +97,7 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
       </svg>
     )
   }
-  if (method.type === "google_pay") {
+  if (method.type === 'google_pay') {
     return (
       <svg viewBox="0 0 48 32" className="h-5 w-auto">
         <rect width="48" height="32" rx="4" fill="#fff" stroke="#ddd" />
@@ -101,7 +107,7 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
       </svg>
     )
   }
-  if (method.type === "paypal") {
+  if (method.type === 'paypal') {
     return (
       <svg viewBox="0 0 48 32" className="h-5 w-auto">
         <rect width="48" height="32" rx="4" fill="#003087" />
@@ -117,12 +123,12 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
 export function InlinePaymentMethods({
   methods = defaultMethods,
   amount = 279.0,
-  currency = "EUR",
+  currency = 'EUR',
   selectedMethodId,
   onSelectMethod,
   onAddCard,
   onPay,
-  isLoading = false,
+  isLoading = false
 }: InlinePaymentMethodsProps) {
   const [selected, setSelected] = useState(
     selectedMethodId || methods.find((m) => m.isDefault)?.id || methods[0]?.id
@@ -134,31 +140,31 @@ export function InlinePaymentMethods({
   }
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency
     }).format(value)
   }
 
   const getMethodLabel = (method: PaymentMethod) => {
-    if (method.type === "apple_pay") return "Apple Pay"
-    if (method.type === "google_pay") return "Google Pay"
-    if (method.type === "paypal") return "PayPal"
+    if (method.type === 'apple_pay') return 'Apple Pay'
+    if (method.type === 'google_pay') return 'Google Pay'
+    if (method.type === 'paypal') return 'PayPal'
     return `•••• ${method.last4}`
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full rounded-lg bg-card p-2 space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         {methods.map((method) => (
           <button
             key={method.id}
             onClick={() => handleSelect(method.id)}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors",
+              'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors',
               selected === method.id
-                ? "border-foreground ring-1 ring-foreground bg-background"
-                : "border-border bg-background hover:bg-muted"
+                ? 'border-foreground ring-1 ring-foreground'
+                : 'border-border  hover:border-foreground/50'
             )}
           >
             <MethodIcon method={method} />
@@ -190,7 +196,7 @@ export function InlinePaymentMethods({
           disabled={!selected || isLoading}
         >
           <Lock className="mr-1.5 h-3.5 w-3.5" />
-          {isLoading ? "Processing..." : `Pay ${formatCurrency(amount)}`}
+          {isLoading ? 'Processing...' : `Pay ${formatCurrency(amount)}`}
         </Button>
       </div>
     </div>
