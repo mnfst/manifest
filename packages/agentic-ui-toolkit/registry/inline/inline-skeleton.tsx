@@ -120,7 +120,7 @@ export function SkeletonPricingPlans() {
 
 export function SkeletonInlineForm() {
   return (
-    <div className="w-full flex items-center gap-2 rounded-lg border bg-card px-2 py-2">
+    <div className="w-full flex items-center gap-2 rounded-lg  bg-card px-2 py-2">
       <Skeleton className="h-4 w-4 shrink-0" />
       <Skeleton className="h-8 flex-1" />
       <Skeleton className="h-4 w-px shrink-0" />

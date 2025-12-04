@@ -30,8 +30,6 @@ import {
   SkeletonProgressSteps,
   SkeletonStatusBadge,
   SkeletonStats,
-  SkeletonBarChart,
-  SkeletonPieChart,
   SkeletonPaymentMethods,
   SkeletonOrderConfirm,
   SkeletonAmountInput,
@@ -208,10 +206,6 @@ export default function Home() {
         <Separator />
         <h3 className="text-sm font-medium text-muted-foreground">Charts & Stats</h3>
         <SkeletonStats />
-        <Separator />
-        <SkeletonBarChart />
-        <Separator />
-        <SkeletonPieChart />
       </section>
     </div>
   )

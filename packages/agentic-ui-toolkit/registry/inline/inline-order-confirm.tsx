@@ -41,12 +41,12 @@ export function InlineOrderConfirm({
   }
 
   return (
-    <div className="w-full space-y-3">
-      <div className="flex items-start gap-4 rounded-lg  bg-card p-4">
+    <div className="w-full rounded-lg bg-card">
+      <div className="flex items-start gap-4 p-4">
         <img
           src={productImage}
           alt={productName}
-          className="h-16 w-16 rounded-lg object-contain bg-white"
+          className="h-16 w-16 rounded-lg object-contain bg-muted/30"
         />
         <div className="flex-1">
           <div className="flex items-start justify-between">
@@ -66,19 +66,21 @@ export function InlineOrderConfirm({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5" />
-          {deliveryDate}
-        </div>
-        <span>•</span>
-        <div className="flex items-center gap-1.5">
-          <MapPin className="h-3.5 w-3.5" />
-          {deliveryAddress}
-        </div>
-      </div>
+      <div className="border-t" />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5" />
+            {deliveryDate}
+          </div>
+          <span>•</span>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" />
+            {deliveryAddress}
+          </div>
+        </div>
+
         <Button onClick={onConfirm} disabled={isLoading}>
           {isLoading ? 'Confirming...' : 'Confirm order'}
           <ArrowRight className="ml-1.5 h-4 w-4" />

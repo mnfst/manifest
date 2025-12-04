@@ -48,7 +48,7 @@ export function InlineCardForm({
   const label = submitLabel || `Pay ${formatCurrency(amount)}`
 
   return (
-    <div className="w-full flex items-center gap-2 rounded-lg border bg-card px-2 py-2">
+    <div className="w-full flex items-center gap-2 rounded-lg bg-card px-2 py-2">
       <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
       <input
         type="text"
