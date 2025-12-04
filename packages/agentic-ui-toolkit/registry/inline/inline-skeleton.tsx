@@ -1,16 +1,9 @@
-"use client"
+'use client'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded-md bg-muted",
-        className
-      )}
-    />
-  )
+  return <div className={cn('animate-pulse rounded-md bg-muted', className)} />
 }
 
 export function SkeletonWeather() {
@@ -62,10 +55,12 @@ export function SkeletonProductCard() {
 
 export function SkeletonProductGrid({ columns = 4 }: { columns?: 3 | 4 }) {
   return (
-    <div className={cn(
-      "w-full grid gap-3",
-      columns === 4 ? "grid-cols-4" : "grid-cols-3"
-    )}>
+    <div
+      className={cn(
+        'w-full grid gap-3',
+        columns === 4 ? 'grid-cols-4' : 'grid-cols-3'
+      )}
+    >
       {Array.from({ length: columns }).map((_, i) => (
         <SkeletonProductCard key={i} />
       ))}
@@ -125,7 +120,7 @@ export function SkeletonPricingPlans() {
 
 export function SkeletonInlineForm() {
   return (
-    <div className="w-full flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
+    <div className="w-full flex items-center gap-2 rounded-lg border bg-card px-2 py-2">
       <Skeleton className="h-4 w-4 shrink-0" />
       <Skeleton className="h-8 flex-1" />
       <Skeleton className="h-4 w-px shrink-0" />
@@ -205,42 +200,6 @@ export function SkeletonStats() {
   )
 }
 
-export function SkeletonBarChart() {
-  return (
-    <div className="w-full rounded-lg border bg-card p-4 space-y-4">
-      <Skeleton className="h-5 w-32" />
-      <div className="flex items-end justify-between gap-2 h-32">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton
-            key={i}
-            className="flex-1 rounded-t-sm"
-            style={{ height: `${30 + Math.random() * 70}%` }}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export function SkeletonPieChart() {
-  return (
-    <div className="w-full rounded-lg border bg-card p-4">
-      <div className="flex items-center gap-6">
-        <Skeleton className="h-32 w-32 rounded-full" />
-        <div className="flex-1 space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <Skeleton className="h-3 w-3 rounded-full" />
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-3 w-8 ml-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function SkeletonPaymentMethods() {
   return (
     <div className="flex gap-2">
@@ -300,7 +259,7 @@ export function SkeletonPaymentSuccess() {
 
 export function SkeletonPaymentSuccessCompact() {
   return (
-    <div className="w-full flex items-center gap-3 rounded-lg border bg-card px-3 py-2">
+    <div className="w-full flex items-center gap-3 rounded-lg  bg-card px-3 py-2">
       <Skeleton className="h-10 w-10 rounded-full" />
       <Skeleton className="h-10 w-10 rounded-md" />
       <div className="flex-1 space-y-1.5">

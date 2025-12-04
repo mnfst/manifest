@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { Button } from "@/components/ui/button"
-import { CheckCircle2, ExternalLink } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { CheckCircle2, ExternalLink } from 'lucide-react'
 
 export interface InlinePaymentConfirmedProps {
   orderId?: string
@@ -15,30 +15,32 @@ export interface InlinePaymentConfirmedProps {
 }
 
 export function InlinePaymentConfirmed({
-  orderId = "ORD-2024-7842",
+  orderId = 'ORD-2024-7842',
   productName = "Air Force 1 '07",
-  productDescription = "Nike · Size 42 · White",
-  productImage = "/demo/shoe-1.png",
+  productDescription = 'Nike · Size 42 · White',
+  productImage = '/demo/shoe-1.png',
   price = 119,
-  currency = "EUR",
-  deliveryDate = "Tue. Dec 10",
-  onTrackOrder,
+  currency = 'EUR',
+  deliveryDate = 'Tue. Dec 10',
+  onTrackOrder
 }: InlinePaymentConfirmedProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency
     }).format(value)
   }
 
   return (
-    <div className="w-full rounded-lg border bg-card overflow-hidden">
+    <div className="w-full rounded-lg  bg-card overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border-b border-green-500/20">
         <CheckCircle2 className="h-4 w-4 text-green-500" />
         <span className="text-sm font-medium text-green-700 dark:text-green-400">
           Payment confirmed
         </span>
-        <span className="text-xs text-muted-foreground ml-auto">#{orderId}</span>
+        <span className="text-xs text-muted-foreground ml-auto">
+          #{orderId}
+        </span>
       </div>
       <div className="p-4">
         <div className="flex gap-4">
@@ -55,9 +57,13 @@ export function InlinePaymentConfirmed({
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium">{productName}</p>
-            <p className="text-sm text-muted-foreground">{productDescription}</p>
+            <p className="text-sm text-muted-foreground">
+              {productDescription}
+            </p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-lg font-semibold">{formatCurrency(price)}</span>
+              <span className="text-lg font-semibold">
+                {formatCurrency(price)}
+              </span>
               <span className="text-sm text-muted-foreground">
                 Delivery: {deliveryDate}
               </span>

@@ -244,8 +244,8 @@ export function InlineProductHorizontalCarousel({
         onClick={() => scroll("left")}
         disabled={currentIndex === 0}
         className={cn(
-          "absolute -left-4 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center transition-opacity",
-          currentIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-muted"
+          "absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
+          currentIndex === 0 ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
         )}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -254,8 +254,8 @@ export function InlineProductHorizontalCarousel({
         onClick={() => scroll("right")}
         disabled={currentIndex >= maxIndex}
         className={cn(
-          "absolute -right-4 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center transition-opacity",
-          currentIndex >= maxIndex ? "opacity-30 cursor-not-allowed" : "hover:bg-muted"
+          "absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
+          currentIndex >= maxIndex ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
         )}
       >
         <ChevronRight className="h-4 w-4" />

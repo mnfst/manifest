@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Calendar, MapPin } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { ArrowRight, Calendar, MapPin } from 'lucide-react'
 
 export interface InlineOrderConfirmProps {
   productName?: string
@@ -18,31 +18,31 @@ export interface InlineOrderConfirmProps {
 }
 
 const DEFAULT_AIRPODS_IMAGE =
-  "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95"
+  'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
 export function InlineOrderConfirm({
-  productName = "AirPods Pro (2nd gen.)",
-  productVariant = "White",
+  productName = 'AirPods Pro (2nd gen.)',
+  productVariant = 'White',
   productImage = DEFAULT_AIRPODS_IMAGE,
   quantity = 1,
   price = 279.0,
-  currency = "EUR",
-  deliveryDate = "Tue. Dec 10",
-  deliveryAddress = "123 Main Street, 10001",
+  currency = 'EUR',
+  deliveryDate = 'Tue. Dec 10',
+  deliveryAddress = '123 Main Street, 10001',
   freeShipping = true,
   onConfirm,
-  isLoading = false,
+  isLoading = false
 }: InlineOrderConfirmProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency
     }).format(value)
   }
 
   return (
     <div className="w-full space-y-3">
-      <div className="flex items-start gap-4 rounded-lg border bg-card p-4">
+      <div className="flex items-start gap-4 rounded-lg  bg-card p-4">
         <img
           src={productImage}
           alt={productName}
@@ -80,7 +80,7 @@ export function InlineOrderConfirm({
 
       <div className="flex justify-end">
         <Button onClick={onConfirm} disabled={isLoading}>
-          {isLoading ? "Confirming..." : "Confirm order"}
+          {isLoading ? 'Confirming...' : 'Confirm order'}
           <ArrowRight className="ml-1.5 h-4 w-4" />
         </Button>
       </div>
