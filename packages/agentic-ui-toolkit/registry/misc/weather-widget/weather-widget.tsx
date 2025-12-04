@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import {
   Cloud,
@@ -7,13 +7,13 @@ import {
   Droplets,
   Sun,
   Thermometer,
-  Wind,
-} from "lucide-react"
+  Wind
+} from 'lucide-react'
 
 export interface WeatherData {
   location: string
   temperature: number
-  condition: "sunny" | "cloudy" | "rainy" | "snowy"
+  condition: 'sunny' | 'cloudy' | 'rainy' | 'snowy'
   humidity: number
   windSpeed: number
   feelsLike: number
@@ -23,14 +23,14 @@ const weatherIcons = {
   sunny: Sun,
   cloudy: Cloud,
   rainy: CloudRain,
-  snowy: CloudSnow,
+  snowy: CloudSnow
 }
 
 const weatherLabels = {
-  sunny: "Sunny",
-  cloudy: "Cloudy",
-  rainy: "Rainy",
-  snowy: "Snowy",
+  sunny: 'Sunny',
+  cloudy: 'Cloudy',
+  rainy: 'Rainy',
+  snowy: 'Snowy'
 }
 
 interface WeatherWidgetProps {
@@ -38,25 +38,27 @@ interface WeatherWidgetProps {
 }
 
 const defaultData: WeatherData = {
-  location: "San Francisco, CA",
+  location: 'San Francisco, CA',
   temperature: 72,
-  condition: "sunny",
+  condition: 'sunny',
   humidity: 45,
   windSpeed: 12,
-  feelsLike: 70,
+  feelsLike: 70
 }
 
 export function WeatherWidget({ data = defaultData }: WeatherWidgetProps) {
   const WeatherIcon = weatherIcons[data.condition]
 
   return (
-    <div className="w-full flex items-center justify-between gap-4 rounded-lg border bg-card px-4 py-3">
+    <div className="w-full flex items-center justify-between gap-4 rounded-lg bg-card px-4 py-3">
       <div className="flex items-center gap-3">
         <WeatherIcon className="h-8 w-8 text-yellow-500" />
         <div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold">{data.temperature}°F</span>
-            <span className="text-sm text-muted-foreground">{weatherLabels[data.condition]}</span>
+            <span className="text-sm text-muted-foreground">
+              {weatherLabels[data.condition]}
+            </span>
           </div>
           <p className="text-xs text-muted-foreground">{data.location}</p>
         </div>
