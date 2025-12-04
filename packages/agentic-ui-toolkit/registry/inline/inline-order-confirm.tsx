@@ -42,48 +42,63 @@ export function InlineOrderConfirm({
 
   return (
     <div className="w-full rounded-lg bg-card">
-      <div className="flex items-start gap-4 p-2">
+      {/* Product info */}
+      <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-2">
         <img
           src={productImage}
           alt={productName}
-          className="h-16 w-16 rounded-lg object-contain bg-muted/30"
+          className="h-12 w-12 sm:h-16 sm:w-16 rounded-md sm:rounded-lg object-contain bg-muted/30"
         />
-        <div className="flex-1">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-medium">{productName}</h3>
-              <p className="text-sm text-muted-foreground">
-                {productVariant} • Qty: {quantity}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="font-semibold">{formatCurrency(price)}</p>
-              {freeShipping && (
-                <p className="text-sm text-green-600">Free shipping</p>
-              )}
-            </div>
+        <div className="flex-1 min-w-0">
+          {/* Mobile: stacked layout */}
+          <h3 className="text-sm sm:text-base font-medium truncate">
+            {productName}
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {productVariant} • Qty: {quantity}
+          </p>
+          {/* Mobile: price below product info */}
+          <div className="flex items-center gap-2 mt-1 sm:hidden">
+            <p className="text-sm font-semibold">{formatCurrency(price)}</p>
+            {freeShipping && (
+              <p className="text-xs text-green-600">Free shipping</p>
+            )}
           </div>
+        </div>
+        {/* Desktop: price on the right */}
+        <div className="hidden sm:block text-right">
+          <p className="font-semibold">{formatCurrency(price)}</p>
+          {freeShipping && (
+            <p className="text-sm text-green-600">Free shipping</p>
+          )}
         </div>
       </div>
 
       <div className="border-t" />
 
-      <div className="flex items-center justify-between p-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+      {/* Delivery info & button */}
+      <div className="p-3 space-y-3 sm:py-2 sm:pr-2 sm:pl-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+        {/* Mobile: stacked, Desktop: inline */}
+        <div className="space-y-1.5 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-2 text-xs sm:text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" />
-            {deliveryDate}
+            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+            <span>{deliveryDate}</span>
           </div>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <div className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            {deliveryAddress}
+            <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+            <span className="truncate">{deliveryAddress}</span>
           </div>
         </div>
 
-        <Button size="sm" onClick={onConfirm} disabled={isLoading}>
+        <Button
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={onConfirm}
+          disabled={isLoading}
+        >
           {isLoading ? 'Confirming...' : 'Confirm order'}
-          <ArrowRight className="ml-1.5 h-4 w-4" />
+          <ArrowRight className="ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       </div>
     </div>

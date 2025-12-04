@@ -185,13 +185,14 @@ export function InlinePaymentMethods({
         </button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2">
+        <span className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-muted-foreground">
           <Lock className="h-3 w-3" />
           Secure encrypted transaction
         </span>
         <Button
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => selected && onPay?.(selected)}
           disabled={!selected || isLoading}
         >
