@@ -146,9 +146,6 @@ export function InlineProductCarousel({
       </button>
 
       <div className="overflow-hidden">
-        {/* Right gradient fade */}
-        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />
-
         <div
           className="flex gap-3 transition-transform duration-300 ease-out pb-2"
           style={{
@@ -161,7 +158,7 @@ export function InlineProductCarousel({
               onClick={() => handleSelect(product)}
               disabled={!product.inStock}
               className={cn(
-                "flex-shrink-0 w-40 rounded-lg border text-left transition-all overflow-hidden",
+                "flex-shrink-0 w-40 rounded-[12px] border text-left transition-all overflow-hidden",
                 selected === product.id
                   ? "bg-card border-foreground ring-1 ring-foreground"
                   : "bg-card border-border hover:border-foreground/50",

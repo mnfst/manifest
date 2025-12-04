@@ -81,7 +81,7 @@ function ProductHorizontalCard({
       onClick={onSelect}
       disabled={!product.inStock}
       className={cn(
-        "w-full flex items-center gap-3 rounded-lg border p-2 text-left transition-all",
+        "w-full flex items-center gap-3 rounded-[12px] border p-2 text-left transition-all",
         selected
           ? "bg-card border-foreground ring-1 ring-foreground"
           : "bg-card border-border hover:border-foreground/50",
@@ -261,7 +261,6 @@ export function InlineProductHorizontalCarousel({
         <ChevronRight className="h-4 w-4" />
       </button>
       <div className="overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-[5] pointer-events-none" />
         <div
           className="flex gap-2 transition-transform duration-300 ease-out"
           style={{

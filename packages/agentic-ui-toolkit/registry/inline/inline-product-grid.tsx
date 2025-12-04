@@ -104,7 +104,7 @@ export function InlineProductGrid({
             onClick={() => handleSelect(product)}
             disabled={!product.inStock}
             className={cn(
-              "rounded-lg border text-left transition-all overflow-hidden",
+              "rounded-[12px] border text-left transition-all overflow-hidden",
               selected === product.id
                 ? "bg-card border-foreground ring-1 ring-foreground"
                 : "bg-card border-border hover:border-foreground/50",

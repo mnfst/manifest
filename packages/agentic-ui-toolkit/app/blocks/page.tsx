@@ -8,14 +8,12 @@ import { useState } from 'react'
 
 // Components imports
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
-import { InlineBarChart } from '@/registry/inline/inline-bar-chart'
 import { InlineCardForm } from '@/registry/inline/inline-card-form'
 import { InlineOptionList } from '@/registry/inline/inline-option-list'
 import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
-import { InlinePieChart } from '@/registry/inline/inline-pie-chart'
 import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
 import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
 import {
@@ -58,31 +56,31 @@ const categories: Category[] = [
         id: 'payment-methods',
         name: 'Payment Methods',
         component: <InlinePaymentMethods />,
-        padding: 'none'
+        padding: 'sm'
       },
       {
         id: 'card-form',
         name: 'Card Form',
         component: <InlineCardForm />,
-        padding: 'lg'
+        padding: 'none'
       },
       {
         id: 'amount-input',
         name: 'Amount Input',
         component: <InlineAmountInput />,
-        padding: 'none'
+        padding: 'sm'
       },
       {
         id: 'payment-success',
         name: 'Payment Success',
         component: <InlinePaymentSuccessCompact />,
-        padding: 'lg'
+        padding: 'none'
       },
       {
         id: 'payment-confirmed',
         name: 'Payment Confirmed',
         component: <InlinePaymentConfirmed />,
-        padding: 'lg'
+        padding: 'none'
       }
     ]
   },
@@ -182,18 +180,6 @@ const categories: Category[] = [
         name: 'Stats Cards',
         component: <InlineStats />,
         padding: 'lg'
-      },
-      {
-        id: 'bar-chart',
-        name: 'Bar Chart',
-        component: <InlineBarChart title="Monthly Sales" />,
-        padding: 'none'
-      },
-      {
-        id: 'pie-chart',
-        name: 'Pie Chart',
-        component: <InlinePieChart title="Categories" />,
-        padding: 'none'
       }
     ]
   },
