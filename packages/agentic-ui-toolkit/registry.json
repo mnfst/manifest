@@ -9,7 +9,7 @@
       "title": "Weather Widget",
       "description": "A weather widget displaying temperature, conditions, and additional weather details.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["card"],
+      "registryDependencies": [],
       "files": [
         {
           "path": "registry/misc/weather-widget/weather-widget.tsx",
@@ -335,6 +335,20 @@
       "files": [
         {
           "path": "registry/inline/inline-stat-card.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-skeleton",
+      "type": "registry:component",
+      "title": "Inline Skeleton Loaders",
+      "description": "Skeleton placeholder components with pulse animation for loading states.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-skeleton.tsx",
           "type": "registry:component"
         }
       ]

@@ -1,13 +1,6 @@
 "use client"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Cloud,
   CloudRain,
   CloudSnow,
@@ -57,36 +50,31 @@ export function WeatherWidget({ data = defaultData }: WeatherWidgetProps) {
   const WeatherIcon = weatherIcons[data.condition]
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader className="pb-2">
-        <CardDescription>{data.location}</CardDescription>
-        <CardTitle className="flex items-center gap-3">
-          <WeatherIcon className="h-10 w-10 text-primary" />
-          <span className="text-4xl font-bold">{data.temperature}°F</span>
-        </CardTitle>
-        <p className="text-muted-foreground text-sm">
-          {weatherLabels[data.condition]}
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-4 pt-2">
-          <div className="flex flex-col items-center gap-1">
-            <Thermometer className="h-5 w-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Feels like</span>
-            <span className="text-sm font-medium">{data.feelsLike}°F</span>
+    <div className="w-full flex items-center justify-between gap-4 rounded-lg border bg-card px-4 py-3">
+      <div className="flex items-center gap-3">
+        <WeatherIcon className="h-8 w-8 text-yellow-500" />
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold">{data.temperature}°F</span>
+            <span className="text-sm text-muted-foreground">{weatherLabels[data.condition]}</span>
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <Droplets className="h-5 w-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Humidity</span>
-            <span className="text-sm font-medium">{data.humidity}%</span>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <Wind className="h-5 w-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Wind</span>
-            <span className="text-sm font-medium">{data.windSpeed} mph</span>
-          </div>
+          <p className="text-xs text-muted-foreground">{data.location}</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5">
+          <Thermometer className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{data.feelsLike}°F</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Droplets className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{data.humidity}%</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Wind className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{data.windSpeed} mph</span>
+        </div>
+      </div>
+    </div>
   )
 }

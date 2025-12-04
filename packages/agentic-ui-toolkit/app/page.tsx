@@ -12,15 +12,29 @@ import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel
 import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
+import {
+  SkeletonWeather,
+  SkeletonProductGrid,
+  SkeletonProductCarousel,
+  SkeletonPricingPlans,
+  SkeletonInlineForm,
+  SkeletonOptionList,
+  SkeletonTagSelect,
+  SkeletonQuickReply,
+  SkeletonProgressSteps,
+  SkeletonStatusBadge,
+  SkeletonStats,
+  SkeletonBarChart,
+  SkeletonPieChart,
+  SkeletonPaymentMethods,
+  SkeletonOrderConfirm,
+  SkeletonAmountInput,
+  SkeletonPaymentSuccess,
+} from '@/registry/inline/inline-skeleton'
 import { InlineStats } from '@/registry/inline/inline-stat-card'
 import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
-import { CardForm } from '@/registry/payment/card-form'
-import { OrderSummary } from '@/registry/payment/order-summary'
-import { PayConfirm } from '@/registry/payment/pay-confirm'
-import { PaymentSuccess } from '@/registry/payment/payment-success'
-import { SavedCards } from '@/registry/payment/saved-cards'
 import { PricingPlans } from '@/registry/pricing/pricing-plans'
 import { PricingPlansGrid } from '@/registry/pricing/pricing-plans-grid'
 // This page displays items from the custom registry.
@@ -44,23 +58,6 @@ export default function Home() {
       <section className="w-full space-y-8">
         <h2 className="text-xl font-semibold">Weather</h2>
         <WeatherWidget />
-      </section>
-
-      <Separator />
-
-      <section className="w-full space-y-8">
-        <h2 className="text-xl font-semibold">Payment Components</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          <CardForm />
-          <SavedCards />
-        </div>
-        <Separator />
-        <div className="grid gap-6 md:grid-cols-2">
-          <PayConfirm amount={279.0} currency="EUR" />
-          <PaymentSuccess />
-        </div>
-        <Separator />
-        <OrderSummary />
       </section>
 
       <Separator />
@@ -153,6 +150,59 @@ export default function Home() {
         <InlineBarChart title="Monthly Sales" />
         <Separator />
         <InlinePieChart title="Categories" />
+      </section>
+
+      <Separator />
+
+      <section className="w-full space-y-8">
+        <h2 className="text-xl font-semibold">Loading Skeletons</h2>
+        <p className="text-sm text-muted-foreground">
+          Placeholder components with pulse animation for loading states
+        </p>
+        <h3 className="text-sm font-medium text-muted-foreground">Weather</h3>
+        <SkeletonWeather />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">Pricing</h3>
+        <SkeletonPricingPlans />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">Payment</h3>
+        <SkeletonOrderConfirm />
+        <Separator />
+        <SkeletonPaymentMethods />
+        <Separator />
+        <SkeletonInlineForm />
+        <Separator />
+        <SkeletonAmountInput />
+        <Separator />
+        <SkeletonPaymentSuccess />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">Products</h3>
+        <SkeletonProductGrid columns={4} />
+        <Separator />
+        <SkeletonProductCarousel />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">Selection</h3>
+        <SkeletonOptionList />
+        <Separator />
+        <SkeletonTagSelect />
+        <Separator />
+        <SkeletonQuickReply />
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">Status & Progress</h3>
+        <SkeletonProgressSteps />
+        <Separator />
+        <div className="flex flex-wrap gap-2">
+          <SkeletonStatusBadge />
+          <SkeletonStatusBadge />
+          <SkeletonStatusBadge />
+        </div>
+        <Separator />
+        <h3 className="text-sm font-medium text-muted-foreground">Charts & Stats</h3>
+        <SkeletonStats />
+        <Separator />
+        <SkeletonBarChart />
+        <Separator />
+        <SkeletonPieChart />
       </section>
     </div>
   )
