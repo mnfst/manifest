@@ -20,8 +20,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded bg-foreground" />
-            <span className="font-semibold">Agentic UI</span>
+            <img src="/logo.svg" alt="Agentic UI" className="h-6 w-auto" />
           </Link>
           <nav className="flex items-center gap-1">
             {navLinks.map((link) => (
