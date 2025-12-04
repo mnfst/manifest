@@ -6,7 +6,7 @@ import { InlineCardForm } from '@/registry/inline/inline-card-form'
 import { InlineOptionList } from '@/registry/inline/inline-option-list'
 import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
-import { InlinePaymentSuccess } from '@/registry/inline/inline-payment-success'
+import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
 import { InlinePieChart } from '@/registry/inline/inline-pie-chart'
 import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
@@ -36,6 +36,7 @@ import {
   SkeletonOrderConfirm,
   SkeletonAmountInput,
   SkeletonPaymentSuccess,
+  SkeletonPaymentSuccessCompact,
 } from '@/registry/inline/inline-skeleton'
 import { InlineStats } from '@/registry/inline/inline-stat-card'
 import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
@@ -80,7 +81,7 @@ export default function Home() {
         <Separator />
         <InlineAmountInput />
         <Separator />
-        <InlinePaymentSuccess />
+        <InlinePaymentSuccessCompact />
         <Separator />
         <InlinePaymentConfirmed />
       </section>
@@ -181,6 +182,8 @@ export default function Home() {
         <SkeletonAmountInput />
         <Separator />
         <SkeletonPaymentSuccess />
+        <Separator />
+        <SkeletonPaymentSuccessCompact />
         <Separator />
         <h3 className="text-sm font-medium text-muted-foreground">Products</h3>
         <SkeletonProductGrid columns={4} />
