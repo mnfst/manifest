@@ -157,7 +157,7 @@ export function InlinePaymentMethods({
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors",
               selected === method.id
-                ? "border-primary bg-primary/10"
+                ? "border-foreground ring-1 ring-foreground bg-background"
                 : "border-border bg-background hover:bg-muted"
             )}
           >

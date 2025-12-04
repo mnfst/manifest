@@ -133,7 +133,7 @@ export function InlineAmountInput({
               className={cn(
                 "rounded-full border px-3 py-1 text-sm transition-colors",
                 amount === preset
-                  ? "border-primary bg-primary/10 text-primary"
+                  ? "border-foreground ring-1 ring-foreground"
                   : "border-border hover:bg-muted"
               )}
             >
