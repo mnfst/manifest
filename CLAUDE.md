@@ -225,3 +225,78 @@ When working on manifest-related features:
 ## Documentation
 
 Official docs are in a separate repo: https://github.com/mnfst/docs
+
+---
+
+# Agentic UI Toolkit (`packages/agentic-ui-toolkit`)
+
+## Project Context
+
+This package is a **UI component registry for Agentic UI**. These components are designed to be displayed **within a conversational interface** (ChatGPT, Claude, etc.) via the MCP (Model Context Protocol).
+
+## Technical Constraints
+
+When creating or proposing UI components, you must respect these constraints:
+
+### Execution Environment
+- Components run in a **sandboxed iframe** inside the chat
+- No access to localStorage/sessionStorage
+- No access to filesystem
+- Network requests go through the MCP server
+
+### Display Modes
+Components must support 3 modes:
+- **inline**: displayed in the conversation flow (width 300-500px)
+- **fullscreen**: takes up the entire screen for complex interactions
+- **pip** (picture-in-picture): stays visible while the user continues chatting
+
+### Sizes and Responsive
+- Inline width: 300px to 500px max
+- Inline height: avoid scroll, stay compact
+- Support automatic resize based on content
+- Think mobile-first (touch, no mandatory hover)
+
+### Interactions with the Host (ChatGPT)
+Components can:
+- `callTool()`: call an MCP tool (e.g., validate a payment)
+- `sendFollowUpMessage()`: send a message in the conversation
+- `openExternal()`: open an external link
+- `requestDisplayMode()`: switch from inline to fullscreen
+- `requestClose()`: close the widget
+- `setWidgetState()`: persist a state
+
+### Theming
+- Support `light` and `dark` mode (provided by `window.openai.theme`)
+- Use CSS variables for colors
+- Adapt to the host's design system when possible
+
+### What to Avoid
+- **Modals**: problematic in an iframe, prefer inline expansions or fullscreen
+- **Native dropdowns**: risk being clipped, prefer radio cards or lists
+- **Toasts/notifications**: use the host's notification system
+- **Multi-page navigation**: prefer inline wizards/steps
+- **Heavy animations**: keep bundles lightweight
+
+### What Works Well
+- Compact cards with essential information
+- Vertical scrollable lists
+- Step-by-step inline forms
+- Clear action buttons
+- Immediate visual feedback (loading, success, error)
+- Inline expansion rather than modals
+
+## When Proposing Components
+
+1. Always think "mobile-first" and "compact-first"
+2. Propose variants: `inline`, `expanded`, `fullscreen` if relevant
+3. Plan for states: loading, empty, error, success
+4. Keep the JS/CSS bundle minimal
+5. Use host interactions (`callTool`, `sendFollowUpMessage`) rather than custom behaviors
+
+## UI Style Guidelines
+
+- **Selection style**: Use `border-foreground ring-1 ring-foreground` for selected items (not grey background which looks disabled)
+- **No layout jumps**: Avoid `border-2` which causes jumps; use `ring-1` instead
+- **Dark mode**: All components must work in both light and dark themes
+- **Text**: All text in English
+- **Compact height**: Prefer single-row layouts when possible
