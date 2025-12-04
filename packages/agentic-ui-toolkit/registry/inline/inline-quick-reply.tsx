@@ -33,7 +33,7 @@ export function InlineQuickReply({
             key={reply.id}
             onClick={() => onSelectReply?.(reply)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm text-primary transition-all",
+              "inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-primary transition-all",
               "hover:bg-primary hover:text-primary-foreground hover:border-primary"
             )}
           >

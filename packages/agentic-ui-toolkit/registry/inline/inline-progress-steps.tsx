@@ -24,13 +24,13 @@ export function InlineProgressSteps({
   steps = defaultSteps,
 }: InlineProgressStepsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
       {steps.map((step, index) => (
         <div key={step.id} className="flex items-center gap-2">
           <div className="flex items-center gap-2">
             <div
               className={cn(
-                "flex h-5 w-5 items-center justify-center rounded-full text-xs",
+                "flex h-5 w-5 items-center justify-center rounded-full text-xs flex-shrink-0",
                 step.status === "completed" && "bg-foreground text-background",
                 step.status === "current" && "border-2 border-foreground",
                 step.status === "pending" && "border border-muted-foreground/40"
@@ -40,7 +40,7 @@ export function InlineProgressSteps({
             </div>
             <span
               className={cn(
-                "text-sm",
+                "text-xs sm:text-sm",
                 step.status === "current" && "font-medium",
                 step.status === "pending" && "text-muted-foreground"
               )}
@@ -49,7 +49,7 @@ export function InlineProgressSteps({
             </span>
           </div>
           {index < steps.length - 1 && (
-            <div className="w-4 h-px bg-muted-foreground/30" />
+            <div className="hidden sm:block w-4 h-px bg-muted-foreground/30" />
           )}
         </div>
       ))}

@@ -58,7 +58,7 @@ export function InlineOrderConfirm({
             {productVariant} • Qty: {quantity}
           </p>
           {/* Mobile: price below product info */}
-          <div className="flex items-center gap-2 mt-1 sm:hidden">
+          <div className="mt-1 sm:hidden">
             <p className="text-sm font-semibold">{formatCurrency(price)}</p>
             {freeShipping && (
               <p className="text-xs text-green-600">Free shipping</p>

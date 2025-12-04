@@ -78,10 +78,11 @@ export function InlineAmountInput({
   }, [isEditing])
 
   return (
-    <div className="w-full rounded-lg bg-card p-2 space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <div className="flex items-center gap-2">
+    <div className="w-full rounded-lg bg-card p-3 sm:p-2 space-y-3">
+      {/* Amount display with +/- controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <span className="text-xs sm:text-sm text-muted-foreground">{label}</span>
+        <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => handleChange(amount - step)}
             disabled={amount <= min}
@@ -89,10 +90,10 @@ export function InlineAmountInput({
           >
             <Minus className="h-4 w-4" />
           </button>
-          <div className="min-w-28 text-center">
+          <div className="min-w-24 sm:min-w-28 text-center">
             {isEditing ? (
               <div className="flex items-center justify-center gap-1">
-                <span className="text-2xl font-bold text-muted-foreground">
+                <span className="text-xl sm:text-2xl font-bold text-muted-foreground">
                   {getCurrencySymbol()}
                 </span>
                 <input
@@ -102,13 +103,13 @@ export function InlineAmountInput({
                   onChange={handleInputChange}
                   onBlur={handleInputBlur}
                   onKeyDown={handleInputKeyDown}
-                  className="w-20 text-2xl font-bold bg-transparent border-b-2 border-primary text-center outline-none"
+                  className="w-16 sm:w-20 text-xl sm:text-2xl font-bold bg-transparent border-b-2 border-primary text-center outline-none"
                 />
               </div>
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-2xl font-bold hover:text-primary transition-colors"
+                className="text-xl sm:text-2xl font-bold hover:text-primary transition-colors"
               >
                 {getCurrencySymbol()}{amount}
               </button>
@@ -124,14 +125,15 @@ export function InlineAmountInput({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2">
+      {/* Presets and confirm */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
+        <div className="flex flex-wrap justify-center sm:justify-start gap-2">
           {presets.map((preset) => (
             <button
               key={preset}
               onClick={() => handlePreset(preset)}
               className={cn(
-                "rounded-full border px-3 py-1 text-sm transition-colors",
+                "rounded-full border px-3 py-1 text-xs sm:text-sm transition-colors",
                 amount === preset
                   ? "border-foreground ring-1 ring-foreground"
                   : "border-border hover:bg-muted"
@@ -142,7 +144,7 @@ export function InlineAmountInput({
           ))}
         </div>
         {onConfirm && (
-          <Button size="sm" onClick={() => onConfirm(amount)}>
+          <Button size="sm" className="w-full sm:w-auto" onClick={() => onConfirm(amount)}>
             Confirm
           </Button>
         )}

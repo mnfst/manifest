@@ -71,7 +71,7 @@ export function InlineOptionList({
             onClick={() => handleSelect(option)}
             disabled={option.disabled}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-all",
+              "inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm transition-all",
               isSelected(option.id)
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-background hover:bg-muted",
@@ -82,14 +82,14 @@ export function InlineOptionList({
             <span>{option.label}</span>
             {option.description && (
               <span className={cn(
-                "text-xs",
+                "text-[10px] sm:text-xs",
                 isSelected(option.id) ? "text-primary-foreground/70" : "text-muted-foreground"
               )}>
                 • {option.description}
               </span>
             )}
             {isSelected(option.id) && multiple && (
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             )}
           </button>
         ))}
