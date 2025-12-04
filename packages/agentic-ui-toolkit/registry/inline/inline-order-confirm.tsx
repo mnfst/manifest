@@ -42,7 +42,7 @@ export function InlineOrderConfirm({
 
   return (
     <div className="w-full rounded-lg bg-card">
-      <div className="flex items-start gap-4 p-4">
+      <div className="flex items-start gap-4 p-2">
         <img
           src={productImage}
           alt={productName}
@@ -68,7 +68,7 @@ export function InlineOrderConfirm({
 
       <div className="border-t" />
 
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-2">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
@@ -81,7 +81,7 @@ export function InlineOrderConfirm({
           </div>
         </div>
 
-        <Button onClick={onConfirm} disabled={isLoading}>
+        <Button size="sm" onClick={onConfirm} disabled={isLoading}>
           {isLoading ? 'Confirming...' : 'Confirm order'}
           <ArrowRight className="ml-1.5 h-4 w-4" />
         </Button>
