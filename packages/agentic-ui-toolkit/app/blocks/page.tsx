@@ -233,35 +233,35 @@ export default function BlocksPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)]">
+    <div className="flex min-h-[calc(100vh-3.5rem)] bg-card">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card/50 p-4 overflow-y-auto">
-        <nav className="space-y-2">
+      <aside className="w-56 p-6 overflow-y-auto">
+        <nav className="space-y-1">
           {categories.map((category) => (
             <div key={category.id}>
               <button
                 onClick={() => toggleCategory(category.id)}
-                className="flex w-full items-center justify-between px-2 py-1.5 text-sm font-medium text-foreground hover:bg-muted rounded-md transition-colors"
+                className="flex w-full items-center justify-between py-1 px-2 text-xs font-medium text-foreground hover:bg-muted rounded-sm transition-colors"
               >
                 {category.name}
                 <ChevronRight
                   className={cn(
-                    'h-4 w-4 transition-transform',
+                    'h-3 w-3 transition-transform',
                     expandedCategories.includes(category.id) && 'rotate-90'
                   )}
                 />
               </button>
               {expandedCategories.includes(category.id) && (
-                <div className="ml-2 mt-1 space-y-0.5">
+                <div className=" mt-0.5 space-y-0 mb-4 ">
                   {category.blocks.map((block) => (
                     <Link
                       key={block.id}
                       href={`/blocks?block=${block.id}`}
                       className={cn(
-                        'block px-3 py-1.5 text-sm rounded-md transition-colors',
+                        'block my-1 text-xs rounded-sm transition-colors py-1 px-2',
                         blockId === block.id
                           ? 'bg-muted text-foreground font-medium'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                          : 'text-foreground/70 hover:text-foreground hover:bg-muted/50'
                       )}
                     >
                       {block.name}
