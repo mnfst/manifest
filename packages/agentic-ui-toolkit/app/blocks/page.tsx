@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
@@ -31,11 +32,37 @@ import { InlineTable } from '@/registry/inline/inline-table'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
+// Wrapper component for Table Multi Select with action buttons
+function TableMultiSelectWithActions() {
+  const [selectedCount, setSelectedCount] = useState(0)
+
+  return (
+    <div>
+      <InlineTable
+        selectable="multi"
+        onSelectionChange={(rows) => setSelectedCount(rows.length)}
+      />
+      <div className="flex justify-end gap-2 p-3">
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={selectedCount === 0}
+        >
+          Download
+        </Button>
+        <Button size="sm" disabled={selectedCount === 0}>
+          Send
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 interface BlockItem {
   id: string
   name: string
   component: React.ReactNode
-  padding?: 'none' | 'sm' | 'md' | 'lg'
+  padding?: 'none' | 'sm' | 'md' | 'lg' | 'mobile'
 }
 
 interface Category {
@@ -125,7 +152,7 @@ const categories: Category[] = [
         id: 'product-picker',
         name: 'Product Picker',
         component: <InlineProductTable />,
-        padding: 'none'
+        padding: 'mobile'
       }
     ]
   },
@@ -200,19 +227,19 @@ const categories: Category[] = [
         id: 'table',
         name: 'Table',
         component: <InlineTable />,
-        padding: 'none'
+        padding: 'mobile'
       },
       {
         id: 'table-single-select',
         name: 'Table Single Select',
         component: <InlineTable selectable="single" />,
-        padding: 'none'
+        padding: 'mobile'
       },
       {
         id: 'table-multi-select',
         name: 'Table Multi Select',
-        component: <InlineTable selectable="multi" />,
-        padding: 'none'
+        component: <TableMultiSelectWithActions />,
+        padding: 'mobile'
       }
     ]
   },
@@ -236,7 +263,7 @@ const categories: Category[] = [
   }
 ]
 
-const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg') => {
+const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg' | 'mobile') => {
   switch (padding) {
     case 'none':
       return ''
@@ -244,6 +271,8 @@ const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg') => {
       return 'p-1 sm:p-2'
     case 'md':
       return 'p-2 sm:p-4'
+    case 'mobile':
+      return 'p-2 sm:p-0'
     case 'lg':
     default:
       return 'p-2 sm:p-6'
@@ -368,7 +397,9 @@ function BlocksContent() {
 
 export default function BlocksPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}>
+    <Suspense
+      fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}
+    >
       <BlocksContent />
     </Suspense>
   )
