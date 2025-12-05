@@ -105,13 +105,19 @@ async function bootstrap() {
     const openApiObject: OpenAPIObject =
       openApiService.generateOpenApiObject(entityTypeInfos)
 
+    // Cross-platform custom CSS loading for Swagger
+    let customCss = '';
+    const devCssPath = join(__dirname, '../open-api/styles/swagger-custom.css');
+    const prodCssPath = join(__dirname, '../../open-api/styles/swagger-custom.css');
+    if (fs.existsSync(devCssPath)) {
+      customCss = readFileSync(devCssPath, 'utf8');
+    } else if (fs.existsSync(prodCssPath)) {
+      customCss = readFileSync(prodCssPath, 'utf8');
+    }
     SwaggerModule.setup(API_PATH, app, openApiObject, {
       customfavIcon: 'assets/images/open-api/favicon.ico',
       customSiteTitle: 'Manifest API Doc',
-      customCss: readFileSync(
-        join(__dirname, '../../open-api/styles/swagger-custom.css'),
-        'utf8'
-      )
+      customCss
     })
 
     // Write OpenAPI spec to file.
