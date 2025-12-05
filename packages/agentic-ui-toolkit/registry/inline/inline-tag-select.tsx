@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 export interface Tag {
   id: string
@@ -16,6 +17,9 @@ export interface InlineTagSelectProps {
   onSelectTags?: (tagIds: string[]) => void
   mode?: "single" | "multiple"
   showClear?: boolean
+  showValidate?: boolean
+  validateLabel?: string
+  onValidate?: (tagIds: string[]) => void
 }
 
 const defaultTags: Tag[] = [
@@ -60,6 +64,9 @@ export function InlineTagSelect({
   onSelectTags,
   mode = "multiple",
   showClear = true,
+  showValidate = true,
+  validateLabel = "Validate selection",
+  onValidate,
 }: InlineTagSelectProps) {
   const [selected, setSelected] = useState<string[]>(selectedTagIds)
 
@@ -81,6 +88,10 @@ export function InlineTagSelect({
   const handleClear = () => {
     setSelected([])
     onSelectTags?.([])
+  }
+
+  const handleValidate = () => {
+    onValidate?.(selected)
   }
 
   const isSelected = (tagId: string) => selected.includes(tagId)
@@ -108,15 +119,30 @@ export function InlineTagSelect({
         })}
       </div>
 
-      {showClear && selected.length > 0 && (
-        <button
-          onClick={handleClear}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X className="h-3 w-3" />
-          Clear selection ({selected.length})
-        </button>
-      )}
+      <div className="flex items-center justify-between">
+        {showClear && selected.length > 0 ? (
+          <button
+            onClick={handleClear}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-3 w-3" />
+            Clear selection ({selected.length})
+          </button>
+        ) : (
+          <div />
+        )}
+
+        {showValidate && (
+          <Button
+            onClick={handleValidate}
+            disabled={selected.length === 0}
+            size="sm"
+          >
+            {validateLabel}
+            {selected.length > 0 && ` (${selected.length})`}
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

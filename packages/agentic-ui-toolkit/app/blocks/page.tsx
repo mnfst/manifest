@@ -141,19 +141,19 @@ const categories: Category[] = [
       },
       {
         id: 'select-list',
-        name: 'Select Cards',
+        name: 'Card Selection',
         component: <InlineSelectList />,
         padding: 'lg'
       },
       {
         id: 'select-list-multi',
-        name: 'Multi Select Cards',
+        name: 'Multi Card Selection',
         component: <InlineSelectList mode="multi" showConfirm />,
         padding: 'lg'
       },
       {
         id: 'tag-select',
-        name: 'Tag Select',
+        name: 'Tag Selection',
         component: <InlineTagSelect />,
         padding: 'lg'
       },
