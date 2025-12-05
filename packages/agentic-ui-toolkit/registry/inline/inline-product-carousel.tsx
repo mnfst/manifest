@@ -127,216 +127,110 @@ export function InlineProductCarousel({
     }
   }
 
-  const currentProduct = products[currentIndex]
-  const nextProduct = products[currentIndex + 1]
-
   // Desktop transform
   const desktopTransform = currentIndex * (CARD_WIDTH + GAP)
 
+  // Tablet max index (showing 2 cards at a time)
+  const tabletMaxIndex = Math.max(0, products.length - 2)
+
+  // Horizontal card component for mobile/tablet
+  const HorizontalCard = ({ product }: { product: Product }) => (
+    <button
+      type="button"
+      onClick={() => handleSelect(product)}
+      disabled={!product.inStock}
+      className={cn(
+        'w-full rounded-[12px] border text-left',
+        'flex items-center gap-3 p-2',
+        selected === product.id
+          ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
+          : 'bg-card border-border hover:border-foreground/50',
+        !product.inStock && 'opacity-50'
+      )}
+    >
+      <div className="relative h-16 w-16 flex-shrink-0 rounded overflow-hidden bg-muted/30">
+        {product.image && (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-contain"
+          />
+        )}
+        {product.badge && (
+          <span
+            className={cn(
+              'absolute top-1 left-1 px-1 py-0.5 text-[8px] font-medium rounded',
+              product.badge.startsWith('-')
+                ? 'bg-foreground text-background'
+                : 'bg-background text-foreground border'
+            )}
+          >
+            {product.badge}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{product.name}</p>
+        {product.description && (
+          <p className="text-xs text-muted-foreground truncate">
+            {product.description}
+          </p>
+        )}
+        <p className="text-sm font-semibold">{formatCurrency(product.price)}</p>
+      </div>
+    </button>
+  )
+
+  // Dots component
+  const Dots = ({ count, active, onDotClick }: { count: number; active: number; onDotClick: (i: number) => void }) => (
+    <div className="flex justify-center gap-1.5 mt-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onDotClick(i)}
+          className={cn(
+            'h-1.5 rounded-full transition-all duration-300',
+            i === active ? 'w-4 bg-foreground' : 'w-1.5 bg-foreground/30 hover:bg-foreground/50'
+          )}
+        />
+      ))}
+    </div>
+  )
+
+  // Get visible products for mobile (1 card) and tablet (2 cards)
+  const mobileProduct = products[currentIndex]
+  const tabletProducts = [
+    products[Math.min(currentIndex, tabletMaxIndex)],
+    products[Math.min(currentIndex, tabletMaxIndex) + 1]
+  ].filter(Boolean)
+
   return (
     <div className="w-full">
-      {/* Mobile: 1 card */}
-      <div className="sm:hidden flex items-center gap-2">
-        <button
-          type="button"
-          onClick={goLeft}
-          disabled={currentIndex === 0}
-          className={cn(
-            'flex-shrink-0 h-7 w-7 rounded-full bg-background border shadow-sm flex items-center justify-center',
-            currentIndex === 0 ? 'opacity-30' : 'hover:bg-muted'
-          )}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex-1 min-w-0">
-          {currentProduct && (
-            <button
-              type="button"
-              onClick={() => handleSelect(currentProduct)}
-              disabled={!currentProduct.inStock}
-              className={cn(
-                'w-full rounded-[12px] border text-left transition-all',
-                'flex items-center gap-3 p-2',
-                selected === currentProduct.id
-                  ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
-                  : 'bg-card border-border hover:border-foreground/50',
-                !currentProduct.inStock && 'opacity-50'
-              )}
-            >
-              <div className="relative h-16 w-16 flex-shrink-0 rounded overflow-hidden bg-muted/30">
-                {currentProduct.image && (
-                  <img
-                    src={currentProduct.image}
-                    alt={currentProduct.name}
-                    className="h-full w-full object-contain"
-                  />
-                )}
-                {currentProduct.badge && (
-                  <span
-                    className={cn(
-                      'absolute top-1 left-1 px-1 py-0.5 text-[8px] font-medium rounded',
-                      currentProduct.badge.startsWith('-')
-                        ? 'bg-foreground text-background'
-                        : 'bg-background text-foreground border'
-                    )}
-                  >
-                    {currentProduct.badge}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{currentProduct.name}</p>
-                {currentProduct.description && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {currentProduct.description}
-                  </p>
-                )}
-                <p className="text-sm font-semibold">
-                  {formatCurrency(currentProduct.price)}
-                </p>
-              </div>
-            </button>
-          )}
+      {/* Mobile: 1 card + dots */}
+      <div className="sm:hidden">
+        <div className="w-full">
+          {mobileProduct && <HorizontalCard product={mobileProduct} />}
         </div>
-
-        <button
-          type="button"
-          onClick={goRight}
-          disabled={currentIndex >= maxIndex}
-          className={cn(
-            'flex-shrink-0 h-7 w-7 rounded-full bg-background border shadow-sm flex items-center justify-center',
-            currentIndex >= maxIndex ? 'opacity-30' : 'hover:bg-muted'
-          )}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        <Dots
+          count={products.length}
+          active={currentIndex}
+          onDotClick={(i) => setCurrentIndex(i)}
+        />
       </div>
 
-      {/* Tablet: 2 cards */}
-      <div className="hidden sm:flex lg:hidden items-center gap-2">
-        <button
-          type="button"
-          onClick={goLeft}
-          disabled={currentIndex === 0}
-          className={cn(
-            'flex-shrink-0 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center',
-            currentIndex === 0 ? 'opacity-30' : 'hover:bg-muted'
-          )}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex-1 min-w-0 flex gap-2">
-          {currentProduct && (
-            <button
-              type="button"
-              onClick={() => handleSelect(currentProduct)}
-              disabled={!currentProduct.inStock}
-              className={cn(
-                'flex-1 min-w-0 rounded-[12px] border text-left transition-all',
-                'flex items-center gap-3 p-2',
-                selected === currentProduct.id
-                  ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
-                  : 'bg-card border-border hover:border-foreground/50',
-                !currentProduct.inStock && 'opacity-50'
-              )}
-            >
-              <div className="relative h-16 w-16 flex-shrink-0 rounded overflow-hidden bg-muted/30">
-                {currentProduct.image && (
-                  <img
-                    src={currentProduct.image}
-                    alt={currentProduct.name}
-                    className="h-full w-full object-contain"
-                  />
-                )}
-                {currentProduct.badge && (
-                  <span
-                    className={cn(
-                      'absolute top-1 left-1 px-1 py-0.5 text-[8px] font-medium rounded',
-                      currentProduct.badge.startsWith('-')
-                        ? 'bg-foreground text-background'
-                        : 'bg-background text-foreground border'
-                    )}
-                  >
-                    {currentProduct.badge}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{currentProduct.name}</p>
-                {currentProduct.description && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {currentProduct.description}
-                  </p>
-                )}
-                <p className="text-sm font-semibold">
-                  {formatCurrency(currentProduct.price)}
-                </p>
-              </div>
-            </button>
-          )}
-          {nextProduct && (
-            <button
-              type="button"
-              onClick={() => handleSelect(nextProduct)}
-              disabled={!nextProduct.inStock}
-              className={cn(
-                'flex-1 min-w-0 rounded-[12px] border text-left transition-all',
-                'flex items-center gap-3 p-2',
-                selected === nextProduct.id
-                  ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
-                  : 'bg-card border-border hover:border-foreground/50',
-                !nextProduct.inStock && 'opacity-50'
-              )}
-            >
-              <div className="relative h-16 w-16 flex-shrink-0 rounded overflow-hidden bg-muted/30">
-                {nextProduct.image && (
-                  <img
-                    src={nextProduct.image}
-                    alt={nextProduct.name}
-                    className="h-full w-full object-contain"
-                  />
-                )}
-                {nextProduct.badge && (
-                  <span
-                    className={cn(
-                      'absolute top-1 left-1 px-1 py-0.5 text-[8px] font-medium rounded',
-                      nextProduct.badge.startsWith('-')
-                        ? 'bg-foreground text-background'
-                        : 'bg-background text-foreground border'
-                    )}
-                  >
-                    {nextProduct.badge}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{nextProduct.name}</p>
-                {nextProduct.description && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {nextProduct.description}
-                  </p>
-                )}
-                <p className="text-sm font-semibold">
-                  {formatCurrency(nextProduct.price)}
-                </p>
-              </div>
-            </button>
-          )}
+      {/* Tablet: 2 cards + dots */}
+      <div className="hidden sm:block lg:hidden">
+        <div className="grid grid-cols-2 gap-2">
+          {tabletProducts.map((product) => (
+            <HorizontalCard key={product.id} product={product} />
+          ))}
         </div>
-
-        <button
-          type="button"
-          onClick={goRight}
-          disabled={currentIndex >= maxIndex - 1}
-          className={cn(
-            'flex-shrink-0 h-8 w-8 rounded-full bg-background border shadow-sm flex items-center justify-center',
-            currentIndex >= maxIndex - 1 ? 'opacity-30' : 'hover:bg-muted'
-          )}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        <Dots
+          count={tabletMaxIndex + 1}
+          active={Math.min(currentIndex, tabletMaxIndex)}
+          onDotClick={(i) => setCurrentIndex(i)}
+        />
       </div>
 
       {/* Desktop: multi-card carousel */}
