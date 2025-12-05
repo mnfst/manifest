@@ -284,7 +284,7 @@ export function InlineProductTable({
 
       {/* Add to cart button */}
       <div className="flex items-center justify-between gap-4 p-3 border-t-1">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs sm:text-sm text-muted-foreground">
           {selectedIds.size > 0 ? (
             <span>
               {selectedIds.size} item{selectedIds.size !== 1 ? 's' : ''}{' '}
