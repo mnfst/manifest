@@ -11,7 +11,9 @@ import {
   Query,
   Req,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
+  HttpException,
+  HttpStatus
 } from '@nestjs/common'
 
 import { BaseEntity, Paginator, SelectOption } from '@repo/types'
@@ -22,7 +24,7 @@ import { PolicyGuard } from '../../policy/policy.guard'
 import { Rule } from '../../policy/decorators/rule.decorator'
 import { IsCollectionGuard } from '../guards/is-collection.guard'
 import { HookInterceptor } from '../../hook/hook.interceptor'
-import { COLLECTIONS_PATH } from '../../constants'
+import { ADMIN_ENTITY_MANIFEST, COLLECTIONS_PATH } from '../../constants'
 import { MiddlewareInterceptor } from '../../middleware/middleware.interceptor'
 import { IsAdminGuard } from '../../auth/guards/is-admin.guard'
 
@@ -126,10 +128,22 @@ export class CollectionController {
 
   @Delete(':entity/:id')
   @Rule('delete')
-  delete(
+  async delete(
     @Param('entity') entity: string,
-    @Param('id', ParseUUIDPipe) id: string
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request
   ): Promise<BaseEntity> {
+    // Prevent an admin from deleting their own account
+    if (entity === ADMIN_ENTITY_MANIFEST.slug) {
+      const requestUser = await this.authService.getUserFromRequest(req)
+      if (requestUser?.user?.id === id) {
+        throw new HttpException(
+          'You cannot delete your own admin account.',
+          HttpStatus.FORBIDDEN
+        )
+      }
+    }
+
     return this.crudService.delete(entity, id)
   }
 }
