@@ -100,8 +100,6 @@ export function InlineProductCarousel({
   )
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const maxIndex = Math.max(0, products.length - 1)
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -118,12 +116,6 @@ export function InlineProductCarousel({
   const goLeft = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1)
-    }
-  }
-
-  const goRight = () => {
-    if (currentIndex < maxIndex) {
-      setCurrentIndex(currentIndex + 1)
     }
   }
 
@@ -234,87 +226,98 @@ export function InlineProductCarousel({
       </div>
 
       {/* Desktop: multi-card carousel */}
-      <div className="hidden lg:block relative">
-        <button
-          type="button"
-          onClick={goLeft}
-          disabled={currentIndex === 0}
-          className={cn(
-            'absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center',
-            currentIndex === 0 ? 'opacity-0' : 'hover:bg-background'
-          )}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
+      {(() => {
+        // Desktop shows 4 cards, so max index is length - 4
+        const desktopMaxIndex = Math.max(0, products.length - 4)
+        const isAtEnd = currentIndex >= desktopMaxIndex
+        return (
+          <div className="hidden lg:block relative">
+            <button
+              type="button"
+              onClick={goLeft}
+              disabled={currentIndex === 0}
+              className={cn(
+                'absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center',
+                currentIndex === 0 ? 'opacity-0' : 'hover:bg-background'
+              )}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
 
-        <button
-          type="button"
-          onClick={goRight}
-          disabled={currentIndex >= maxIndex}
-          className={cn(
-            'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center',
-            currentIndex >= maxIndex ? 'opacity-0' : 'hover:bg-background'
-          )}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (currentIndex < desktopMaxIndex) {
+                  setCurrentIndex(currentIndex + 1)
+                }
+              }}
+              disabled={isAtEnd}
+              className={cn(
+                'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center',
+                isAtEnd ? 'opacity-0' : 'hover:bg-background'
+              )}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
 
-        <div className="overflow-hidden">
-          <div
-            className="flex gap-3 transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${desktopTransform}px)` }}
-          >
-            {products.map((product) => (
-              <button
-                type="button"
-                key={product.id}
-                onClick={() => handleSelect(product)}
-                disabled={!product.inStock}
-                className={cn(
-                  'flex-shrink-0 w-40 rounded-[12px] border text-left transition-all',
-                  selected === product.id
-                    ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
-                    : 'bg-card border-border hover:border-foreground/50',
-                  !product.inStock && 'opacity-50'
-                )}
+            <div className="overflow-hidden py-1">
+              <div
+                className="flex gap-3 transition-transform duration-300 ease-out"
+                style={{ transform: `translateX(-${desktopTransform}px)` }}
               >
-                <div className="relative h-28 w-full bg-muted/30">
-                  {product.image && (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="h-full w-full object-contain"
-                    />
-                  )}
-                  {product.badge && (
-                    <span
-                      className={cn(
-                        'absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-medium rounded',
-                        product.badge.startsWith('-')
-                          ? 'bg-foreground text-background'
-                          : 'bg-background text-foreground border'
+                {products.map((product) => (
+                  <button
+                    type="button"
+                    key={product.id}
+                    onClick={() => handleSelect(product)}
+                    disabled={!product.inStock}
+                    className={cn(
+                      'flex-shrink-0 w-40 rounded-[12px] border text-left',
+                      selected === product.id
+                        ? 'bg-card border-foreground ring-1 ring-foreground'
+                        : 'bg-card border-border hover:border-foreground/50',
+                      !product.inStock && 'opacity-50'
+                    )}
+                  >
+                    <div className="relative h-28 w-full bg-muted/30 rounded-t-[11px] overflow-hidden">
+                      {product.image && (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-full w-full object-contain"
+                        />
                       )}
-                    >
-                      {product.badge}
-                    </span>
-                  )}
-                </div>
-                <div className="p-3 space-y-1">
-                  <p className="text-sm font-medium truncate">{product.name}</p>
-                  {product.description && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {product.description}
-                    </p>
-                  )}
-                  <p className="text-sm font-semibold">
-                    {formatCurrency(product.price)}
-                  </p>
-                </div>
-              </button>
-            ))}
+                      {product.badge && (
+                        <span
+                          className={cn(
+                            'absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-medium rounded',
+                            product.badge.startsWith('-')
+                              ? 'bg-foreground text-background'
+                              : 'bg-background text-foreground border'
+                          )}
+                        >
+                          {product.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-3 space-y-1">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      {product.description && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {product.description}
+                        </p>
+                      )}
+                      <p className="text-sm font-semibold">
+                        {formatCurrency(product.price)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )
+      })()}
     </div>
   )
 }
