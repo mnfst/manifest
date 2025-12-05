@@ -24,14 +24,17 @@ const categories = [
       { id: 'product-carousel', name: 'Product Carousel' },
       { id: 'product-horizontal', name: 'Product Horizontal' },
       { id: 'product-horizontal-grid', name: 'Product Horizontal Grid' },
-      { id: 'product-horizontal-carousel', name: 'Product Horizontal Carousel' }
+      { id: 'product-horizontal-carousel', name: 'Product Horizontal Carousel' },
+      { id: 'product-picker', name: 'Product Picker' }
     ]
   },
   {
     name: 'Selection',
     blocks: [
       { id: 'option-list', name: 'Option List' },
-      { id: 'tag-select', name: 'Tag Select' },
+      { id: 'card-selection', name: 'Card Selection' },
+      { id: 'multi-card-selection', name: 'Multi Card Selection' },
+      { id: 'tag-selection', name: 'Tag Selection' },
       { id: 'quick-reply', name: 'Quick Reply' }
     ]
   },
@@ -43,12 +46,19 @@ const categories = [
     ]
   },
   {
-    name: 'Charts & Stats',
-    blocks: [{ id: 'stats', name: 'Stats Cards' }]
+    name: 'Lists & Tables',
+    blocks: [
+      { id: 'table', name: 'Table' },
+      { id: 'table-single-select', name: 'Table Single Select' },
+      { id: 'table-multi-select', name: 'Table Multi Select' }
+    ]
   },
   {
     name: 'Miscellaneous',
-    blocks: [{ id: 'weather', name: 'Weather Widget' }]
+    blocks: [
+      { id: 'stats-cards', name: 'Stats Cards' },
+      { id: 'weather-widget', name: 'Weather Widget' }
+    ]
   }
 ]
 

@@ -21,10 +21,13 @@ import {
   InlineProductHorizontalCarousel,
   InlineProductHorizontalGrid
 } from '@/registry/inline/inline-product-horizontal'
+import { InlineProductTable } from '@/registry/inline/inline-product-table'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
+import { InlineSelectList } from '@/registry/inline/inline-select-list'
 import { InlineStats } from '@/registry/inline/inline-stat-card'
 import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
+import { InlineTable } from '@/registry/inline/inline-table'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
@@ -133,8 +136,13 @@ const categories: Category[] = [
         id: 'product-horizontal-carousel',
         name: 'Product Horizontal Carousel',
         component: <InlineProductHorizontalCarousel />,
-        padding: 'lg',
-        registryName: 'inline-product-horizontal-carousel'
+        padding: 'lg'
+      },
+      {
+        id: 'product-picker',
+        name: 'Product Picker',
+        component: <InlineProductTable />,
+        padding: 'none'
       }
     ]
   },
@@ -150,8 +158,20 @@ const categories: Category[] = [
         registryName: 'inline-option-list'
       },
       {
-        id: 'tag-select',
-        name: 'Tag Select',
+        id: 'card-selection',
+        name: 'Card Selection',
+        component: <InlineSelectList />,
+        padding: 'lg'
+      },
+      {
+        id: 'multi-card-selection',
+        name: 'Multi Card Selection',
+        component: <InlineSelectList mode="multi" showConfirm />,
+        padding: 'lg'
+      },
+      {
+        id: 'tag-selection',
+        name: 'Tag Selection',
         component: <InlineTagSelect />,
         padding: 'lg',
         registryName: 'inline-tag-select'
@@ -195,15 +215,26 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'charts',
-    name: 'Charts & Stats',
+    id: 'data',
+    name: 'Lists & Tables',
     blocks: [
       {
-        id: 'stats',
-        name: 'Stats Cards',
-        component: <InlineStats />,
-        padding: 'lg',
-        registryName: 'inline-stats'
+        id: 'table',
+        name: 'Table',
+        component: <InlineTable />,
+        padding: 'none'
+      },
+      {
+        id: 'table-single-select',
+        name: 'Table Single Select',
+        component: <InlineTable selectable="single" />,
+        padding: 'none'
+      },
+      {
+        id: 'table-multi-select',
+        name: 'Table Multi Select',
+        component: <InlineTable selectable="multi" />,
+        padding: 'none'
       }
     ]
   },
@@ -212,7 +243,13 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
-        id: 'weather',
+        id: 'stats-cards',
+        name: 'Stats Cards',
+        component: <InlineStats />,
+        padding: 'lg'
+      },
+      {
+        id: 'weather-widget',
         name: 'Weather Widget',
         component: <WeatherWidget />,
         padding: 'none',
@@ -418,7 +455,9 @@ function BlocksContent() {
 
 export default function BlocksPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}>
+    <Suspense
+      fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}
+    >
       <BlocksContent />
     </Suspense>
   )
