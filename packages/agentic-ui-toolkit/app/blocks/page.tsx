@@ -122,7 +122,7 @@ const categories: Category[] = [
         padding: 'lg'
       },
       {
-        id: 'product-table',
+        id: 'product-picker',
         name: 'Product Picker',
         component: <InlineProductTable />,
         padding: 'none'
@@ -140,19 +140,19 @@ const categories: Category[] = [
         padding: 'lg'
       },
       {
-        id: 'select-list',
+        id: 'card-selection',
         name: 'Card Selection',
         component: <InlineSelectList />,
         padding: 'lg'
       },
       {
-        id: 'select-list-multi',
+        id: 'multi-card-selection',
         name: 'Multi Card Selection',
         component: <InlineSelectList mode="multi" showConfirm />,
         padding: 'lg'
       },
       {
-        id: 'tag-select',
+        id: 'tag-selection',
         name: 'Tag Selection',
         component: <InlineTagSelect />,
         padding: 'lg'
@@ -203,14 +203,14 @@ const categories: Category[] = [
         padding: 'none'
       },
       {
-        id: 'table-selectable',
-        name: 'Select List',
+        id: 'table-single-select',
+        name: 'Table Single Select',
         component: <InlineTable selectable="single" />,
         padding: 'none'
       },
       {
         id: 'table-multi-select',
-        name: 'Multi Select List',
+        name: 'Table Multi Select',
         component: <InlineTable selectable="multi" />,
         padding: 'none'
       }
@@ -221,13 +221,13 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
-        id: 'stats',
+        id: 'stats-cards',
         name: 'Stats Cards',
         component: <InlineStats />,
         padding: 'lg'
       },
       {
-        id: 'weather',
+        id: 'weather-widget',
         name: 'Weather Widget',
         component: <WeatherWidget />,
         padding: 'none'
