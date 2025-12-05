@@ -201,7 +201,10 @@ export function InlineProductCarousel({
     <div className="w-full">
       {/* Mobile: 1 card + dots */}
       <div className="sm:hidden">
-        <div className="w-full">
+        <div
+          key={currentIndex}
+          className="w-full animate-in fade-in slide-in-from-right-4 duration-300"
+        >
           {mobileProduct && <HorizontalCard product={mobileProduct} />}
         </div>
         <Dots
@@ -213,7 +216,10 @@ export function InlineProductCarousel({
 
       {/* Tablet: 2 cards + dots */}
       <div className="hidden sm:block lg:hidden">
-        <div className="grid grid-cols-2 gap-2">
+        <div
+          key={Math.min(currentIndex, tabletMaxIndex)}
+          className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-right-4 duration-300"
+        >
           {tabletProducts.map((product) => (
             <HorizontalCard key={product.id} product={product} />
           ))}
