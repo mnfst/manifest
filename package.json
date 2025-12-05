@@ -1,14 +1,14 @@
 {
   "name": "manifest",
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "test": "turbo run test",
-    "test:ci": "turbo run test:ci --no-cache",
-    "lint": "turbo run lint",
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:ci": "npm run test:ci --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
     "seed": "cd packages/core/manifest && npm run seed",
     "prepare": "husky",
-    "publish-packages": "turbo run build lint test && changeset version && changeset publish"
+    "publish-packages": "npm run build && npm run lint && npm run test && changeset version && changeset publish"
   },
   "workspaces": [
     "packages/**/*",
@@ -20,7 +20,6 @@
     "globals": "^15.12.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
-    "turbo": "^2.1.1",
     "typescript-eslint": "^8.14.0"
   },
   "packageManager": "npm@10.7.0",
