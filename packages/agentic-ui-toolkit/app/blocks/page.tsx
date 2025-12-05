@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 
 // Components imports
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
@@ -236,7 +236,21 @@ const categories: Category[] = [
   }
 ]
 
-export default function BlocksPage() {
+const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg') => {
+  switch (padding) {
+    case 'none':
+      return ''
+    case 'sm':
+      return 'p-1 sm:p-2'
+    case 'md':
+      return 'p-2 sm:p-4'
+    case 'lg':
+    default:
+      return 'p-2 sm:p-6'
+  }
+}
+
+function BlocksContent() {
   const searchParams = useSearchParams()
   const blockId = searchParams.get('block')
 
@@ -256,20 +270,6 @@ export default function BlocksPage() {
   const selectedBlock = blockId
     ? categories.flatMap((c) => c.blocks).find((b) => b.id === blockId)
     : null
-
-  const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg') => {
-    switch (padding) {
-      case 'none':
-        return ''
-      case 'sm':
-        return 'p-1 sm:p-2'
-      case 'md':
-        return 'p-2 sm:p-4'
-      case 'lg':
-      default:
-        return 'p-2 sm:p-6'
-    }
-  }
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] bg-card">
@@ -363,5 +363,13 @@ export default function BlocksPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function BlocksPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}>
+      <BlocksContent />
+    </Suspense>
   )
 }
