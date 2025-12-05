@@ -91,11 +91,11 @@ export function InlineProductGrid({
   const displayProducts = products.slice(0, columns)
 
   return (
-    <div className="w-full">
+    <div className="w-full p-1 sm:p-0">
       <div
         className={cn(
-          "grid gap-3",
-          columns === 4 ? "grid-cols-4" : "grid-cols-3"
+          "grid gap-2 sm:gap-3 grid-cols-2",
+          columns === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3"
         )}
       >
         {displayProducts.map((product) => (
@@ -116,10 +116,10 @@ export function InlineProductGrid({
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="h-32 w-full object-cover bg-muted/30"
+                  className="h-20 sm:h-28 w-full object-contain bg-muted/30"
                 />
               ) : (
-                <div className="h-32 w-full bg-muted" />
+                <div className="h-20 sm:h-28 w-full bg-muted" />
               )}
               {product.badge && (
                 <span
@@ -134,33 +134,33 @@ export function InlineProductGrid({
                 </span>
               )}
             </div>
-            <div className="p-3 space-y-1">
-              <p className="text-sm font-medium line-clamp-1">{product.name}</p>
+            <div className="p-2 sm:p-3 space-y-0.5 sm:space-y-1">
+              <p className="text-xs sm:text-sm font-medium line-clamp-1">{product.name}</p>
               {product.description && (
-                <p className="text-xs line-clamp-1 text-muted-foreground">
+                <p className="text-[10px] sm:text-xs line-clamp-1 text-muted-foreground">
                   {product.description}
                 </p>
               )}
               <div className="flex items-center justify-between">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-semibold">
+                  <span className="text-xs sm:text-sm font-semibold">
                     {formatCurrency(product.price)}
                   </span>
                   {product.originalPrice && (
-                    <span className="text-xs line-through text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs line-through text-muted-foreground">
                       {formatCurrency(product.originalPrice)}
                     </span>
                   )}
                 </div>
                 {product.rating && (
-                  <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                  <div className="hidden sm:flex items-center gap-0.5 text-xs text-muted-foreground">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                     {product.rating}
                   </div>
                 )}
               </div>
               {!product.inStock && (
-                <p className="text-xs text-destructive">Out of stock</p>
+                <p className="text-[10px] sm:text-xs text-destructive">Out of stock</p>
               )}
             </div>
           </button>

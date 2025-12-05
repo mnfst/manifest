@@ -93,7 +93,7 @@ function ProductHorizontalCard({
           <img
             src={product.image}
             alt={product.name}
-            className="h-full w-full object-cover bg-muted/30"
+            className="h-full w-full object-contain bg-muted/30"
           />
         ) : (
           <div className="h-full w-full bg-muted" />
@@ -156,7 +156,7 @@ export function InlineProductHorizontal({
   }
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full space-y-2 p-1 sm:p-0">
       {products.slice(0, 4).map((product) => (
         <ProductHorizontalCard
           key={product.id}
@@ -192,7 +192,7 @@ export function InlineProductHorizontalGrid({
   }
 
   return (
-    <div className="w-full grid grid-cols-2 gap-2">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 p-1 sm:p-0">
       {products.slice(0, 4).map((product) => (
         <ProductHorizontalCard
           key={product.id}
@@ -239,7 +239,7 @@ export function InlineProductHorizontalCarousel({
   }
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative p-1 sm:p-0">
       <button
         onClick={() => scroll("left")}
         disabled={currentIndex === 0}

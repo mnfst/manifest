@@ -223,12 +223,12 @@ export default function BlocksPage() {
       case 'none':
         return ''
       case 'sm':
-        return 'p-2'
+        return 'p-1 sm:p-2'
       case 'md':
-        return 'p-4'
+        return 'p-2 sm:p-4'
       case 'lg':
       default:
-        return 'p-6'
+        return 'p-2 sm:p-6'
     }
   }
 
