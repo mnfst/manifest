@@ -21,10 +21,13 @@ import {
   InlineProductHorizontalCarousel,
   InlineProductHorizontalGrid
 } from '@/registry/inline/inline-product-horizontal'
+import { InlineProductTable } from '@/registry/inline/inline-product-table'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
+import { InlineSelectList } from '@/registry/inline/inline-select-list'
 import { InlineStats } from '@/registry/inline/inline-stat-card'
 import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
+import { InlineTable } from '@/registry/inline/inline-table'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
@@ -117,6 +120,12 @@ const categories: Category[] = [
         name: 'Product Horizontal Carousel',
         component: <InlineProductHorizontalCarousel />,
         padding: 'lg'
+      },
+      {
+        id: 'product-table',
+        name: 'Product Picker',
+        component: <InlineProductTable />,
+        padding: 'none'
       }
     ]
   },
@@ -128,6 +137,18 @@ const categories: Category[] = [
         id: 'option-list',
         name: 'Option List',
         component: <InlineOptionList />,
+        padding: 'lg'
+      },
+      {
+        id: 'select-list',
+        name: 'Select Cards',
+        component: <InlineSelectList />,
+        padding: 'lg'
+      },
+      {
+        id: 'select-list-multi',
+        name: 'Multi Select Cards',
+        component: <InlineSelectList mode="multi" showConfirm />,
         padding: 'lg'
       },
       {
@@ -172,14 +193,26 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'charts',
-    name: 'Charts & Stats',
+    id: 'data',
+    name: 'Lists & Tables',
     blocks: [
       {
-        id: 'stats',
-        name: 'Stats Cards',
-        component: <InlineStats />,
-        padding: 'lg'
+        id: 'table',
+        name: 'Table',
+        component: <InlineTable />,
+        padding: 'none'
+      },
+      {
+        id: 'table-selectable',
+        name: 'Select List',
+        component: <InlineTable selectable="single" />,
+        padding: 'none'
+      },
+      {
+        id: 'table-multi-select',
+        name: 'Multi Select List',
+        component: <InlineTable selectable="multi" />,
+        padding: 'none'
       }
     ]
   },
@@ -187,6 +220,12 @@ const categories: Category[] = [
     id: 'misc',
     name: 'Miscellaneous',
     blocks: [
+      {
+        id: 'stats',
+        name: 'Stats Cards',
+        component: <InlineStats />,
+        padding: 'lg'
+      },
       {
         id: 'weather',
         name: 'Weather Widget',
