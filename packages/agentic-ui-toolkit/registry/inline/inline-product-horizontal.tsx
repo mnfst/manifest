@@ -215,7 +215,11 @@ export function InlineProductHorizontalCarousel({
   const [selected, setSelected] = useState<string | undefined>(selectedProductId)
   const [currentIndex, setCurrentIndex] = useState(0)
   const displayProducts = products.slice(0, 6)
-  const maxIndex = Math.max(0, displayProducts.length - 2)
+
+  // Max indices for each breakpoint
+  const mobileMaxIndex = Math.max(0, displayProducts.length - 1)
+  const tabletMaxIndex = Math.max(0, displayProducts.length - 2)
+  const desktopMaxIndex = Math.max(0, displayProducts.length - 2)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -230,59 +234,140 @@ export function InlineProductHorizontalCarousel({
     onSelectProduct?.(product)
   }
 
-  const scroll = (direction: "left" | "right") => {
-    if (direction === "left" && currentIndex > 0) {
+  const goLeft = () => {
+    if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1)
-    } else if (direction === "right" && currentIndex < maxIndex) {
-      setCurrentIndex(currentIndex + 1)
     }
   }
 
+  // Get visible products for mobile (1 card) and tablet (2 cards)
+  const mobileProduct = displayProducts[currentIndex]
+  const tabletProducts = [
+    displayProducts[Math.min(currentIndex, tabletMaxIndex)],
+    displayProducts[Math.min(currentIndex, tabletMaxIndex) + 1]
+  ].filter(Boolean)
+
+  // Dots component
+  const Dots = ({ count, active, onDotClick }: { count: number; active: number; onDotClick: (i: number) => void }) => (
+    <div className="flex justify-center gap-1.5 mt-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onDotClick(i)}
+          className={cn(
+            "h-1.5 rounded-full transition-all duration-300",
+            i === active ? "w-4 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/50"
+          )}
+        />
+      ))}
+    </div>
+  )
+
   return (
-    <div className="w-full relative p-1 sm:p-0">
-      <button
-        onClick={() => scroll("left")}
-        disabled={currentIndex === 0}
-        className={cn(
-          "absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
-          currentIndex === 0 ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
-        )}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        onClick={() => scroll("right")}
-        disabled={currentIndex >= maxIndex}
-        className={cn(
-          "absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
-          currentIndex >= maxIndex ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
-        )}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-      <div className="overflow-hidden">
+    <div className="w-full">
+      {/* Mobile: 1 card + dots */}
+      <div className="sm:hidden">
         <div
-          className="flex gap-2 transition-transform duration-300 ease-out"
-          style={{
-            transform: `translateX(calc(-${currentIndex} * (((100% - 0.5rem) / 2.3) + 0.5rem)))`,
-          }}
+          key={currentIndex}
+          className="w-full animate-in fade-in slide-in-from-right-4 duration-300"
         >
-          {displayProducts.map((product) => (
-            <div
+          {mobileProduct && (
+            <ProductHorizontalCard
+              product={mobileProduct}
+              selected={selected === mobileProduct.id}
+              onSelect={() => handleSelect(mobileProduct)}
+              formatCurrency={formatCurrency}
+            />
+          )}
+        </div>
+        <Dots
+          count={displayProducts.length}
+          active={currentIndex}
+          onDotClick={(i) => setCurrentIndex(i)}
+        />
+      </div>
+
+      {/* Tablet: 2 cards + dots */}
+      <div className="hidden sm:block lg:hidden">
+        <div
+          key={Math.min(currentIndex, tabletMaxIndex)}
+          className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          {tabletProducts.map((product) => (
+            <ProductHorizontalCard
               key={product.id}
-              className="flex-shrink-0"
-              style={{ width: "calc((100% - 0.5rem) / 2.3)" }}
-            >
-              <ProductHorizontalCard
-                product={product}
-                selected={selected === product.id}
-                onSelect={() => handleSelect(product)}
-                formatCurrency={formatCurrency}
-              />
-            </div>
+              product={product}
+              selected={selected === product.id}
+              onSelect={() => handleSelect(product)}
+              formatCurrency={formatCurrency}
+            />
           ))}
         </div>
+        <Dots
+          count={tabletMaxIndex + 1}
+          active={Math.min(currentIndex, tabletMaxIndex)}
+          onDotClick={(i) => setCurrentIndex(i)}
+        />
       </div>
+
+      {/* Desktop: carousel with arrows */}
+      {(() => {
+        const isAtEnd = currentIndex >= desktopMaxIndex
+        return (
+          <div className="hidden lg:block relative">
+            <button
+              type="button"
+              onClick={goLeft}
+              disabled={currentIndex === 0}
+              className={cn(
+                "absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
+                currentIndex === 0 ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
+              )}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (currentIndex < desktopMaxIndex) {
+                  setCurrentIndex(currentIndex + 1)
+                }
+              }}
+              disabled={isAtEnd}
+              className={cn(
+                "absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
+                isAtEnd ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
+              )}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <div className="overflow-hidden py-1">
+              <div
+                className="flex gap-2 transition-transform duration-300 ease-out"
+                style={{
+                  transform: `translateX(calc(-${currentIndex} * (((100% - 0.5rem) / 2.3) + 0.5rem)))`,
+                }}
+              >
+                {displayProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex-shrink-0"
+                    style={{ width: "calc((100% - 0.5rem) / 2.3)" }}
+                  >
+                    <ProductHorizontalCard
+                      product={product}
+                      selected={selected === product.id}
+                      onSelect={() => handleSelect(product)}
+                      formatCurrency={formatCurrency}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
