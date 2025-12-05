@@ -200,7 +200,7 @@ export function InlineProductCarousel({
   return (
     <div className="w-full">
       {/* Mobile: 1 card + dots */}
-      <div className="sm:hidden">
+      <div className="sm:hidden px-0.5">
         <div
           key={currentIndex}
           className="w-full animate-in fade-in slide-in-from-right-4 duration-300"
@@ -215,7 +215,7 @@ export function InlineProductCarousel({
       </div>
 
       {/* Tablet: 2 cards + dots */}
-      <div className="hidden sm:block lg:hidden">
+      <div className="hidden sm:block lg:hidden px-0.5">
         <div
           key={Math.min(currentIndex, tabletMaxIndex)}
           className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-right-4 duration-300"
@@ -266,9 +266,9 @@ export function InlineProductCarousel({
               <ChevronRight className="h-4 w-4" />
             </button>
 
-            <div className="overflow-hidden py-1">
+            <div className="overflow-hidden py-1 -mx-1">
               <div
-                className="flex gap-3 transition-transform duration-300 ease-out"
+                className="flex gap-3 transition-transform duration-300 ease-out px-1"
                 style={{ transform: `translateX(-${desktopTransform}px)` }}
               >
                 {products.map((product) => (
