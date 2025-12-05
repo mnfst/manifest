@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 
 // Components imports
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
@@ -28,11 +28,18 @@ import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
+// UI components
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { GettingStarted } from '@/components/blocks/getting-started'
+import { InstallCommands } from '@/components/blocks/install-commands'
+import { CodeBlock } from '@/components/blocks/code-block'
+
 interface BlockItem {
   id: string
   name: string
   component: React.ReactNode
   padding?: 'none' | 'sm' | 'md' | 'lg'
+  registryName?: string // Name in the registry for install command
 }
 
 interface Category {
@@ -50,37 +57,43 @@ const categories: Category[] = [
         id: 'order-confirm',
         name: 'Order Confirmation',
         component: <InlineOrderConfirm />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-order-confirm'
       },
       {
         id: 'payment-methods',
         name: 'Payment Methods',
         component: <InlinePaymentMethods />,
-        padding: 'sm'
+        padding: 'sm',
+        registryName: 'inline-payment-methods'
       },
       {
         id: 'card-form',
         name: 'Card Form',
         component: <InlineCardForm />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-card-form'
       },
       {
         id: 'amount-input',
         name: 'Amount Input',
         component: <InlineAmountInput />,
-        padding: 'sm'
+        padding: 'sm',
+        registryName: 'inline-amount-input'
       },
       {
         id: 'payment-success',
         name: 'Payment Success',
         component: <InlinePaymentSuccessCompact />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-payment-success'
       },
       {
         id: 'payment-confirmed',
         name: 'Payment Confirmed',
         component: <InlinePaymentConfirmed />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-payment-confirmed'
       }
     ]
   },
@@ -92,31 +105,36 @@ const categories: Category[] = [
         id: 'product-grid',
         name: 'Product Grid',
         component: <InlineProductGrid columns={4} />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-product-grid'
       },
       {
         id: 'product-carousel',
         name: 'Product Carousel',
         component: <InlineProductCarousel />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-product-carousel'
       },
       {
         id: 'product-horizontal',
         name: 'Product Horizontal',
         component: <InlineProductHorizontal />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-product-horizontal'
       },
       {
         id: 'product-horizontal-grid',
         name: 'Product Horizontal Grid',
         component: <InlineProductHorizontalGrid />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-product-horizontal-grid'
       },
       {
         id: 'product-horizontal-carousel',
         name: 'Product Horizontal Carousel',
         component: <InlineProductHorizontalCarousel />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-product-horizontal-carousel'
       }
     ]
   },
@@ -128,19 +146,22 @@ const categories: Category[] = [
         id: 'option-list',
         name: 'Option List',
         component: <InlineOptionList />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-option-list'
       },
       {
         id: 'tag-select',
         name: 'Tag Select',
         component: <InlineTagSelect />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-tag-select'
       },
       {
         id: 'quick-reply',
         name: 'Quick Reply',
         component: <InlineQuickReply />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-quick-reply'
       }
     ]
   },
@@ -152,12 +173,14 @@ const categories: Category[] = [
         id: 'progress-steps',
         name: 'Progress Steps',
         component: <InlineProgressSteps />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-progress-steps'
       },
       {
         id: 'status-badges',
         name: 'Status Badges',
         padding: 'lg',
+        registryName: 'inline-status-badge',
         component: (
           <div className="flex flex-wrap gap-2">
             <InlineStatusBadge status="success" />
@@ -179,7 +202,8 @@ const categories: Category[] = [
         id: 'stats',
         name: 'Stats Cards',
         component: <InlineStats />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-stats'
       }
     ]
   },
@@ -191,7 +215,8 @@ const categories: Category[] = [
         id: 'weather',
         name: 'Weather Widget',
         component: <WeatherWidget />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'weather-widget'
       }
     ]
   }
@@ -209,6 +234,61 @@ const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg') => {
     default:
       return 'p-2 sm:p-6'
   }
+}
+
+function CodeViewer({ registryName }: { registryName: string }) {
+  const [code, setCode] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchCode() {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch(`/r/${registryName}.json`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch component')
+        }
+        const data = await response.json()
+        const content = data.files?.[0]?.content
+        if (content) {
+          setCode(content)
+        } else {
+          setError('No source code available')
+        }
+      } catch {
+        setError('Failed to load source code')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCode()
+  }, [registryName])
+
+  if (loading) {
+    return (
+      <div className="rounded-lg bg-muted p-4 animate-pulse">
+        <div className="h-4 bg-muted-foreground/20 rounded w-3/4 mb-2" />
+        <div className="h-4 bg-muted-foreground/20 rounded w-1/2 mb-2" />
+        <div className="h-4 bg-muted-foreground/20 rounded w-2/3" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-muted p-4 text-muted-foreground text-sm">
+        {error}
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-h-[500px] overflow-y-auto rounded-lg">
+      <CodeBlock code={code || ''} language="tsx" />
+    </div>
+  )
 }
 
 function BlocksContent() {
@@ -237,6 +317,17 @@ function BlocksContent() {
       {/* Sidebar */}
       <aside className="w-56 p-6 overflow-y-auto">
         <nav className="space-y-1">
+          <Link
+            href="/blocks"
+            className={cn(
+              'block text-xs font-medium rounded-sm transition-colors py-1 px-2 mb-2',
+              !blockId
+                ? 'bg-muted text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            )}
+          >
+            Getting Started
+          </Link>
           {categories.map((category) => (
             <div key={category.id}>
               <button
@@ -284,43 +375,41 @@ function BlocksContent() {
                 Preview of the {selectedBlock.name} component
               </p>
             </div>
-            <div
-              className={cn(
-                'rounded-lg border bg-card shadow-block',
-                getPaddingClass(selectedBlock.padding)
-              )}
-            >
-              {selectedBlock.component}
-            </div>
+
+            {/* Install Commands */}
+            {selectedBlock.registryName && (
+              <InstallCommands componentName={selectedBlock.registryName} />
+            )}
+
+            {/* Preview / Code Tabs */}
+            <Tabs defaultValue="preview" className="w-full">
+              <TabsList>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+                <TabsTrigger value="code">Code</TabsTrigger>
+              </TabsList>
+              <TabsContent value="preview">
+                <div
+                  className={cn(
+                    'rounded-lg border bg-card shadow-block',
+                    getPaddingClass(selectedBlock.padding)
+                  )}
+                >
+                  {selectedBlock.component}
+                </div>
+              </TabsContent>
+              <TabsContent value="code">
+                {selectedBlock.registryName ? (
+                  <CodeViewer registryName={selectedBlock.registryName} />
+                ) : (
+                  <div className="rounded-lg bg-muted p-4 text-muted-foreground text-sm">
+                    No source code available for this component
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold">Blocks</h1>
-            <p className="text-muted-foreground mt-1">
-              Select a block from the sidebar to preview it.
-            </p>
-            <div className="mt-8 grid gap-4">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="rounded-lg border bg-card p-4"
-                >
-                  <h2 className="font-semibold mb-2">{category.name}</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {category.blocks.map((block) => (
-                      <Link
-                        key={block.id}
-                        href={`/blocks?block=${block.id}`}
-                        className="px-3 py-1.5 text-sm rounded-md bg-muted hover:bg-muted/80 transition-colors"
-                      >
-                        {block.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <GettingStarted />
         )}
       </div>
     </div>

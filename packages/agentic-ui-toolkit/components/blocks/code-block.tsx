@@ -1,0 +1,62 @@
+'use client'
+
+import { Check, Copy } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { codeToHtml } from 'shiki'
+
+interface CodeBlockProps {
+  code: string
+  language?: string
+  className?: string
+}
+
+export function CodeBlock({ code, language = 'bash', className }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false)
+  const [html, setHtml] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function highlight() {
+      const highlighted = await codeToHtml(code, {
+        lang: language,
+        themes: {
+          light: 'github-light',
+          dark: 'github-dark'
+        }
+      })
+      setHtml(highlighted)
+    }
+    highlight()
+  }, [code, language])
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className={`relative group ${className || ''}`}>
+      {html ? (
+        <div
+          className="rounded-lg overflow-x-auto text-sm [&_pre]:p-4 [&_pre]:m-0 [&_pre]:bg-muted dark:[&_pre]:bg-muted"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      ) : (
+        <pre className="rounded-lg bg-muted p-4 overflow-x-auto text-sm font-mono">
+          <code>{code}</code>
+        </pre>
+      )}
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 p-2 rounded-md bg-background/80 hover:bg-background border opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="Copy to clipboard"
+      >
+        {copied ? (
+          <Check className="h-4 w-4 text-green-500" />
+        ) : (
+          <Copy className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+    </div>
+  )
+}
