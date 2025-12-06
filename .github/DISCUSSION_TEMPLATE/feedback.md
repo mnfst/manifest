@@ -1,11 +1,11 @@
 <!--
 Hello 👋,
 
-Manifest is in its initial stages, with significant potential for enhancement. We want to make it evolve according to your feedbacks.
+Manifest is in its early stages, with lots of room to grow. We want to shape its future based on your feedback.
 
-If you like the project, we're counting on you to try it out and give us your feedback and suggestions.
+If you like the project, we'd love for you to try it out and share your thoughts and suggestions.
 
-You can also upvote other developers suggestions to put them in the spotlight.
+You can also upvote other developers' suggestions to help prioritize them.
 
 Thank you for your interest in Manifest 🙏 ❤.
 -->

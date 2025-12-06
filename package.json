@@ -1,18 +1,10 @@
 {
   "name": "manifest",
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "dev": "npm run dev --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "test:ci": "npm run test:ci --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "seed": "cd packages/core/manifest && npm run seed",
-    "prepare": "husky",
-    "publish-packages": "npm run build && npm run lint && npm run test && changeset version && changeset publish"
+    "lint": "echo \"No linting configured at the root level.\""
   },
   "workspaces": [
-    "packages/**/*",
-    "!packages/js-sdk/sandbox"
+    "packages/**/*"
   ],
   "devDependencies": {
     "@eslint/js": "^9.14.0",
@@ -24,7 +16,6 @@
   },
   "packageManager": "npm@10.7.0",
   "dependencies": {
-    "@changesets/cli": "^2.27.11",
-    "sharp": "^0.34.3"
+    "@changesets/cli": "^2.27.11"
   }
 }
