@@ -300,3 +300,11 @@ Components can:
 - **Dark mode**: All components must work in both light and dark themes
 - **Text**: All text in English
 - **Compact height**: Prefer single-row layouts when possible
+
+## Active Technologies
+- TypeScript 5.9 + Next.js 15.5 (001-toolkit-website)
+- React 19.1 + Tailwind CSS v4 (001-toolkit-website)
+- shadcn/ui + Radix UI (001-toolkit-website)
+
+## Recent Changes
+- 001-toolkit-website: Added Next.js 15.5, React 19.1, Tailwind CSS v4, shadcn/ui
