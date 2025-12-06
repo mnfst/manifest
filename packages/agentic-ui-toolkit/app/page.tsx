@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChatDemo } from '@/components/chat/chat-demo'
 import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
@@ -194,6 +195,12 @@ export default function Home() {
             A collection of UI components designed for conversational interfaces.
             See how they work in a ChatGPT-like experience.
           </p>
+          <Link
+            href="/blocks"
+            className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-medium hover:bg-foreground/90 transition-colors"
+          >
+            Get Started
+          </Link>
         </div>
 
         <Tabs defaultValue="product-selection" className="w-full">
