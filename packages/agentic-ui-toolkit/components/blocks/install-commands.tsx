@@ -4,30 +4,28 @@ import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-const REGISTRY_URL = 'https://ui.manifest.build'
-
 type PackageManager = 'npx' | 'pnpm' | 'yarn' | 'bunx'
 
 const packageManagers: { id: PackageManager; label: string; command: (name: string) => string }[] = [
   {
     id: 'npx',
     label: 'npx',
-    command: (name: string) => `npx shadcn@latest add ${name} -r ${REGISTRY_URL}`
+    command: (name: string) => `npx shadcn@latest add @manifest/${name}`
   },
   {
     id: 'pnpm',
     label: 'pnpm',
-    command: (name: string) => `pnpm dlx shadcn@latest add ${name} -r ${REGISTRY_URL}`
+    command: (name: string) => `pnpm dlx shadcn@latest add @manifest/${name}`
   },
   {
     id: 'yarn',
     label: 'yarn',
-    command: (name: string) => `npx shadcn@latest add ${name} -r ${REGISTRY_URL}`
+    command: (name: string) => `npx shadcn@latest add @manifest/${name}`
   },
   {
     id: 'bunx',
     label: 'bunx',
-    command: (name: string) => `bunx --bun shadcn@latest add ${name} -r ${REGISTRY_URL}`
+    command: (name: string) => `bunx --bun shadcn@latest add @manifest/${name}`
   }
 ]
 

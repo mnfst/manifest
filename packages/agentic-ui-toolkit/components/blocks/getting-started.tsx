@@ -81,38 +81,30 @@ export function GettingStarted() {
           Make sure you have shadcn/ui initialized in your project. If not, run:
         </p>
         <CodeBlock code="npx shadcn@latest init" />
-        <p className="text-sm text-muted-foreground">
-          Then install any component from the registry:
-        </p>
-        <CodeBlock
-          code={`npx shadcn@latest add inline-card-form -r ${REGISTRY_URL}`}
-        />
       </section>
 
       {/* Registry Configuration */}
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">
-          Registry Configuration (Optional)
-        </h2>
+        <h2 className="text-lg font-semibold">Registry Configuration</h2>
         <p className="text-sm text-muted-foreground">
-          You can add Manifest UI as a custom registry in your{' '}
+          Add Manifest UI as a custom registry in your{' '}
           <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">
             components.json
           </code>{' '}
-          file to use a shorter syntax:
+          file:
         </p>
         <CodeBlock
           code={`{
   "registries": {
-    "manifest": "${REGISTRY_URL}"
+    "@manifest": "${REGISTRY_URL}"
   }
 }`}
           language="json"
         />
         <p className="text-sm text-muted-foreground">
-          Then you can install components with:
+          Then install any component from the registry:
         </p>
-        <CodeBlock code="npx shadcn@latest add manifest/inline-card-form" />
+        <CodeBlock code="npx shadcn@latest add @manifest/inline-card-form" />
       </section>
 
       {/* Available Components */}
