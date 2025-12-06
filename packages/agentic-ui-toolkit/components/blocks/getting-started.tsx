@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { CodeBlock } from './code-block'
 
-const REGISTRY_URL = 'https://ui.manifest.build'
+const REGISTRY_URL = 'https://ui.manifest.build/r/{name}.json'
 
 const categories = [
   {
