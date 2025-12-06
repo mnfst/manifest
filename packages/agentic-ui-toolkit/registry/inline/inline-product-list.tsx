@@ -99,7 +99,7 @@ export function InlineProductList({
             onClick={() => handleSelect(product)}
             disabled={!product.inStock}
             className={cn(
-              "flex-shrink-0 w-40 rounded-lg border bg-card p-3 text-left transition-all",
+              "flex-shrink-0 w-40 rounded-md sm:rounded-lg border bg-card p-3 text-left transition-all",
               selected === product.id
                 ? "border-primary ring-1 ring-primary"
                 : "border-border hover:border-primary/50",
@@ -157,7 +157,7 @@ export function InlineProductList({
           </button>
         ))}
         {products.length > maxVisible && (
-          <button className="flex-shrink-0 w-20 rounded-lg border border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:bg-muted transition-colors">
+          <button className="flex-shrink-0 w-20 rounded-md sm:rounded-lg border border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:bg-muted transition-colors">
             <ChevronRight className="h-5 w-5" />
             <span className="text-xs">+{products.length - maxVisible}</span>
           </button>

@@ -154,7 +154,7 @@ export function InlinePaymentMethods({
   }
 
   return (
-    <div className="w-full rounded-lg bg-card p-2 space-y-4">
+    <div className="w-full rounded-md sm:rounded-lg bg-card p-2 space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         {methods.map((method) => (
           <button

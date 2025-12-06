@@ -133,7 +133,7 @@ export function InlineProductTable({
             onClick={() => handleSelect(product)}
             disabled={!product.inStock}
             className={cn(
-              'w-full flex items-center gap-3 rounded-lg border bg-card p-2 text-left transition-all',
+              'w-full flex items-center gap-3 rounded-md sm:rounded-lg border bg-card p-2 text-left transition-all',
               selectedIds.has(product.id)
                 ? 'border-foreground ring-1 ring-foreground'
                 : 'border-border hover:border-foreground/30',
@@ -189,7 +189,7 @@ export function InlineProductTable({
       </div>
 
       {/* Desktop: Table view */}
-      <div className="hidden sm:block overflow-x-auto rounded-lg mb-0">
+      <div className="hidden sm:block overflow-x-auto rounded-md sm:rounded-lg mb-0">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>

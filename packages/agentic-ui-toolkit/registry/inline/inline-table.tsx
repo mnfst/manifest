@@ -233,7 +233,7 @@ export function InlineTable<T extends Record<string, unknown>>({
       <div className="sm:hidden space-y-2">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-lg border bg-card p-3 space-y-2">
+            <div key={i} className="rounded-md sm:rounded-lg border bg-card p-3 space-y-2">
               {columns.slice(0, 4).map((_, j) => (
                 <div
                   key={j}
@@ -243,7 +243,7 @@ export function InlineTable<T extends Record<string, unknown>>({
             </div>
           ))
         ) : sortedData.length === 0 ? (
-          <div className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-md sm:rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         ) : (
@@ -254,7 +254,7 @@ export function InlineTable<T extends Record<string, unknown>>({
               onClick={() => handleRowSelect(rowIndex)}
               disabled={selectable === 'none'}
               className={cn(
-                'w-full rounded-lg border bg-card p-3 text-left transition-all',
+                'w-full rounded-md sm:rounded-lg border bg-card p-3 text-left transition-all',
                 selectable !== 'none' &&
                   'cursor-pointer hover:border-foreground/30',
                 selectedRowsSet.has(rowIndex) &&
@@ -294,7 +294,7 @@ export function InlineTable<T extends Record<string, unknown>>({
       </div>
 
       {/* Desktop: Table view */}
-      <div className="hidden sm:block overflow-x-auto rounded-lg">
+      <div className="hidden sm:block overflow-x-auto rounded-md sm:rounded-lg">
         <table className="w-full text-sm" role="grid">
           <thead
             className={cn(

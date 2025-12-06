@@ -43,11 +43,7 @@ function TableMultiSelectWithActions() {
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
       />
       <div className="flex justify-end gap-2 p-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={selectedCount === 0}
-        >
+        <Button variant="white" size="sm" disabled={selectedCount === 0}>
           Download
         </Button>
         <Button size="sm" disabled={selectedCount === 0}>
@@ -275,7 +271,7 @@ const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg' | 'mobile') => {
       return 'p-2 sm:p-0'
     case 'lg':
     default:
-      return 'p-2 sm:p-6'
+      return 'p-2 sm:p-4'
   }
 }
 
