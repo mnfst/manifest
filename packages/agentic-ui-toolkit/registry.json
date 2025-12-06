@@ -149,7 +149,7 @@
       "title": "Inline Order Confirm",
       "description": "Inline order confirmation for direct chat use with product image, delivery info, and confirm action.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "badge"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/inline/inline-order-confirm.tsx",
@@ -163,7 +163,7 @@
       "title": "Inline Payment Success",
       "description": "Inline payment success for direct chat use with order details, brand logo, and tracking button.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "badge"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/inline/inline-payment-success.tsx",
@@ -205,7 +205,7 @@
       "title": "Inline Product Grid",
       "description": "Full-width product grid with 3 or 4 columns stretched to container width.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["badge"],
+      "registryDependencies": [],
       "files": [
         {
           "path": "registry/inline/inline-product-grid.tsx",
@@ -219,7 +219,7 @@
       "title": "Inline Product Carousel",
       "description": "Product carousel showing partial next item with gradient fade effect.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["badge"],
+      "registryDependencies": [],
       "files": [
         {
           "path": "registry/inline/inline-product-carousel.tsx",
@@ -303,7 +303,7 @@
       "title": "Inline Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": [],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/inline/inline-tag-select.tsx",
