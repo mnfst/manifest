@@ -1,0 +1,413 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "agentic",
+  "homepage": "https://manifest.build",
+  "items": [
+    {
+      "name": "weather-widget",
+      "type": "registry:component",
+      "title": "Weather Widget",
+      "description": "A weather widget displaying temperature, conditions, and additional weather details.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/misc/weather-widget/weather-widget.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "card-form",
+      "type": "registry:component",
+      "title": "Card Form",
+      "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "input", "label", "button"],
+      "files": [
+        {
+          "path": "registry/payment/card-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "pay-confirm",
+      "type": "registry:component",
+      "title": "Pay Confirm",
+      "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "button", "separator"],
+      "files": [
+        {
+          "path": "registry/payment/pay-confirm.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "order-summary",
+      "type": "registry:component",
+      "title": "Order Summary",
+      "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "badge", "separator"],
+      "files": [
+        {
+          "path": "registry/payment/order-summary.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "saved-cards",
+      "type": "registry:component",
+      "title": "Saved Cards",
+      "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "button"],
+      "files": [
+        {
+          "path": "registry/payment/saved-cards.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "payment-success",
+      "type": "registry:component",
+      "title": "Payment Success",
+      "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "button", "separator"],
+      "files": [
+        {
+          "path": "registry/payment/payment-success.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "pricing-plans",
+      "type": "registry:component",
+      "title": "Pricing Plans",
+      "description": "A pricing plan selector with monthly/yearly toggle, multiple tiers, and feature lists.",
+      "dependencies": [],
+      "registryDependencies": ["card", "badge"],
+      "files": [
+        {
+          "path": "registry/pricing/pricing-plans.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "pricing-plans-grid",
+      "type": "registry:component",
+      "title": "Pricing Plans Grid",
+      "description": "A 3-column pricing grid with plans as cards, monthly/yearly toggle, and feature checkmarks.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["badge", "button"],
+      "files": [
+        {
+          "path": "registry/pricing/pricing-plans-grid.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-card-form",
+      "type": "registry:component",
+      "title": "Inline Card Form",
+      "description": "Compact card payment form with inline layout for chat interfaces.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-card-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-payment-methods",
+      "type": "registry:component",
+      "title": "Inline Payment Methods",
+      "description": "Inline payment method selector for direct chat use with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-payment-methods.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-order-confirm",
+      "type": "registry:component",
+      "title": "Inline Order Confirm",
+      "description": "Inline order confirmation for direct chat use with product image, delivery info, and confirm action.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "badge"],
+      "files": [
+        {
+          "path": "registry/inline/inline-order-confirm.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-payment-success",
+      "type": "registry:component",
+      "title": "Inline Payment Success",
+      "description": "Inline payment success for direct chat use with order details, brand logo, and tracking button.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "badge"],
+      "files": [
+        {
+          "path": "registry/inline/inline-payment-success.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-payment-confirmed",
+      "type": "registry:component",
+      "title": "Inline Payment Confirmed",
+      "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-payment-confirmed.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-list",
+      "type": "registry:component",
+      "title": "Inline Product List",
+      "description": "Horizontal scrollable product list with images, prices, ratings, and badges.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["badge", "button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-list.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-grid",
+      "type": "registry:component",
+      "title": "Inline Product Grid",
+      "description": "Full-width product grid with 3 or 4 columns stretched to container width.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["badge"],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-grid.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-carousel",
+      "type": "registry:component",
+      "title": "Inline Product Carousel",
+      "description": "Product carousel showing partial next item with gradient fade effect.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["badge"],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-carousel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-horizontal",
+      "type": "registry:component",
+      "title": "Inline Product Horizontal",
+      "description": "Horizontal product card with image on left and content on right, in single column layout.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-horizontal.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-horizontal-grid",
+      "type": "registry:component",
+      "title": "Inline Product Horizontal Grid",
+      "description": "Horizontal product cards in a 2-column grid layout.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-horizontal.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-horizontal-carousel",
+      "type": "registry:component",
+      "title": "Inline Product Horizontal Carousel",
+      "description": "Horizontal product cards in a carousel showing 2 full cards with partial 3rd visible.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-horizontal.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-option-list",
+      "type": "registry:component",
+      "title": "Inline Option List",
+      "description": "Tag-style option selector with single or multiple selection modes.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-option-list.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-amount-input",
+      "type": "registry:component",
+      "title": "Inline Amount Input",
+      "description": "Amount input with increment/decrement buttons and preset values.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-amount-input.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-tag-select",
+      "type": "registry:component",
+      "title": "Inline Tag Select",
+      "description": "Colored tag selector with single or multiple selection and color variants.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-tag-select.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-quick-reply",
+      "type": "registry:component",
+      "title": "Inline Quick Reply",
+      "description": "Quick reply buttons for common chat responses.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-quick-reply.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-progress-steps",
+      "type": "registry:component",
+      "title": "Inline Progress Steps",
+      "description": "Progress indicator with horizontal or vertical layout and step statuses.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-progress-steps.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-status-badge",
+      "type": "registry:component",
+      "title": "Inline Status Badge",
+      "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-status-badge.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-bar-chart",
+      "type": "registry:component",
+      "title": "Inline Bar Chart",
+      "description": "Simple bar chart with horizontal or vertical orientation.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-bar-chart.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-pie-chart",
+      "type": "registry:component",
+      "title": "Inline Pie Chart",
+      "description": "Simple pie chart with legend and percentages.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-pie-chart.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-stats",
+      "type": "registry:component",
+      "title": "Inline Stats",
+      "description": "Scrollable stat cards with values, trends, and change indicators.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-stat-card.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-skeleton",
+      "type": "registry:component",
+      "title": "Inline Skeleton Loaders",
+      "description": "Skeleton placeholder components with pulse animation for loading states.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-skeleton.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}

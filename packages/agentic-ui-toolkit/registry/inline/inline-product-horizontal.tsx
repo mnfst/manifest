@@ -1,0 +1,373 @@
+"use client"
+
+import { useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+export interface Product {
+  id: string
+  name: string
+  description?: string
+  price: number
+  originalPrice?: number
+  image?: string
+  rating?: number
+  badge?: string
+  inStock?: boolean
+}
+
+export interface InlineProductHorizontalProps {
+  products?: Product[]
+  currency?: string
+  onSelectProduct?: (product: Product) => void
+  selectedProductId?: string
+}
+
+const defaultProducts: Product[] = [
+  {
+    id: "1",
+    name: "Air Force 1 '07",
+    description: "Nike",
+    price: 119,
+    image: "/demo/shoe-1.png",
+    rating: 4.9,
+    badge: "New",
+    inStock: true,
+  },
+  {
+    id: "2",
+    name: "Air Max 90",
+    description: "Nike",
+    price: 140,
+    image: "/demo/shoe-2.png",
+    rating: 4.8,
+    inStock: true,
+  },
+  {
+    id: "3",
+    name: "Air Max Plus",
+    description: "Nike",
+    price: 170,
+    originalPrice: 190,
+    image: "/demo/shoe-4.png",
+    rating: 4.7,
+    badge: "-10%",
+    inStock: true,
+  },
+  {
+    id: "4",
+    name: "Dunk Low",
+    description: "Nike",
+    price: 115,
+    image: "/demo/shoe-3.png",
+    rating: 4.6,
+    inStock: true,
+  },
+]
+
+function ProductHorizontalCard({
+  product,
+  selected,
+  onSelect,
+  formatCurrency,
+}: {
+  product: Product
+  selected: boolean
+  onSelect: () => void
+  formatCurrency: (value: number) => string
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      disabled={!product.inStock}
+      className={cn(
+        "w-full flex items-center gap-3 rounded-[12px] border p-2 text-left transition-all",
+        selected
+          ? "bg-card border-foreground ring-1 ring-foreground"
+          : "bg-card border-border hover:border-foreground/50",
+        !product.inStock && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      <div className="relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden">
+        {product.image ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-contain bg-muted/30"
+          />
+        ) : (
+          <div className="h-full w-full bg-muted" />
+        )}
+        {product.badge && (
+          <span
+            className={cn(
+              "absolute top-1 left-1 px-1 py-0.5 text-[8px] font-medium rounded",
+              product.badge.startsWith("-")
+                ? "bg-foreground text-background"
+                : "bg-background text-foreground border border-border"
+            )}
+          >
+            {product.badge}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0 space-y-0.5">
+        <p className="text-sm font-medium truncate">{product.name}</p>
+        {product.description && (
+          <p className="text-xs truncate text-muted-foreground">
+            {product.description}
+          </p>
+        )}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">
+            {formatCurrency(product.price)}
+          </span>
+          {product.originalPrice && (
+            <span className="text-xs line-through text-muted-foreground">
+              {formatCurrency(product.originalPrice)}
+            </span>
+          )}
+        </div>
+      </div>
+      <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+    </button>
+  )
+}
+
+export function InlineProductHorizontal({
+  products = defaultProducts,
+  currency = "EUR",
+  onSelectProduct,
+  selectedProductId,
+}: InlineProductHorizontalProps) {
+  const [selected, setSelected] = useState<string | undefined>(selectedProductId)
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const handleSelect = (product: Product) => {
+    setSelected(product.id)
+    onSelectProduct?.(product)
+  }
+
+  return (
+    <div className="w-full space-y-2 p-1 sm:p-0">
+      {products.slice(0, 4).map((product) => (
+        <ProductHorizontalCard
+          key={product.id}
+          product={product}
+          selected={selected === product.id}
+          onSelect={() => handleSelect(product)}
+          formatCurrency={formatCurrency}
+        />
+      ))}
+    </div>
+  )
+}
+
+export function InlineProductHorizontalGrid({
+  products = defaultProducts,
+  currency = "EUR",
+  onSelectProduct,
+  selectedProductId,
+}: InlineProductHorizontalProps) {
+  const [selected, setSelected] = useState<string | undefined>(selectedProductId)
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const handleSelect = (product: Product) => {
+    setSelected(product.id)
+    onSelectProduct?.(product)
+  }
+
+  return (
+    <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 p-1 sm:p-0">
+      {products.slice(0, 4).map((product) => (
+        <ProductHorizontalCard
+          key={product.id}
+          product={product}
+          selected={selected === product.id}
+          onSelect={() => handleSelect(product)}
+          formatCurrency={formatCurrency}
+        />
+      ))}
+    </div>
+  )
+}
+
+export function InlineProductHorizontalCarousel({
+  products = defaultProducts,
+  currency = "EUR",
+  onSelectProduct,
+  selectedProductId,
+}: InlineProductHorizontalProps) {
+  const [selected, setSelected] = useState<string | undefined>(selectedProductId)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const displayProducts = products.slice(0, 6)
+
+  // Max indices for each breakpoint
+  const mobileMaxIndex = Math.max(0, displayProducts.length - 1)
+  const tabletMaxIndex = Math.max(0, displayProducts.length - 2)
+  const desktopMaxIndex = Math.max(0, displayProducts.length - 2)
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const handleSelect = (product: Product) => {
+    setSelected(product.id)
+    onSelectProduct?.(product)
+  }
+
+  const goLeft = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1)
+    }
+  }
+
+  // Get visible products for mobile (1 card) and tablet (2 cards)
+  const mobileProduct = displayProducts[currentIndex]
+  const tabletProducts = [
+    displayProducts[Math.min(currentIndex, tabletMaxIndex)],
+    displayProducts[Math.min(currentIndex, tabletMaxIndex) + 1]
+  ].filter(Boolean)
+
+  // Dots component
+  const Dots = ({ count, active, onDotClick }: { count: number; active: number; onDotClick: (i: number) => void }) => (
+    <div className="flex justify-center gap-1.5 mt-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onDotClick(i)}
+          className={cn(
+            "h-1.5 rounded-full transition-all duration-300",
+            i === active ? "w-4 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/50"
+          )}
+        />
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="w-full">
+      {/* Mobile: 1 card + dots */}
+      <div className="sm:hidden px-0.5">
+        <div
+          key={currentIndex}
+          className="w-full animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          {mobileProduct && (
+            <ProductHorizontalCard
+              product={mobileProduct}
+              selected={selected === mobileProduct.id}
+              onSelect={() => handleSelect(mobileProduct)}
+              formatCurrency={formatCurrency}
+            />
+          )}
+        </div>
+        <Dots
+          count={displayProducts.length}
+          active={currentIndex}
+          onDotClick={(i) => setCurrentIndex(i)}
+        />
+      </div>
+
+      {/* Tablet: 2 cards + dots */}
+      <div className="hidden sm:block lg:hidden px-0.5">
+        <div
+          key={Math.min(currentIndex, tabletMaxIndex)}
+          className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          {tabletProducts.map((product) => (
+            <ProductHorizontalCard
+              key={product.id}
+              product={product}
+              selected={selected === product.id}
+              onSelect={() => handleSelect(product)}
+              formatCurrency={formatCurrency}
+            />
+          ))}
+        </div>
+        <Dots
+          count={tabletMaxIndex + 1}
+          active={Math.min(currentIndex, tabletMaxIndex)}
+          onDotClick={(i) => setCurrentIndex(i)}
+        />
+      </div>
+
+      {/* Desktop: carousel with arrows */}
+      {(() => {
+        const isAtEnd = currentIndex >= desktopMaxIndex
+        return (
+          <div className="hidden lg:block relative">
+            <button
+              type="button"
+              onClick={goLeft}
+              disabled={currentIndex === 0}
+              className={cn(
+                "absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
+                currentIndex === 0 ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
+              )}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (currentIndex < desktopMaxIndex) {
+                  setCurrentIndex(currentIndex + 1)
+                }
+              }}
+              disabled={isAtEnd}
+              className={cn(
+                "absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center transition-opacity",
+                isAtEnd ? "opacity-0 cursor-not-allowed" : "hover:bg-background"
+              )}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <div className="overflow-hidden py-1 -mx-1">
+              <div
+                className="flex gap-2 transition-transform duration-300 ease-out px-1"
+                style={{
+                  transform: `translateX(calc(-${currentIndex} * (((100% - 0.5rem) / 2.3) + 0.5rem)))`,
+                }}
+              >
+                {displayProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex-shrink-0"
+                    style={{ width: "calc((100% - 0.5rem) / 2.3)" }}
+                  >
+                    <ProductHorizontalCard
+                      product={product}
+                      selected={selected === product.id}
+                      onSelect={() => handleSelect(product)}
+                      formatCurrency={formatCurrency}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+    </div>
+  )
+}

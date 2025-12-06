@@ -1,8 +1,0 @@
-{
-  "name": "@repo/common",
-  "private": true,
-  "scripts": {
-    "build": "tsc --noEmit",
-    "lint": "eslint --fix ."
-  }
-}

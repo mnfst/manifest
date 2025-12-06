@@ -1,7 +1,0 @@
-{
-  "compilerOptions": {
-    "noEmit": true,
-    "rootDir": "./",
-    "baseUrl": "./"
-  }
-}

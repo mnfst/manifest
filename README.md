@@ -10,7 +10,7 @@
 </p>
 
 > [!WARNING]
-> 🚧 **Pivot in progress.** This repo contains our previous BaaS product. We're now building  a tool that allows to create Agentic UIs. More information here → [manifest.build](https://manifest.build)
+> 🚧 **Pivot in progress.** Follow the link if you are looking for [Manifest 1-file-backend (BaaS)](https://github.com/mnfst/manifest-baas). We're now building a tool that allows to create Agentic UIs. More information here → [manifest.build](https://manifest.build)
 
 ---
 

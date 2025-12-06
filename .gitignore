@@ -44,8 +44,5 @@ Thumbs.db
 *.mov
 *.wmv
 
-# Turbo
-.turbo
-
 # Parcel (JS SDK sandbox)
 .parcel-cache
