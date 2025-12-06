@@ -46,3 +46,4 @@ Thumbs.db
 
 # Parcel (JS SDK sandbox)
 .parcel-cache
+.vercel
