@@ -48,7 +48,7 @@ export function InlineCardForm({
   const label = submitLabel || `Pay ${formatCurrency(amount)}`
 
   return (
-    <div className="w-full rounded-lg bg-card p-3 space-y-3 sm:space-y-0 sm:p-0 sm:pl-4 sm:pr-2 sm:py-2 sm:flex sm:items-center sm:gap-2">
+    <div className="w-full rounded-md sm:rounded-lg bg-card p-3 space-y-3 sm:space-y-0 sm:p-0 sm:pl-4 sm:pr-2 sm:py-2 sm:flex sm:items-center sm:gap-2">
       {/* Card number row */}
       <div className="flex items-center gap-2 sm:flex-1 sm:min-w-0">
         <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />

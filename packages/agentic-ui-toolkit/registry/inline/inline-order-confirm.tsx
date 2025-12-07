@@ -41,7 +41,7 @@ export function InlineOrderConfirm({
   }
 
   return (
-    <div className="w-full rounded-lg bg-card">
+    <div className="w-full rounded-md sm:rounded-lg bg-card">
       {/* Product info */}
       <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-2">
         <img

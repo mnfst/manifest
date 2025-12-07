@@ -30,7 +30,7 @@ export function InlinePaymentSuccessCompact({
   }
 
   return (
-    <div className="w-full rounded-lg bg-card">
+    <div className="w-full rounded-md sm:rounded-lg bg-card">
       {/* Mobile layout */}
       <div className="sm:hidden p-4 space-y-4">
         {/* Success icon and title */}
@@ -43,7 +43,7 @@ export function InlinePaymentSuccessCompact({
 
         {/* Product image centered */}
         <div className="flex justify-center">
-          <div className="h-24 w-24 rounded-lg overflow-hidden bg-muted/30">
+          <div className="h-24 w-24 rounded-md sm:rounded-lg overflow-hidden bg-muted/30">
             {productImage ? (
               <img
                 src={productImage}
