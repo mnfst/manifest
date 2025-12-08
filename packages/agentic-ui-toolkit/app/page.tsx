@@ -7,10 +7,7 @@ import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel
 import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
-import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
-import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
-import { InlineOptionList } from '@/registry/inline/inline-option-list'
-import { InlineStats } from '@/registry/inline/inline-stat-card'
+import { InlineBlogPostList, InlineFeaturedArticle } from '@/registry/inline/inline-blog'
 
 function ChatGPTIcon({ className }: { className?: string }) {
   return (
@@ -48,46 +45,62 @@ function StripeLogo({ className }: { className?: string }) {
   )
 }
 
-function CalendlyLogo({ className }: { className?: string }) {
+function TechCrunchLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
-      <rect width="24" height="24" rx="4" fill="#006BFF" />
-      <path d="M7 8h10M7 12h10M7 16h6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="12" fill="#0A9E01" />
+      <g transform="translate(4, 6) scale(0.67)">
+        <polygon fill="white" points="12,0 12,4 8,4 8,12 4,12 4,4 0,4 0,0" />
+        <rect x="16" y="0" fill="white" width="8" height="4" />
+        <polygon fill="white" points="24,8 24,12 12,12 12,4 16,4 16,8" />
+      </g>
     </svg>
   )
 }
 
-function TicketmasterLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <rect width="24" height="24" rx="4" fill="#026CDF" />
-      <path d="M6 9h12v6H6z" fill="white" />
-      <path d="M10 9v6M14 9v6" stroke="#026CDF" strokeWidth="1.5" strokeDasharray="2 2" />
-    </svg>
-  )
-}
+const techCrunchArticles = [
+  {
+    id: '1',
+    title: 'The accelerator is on the floor for autonomous vehicles',
+    excerpt: 'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer.',
+    coverImage: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
+    author: { name: 'Kirsten Korosec', avatar: 'https://i.pravatar.cc/150?u=kirsten' },
+    publishedAt: '2025-12-07',
+    readTime: '5 min read',
+    category: 'Transportation'
+  },
+  {
+    id: '2',
+    title: 'X deactivates European Commission ad account after €120M fine',
+    excerpt: 'The social media platform has suspended the EU institution\'s advertising capabilities following the recent penalty.',
+    coverImage: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=450&fit=crop',
+    author: { name: 'Anthony Ha', avatar: 'https://i.pravatar.cc/150?u=anthony' },
+    publishedAt: '2025-12-07',
+    readTime: '4 min read',
+    category: 'Social'
+  },
+  {
+    id: '3',
+    title: 'Coinbase starts onboarding users again in India',
+    excerpt: 'The crypto exchange plans to introduce fiat on-ramp capabilities in the region by next year.',
+    coverImage: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&h=450&fit=crop',
+    author: { name: 'Ivan Mehta', avatar: 'https://i.pravatar.cc/150?u=ivan' },
+    publishedAt: '2025-12-07',
+    readTime: '6 min read',
+    category: 'Fintech'
+  }
+]
 
-function SlackLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <path d="M6 15a2 2 0 1 1 0-4h2v2a2 2 0 0 1-2 2z" fill="#E01E5A" />
-      <path d="M9 13a2 2 0 1 1 4 0v5a2 2 0 1 1-4 0v-5z" fill="#E01E5A" />
-      <path d="M18 9a2 2 0 1 1 0 4h-2v-2a2 2 0 0 1 2-2z" fill="#36C5F0" />
-      <path d="M15 11a2 2 0 1 1-4 0V6a2 2 0 1 1 4 0v5z" fill="#36C5F0" />
-      <path d="M9 18a2 2 0 1 1 4 0v2a2 2 0 1 1-4 0v-2z" fill="#2EB67D" />
-      <path d="M11 15a2 2 0 1 1 0-4h5a2 2 0 1 1 0 4h-5z" fill="#2EB67D" />
-      <path d="M15 6a2 2 0 1 1-4 0V4a2 2 0 1 1 4 0v2z" fill="#ECB22E" />
-      <path d="M13 9a2 2 0 1 1 0 4H8a2 2 0 1 1 0-4h5z" fill="#ECB22E" />
-    </svg>
-  )
-}
-
-function ChaseLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <path d="M2 8h8v3H5v5h14v-3h-8V8h3v5h8v3H2V8z" fill="#117ACA" />
-    </svg>
-  )
+const featuredArticle = {
+  id: '0',
+  title: 'The accelerator is on the floor for autonomous vehicles',
+  excerpt: 'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer and consumer acceptance grows.',
+  coverImage: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
+  author: { name: 'Kirsten Korosec', avatar: 'https://i.pravatar.cc/150?u=kirsten' },
+  publishedAt: '2025-12-07',
+  readTime: '5 min read',
+  category: 'Transportation',
+  tags: ['Autonomous', 'EVs']
 }
 
 const useCases = [
@@ -106,6 +119,7 @@ const useCases = [
         content: "Here are our best-selling audio products:",
         component: <InlineProductCarousel />,
         brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
+        hasPadding: true,
         contentAfter: "Browse through our selection and let me know which one catches your eye. Each model offers different features to match your lifestyle.",
       },
       {
@@ -156,130 +170,35 @@ const useCases = [
     ],
   },
   {
-    id: 'book-meeting',
-    label: 'Book a meeting',
+    id: 'tech-news',
+    label: 'Tech news',
     messages: [
       {
         id: '1',
         role: 'user' as const,
-        content: "I need to schedule a meeting with the design team",
+        content: "What's happening in tech today?",
       },
       {
         id: '2',
         role: 'assistant' as const,
-        content: "What type of meeting would you like to book?",
-        component: <InlineOptionList />,
-        brand: { name: 'Calendly', logo: <CalendlyLogo className="h-4 w-4" /> },
-        contentAfter: "Select an option to see available time slots. I'll find the best times when everyone is free.",
+        content: "Here's the top story from TechCrunch:",
+        component: <InlineFeaturedArticle post={featuredArticle} />,
+        brand: { name: 'TechCrunch', logo: <TechCrunchLogo className="h-4 w-4" /> },
+        contentAfter: "This article is getting a lot of attention. Would you like to see more tech news?",
       },
       {
         id: '3',
         role: 'user' as const,
-        content: "Design review",
+        content: "Yes, show me more articles",
       },
       {
         id: '4',
         role: 'assistant' as const,
-        content: "Here's the booking progress:",
-        component: <InlineProgressSteps />,
-        brand: { name: 'Calendly', logo: <CalendlyLogo className="h-4 w-4" /> },
-        contentAfter: "I'll send you a calendar invite once confirmed. All participants will receive a notification as well.",
-      },
-    ],
-  },
-  {
-    id: 'ticket-buying',
-    label: 'Ticket buying',
-    messages: [
-      {
-        id: '1',
-        role: 'user' as const,
-        content: "I want to buy tickets for the concert next week",
-      },
-      {
-        id: '2',
-        role: 'assistant' as const,
-        content: "How many tickets would you like?",
-        component: <InlineQuickReply />,
-        brand: { name: 'Ticketmaster', logo: <TicketmasterLogo className="h-4 w-4" /> },
-        contentAfter: "Select a quantity to proceed to seat selection. Premium seats are still available for this show.",
-      },
-      {
-        id: '3',
-        role: 'user' as const,
-        content: "2 tickets please",
-      },
-      {
-        id: '4',
-        role: 'assistant' as const,
-        content: "Your order is being processed:",
-        component: <InlineProgressSteps />,
-        brand: { name: 'Ticketmaster', logo: <TicketmasterLogo className="h-4 w-4" /> },
-        contentAfter: "You'll receive your e-tickets via email within minutes. Make sure to save them to your phone for easy entry.",
-      },
-    ],
-  },
-  {
-    id: 'messaging',
-    label: 'Messaging',
-    messages: [
-      {
-        id: '1',
-        role: 'user' as const,
-        content: "What are my notification preferences?",
-      },
-      {
-        id: '2',
-        role: 'assistant' as const,
-        content: "Here are your current notification settings:",
-        component: <InlineOptionList />,
-        brand: { name: 'Slack', logo: <SlackLogo className="h-4 w-4" /> },
-        contentAfter: "You can toggle any of these preferences. Changes will take effect immediately across all your devices.",
-      },
-      {
-        id: '3',
-        role: 'user' as const,
-        content: "Enable email notifications",
-      },
-      {
-        id: '4',
-        role: 'assistant' as const,
-        content: "Settings updated! What else can I help with?",
-        component: <InlineQuickReply />,
-        brand: { name: 'Slack', logo: <SlackLogo className="h-4 w-4" /> },
-        contentAfter: "Feel free to ask if you need help with anything else. I'm here to assist.",
-      },
-    ],
-  },
-  {
-    id: 'bank-account',
-    label: 'Bank account overview',
-    messages: [
-      {
-        id: '1',
-        role: 'user' as const,
-        content: "Show me my account overview",
-      },
-      {
-        id: '2',
-        role: 'assistant' as const,
-        content: "Here's your account summary:",
-        component: <InlineStats />,
-        brand: { name: 'Chase', logo: <ChaseLogo className="h-4 w-4" /> },
-        contentAfter: "Your account is in good standing with all payments up to date. Your next statement will be available on December 15th.",
-      },
-      {
-        id: '3',
-        role: 'user' as const,
-        content: "What quick actions can I take?",
-      },
-      {
-        id: '4',
-        role: 'assistant' as const,
-        content: "Here are some quick actions:",
-        component: <InlineQuickReply />,
-        brand: { name: 'Chase', logo: <ChaseLogo className="h-4 w-4" /> },
-        contentAfter: "Just tap any option to get started. You can also ask me to transfer funds or pay bills directly.",
+        content: "Here are more trending stories:",
+        component: <InlineBlogPostList posts={techCrunchArticles} variant="horizontal" />,
+        brand: { name: 'TechCrunch', logo: <TechCrunchLogo className="h-4 w-4" /> },
+        hasPadding: true,
+        contentAfter: "These are the most discussed topics right now. Let me know if you'd like a summary of any article.",
       },
     ],
   },
@@ -321,6 +240,7 @@ export default function Home() {
           {useCases.map((useCase) => (
             <TabsContent key={useCase.id} value={useCase.id} className="mt-6">
               <Tabs defaultValue="chatgpt" className="w-full">
+                <div className="flex justify-center">
                 <TabsList className="inline-flex h-auto gap-1 bg-muted/50 p-1 rounded-lg mb-4">
                   <TabsTrigger
                     value="chatgpt"
@@ -337,6 +257,7 @@ export default function Home() {
                     Claude
                   </TabsTrigger>
                 </TabsList>
+                </div>
                 <TabsContent value="chatgpt" className="mt-0">
                   <ChatDemo messages={useCase.messages} variant="chatgpt" />
                 </TabsContent>

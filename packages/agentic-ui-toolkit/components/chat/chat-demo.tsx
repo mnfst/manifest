@@ -9,6 +9,7 @@ interface Message {
   content?: string
   component?: React.ReactNode
   contentAfter?: string
+  hasPadding?: boolean
   brand?: {
     name: string
     logo?: React.ReactNode
@@ -78,12 +79,7 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
             ? 'max-w-[calc(100vw-16px)] sm:max-w-[768px]'
             : 'max-w-[calc(100vw-16px)] sm:max-w-[720px]'
         )}>
-          {messages.map((message, index) => {
-            // Check if this is the first assistant message with a component (carousel)
-            const assistantMessagesWithComponent = messages.filter(m => m.role === 'assistant' && m.component)
-            const isFirstComponentMessage = message.component &&
-              assistantMessagesWithComponent.indexOf(message) === 0
-
+          {messages.map((message) => {
             return (
               <div
                 key={message.id}
@@ -119,18 +115,18 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
                             : 'text-gray-500'
                         )}>
                           <div className="flex items-center gap-2">
-                            {message.brand.logo}
+                            <span className="flex-shrink-0">{message.brand.logo}</span>
                             <span className="font-medium">{message.brand.name}</span>
                           </div>
                           <div className="flex items-center gap-0.5">
                             <button type="button" className={cn(
-                              'p-1.5 rounded',
+                              'p-1.5 rounded flex items-center justify-center',
                               isChatGPT ? 'hover:bg-white/10' : 'hover:bg-black/5'
                             )}>
                               <ThumbsUp className="h-3.5 w-3.5" />
                             </button>
                             <button type="button" className={cn(
-                              'p-1.5 rounded',
+                              'p-1.5 rounded flex items-center justify-center',
                               isChatGPT ? 'hover:bg-white/10' : 'hover:bg-black/5'
                             )}>
                               <ThumbsDown className="h-3.5 w-3.5" />
@@ -146,7 +142,7 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
                           : 'border border-[#D5D3CB] bg-white shadow-md shadow-black/5'
                       )}>
                         <div className={cn(
-                          isFirstComponentMessage ? 'p-3' : 'p-0',
+                          message.hasPadding ? 'p-3' : 'p-0',
                           isChatGPT && 'dark'
                         )}>
                           {message.component}
