@@ -107,7 +107,7 @@ function MobileMenuContent({
               href={link.href}
               onClick={onClose}
               className={cn(
-                'block px-3 py-2 text-sm rounded-md transition-colors',
+                'flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
                 link.disabled
                   ? 'text-muted-foreground/70 cursor-not-allowed pointer-events-none'
                   : pathname === link.href
@@ -116,6 +116,11 @@ function MobileMenuContent({
               )}
             >
               {link.label}
+              {link.badge && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                  {link.badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -265,7 +270,7 @@ function HeaderContent() {
                   key={link.label}
                   href={link.href}
                   className={cn(
-                    'px-3 py-1.5 text-sm rounded-md transition-colors',
+                    'px-3 py-1.5 text-sm rounded-md transition-colors inline-flex items-center gap-1.5',
                     link.disabled
                       ? 'text-muted-foreground/70 cursor-not-allowed pointer-events-none'
                       : pathname === link.href ||
@@ -275,6 +280,11 @@ function HeaderContent() {
                   )}
                 >
                   {link.label}
+                  {link.badge && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                      {link.badge}
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>
