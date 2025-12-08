@@ -74,6 +74,15 @@ function TikTokIcon({ className }: { className?: string }) {
 
 // Components imports
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
+import {
+  InlineArticleDetail,
+  InlineBlogExcerptCard,
+  InlineBlogPostCard,
+  InlineBlogPostCarousel,
+  InlineBlogPostGrid,
+  InlineBlogPostList,
+  InlineFeaturedArticle
+} from '@/registry/inline/inline-blog'
 import { InlineCardForm } from '@/registry/inline/inline-card-form'
 import {
   InlineChatConversation,
@@ -109,15 +118,6 @@ import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
 import { InlineTable } from '@/registry/inline/inline-table'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
-import {
-  InlineBlogPostCard,
-  InlineBlogPostList,
-  InlineBlogPostGrid,
-  InlineBlogPostCarousel,
-  InlineBlogExcerptCard,
-  InlineArticleDetail,
-  InlineFeaturedArticle
-} from '@/registry/inline/inline-blog'
 
 // UI components
 import { CodeBlock } from '@/components/blocks/code-block'
@@ -161,6 +161,91 @@ interface Category {
 }
 
 const categories: Category[] = [
+  {
+    id: 'blog',
+    name: 'Blog & Articles',
+    blocks: [
+      {
+        id: 'blog-post-card',
+        name: 'Post Card',
+        component: <InlineBlogPostCard />,
+        padding: 'none',
+        registryName: 'inline-blog-post-card'
+      },
+      {
+        id: 'blog-post-card-no-image',
+        name: 'Post Card (No Image)',
+        component: <InlineBlogPostCard showImage={false} />,
+        padding: 'none'
+      },
+      {
+        id: 'blog-post-card-compact',
+        name: 'Post Card (Compact)',
+        component: <InlineBlogPostCard variant="compact" />,
+        padding: 'none'
+      },
+      {
+        id: 'blog-post-card-horizontal',
+        name: 'Post Card (Horizontal)',
+        component: <InlineBlogPostCard variant="horizontal" />,
+        padding: 'none'
+      },
+      {
+        id: 'blog-post-list',
+        name: 'Post List',
+        component: <InlineBlogPostList />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-list'
+      },
+      {
+        id: 'blog-post-grid',
+        name: 'Post Grid',
+        component: <InlineBlogPostGrid />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-grid'
+      },
+      {
+        id: 'blog-post-grid-3col',
+        name: 'Post Grid (3 Columns)',
+        component: <InlineBlogPostGrid columns={3} />,
+        padding: 'lg'
+      },
+      {
+        id: 'blog-post-carousel',
+        name: 'Post Carousel',
+        component: <InlineBlogPostCarousel />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-carousel'
+      },
+      {
+        id: 'blog-excerpt-card',
+        name: 'Excerpt Card',
+        component: <InlineBlogExcerptCard />,
+        padding: 'lg',
+        registryName: 'inline-blog-excerpt-card'
+      },
+      {
+        id: 'article-detail',
+        name: 'Article Detail',
+        component: <InlineArticleDetail />,
+        padding: 'none',
+        registryName: 'inline-article-detail'
+      },
+      {
+        id: 'article-detail-no-cover',
+        name: 'Article Detail (No Cover)',
+        component: <InlineArticleDetail showCover={false} />,
+        padding: 'none'
+      },
+      {
+        id: 'featured-article',
+        name: 'Featured Article',
+        component: <InlineFeaturedArticle />,
+        padding: 'none',
+        registryName: 'inline-featured-article'
+      }
+    ]
+  },
   {
     id: 'payment',
     name: 'Payment',
@@ -487,91 +572,6 @@ const categories: Category[] = [
         component: <WeatherWidget />,
         padding: 'none',
         registryName: 'weather-widget'
-      }
-    ]
-  },
-  {
-    id: 'blog',
-    name: 'Blog & Articles',
-    blocks: [
-      {
-        id: 'blog-post-card',
-        name: 'Post Card',
-        component: <InlineBlogPostCard />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-card'
-      },
-      {
-        id: 'blog-post-card-no-image',
-        name: 'Post Card (No Image)',
-        component: <InlineBlogPostCard showImage={false} />,
-        padding: 'lg'
-      },
-      {
-        id: 'blog-post-card-compact',
-        name: 'Post Card (Compact)',
-        component: <InlineBlogPostCard variant="compact" />,
-        padding: 'lg'
-      },
-      {
-        id: 'blog-post-card-horizontal',
-        name: 'Post Card (Horizontal)',
-        component: <InlineBlogPostCard variant="horizontal" />,
-        padding: 'lg'
-      },
-      {
-        id: 'blog-post-list',
-        name: 'Post List',
-        component: <InlineBlogPostList />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-list'
-      },
-      {
-        id: 'blog-post-grid',
-        name: 'Post Grid',
-        component: <InlineBlogPostGrid />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-grid'
-      },
-      {
-        id: 'blog-post-grid-3col',
-        name: 'Post Grid (3 Columns)',
-        component: <InlineBlogPostGrid columns={3} />,
-        padding: 'lg'
-      },
-      {
-        id: 'blog-post-carousel',
-        name: 'Post Carousel',
-        component: <InlineBlogPostCarousel />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-carousel'
-      },
-      {
-        id: 'blog-excerpt-card',
-        name: 'Excerpt Card',
-        component: <InlineBlogExcerptCard />,
-        padding: 'lg',
-        registryName: 'inline-blog-excerpt-card'
-      },
-      {
-        id: 'article-detail',
-        name: 'Article Detail',
-        component: <InlineArticleDetail />,
-        padding: 'none',
-        registryName: 'inline-article-detail'
-      },
-      {
-        id: 'article-detail-no-cover',
-        name: 'Article Detail (No Cover)',
-        component: <InlineArticleDetail showCover={false} />,
-        padding: 'none'
-      },
-      {
-        id: 'featured-article',
-        name: 'Featured Article',
-        component: <InlineFeaturedArticle />,
-        padding: 'none',
-        registryName: 'inline-featured-article'
       }
     ]
   }

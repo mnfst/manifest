@@ -139,9 +139,9 @@ export function InlineBlogPostCard({
 
   if (variant === 'horizontal') {
     return (
-      <div className="flex gap-4 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
         {showImage && post.coverImage && (
-          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-md">
+          <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
               src={post.coverImage}
               alt={post.title}
@@ -163,21 +163,31 @@ export function InlineBlogPostCard({
               {post.excerpt}
             </p>
           </div>
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-            {showAuthor && post.author.avatar && (
-              <img
-                src={post.author.avatar}
-                alt={post.author.name}
-                className="h-4 w-4 rounded-full"
-              />
-            )}
-            <span>{formatDate(post.publishedAt)}</span>
-            {post.readTime && (
-              <>
-                <span>·</span>
-                <span>{post.readTime}</span>
-              </>
-            )}
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {showAuthor && post.author.avatar && (
+                <img
+                  src={post.author.avatar}
+                  alt={post.author.name}
+                  className="h-4 w-4 rounded-full"
+                />
+              )}
+              <span>{formatDate(post.publishedAt)}</span>
+              {post.readTime && (
+                <>
+                  <span>·</span>
+                  <span>{post.readTime}</span>
+                </>
+              )}
+            </div>
+            <Button
+              size="sm"
+              className="w-full sm:w-auto"
+              onClick={() => onReadMore?.(post)}
+            >
+              Read
+              <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
           </div>
         </div>
       </div>
@@ -186,17 +196,19 @@ export function InlineBlogPostCard({
 
   if (variant === 'compact') {
     return (
-      <div className="rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
-        {showCategory && post.category && (
-          <span className="mb-2 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-            {post.category}
-          </span>
-        )}
-        <h3 className="line-clamp-2 text-sm font-medium">{post.title}</h3>
-        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-          {post.excerpt}
-        </p>
-        <div className="mt-2 flex items-center justify-between">
+      <div className="flex h-full flex-col justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+        <div>
+          {showCategory && post.category && (
+            <span className="mb-2 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              {post.category}
+            </span>
+          )}
+          <h3 className="line-clamp-2 text-sm font-medium">{post.title}</h3>
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+            {post.excerpt}
+          </p>
+        </div>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             {showAuthor && post.author.avatar && (
               <img
@@ -209,12 +221,7 @@ export function InlineBlogPostCard({
               {formatDate(post.publishedAt)}
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-auto p-0 text-xs"
-            onClick={() => onReadMore?.(post)}
-          >
+          <Button size="sm" onClick={() => onReadMore?.(post)}>
             Read more
             <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
@@ -225,7 +232,7 @@ export function InlineBlogPostCard({
 
   // Default variant
   return (
-    <div className="overflow-hidden rounded-lg border bg-card transition-colors hover:bg-muted/50">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:bg-muted/50">
       {showImage && post.coverImage && (
         <div className="aspect-video overflow-hidden">
           <img
@@ -235,29 +242,31 @@ export function InlineBlogPostCard({
           />
         </div>
       )}
-      <div className="p-4">
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          {showCategory && post.category && (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              {post.category}
-            </span>
-          )}
-          {post.tags &&
-            post.tags.length > 0 &&
-            post.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-              >
-                {tag}
+      <div className="flex flex-1 flex-col justify-between p-4">
+        <div>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            {showCategory && post.category && (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {post.category}
               </span>
-            ))}
+            )}
+            {post.tags &&
+              post.tags.length > 0 &&
+              post.tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+          </div>
+          <h3 className="line-clamp-2 font-medium">{post.title}</h3>
+          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+            {post.excerpt}
+          </p>
         </div>
-        <h3 className="line-clamp-2 font-medium">{post.title}</h3>
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-          {post.excerpt}
-        </p>
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {showAuthor && (
             <div className="flex items-center gap-2">
               {post.author.avatar && (
@@ -275,7 +284,7 @@ export function InlineBlogPostCard({
               </div>
             </div>
           )}
-          <Button variant="ghost" size="sm" onClick={() => onReadMore?.(post)}>
+          <Button size="sm" onClick={() => onReadMore?.(post)}>
             Read
             <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
@@ -371,25 +380,76 @@ export function InlineBlogPostCarousel({
 }: InlineBlogPostCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
+  // Calculate max index based on visible cards at each breakpoint
+  const maxIndexMobile = posts.length - 1 // 1 card visible
+  const maxIndexTablet = Math.max(0, posts.length - 2) // 2 cards visible
+  const maxIndexDesktop = Math.max(0, posts.length - 3) // 3 cards visible
+
   const prev = () => {
-    setCurrentIndex((i) => (i === 0 ? posts.length - 1 : i - 1))
+    setCurrentIndex((i) => Math.max(0, i - 1))
   }
 
   const next = () => {
-    setCurrentIndex((i) => (i === posts.length - 1 ? 0 : i + 1))
+    setCurrentIndex((i) => i + 1)
   }
+
+  // Check if at start (same for all breakpoints)
+  const isAtStart = currentIndex === 0
+
+  // Check if at end for each breakpoint
+  const isAtEndMobile = currentIndex >= maxIndexMobile
+  const isAtEndTablet = currentIndex >= maxIndexTablet
+  const isAtEndDesktop = currentIndex >= maxIndexDesktop
 
   return (
     <div className="relative">
       <div className="overflow-hidden rounded-lg">
+        {/* Mobile: 1 card, slides by 100% */}
         <div
-          className="flex transition-transform duration-300 ease-out"
+          className="flex transition-transform duration-300 ease-out md:hidden"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {posts.map((post) => (
-            <div key={post.id} className="w-full shrink-0 px-1">
+            <div key={post.id} className="w-full shrink-0 px-0.5">
               <InlineBlogPostCard
                 post={post}
+                variant="compact"
+                showAuthor={showAuthor}
+                showCategory={showCategory}
+                onReadMore={onReadMore}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Tablet: 2 cards visible, slides by 50% */}
+        <div
+          className="hidden md:flex lg:hidden transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentIndex * 50}%)` }}
+        >
+          {posts.map((post) => (
+            <div key={post.id} className="w-1/2 shrink-0 px-1.5">
+              <InlineBlogPostCard
+                post={post}
+                variant="compact"
+                showAuthor={showAuthor}
+                showCategory={showCategory}
+                onReadMore={onReadMore}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: 3 cards visible, slides by 33.333% */}
+        <div
+          className="hidden lg:flex transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentIndex * (100 / 3)}%)` }}
+        >
+          {posts.map((post) => (
+            <div key={post.id} className="w-1/3 shrink-0 px-1.5">
+              <InlineBlogPostCard
+                post={post}
+                variant="compact"
                 showAuthor={showAuthor}
                 showCategory={showCategory}
                 onReadMore={onReadMore}
@@ -413,12 +473,14 @@ export function InlineBlogPostCarousel({
             />
           ))}
         </div>
-        <div className="flex gap-1">
+        {/* Mobile navigation */}
+        <div className="flex gap-1 md:hidden">
           <Button
             variant="outline"
             size="icon"
             className="h-8 w-8"
             onClick={prev}
+            disabled={isAtStart}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -427,6 +489,49 @@ export function InlineBlogPostCarousel({
             size="icon"
             className="h-8 w-8"
             onClick={next}
+            disabled={isAtEndMobile}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* Tablet navigation */}
+        <div className="hidden md:flex lg:hidden gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={prev}
+            disabled={isAtStart}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={next}
+            disabled={isAtEndTablet}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* Desktop navigation */}
+        <div className="hidden lg:flex gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={prev}
+            disabled={isAtStart}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={next}
+            disabled={isAtEndDesktop}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -632,7 +737,7 @@ export function InlineArticleDetail({
                 <button
                   key={related.id}
                   onClick={() => onReadRelated?.(related)}
-                  className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-muted"
+                  className="flex w-full items-center gap-3 rounded-sm p-2 text-left transition-colors hover:bg-muted"
                 >
                   {related.coverImage && (
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded">
@@ -712,8 +817,10 @@ export function InlineFeaturedArticle({
             ))}
         </div>
         <h2 className="text-lg font-bold leading-tight">{post.title}</h2>
-        <p className="mt-1 line-clamp-2 text-sm text-white/80">{post.excerpt}</p>
-        <div className="mt-3 flex items-center justify-between">
+        <p className="mt-1 line-clamp-2 text-sm text-white/80">
+          {post.excerpt}
+        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             {post.author.avatar && (
               <img
@@ -730,6 +837,7 @@ export function InlineFeaturedArticle({
           <Button
             size="sm"
             variant="secondary"
+            className="w-full sm:w-auto"
             onClick={() => onReadMore?.(post)}
           >
             Read article
