@@ -201,26 +201,33 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
         isChatGPT ? 'border-[#333] bg-[#212121]' : 'border-[#E5E3DB] bg-[#F1F0E8]'
       )}>
         <div className={cn(
-          'flex items-center gap-2 rounded-xl border px-4 py-2',
+          'mx-auto',
           isChatGPT
-            ? 'border-[#444] bg-[#2f2f2f]'
-            : 'border-[#D5D3CB] bg-white'
+            ? 'max-w-[calc(100vw-16px)] sm:max-w-[768px]'
+            : 'max-w-[calc(100vw-16px)] sm:max-w-[720px]'
         )}>
-          <input
-            type="text"
-            placeholder={isChatGPT ? 'Message ChatGPT...' : 'Message Claude...'}
-            className={cn(
-              'flex-1 bg-transparent text-sm outline-none',
-              isChatGPT ? 'placeholder:text-[#888]' : 'placeholder:text-[#999]'
-            )}
-            disabled
-          />
-          <button className={cn(
-            'h-8 w-8 rounded-lg flex items-center justify-center opacity-50',
-            isChatGPT ? 'bg-white' : 'bg-[#D97757]'
+          <div className={cn(
+            'flex items-center gap-2 rounded-xl border px-4 py-2',
+            isChatGPT
+              ? 'border-[#444] bg-[#2f2f2f]'
+              : 'border-[#D5D3CB] bg-white'
           )}>
-            <Send className={cn('h-4 w-4', isChatGPT ? 'text-black' : 'text-white')} />
-          </button>
+            <input
+              type="text"
+              placeholder={isChatGPT ? 'Message ChatGPT...' : 'Message Claude...'}
+              className={cn(
+                'flex-1 bg-transparent text-sm outline-none',
+                isChatGPT ? 'placeholder:text-[#888]' : 'placeholder:text-[#999]'
+              )}
+              disabled
+            />
+            <button className={cn(
+              'h-8 w-8 rounded-lg flex items-center justify-center opacity-50',
+              isChatGPT ? 'bg-white' : 'bg-[#D97757]'
+            )}>
+              <Send className={cn('h-4 w-4', isChatGPT ? 'text-black' : 'text-white')} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

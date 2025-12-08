@@ -21,11 +21,11 @@ const DEFAULT_AIRPODS_IMAGE =
   'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
 export function InlineOrderConfirm({
-  productName = 'AirPods Pro 2',
-  productVariant = 'White',
+  productName = 'Iyo Pro',
+  productVariant = 'Midnight Black',
   productImage = DEFAULT_AIRPODS_IMAGE,
   quantity = 1,
-  price = 249.0,
+  price = 299.0,
   currency = 'USD',
   deliveryDate = 'Tue. Dec 10',
   deliveryAddress = '123 Main Street, 10001',

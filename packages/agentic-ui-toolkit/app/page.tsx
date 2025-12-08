@@ -29,12 +29,11 @@ function ClaudeIcon({ className }: { className?: string }) {
 }
 
 // Brand logos
-function TargetLogo({ className }: { className?: string }) {
+function IyoLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
-      <circle cx="12" cy="12" r="10" fill="#CC0000" />
-      <circle cx="12" cy="12" r="6.5" fill="white" />
-      <circle cx="12" cy="12" r="3" fill="#CC0000" />
+      <rect width="24" height="24" rx="6" fill="#000" />
+      <text x="12" y="16" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="system-ui">iyo</text>
     </svg>
   )
 }
@@ -99,26 +98,26 @@ const useCases = [
       {
         id: '1',
         role: 'user' as const,
-        content: "I'm looking for new wireless earbuds",
+        content: "I'm looking for premium wireless earbuds",
       },
       {
         id: '2',
         role: 'assistant' as const,
-        content: "Here are some popular wireless earbuds that might interest you:",
+        content: "Here are our best-selling audio products:",
         component: <InlineProductCarousel />,
-        brand: { name: 'Target', logo: <TargetLogo className="h-4 w-4" /> },
+        brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
       },
       {
         id: '3',
         role: 'user' as const,
-        content: "I'll take the AirPods Pro 2",
+        content: "I'll take the Iyo Pro",
       },
       {
         id: '4',
         role: 'assistant' as const,
-        content: "Great choice! Here's your order summary:",
+        content: "Excellent choice! Here's your order summary:",
         component: <InlineOrderConfirm />,
-        brand: { name: 'Target', logo: <TargetLogo className="h-4 w-4" /> },
+        brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
       },
     ],
   },
