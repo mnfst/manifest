@@ -10,16 +10,16 @@ This is a custom shadcn component registry built with Next.js 15 and Tailwind v4
 
 ```bash
 # Development server (uses Turbopack)
-pnpm dev
+npm run dev
 
 # Build the Next.js app
-pnpm build
+npm run build
 
 # Build the registry (generates static JSON files)
-pnpm registry:build
+npm run registry:build
 
 # Lint
-pnpm lint
+npm run lint
 ```
 
 ## Architecture
@@ -52,5 +52,5 @@ Uses shadcn style with:
 
 1. Create component files in `registry/misc/<component-name>/`
 2. Add entry to `registry.json` with proper file paths and dependencies
-3. Run `pnpm registry:build` to generate the distributable JSON
+3. Run `npm run registry:build` to generate the distributable JSON
 4. Import in `app/page.tsx` to preview
