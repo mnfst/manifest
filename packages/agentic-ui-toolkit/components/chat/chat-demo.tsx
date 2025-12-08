@@ -143,7 +143,7 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
                       )}>
                         <div className={cn(
                           message.hasPadding ? 'p-3' : 'p-0',
-                          isChatGPT && 'dark'
+                          isChatGPT ? 'dark' : 'light'
                         )}>
                           {message.component}
                         </div>
