@@ -135,7 +135,7 @@ function TableMultiSelectWithActions() {
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
       />
       <div className="flex justify-end gap-2 p-3">
-        <Button variant="white" size="sm" disabled={selectedCount === 0}>
+        <Button variant="outline" size="sm" disabled={selectedCount === 0}>
           Download
         </Button>
         <Button size="sm" disabled={selectedCount === 0}>
@@ -342,7 +342,7 @@ const categories: Category[] = [
         id: 'product-picker',
         name: 'Product Picker',
         component: <InlineProductTable />,
-        padding: 'mobile',
+        padding: 'sm',
         registryName: 'inline-product-table'
       }
     ]
@@ -425,21 +425,21 @@ const categories: Category[] = [
         id: 'table',
         name: 'Table',
         component: <InlineTable />,
-        padding: 'mobile',
+        padding: 'sm',
         registryName: 'inline-table'
       },
       {
         id: 'table-single-select',
         name: 'Table Single Select',
         component: <InlineTable selectable="single" />,
-        padding: 'mobile',
+        padding: 'sm',
         registryName: 'inline-table'
       },
       {
         id: 'table-multi-select',
         name: 'Table Multi Select',
         component: <TableMultiSelectWithActions />,
-        padding: 'mobile',
+        padding: 'sm',
         registryName: 'inline-table'
       }
     ]
