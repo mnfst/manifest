@@ -109,6 +109,15 @@ import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
 import { InlineTable } from '@/registry/inline/inline-table'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
+import {
+  InlineBlogPostCard,
+  InlineBlogPostList,
+  InlineBlogPostGrid,
+  InlineBlogPostCarousel,
+  InlineBlogExcerptCard,
+  InlineArticleDetail,
+  InlineFeaturedArticle
+} from '@/registry/inline/inline-blog'
 
 // UI components
 import { CodeBlock } from '@/components/blocks/code-block'
@@ -480,6 +489,91 @@ const categories: Category[] = [
         registryName: 'weather-widget'
       }
     ]
+  },
+  {
+    id: 'blog',
+    name: 'Blog & Articles',
+    blocks: [
+      {
+        id: 'blog-post-card',
+        name: 'Post Card',
+        component: <InlineBlogPostCard />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-card'
+      },
+      {
+        id: 'blog-post-card-no-image',
+        name: 'Post Card (No Image)',
+        component: <InlineBlogPostCard showImage={false} />,
+        padding: 'lg'
+      },
+      {
+        id: 'blog-post-card-compact',
+        name: 'Post Card (Compact)',
+        component: <InlineBlogPostCard variant="compact" />,
+        padding: 'lg'
+      },
+      {
+        id: 'blog-post-card-horizontal',
+        name: 'Post Card (Horizontal)',
+        component: <InlineBlogPostCard variant="horizontal" />,
+        padding: 'lg'
+      },
+      {
+        id: 'blog-post-list',
+        name: 'Post List',
+        component: <InlineBlogPostList />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-list'
+      },
+      {
+        id: 'blog-post-grid',
+        name: 'Post Grid',
+        component: <InlineBlogPostGrid />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-grid'
+      },
+      {
+        id: 'blog-post-grid-3col',
+        name: 'Post Grid (3 Columns)',
+        component: <InlineBlogPostGrid columns={3} />,
+        padding: 'lg'
+      },
+      {
+        id: 'blog-post-carousel',
+        name: 'Post Carousel',
+        component: <InlineBlogPostCarousel />,
+        padding: 'lg',
+        registryName: 'inline-blog-post-carousel'
+      },
+      {
+        id: 'blog-excerpt-card',
+        name: 'Excerpt Card',
+        component: <InlineBlogExcerptCard />,
+        padding: 'lg',
+        registryName: 'inline-blog-excerpt-card'
+      },
+      {
+        id: 'article-detail',
+        name: 'Article Detail',
+        component: <InlineArticleDetail />,
+        padding: 'none',
+        registryName: 'inline-article-detail'
+      },
+      {
+        id: 'article-detail-no-cover',
+        name: 'Article Detail (No Cover)',
+        component: <InlineArticleDetail showCover={false} />,
+        padding: 'none'
+      },
+      {
+        id: 'featured-article',
+        name: 'Featured Article',
+        component: <InlineFeaturedArticle />,
+        padding: 'none',
+        registryName: 'inline-featured-article'
+      }
+    ]
   }
 ]
 
@@ -578,7 +672,7 @@ function BlocksContent() {
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] bg-card">
       {/* Sidebar */}
-      <aside className="w-56 p-6 overflow-y-auto">
+      <aside className="hidden md:block w-[226px] shrink-0 p-6 overflow-y-auto">
         <nav className="space-y-1">
           <Link
             href="/blocks"
@@ -683,7 +777,7 @@ function BlocksContent() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 p-8 bg-muted/50">
+      <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         {selectedBlock ? (
           <div className="max-w-3xl mx-auto space-y-6">
             <div>
@@ -707,7 +801,7 @@ function BlocksContent() {
               <TabsContent value="preview">
                 <div
                   className={cn(
-                    'rounded-lg border bg-card shadow-block',
+                    'rounded-lg bg-card',
                     getPaddingClass(selectedBlock.padding)
                   )}
                 >

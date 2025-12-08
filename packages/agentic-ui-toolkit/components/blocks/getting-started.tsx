@@ -24,7 +24,10 @@ const categories = [
       { id: 'product-carousel', name: 'Product Carousel' },
       { id: 'product-horizontal', name: 'Product Horizontal' },
       { id: 'product-horizontal-grid', name: 'Product Horizontal Grid' },
-      { id: 'product-horizontal-carousel', name: 'Product Horizontal Carousel' },
+      {
+        id: 'product-horizontal-carousel',
+        name: 'Product Horizontal Carousel'
+      },
       { id: 'product-picker', name: 'Product Picker' }
     ]
   },
@@ -68,9 +71,9 @@ export function GettingStarted() {
       <div>
         <h1 className="text-2xl font-bold">Getting Started</h1>
         <p className="text-muted-foreground mt-2">
-          Agentic UI is a component registry for building conversational
-          interfaces. These components are designed to be displayed within chat
-          interfaces like ChatGPT or Claude.
+          Agentic UI is a block registry for building conversational interfaces.
+          These blocks are designed to be displayed within chat interfaces like
+          ChatGPT or Claude.
         </p>
       </div>
 
@@ -102,17 +105,18 @@ export function GettingStarted() {
           language="json"
         />
         <p className="text-sm text-muted-foreground">
-          Then install any component from the registry:
+          Then install any block from the registry:
         </p>
         <CodeBlock code="npx shadcn@latest add @manifest/inline-card-form" />
       </section>
 
-      {/* Available Components */}
+      {/* Available blocks */}
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Available Components</h2>
+        <h2 className="text-lg font-semibold">Available blocks</h2>
         <p className="text-sm text-muted-foreground">
-          Browse our collection of components designed for conversational interfaces.
-          Click on any component to see a live preview and get the installation command.
+          Browse our collection of blocks designed for conversational
+          interfaces. Click on any block to see a live preview and get the
+          installation command.
         </p>
         <div className="grid gap-4 mt-4">
           {categories.map((category) => (

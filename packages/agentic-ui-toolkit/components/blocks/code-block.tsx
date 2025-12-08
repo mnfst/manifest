@@ -38,11 +38,11 @@ export function CodeBlock({ code, language = 'bash', className }: CodeBlockProps
     <div className={`relative group ${className || ''}`}>
       {html ? (
         <div
-          className="rounded-lg overflow-x-auto text-sm [&_pre]:p-4 [&_pre]:m-0 [&_pre]:bg-muted dark:[&_pre]:bg-muted"
+          className="rounded-lg overflow-x-auto text-sm bg-muted [&_pre]:p-4 [&_pre]:m-0 [&_pre]:bg-transparent [&_pre]:min-w-max"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <pre className="rounded-lg bg-muted p-4 overflow-x-auto text-sm font-mono">
+        <pre className="rounded-lg bg-muted p-4 overflow-x-auto text-sm font-mono min-w-max">
           <code>{code}</code>
         </pre>
       )}
