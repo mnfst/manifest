@@ -4,12 +4,14 @@ import { createNoise3D } from "simplex-noise";
 
 export const WaveCanvas = ({
   colors,
+  darkColors,
   waveWidth,
   blur = 20,
   speed = "slow",
   waveOpacity = 0.7,
 }: {
   colors?: string[];
+  darkColors?: string[];
   waveWidth?: number;
   blur?: number;
   speed?: "slow" | "fast";
@@ -24,6 +26,28 @@ export const WaveCanvas = ({
     ctx: CanvasRenderingContext2D | null,
     canvas: HTMLCanvasElement | null;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDark, setIsDark] = useState(false);
+  const isDarkRef = useRef(false);
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const dark = document.documentElement.classList.contains("dark");
+      setIsDark(dark);
+      isDarkRef.current = dark;
+    };
+
+    checkDarkMode();
+
+    // Watch for class changes on html element
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const getSpeed = () => {
     switch (speed) {
@@ -35,6 +59,22 @@ export const WaveCanvas = ({
         return 0.0005;
     }
   };
+
+  const defaultLightColors = [
+    "#E8F4F8",
+    "#E5EEF8",
+    "#EDE8F5",
+    "#F0E8F2",
+    "#E6F2F0",
+  ];
+
+  const defaultDarkColors = [
+    "#1a2a3a",
+    "#1a2535",
+    "#251a35",
+    "#2a1a30",
+    "#1a2a2a",
+  ];
 
   const init = () => {
     canvas = canvasRef.current;
@@ -54,16 +94,12 @@ export const WaveCanvas = ({
     render();
   };
 
-  const waveColors = colors ?? [
-    "#E8F4F8",
-    "#E5EEF8",
-    "#EDE8F5",
-    "#F0E8F2",
-    "#E6F2F0",
-  ];
-
   const drawWave = (n: number) => {
     if (!ctx) return;
+    const waveColors = isDarkRef.current
+      ? (darkColors ?? defaultDarkColors)
+      : (colors ?? defaultLightColors);
+
     nt += getSpeed();
     for (i = 0; i < n; i++) {
       ctx.beginPath();
@@ -81,7 +117,7 @@ export const WaveCanvas = ({
   let animationId: number;
   const render = () => {
     if (!ctx) return;
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = isDarkRef.current ? "#0a0a0a" : "#FFFFFF";
     ctx.globalAlpha = waveOpacity || 0.7;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);

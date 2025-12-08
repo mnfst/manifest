@@ -276,6 +276,13 @@ export default function Home() {
           '#d4d6f0ff',
           '#c9cbedff'
         ]}
+        darkColors={[
+          '#2a1f1a',
+          '#1a2a28',
+          '#1a2a28',
+          '#1f1a2a',
+          '#1a1a2a'
+        ]}
         waveOpacity={0.7}
         speed="slow"
         blur={60}
