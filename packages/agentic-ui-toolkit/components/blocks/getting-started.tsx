@@ -1,6 +1,8 @@
 'use client'
 
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+
 import { CodeBlock } from './code-block'
 
 const REGISTRY_URL = 'https://ui.manifest.build/r/{name}.json'
@@ -110,32 +112,16 @@ export function GettingStarted() {
         <CodeBlock code="npx shadcn@latest add @manifest/inline-card-form" />
       </section>
 
-      {/* Available blocks */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Available blocks</h2>
-        <p className="text-sm text-muted-foreground">
-          Browse our collection of blocks designed for conversational
-          interfaces. Click on any block to see a live preview and get the
-          installation command.
-        </p>
-        <div className="grid gap-4 mt-4">
-          {categories.map((category) => (
-            <div key={category.name} className="rounded-lg border bg-card p-4">
-              <h3 className="font-medium text-sm mb-3">{category.name}</h3>
-              <div className="flex flex-wrap gap-2">
-                {category.blocks.map((block) => (
-                  <Link
-                    key={block.id}
-                    href={`/blocks?block=${block.id}`}
-                    className="px-3 py-1.5 text-sm rounded-md bg-muted hover:bg-muted/80 transition-colors"
-                  >
-                    {block.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Next Step */}
+      <section className="space-y-4 pt-4 border-t">
+        <h2 className="text-lg font-semibold">Next Step</h2>
+        <Link
+          href="/blocks?block=order-confirm"
+          className="inline-flex items-center gap-2 text-primary hover:underline"
+        >
+          Explore blocks
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </section>
     </div>
   )

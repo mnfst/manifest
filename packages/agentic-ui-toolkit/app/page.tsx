@@ -2,6 +2,7 @@
 
 import { ChatDemo } from '@/components/chat/chat-demo'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { WaveCanvas } from '@/components/ui/wave-canvas'
 import {
   InlineBlogPostList,
   InlineFeaturedArticle
@@ -265,23 +266,39 @@ const useCases = [
 
 export default function Home() {
   return (
-    <div className="py-8">
-      <div className="px-4 lg:px-24 space-y-8">
-        <div className="text-center space-y-4 max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold tracking-tight">
+    <div className="relative min-h-screen">
+      {/* Fixed Wave Canvas Background */}
+      <WaveCanvas
+        colors={["#E8F4F8", "#E5EEF8", "#EDE8F5", "#F0E8F2", "#E6F2F0"]}
+        waveOpacity={0.7}
+        speed="slow"
+        blur={20}
+        waveWidth={80}
+      />
+
+      {/* Hero Section */}
+      <div className="relative z-10 min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] flex flex-col items-center justify-center">
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground">
             Build beautiful chat experiences
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             A collection of beautifully designed components for building ChatGPT
             custom apps. Open source, accessible and customizable.
           </p>
-          <Link
-            href="/blocks"
-            className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-medium hover:bg-foreground/90 transition-colors"
-          >
-            Browse blocks
-          </Link>
+          <div className="pt-4">
+            <Link
+              href="/blocks"
+              className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-8 py-3 text-base font-medium hover:bg-foreground/90 transition-colors"
+            >
+              Browse blocks
+            </Link>
+          </div>
         </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="relative z-10 py-12 md:py-20 px-4 lg:px-24 space-y-12 md:space-y-16">
 
         <Tabs defaultValue="product-selection" className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-center">
