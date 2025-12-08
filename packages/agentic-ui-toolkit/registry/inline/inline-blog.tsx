@@ -345,8 +345,8 @@ export function InlineBlogPostGrid({
   return (
     <div
       className={cn(
-        'grid gap-4',
-        columns === 2 ? 'grid-cols-2' : 'grid-cols-3'
+        'grid gap-4 grid-cols-1',
+        columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
       )}
     >
       {posts.map((post) => (
@@ -787,20 +787,20 @@ export function InlineFeaturedArticle({
 
   return (
     <div className="relative overflow-hidden rounded-lg">
-      <div className="aspect-[16/9] w-full">
+      <div className="min-h-[320px] sm:aspect-[16/9] sm:min-h-0 w-full">
         {post.coverImage ? (
           <img
             src={post.coverImage}
             alt={post.title}
-            className="h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
-          <div className="h-full w-full bg-muted" />
+          <div className="absolute inset-0 h-full w-full bg-muted" />
         )}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-        <div className="mb-2 flex gap-1">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+      <div className="absolute inset-0 flex flex-col justify-between p-4 text-white">
+        <div className="flex gap-1">
           {post.category && (
             <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs backdrop-blur-sm">
               {post.category}
@@ -816,7 +816,8 @@ export function InlineFeaturedArticle({
               </span>
             ))}
         </div>
-        <h2 className="text-lg font-bold leading-tight">{post.title}</h2>
+        <div>
+          <h2 className="text-lg font-bold leading-tight">{post.title}</h2>
         <p className="mt-1 line-clamp-2 text-sm text-white/80">
           {post.excerpt}
         </p>
@@ -842,6 +843,7 @@ export function InlineFeaturedArticle({
           >
             Read article
           </Button>
+        </div>
         </div>
       </div>
     </div>

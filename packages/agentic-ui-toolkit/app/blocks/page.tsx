@@ -194,7 +194,7 @@ const categories: Category[] = [
         id: 'blog-post-list',
         name: 'Post List',
         component: <InlineBlogPostList />,
-        padding: 'lg',
+        padding: 'md',
         registryName: 'inline-blog-post-list'
       },
       {
@@ -221,7 +221,7 @@ const categories: Category[] = [
         id: 'blog-excerpt-card',
         name: 'Excerpt Card',
         component: <InlineBlogExcerptCard />,
-        padding: 'lg',
+        padding: 'none',
         registryName: 'inline-blog-excerpt-card'
       },
       {
@@ -780,6 +780,7 @@ function BlocksContent() {
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         {selectedBlock ? (
           <div className="max-w-3xl mx-auto space-y-6">
+            {/* 1. Title */}
             <div>
               <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
               <p className="text-muted-foreground mt-1">
@@ -787,12 +788,7 @@ function BlocksContent() {
               </p>
             </div>
 
-            {/* Install Commands */}
-            {selectedBlock.registryName && (
-              <InstallCommands componentName={selectedBlock.registryName} />
-            )}
-
-            {/* Preview / Code Tabs */}
+            {/* 2. Preview / Code Tabs */}
             <Tabs defaultValue="preview" className="w-full">
               <TabsList>
                 <TabsTrigger value="preview">Preview</TabsTrigger>
@@ -818,6 +814,16 @@ function BlocksContent() {
                 )}
               </TabsContent>
             </Tabs>
+
+            {/* 3. Install Commands in white container */}
+            {selectedBlock.registryName && (
+              <div>
+                <h2 className="text-lg font-semibold mb-4">Installation</h2>
+                <div className="rounded-lg bg-card p-4">
+                  <InstallCommands componentName={selectedBlock.registryName} />
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <GettingStarted />
