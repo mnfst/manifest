@@ -77,12 +77,12 @@ import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
 import {
   InlineArticleDetail,
   InlineBlogExcerptCard,
-  InlineBlogPostCard,
   InlineBlogPostCarousel,
   InlineBlogPostGrid,
   InlineBlogPostList,
   InlineFeaturedArticle
 } from '@/registry/inline/inline-blog'
+import { InlineBlogPostCard } from '@/registry/inline/inline-blog-post-card'
 import { InlineCardForm } from '@/registry/inline/inline-card-form'
 import {
   InlineChatConversation,
@@ -176,19 +176,22 @@ const categories: Category[] = [
         id: 'blog-post-card-no-image',
         name: 'Post Card (No Image)',
         component: <InlineBlogPostCard showImage={false} />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-blog-post-card'
       },
       {
         id: 'blog-post-card-compact',
         name: 'Post Card (Compact)',
         component: <InlineBlogPostCard variant="compact" />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-blog-post-card'
       },
       {
         id: 'blog-post-card-horizontal',
         name: 'Post Card (Horizontal)',
         component: <InlineBlogPostCard variant="horizontal" />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-blog-post-card'
       },
       {
         id: 'blog-post-list',
@@ -208,7 +211,8 @@ const categories: Category[] = [
         id: 'blog-post-grid-3col',
         name: 'Post Grid (3 Columns)',
         component: <InlineBlogPostGrid columns={3} />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-blog-post-grid'
       },
       {
         id: 'blog-post-carousel',
@@ -235,7 +239,8 @@ const categories: Category[] = [
         id: 'article-detail-no-cover',
         name: 'Article Detail (No Cover)',
         component: <InlineArticleDetail showCover={false} />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-article-detail'
       },
       {
         id: 'featured-article',
@@ -330,13 +335,15 @@ const categories: Category[] = [
         id: 'product-horizontal-carousel',
         name: 'Product Horizontal Carousel',
         component: <InlineProductHorizontalCarousel />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-product-horizontal-carousel'
       },
       {
         id: 'product-picker',
         name: 'Product Picker',
         component: <InlineProductTable />,
-        padding: 'mobile'
+        padding: 'mobile',
+        registryName: 'inline-product-table'
       }
     ]
   },
@@ -355,13 +362,15 @@ const categories: Category[] = [
         id: 'card-selection',
         name: 'Card Selection',
         component: <InlineSelectList />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-select-list'
       },
       {
         id: 'multi-card-selection',
         name: 'Multi Card Selection',
         component: <InlineSelectList mode="multi" showConfirm />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-select-list'
       },
       {
         id: 'tag-selection',
@@ -416,19 +425,22 @@ const categories: Category[] = [
         id: 'table',
         name: 'Table',
         component: <InlineTable />,
-        padding: 'mobile'
+        padding: 'mobile',
+        registryName: 'inline-table'
       },
       {
         id: 'table-single-select',
         name: 'Table Single Select',
         component: <InlineTable selectable="single" />,
-        padding: 'mobile'
+        padding: 'mobile',
+        registryName: 'inline-table'
       },
       {
         id: 'table-multi-select',
         name: 'Table Multi Select',
         component: <TableMultiSelectWithActions />,
-        padding: 'mobile'
+        padding: 'mobile',
+        registryName: 'inline-table'
       }
     ]
   },
@@ -455,7 +467,8 @@ const categories: Category[] = [
             />
           </div>
         ),
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-message-bubble'
       },
       {
         id: 'image-message',
@@ -476,13 +489,15 @@ const categories: Category[] = [
             />
           </div>
         ),
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-message-bubble'
       },
       {
         id: 'chat-conversation',
         name: 'Chat Conversation',
         component: <InlineChatConversation />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-message-bubble'
       },
       {
         id: 'message-reactions',
@@ -501,7 +516,8 @@ const categories: Category[] = [
             />
           </div>
         ),
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-message-bubble'
       },
       {
         id: 'voice-message',
@@ -522,7 +538,8 @@ const categories: Category[] = [
             />
           </div>
         ),
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-message-bubble'
       }
     ]
   },
@@ -534,25 +551,29 @@ const categories: Category[] = [
         id: 'x-post',
         name: 'X Post',
         component: <InlineXPost />,
-        padding: 'none'
+        padding: 'none',
+        registryName: 'inline-social-cards'
       },
       {
         id: 'instagram-post',
         name: 'Instagram Post',
         component: <InlineInstagramPost />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-social-cards'
       },
       {
         id: 'linkedin-post',
         name: 'LinkedIn Post',
         component: <InlineLinkedInPost />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-social-cards'
       },
       {
         id: 'youtube-post',
         name: 'YouTube Post',
         component: <InlineYouTubePost />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-social-cards'
       }
     ]
   },
@@ -564,7 +585,8 @@ const categories: Category[] = [
         id: 'stats-cards',
         name: 'Stats Cards',
         component: <InlineStats />,
-        padding: 'lg'
+        padding: 'lg',
+        registryName: 'inline-stats'
       },
       {
         id: 'weather-widget',
@@ -625,7 +647,7 @@ function CodeViewer({ registryName }: { registryName: string }) {
 
   if (loading) {
     return (
-      <div className="rounded-lg bg-muted p-4 animate-pulse">
+      <div className="rounded-lg bg-muted p-4 animate-pulse min-h-[500px]">
         <div className="h-4 bg-muted-foreground/20 rounded w-3/4 mb-2" />
         <div className="h-4 bg-muted-foreground/20 rounded w-1/2 mb-2" />
         <div className="h-4 bg-muted-foreground/20 rounded w-2/3" />
@@ -819,7 +841,7 @@ function BlocksContent() {
             {selectedBlock.registryName && (
               <div>
                 <h2 className="text-lg font-semibold mb-4">Installation</h2>
-                <div className="rounded-lg bg-card p-4">
+                <div className="rounded-lg bg-card p-3">
                   <InstallCommands componentName={selectedBlock.registryName} />
                 </div>
               </div>

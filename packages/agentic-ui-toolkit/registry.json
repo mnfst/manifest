@@ -418,7 +418,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-blog.tsx",
+          "path": "registry/inline/inline-blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -503,6 +503,76 @@
       "files": [
         {
           "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-table",
+      "type": "registry:component",
+      "title": "Inline Table",
+      "description": "Data table with optional single or multi-select modes for chat interfaces.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "checkbox"],
+      "files": [
+        {
+          "path": "registry/inline/inline-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-select-list",
+      "type": "registry:component",
+      "title": "Inline Select List",
+      "description": "Card-based selection list with single or multi-select modes.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-select-list.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-table",
+      "type": "registry:component",
+      "title": "Inline Product Table",
+      "description": "Product picker table with quantity selection and add to cart functionality.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-message-bubble",
+      "type": "registry:component",
+      "title": "Inline Message Bubble",
+      "description": "Chat message bubbles with support for text, images, voice, and reactions.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-message-bubble.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-social-cards",
+      "type": "registry:component",
+      "title": "Inline Social Cards",
+      "description": "Social media post cards for X, Instagram, LinkedIn, and YouTube.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-social-cards.tsx",
           "type": "registry:component"
         }
       ]
