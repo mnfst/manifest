@@ -268,7 +268,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
       {/* Hero Section with Wave Canvas Background */}
-      <div className="relative min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] overflow-hidden">
+      <div className="relative min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] overflow-hidden flex items-center justify-center">
         <WaveCanvas
           colors={[
             '#fae7d5ff',
@@ -305,7 +305,7 @@ export default function Home() {
       </div>
 
       {/* Content Section */}
-      <div className="py-12 md:py-20 px-4 lg:px-24 space-y-12 md:space-y-16 bg-white dark:bg-[#0a0a0a]">
+      <div className="py-12 md:pb-20 md:pt-12 px-4 lg:px-24 space-y-12 md:space-y-16 bg-white dark:bg-[#0a0a0a]">
         <Tabs defaultValue="product-selection" className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-center">
             {useCases.map((useCase) => (
