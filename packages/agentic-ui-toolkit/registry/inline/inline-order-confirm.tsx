@@ -47,7 +47,7 @@ export function InlineOrderConfirm({
         <img
           src={productImage}
           alt={productName}
-          className="h-12 w-12 sm:h-16 sm:w-16 rounded-md sm:rounded-lg object-contain bg-muted/30"
+          className="h-12 w-12 sm:h-16 sm:w-16 rounded-sm sm:rounded-md object-contain bg-muted/30"
         />
         <div className="flex-1 min-w-0">
           {/* Mobile: stacked layout */}
