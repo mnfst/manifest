@@ -269,11 +269,17 @@ export default function Home() {
     <div className="relative min-h-screen">
       {/* Fixed Wave Canvas Background */}
       <WaveCanvas
-        colors={["#E8F4F8", "#E5EEF8", "#EDE8F5", "#F0E8F2", "#E6F2F0"]}
+        colors={[
+          '#fae7d5ff',
+          '#c3eee5ff',
+          '#c3eee5ff',
+          '#d4d6f0ff',
+          '#c9cbedff'
+        ]}
         waveOpacity={0.7}
         speed="slow"
-        blur={20}
-        waveWidth={80}
+        blur={60}
+        waveWidth={150}
       />
 
       {/* Hero Section */}
@@ -299,7 +305,6 @@ export default function Home() {
 
       {/* Content Section */}
       <div className="relative z-10 py-12 md:py-20 px-4 lg:px-24 space-y-12 md:space-y-16">
-
         <Tabs defaultValue="product-selection" className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-center">
             {useCases.map((useCase) => (
