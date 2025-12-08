@@ -117,9 +117,12 @@ export const WaveCanvas = ({
   let animationId: number;
   const render = () => {
     if (!ctx) return;
+    // Draw background at full opacity
+    ctx.globalAlpha = 1;
     ctx.fillStyle = isDarkRef.current ? "#0a0a0a" : "#FFFFFF";
-    ctx.globalAlpha = waveOpacity || 0.7;
     ctx.fillRect(0, 0, w, h);
+    // Draw waves with specified opacity
+    ctx.globalAlpha = waveOpacity || 0.7;
     drawWave(5);
     animationId = requestAnimationFrame(render);
   };
@@ -143,7 +146,7 @@ export const WaveCanvas = ({
 
   return (
     <canvas
-      className="fixed inset-0 z-0 pointer-events-none"
+      className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none"
       ref={canvasRef}
       id="wave-canvas"
       style={{

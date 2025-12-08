@@ -266,52 +266,46 @@ const useCases = [
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen">
-      {/* Fixed Wave Canvas Background */}
-      <WaveCanvas
-        colors={[
-          '#fae7d5ff',
-          '#c3eee5ff',
-          '#c3eee5ff',
-          '#d4d6f0ff',
-          '#c9cbedff'
-        ]}
-        darkColors={[
-          '#2a1f1a',
-          '#1a2a28',
-          '#1a2a28',
-          '#1f1a2a',
-          '#1a1a2a'
-        ]}
-        waveOpacity={0.7}
-        speed="slow"
-        blur={60}
-        waveWidth={150}
-      />
-
-      {/* Hero Section */}
-      <div className="relative z-10 min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] flex flex-col items-center justify-center">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground">
-            Build beautiful chat experiences
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            A collection of beautifully designed components for building ChatGPT
-            custom apps. Open source, accessible and customizable.
-          </p>
-          <div className="pt-4">
-            <Link
-              href="/blocks"
-              className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-8 py-3 text-base font-medium hover:bg-foreground/90 transition-colors"
-            >
-              Browse blocks
-            </Link>
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
+      {/* Hero Section with Wave Canvas Background */}
+      <div className="relative min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] overflow-hidden">
+        <WaveCanvas
+          colors={[
+            '#fae7d5ff',
+            '#d0fdf3ff',
+            '#d3d5fbff',
+            '#cffcf2ff',
+            '#d3d5fbff'
+          ]}
+          darkColors={['#2a1f1a', '#1a2a28', '#1f1a2a', '#1a2a28', '#1a1a2a']}
+          waveOpacity={0.63}
+          speed="slow"
+          blur={60}
+          waveWidth={300}
+        />
+        <div className="relative z-10 flex flex-col items-center justify-center h-full">
+          <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground">
+              Build beautiful chat experiences
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              A collection of beautifully designed components for building
+              ChatGPT custom apps. Open source, accessible and customizable.
+            </p>
+            <div className="pt-4">
+              <Link
+                href="/blocks"
+                className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-8 py-3 text-base font-medium hover:bg-foreground/90 transition-colors"
+              >
+                Browse blocks
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="relative z-10 py-12 md:py-20 px-4 lg:px-24 space-y-12 md:space-y-16">
+      <div className="py-12 md:py-20 px-4 lg:px-24 space-y-12 md:space-y-16 bg-white dark:bg-[#0a0a0a]">
         <Tabs defaultValue="product-selection" className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-center">
             {useCases.map((useCase) => (

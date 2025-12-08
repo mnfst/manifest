@@ -13,20 +13,33 @@ interface CodeBlockProps {
 export function CodeBlock({ code, language = 'bash', className }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const [html, setHtml] = useState<string | null>(null)
+  const [isDark, setIsDark] = useState(false)
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkDarkMode()
+
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     async function highlight() {
       const highlighted = await codeToHtml(code, {
         lang: language,
-        themes: {
-          light: 'github-light',
-          dark: 'github-dark'
-        }
+        theme: isDark ? 'github-dark' : 'github-light'
       })
       setHtml(highlighted)
     }
     highlight()
-  }, [code, language])
+  }, [code, language, isDark])
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
@@ -38,11 +51,11 @@ export function CodeBlock({ code, language = 'bash', className }: CodeBlockProps
     <div className={`relative group ${className || ''}`}>
       {html ? (
         <div
-          className="rounded-lg overflow-x-auto text-sm bg-muted [&_pre]:p-4 [&_pre]:m-0 [&_pre]:bg-transparent [&_pre]:min-w-max"
+          className="rounded-lg overflow-x-auto text-sm bg-muted dark:bg-[#262626] [&_pre]:p-4 [&_pre]:m-0 [&_pre]:!bg-transparent [&_.shiki]:!bg-transparent [&_pre]:min-w-max"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <pre className="rounded-lg bg-muted p-4 overflow-x-auto text-sm font-mono min-w-max">
+        <pre className="rounded-lg bg-muted dark:bg-[#262626] p-4 overflow-x-auto text-sm font-mono min-w-max">
           <code>{code}</code>
         </pre>
       )}
