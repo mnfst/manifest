@@ -1,13 +1,16 @@
 'use client'
 
-import Link from 'next/link'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChatDemo } from '@/components/chat/chat-demo'
-import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  InlineBlogPostList,
+  InlineFeaturedArticle
+} from '@/registry/inline/inline-blog'
 import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
-import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
-import { InlineBlogPostList, InlineFeaturedArticle } from '@/registry/inline/inline-blog'
+import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
+import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
+import Link from 'next/link'
 
 function ChatGPTIcon({ className }: { className?: string }) {
   return (
@@ -19,8 +22,16 @@ function ChatGPTIcon({ className }: { className?: string }) {
 
 function ClaudeIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757" fillRule="nonzero" />
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z"
+        fill="#D97757"
+        fillRule="nonzero"
+      />
     </svg>
   )
 }
@@ -30,7 +41,17 @@ function IyoLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <rect width="24" height="24" rx="6" fill="#000" />
-      <text x="12" y="16" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="system-ui">iyo</text>
+      <text
+        x="12"
+        y="16"
+        textAnchor="middle"
+        fill="white"
+        fontSize="10"
+        fontWeight="bold"
+        fontFamily="system-ui"
+      >
+        iyo
+      </text>
     </svg>
   )
 }
@@ -39,8 +60,15 @@ function StripeLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <rect width="24" height="24" rx="4" fill="#635BFF" />
-      <path d="M11.5 8.5c0-.83.68-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5h-2c-.82 0-1.5-.67-1.5-1.5v-7z" fill="white" />
-      <path d="M7.5 10.5c0-.83.68-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5H9c-.82 0-1.5-.67-1.5-1.5v-5z" fill="white" fillOpacity="0.5" />
+      <path
+        d="M11.5 8.5c0-.83.68-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5h-2c-.82 0-1.5-.67-1.5-1.5v-7z"
+        fill="white"
+      />
+      <path
+        d="M7.5 10.5c0-.83.68-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5H9c-.82 0-1.5-.67-1.5-1.5v-5z"
+        fill="white"
+        fillOpacity="0.5"
+      />
     </svg>
   )
 }
@@ -62,9 +90,14 @@ const techCrunchArticles = [
   {
     id: '1',
     title: 'The accelerator is on the floor for autonomous vehicles',
-    excerpt: 'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer.',
-    coverImage: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
-    author: { name: 'Kirsten Korosec', avatar: 'https://i.pravatar.cc/150?u=kirsten' },
+    excerpt:
+      'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer.',
+    coverImage:
+      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
+    author: {
+      name: 'Kirsten Korosec',
+      avatar: 'https://i.pravatar.cc/150?u=kirsten'
+    },
     publishedAt: '2025-12-07',
     readTime: '5 min read',
     category: 'Transportation'
@@ -72,9 +105,14 @@ const techCrunchArticles = [
   {
     id: '2',
     title: 'X deactivates European Commission ad account after €120M fine',
-    excerpt: 'The social media platform has suspended the EU institution\'s advertising capabilities following the recent penalty.',
-    coverImage: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=450&fit=crop',
-    author: { name: 'Anthony Ha', avatar: 'https://i.pravatar.cc/150?u=anthony' },
+    excerpt:
+      "The social media platform has suspended the EU institution's advertising capabilities following the recent penalty.",
+    coverImage:
+      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=450&fit=crop',
+    author: {
+      name: 'Anthony Ha',
+      avatar: 'https://i.pravatar.cc/150?u=anthony'
+    },
     publishedAt: '2025-12-07',
     readTime: '4 min read',
     category: 'Social'
@@ -82,8 +120,10 @@ const techCrunchArticles = [
   {
     id: '3',
     title: 'Coinbase starts onboarding users again in India',
-    excerpt: 'The crypto exchange plans to introduce fiat on-ramp capabilities in the region by next year.',
-    coverImage: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&h=450&fit=crop',
+    excerpt:
+      'The crypto exchange plans to introduce fiat on-ramp capabilities in the region by next year.',
+    coverImage:
+      'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&h=450&fit=crop',
     author: { name: 'Ivan Mehta', avatar: 'https://i.pravatar.cc/150?u=ivan' },
     publishedAt: '2025-12-07',
     readTime: '6 min read',
@@ -94,9 +134,14 @@ const techCrunchArticles = [
 const featuredArticle = {
   id: '0',
   title: 'The accelerator is on the floor for autonomous vehicles',
-  excerpt: 'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer and consumer acceptance grows.',
-  coverImage: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
-  author: { name: 'Kirsten Korosec', avatar: 'https://i.pravatar.cc/150?u=kirsten' },
+  excerpt:
+    'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer and consumer acceptance grows.',
+  coverImage:
+    'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
+  author: {
+    name: 'Kirsten Korosec',
+    avatar: 'https://i.pravatar.cc/150?u=kirsten'
+  },
   publishedAt: '2025-12-07',
   readTime: '5 min read',
   category: 'Transportation',
@@ -111,21 +156,22 @@ const useCases = [
       {
         id: '1',
         role: 'user' as const,
-        content: "I'm looking for premium wireless earbuds",
+        content: "I'm looking for premium wireless earbuds"
       },
       {
         id: '2',
         role: 'assistant' as const,
-        content: "Here are our best-selling audio products:",
+        content: 'Here are our best-selling audio products:',
         component: <InlineProductCarousel />,
         brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
         hasPadding: true,
-        contentAfter: "Browse through our selection and let me know which one catches your eye. Each model offers different features to match your lifestyle.",
+        contentAfter:
+          'Browse through our selection and let me know which one catches your eye. Each model offers different features to match your lifestyle.'
       },
       {
         id: '3',
         role: 'user' as const,
-        content: "I'll take the Iyo Pro",
+        content: "I'll take the Iyo Pro"
       },
       {
         id: '4',
@@ -133,9 +179,10 @@ const useCases = [
         content: "Excellent choice! Here's your order summary:",
         component: <InlineOrderConfirm />,
         brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
-        contentAfter: "Please review the details and confirm when you're ready. Free shipping is included with your order.",
-      },
-    ],
+        contentAfter:
+          "Please review the details and confirm when you're ready. Free shipping is included with your order."
+      }
+    ]
   },
   {
     id: 'payment-workflow',
@@ -144,30 +191,32 @@ const useCases = [
       {
         id: '1',
         role: 'user' as const,
-        content: "I'd like to complete my purchase",
+        content: "I'd like to complete my purchase"
       },
       {
         id: '2',
         role: 'assistant' as const,
-        content: "Please select your payment method:",
+        content: 'Please select your payment method:',
         component: <InlinePaymentMethods />,
         brand: { name: 'Stripe', logo: <StripeLogo className="h-4 w-4" /> },
-        contentAfter: "Your payment information is secured with end-to-end encryption. Select your preferred method to continue.",
+        contentAfter:
+          'Your payment information is secured with end-to-end encryption. Select your preferred method to continue.'
       },
       {
         id: '3',
         role: 'user' as const,
-        content: "Using my Visa card",
+        content: 'Using my Visa card'
       },
       {
         id: '4',
         role: 'assistant' as const,
-        content: "Payment successful!",
+        content: 'Payment successful!',
         component: <InlinePaymentConfirmed />,
         brand: { name: 'Stripe', logo: <StripeLogo className="h-4 w-4" /> },
-        contentAfter: "You'll receive a confirmation email shortly. Is there anything else I can help you with?",
-      },
-    ],
+        contentAfter:
+          "You'll receive a confirmation email shortly. Is there anything else I can help you with?"
+      }
+    ]
   },
   {
     id: 'tech-news',
@@ -176,32 +225,42 @@ const useCases = [
       {
         id: '1',
         role: 'user' as const,
-        content: "What's happening in tech today?",
+        content: "What's happening in tech today?"
       },
       {
         id: '2',
         role: 'assistant' as const,
         content: "Here's the top story from TechCrunch:",
         component: <InlineFeaturedArticle post={featuredArticle} />,
-        brand: { name: 'TechCrunch', logo: <TechCrunchLogo className="h-4 w-4" /> },
-        contentAfter: "This article is getting a lot of attention. Would you like to see more tech news?",
+        brand: {
+          name: 'TechCrunch',
+          logo: <TechCrunchLogo className="h-4 w-4" />
+        },
+        contentAfter:
+          'This article is getting a lot of attention. Would you like to see more tech news?'
       },
       {
         id: '3',
         role: 'user' as const,
-        content: "Yes, show me more articles",
+        content: 'Yes, show me more articles'
       },
       {
         id: '4',
         role: 'assistant' as const,
-        content: "Here are more trending stories:",
-        component: <InlineBlogPostList posts={techCrunchArticles} variant="horizontal" />,
-        brand: { name: 'TechCrunch', logo: <TechCrunchLogo className="h-4 w-4" /> },
+        content: 'Here are more trending stories:',
+        component: (
+          <InlineBlogPostList posts={techCrunchArticles} variant="horizontal" />
+        ),
+        brand: {
+          name: 'TechCrunch',
+          logo: <TechCrunchLogo className="h-4 w-4" />
+        },
         hasPadding: true,
-        contentAfter: "These are the most discussed topics right now. Let me know if you'd like a summary of any article.",
-      },
-    ],
-  },
+        contentAfter:
+          "These are the most discussed topics right now. Let me know if you'd like a summary of any article."
+      }
+    ]
+  }
 ]
 
 export default function Home() {
@@ -210,17 +269,17 @@ export default function Home() {
       <div className="px-4 lg:px-24 space-y-8">
         <div className="text-center space-y-4 max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold tracking-tight">
-            Agentic UI Components
+            Build beautiful chat experiences
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A collection of UI components designed for conversational interfaces.
-            See how they work in ChatGPT and Claude.
+            A collection of beautifully designed components for building ChatGPT
+            custom apps. Open source, accessible and customizable.
           </p>
           <Link
             href="/blocks"
             className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-medium hover:bg-foreground/90 transition-colors"
           >
-            Get Started
+            Browse blocks
           </Link>
         </div>
 
@@ -241,22 +300,22 @@ export default function Home() {
             <TabsContent key={useCase.id} value={useCase.id} className="mt-6">
               <Tabs defaultValue="chatgpt" className="w-full">
                 <div className="flex justify-center">
-                <TabsList className="inline-flex h-auto gap-1 bg-muted/50 p-1 rounded-lg mb-4">
-                  <TabsTrigger
-                    value="chatgpt"
-                    className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                  >
-                    <ChatGPTIcon className="h-4 w-4" />
-                    ChatGPT
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="claude"
-                    className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                  >
-                    <ClaudeIcon className="h-4 w-4" />
-                    Claude
-                  </TabsTrigger>
-                </TabsList>
+                  <TabsList className="inline-flex h-auto gap-1 bg-muted/50 p-1 rounded-lg mb-4">
+                    <TabsTrigger
+                      value="chatgpt"
+                      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                    >
+                      <ChatGPTIcon className="h-4 w-4" />
+                      ChatGPT
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="claude"
+                      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                    >
+                      <ClaudeIcon className="h-4 w-4" />
+                      Claude
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
                 <TabsContent value="chatgpt" className="mt-0">
                   <ChatDemo messages={useCase.messages} variant="chatgpt" />
