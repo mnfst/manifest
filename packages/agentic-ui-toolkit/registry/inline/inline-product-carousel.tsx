@@ -26,61 +26,62 @@ export interface InlineProductCarouselProps {
 const defaultProducts: Product[] = [
   {
     id: '1',
-    name: "Air Force 1 '07",
-    description: 'Nike',
-    price: 119,
-    image: '/demo/shoe-1.png',
+    name: 'AirPods Pro 2',
+    description: 'Apple',
+    price: 249,
+    image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
     rating: 4.9,
-    badge: 'New',
+    badge: 'Best Seller',
     inStock: true
   },
   {
     id: '2',
-    name: 'Air Max 90',
-    description: 'Nike',
-    price: 140,
-    image: '/demo/shoe-2.png',
+    name: 'AirPods 4',
+    description: 'Apple',
+    price: 129,
+    image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&h=400&fit=crop',
     rating: 4.8,
+    badge: 'New',
     inStock: true
   },
   {
     id: '3',
-    name: 'Air Max Plus',
-    description: 'Nike',
-    price: 170,
-    originalPrice: 190,
-    image: '/demo/shoe-4.png',
+    name: 'Galaxy Buds3 Pro',
+    description: 'Samsung',
+    price: 229,
+    originalPrice: 249,
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
     rating: 4.7,
-    badge: '-10%',
+    badge: '-8%',
     inStock: true
   },
   {
     id: '4',
-    name: 'Dunk Low',
-    description: 'Nike',
-    price: 115,
-    image: '/demo/shoe-3.png',
-    rating: 4.6,
+    name: 'QuietComfort Ultra',
+    description: 'Bose',
+    price: 299,
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+    rating: 4.8,
     inStock: true
   },
   {
     id: '5',
-    name: 'Air Force 1 Low',
-    description: 'Nike',
-    price: 110,
-    originalPrice: 125,
-    image: '/demo/shoe-1.png',
-    rating: 4.8,
-    badge: '-12%',
+    name: 'Pixel Buds Pro 2',
+    description: 'Google',
+    price: 229,
+    originalPrice: 249,
+    image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=400&fit=crop',
+    rating: 4.6,
+    badge: '-8%',
     inStock: true
   },
   {
     id: '6',
-    name: 'Air Max 90 Premium',
-    description: 'Nike',
-    price: 160,
-    image: '/demo/shoe-2.png',
-    rating: 4.5,
+    name: 'WF-1000XM5',
+    description: 'Sony',
+    price: 279,
+    image: 'https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=400&h=400&fit=crop',
+    rating: 4.7,
     inStock: true
   }
 ]
@@ -91,7 +92,7 @@ const GAP = 12
 
 export function InlineProductCarousel({
   products = defaultProducts,
-  currency = 'EUR',
+  currency = 'USD',
   onSelectProduct,
   selectedProductId
 }: InlineProductCarouselProps) {

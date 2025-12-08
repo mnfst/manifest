@@ -7,6 +7,24 @@ export interface BlockCategory {
 
 export const blockCategories: BlockCategory[] = [
   {
+    id: 'blog',
+    name: 'Blog & Articles',
+    blocks: [
+      { id: 'blog-post-card', name: 'Post Card' },
+      { id: 'blog-post-card-no-image', name: 'Post Card (No Image)' },
+      { id: 'blog-post-card-compact', name: 'Post Card (Compact)' },
+      { id: 'blog-post-card-horizontal', name: 'Post Card (Horizontal)' },
+      { id: 'blog-post-list', name: 'Post List' },
+      { id: 'blog-post-grid', name: 'Post Grid' },
+      { id: 'blog-post-grid-3col', name: 'Post Grid (3 Columns)' },
+      { id: 'blog-post-carousel', name: 'Post Carousel' },
+      { id: 'blog-excerpt-card', name: 'Excerpt Card' },
+      { id: 'article-detail', name: 'Article Detail' },
+      { id: 'article-detail-no-cover', name: 'Article Detail (No Cover)' },
+      { id: 'featured-article', name: 'Featured Article' }
+    ]
+  },
+  {
     id: 'payment',
     name: 'Payment',
     blocks: [
@@ -85,24 +103,6 @@ export const blockCategories: BlockCategory[] = [
     blocks: [
       { id: 'stats-cards', name: 'Stats Cards' },
       { id: 'weather-widget', name: 'Weather Widget' }
-    ]
-  },
-  {
-    id: 'blog',
-    name: 'Blog & Articles',
-    blocks: [
-      { id: 'blog-post-card', name: 'Post Card' },
-      { id: 'blog-post-card-no-image', name: 'Post Card (No Image)' },
-      { id: 'blog-post-card-compact', name: 'Post Card (Compact)' },
-      { id: 'blog-post-card-horizontal', name: 'Post Card (Horizontal)' },
-      { id: 'blog-post-list', name: 'Post List' },
-      { id: 'blog-post-grid', name: 'Post Grid' },
-      { id: 'blog-post-grid-3col', name: 'Post Grid (3 Columns)' },
-      { id: 'blog-post-carousel', name: 'Post Carousel' },
-      { id: 'blog-excerpt-card', name: 'Excerpt Card' },
-      { id: 'article-detail', name: 'Article Detail' },
-      { id: 'article-detail-no-cover', name: 'Article Detail (No Cover)' },
-      { id: 'featured-article', name: 'Featured Article' }
     ]
   }
 ]
