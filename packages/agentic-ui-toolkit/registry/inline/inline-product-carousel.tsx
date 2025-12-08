@@ -29,7 +29,7 @@ const defaultProducts: Product[] = [
     name: 'Iyo Pro',
     description: 'Premium Earbuds',
     price: 299,
-    image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
     rating: 4.9,
     badge: 'Best Seller',
     inStock: true
@@ -39,7 +39,7 @@ const defaultProducts: Product[] = [
     name: 'Iyo Air',
     description: 'Wireless Earbuds',
     price: 149,
-    image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
     rating: 4.8,
     badge: 'New',
     inStock: true
@@ -60,7 +60,7 @@ const defaultProducts: Product[] = [
     name: 'Iyo Sport',
     description: 'Active Earbuds',
     price: 199,
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop',
     rating: 4.8,
     inStock: true
   },
@@ -70,7 +70,7 @@ const defaultProducts: Product[] = [
     description: 'Compact Earbuds',
     price: 99,
     originalPrice: 129,
-    image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=400&h=400&fit=crop',
     rating: 4.6,
     badge: '-23%',
     inStock: true
@@ -80,7 +80,7 @@ const defaultProducts: Product[] = [
     name: 'Iyo Max',
     description: 'Premium Headphones',
     price: 449,
-    image: 'https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
     rating: 4.9,
     inStock: true
   }

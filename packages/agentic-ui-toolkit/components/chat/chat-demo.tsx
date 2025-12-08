@@ -8,6 +8,7 @@ interface Message {
   role: 'user' | 'assistant'
   content?: string
   component?: React.ReactNode
+  contentAfter?: string
   brand?: {
     name: string
     logo?: React.ReactNode
@@ -152,6 +153,9 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
                         </div>
                       </div>
                     </div>
+                  )}
+                  {message.contentAfter && (
+                    <p className="text-sm mt-3">{message.contentAfter}</p>
                   )}
                 </div>
                 {/* Reaction icons for text-only assistant messages */}
