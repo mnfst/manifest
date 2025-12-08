@@ -3,7 +3,7 @@
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { blockCategories } from '@/lib/blocks-categories'
 import { cn } from '@/lib/utils'
-import { ChevronRight, Github, Menu, Star, X } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, Github, Menu, Star, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -24,13 +24,7 @@ function DiscordIcon({ className }: { className?: string }) {
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/blocks', label: 'Blocks' },
-  { href: '#', label: 'Docs', disabled: true, badge: 'Coming soon' },
-  {
-    href: '#',
-    label: 'Agentic UI Builder',
-    disabled: true,
-    badge: 'Coming soon'
-  }
+  { href: 'https://manifest.build', label: 'MCP App Generator', external: true }
 ]
 
 function formatStars(count: number): string {
@@ -106,6 +100,8 @@ function MobileMenuContent({
               key={link.label}
               href={link.href}
               onClick={onClose}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
               className={cn(
                 'flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
                 link.disabled
@@ -116,11 +112,7 @@ function MobileMenuContent({
               )}
             >
               {link.label}
-              {link.badge && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
-                  {link.badge}
-                </span>
-              )}
+              {link.external && <ArrowUpRight className="h-3 w-3" />}
             </Link>
           ))}
         </nav>
@@ -269,6 +261,8 @@ function HeaderContent() {
                 <Link
                   key={link.label}
                   href={link.href}
+                  target={link.external ? '_blank' : undefined}
+                  rel={link.external ? 'noopener noreferrer' : undefined}
                   className={cn(
                     'px-3 py-1.5 text-sm rounded-md transition-colors inline-flex items-center gap-1.5',
                     link.disabled
@@ -280,11 +274,7 @@ function HeaderContent() {
                   )}
                 >
                   {link.label}
-                  {link.badge && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
-                      {link.badge}
-                    </span>
-                  )}
+                  {link.external && <ArrowUpRight className="h-3 w-3" />}
                 </Link>
               ))}
             </nav>
