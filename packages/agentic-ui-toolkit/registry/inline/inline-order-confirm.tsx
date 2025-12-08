@@ -21,12 +21,12 @@ const DEFAULT_AIRPODS_IMAGE =
   'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
 export function InlineOrderConfirm({
-  productName = 'AirPods Pro (2nd gen.)',
-  productVariant = 'White',
+  productName = 'Iyo Pro',
+  productVariant = 'Midnight Black',
   productImage = DEFAULT_AIRPODS_IMAGE,
   quantity = 1,
-  price = 279.0,
-  currency = 'EUR',
+  price = 299.0,
+  currency = 'USD',
   deliveryDate = 'Tue. Dec 10',
   deliveryAddress = '123 Main Street, 10001',
   freeShipping = true,
@@ -41,13 +41,13 @@ export function InlineOrderConfirm({
   }
 
   return (
-    <div className="w-full rounded-lg bg-card">
+    <div className="w-full rounded-md sm:rounded-lg bg-card">
       {/* Product info */}
       <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-2">
         <img
           src={productImage}
           alt={productName}
-          className="h-12 w-12 sm:h-16 sm:w-16 rounded-md sm:rounded-lg object-contain bg-muted/30"
+          className="h-12 w-12 sm:h-16 sm:w-16 rounded-sm sm:rounded-md object-contain bg-muted/30"
         />
         <div className="flex-1 min-w-0">
           {/* Mobile: stacked layout */}

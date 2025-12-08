@@ -206,7 +206,7 @@ export function InlineSelectList({
         onMouseEnter={() => setFocusedIndex(index)}
         disabled={option.disabled}
         className={cn(
-          "w-full flex items-center gap-3 rounded-lg border text-left transition-all",
+          "w-full flex items-center gap-3 rounded-md sm:rounded-lg border text-left transition-all",
           compact ? "p-2" : "p-3",
           selected
             ? "border-foreground bg-card ring-1 ring-foreground"
@@ -298,7 +298,7 @@ export function InlineSelectList({
 
   if (flatOptions.length === 0) {
     return (
-      <div className="w-full rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+      <div className="w-full rounded-md sm:rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
         {emptyMessage}
       </div>
     )

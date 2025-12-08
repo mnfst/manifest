@@ -26,61 +26,62 @@ export interface InlineProductCarouselProps {
 const defaultProducts: Product[] = [
   {
     id: '1',
-    name: "Air Force 1 '07",
-    description: 'Nike',
-    price: 119,
-    image: '/demo/shoe-1.png',
+    name: 'Iyo Pro',
+    description: 'Premium Earbuds',
+    price: 299,
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
     rating: 4.9,
-    badge: 'New',
+    badge: 'Best Seller',
     inStock: true
   },
   {
     id: '2',
-    name: 'Air Max 90',
-    description: 'Nike',
-    price: 140,
-    image: '/demo/shoe-2.png',
+    name: 'Iyo Air',
+    description: 'Wireless Earbuds',
+    price: 149,
+    image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
     rating: 4.8,
+    badge: 'New',
     inStock: true
   },
   {
     id: '3',
-    name: 'Air Max Plus',
-    description: 'Nike',
-    price: 170,
-    originalPrice: 190,
-    image: '/demo/shoe-4.png',
+    name: 'Iyo Studio',
+    description: 'Over-Ear Headphones',
+    price: 349,
+    originalPrice: 399,
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
     rating: 4.7,
-    badge: '-10%',
-    inStock: true
-  },
-  {
-    id: '4',
-    name: 'Dunk Low',
-    description: 'Nike',
-    price: 115,
-    image: '/demo/shoe-3.png',
-    rating: 4.6,
-    inStock: true
-  },
-  {
-    id: '5',
-    name: 'Air Force 1 Low',
-    description: 'Nike',
-    price: 110,
-    originalPrice: 125,
-    image: '/demo/shoe-1.png',
-    rating: 4.8,
     badge: '-12%',
     inStock: true
   },
   {
+    id: '4',
+    name: 'Iyo Sport',
+    description: 'Active Earbuds',
+    price: 199,
+    image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop',
+    rating: 4.8,
+    inStock: true
+  },
+  {
+    id: '5',
+    name: 'Iyo Mini',
+    description: 'Compact Earbuds',
+    price: 99,
+    originalPrice: 129,
+    image: 'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=400&h=400&fit=crop',
+    rating: 4.6,
+    badge: '-23%',
+    inStock: true
+  },
+  {
     id: '6',
-    name: 'Air Max 90 Premium',
-    description: 'Nike',
-    price: 160,
-    image: '/demo/shoe-2.png',
-    rating: 4.5,
+    name: 'Iyo Max',
+    description: 'Premium Headphones',
+    price: 449,
+    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
+    rating: 4.9,
     inStock: true
   }
 ]
@@ -91,7 +92,7 @@ const GAP = 12
 
 export function InlineProductCarousel({
   products = defaultProducts,
-  currency = 'EUR',
+  currency = 'USD',
   onSelectProduct,
   selectedProductId
 }: InlineProductCarouselProps) {

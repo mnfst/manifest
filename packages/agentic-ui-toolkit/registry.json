@@ -408,6 +408,174 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "inline-blog-post-card",
+      "type": "registry:component",
+      "title": "Blog Post Card",
+      "description": "Blog post card with image, title, excerpt, author info and read more button. Supports default, compact, and horizontal variants.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog-post-card.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-blog-post-list",
+      "type": "registry:component",
+      "title": "Blog Post List",
+      "description": "Vertical list of blog posts with horizontal card layout.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-blog-post-grid",
+      "type": "registry:component",
+      "title": "Blog Post Grid",
+      "description": "Grid layout for blog posts with 2 or 3 columns.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-blog-post-carousel",
+      "type": "registry:component",
+      "title": "Blog Post Carousel",
+      "description": "Carousel of blog posts with navigation arrows and dot indicators.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-blog-excerpt-card",
+      "type": "registry:component",
+      "title": "Blog Excerpt Card",
+      "description": "Expandable excerpt card with show more/less button and read full article action.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-article-detail",
+      "type": "registry:component",
+      "title": "Article Detail",
+      "description": "Full article view with cover image, author info, content, tags and related articles section.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-featured-article",
+      "type": "registry:component",
+      "title": "Featured Article",
+      "description": "Hero-style featured article with full-width image and overlay content.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-blog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-table",
+      "type": "registry:component",
+      "title": "Inline Table",
+      "description": "Data table with optional single or multi-select modes for chat interfaces.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "checkbox"],
+      "files": [
+        {
+          "path": "registry/inline/inline-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-select-list",
+      "type": "registry:component",
+      "title": "Inline Select List",
+      "description": "Card-based selection list with single or multi-select modes.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-select-list.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-product-table",
+      "type": "registry:component",
+      "title": "Inline Product Table",
+      "description": "Product picker table with quantity selection and add to cart functionality.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/inline/inline-product-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-message-bubble",
+      "type": "registry:component",
+      "title": "Inline Message Bubble",
+      "description": "Chat message bubbles with support for text, images, voice, and reactions.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-message-bubble.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "inline-social-cards",
+      "type": "registry:component",
+      "title": "Inline Social Cards",
+      "description": "Social media post cards for X, Instagram, LinkedIn, and YouTube.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/inline/inline-social-cards.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

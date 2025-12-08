@@ -51,7 +51,7 @@ export function InlineStats({ stats = defaultStats }: InlineStatsProps) {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="rounded-lg border bg-card p-2 sm:p-3 space-y-0.5 sm:space-y-1"
+            className="rounded-md sm:rounded-lg border bg-card p-2 sm:p-3 space-y-0.5 sm:space-y-1"
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</span>
