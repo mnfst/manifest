@@ -76,7 +76,6 @@ function TikTokIcon({ className }: { className?: string }) {
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
 import {
   InlineArticleDetail,
-  InlineBlogExcerptCard,
   InlineBlogPostCarousel,
   InlineBlogPostGrid,
   InlineBlogPostList,
@@ -196,6 +195,11 @@ const categories: Category[] = [
             id: 'horizontal',
             name: 'Horizontal',
             component: <InlineBlogPostCard variant="horizontal" />
+          },
+          {
+            id: 'covered',
+            name: 'Covered',
+            component: <InlineFeaturedArticle />
           }
         ]
       },
@@ -223,21 +227,8 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'excerpt-card',
-        name: 'Excerpt Card',
-        description: 'Compact card with article excerpt',
-        registryName: 'inline-blog',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineBlogExcerptCard />
-          }
-        ]
-      },
-      {
-        id: 'article-detail',
-        name: 'Article Detail',
+        id: 'post-detail',
+        name: 'Post Detail',
         description: 'Full article view with cover and content',
         registryName: 'inline-blog',
         variants: [
@@ -248,21 +239,8 @@ const categories: Category[] = [
           },
           {
             id: 'no-cover',
-            name: 'No Cover',
+            name: 'Without Cover',
             component: <InlineArticleDetail showCover={false} />
-          }
-        ]
-      },
-      {
-        id: 'featured-article',
-        name: 'Featured Article',
-        description: 'Highlighted article with prominent styling',
-        registryName: 'inline-blog',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineFeaturedArticle />
           }
         ]
       }
