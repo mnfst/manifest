@@ -13,11 +13,7 @@ export const blockCategories: BlockCategory[] = [
     blocks: [
       { id: 'post-card', name: 'Post Card' },
       { id: 'post-list', name: 'Post List' },
-      { id: 'post-grid', name: 'Post Grid' },
-      { id: 'post-carousel', name: 'Post Carousel' },
-      { id: 'excerpt-card', name: 'Excerpt Card' },
-      { id: 'article-detail', name: 'Article Detail' },
-      { id: 'featured-article', name: 'Featured Article' }
+      { id: 'post-detail', name: 'Post Detail' }
     ]
   },
   {

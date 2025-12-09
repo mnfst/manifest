@@ -74,7 +74,7 @@ function TikTokIcon({ className }: { className?: string }) {
 
 // Components imports
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
-import { InlineArticleDetail } from '@/registry/inline/inline-blog'
+import { PostDetail } from '@/registry/inline/post-detail'
 import { InlineBlogPostList } from '@/registry/inline/inline-blog-post-list'
 import { InlineBlogPostCard } from '@/registry/inline/inline-blog-post-card'
 import { InlineCardForm } from '@/registry/inline/inline-card-form'
@@ -229,20 +229,20 @@ const categories: Category[] = [
       {
         id: 'post-detail',
         name: 'Post Detail',
-        description: 'Full article view with cover and content',
-        registryName: 'inline-blog',
+        description: 'Full post view with cover and content',
+        registryName: 'post-detail',
         variants: [
           {
             id: 'default',
             name: 'With Cover',
-            component: <InlineArticleDetail />,
-            usageCode: `<InlineArticleDetail />`
+            component: <PostDetail />,
+            usageCode: `<PostDetail />`
           },
           {
             id: 'no-cover',
             name: 'Without Cover',
-            component: <InlineArticleDetail showCover={false} />,
-            usageCode: `<InlineArticleDetail showCover={false} />`
+            component: <PostDetail showCover={false} />,
+            usageCode: `<PostDetail showCover={false} />`
           }
         ]
       }
