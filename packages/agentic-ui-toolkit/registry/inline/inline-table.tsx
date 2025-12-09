@@ -211,7 +211,7 @@ export function InlineTable<T extends Record<string, unknown>>({
 
   const formatNumber = (value: unknown): string => {
     if (typeof value === 'number') {
-      return value.toLocaleString()
+      return new Intl.NumberFormat('en-US').format(value)
     }
     return String(value ?? '')
   }

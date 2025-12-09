@@ -57,12 +57,12 @@ export function InlineStats({ stats = defaultStats }: InlineStatsProps) {
               <span className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</span>
               {stat.icon}
             </div>
-            <div className="flex items-baseline gap-1 sm:gap-2">
+            <div className="flex flex-wrap items-baseline gap-1 sm:gap-2">
               <span className="text-base sm:text-xl font-bold">{stat.value}</span>
               {stat.change !== undefined && (
                 <span
                   className={cn(
-                    "flex items-center gap-0.5 text-[10px] sm:text-xs font-medium",
+                    "flex items-center gap-0.5 text-[10px] sm:text-xs font-medium shrink-0",
                     getTrendColor(stat.trend)
                   )}
                 >

@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ChevronRight, Github } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 
 function DiscordIcon({ className }: { className?: string }) {
   return (
@@ -76,7 +76,6 @@ function TikTokIcon({ className }: { className?: string }) {
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
 import {
   InlineArticleDetail,
-  InlineBlogExcerptCard,
   InlineBlogPostCarousel,
   InlineBlogPostGrid,
   InlineBlogPostList,
@@ -98,11 +97,7 @@ import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
 import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
 import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
-import {
-  InlineProductHorizontal,
-  InlineProductHorizontalCarousel,
-  InlineProductHorizontalGrid
-} from '@/registry/inline/inline-product-horizontal'
+import { InlineProductHorizontal } from '@/registry/inline/inline-product-horizontal'
 import { InlineProductTable } from '@/registry/inline/inline-product-table'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
@@ -120,10 +115,9 @@ import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
 // UI components
-import { CodeBlock } from '@/components/blocks/code-block'
 import { GettingStarted } from '@/components/blocks/getting-started'
-import { InstallCommands } from '@/components/blocks/install-commands'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { VariantSection } from '@/components/blocks/variant-section'
+
 // Wrapper component for Table Multi Select with action buttons
 function TableMultiSelectWithActions() {
   const [selectedCount, setSelectedCount] = useState(0)
@@ -146,108 +140,162 @@ function TableMultiSelectWithActions() {
   )
 }
 
-interface BlockItem {
+// Types for the new structure
+interface BlockVariant {
   id: string
   name: string
   component: React.ReactNode
-  padding?: 'none' | 'sm' | 'md' | 'lg'
-  registryName?: string // Name in the registry for install command
+}
+
+interface BlockGroup {
+  id: string
+  name: string
+  description: string
+  registryName: string
+  variants: BlockVariant[]
 }
 
 interface Category {
   id: string
   name: string
-  blocks: BlockItem[]
+  blocks: BlockGroup[]
 }
 
 const categories: Category[] = [
   {
     id: 'blog',
-    name: 'Blog & Articles',
+    name: 'Blogging',
     blocks: [
       {
-        id: 'blog-post-card',
+        id: 'post-card',
         name: 'Post Card',
-        component: <InlineBlogPostCard />,
-        padding: 'none',
-        registryName: 'inline-blog-post-card'
+        description: 'Display blog posts with various layouts and styles',
+        registryName: 'inline-blog-post-card',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineBlogPostCard />
+          },
+          {
+            id: 'no-image',
+            name: 'Without Image',
+            component: <InlineBlogPostCard showImage={false} />
+          },
+          {
+            id: 'compact',
+            name: 'Compact',
+            component: <InlineBlogPostCard variant="compact" />
+          },
+          {
+            id: 'horizontal',
+            name: 'Horizontal',
+            component: <InlineBlogPostCard variant="horizontal" />
+          },
+          {
+            id: 'covered',
+            name: 'Covered',
+            component: <InlineFeaturedArticle />
+          }
+        ]
       },
       {
-        id: 'blog-post-card-no-image',
-        name: 'Post Card (No Image)',
-        component: <InlineBlogPostCard showImage={false} />,
-        padding: 'none',
-        registryName: 'inline-blog-post-card'
-      },
-      {
-        id: 'blog-post-card-compact',
-        name: 'Post Card (Compact)',
-        component: <InlineBlogPostCard variant="compact" />,
-        padding: 'none',
-        registryName: 'inline-blog-post-card'
-      },
-      {
-        id: 'blog-post-card-horizontal',
-        name: 'Post Card (Horizontal)',
-        component: <InlineBlogPostCard variant="horizontal" />,
-        padding: 'none',
-        registryName: 'inline-blog-post-card'
-      },
-      {
-        id: 'blog-post-list',
+        id: 'post-list',
         name: 'Post List',
-        component: <InlineBlogPostList />,
-        padding: 'md',
-        registryName: 'inline-blog-post-list'
+        description: 'Display multiple posts in various layouts',
+        registryName: 'inline-blog',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineBlogPostList />
+          },
+          {
+            id: 'grid',
+            name: 'Grid',
+            component: <InlineBlogPostGrid />
+          },
+          {
+            id: 'carousel',
+            name: 'Carousel',
+            component: <InlineBlogPostCarousel />
+          }
+        ]
       },
       {
-        id: 'blog-post-grid',
-        name: 'Post Grid',
-        component: <InlineBlogPostGrid />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-grid'
+        id: 'post-detail',
+        name: 'Post Detail',
+        description: 'Full article view with cover and content',
+        registryName: 'inline-blog',
+        variants: [
+          {
+            id: 'default',
+            name: 'With Cover',
+            component: <InlineArticleDetail />
+          },
+          {
+            id: 'no-cover',
+            name: 'Without Cover',
+            component: <InlineArticleDetail showCover={false} />
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'data',
+    name: 'List',
+    blocks: [
+      {
+        id: 'table',
+        name: 'Table',
+        description: 'Data table with optional selection',
+        registryName: 'inline-table',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineTable />
+          },
+          {
+            id: 'single-select',
+            name: 'Single Select',
+            component: <InlineTable selectable="single" />
+          },
+          {
+            id: 'multi-select',
+            name: 'Multi Select',
+            component: <TableMultiSelectWithActions />
+          }
+        ]
       },
       {
-        id: 'blog-post-grid-3col',
-        name: 'Post Grid (3 Columns)',
-        component: <InlineBlogPostGrid columns={3} />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-grid'
-      },
-      {
-        id: 'blog-post-carousel',
-        name: 'Post Carousel',
-        component: <InlineBlogPostCarousel />,
-        padding: 'lg',
-        registryName: 'inline-blog-post-carousel'
-      },
-      {
-        id: 'blog-excerpt-card',
-        name: 'Excerpt Card',
-        component: <InlineBlogExcerptCard />,
-        padding: 'none',
-        registryName: 'inline-blog-excerpt-card'
-      },
-      {
-        id: 'article-detail',
-        name: 'Article Detail',
-        component: <InlineArticleDetail />,
-        padding: 'none',
-        registryName: 'inline-article-detail'
-      },
-      {
-        id: 'article-detail-no-cover',
-        name: 'Article Detail (No Cover)',
-        component: <InlineArticleDetail showCover={false} />,
-        padding: 'none',
-        registryName: 'inline-article-detail'
-      },
-      {
-        id: 'featured-article',
-        name: 'Featured Article',
-        component: <InlineFeaturedArticle />,
-        padding: 'none',
-        registryName: 'inline-featured-article'
+        id: 'product-list',
+        name: 'Product List',
+        description: 'Display products in various layouts',
+        registryName: 'inline-product-grid',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineProductHorizontal />
+          },
+          {
+            id: 'grid',
+            name: 'Grid',
+            component: <InlineProductGrid columns={4} />
+          },
+          {
+            id: 'carousel',
+            name: 'Carousel',
+            component: <InlineProductCarousel />
+          },
+          {
+            id: 'picker',
+            name: 'Picker',
+            component: <InlineProductTable />
+          }
+        ]
       }
     ]
   },
@@ -258,189 +306,80 @@ const categories: Category[] = [
       {
         id: 'order-confirm',
         name: 'Order Confirmation',
-        component: <InlineOrderConfirm />,
-        padding: 'none',
-        registryName: 'inline-order-confirm'
+        description: 'Display order summary before payment',
+        registryName: 'inline-order-confirm',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineOrderConfirm />
+          }
+        ]
       },
       {
         id: 'payment-methods',
         name: 'Payment Methods',
-        component: <InlinePaymentMethods />,
-        padding: 'sm',
-        registryName: 'inline-payment-methods'
+        description: 'Select payment method',
+        registryName: 'inline-payment-methods',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlinePaymentMethods />
+          }
+        ]
       },
       {
         id: 'card-form',
-        name: 'Card Form',
-        component: <InlineCardForm />,
-        padding: 'none',
-        registryName: 'inline-card-form'
+        name: 'Bank Card Form',
+        description: 'Credit card input form',
+        registryName: 'inline-card-form',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineCardForm />
+          }
+        ]
       },
       {
         id: 'amount-input',
         name: 'Amount Input',
-        component: <InlineAmountInput />,
-        padding: 'sm',
-        registryName: 'inline-amount-input'
+        description: 'Input for monetary amounts',
+        registryName: 'inline-amount-input',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineAmountInput />
+          }
+        ]
       },
       {
         id: 'payment-success',
         name: 'Payment Success',
-        component: <InlinePaymentSuccessCompact />,
-        padding: 'none',
-        registryName: 'inline-payment-success'
+        description: 'Success confirmation after payment',
+        registryName: 'inline-payment-success',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlinePaymentSuccessCompact />
+          }
+        ]
       },
       {
         id: 'payment-confirmed',
-        name: 'Payment Confirmed',
-        component: <InlinePaymentConfirmed />,
-        padding: 'none',
-        registryName: 'inline-payment-confirmed'
-      }
-    ]
-  },
-  {
-    id: 'products',
-    name: 'Products',
-    blocks: [
-      {
-        id: 'product-grid',
-        name: 'Product Grid',
-        component: <InlineProductGrid columns={4} />,
-        padding: 'lg',
-        registryName: 'inline-product-grid'
-      },
-      {
-        id: 'product-carousel',
-        name: 'Product Carousel',
-        component: <InlineProductCarousel />,
-        padding: 'lg',
-        registryName: 'inline-product-carousel'
-      },
-      {
-        id: 'product-horizontal',
-        name: 'Product Horizontal',
-        component: <InlineProductHorizontal />,
-        padding: 'lg',
-        registryName: 'inline-product-horizontal'
-      },
-      {
-        id: 'product-horizontal-grid',
-        name: 'Product Horizontal Grid',
-        component: <InlineProductHorizontalGrid />,
-        padding: 'lg',
-        registryName: 'inline-product-horizontal-grid'
-      },
-      {
-        id: 'product-horizontal-carousel',
-        name: 'Product Horizontal Carousel',
-        component: <InlineProductHorizontalCarousel />,
-        padding: 'lg',
-        registryName: 'inline-product-horizontal-carousel'
-      },
-      {
-        id: 'product-picker',
-        name: 'Product Picker',
-        component: <InlineProductTable />,
-        padding: 'sm',
-        registryName: 'inline-product-table'
-      }
-    ]
-  },
-  {
-    id: 'selection',
-    name: 'Selection',
-    blocks: [
-      {
-        id: 'option-list',
-        name: 'Option List',
-        component: <InlineOptionList />,
-        padding: 'lg',
-        registryName: 'inline-option-list'
-      },
-      {
-        id: 'card-selection',
-        name: 'Card Selection',
-        component: <InlineSelectList />,
-        padding: 'lg',
-        registryName: 'inline-select-list'
-      },
-      {
-        id: 'multi-card-selection',
-        name: 'Multi Card Selection',
-        component: <InlineSelectList mode="multi" showConfirm />,
-        padding: 'lg',
-        registryName: 'inline-select-list'
-      },
-      {
-        id: 'tag-selection',
-        name: 'Tag Selection',
-        component: <InlineTagSelect />,
-        padding: 'lg',
-        registryName: 'inline-tag-select'
-      },
-      {
-        id: 'quick-reply',
-        name: 'Quick Reply',
-        component: <InlineQuickReply />,
-        padding: 'lg',
-        registryName: 'inline-quick-reply'
-      }
-    ]
-  },
-  {
-    id: 'status',
-    name: 'Status & Progress',
-    blocks: [
-      {
-        id: 'progress-steps',
-        name: 'Progress Steps',
-        component: <InlineProgressSteps />,
-        padding: 'lg',
-        registryName: 'inline-progress-steps'
-      },
-      {
-        id: 'status-badges',
-        name: 'Status Badges',
-        padding: 'lg',
-        registryName: 'inline-status-badge',
-        component: (
-          <div className="flex flex-wrap gap-2">
-            <InlineStatusBadge status="success" />
-            <InlineStatusBadge status="pending" />
-            <InlineStatusBadge status="processing" />
-            <InlineStatusBadge status="shipped" />
-            <InlineStatusBadge status="delivered" />
-            <InlineStatusBadge status="error" />
-          </div>
-        )
-      }
-    ]
-  },
-  {
-    id: 'data',
-    name: 'Lists & Tables',
-    blocks: [
-      {
-        id: 'table',
-        name: 'Table',
-        component: <InlineTable />,
-        padding: 'sm',
-        registryName: 'inline-table'
-      },
-      {
-        id: 'table-single-select',
-        name: 'Table Single Select',
-        component: <InlineTable selectable="single" />,
-        padding: 'sm',
-        registryName: 'inline-table'
-      },
-      {
-        id: 'table-multi-select',
-        name: 'Table Multi Select',
-        component: <TableMultiSelectWithActions />,
-        padding: 'sm',
-        registryName: 'inline-table'
+        name: 'Payment Confirmation',
+        description: 'Detailed payment confirmation',
+        registryName: 'inline-payment-confirmed',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlinePaymentConfirmed />
+          }
+        ]
       }
     ]
   },
@@ -451,129 +390,99 @@ const categories: Category[] = [
       {
         id: 'message-bubble',
         name: 'Message Bubble',
-        component: (
-          <div className="space-y-3">
-            <InlineMessageBubble
-              content="Hey! How are you doing today?"
-              avatar="S"
-              time="10:30 AM"
-            />
-            <InlineMessageBubble
-              content="I'm doing great, thanks for asking! 😊"
-              avatar="Y"
-              time="10:31 AM"
-              isOwn
-              status="read"
-            />
-          </div>
-        ),
-        padding: 'lg',
-        registryName: 'inline-message-bubble'
-      },
-      {
-        id: 'image-message',
-        name: 'Image Message',
-        component: (
-          <div className="space-y-3">
-            <InlineImageMessageBubble
-              image="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop"
-              caption="Check out this view!"
-              avatar="A"
-              time="2:45 PM"
-            />
-            <InlineImageMessageBubble
-              image="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop"
-              time="2:46 PM"
-              isOwn
-              status="delivered"
-            />
-          </div>
-        ),
-        padding: 'lg',
-        registryName: 'inline-message-bubble'
+        description: 'Chat message bubbles',
+        registryName: 'inline-message-bubble',
+        variants: [
+          {
+            id: 'default',
+            name: 'Text Messages',
+            component: (
+              <div className="space-y-3">
+                <InlineMessageBubble
+                  content="Hey! How are you doing today?"
+                  avatar="S"
+                  time="Dec 8, 10:30 AM"
+                />
+                <InlineMessageBubble
+                  content="I'm doing great, thanks for asking!"
+                  avatar="Y"
+                  time="Dec 8, 10:31 AM"
+                  isOwn
+                  status="read"
+                />
+              </div>
+            )
+          },
+          {
+            id: 'image',
+            name: 'Image Messages',
+            component: (
+              <div className="space-y-3">
+                <InlineImageMessageBubble
+                  image="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop"
+                  caption="Check out this view!"
+                  avatar="A"
+                  time="Dec 8, 2:45 PM"
+                />
+                <InlineImageMessageBubble
+                  image="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop"
+                  time="Dec 8, 2:46 PM"
+                  isOwn
+                  status="delivered"
+                />
+              </div>
+            )
+          },
+          {
+            id: 'reactions',
+            name: 'With Reactions',
+            component: (
+              <InlineMessageWithReactions
+                content="We just hit 10,000 users!"
+                avatar="T"
+                time="Dec 8, 4:20 PM"
+                reactions={[
+                  { emoji: '🎉', count: 5 },
+                  { emoji: '❤️', count: 3 },
+                  { emoji: '👏', count: 2 }
+                ]}
+              />
+            )
+          },
+          {
+            id: 'voice',
+            name: 'Voice Messages',
+            component: (
+              <div className="space-y-3">
+                <InlineVoiceMessageBubble
+                  duration="0:42"
+                  avatar="M"
+                  time="Dec 8, 3:15 PM"
+                />
+                <InlineVoiceMessageBubble
+                  duration="1:23"
+                  avatar="Y"
+                  time="Dec 8, 3:17 PM"
+                  isOwn
+                  status="read"
+                />
+              </div>
+            )
+          }
+        ]
       },
       {
         id: 'chat-conversation',
         name: 'Chat Conversation',
-        component: <InlineChatConversation />,
-        padding: 'none',
-        registryName: 'inline-message-bubble'
-      },
-      {
-        id: 'message-reactions',
-        name: 'Message with Reactions',
-        component: (
-          <div className="space-y-6">
-            <InlineMessageWithReactions
-              content="We just hit 10,000 users! 🎉"
-              avatar="T"
-              time="4:20 PM"
-              reactions={[
-                { emoji: '🎉', count: 5 },
-                { emoji: '❤️', count: 3 },
-                { emoji: '👏', count: 2 }
-              ]}
-            />
-          </div>
-        ),
-        padding: 'lg',
-        registryName: 'inline-message-bubble'
-      },
-      {
-        id: 'voice-message',
-        name: 'Voice Message',
-        component: (
-          <div className="space-y-3">
-            <InlineVoiceMessageBubble
-              duration="0:42"
-              avatar="M"
-              time="3:15 PM"
-            />
-            <InlineVoiceMessageBubble
-              duration="1:23"
-              avatar="Y"
-              time="3:17 PM"
-              isOwn
-              status="read"
-            />
-          </div>
-        ),
-        padding: 'lg',
-        registryName: 'inline-message-bubble'
-      }
-    ]
-  },
-  {
-    id: 'social',
-    name: 'Social Posts',
-    blocks: [
-      {
-        id: 'x-post',
-        name: 'X Post',
-        component: <InlineXPost />,
-        padding: 'none',
-        registryName: 'inline-social-cards'
-      },
-      {
-        id: 'instagram-post',
-        name: 'Instagram Post',
-        component: <InlineInstagramPost />,
-        padding: 'lg',
-        registryName: 'inline-social-cards'
-      },
-      {
-        id: 'linkedin-post',
-        name: 'LinkedIn Post',
-        component: <InlineLinkedInPost />,
-        padding: 'lg',
-        registryName: 'inline-social-cards'
-      },
-      {
-        id: 'youtube-post',
-        name: 'YouTube Post',
-        component: <InlineYouTubePost />,
-        padding: 'lg',
-        registryName: 'inline-social-cards'
+        description: 'Full chat conversation view',
+        registryName: 'inline-message-bubble',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineChatConversation />
+          }
+        ]
       }
     ]
   },
@@ -582,93 +491,125 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
+        id: 'selection',
+        name: 'Selection',
+        description: 'Various selection interfaces for user input',
+        registryName: 'inline-select-list',
+        variants: [
+          {
+            id: 'option-list',
+            name: 'Option List',
+            component: <InlineOptionList />
+          },
+          {
+            id: 'card-selection',
+            name: 'Card Selection',
+            component: <InlineSelectList mode="multi" showConfirm />
+          },
+          {
+            id: 'tag-selection',
+            name: 'Tag Selection',
+            component: <InlineTagSelect />
+          },
+          {
+            id: 'quick-reply',
+            name: 'Quick Reply',
+            component: <InlineQuickReply />
+          }
+        ]
+      },
+      {
+        id: 'social-posts',
+        name: 'Social Cards',
+        description: 'Social media post cards',
+        registryName: 'inline-social-cards',
+        variants: [
+          {
+            id: 'x',
+            name: 'X (Twitter)',
+            component: <InlineXPost />
+          },
+          {
+            id: 'instagram',
+            name: 'Instagram',
+            component: <InlineInstagramPost />
+          },
+          {
+            id: 'linkedin',
+            name: 'LinkedIn',
+            component: <InlineLinkedInPost />
+          },
+          {
+            id: 'youtube',
+            name: 'YouTube',
+            component: <InlineYouTubePost />
+          }
+        ]
+      },
+      {
+        id: 'status-badges',
+        name: 'Status Badge',
+        description: 'Various status indicators',
+        registryName: 'inline-status-badge',
+        variants: [
+          {
+            id: 'default',
+            name: 'All Statuses',
+            component: (
+              <div className="flex flex-wrap gap-2 bg-white p-4 rounded-md">
+                <InlineStatusBadge status="success" />
+                <InlineStatusBadge status="pending" />
+                <InlineStatusBadge status="processing" />
+                <InlineStatusBadge status="shipped" />
+                <InlineStatusBadge status="delivered" />
+                <InlineStatusBadge status="error" />
+              </div>
+            )
+          }
+        ]
+      },
+      {
+        id: 'progress-steps',
+        name: 'Progress Steps',
+        description: 'Step-by-step progress indicator',
+        registryName: 'inline-progress-steps',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineProgressSteps />
+          }
+        ]
+      },
+      {
         id: 'stats-cards',
         name: 'Stats Cards',
-        component: <InlineStats />,
-        padding: 'lg',
-        registryName: 'inline-stats'
+        description: 'Display statistics and metrics',
+        registryName: 'inline-stats',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineStats />
+          }
+        ]
       },
       {
         id: 'weather-widget',
         name: 'Weather Widget',
-        component: <WeatherWidget />,
-        padding: 'none',
-        registryName: 'weather-widget'
+        description: 'Weather information display',
+        registryName: 'weather-widget',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <WeatherWidget />
+          }
+        ]
       }
     ]
   }
 ]
-
-const getPaddingClass = (padding?: 'none' | 'sm' | 'md' | 'lg' | 'mobile') => {
-  switch (padding) {
-    case 'none':
-      return ''
-    case 'sm':
-      return 'p-1 sm:p-2'
-    case 'md':
-      return 'p-2 sm:p-4'
-    case 'mobile':
-      return 'p-2 sm:p-0'
-    case 'lg':
-    default:
-      return 'p-2 sm:p-4'
-  }
-}
-
-function CodeViewer({ registryName }: { registryName: string }) {
-  const [code, setCode] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function fetchCode() {
-      setLoading(true)
-      setError(null)
-      try {
-        const response = await fetch(`/r/${registryName}.json`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch component')
-        }
-        const data = await response.json()
-        const content = data.files?.[0]?.content
-        if (content) {
-          setCode(content)
-        } else {
-          setError('No source code available')
-        }
-      } catch {
-        setError('Failed to load source code')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchCode()
-  }, [registryName])
-
-  if (loading) {
-    return (
-      <div className="rounded-lg bg-muted p-4 animate-pulse min-h-[500px]">
-        <div className="h-4 bg-muted-foreground/20 rounded w-3/4 mb-2" />
-        <div className="h-4 bg-muted-foreground/20 rounded w-1/2 mb-2" />
-        <div className="h-4 bg-muted-foreground/20 rounded w-2/3" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-lg bg-muted p-4 text-muted-foreground text-sm">
-        {error}
-      </div>
-    )
-  }
-
-  return (
-    <div className="max-h-[500px] overflow-y-auto rounded-lg">
-      <CodeBlock code={code || ''} language="tsx" />
-    </div>
-  )
-}
 
 function BlocksContent() {
   const searchParams = useSearchParams()
@@ -686,7 +627,7 @@ function BlocksContent() {
     )
   }
 
-  // Find the selected block
+  // Find the selected block group
   const selectedBlock = blockId
     ? categories.flatMap((c) => c.blocks).find((b) => b.id === blockId)
     : null
@@ -722,7 +663,7 @@ function BlocksContent() {
                 />
               </button>
               {expandedCategories.includes(category.id) && (
-                <div className=" mt-0.5 space-y-0 mb-4 ">
+                <div className="mt-0.5 space-y-0 mb-4">
                   {category.blocks.map((block) => (
                     <Link
                       key={block.id}
@@ -742,110 +683,29 @@ function BlocksContent() {
             </div>
           ))}
         </nav>
-
-        {/* Social Links */}
-        <div className="pt-6 border-t mt-6">
-          <div className="flex items-center gap-1 flex-wrap">
-            <Link
-              href="https://github.com/mnfst/manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <Github className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://discord.gg/manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <DiscordIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://x.com/AiManifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <XIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://linkedin.com/company/mnfst"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <LinkedInIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://instagram.com/manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <InstagramIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://tiktok.com/@manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <TikTokIcon className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
       </aside>
 
       {/* Main content */}
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         {selectedBlock ? (
-          <div className="max-w-3xl mx-auto space-y-6">
-            {/* 1. Title */}
+          <div className="max-w-3xl mx-auto space-y-12">
+            {/* Block Title */}
             <div>
               <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
               <p className="text-muted-foreground mt-1">
-                Preview of the {selectedBlock.name} component
+                {selectedBlock.description}
               </p>
             </div>
 
-            {/* 2. Preview / Code Tabs */}
-            <Tabs defaultValue="preview" className="w-full">
-              <TabsList>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-                <TabsTrigger value="code">Code</TabsTrigger>
-              </TabsList>
-              <TabsContent value="preview">
-                <div
-                  className={cn(
-                    'rounded-lg bg-card',
-                    getPaddingClass(selectedBlock.padding)
-                  )}
-                >
-                  {selectedBlock.component}
-                </div>
-              </TabsContent>
-              <TabsContent value="code">
-                {selectedBlock.registryName ? (
-                  <CodeViewer registryName={selectedBlock.registryName} />
-                ) : (
-                  <div className="rounded-lg bg-muted p-4 text-muted-foreground text-sm">
-                    No source code available for this component
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-
-            {/* 3. Install Commands in white container */}
-            {selectedBlock.registryName && (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">Installation</h2>
-                <div className="rounded-lg bg-card p-3">
-                  <InstallCommands componentName={selectedBlock.registryName} />
-                </div>
-              </div>
-            )}
+            {/* All Variants */}
+            {selectedBlock.variants.map((variant) => (
+              <VariantSection
+                key={variant.id}
+                name={variant.name}
+                component={variant.component}
+                registryName={selectedBlock.registryName}
+              />
+            ))}
           </div>
         ) : (
           <GettingStarted />

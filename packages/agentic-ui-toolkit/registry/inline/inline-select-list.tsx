@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useState, useCallback, useRef, useEffect } from "react"
-import { Check, ChevronRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Check, ChevronRight } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export interface SelectOption {
   id: string
@@ -23,7 +23,7 @@ export interface InlineSelectListProps {
   options?: SelectOption[] | SelectOptionGroup[]
   value?: string | string[]
   onChange?: (value: string | string[], selectedOptions: SelectOption[]) => void
-  mode?: "single" | "multi"
+  mode?: 'single' | 'multi'
   showConfirm?: boolean
   confirmLabel?: string
   compact?: boolean
@@ -33,48 +33,67 @@ export interface InlineSelectListProps {
 
 const defaultOptions: SelectOption[] = [
   {
-    id: "standard",
-    label: "Standard shipping",
-    description: "3-5 business days",
-    badge: "Free",
+    id: 'standard',
+    label: 'Standard shipping',
+    description: '3-5 business days',
+    badge: 'Free'
   },
   {
-    id: "express",
-    label: "Express shipping",
-    description: "1-2 business days",
-    badge: "$9.99",
+    id: 'express',
+    label: 'Express shipping',
+    description: '1-2 business days',
+    badge: '$9.99'
   },
   {
-    id: "overnight",
-    label: "Overnight shipping",
-    description: "Next business day",
-    badge: "$19.99",
-  },
+    id: 'overnight',
+    label: 'Overnight shipping',
+    description: 'Next business day',
+    badge: '$19.99'
+  }
 ]
 
 const defaultGroupedOptions: SelectOptionGroup[] = [
   {
-    group: "Delivery",
+    group: 'Delivery',
     items: [
-      { id: "standard", label: "Standard shipping", description: "3-5 business days", badge: "Free" },
-      { id: "express", label: "Express shipping", description: "1-2 business days", badge: "$9.99" },
-      { id: "overnight", label: "Overnight shipping", description: "Next day", badge: "$19.99" },
-    ],
+      {
+        id: 'standard',
+        label: 'Standard shipping',
+        description: '3-5 business days',
+        badge: 'Free'
+      },
+      {
+        id: 'express',
+        label: 'Express shipping',
+        description: '1-2 business days',
+        badge: '$9.99'
+      },
+      {
+        id: 'overnight',
+        label: 'Overnight shipping',
+        description: 'Next day',
+        badge: '$19.99'
+      }
+    ]
   },
   {
-    group: "Pickup",
+    group: 'Pickup',
     items: [
-      { id: "store", label: "Store pickup", description: "Available in 2h" },
-      { id: "locker", label: "Parcel locker", description: "24/7 access" },
-    ],
-  },
+      { id: 'store', label: 'Store pickup', description: 'Available in 2h' },
+      { id: 'locker', label: 'Parcel locker', description: '24/7 access' }
+    ]
+  }
 ]
 
-function isGroupedOptions(options: SelectOption[] | SelectOptionGroup[]): options is SelectOptionGroup[] {
-  return options.length > 0 && "group" in options[0]
+function isGroupedOptions(
+  options: SelectOption[] | SelectOptionGroup[]
+): options is SelectOptionGroup[] {
+  return options.length > 0 && 'group' in options[0]
 }
 
-function flattenOptions(options: SelectOption[] | SelectOptionGroup[]): SelectOption[] {
+function flattenOptions(
+  options: SelectOption[] | SelectOptionGroup[]
+): SelectOption[] {
   if (isGroupedOptions(options)) {
     return options.flatMap((group) => group.items)
   }
@@ -85,14 +104,15 @@ export function InlineSelectList({
   options,
   value,
   onChange,
-  mode = "single",
+  mode = 'single',
   showConfirm = false,
-  confirmLabel = "Confirm selection",
+  confirmLabel = 'Confirm selection',
   compact = false,
   grouped = false,
-  emptyMessage = "No options available",
+  emptyMessage = 'No options available'
 }: InlineSelectListProps) {
-  const resolvedOptions = options ?? (grouped ? defaultGroupedOptions : defaultOptions)
+  const resolvedOptions =
+    options ?? (grouped ? defaultGroupedOptions : defaultOptions)
   const flatOptions = flattenOptions(resolvedOptions)
 
   const [internalValue, setInternalValue] = useState<string[]>(() => {
@@ -103,11 +123,19 @@ export function InlineSelectList({
   const [pendingSelection, setPendingSelection] = useState<string[]>([])
   const listRef = useRef<HTMLDivElement>(null)
 
-  const selectedIds = value !== undefined
-    ? (Array.isArray(value) ? value : [value])
-    : (showConfirm && mode === "multi" ? pendingSelection : internalValue)
+  const selectedIds =
+    value !== undefined
+      ? Array.isArray(value)
+        ? value
+        : [value]
+      : showConfirm && mode === 'multi'
+      ? pendingSelection
+      : internalValue
 
-  const isSelected = useCallback((id: string) => selectedIds.includes(id), [selectedIds])
+  const isSelected = useCallback(
+    (id: string) => selectedIds.includes(id),
+    [selectedIds]
+  )
 
   const handleSelect = useCallback(
     (option: SelectOption) => {
@@ -115,7 +143,7 @@ export function InlineSelectList({
 
       let newValue: string[]
 
-      if (mode === "single") {
+      if (mode === 'single') {
         newValue = [option.id]
       } else {
         if (selectedIds.includes(option.id)) {
@@ -125,12 +153,12 @@ export function InlineSelectList({
         }
       }
 
-      if (showConfirm && mode === "multi") {
+      if (showConfirm && mode === 'multi') {
         setPendingSelection(newValue)
       } else {
         setInternalValue(newValue)
         const selected = flatOptions.filter((o) => newValue.includes(o.id))
-        onChange?.(mode === "single" ? newValue[0] : newValue, selected)
+        onChange?.(mode === 'single' ? newValue[0] : newValue, selected)
       }
     },
     [mode, selectedIds, showConfirm, flatOptions, onChange]
@@ -148,32 +176,34 @@ export function InlineSelectList({
       const enabledIndices = enabledOptions.map((o) => flatOptions.indexOf(o))
 
       switch (e.key) {
-        case "ArrowDown":
+        case 'ArrowDown':
           e.preventDefault()
           setFocusedIndex((prev) => {
             const currentPos = enabledIndices.indexOf(prev)
-            const nextPos = currentPos < enabledIndices.length - 1 ? currentPos + 1 : 0
+            const nextPos =
+              currentPos < enabledIndices.length - 1 ? currentPos + 1 : 0
             return enabledIndices[nextPos] ?? -1
           })
           break
-        case "ArrowUp":
+        case 'ArrowUp':
           e.preventDefault()
           setFocusedIndex((prev) => {
             const currentPos = enabledIndices.indexOf(prev)
-            const nextPos = currentPos > 0 ? currentPos - 1 : enabledIndices.length - 1
+            const nextPos =
+              currentPos > 0 ? currentPos - 1 : enabledIndices.length - 1
             return enabledIndices[nextPos] ?? -1
           })
           break
-        case "Enter":
-        case " ":
+        case 'Enter':
+        case ' ':
           e.preventDefault()
           if (focusedIndex >= 0 && flatOptions[focusedIndex]) {
             handleSelect(flatOptions[focusedIndex])
           }
           break
-        case "Escape":
+        case 'Escape':
           e.preventDefault()
-          if (mode === "multi") {
+          if (mode === 'multi') {
             setPendingSelection([])
             setInternalValue([])
             onChange?.([], [])
@@ -187,7 +217,7 @@ export function InlineSelectList({
   useEffect(() => {
     if (focusedIndex >= 0 && listRef.current) {
       const items = listRef.current.querySelectorAll('[role="option"]')
-      items[focusedIndex]?.scrollIntoView({ block: "nearest" })
+      items[focusedIndex]?.scrollIntoView({ block: 'nearest' })
     }
   }, [focusedIndex])
 
@@ -206,22 +236,22 @@ export function InlineSelectList({
         onMouseEnter={() => setFocusedIndex(index)}
         disabled={option.disabled}
         className={cn(
-          "w-full flex items-center gap-3 rounded-md sm:rounded-lg border text-left transition-all",
-          compact ? "p-2" : "p-3",
+          'w-full flex items-center gap-3 rounded-md sm:rounded-lg border text-left transition-all',
+          compact ? 'p-2' : 'p-3',
           selected
-            ? "border-foreground bg-card ring-1 ring-foreground"
-            : "border-border bg-card hover:border-foreground/50",
-          focused && !selected && "border-foreground/50",
-          option.disabled && "opacity-50 cursor-not-allowed"
+            ? 'border-foreground bg-card ring-1 ring-foreground'
+            : 'border-border bg-card hover:border-foreground/50',
+          focused && !selected && 'border-foreground/50',
+          option.disabled && 'opacity-50 cursor-not-allowed'
         )}
       >
         {/* Selection indicator */}
         <div
           className={cn(
-            "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border transition-colors",
+            'flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border transition-colors',
             selected
-              ? "bg-foreground border-foreground text-background"
-              : "border-border"
+              ? 'bg-foreground border-foreground text-background'
+              : 'border-border'
           )}
         >
           {selected && <Check className="h-3 w-3" />}
@@ -229,22 +259,29 @@ export function InlineSelectList({
 
         {/* Icon */}
         {option.icon && (
-          <div className="flex-shrink-0 text-muted-foreground">{option.icon}</div>
+          <div className="flex-shrink-0 text-muted-foreground">
+            {option.icon}
+          </div>
         )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className={cn("font-medium truncate", compact ? "text-sm" : "text-sm")}>
+            <span
+              className={cn(
+                'font-medium truncate',
+                compact ? 'text-sm' : 'text-sm'
+              )}
+            >
               {option.label}
             </span>
             {option.badge && (
               <span
                 className={cn(
-                  "flex-shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded",
+                  'flex-shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded',
                   selected
-                    ? "bg-foreground/10 text-foreground"
-                    : "bg-muted text-muted-foreground"
+                    ? 'bg-foreground/10 text-foreground'
+                    : 'bg-muted text-muted-foreground'
                 )}
               >
                 {option.badge}
@@ -259,7 +296,7 @@ export function InlineSelectList({
         </div>
 
         {/* Arrow for single select */}
-        {mode === "single" && (
+        {mode === 'single' && (
           <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
         )}
       </button>
@@ -272,7 +309,7 @@ export function InlineSelectList({
     let globalIndex = 0
 
     return resolvedOptions.map((group, groupIndex) => (
-      <div key={groupIndex} className={groupIndex > 0 ? "mt-4" : ""}>
+      <div key={groupIndex} className={groupIndex > 0 ? 'mt-4' : ''}>
         <div className="text-xs font-medium text-muted-foreground mb-2 px-1">
           {group.group}
         </div>
@@ -309,31 +346,35 @@ export function InlineSelectList({
       <div
         ref={listRef}
         role="listbox"
-        aria-multiselectable={mode === "multi"}
+        aria-multiselectable={mode === 'multi'}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         className="outline-none"
       >
-        {isGroupedOptions(resolvedOptions) ? renderGroupedOptions() : renderFlatOptions()}
+        {isGroupedOptions(resolvedOptions)
+          ? renderGroupedOptions()
+          : renderFlatOptions()}
       </div>
 
       {/* Confirm button for multi-select */}
-      {showConfirm && mode === "multi" && (
-        <Button
-          onClick={handleConfirm}
-          disabled={pendingSelection.length === 0}
-          size="sm"
-          className="w-full"
-        >
-          {confirmLabel}
-          {pendingSelection.length > 0 && ` (${pendingSelection.length})`}
-        </Button>
+      {showConfirm && mode === 'multi' && (
+        <div className="flex justify-end">
+          <Button
+            onClick={handleConfirm}
+            disabled={pendingSelection.length === 0}
+            size="sm"
+          >
+            {confirmLabel}
+            {pendingSelection.length > 0 && ` (${pendingSelection.length})`}
+          </Button>
+        </div>
       )}
 
       {/* Selection summary for multi-select without confirm */}
-      {!showConfirm && mode === "multi" && selectedIds.length > 0 && (
+      {!showConfirm && mode === 'multi' && selectedIds.length > 0 && (
         <div className="text-xs text-muted-foreground text-center">
-          {selectedIds.length} item{selectedIds.length !== 1 ? "s" : ""} selected
+          {selectedIds.length} item{selectedIds.length !== 1 ? 's' : ''}{' '}
+          selected
         </div>
       )}
     </div>

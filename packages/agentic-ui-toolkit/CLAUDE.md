@@ -27,6 +27,7 @@ npm run lint
 ### Registry System
 
 The registry is defined in `registry.json` and uses the shadcn registry schema. Each registry item specifies:
+
 - `name`: Component identifier (used in `shadcn add <name>`)
 - `type`: Usually `registry:component`
 - `files`: Array of file paths with their types (`registry:component`, `registry:page`, `registry:lib`, `registry:hook`)
@@ -43,8 +44,9 @@ The registry is defined in `registry.json` and uses the shadcn registry schema. 
 ### Component Style
 
 Uses shadcn style with:
+
 - Tailwind CSS v4
-- CSS variables for theming
+- CSS variables for themingc'est ou dans la sepc qui tu dis
 - Lucide icons
 - Server Components enabled (RSC: true)
 

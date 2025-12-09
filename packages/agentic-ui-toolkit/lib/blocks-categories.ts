@@ -1,4 +1,5 @@
 // Shared block categories for sidebar navigation
+// Each block can have multiple variants displayed on the same page
 export interface BlockCategory {
   id: string
   name: string
@@ -8,19 +9,14 @@ export interface BlockCategory {
 export const blockCategories: BlockCategory[] = [
   {
     id: 'blog',
-    name: 'Blog & Articles',
+    name: 'Blogging',
     blocks: [
-      { id: 'blog-post-card', name: 'Post Card' },
-      { id: 'blog-post-card-no-image', name: 'Post Card (No Image)' },
-      { id: 'blog-post-card-compact', name: 'Post Card (Compact)' },
-      { id: 'blog-post-card-horizontal', name: 'Post Card (Horizontal)' },
-      { id: 'blog-post-list', name: 'Post List' },
-      { id: 'blog-post-grid', name: 'Post Grid' },
-      { id: 'blog-post-grid-3col', name: 'Post Grid (3 Columns)' },
-      { id: 'blog-post-carousel', name: 'Post Carousel' },
-      { id: 'blog-excerpt-card', name: 'Excerpt Card' },
+      { id: 'post-card', name: 'Post Card' },
+      { id: 'post-list', name: 'Post List' },
+      { id: 'post-grid', name: 'Post Grid' },
+      { id: 'post-carousel', name: 'Post Carousel' },
+      { id: 'excerpt-card', name: 'Excerpt Card' },
       { id: 'article-detail', name: 'Article Detail' },
-      { id: 'article-detail-no-cover', name: 'Article Detail (No Cover)' },
       { id: 'featured-article', name: 'Featured Article' }
     ]
   },
@@ -43,8 +39,6 @@ export const blockCategories: BlockCategory[] = [
       { id: 'product-grid', name: 'Product Grid' },
       { id: 'product-carousel', name: 'Product Carousel' },
       { id: 'product-horizontal', name: 'Product Horizontal' },
-      { id: 'product-horizontal-grid', name: 'Product Horizontal Grid' },
-      { id: 'product-horizontal-carousel', name: 'Product Horizontal Carousel' },
       { id: 'product-picker', name: 'Product Picker' }
     ]
   },
@@ -54,7 +48,6 @@ export const blockCategories: BlockCategory[] = [
     blocks: [
       { id: 'option-list', name: 'Option List' },
       { id: 'card-selection', name: 'Card Selection' },
-      { id: 'multi-card-selection', name: 'Multi Card Selection' },
       { id: 'tag-selection', name: 'Tag Selection' },
       { id: 'quick-reply', name: 'Quick Reply' }
     ]
@@ -70,32 +63,20 @@ export const blockCategories: BlockCategory[] = [
   {
     id: 'data',
     name: 'Lists & Tables',
-    blocks: [
-      { id: 'table', name: 'Table' },
-      { id: 'table-single-select', name: 'Table Single Select' },
-      { id: 'table-multi-select', name: 'Table Multi Select' }
-    ]
+    blocks: [{ id: 'table', name: 'Table' }]
   },
   {
     id: 'messaging',
     name: 'Messaging',
     blocks: [
       { id: 'message-bubble', name: 'Message Bubble' },
-      { id: 'image-message', name: 'Image Message' },
-      { id: 'chat-conversation', name: 'Chat Conversation' },
-      { id: 'message-reactions', name: 'Message with Reactions' },
-      { id: 'voice-message', name: 'Voice Message' }
+      { id: 'chat-conversation', name: 'Chat Conversation' }
     ]
   },
   {
     id: 'social',
     name: 'Social Posts',
-    blocks: [
-      { id: 'x-post', name: 'X Post' },
-      { id: 'instagram-post', name: 'Instagram Post' },
-      { id: 'linkedin-post', name: 'LinkedIn Post' },
-      { id: 'youtube-post', name: 'YouTube Post' }
-    ]
+    blocks: [{ id: 'social-posts', name: 'Social Posts' }]
   },
   {
     id: 'misc',

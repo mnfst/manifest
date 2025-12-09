@@ -62,7 +62,7 @@ export function InlineBlogPostCard({
 
   if (variant === 'horizontal') {
     return (
-      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+      <div className="test flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
         {showImage && post.coverImage && (
           <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
