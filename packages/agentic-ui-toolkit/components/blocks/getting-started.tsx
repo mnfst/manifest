@@ -83,9 +83,17 @@ export function GettingStarted() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Quick Start</h2>
         <p className="text-sm text-muted-foreground">
-          Make sure you have shadcn/ui initialized in your project. If not, run:
+          Make sure you have shadcn/ui initialized in your project. If not, see{' '}
+          <a
+            href="https://ui.shadcn.com/docs/installation"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-primary"
+          >
+            the shadcn/ui installation guide
+          </a>
+          .
         </p>
-        <CodeBlock code="npx shadcn@latest init" />
       </section>
 
       {/* Registry Configuration */}
