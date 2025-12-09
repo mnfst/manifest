@@ -62,57 +62,67 @@ Base path: `packages/agentic-ui-toolkit/`
 
 ---
 
-## Phase 4: User Story 2 - View Block Details with Live Preview (Priority: P1)
+## Phase 4: User Story 2 - View Block with All Variants (Priority: P1)
 
-**Goal**: Developers see a live, interactive preview of the selected block in an isolated container
+**Goal**: Developers see ALL variants of a block on a single page, each with its own Preview/Code tabs and install commands
 
-**Independent Test**: Select any block, verify preview renders and is interactive (clicks, hovers work)
+**Independent Test**: Select any block (e.g., Post Card), verify all variants display (Default, No Image, Compact, Horizontal), each with working tabs
 
 ### Implementation for User Story 2
 
-- [ ] T013 [P] [US2] Create BlockPreview component wrapper in components/blocks/block-preview.tsx
-- [ ] T014 [US2] Integrate BlockPreview into blocks page main content area in app/blocks/page.tsx
-- [ ] T015 [US2] Add block title and description display above preview in app/blocks/page.tsx
-- [ ] T016 [US2] Ensure preview adapts to light/dark theme in components/blocks/block-preview.tsx
-- [ ] T017 [US2] Add responsive preview container (full width on mobile) in components/blocks/block-preview.tsx
+- [ ] T013 [US2] Restructure block data to group variants under BlockGroup in app/blocks/page.tsx
+- [ ] T014 [P] [US2] Create VariantSection component in components/blocks/variant-section.tsx with:
+  - Variant name label
+  - Preview/Code tabs
+  - Install command inline with tabs
+  - Content area for preview or code
+- [ ] T015 [US2] Integrate VariantSection to display all variants on block page in app/blocks/page.tsx
+- [ ] T016 [US2] Ensure each variant has independent tab state (switching one doesn't affect others)
+- [ ] T017 [US2] Add block title and description at top of page in app/blocks/page.tsx
+- [ ] T018 [US2] Ensure previews render directly without wrapper containers (minimal UI)
+- [ ] T019 [US2] Ensure preview adapts to light/dark theme
 
-**Checkpoint**: User Story 2 complete - blocks display with live interactive preview
+**Checkpoint**: User Story 2 complete - blocks display with all variants, each with independent tabs
 
 ---
 
-## Phase 5: User Story 3 - Get Installation Instructions (Priority: P2)
+## Phase 5: User Story 3 - Get Installation Instructions per Variant (Priority: P2)
 
-**Goal**: Developers see clear installation command with one-click copy functionality
+**Goal**: Each variant section shows install commands for ALL 4 package managers (npx, pnpm, yarn, bunx)
 
-**Independent Test**: View any block page, find installation section, click copy, verify command copied
+**Independent Test**: View any variant, verify package manager selector shows 4 options, each generates correct command, copy works
 
 ### Implementation for User Story 3
 
-- [ ] T018 [P] [US3] Create BlockInstall component in components/blocks/block-install.tsx
-- [ ] T019 [US3] Display `npx shadcn add <block-name>` command with copy button in components/blocks/block-install.tsx
-- [ ] T020 [US3] Show dependencies list from registry.json in components/blocks/block-install.tsx
-- [ ] T021 [US3] Add visual feedback on copy (checkmark icon, brief animation) in components/blocks/block-install.tsx
-- [ ] T022 [US3] Integrate BlockInstall into blocks page below preview in app/blocks/page.tsx
+- [ ] T020 [P] [US3] Create InstallCommandInline component in components/blocks/install-command-inline.tsx
+- [ ] T021 [US3] Add package manager selector (npx, pnpm, yarn, bunx) with pill/chip style
+- [ ] T022 [US3] Generate correct command per package manager:
+  - npx: `npx shadcn@latest add @manifest/{name}`
+  - pnpm: `pnpm dlx shadcn@latest add @manifest/{name}`
+  - yarn: `npx shadcn@latest add @manifest/{name}`
+  - bunx: `bunx --bun shadcn@latest add @manifest/{name}`
+- [ ] T023 [US3] Add copy button with visual feedback (checkmark, brief animation)
+- [ ] T024 [US3] Integrate InstallCommandInline into VariantSection, inline with tabs
 
-**Checkpoint**: User Story 3 complete - installation commands copyable with one click
+**Checkpoint**: User Story 3 complete - install commands for all 4 package managers with one-click copy
 
 ---
 
-## Phase 6: User Story 4 - Learn Block Usage (Priority: P2)
+## Phase 6: User Story 4 - View Source Code per Variant (Priority: P2)
 
-**Goal**: Developers see usage examples with import statements and code snippets
+**Goal**: Each variant's "Code" tab shows source code with syntax highlighting and copy
 
-**Independent Test**: View any block page, scroll to usage section, verify code examples display and copy works
+**Independent Test**: Click Code tab on any variant, verify syntax-highlighted code displays, copy works
 
 ### Implementation for User Story 4
 
-- [ ] T023 [P] [US4] Create BlockUsage component in components/blocks/block-usage.tsx
-- [ ] T024 [US4] Generate import statement from block file path in components/blocks/block-usage.tsx
-- [ ] T025 [US4] Display basic usage code example in components/blocks/block-usage.tsx
-- [ ] T026 [US4] Add copy button to code examples using CodeBlock component in components/blocks/block-usage.tsx
-- [ ] T027 [US4] Integrate BlockUsage into blocks page below installation in app/blocks/page.tsx
+- [ ] T025 [P] [US4] Create CodeViewer component in components/blocks/code-viewer.tsx
+- [ ] T026 [US4] Fetch code from /r/{registryName}.json endpoint
+- [ ] T027 [US4] Display code with syntax highlighting using CodeBlock component
+- [ ] T028 [US4] Add copy button to code view
+- [ ] T029 [US4] Integrate CodeViewer into VariantSection's Code tab
 
-**Checkpoint**: User Story 4 complete - usage documentation with copyable code examples
+**Checkpoint**: User Story 4 complete - code view with syntax highlighting and copy
 
 ---
 
@@ -156,17 +166,18 @@ Base path: `packages/agentic-ui-toolkit/`
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
 - **User Stories (Phase 3-7)**: All depend on Foundational phase completion
-  - US1 and US2 are both P1 priority - can run in parallel
-  - US3 and US4 are both P2 priority - can run in parallel after US1/US2
-  - US5 is P3 priority - can run independently
+  - US1 (sidebar) must be done first
+  - US2 (variants display) depends on US1
+  - US3 (install commands) and US4 (code view) depend on US2's VariantSection
+  - US5 is completely independent (homepage)
 - **Polish (Phase 8)**: Depends on all user stories being complete
 
 ### User Story Dependencies
 
 - **User Story 1 (P1)**: Blocks page sidebar - foundation for all block browsing
-- **User Story 2 (P1)**: Block preview - can start in parallel with US1, uses same page
-- **User Story 3 (P2)**: Installation section - requires US1/US2 page structure
-- **User Story 4 (P2)**: Usage section - requires US1/US2 page structure
+- **User Story 2 (P1)**: Block variants display - requires US1 for navigation, creates VariantSection
+- **User Story 3 (P2)**: Install commands inline - requires US2's VariantSection component
+- **User Story 4 (P2)**: Code view - requires US2's VariantSection component
 - **User Story 5 (P3)**: Homepage - completely independent from blocks page
 
 ### Within Each User Story
@@ -192,8 +203,8 @@ T005: header.tsx
 ```
 
 **User Story phases**:
-- US1 and US2 can run in parallel (different aspects of blocks page)
-- US3 and US4 can run in parallel (different sections of block detail)
+- US1 then US2 (US2 depends on US1's page structure)
+- US3 and US4 can run in parallel (both integrate into VariantSection)
 - US5 is completely independent (homepage)
 
 ---
@@ -205,15 +216,15 @@ T005: header.tsx
 1. Complete Phase 1: Setup (T001-T003)
 2. Complete Phase 2: Foundational (T004-T006)
 3. Complete Phase 3: User Story 1 - Browse by Category (T007-T012)
-4. Complete Phase 4: User Story 2 - Live Preview (T013-T017)
-5. **STOP and VALIDATE**: Blocks page fully functional
+4. Complete Phase 4: User Story 2 - All Variants Display (T013-T019)
+5. **STOP and VALIDATE**: Blocks page shows all variants with Preview/Code tabs
 6. Deploy/demo if ready - MVP complete!
 
 ### Incremental Delivery
 
 1. Setup + Foundational → Foundation ready
-2. Add US1 + US2 → Blocks browsing complete → Deploy (MVP!)
-3. Add US3 + US4 → Installation & usage docs → Deploy
+2. Add US1 + US2 → Blocks browsing with all variants → Deploy (MVP!)
+3. Add US3 + US4 → Install commands (4 package managers) & code view → Deploy
 4. Add US5 → Homepage demos → Deploy
 5. Polish → Production ready → Deploy
 
@@ -224,12 +235,12 @@ T005: header.tsx
 | Setup | 3 | 3 |
 | Foundational | 3 | 2 |
 | US1: Browse | 6 | 1 |
-| US2: Preview | 5 | 1 |
+| US2: Variants | 7 | 1 |
 | US3: Install | 5 | 1 |
-| US4: Usage | 5 | 1 |
+| US4: Code | 5 | 1 |
 | US5: Homepage | 6 | 1 |
 | Polish | 7 | 3 |
-| **Total** | **40** | **13** |
+| **Total** | **42** | **13** |
 
 ---
 

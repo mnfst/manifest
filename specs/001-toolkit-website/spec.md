@@ -24,51 +24,59 @@ A developer visits the Agentic UI Toolkit website to explore available blocks. T
 
 ---
 
-### User Story 2 - View block Details with Live Preview (Priority: P1)
+### User Story 2 - View Block with All Variants (Priority: P1)
 
-A developer selects a block from the sidebar to understand what it looks like and how it behaves. They see a live preview of the block rendered in an isolated container, allowing them to interact with it and observe its states.
+A developer selects a block from the sidebar to understand what it looks like and how it behaves. They see **all variants** of the block on a single page (e.g., "Post Card" shows Default, No Image, Compact, and Horizontal variants). Each variant has its own preview, code view, and install command.
 
-**Why this priority**: Visual preview is essential for developers to evaluate if a block fits their needs before investing time in installation and implementation.
+**Why this priority**: Visual preview of all variants is essential for developers to evaluate which configuration fits their needs before investing time in installation.
 
-**Independent Test**: Can be tested by selecting any block and verifying the preview renders correctly with interactive functionality.
+**Independent Test**: Can be tested by selecting any block and verifying all variants render correctly with their individual previews and controls.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user selects a block, **When** the block page loads, **Then** a live preview of the block is displayed in an isolated container
-2. **Given** a block has interactive elements, **When** the user interacts with them, **Then** the block responds appropriately (selections, hover states, etc.)
-3. **Given** a block supports light and dark themes, **When** displayed, **Then** it adapts to the current site theme
+1. **Given** a user selects a block, **When** the block page loads, **Then** they see all variants of that block listed vertically on the page
+2. **Given** a block has multiple variants (e.g., Default, No Image, Compact), **When** viewing the page, **Then** each variant is displayed with its own section containing preview and code tabs
+3. **Given** a variant section is displayed, **When** the user clicks "Preview" tab, **Then** the live component is shown
+4. **Given** a variant section is displayed, **When** the user clicks "Code" tab, **Then** the source code with syntax highlighting is shown
+5. **Given** a block has interactive elements, **When** the user interacts with them, **Then** the block responds appropriately (selections, hover states, etc.)
+6. **Given** a block supports light and dark themes, **When** displayed, **Then** it adapts to the current site theme
 
 ---
 
-### User Story 3 - Get Installation Instructions (Priority: P2)
+### User Story 3 - Get Installation Instructions per Variant (Priority: P2)
 
-A developer decides to use a block and needs clear instructions on how to add it to their project. They find installation commands that they can copy with a single click.
+A developer decides to use a block variant and needs clear instructions on how to add it to their project. Each variant section displays install commands for **all 4 package managers** (npx, pnpm, yarn, bunx) that they can copy with a single click.
 
-**Why this priority**: After discovering a block, installation is the next critical step. Clear, copy-able instructions reduce friction and support adoption.
+**Why this priority**: After discovering a block, installation is the next critical step. Supporting all package managers reduces friction for developers regardless of their tooling preference.
 
-**Independent Test**: Can be tested by verifying installation commands are displayed and the copy functionality works correctly.
+**Independent Test**: Can be tested by verifying installation commands are displayed for all 4 package managers and the copy functionality works correctly.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user is viewing a block detail page, **When** they look for installation, **Then** they see a clear installation command (e.g., `npx shadcn add <block-name>`)
-2. **Given** installation instructions are displayed, **When** the user clicks the copy button, **Then** the command is copied to their clipboard with visual confirmation
-3. **Given** a block has dependencies, **When** viewing installation, **Then** required dependencies are clearly listed
+1. **Given** a user is viewing a variant section, **When** they look for installation, **Then** they see a package manager selector with 4 options: npx, pnpm, yarn, bunx
+2. **Given** a package manager is selected, **When** viewing the command, **Then** the correct command format is shown:
+   - npx: `npx shadcn@latest add @manifest/{name}`
+   - pnpm: `pnpm dlx shadcn@latest add @manifest/{name}`
+   - yarn: `npx shadcn@latest add @manifest/{name}`
+   - bunx: `bunx --bun shadcn@latest add @manifest/{name}`
+3. **Given** installation command is displayed, **When** the user clicks the copy button, **Then** the command is copied to their clipboard with visual confirmation
+4. **Given** a block has dependencies, **When** viewing installation, **Then** the dependencies are automatically included in the shadcn install
 
 ---
 
-### User Story 4 - Learn block Usage (Priority: P2)
+### User Story 4 - View Source Code per Variant (Priority: P2)
 
-A developer who has installed a block needs to understand how to use it in their code. They find usage examples showing import statements and basic implementation patterns.
+A developer who wants to understand or customize a block can view its source code directly on the page. Each variant's "Code" tab shows the component source with syntax highlighting.
 
-**Why this priority**: Usage documentation completes the adoption journey. Without it, developers may struggle to implement blocks correctly.
+**Why this priority**: Code visibility helps developers understand implementation and make informed decisions about customization.
 
-**Independent Test**: Can be tested by verifying usage code examples are present and accurate for each block.
+**Independent Test**: Can be tested by verifying code is displayed with proper syntax highlighting for each variant.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user is viewing a block, **When** they scroll to usage section, **Then** they see import statements and basic code examples
-2. **Given** code examples are displayed, **When** the user clicks copy, **Then** the code is copied to clipboard with confirmation
-3. **Given** a block has multiple variants, **When** viewing usage, **Then** examples for different configurations are provided
+1. **Given** a user is viewing a variant, **When** they click the "Code" tab, **Then** they see the source code with TypeScript/TSX syntax highlighting
+2. **Given** code is displayed, **When** the user clicks copy, **Then** the code is copied to clipboard with confirmation
+3. **Given** multiple variants exist, **When** viewing code for each, **Then** the code shows the specific props/configuration for that variant
 
 ---
 
@@ -108,22 +116,27 @@ A first-time visitor lands on the homepage to understand what Agentic UI Toolkit
 - **FR-002**: System MUST provide a Blocks page with sidebar navigation organized by categories
 - **FR-003**: Sidebar categories MUST be expandable and collapsible
 - **FR-004**: System MUST display individual block pages when a block is selected
-- **FR-005**: block pages MUST show a live, interactive preview of the block
-- **FR-006**: block pages MUST display installation commands with copy-to-clipboard functionality
-- **FR-007**: block pages MUST include usage examples with import statements and code snippets
-- **FR-008**: Code blocks MUST have copy-to-clipboard functionality with visual confirmation
-- **FR-009**: Homepage MUST feature tabbed use case demonstrations showing blocks in chat contexts
-- **FR-010**: Homepage MUST display ChatGPT-clone interface for demonstrations
-- **FR-011**: Homepage MUST display Claude-clone interface for demonstrations
-- **FR-012**: Navigation MUST include links between homepage and Blocks page
-- **FR-013**: Selected block MUST be visually highlighted in the sidebar
-- **FR-014**: All pages MUST support light and dark theme modes
-- **FR-015**: block previews MUST be isolated and self-contained
+- **FR-005**: Block pages MUST show ALL variants of a block on a single page (e.g., Default, No Image, Compact, Horizontal)
+- **FR-006**: Each variant section MUST have its own "Preview" and "Code" tabs
+- **FR-007**: Each variant section MUST display install commands for all 4 package managers (npx, pnpm, yarn, bunx)
+- **FR-008**: Install command MUST show package manager selector inline with the tabs
+- **FR-009**: Code view MUST display source code with syntax highlighting and copy functionality
+- **FR-010**: Code blocks MUST have copy-to-clipboard functionality with visual confirmation
+- **FR-011**: Homepage MUST feature tabbed use case demonstrations showing blocks in chat contexts
+- **FR-012**: Homepage MUST display ChatGPT-clone interface for demonstrations
+- **FR-013**: Homepage MUST display Claude-clone interface for demonstrations
+- **FR-014**: Navigation MUST include links between homepage and Blocks page
+- **FR-015**: Selected block MUST be visually highlighted in the sidebar
+- **FR-016**: All pages MUST support light and dark theme modes
+- **FR-017**: Block previews MUST render directly without unnecessary wrapper containers
+- **FR-018**: UI MUST be minimal - no nested containers, no excessive borders or backgrounds
 
 ### Key Entities
 
-- **block**: A reusable UI element with name, category, preview, installation command, usage examples, and dependencies
-- **Category**: A grouping of related blocks (e.g., Payment, Products, Selection) with name and block list
+- **Block**: A reusable UI element from the registry with name, dependencies, and source files
+- **BlockGroup**: A logical grouping of a block with all its variants (e.g., Post Card with Default, No Image, Compact, Horizontal variants)
+- **BlockVariant**: A specific configuration of a block with its own preview and props
+- **Category**: A grouping of related block groups (e.g., Blogging, Payment, Products) with name and block list
 - **Use Case**: A demonstration scenario showing blocks in conversational context with tab label, chat messages, and embedded blocks
 - **Chat Message**: A message in the demo interface with role (user/assistant), text content, and optional embedded block
 
@@ -132,12 +145,13 @@ A first-time visitor lands on the homepage to understand what Agentic UI Toolkit
 ### Measurable Outcomes
 
 - **SC-001**: Users can find and navigate to any block within 3 clicks from the homepage
-- **SC-002**: Installation commands can be copied with a single click on any block page
-- **SC-003**: 100% of blocks in the registry are browsable and have detail pages
+- **SC-002**: Installation commands can be copied with a single click for any of the 4 package managers
+- **SC-003**: 100% of blocks in the registry are browsable and have detail pages with all variants
 - **SC-004**: Homepage loads and displays interactive demos within 3 seconds on standard connections
 - **SC-005**: All block previews render correctly in both light and dark themes
 - **SC-006**: Users can switch between use case tabs and see updated demos within 500ms
-- **SC-007**: Each block page includes at minimum: live preview, installation command, and usage example
+- **SC-007**: Each variant section includes: live preview, code view, and install commands for all 4 package managers
+- **SC-008**: Block pages display all variants without redundant UI elements (no nested tabs, no extra containers)
 
 ## Assumptions
 
