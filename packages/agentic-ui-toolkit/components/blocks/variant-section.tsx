@@ -9,6 +9,7 @@ interface VariantSectionProps {
   name: string
   component: React.ReactNode
   registryName: string
+  usageCode?: string
 }
 
 function CodeViewer({ registryName }: { registryName: string }) {
@@ -69,7 +70,8 @@ function CodeViewer({ registryName }: { registryName: string }) {
 export function VariantSection({
   name,
   component,
-  registryName
+  registryName,
+  usageCode
 }: VariantSectionProps) {
   return (
     <div className="space-y-4">
@@ -86,7 +88,16 @@ export function VariantSection({
           {component}
         </TabsContent>
         <TabsContent value="code" className="mt-0">
-          <CodeViewer registryName={registryName} />
+          {usageCode && (
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground mb-2">Usage:</p>
+              <CodeBlock code={usageCode} language="tsx" />
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-muted-foreground mb-2">Source:</p>
+            <CodeViewer registryName={registryName} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

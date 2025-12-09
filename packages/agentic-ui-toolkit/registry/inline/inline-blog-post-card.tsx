@@ -37,7 +37,7 @@ const defaultPost: BlogPost = {
 
 export interface InlineBlogPostCardProps {
   post?: BlogPost
-  variant?: 'default' | 'compact' | 'horizontal'
+  variant?: 'default' | 'compact' | 'horizontal' | 'covered'
   showImage?: boolean
   showAuthor?: boolean
   showCategory?: boolean
@@ -58,6 +58,74 @@ export function InlineBlogPostCard({
       day: 'numeric',
       year: 'numeric'
     })
+  }
+
+  if (variant === 'covered') {
+    return (
+      <div className="relative overflow-hidden rounded-lg">
+        <div className="min-h-[320px] sm:aspect-[16/9] sm:min-h-0 w-full">
+          {post.coverImage ? (
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 h-full w-full bg-muted" />
+          )}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+        <div className="absolute inset-0 flex flex-col justify-between p-4 text-white">
+          <div className="flex gap-1">
+            {showCategory && post.category && (
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs backdrop-blur-sm">
+                {post.category}
+              </span>
+            )}
+            {post.tags &&
+              post.tags.slice(0, 1).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-white/20 px-2 py-0.5 text-xs backdrop-blur-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+          </div>
+          <div>
+            <h2 className="text-lg font-bold leading-tight">{post.title}</h2>
+            <p className="mt-1 line-clamp-2 text-sm text-white/80">
+              {post.excerpt}
+            </p>
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {showAuthor && (
+                <div className="flex items-center gap-2">
+                  {post.author.avatar && (
+                    <img
+                      src={post.author.avatar}
+                      alt={post.author.name}
+                      className="h-6 w-6 rounded-full ring-2 ring-white/30"
+                    />
+                  )}
+                  <div className="text-xs">
+                    <p className="font-medium">{post.author.name}</p>
+                    <p className="text-white/60">{formatDate(post.publishedAt)}</p>
+                  </div>
+                </div>
+              )}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-full sm:w-auto"
+                onClick={() => onReadMore?.(post)}
+              >
+                Read article
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (variant === 'horizontal') {

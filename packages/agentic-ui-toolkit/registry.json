@@ -427,40 +427,16 @@
       "name": "inline-blog-post-list",
       "type": "registry:component",
       "title": "Blog Post List",
-      "description": "Vertical list of blog posts with horizontal card layout.",
+      "description": "Blog post list with list, grid, and carousel variants.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-blog.tsx",
+          "path": "registry/inline/inline-blog-post-list.tsx",
           "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-blog-post-grid",
-      "type": "registry:component",
-      "title": "Blog Post Grid",
-      "description": "Grid layout for blog posts with 2 or 3 columns.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
+        },
         {
-          "path": "registry/inline/inline-blog.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-blog-post-carousel",
-      "type": "registry:component",
-      "title": "Blog Post Carousel",
-      "description": "Carousel of blog posts with navigation arrows and dot indicators.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/inline/inline-blog.tsx",
+          "path": "registry/inline/inline-blog-post-card.tsx",
           "type": "registry:component"
         }
       ]

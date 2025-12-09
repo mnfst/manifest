@@ -74,13 +74,8 @@ function TikTokIcon({ className }: { className?: string }) {
 
 // Components imports
 import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
-import {
-  InlineArticleDetail,
-  InlineBlogPostCarousel,
-  InlineBlogPostGrid,
-  InlineBlogPostList,
-  InlineFeaturedArticle
-} from '@/registry/inline/inline-blog'
+import { InlineArticleDetail } from '@/registry/inline/inline-blog'
+import { InlineBlogPostList } from '@/registry/inline/inline-blog-post-list'
 import { InlineBlogPostCard } from '@/registry/inline/inline-blog-post-card'
 import { InlineCardForm } from '@/registry/inline/inline-card-form'
 import {
@@ -145,6 +140,7 @@ interface BlockVariant {
   id: string
   name: string
   component: React.ReactNode
+  usageCode?: string
 }
 
 interface BlockGroup {
@@ -175,27 +171,32 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineBlogPostCard />
+            component: <InlineBlogPostCard />,
+            usageCode: `<InlineBlogPostCard />`
           },
           {
             id: 'no-image',
             name: 'Without Image',
-            component: <InlineBlogPostCard showImage={false} />
+            component: <InlineBlogPostCard showImage={false} />,
+            usageCode: `<InlineBlogPostCard showImage={false} />`
           },
           {
             id: 'compact',
             name: 'Compact',
-            component: <InlineBlogPostCard variant="compact" />
+            component: <InlineBlogPostCard variant="compact" />,
+            usageCode: `<InlineBlogPostCard variant="compact" />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <InlineBlogPostCard variant="horizontal" />
+            component: <InlineBlogPostCard variant="horizontal" />,
+            usageCode: `<InlineBlogPostCard variant="horizontal" />`
           },
           {
             id: 'covered',
             name: 'Covered',
-            component: <InlineFeaturedArticle />
+            component: <InlineBlogPostCard variant="covered" />,
+            usageCode: `<InlineBlogPostCard variant="covered" />`
           }
         ]
       },
@@ -203,22 +204,25 @@ const categories: Category[] = [
         id: 'post-list',
         name: 'Post List',
         description: 'Display multiple posts in various layouts',
-        registryName: 'inline-blog',
+        registryName: 'inline-blog-post-list',
         variants: [
           {
-            id: 'default',
-            name: 'Default',
-            component: <InlineBlogPostList />
+            id: 'list',
+            name: 'List',
+            component: <InlineBlogPostList variant="list" />,
+            usageCode: `<InlineBlogPostList variant="list" />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <InlineBlogPostGrid />
+            component: <InlineBlogPostList variant="grid" />,
+            usageCode: `<InlineBlogPostList variant="grid" />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <InlineBlogPostCarousel />
+            component: <InlineBlogPostList variant="carousel" />,
+            usageCode: `<InlineBlogPostList variant="carousel" />`
           }
         ]
       },
@@ -231,12 +235,14 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'With Cover',
-            component: <InlineArticleDetail />
+            component: <InlineArticleDetail />,
+            usageCode: `<InlineArticleDetail />`
           },
           {
             id: 'no-cover',
             name: 'Without Cover',
-            component: <InlineArticleDetail showCover={false} />
+            component: <InlineArticleDetail showCover={false} />,
+            usageCode: `<InlineArticleDetail showCover={false} />`
           }
         ]
       }
@@ -255,17 +261,20 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineTable />
+            component: <InlineTable />,
+            usageCode: `<InlineTable />`
           },
           {
             id: 'single-select',
             name: 'Single Select',
-            component: <InlineTable selectable="single" />
+            component: <InlineTable selectable="single" />,
+            usageCode: `<InlineTable selectable="single" />`
           },
           {
             id: 'multi-select',
             name: 'Multi Select',
-            component: <TableMultiSelectWithActions />
+            component: <TableMultiSelectWithActions />,
+            usageCode: `<InlineTable selectable="multi" onSelectionChange={(rows) => console.log(rows)} />`
           }
         ]
       },
@@ -278,22 +287,26 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineProductHorizontal />
+            component: <InlineProductHorizontal />,
+            usageCode: `<InlineProductHorizontal />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <InlineProductGrid columns={4} />
+            component: <InlineProductGrid columns={4} />,
+            usageCode: `<InlineProductGrid columns={4} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <InlineProductCarousel />
+            component: <InlineProductCarousel />,
+            usageCode: `<InlineProductCarousel />`
           },
           {
             id: 'picker',
             name: 'Picker',
-            component: <InlineProductTable />
+            component: <InlineProductTable />,
+            usageCode: `<InlineProductTable />`
           }
         ]
       }
@@ -704,6 +717,7 @@ function BlocksContent() {
                 name={variant.name}
                 component={variant.component}
                 registryName={selectedBlock.registryName}
+                usageCode={variant.usageCode}
               />
             ))}
           </div>
