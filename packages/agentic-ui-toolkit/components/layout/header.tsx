@@ -24,6 +24,7 @@ function DiscordIcon({ className }: { className?: string }) {
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/blocks', label: 'Blocks' },
+  { href: '/social-cards', label: 'Social Cards' },
   { href: 'https://manifest.build', label: 'MCP App Generator', external: true }
 ]
 
@@ -209,6 +210,7 @@ function HeaderContent() {
   const searchParams = useSearchParams()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isBlocksPage = pathname.startsWith('/blocks')
+  const isSocialCardsPage = pathname.startsWith('/social-cards')
   const blockId = searchParams.get('block')
 
   // Close mobile menu on route change
@@ -268,7 +270,8 @@ function HeaderContent() {
                     link.disabled
                       ? 'text-muted-foreground/70 cursor-not-allowed pointer-events-none'
                       : pathname === link.href ||
-                          (link.href === '/blocks' && isBlocksPage)
+                          (link.href === '/blocks' && isBlocksPage) ||
+                          (link.href === '/social-cards' && isSocialCardsPage)
                         ? 'bg-muted text-foreground font-medium'
                         : 'text-foreground/70 hover:text-foreground hover:bg-muted/50'
                   )}
