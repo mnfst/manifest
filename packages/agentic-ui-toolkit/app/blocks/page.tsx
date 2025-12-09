@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ChevronRight, Github } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
@@ -97,11 +97,7 @@ import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
 import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
 import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
-import {
-  InlineProductHorizontal,
-  InlineProductHorizontalCarousel,
-  InlineProductHorizontalGrid
-} from '@/registry/inline/inline-product-horizontal'
+import { InlineProductHorizontal } from '@/registry/inline/inline-product-horizontal'
 import { InlineProductTable } from '@/registry/inline/inline-product-table'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
@@ -247,6 +243,63 @@ const categories: Category[] = [
     ]
   },
   {
+    id: 'data',
+    name: 'List',
+    blocks: [
+      {
+        id: 'table',
+        name: 'Table',
+        description: 'Data table with optional selection',
+        registryName: 'inline-table',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineTable />
+          },
+          {
+            id: 'single-select',
+            name: 'Single Select',
+            component: <InlineTable selectable="single" />
+          },
+          {
+            id: 'multi-select',
+            name: 'Multi Select',
+            component: <TableMultiSelectWithActions />
+          }
+        ]
+      },
+      {
+        id: 'product-list',
+        name: 'Product List',
+        description: 'Display products in various layouts',
+        registryName: 'inline-product-grid',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineProductHorizontal />
+          },
+          {
+            id: 'grid',
+            name: 'Grid',
+            component: <InlineProductGrid columns={4} />
+          },
+          {
+            id: 'carousel',
+            name: 'Carousel',
+            component: <InlineProductCarousel />
+          },
+          {
+            id: 'picker',
+            name: 'Picker',
+            component: <InlineProductTable />
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: 'payment',
     name: 'Payment',
     blocks: [
@@ -278,7 +331,7 @@ const categories: Category[] = [
       },
       {
         id: 'card-form',
-        name: 'Card Form',
+        name: 'Bank Card Form',
         description: 'Credit card input form',
         registryName: 'inline-card-form',
         variants: [
@@ -317,7 +370,7 @@ const categories: Category[] = [
       },
       {
         id: 'payment-confirmed',
-        name: 'Payment Confirmed',
+        name: 'Payment Confirmation',
         description: 'Detailed payment confirmation',
         registryName: 'inline-payment-confirmed',
         variants: [
@@ -325,207 +378,6 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <InlinePaymentConfirmed />
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'products',
-    name: 'Products',
-    blocks: [
-      {
-        id: 'product-grid',
-        name: 'Product Grid',
-        description: 'Display products in a grid layout',
-        registryName: 'inline-product-grid',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineProductGrid columns={4} />
-          }
-        ]
-      },
-      {
-        id: 'product-carousel',
-        name: 'Product Carousel',
-        description: 'Scrollable product carousel',
-        registryName: 'inline-product-carousel',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineProductCarousel />
-          }
-        ]
-      },
-      {
-        id: 'product-horizontal',
-        name: 'Product Horizontal',
-        description: 'Horizontal product card',
-        registryName: 'inline-product-horizontal',
-        variants: [
-          {
-            id: 'default',
-            name: 'Single',
-            component: <InlineProductHorizontal />
-          },
-          {
-            id: 'grid',
-            name: 'Grid',
-            component: <InlineProductHorizontalGrid />
-          },
-          {
-            id: 'carousel',
-            name: 'Carousel',
-            component: <InlineProductHorizontalCarousel />
-          }
-        ]
-      },
-      {
-        id: 'product-picker',
-        name: 'Product Picker',
-        description: 'Table-based product selection',
-        registryName: 'inline-product-table',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineProductTable />
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'selection',
-    name: 'Selection',
-    blocks: [
-      {
-        id: 'option-list',
-        name: 'Option List',
-        description: 'List of selectable options',
-        registryName: 'inline-option-list',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineOptionList />
-          }
-        ]
-      },
-      {
-        id: 'card-selection',
-        name: 'Card Selection',
-        description: 'Card-based selection interface',
-        registryName: 'inline-select-list',
-        variants: [
-          {
-            id: 'single',
-            name: 'Single Select',
-            component: <InlineSelectList />
-          },
-          {
-            id: 'multi',
-            name: 'Multi Select',
-            component: <InlineSelectList mode="multi" showConfirm />
-          }
-        ]
-      },
-      {
-        id: 'tag-selection',
-        name: 'Tag Selection',
-        description: 'Tag-based selection',
-        registryName: 'inline-tag-select',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineTagSelect />
-          }
-        ]
-      },
-      {
-        id: 'quick-reply',
-        name: 'Quick Reply',
-        description: 'Quick reply buttons',
-        registryName: 'inline-quick-reply',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineQuickReply />
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'status',
-    name: 'Status & Progress',
-    blocks: [
-      {
-        id: 'progress-steps',
-        name: 'Progress Steps',
-        description: 'Step-by-step progress indicator',
-        registryName: 'inline-progress-steps',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineProgressSteps />
-          }
-        ]
-      },
-      {
-        id: 'status-badges',
-        name: 'Status Badges',
-        description: 'Various status indicators',
-        registryName: 'inline-status-badge',
-        variants: [
-          {
-            id: 'default',
-            name: 'All Statuses',
-            component: (
-              <div className="flex flex-wrap gap-2">
-                <InlineStatusBadge status="success" />
-                <InlineStatusBadge status="pending" />
-                <InlineStatusBadge status="processing" />
-                <InlineStatusBadge status="shipped" />
-                <InlineStatusBadge status="delivered" />
-                <InlineStatusBadge status="error" />
-              </div>
-            )
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'data',
-    name: 'Lists & Tables',
-    blocks: [
-      {
-        id: 'table',
-        name: 'Table',
-        description: 'Data table with optional selection',
-        registryName: 'inline-table',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <InlineTable />
-          },
-          {
-            id: 'single-select',
-            name: 'Single Select',
-            component: <InlineTable selectable="single" />
-          },
-          {
-            id: 'multi-select',
-            name: 'Multi Select',
-            component: <TableMultiSelectWithActions />
           }
         ]
       }
@@ -549,12 +401,12 @@ const categories: Category[] = [
                 <InlineMessageBubble
                   content="Hey! How are you doing today?"
                   avatar="S"
-                  time="10:30 AM"
+                  time="Dec 8, 10:30 AM"
                 />
                 <InlineMessageBubble
                   content="I'm doing great, thanks for asking!"
                   avatar="Y"
-                  time="10:31 AM"
+                  time="Dec 8, 10:31 AM"
                   isOwn
                   status="read"
                 />
@@ -570,11 +422,11 @@ const categories: Category[] = [
                   image="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop"
                   caption="Check out this view!"
                   avatar="A"
-                  time="2:45 PM"
+                  time="Dec 8, 2:45 PM"
                 />
                 <InlineImageMessageBubble
                   image="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop"
-                  time="2:46 PM"
+                  time="Dec 8, 2:46 PM"
                   isOwn
                   status="delivered"
                 />
@@ -588,7 +440,7 @@ const categories: Category[] = [
               <InlineMessageWithReactions
                 content="We just hit 10,000 users!"
                 avatar="T"
-                time="4:20 PM"
+                time="Dec 8, 4:20 PM"
                 reactions={[
                   { emoji: '🎉', count: 5 },
                   { emoji: '❤️', count: 3 },
@@ -605,12 +457,12 @@ const categories: Category[] = [
                 <InlineVoiceMessageBubble
                   duration="0:42"
                   avatar="M"
-                  time="3:15 PM"
+                  time="Dec 8, 3:15 PM"
                 />
                 <InlineVoiceMessageBubble
                   duration="1:23"
                   avatar="Y"
-                  time="3:17 PM"
+                  time="Dec 8, 3:17 PM"
                   isOwn
                   status="read"
                 />
@@ -635,12 +487,40 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'social',
-    name: 'Social Posts',
+    id: 'misc',
+    name: 'Miscellaneous',
     blocks: [
       {
+        id: 'selection',
+        name: 'Selection',
+        description: 'Various selection interfaces for user input',
+        registryName: 'inline-select-list',
+        variants: [
+          {
+            id: 'option-list',
+            name: 'Option List',
+            component: <InlineOptionList />
+          },
+          {
+            id: 'card-selection',
+            name: 'Card Selection',
+            component: <InlineSelectList mode="multi" showConfirm />
+          },
+          {
+            id: 'tag-selection',
+            name: 'Tag Selection',
+            component: <InlineTagSelect />
+          },
+          {
+            id: 'quick-reply',
+            name: 'Quick Reply',
+            component: <InlineQuickReply />
+          }
+        ]
+      },
+      {
         id: 'social-posts',
-        name: 'Social Posts',
+        name: 'Social Cards',
         description: 'Social media post cards',
         registryName: 'inline-social-cards',
         variants: [
@@ -665,13 +545,42 @@ const categories: Category[] = [
             component: <InlineYouTubePost />
           }
         ]
-      }
-    ]
-  },
-  {
-    id: 'misc',
-    name: 'Miscellaneous',
-    blocks: [
+      },
+      {
+        id: 'status-badges',
+        name: 'Status Badge',
+        description: 'Various status indicators',
+        registryName: 'inline-status-badge',
+        variants: [
+          {
+            id: 'default',
+            name: 'All Statuses',
+            component: (
+              <div className="flex flex-wrap gap-2 bg-white p-4 rounded-md">
+                <InlineStatusBadge status="success" />
+                <InlineStatusBadge status="pending" />
+                <InlineStatusBadge status="processing" />
+                <InlineStatusBadge status="shipped" />
+                <InlineStatusBadge status="delivered" />
+                <InlineStatusBadge status="error" />
+              </div>
+            )
+          }
+        ]
+      },
+      {
+        id: 'progress-steps',
+        name: 'Progress Steps',
+        description: 'Step-by-step progress indicator',
+        registryName: 'inline-progress-steps',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InlineProgressSteps />
+          }
+        ]
+      },
       {
         id: 'stats-cards',
         name: 'Stats Cards',
@@ -774,60 +683,6 @@ function BlocksContent() {
             </div>
           ))}
         </nav>
-
-        {/* Social Links */}
-        <div className="pt-6 border-t mt-6">
-          <div className="flex items-center gap-1 flex-wrap">
-            <Link
-              href="https://github.com/mnfst/manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <Github className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://discord.gg/manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <DiscordIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://x.com/AiManifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <XIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://linkedin.com/company/mnfst"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <LinkedInIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://instagram.com/manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <InstagramIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="https://tiktok.com/@manifest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-foreground/60 hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
-            >
-              <TikTokIcon className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
       </aside>
 
       {/* Main content */}

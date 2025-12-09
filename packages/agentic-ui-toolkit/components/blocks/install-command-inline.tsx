@@ -63,8 +63,8 @@ export function InstallCommandInline({ componentName }: InstallCommandInlineProp
       </div>
 
       {/* Command display with copy button */}
-      <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-1.5 font-mono text-xs">
-        <code className="text-foreground/80">{currentCommand}</code>
+      <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-1.5 font-mono text-xs min-w-0 flex-1 max-w-[280px]">
+        <code className="text-foreground/80 truncate min-w-0">{currentCommand}</code>
         <button
           onClick={handleCopy}
           className="p-1 rounded hover:bg-muted transition-colors shrink-0"

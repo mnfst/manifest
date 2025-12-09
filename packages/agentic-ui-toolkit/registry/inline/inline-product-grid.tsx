@@ -116,10 +116,10 @@ export function InlineProductGrid({
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="h-20 sm:h-28 w-full object-contain bg-muted/30"
+                  className="aspect-square lg:h-28 lg:aspect-auto w-full object-contain bg-muted/30"
                 />
               ) : (
-                <div className="h-20 sm:h-28 w-full bg-muted" />
+                <div className="aspect-square lg:h-28 lg:aspect-auto w-full bg-muted" />
               )}
               {product.badge && (
                 <span

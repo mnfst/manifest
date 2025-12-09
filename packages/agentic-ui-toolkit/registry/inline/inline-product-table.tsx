@@ -123,7 +123,7 @@ export function InlineProductTable({
     .reduce((sum, p) => sum + p.price, 0)
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-3 bg-white rounded-md sm:rounded-lg p-4 sm:p-0">
       {/* Mobile: Card view */}
       <div className="sm:hidden space-y-2 px-0.5">
         {products.map((product) => (
