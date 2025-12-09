@@ -202,43 +202,22 @@ const categories: Category[] = [
       {
         id: 'post-list',
         name: 'Post List',
-        description: 'Display multiple posts in a list format',
+        description: 'Display multiple posts in various layouts',
         registryName: 'inline-blog',
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <InlineBlogPostList />
-          }
-        ]
-      },
-      {
-        id: 'post-grid',
-        name: 'Post Grid',
-        description: 'Display posts in a responsive grid layout',
-        registryName: 'inline-blog',
-        variants: [
+          },
           {
-            id: 'default',
-            name: '2 Columns',
+            id: 'grid',
+            name: 'Grid',
             component: <InlineBlogPostGrid />
           },
           {
-            id: '3col',
-            name: '3 Columns',
-            component: <InlineBlogPostGrid columns={3} />
-          }
-        ]
-      },
-      {
-        id: 'post-carousel',
-        name: 'Post Carousel',
-        description: 'Scrollable carousel of blog posts',
-        registryName: 'inline-blog',
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
+            id: 'carousel',
+            name: 'Carousel',
             component: <InlineBlogPostCarousel />
           }
         ]
