@@ -442,43 +442,19 @@
       ]
     },
     {
-      "name": "inline-blog-excerpt-card",
+      "name": "post-detail",
       "type": "registry:component",
-      "title": "Blog Excerpt Card",
-      "description": "Expandable excerpt card with show more/less button and read full article action.",
+      "title": "Post Detail",
+      "description": "Full post view with cover image, author info, content, tags and related posts section.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-blog.tsx",
+          "path": "registry/inline/post-detail.tsx",
           "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-article-detail",
-      "type": "registry:component",
-      "title": "Article Detail",
-      "description": "Full article view with cover image, author info, content, tags and related articles section.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
+        },
         {
-          "path": "registry/inline/inline-blog.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-featured-article",
-      "type": "registry:component",
-      "title": "Featured Article",
-      "description": "Hero-style featured article with full-width image and overlay content.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/inline/inline-blog.tsx",
+          "path": "registry/inline/inline-blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
