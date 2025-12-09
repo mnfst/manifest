@@ -59,18 +59,7 @@ function IyoLogo({ className }: { className?: string }) {
 
 function StripeLogo({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <rect width="24" height="24" rx="4" fill="#635BFF" />
-      <path
-        d="M11.5 8.5c0-.83.68-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5h-2c-.82 0-1.5-.67-1.5-1.5v-7z"
-        fill="white"
-      />
-      <path
-        d="M7.5 10.5c0-.83.68-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5H9c-.82 0-1.5-.67-1.5-1.5v-5z"
-        fill="white"
-        fillOpacity="0.5"
-      />
-    </svg>
+    <img src="/images/Icon.jpeg" alt="Stripe" className={className} style={{ borderRadius: '4px' }} />
   )
 }
 
@@ -78,7 +67,7 @@ function TechCrunchLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <circle cx="12" cy="12" r="12" fill="#0A9E01" />
-      <g transform="translate(4, 6) scale(0.67)">
+      <g transform="translate(12, 12) scale(0.5) translate(-12, -6)">
         <polygon fill="white" points="12,0 12,4 8,4 8,12 4,12 4,4 0,4 0,0" />
         <rect x="16" y="0" fill="white" width="8" height="4" />
         <polygon fill="white" points="24,8 24,12 12,12 12,4 16,4 16,8" />
@@ -326,14 +315,14 @@ export default function Home() {
                   <TabsList className="inline-flex h-auto gap-1 bg-muted/50 p-1 rounded-lg mb-4">
                     <TabsTrigger
                       value="chatgpt"
-                      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                     >
                       <ChatGPTIcon className="h-4 w-4" />
                       ChatGPT
                     </TabsTrigger>
                     <TabsTrigger
                       value="claude"
-                      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                     >
                       <ClaudeIcon className="h-4 w-4" />
                       Claude
