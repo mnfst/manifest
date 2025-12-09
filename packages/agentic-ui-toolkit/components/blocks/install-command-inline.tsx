@@ -51,7 +51,7 @@ export function InstallCommandInline({ componentName }: InstallCommandInlineProp
         <select
           value={selectedPm}
           onChange={(e) => setSelectedPm(e.target.value as PackageManager)}
-          className="appearance-none bg-white border rounded-md pl-2 pr-6 py-1.5 text-xs font-mono cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
+          className="appearance-none bg-background border rounded-md pl-2 pr-6 py-1.5 text-xs font-mono cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
         >
           {packageManagers.map((pm) => (
             <option key={pm.id} value={pm.id}>
@@ -63,7 +63,7 @@ export function InstallCommandInline({ componentName }: InstallCommandInlineProp
       </div>
 
       {/* Command display with copy button */}
-      <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-1.5 font-mono text-xs min-w-0 flex-1 max-w-[280px]">
+      <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1.5 font-mono text-xs min-w-0 flex-1 max-w-[280px]">
         <code className="text-foreground/80 truncate min-w-0">{currentCommand}</code>
         <button
           onClick={handleCopy}

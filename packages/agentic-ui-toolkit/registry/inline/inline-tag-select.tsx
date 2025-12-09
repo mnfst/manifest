@@ -102,7 +102,7 @@ export function InlineTagSelect({
   const isSelected = (tagId: string) => selected.includes(tagId)
 
   return (
-    <div className="w-full space-y-2 bg-white rounded-md sm:rounded-lg p-4">
+    <div className="w-full space-y-2 bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
         {tags.map((tag) => {
           const color = tag.color || 'default'

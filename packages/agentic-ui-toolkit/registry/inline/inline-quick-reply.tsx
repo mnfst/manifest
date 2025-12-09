@@ -26,7 +26,7 @@ export function InlineQuickReply({
   onSelectReply
 }: InlineQuickReplyProps) {
   return (
-    <div className="w-full bg-white rounded-md sm:rounded-lg p-4">
+    <div className="w-full bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
         {replies.map((reply) => (
           <button

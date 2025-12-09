@@ -24,7 +24,7 @@ export function InlineProgressSteps({
   steps = defaultSteps
 }: InlineProgressStepsProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-white rounded-md sm:rounded-lg p-4">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
       {steps.map((step, index) => (
         <div key={step.id} className="flex items-center gap-2">
           <div className="flex items-center gap-2">

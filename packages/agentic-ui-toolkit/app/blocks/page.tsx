@@ -556,7 +556,7 @@ const categories: Category[] = [
             id: 'default',
             name: 'All Statuses',
             component: (
-              <div className="flex flex-wrap gap-2 bg-white p-4 rounded-md">
+              <div className="flex flex-wrap gap-2 bg-white dark:bg-zinc-900 p-4 rounded-md">
                 <InlineStatusBadge status="success" />
                 <InlineStatusBadge status="pending" />
                 <InlineStatusBadge status="processing" />
