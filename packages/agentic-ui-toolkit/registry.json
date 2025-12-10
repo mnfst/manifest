@@ -208,7 +208,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/messaging/quick-reply.tsx",
+          "path": "registry/miscellaneous/quick-reply.tsx",
           "type": "registry:component"
         }
       ]
@@ -337,10 +337,28 @@
       "name": "message-bubble",
       "type": "registry:component",
       "title": "Message Bubble",
-      "description": "Chat message bubbles with support for text, images, voice, and reactions.",
+      "description": "Chat message bubbles with text, image, voice, and reaction variants.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": [],
+      "registryDependencies": ["dropdown-menu"],
       "files": [
+        {
+          "path": "registry/messaging/message-bubble.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "chat-conversation",
+      "type": "registry:component",
+      "title": "Chat Conversation",
+      "description": "Full chat conversation component with multiple message types.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
+      "files": [
+        {
+          "path": "registry/messaging/chat-conversation.tsx",
+          "type": "registry:component"
+        },
         {
           "path": "registry/messaging/message-bubble.tsx",
           "type": "registry:component"

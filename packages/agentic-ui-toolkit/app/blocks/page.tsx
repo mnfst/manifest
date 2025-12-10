@@ -90,13 +90,13 @@ import { PaymentSuccess } from '@/registry/payment/payment-success'
 
 // Messaging components
 import {
-  ChatConversation,
   ImageMessageBubble,
   MessageBubble,
   MessageWithReactions,
   VoiceMessageBubble
 } from '@/registry/messaging/message-bubble'
-import { QuickReply } from '@/registry/messaging/quick-reply'
+import { ChatConversation } from '@/registry/messaging/chat-conversation'
+import { QuickReply } from '@/registry/miscellaneous/quick-reply'
 
 // Miscellaneous components
 import { OptionList } from '@/registry/miscellaneous/option-list'
@@ -391,7 +391,7 @@ const categories: Category[] = [
         id: 'message-bubble',
         name: 'Message Bubble',
         description: 'Chat message bubbles',
-        registryName: 'message-bubble',
+        registryName: 'chat-conversation',
         variants: [
           {
             id: 'default',
@@ -479,7 +479,7 @@ const categories: Category[] = [
         id: 'chat-conversation',
         name: 'Chat Conversation',
         description: 'Full chat conversation view',
-        registryName: 'message-bubble',
+        registryName: 'chat-conversation',
         variants: [
           {
             id: 'default',
@@ -505,25 +505,33 @@ const categories: Category[] = [
             id: 'x',
             name: 'X (Twitter)',
             component: <XPost />,
-            usageCode: `<XPost />`
+            usageCode: `import { XPost } from '@/components/social-cards'
+
+<XPost />`
           },
           {
             id: 'instagram',
             name: 'Instagram',
             component: <InstagramPost />,
-            usageCode: `<InstagramPost />`
+            usageCode: `import { InstagramPost } from '@/components/social-cards'
+
+<InstagramPost />`
           },
           {
             id: 'linkedin',
             name: 'LinkedIn',
             component: <LinkedInPost />,
-            usageCode: `<LinkedInPost />`
+            usageCode: `import { LinkedInPost } from '@/components/social-cards'
+
+<LinkedInPost />`
           },
           {
             id: 'youtube',
             name: 'YouTube',
             component: <YouTubePost />,
-            usageCode: `<YouTubePost />`
+            usageCode: `import { YouTubePost } from '@/components/social-cards'
+
+<YouTubePost />`
           }
         ]
       },
