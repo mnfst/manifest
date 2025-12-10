@@ -89,10 +89,8 @@ import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
-import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
-import { InlineProductGrid } from '@/registry/inline/inline-product-grid'
-import { InlineProductHorizontal } from '@/registry/inline/inline-product-horizontal'
 import { InlineProductTable } from '@/registry/inline/inline-product-table'
+import { ProductList } from '@/registry/inline/product-list'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
 import { InlineSelectList } from '@/registry/inline/inline-select-list'
@@ -259,25 +257,25 @@ const categories: Category[] = [
         id: 'product-list',
         name: 'Product List',
         description: 'Display products in various layouts',
-        registryName: 'inline-product-grid',
+        registryName: 'product-list',
         variants: [
           {
-            id: 'default',
-            name: 'Default',
-            component: <InlineProductHorizontal />,
-            usageCode: `<InlineProductHorizontal />`
+            id: 'list',
+            name: 'List',
+            component: <ProductList variant="list" />,
+            usageCode: `<ProductList variant="list" />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <InlineProductGrid columns={4} />,
-            usageCode: `<InlineProductGrid columns={4} />`
+            component: <ProductList variant="grid" />,
+            usageCode: `<ProductList variant="grid" />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <InlineProductCarousel />,
-            usageCode: `<InlineProductCarousel />`
+            component: <ProductList variant="carousel" />,
+            usageCode: `<ProductList variant="carousel" />`
           },
           {
             id: 'picker',

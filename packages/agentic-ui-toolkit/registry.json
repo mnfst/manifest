@@ -186,85 +186,15 @@
       ]
     },
     {
-      "name": "inline-product-list",
+      "name": "product-list",
       "type": "registry:component",
-      "title": "Inline Product List",
-      "description": "Horizontal scrollable product list with images, prices, ratings, and badges.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["badge", "button"],
-      "files": [
-        {
-          "path": "registry/inline/inline-product-list.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-product-grid",
-      "type": "registry:component",
-      "title": "Inline Product Grid",
-      "description": "Full-width product grid with 3 or 4 columns stretched to container width.",
+      "title": "Product List",
+      "description": "Product list with list, grid, and carousel variants.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-product-grid.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-product-carousel",
-      "type": "registry:component",
-      "title": "Inline Product Carousel",
-      "description": "Product carousel showing partial next item with gradient fade effect.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/inline/inline-product-carousel.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-product-horizontal",
-      "type": "registry:component",
-      "title": "Inline Product Horizontal",
-      "description": "Horizontal product card with image on left and content on right, in single column layout.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/inline/inline-product-horizontal.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-product-horizontal-grid",
-      "type": "registry:component",
-      "title": "Inline Product Horizontal Grid",
-      "description": "Horizontal product cards in a 2-column grid layout.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/inline/inline-product-horizontal.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-product-horizontal-carousel",
-      "type": "registry:component",
-      "title": "Inline Product Horizontal Carousel",
-      "description": "Horizontal product cards in a carousel showing 2 full cards with partial 3rd visible.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/inline/inline-product-horizontal.tsx",
+          "path": "registry/inline/product-list.tsx",
           "type": "registry:component"
         }
       ]
