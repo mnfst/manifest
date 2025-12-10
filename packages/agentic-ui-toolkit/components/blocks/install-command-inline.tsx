@@ -1,11 +1,16 @@
 'use client'
 
+import { track } from '@vercel/analytics'
 import { Check, ChevronDown, Copy } from 'lucide-react'
 import { useState } from 'react'
 
 type PackageManager = 'npx' | 'pnpm' | 'yarn' | 'bunx'
 
-const packageManagers: { id: PackageManager; label: string; command: (name: string) => string }[] = [
+const packageManagers: {
+  id: PackageManager
+  label: string
+  command: (name: string) => string
+}[] = [
   {
     id: 'npx',
     label: 'npx',
@@ -32,15 +37,21 @@ interface InstallCommandInlineProps {
   componentName: string
 }
 
-export function InstallCommandInline({ componentName }: InstallCommandInlineProps) {
+export function InstallCommandInline({
+  componentName
+}: InstallCommandInlineProps) {
   const [selectedPm, setSelectedPm] = useState<PackageManager>('npx')
   const [copied, setCopied] = useState(false)
 
-  const currentCommand = packageManagers.find((pm) => pm.id === selectedPm)?.command(componentName) || ''
+  const currentCommand =
+    packageManagers
+      .find((pm) => pm.id === selectedPm)
+      ?.command(componentName) || ''
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(currentCommand)
     setCopied(true)
+    track('install_command_copied', { command: currentCommand, inline: true })
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -64,7 +75,9 @@ export function InstallCommandInline({ componentName }: InstallCommandInlineProp
 
       {/* Command display with copy button */}
       <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1.5 font-mono text-xs min-w-0 flex-1 max-w-[280px]">
-        <code className="text-foreground/80 truncate min-w-0">{currentCommand}</code>
+        <code className="text-foreground/80 truncate min-w-0">
+          {currentCommand}
+        </code>
         <button
           onClick={handleCopy}
           className="p-1 rounded hover:bg-muted transition-colors shrink-0"

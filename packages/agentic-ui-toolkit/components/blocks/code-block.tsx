@@ -3,6 +3,7 @@
 import { Check, Copy } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { codeToHtml } from 'shiki'
+import { track } from '@vercel/analytics'
 
 interface CodeBlockProps {
   code: string
@@ -10,7 +11,11 @@ interface CodeBlockProps {
   className?: string
 }
 
-export function CodeBlock({ code, language = 'bash', className }: CodeBlockProps) {
+export function CodeBlock({
+  code,
+  language = 'bash',
+  className
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const [html, setHtml] = useState<string | null>(null)
   const [isDark, setIsDark] = useState(false)
@@ -44,6 +49,7 @@ export function CodeBlock({ code, language = 'bash', className }: CodeBlockProps
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
     setCopied(true)
+    track('code_copied', { code })
     setTimeout(() => setCopied(false), 2000)
   }
 

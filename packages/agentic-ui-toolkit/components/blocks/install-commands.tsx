@@ -3,10 +3,15 @@
 import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { track } from '@vercel/analytics'
 
 type PackageManager = 'npx' | 'pnpm' | 'yarn' | 'bunx'
 
-const packageManagers: { id: PackageManager; label: string; command: (name: string) => string }[] = [
+const packageManagers: {
+  id: PackageManager
+  label: string
+  command: (name: string) => string
+}[] = [
   {
     id: 'npx',
     label: 'npx',
@@ -37,11 +42,15 @@ export function InstallCommands({ componentName }: InstallCommandsProps) {
   const [selectedPm, setSelectedPm] = useState<PackageManager>('npx')
   const [copied, setCopied] = useState(false)
 
-  const currentCommand = packageManagers.find((pm) => pm.id === selectedPm)?.command(componentName) || ''
+  const currentCommand =
+    packageManagers
+      .find((pm) => pm.id === selectedPm)
+      ?.command(componentName) || ''
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(currentCommand)
     setCopied(true)
+    track('install_command_copied', { command: currentCommand, inline: false })
     setTimeout(() => setCopied(false), 2000)
   }
 
