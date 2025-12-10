@@ -1,0 +1,147 @@
+@font-face {
+  font-family: '#{$icomoon-font-family}';
+  src:
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?kp0e2w')
+      format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?kp0e2w')
+      format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?kp0e2w##{$icomoon-font-family}')
+      format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+%icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: '#{$icomoon-font-family}' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.icon {
+  @extend %icon;
+}
+
+.icon-save {
+  &:before {
+    content: $icon-save;
+  }
+}
+.icon-chevron-down {
+  &:before {
+    content: $icon-chevron-down;
+  }
+}
+.icon-chevron-up {
+  &:before {
+    content: $icon-chevron-up;
+  }
+}
+.icon-x {
+  &:before {
+    content: $icon-x;
+  }
+}
+.icon-upload-cloud {
+  &:before {
+    content: $icon-upload-cloud;
+  }
+}
+.icon-map-pin {
+  &:before {
+    content: $icon-map-pin;
+  }
+}
+.icon-arrow-right {
+  &:before {
+    content: $icon-arrow-right;
+  }
+}
+.icon-check-circle {
+  &:before {
+    content: $icon-check-circle;
+  }
+}
+.icon-edit {
+  &:before {
+    content: $icon-edit;
+  }
+}
+.icon-trash-2 {
+  &:before {
+    content: $icon-trash-2;
+  }
+}
+.icon-plus {
+  &:before {
+    content: $icon-plus;
+  }
+}
+.icon-eye {
+  &:before {
+    content: $icon-eye;
+  }
+}
+.icon-external-link {
+  &:before {
+    content: $icon-external-link;
+  }
+}
+
+.icon-seed {
+  &:before {
+    content: $icon-seed;
+  }
+}
+.icon-pen {
+  &:before {
+    content: $icon-pen;
+  }
+}
+.icon-hexagon {
+  &:before {
+    content: $icon-hexagon;
+  }
+}
+.icon-book-open {
+  &:before {
+    content: $icon-book-open;
+  }
+}
+.icon-home {
+  &:before {
+    content: $icon-home;
+  }
+}
+.icon-credit-card {
+  &:before {
+    content: $icon-credit-card;
+  }
+}
+.icon-user {
+  &:before {
+    content: $icon-user;
+  }
+}
+.icon-logout {
+  &:before {
+    content: $icon-logout;
+  }
+}
+.icon-globe {
+  &:before {
+    content: $icon-globe;
+  }
+}
+.icon-code {
+  &:before {
+    content: $icon-code;
+  }
+}

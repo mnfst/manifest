@@ -1,0 +1,36 @@
+<div class="is-flex is-align-items-center is-justify-content-flex-start"></div>
+<div class="dropdown is-up" [ngClass]="{ 'is-active': showUserMenu }">
+  <div class="dropdown-trigger">
+    <a
+      (click)="showUserMenu = !showUserMenu"
+      class="is-flex is-align-items-center is-justify-content-flex-start"
+    >
+      <img
+        src="/assets/images/avatar-default.svg"
+        title="currentUser.name"
+        alt="currentUser.name"
+        class="avatar"
+      />
+    </a>
+  </div>
+  <div class="dropdown-menu is-small" role="menu">
+    <div class="dropdown-content">
+      <span class="dropdown-item" *ngIf="currentUser">
+        <strong>{{ currentUser.email }}</strong>
+        <!-- TODO: Set a dynamic tag depending on the currentUser admin role -->
+        <span class="tag is-rounded is-dark ml-1">SuperAdmin</span>
+      </span>
+      <hr />
+      <a
+        routerLink="/auth/logout"
+        class="dropdown-item icon-text"
+        (click)="showUserMenu = false"
+      >
+        <span class="icon">
+          <i class="icon icon-logout"></i>
+        </span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </div>
+</div>

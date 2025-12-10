@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "manifest/*.yml", "manifest/handlers/*.js"],
+  "ext": "ts,yml,json,js",
+  "ignore": ["src/**/*.spec.ts", "dist", "node_modules"],
+  "exec": "nest start"
+}

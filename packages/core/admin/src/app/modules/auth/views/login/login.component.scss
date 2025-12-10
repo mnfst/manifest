@@ -1,0 +1,39 @@
+@use '../../../../../styles/variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins with (
+  $widescreen: all.$widescreen,
+  $desktop: all.$desktop,
+  $tablet: all.$tablet
+);
+@forward '../../../../../styles/layout/auth';
+
+.col-login {
+  @extend %auth-column;
+
+  @include mixins.touch {
+    width: 66.66667%;
+  }
+
+  @include mixins.mobile {
+    width: 100%;
+  }
+
+  @include mixins.desktop {
+    width: 40%;
+  }
+
+  @include mixins.widescreen {
+    width: 33.33333%;
+  }
+}
+
+.col-decoration {
+  width: 60%;
+
+  @include mixins.touch {
+    width: 33.33333%;
+  }
+
+  @include mixins.widescreen {
+    width: 66.66666%;
+  }
+}

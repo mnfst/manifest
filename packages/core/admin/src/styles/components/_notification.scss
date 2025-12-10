@@ -1,0 +1,13 @@
+.notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  @include tablet {
+    width: 320px;
+  }
+
+  @include mobile {
+    width: calc(100% - 4rem);
+  }
+}

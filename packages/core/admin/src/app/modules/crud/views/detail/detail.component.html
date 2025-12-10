@@ -1,0 +1,216 @@
+<section *ngIf="item && entityManifest">
+  <div
+    class="is-flex is-justify-content-space-between is-align-items-center mb-5"
+  >
+    <div class="left-part is-flex is-flex-wrap-wrap is-align-items-center">
+      <a
+        class="button is-circle mr-2 button--back"
+        [routerLink]="['/content/collections', entityManifest.namePlural]"
+        *ngIf="!entityManifest.single"
+      >
+        <i class="icon icon-arrow-right"></i>
+      </a>
+      <h1 class="title is-2 has-text-weight-light">
+        {{
+          singleMode
+            ? entityManifest.nameSingular
+            : item[entityManifest.mainProp]
+        }}
+      </h1>
+    </div>
+    <div class="right-part is-flex is-flex-direction-row">
+      <a
+        class="button is-link is-light is-hidden-desktop is-circle"
+        (click)="toggleDeleteModal()"
+        *ngIf="!entityManifest.single"
+      >
+        <i class="icon icon-trash-2"></i>
+      </a>
+      <a routerLink="edit" class="button is-link ml-2 is-hidden-touch">Edit </a>
+      <a
+        routerLink="edit"
+        class="button is-link ml-2 is-hidden-desktop is-circle"
+      >
+        <i class="icon icon-edit"></i>
+      </a>
+    </div>
+  </div>
+  <div class="card p-0 mb-6 is-shadowless">
+    <div class="card-content">
+      <div class="columns">
+        <div
+          class="column is-12-touch is-8-desktop is-offset-2-desktop is-6-widescreen is-offset-3-widescreen is-6-fullhd is-offset-3-fullhd"
+        >
+          <div
+            class="properties"
+            *ngFor="let prop of entityManifest.properties"
+          >
+            <p
+              class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+            >
+              {{ prop.label }}
+            </p>
+            <p class="is-property-value">
+              <app-yield [value]="item[prop.name]" [prop]="prop"></app-yield>
+            </p>
+          </div>
+          <div
+            class="relations"
+            *ngFor="let relationship of entityManifest.relationships"
+          >
+            <ng-container
+              *ngIf="
+                relationship.type === 'many-to-one' ||
+                (relationship.type === 'many-to-many' &&
+                  relationship.owningSide &&
+                  !relationship.nested)
+              "
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <p class="is-property-value">
+                <app-relation-yield
+                  [item]="item[relationship.name]"
+                  [relationship]="relationship"
+                  *ngIf="relationship.type === 'many-to-one'"
+                ></app-relation-yield>
+
+                <ng-container *ngIf="relationship.type === 'many-to-many'">
+                  <ng-container
+                    *ngFor="
+                      let relation of getMultipleRelations(item, relationship);
+                      let last = last
+                    "
+                  >
+                    <app-relation-yield
+                      [item]="relation"
+                      [relationship]="relationship"
+                    ></app-relation-yield>
+                    <ng-container *ngIf="!last">, </ng-container>
+                  </ng-container>
+                </ng-container>
+              </p>
+            </ng-container>
+
+            <!-- Nested relations (multiple) -->
+            <ng-container
+              *ngIf="relationship.nested && relationship.type === 'one-to-many'"
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <p *ngIf="!getMultipleRelations(item, relationship).length">-</p>
+              <div class="group-wrapper pl-5">
+                <div
+                  class="nested-item"
+                  *ngFor="
+                    let nestedItem of getMultipleRelations(item, relationship)
+                  "
+                >
+                  <div class="box is-shadowless is-bordered p-5 mb-5">
+                    <div
+                      class="properties"
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <p
+                        class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                      >
+                        {{ prop.name }}
+                      </p>
+                      <p class="is-property-value">
+                        <app-yield
+                          [value]="nestedItem[prop.name]"
+                          [prop]="prop"
+                        ></app-yield>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Nested relations (non-multiple) -->
+            <ng-container
+              *ngIf="relationship.nested && relationship.type === 'one-to-one'"
+            >
+              <p
+                class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+              >
+                {{ relationship.name }}
+              </p>
+              <p *ngIf="!item[relationship.name]">-</p>
+              <div class="group-wrapper pl-5">
+                <div class="nested-item" *ngIf="item[relationship.name]">
+                  <div class="box is-shadowless is-bordered p-5 mb-5">
+                    <div
+                      class="properties"
+                      *ngFor="
+                        let prop of nestedEntityManifests[relationship.name]
+                          .properties
+                      "
+                    >
+                      <p
+                        class="is-property-label mb-1 is-size-5 has-text-dark has-text-weight-medium"
+                      >
+                        {{ prop.name }}
+                      </p>
+                      <p class="is-property-value">
+                        <app-yield
+                          [value]="
+                            getSingleRelation(item, relationship)[prop.name]
+                          "
+                          [prop]="prop"
+                        ></app-yield>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TODO: This could be refactored using modal service -->
+<div class="modal is-active" *ngIf="showDeleteModal">
+  <div (click)="toggleDeleteModal()" class="modal-background"></div>
+  <div class="modal-card">
+    <div class="modal-card-body content is-normal">
+      <p>
+        Do you really want to delete
+        <strong>{{ item[entityManifest.mainProp] }}</strong>
+        {{ entityManifest.nameSingular }} ? This action cannot be undone.
+      </p>
+      <p>
+        If {{ item[entityManifest.mainProp] }} has related items, you should
+        delete them first.
+      </p>
+      <div
+        class="is-flex is-align-items-center is-justify-content-space-between mt-6"
+      >
+        <button class="button is-white" (click)="toggleDeleteModal()">
+          Cancel
+        </button>
+        <button class="button is-danger" (click)="delete(item['id'])">
+          Delete
+        </button>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        (click)="toggleDeleteModal()"
+      ></button>
+    </div>
+  </div>
+</div>

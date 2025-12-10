@@ -1,0 +1,60 @@
+$label-colors: (
+  color-3: (
+    #f50057,
+    #fff
+  ),
+  color-1: (
+    #ff6d00,
+    #fff
+  ),
+  color-2: (
+    #ffd600,
+    #000
+  ),
+  color-4: (
+    #d500f9,
+    #fff
+  ),
+  color-5: (
+    #651fff,
+    #fff
+  ),
+  color-6: (
+    #3d5afe,
+    #fff
+  ),
+  color-7: (
+    #00b0ff,
+    #fff
+  ),
+  color-8: (
+    #00c853,
+    #fff
+  ),
+  color-9: (
+    #64dd17,
+    #000
+  ),
+  color-10: (
+    #a1887f,
+    #fff
+  ),
+  color-11: (
+    #607d8b,
+    #fff
+  ),
+  color-12: (
+    #9e9e9e,
+    #fff
+  )
+);
+
+@each $name, $pair in $label-colors {
+  $bg: nth($pair, 1);
+  $text: nth($pair, 2);
+
+  .is-#{$name} {
+    background-color: $bg;
+    color: $text;
+  }
+}

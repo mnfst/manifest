@@ -1,0 +1,12 @@
+@use '../../../../../styles/variables/all' as all;
+@use 'bulma/sass/utilities/mixins' as mixins with (
+  $widescreen: all.$widescreen,
+  $desktop: all.$desktop,
+  $tablet: all.$tablet
+);
+@forward '../../../../../styles/layout/auth';
+
+.col-welcome {
+  @extend %auth-column;
+  width: 100vw;
+}

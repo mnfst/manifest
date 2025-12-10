@@ -1,0 +1,130 @@
+<h2 class="title is-2">{{ title }}</h2>
+
+<form [formGroup]="form">
+  <label for="className"
+    >Class Name
+    <span class="has-text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    formControlName="className"
+    name="className"
+    class="input"
+    [readOnly]="mode === 'edit'"
+    #classNameInput
+  />
+
+  <label class="checkbox" for="authenticable" *ngIf="!single">
+    <input
+      type="checkbox"
+      formControlName="authenticable"
+      name="authenticable"
+    />
+    Authenticable
+  </label>
+
+  <div class="tabs">
+    <ul>
+      <li [ngClass]="{ 'is-active': activeTab === 'fields' }">
+        <a (click)="activeTab = 'fields'">Fields</a>
+      </li>
+      <li [ngClass]="{ 'is-active': activeTab === 'policies' }">
+        <a (click)="activeTab = 'policies'">Policies</a>
+      </li>
+      <li [ngClass]="{ 'is-active': activeTab === 'options' }">
+        <a (click)="activeTab = 'options'">Options</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Fields tab content -->
+  <ng-container *ngIf="activeTab === 'fields'">
+    <div style="border: 1px solid blue">
+      <p><i>ID: UUID</i> (primary column)</p>
+    </div>
+
+    <div formArrayName="properties">
+      <app-property-manifest-create-edit
+        *ngFor="let property of properties.controls; let i = index"
+        [propertyManifestFormGroup]="property"
+        (removeProperty)="removeProperty(i)"
+        (duplicateProperty)="duplicateProperty(i)"
+      ></app-property-manifest-create-edit>
+    </div>
+
+    <button class="button is-info" (click)="addProperty()">New field</button>
+  </ng-container>
+
+  <!-- Policies tab content -->
+  <ng-container *ngIf="activeTab === 'policies'">
+    <div
+      style="border: 1px solid salmon"
+      *ngFor="let policyRule of policyRules"
+    >
+      <ng-container *ngIf="!policyRule.hidden">
+        <h3 class="title is-3">{{ policyRule.label }}</h3>
+        <p>{{ policyRule.description }}</p>
+
+        <app-policy-manifest-create-edit
+          [policyManifestFormArray]="getPolicies(policyRule.id)"
+          [authenticableEntities]="authenticableEntities"
+        ></app-policy-manifest-create-edit>
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <!-- Options tab content -->
+  <ng-container *ngIf="activeTab === 'options'">
+    <!-- Fields tab content goes here -->
+
+    <label for="slug">Slug</label>
+    <input type="text" formControlName="slug" name="slug" class="input" />
+
+    <label for="nameSingular">Singular name</label>
+    <input
+      type="text"
+      formControlName="nameSingular"
+      name="nameSingular"
+      class="input"
+    />
+
+    <ng-container *ngIf="!single">
+      <label for="namePlural">Plural name</label>
+      <input
+        type="text"
+        formControlName="namePlural"
+        name="namePlural"
+        class="input"
+      />
+    </ng-container>
+
+    <ng-container *ngIf="!single">
+      <label for="seedCount">Seed Count</label>
+      <input
+        type="number"
+        formControlName="seedCount"
+        name="seedCount"
+        class="input"
+      />
+    </ng-container>
+  </ng-container>
+
+  <!-- Buttons -->
+  <div class="container mt-6">
+    <div class="columns">
+      <div class="column">
+        <button class="button" (click)="closeModal()">Cancel</button>
+      </div>
+      <div class="column">
+        <button
+          type="submit"
+          class="button is-primary"
+          (click)="submit(form.value)"
+          [disabled]="form.invalid"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,6 @@
+.modal-card {
+  @include mobile {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+}

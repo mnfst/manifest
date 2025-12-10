@@ -1,0 +1,381 @@
+# Warning: This file is used for testing purposes only.
+# All entities and properties in this files are used somewhere in the e2e tests.
+#
+# Please do not modify it unless you know what you are doing.
+
+name: "mock-backend-for-e2e-tests"
+entities:
+  Owner:
+    properties:
+      - name
+      - { name: email, type: email }
+
+  # Testing all property types and their validation with the Dog entity.
+  Dog:
+    properties:
+      - name
+      - { name: description, type: text }
+      - { name: age, type: number }
+      - { name: website, type: link }
+      - { name: price, type: money, options: { currency: EUR } }
+      - { name: birthdate, type: date }
+      - { name: isGoodBoy, type: boolean }
+      - { name: acquiredAt, type: timestamp }
+      - { name: password, type: password }
+      - { name: email, type: email }
+      - {
+          name: favoriteToy,
+          type: choice,
+          options: { values: [ball, bone, frisbee] }
+        }
+      - { name: location, type: location }
+      - { name: certificate, type: file }
+      - { name: photo, type: image }
+
+    belongsTo:
+      - Owner
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  # Testing all default property types with the Sheep entity.
+  Sheep:
+    properties:
+      - { name: name, type: string, default: "Dolly" }
+      - { name: description, type: text, default: "A fluffy sheep." }
+      - { name: age, type: number, default: 5 }
+      - { name: website, type: link, default: "https://example.com" }
+      - { name: price, type: money, options: { currency: EUR }, default: 100 }
+      - { name: birthdate, type: date, default: "2020-01-01" }
+      - { name: isGoodBoy, type: boolean, default: true }
+      - { name: acquiredAt, type: timestamp, default: "2020-01-01T00:00:00Z" }
+      - { name: password, type: password }
+      - { name: email, type: email, default: "test@test.com" }
+      - {
+          name: favoriteToy,
+          type: choice,
+          options: { values: [ball, bone, frisbee] }
+        }
+      - { name: location, type: location }
+      - { name: certificate, type: file }
+      - { name: photo, type: image }
+
+    belongsTo:
+      - Owner
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  # Testing policies with the Bird entity.
+  Bird:
+    properties:
+      - name
+    policies:
+      read:
+        # Only for Users and contributors.
+        - { access: restricted, allow: [User, Contributor] }
+      update:
+        # Only for Users.
+        - { access: restricted, allow: User }
+      delete:
+        # Impossible logic to test multiple rules
+        - { access: restricted, allow: [Contributor] }
+        - { access: restricted, allow: [User] }
+
+  # Testing policies with the Cat entity.
+  Cat:
+    properties:
+      - name
+      - { name: age, type: number }
+      - { name: birthdate, type: date }
+      - { name: hiddenProp, type: boolean, hidden: true }
+    policies:
+      create:
+        - { access: restricted, allow: User }
+      read:
+        - access: 🌐 # Public.
+      update:
+        - access: forbidden
+      delete:
+        - { access: 🚫 } # Forbidden
+
+  # Testing policies with the Snake entity.
+  Snake:
+    authenticable: true
+    properties:
+      - name
+    policies:
+      read:
+        - access: admin
+      signup:
+        - access: 🚫
+
+  # Testing policies with the Frog entity (owner-based control).
+  Frog:
+    properties:
+      - name
+    belongsTo:
+      - User
+    policies:
+      create:
+        - { access: restricted, allow: User, condition: "self" }
+      read:
+        - { access: restricted, allow: User, condition: "self" }
+      update:
+        - { access: restricted, allow: User, condition: "self" }
+      delete:
+        - { access: restricted, allow: User, condition: "self" }
+
+  # Testing authenticable entities with the User and Contributor entities.
+  User:
+    authenticable: true
+    properties:
+      - name
+
+  Contributor:
+    authenticable: true
+    properties:
+      - name
+
+  # Testing validation with the Car and SuperUser entity.
+  Car:
+    properties:
+      - model
+      - brand
+      - { name: year, type: number, validation: { min: 2000 } }
+    validation:
+      model: { contains: "turbo" }
+      brand: { minLength: 3, maxLength: 20 }
+      year: { min: 2023, max: 2024, isOptional: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  SuperUser:
+    authenticable: true
+    properties:
+      - { name: name, type: string, validation: { required: true } }
+      - {
+          name: propWithInactiveFilters,
+          type: string,
+          validation:
+            {
+              isEmpty: false,
+              isNotEmpty: false,
+              required: false,
+              isDefined: false,
+              isAlpha: false,
+              isAlphanumeric: false,
+              isAscii: false,
+              isEmail: false,
+              isJSON: false
+            }
+        }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  # Testing relationships with the Post, Author, and Tags entities.
+  Post:
+    properties:
+      - title
+      - { name: content, type: text }
+    belongsTo:
+      - Author
+    belongsToMany:
+      - Tag
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  Note:
+    properties:
+      - title
+    belongsTo:
+      - { name: author, entity: Author, eager: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  Tweet:
+    properties:
+      - text
+    belongsToMany:
+      - { name: customTagNames, entity: Tag, eager: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  Author:
+    properties:
+      - name
+    belongsTo:
+      - University
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  University:
+    properties:
+      - name
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  Tag:
+    properties:
+      - name
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  # Testing uploads
+  Company:
+    properties:
+      - name
+      - {
+          name: logo,
+          type: image,
+          options:
+            {
+              sizes:
+                {
+                  small: { width: 100, height: 100 },
+                  medium: { width: 200, height: 200 },
+                  large: { width: 300, height: 300 }
+                }
+            }
+        }
+      - { name: document, type: file }
+
+  # Testing single entity with the ContactPage entity.
+  ContactPage:
+    single: true
+    nameSingular: Contact
+    slug: contact
+    properties:
+      - { name: title, type: string }
+      - { name: content, type: text }
+    validation:
+      title: { required: true }
+    policies:
+      create:
+        - access: public
+      read:
+        - access: public
+      update:
+        - access: public
+      delete:
+        - access: public
+
+  # Testing nested entities with Tutorial and steps.
+  Tutorial:
+    properties:
+      - title
+      - { name: content, type: text }
+      - { name: steps, type: group, options: { group: Step } }
+      - {
+          name: widget,
+          type: group,
+          options: { group: Widget, multiple: false }
+        }
+    policies:
+      create:
+        - access: public
+      update:
+        - access: public
+      read:
+        - access: public
+      delete:
+        - access: public
+
+# Testing endpoints
+endpoints:
+  basicEndpoint:
+    path: /basic
+    description: A basic endpoint that returns a simple message.
+    method: GET
+    handler: basicEndpoint
+
+  createDog:
+    path: /create-dog
+    description: A basic endpoint that creates a dog with the backend SDK.
+    method: POST
+    handler: createDog
+
+# Testing nested entities with Tutorial and steps.
+groups:
+  Step:
+    properties:
+      - title
+      - { name: description, type: text }
+    validation:
+      title: { minLength: 3 }
+
+  Widget:
+    properties:
+      - name
+      - { name: description, type: text }
+    validation:
+      name: { minLength: 3 }
+      description: { maxLength: 100 }

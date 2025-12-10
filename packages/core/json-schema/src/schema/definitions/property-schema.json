@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/property-schema.json",
+  "title": "Property Schema",
+  "description": "A property in your entity. Doc: https://manifest.build/docs/properties",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The name of the property. Doc: https://manifest.build/docs/entities#properties",
+          "type": "string"
+        },
+        "label": {
+          "description": "The optional label of the property that replaces the name in the admin UI if provided. Doc: https://manifest.build/docs/entities#properties",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the property: text, number, link, currency... Default \"string\". Doc: https://manifest.build/docs/entities#property-types",
+          "type": "string",
+          "enum": [
+            "string",
+            "text",
+            "richText",
+            "number",
+            "link",
+            "money",
+            "date",
+            "timestamp",
+            "email",
+            "boolean",
+            "password",
+            "choice",
+            "location",
+            "file",
+            "image",
+            "group"
+          ]
+        },
+        "helpText": {
+          "description": "Optional help text to provide additional guidance for the property in the admin UI.",
+          "type": "string"
+        },
+        "validation": {
+          "description": "Validation object for the property.",
+          "$ref": "./validation-schema.json"
+        },
+        "default": {
+          "description": "The default value of the property. Doc: https://manifest.build/docs/entities#property-params",
+          "type": ["string", "number", "boolean", "object", "array"]
+        },
+        "hidden": {
+          "description": "If the property should be hidden in the API response. Default false. Doc: https://manifest.build/docs/entities#property-params",
+          "type": "boolean"
+        },
+        "options": {
+          "allOf": [
+            {
+              "$ref": "./property-options-schema.json"
+            }
+          ],
+          "oneOf": [
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "money" } }
+              },
+              "then": {
+                "$ref": "./property-options/money-options-schema.json"
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "choice" } }
+              },
+              "then": {
+                "$ref": "./property-options/choice-options-schema.json"
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "image" } }
+              },
+              "then": {
+                "$ref": "./property-options/image-options-schema.json"
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "properties": { "type": { "const": "group" } }
+              },
+              "then": {
+                "$ref": "./property-options/group-options-schema.json"
+              }
+            }
+          ]
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    {
+      "type": "string",
+      "description": "A simple string representing the type of the property."
+    }
+  ]
+}

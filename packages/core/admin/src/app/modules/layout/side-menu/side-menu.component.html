@@ -1,0 +1,81 @@
+<div
+  class="side-menu-wrapper is-flex is-flex-direction-column is-justify-content-space-between"
+>
+  <ul class="menu-list">
+    <li>
+      <span
+        class="menu-title is-uppercase has-text-weight-semibold has-text-grey is-size-5"
+        >Content manager
+      </span>
+    </li>
+
+    <!-- Collections -->
+    <li *ngIf="collections">
+      <span
+        class="is-inline-flex is-align-items-center is-justify-content-space-between"
+      >
+        <span>Collections</span>
+        <a (click)="addEntity()" title="Add new collection">
+          <i class="icon icon-plus"></i>
+        </a>
+      </span>
+      <ul>
+        <li *ngFor="let collection of collections">
+          <a
+            [routerLink]="['/content/collections', collection.slug]"
+            routerLinkActive="is-active"
+          >
+            <span>{{ collection.namePlural | capitalizeFirstLetter }}</span>
+          </a>
+        </li>
+        <li *ngIf="collections.length === 0">
+          <a style="pointer-events: none" class="has-text-grey">
+            <span>No collection yet</span></a
+          >
+        </li>
+      </ul>
+      <hr />
+    </li>
+
+    <!-- Singles -->
+    <li *ngIf="singles">
+      <span
+        class="is-inline-flex is-align-items-center is-justify-content-space-between"
+      >
+        <span>Singles</span>
+        <a (click)="addEntity({ single: true })" title="Add new single">
+          <i class="icon icon-plus"></i>
+        </a>
+      </span>
+
+      <ng-container *ngIf="singles?.length">
+        <ul>
+          <li *ngFor="let single of singles">
+            <a
+              [routerLink]="['/content/singles', single.slug]"
+              routerLinkActive="is-active"
+            >
+              <span>{{ single.nameSingular | capitalizeFirstLetter }}</span>
+            </a>
+          </li>
+        </ul>
+      </ng-container>
+      <hr />
+    </li>
+
+    <li>
+      <a class="has-submenu is-flex is-justify-content-space-between">
+        <span
+          class="is-inline-flex is-align-items-center is-justify-content-space-between"
+        >
+          <span>Settings</span>
+        </span>
+      </a>
+      <ul>
+        <li>
+          <a routerLink="/collections/admins">Admins</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "entryFile": "manifest/src/main",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "assets": ["assets", "open-api/styles/swagger-custom.css"]
+  }
+}

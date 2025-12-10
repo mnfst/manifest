@@ -1,0 +1,40 @@
+$bullet-colors: (
+  'color-0': $color-0,
+  'color-1': $color-1,
+  'color-2': $color-2,
+  'color-3': $color-3,
+  'color-4': $color-4,
+  'color-5': $color-5,
+  'color-6': $color-6,
+  'color-7': $color-7,
+  'color-8': $color-8,
+  'color-9': $color-9,
+  'color-10': $color-10,
+  'color-11': $color-11,
+  'color-12': $color-12,
+  'color-13': $color-13,
+  'color-14': $color-14
+);
+
+.bullet {
+  height: $bullet-width;
+  width: $bullet-width;
+  margin-right: $margin-right;
+  margin-top: $margin-top;
+  margin-bottom: $margin-bottom;
+  display: inline-block;
+  border-radius: $bullet-width;
+  background-color: $link;
+  &:last-child {
+    margin-right: 0;
+  }
+
+  @each $name, $color in $bullet-colors {
+    .is-#{$name} &:not(.is-grey) {
+      background-color: $color;
+    }
+  }
+  &.is-grey {
+    background-color: $grey-lighter;
+  }
+}

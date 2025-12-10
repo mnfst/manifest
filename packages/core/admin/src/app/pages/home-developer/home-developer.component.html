@@ -1,0 +1,223 @@
+<section class="section px-0">
+  <div class="columns is-multiline">
+    <div
+      class="column is-10-tablet is-offset-1-tablet is-8-widescreen is-offset-2-widescreen is-6-fullhd is-offset-3-fullhd"
+    >
+      <div class="content" *ngIf="appManifest">
+        <h1>{{ appManifest.name }}</h1>
+        <div>
+          <div
+            class="columns is-multiline"
+            *ngIf="appManifest.environment !== 'production'"
+          >
+            <hr />
+            <div class="column is-12 pb-0">
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Resources
+              </p>
+            </div>
+            <div class="column is-12">
+              <a
+                class="card--link"
+                href="https://manifest.build/docs"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-01.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                      >
+                        <!-- TODO: review the doc once changed -->
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Documentation
+                          </p>
+                          <p>Find out how how to to play with Manifest</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <div class="column is-12 pb-0">
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Feedback & Support
+              </p>
+            </div>
+            <div class="column is-12">
+              <a
+                class="card--link"
+                href="https://github.com/mnfst/manifest/discussions/categories/feedback"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-gh.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            We need you 🙏
+                          </p>
+                          <p>Share your feedback and suggestions</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="column is-12">
+              <a
+                class="card--link"
+                href="https://discord.com/invite/FepAked3W7"
+                target="_blank"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <figure class="media-left m-0">
+                        <p class="image is-64x64">
+                          <img src="/assets/images/ext-link-dc.svg" />
+                        </p>
+                      </figure>
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            Stuck ?
+                          </p>
+                          <p>Get help from the community on our Discord</p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Collections -->
+          <div class="columns is-multiline" *ngIf="collections?.length">
+            <div class="column is-12 pb-0">
+              <hr />
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Start navigating through your collections
+              </p>
+            </div>
+            <div class="column is-6" *ngFor="let entity of collections">
+              <a
+                [routerLink]="['/content/collections', entity.slug]"
+                routerLinkActive="is-active"
+                class="card--link"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            <span>{{
+                              entity.namePlural | capitalizeFirstLetter
+                            }}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Singles -->
+          <div class="columns is-multiline" *ngIf="singles?.length">
+            <div class="column is-12 pb-0">
+              <hr />
+              <p class="is-uppercase has-text-dark has-text-weight-medium">
+                Edit your single entities
+              </p>
+            </div>
+            <div class="column is-6" *ngFor="let entity of singles">
+              <a
+                [routerLink]="['/content/singles', entity.slug, 'edit']"
+                routerLinkActive="is-active"
+                class="card--link"
+              >
+                <div
+                  class="card p-0 is-overflow-hidden is-shadowless is-bordered is-entity-link"
+                >
+                  <div class="card-content p-0">
+                    <article class="media is-flex is-align-items-center">
+                      <div
+                        class="media-content is-flex is-align-items-center is-justify-content-flex-start pl-4 is-fullheight"
+                      >
+                        <div class="content">
+                          <p class="is-size-5 has-text-weight-bold mb-0">
+                            <span>{{
+                              entity.nameSingular | capitalizeFirstLetter
+                            }}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <figure
+                        class="media-right my-0 ml-1 mr-4 is-inline-flex is-justify-content-center"
+                      >
+                        <i class="icon icon-arrow-right"></i>
+                      </figure>
+                    </article>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

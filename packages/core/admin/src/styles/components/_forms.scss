@@ -1,0 +1,144 @@
+//_ `Placeholders
+::-webkit-input-placeholder {
+  /* Chrome/Opera/Safari */
+  color: $input-placeholder-color !important;
+}
+
+::-moz-placeholder {
+  /* Firefox 19+ */
+  color: $input-placeholder-color !important;
+}
+
+:-ms-input-placeholder {
+  /* IE 10+ */
+  color: $input-placeholder-color !important;
+}
+
+:-moz-placeholder {
+  /* Firefox 18- */
+  color: $input-placeholder-color !important;
+}
+
+input[type='datetime-local'] {
+  display: block;
+  padding-right: 12px;
+}
+
+label:not(.file-label):not(.checkbox):not(.image-label):not(.radio) {
+  font-size: $size-6;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  color: $label-color;
+  display: inline-block;
+
+  @include touch {
+    margin-top: $column-gap;
+  }
+}
+
+.select {
+  font-size: $size-normal;
+  width: 100%;
+}
+
+.checkbox {
+  @include checkbox-radio-styles;
+}
+
+.radio {
+  @include checkbox-radio-styles;
+}
+
+// Checkbox & radio
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  background-color: $light;
+  box-shadow: 0 0 0 1px rgba($grey, 0.75) inset;
+  transition: all 0.2s ease-in-out;
+
+  .radio & {
+    border-radius: 50%;
+  }
+
+  .is-disabled & {
+    box-shadow: 0 0 0 1px $input-disabled-color inset;
+    background-color: transparent;
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    display: none;
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+.file-cta {
+  &.file-remove {
+    border: 0;
+
+    a {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .file-input.is-danger + & {
+    border-color: $danger !important;
+  }
+}
+
+.has-current-file a {
+  text-overflow: ellipsis;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+quill-editor {
+  width: 100%;
+  height: 100%;
+}
+
+.ql-toolbar.ql-snow,
+.ql-container.ql-snow {
+  border-color: $white-bis;
+  background-color: $white;
+
+  .is-danger & {
+    border-color: $danger;
+  }
+}
+.ql-toolbar.ql-snow {
+  border-top-left-radius: $radius;
+  border-top-right-radius: $radius;
+  border-bottom: 0;
+
+  + .ql-container.ql-snow {
+    min-height: 158px;
+    border-bottom-left-radius: $radius;
+    border-bottom-right-radius: $radius;
+  }
+
+  .ql-picker-options {
+    box-shadow: none;
+  }
+}
+.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  border-color: $white-ter;
+}
+.ql-editor {
+  min-height: 158px;
+  font-size: 1.6rem;
+  font-family: 'Rubik', sans-serif !important;
+
+  blockquote {
+    border-left: 4px solid $link !important;
+  }
+}

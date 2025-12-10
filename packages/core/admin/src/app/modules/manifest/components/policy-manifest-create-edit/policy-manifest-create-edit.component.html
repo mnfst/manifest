@@ -1,0 +1,59 @@
+<div
+  class="container"
+  *ngFor="let policyManifest of policyManifestFormArray.controls; let i = index"
+  [formGroup]="getPolicyFormGroup(i)"
+>
+  <!-- Access selection-->
+  <div class="columns is-multiline">
+    <div class="column is-2" *ngFor="let access of accesses">
+      <button
+        class="button"
+        (click)="setAccess(i, access)"
+        [disabled]="
+          access === 'restricted' && authenticableEntities.length === 0
+        "
+        [ngClass]="{
+          'is-info': policyManifest.get('access')?.value === access
+        }"
+      >
+        <i class="icon icon-save"></i>
+
+        {{ access }}
+      </button>
+    </div>
+    <div class="column is-2">
+      <button
+        class="button is-danger"
+        (click)="removePolicy(i)"
+        *ngIf="policyManifestFormArray.length > 1"
+      >
+        X
+      </button>
+    </div>
+  </div>
+
+  <!-- Restricted access options -->
+  <div *ngIf="policyManifest.get('access')?.value === 'restricted'">
+    <div class="columns is-multiline">
+      <div
+        class="column is-6"
+        *ngFor="let authenticableEntity of authenticableEntities"
+      >
+        <button
+          class="button"
+          type="button"
+          (click)="toggleEntityAllow(i, authenticableEntity)"
+          [ngClass]="{
+            'is-info': isEntityAllowed(i, authenticableEntity)
+          }"
+        >
+          {{ authenticableEntity.className }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a (click)="addPolicyManifest()" *ngIf="isAllPoliciesRestricted()"
+  >New policy</a
+>

@@ -1,0 +1,13 @@
+.avatar {
+  display: block;
+  border-radius: 50%;
+  border: 1px solid $light;
+  position: relative;
+  overflow: hidden;
+  width: $avatar-diameter;
+  min-width: $avatar-diameter;
+  max-width: $avatar-diameter;
+  height: $avatar-diameter;
+  min-height: $avatar-diameter;
+  max-height: $avatar-diameter;
+}

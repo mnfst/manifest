@@ -1,0 +1,42 @@
+<div class="control">
+  <label [for]="prop.label">{{ prop.label }}</label>
+
+  <div class="image" *ngIf="!value">
+    <div class="file" [ngClass]="{ 'show-errors': isError }">
+      <label class="image-label">
+        <!-- Input element -->
+        <input
+          class="file-input"
+          type="file"
+          accept=".png, .jpg, .jpeg"
+          #imageInput
+          (change)="imageInputEvent()"
+        />
+        <span class="file-cta" *ngIf="!loading">
+          <span class="file-icon">
+            <i class="icon icon-upload-cloud is-size-5"></i>
+          </span>
+          <span class="file-label"> Upload image...</span>
+        </span>
+
+        <button class="button is-link is-loading full-width" *ngIf="loading">
+          Loading
+        </button>
+      </label>
+    </div>
+  </div>
+
+  <!-- Previously uploaded file -->
+  <div
+    *ngIf="displayedImage"
+    class="has-current-file is-flex is-align-items-center is-justify-content-space-between mt-1 has-background-white-ter pl-1 py-1"
+  >
+    <img [src]="displayedImage" />
+
+    <span class="file-cta file-remove">
+      <a (click)="removeFile()">
+        <i class="icon icon-x is-size-5"></i>
+      </a>
+    </span>
+  </div>
+</div>

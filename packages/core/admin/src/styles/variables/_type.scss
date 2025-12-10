@@ -1,0 +1,42 @@
+// Typography
+$family-sans-serif: 'Rubik', sans-serif !default;
+$family-monospace: 'Rubik', sans-serif !default;
+$family-alt: 'Rubik', sans-serif !default;
+
+$size-1: 4.2rem !default;
+$size-2: 2.8rem !default;
+$size-3: 2.4rem !default;
+$size-4: 2.1rem !default;
+$size-5: 1.5rem !default;
+$size-6: 1.3rem !default;
+$size-7: 1.2rem !default;
+$size-8: 1.1rem !default;
+
+$sizes: $size-1 $size-2 $size-3 $size-4 $size-5 $size-6 $size-7 $size-8 !default;
+
+$size-1-touch: 3.4rem !default;
+$size-2-touch: 2.4rem !default;
+$size-3-touch: 2.1rem !default;
+$size-4-touch: 1.5rem !default;
+$size-5-touch: 1.2rem !default;
+
+$title-size: 3.4rem !default;
+$subtitle-size: 2.6rem !default;
+
+$title-weight: 400 !default;
+$title-weight-bold: 500 !default;
+
+$subtitle-weight: 400 !default;
+
+$weight-light: 300 !default;
+$weight-normal: 400 !default;
+$weight-bold: 500 !default;
+$weight-black: 500 !default;
+
+$size-small: $size-6 !default;
+$size-normal: $size-5 !default;
+$size-medium: 1.8rem !default;
+$size-large: $size-4 !default;
+
+// Custom variables
+$letter-spacing: 0.4px !default;

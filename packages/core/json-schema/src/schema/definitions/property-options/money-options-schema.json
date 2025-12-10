@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.manifest.build/definitions/property-options/money-options-schema.json",
+  "title": "Money Options Schema",
+  "description": "Specific options for the \"Money\" property type. Doc: https://manifest.build/docs/entities#money",
+  "type": "object",
+  "properties": {
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency code for the money type. Ex: EUR, USD, JPY..."
+    }
+  },
+  "required": ["currency"]
+}

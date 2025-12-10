@@ -1,0 +1,29 @@
+.is-bordered,
+.card.is-bordered {
+  border: $control-border-width solid $border;
+
+  @each $name, $pair in $label-colors {
+    $bg: nth($pair, 1);
+
+    &.has-background-#{$name} {
+      background-color: $bg;
+      border-color: darken($bg, 15%);
+    }
+  }
+}
+
+.card--link {
+  .card {
+    border: 1px solid $white;
+    transition: border-color 0.54s $transition-timing;
+  }
+
+  &:hover .card {
+    border-color: $grey-light;
+    cursor: pointer;
+
+    .icon.icon-arrow-right {
+      color: $primary;
+    }
+  }
+}

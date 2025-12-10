@@ -1,0 +1,11 @@
+<div class="modal" [ngClass]="{ 'is-active': config }">
+  <div class="modal-background" (click)="modalService.close()"></div>
+  <div class="modal-card">
+    <div class="modal-card-body content is-normal">
+      <a aria-label="close" (click)="modalService.close()">
+        <i class="icon icon-x is-size-15"></i
+      ></a>
+      <ng-container #dynamicComponent></ng-container>
+    </div>
+  </div>
+</div>

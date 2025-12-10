@@ -1,0 +1,13 @@
+{
+  "name": "@repo/json-schema",
+  "private": true,
+  "scripts": {
+    "build": "ts-node scripts/generate-types.ts",
+    "lint": "eslint --fix ."
+  },
+  "dependencies": {
+    "json-schema-to-typescript": "^15.0.2",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  }
+}
