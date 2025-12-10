@@ -366,15 +366,57 @@
       ]
     },
     {
-      "name": "social-cards",
+      "name": "x-post",
       "type": "registry:component",
-      "title": "Social Cards",
-      "description": "Social media post cards for X, Instagram, LinkedIn, and YouTube.",
+      "title": "X Post",
+      "description": "X (Twitter) post card with engagement metrics.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/social-cards.tsx",
+          "path": "registry/miscellaneous/x-post.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "instagram-post",
+      "type": "registry:component",
+      "title": "Instagram Post",
+      "description": "Instagram post card with image and engagement.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
+      "files": [
+        {
+          "path": "registry/miscellaneous/instagram-post.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "linkedin-post",
+      "type": "registry:component",
+      "title": "LinkedIn Post",
+      "description": "LinkedIn post card with professional styling.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
+      "files": [
+        {
+          "path": "registry/miscellaneous/linkedin-post.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "youtube-post",
+      "type": "registry:component",
+      "title": "YouTube Post",
+      "description": "YouTube video card with playable embed.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
+      "files": [
+        {
+          "path": "registry/miscellaneous/youtube-post.tsx",
           "type": "registry:component"
         }
       ]

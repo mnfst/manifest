@@ -102,12 +102,10 @@ import { QuickReply } from '@/registry/miscellaneous/quick-reply'
 import { OptionList } from '@/registry/miscellaneous/option-list'
 import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
 import { Skeleton, SkeletonProductCard, SkeletonStats } from '@/registry/miscellaneous/skeleton'
-import {
-  InstagramPost,
-  LinkedInPost,
-  XPost,
-  YouTubePost
-} from '@/registry/miscellaneous/social-cards'
+import { XPost } from '@/registry/miscellaneous/x-post'
+import { InstagramPost } from '@/registry/miscellaneous/instagram-post'
+import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
+import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 import { Stats } from '@/registry/miscellaneous/stat-card'
 import { StatusBadge } from '@/registry/miscellaneous/status-badge'
 import { TagSelect } from '@/registry/miscellaneous/tag-select'
@@ -496,42 +494,58 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
-        id: 'social-posts',
-        name: 'Social Cards',
-        description: 'Social media post cards',
-        registryName: 'social-cards',
+        id: 'x-post',
+        name: 'X Post',
+        description: 'X (Twitter) post card',
+        registryName: 'x-post',
         variants: [
           {
-            id: 'x',
-            name: 'X (Twitter)',
+            id: 'default',
+            name: 'Default',
             component: <XPost />,
-            usageCode: `import { XPost } from '@/components/social-cards'
-
-<XPost />`
-          },
+            usageCode: `<XPost />`
+          }
+        ]
+      },
+      {
+        id: 'instagram-post',
+        name: 'Instagram Post',
+        description: 'Instagram post card',
+        registryName: 'instagram-post',
+        variants: [
           {
-            id: 'instagram',
-            name: 'Instagram',
+            id: 'default',
+            name: 'Default',
             component: <InstagramPost />,
-            usageCode: `import { InstagramPost } from '@/components/social-cards'
-
-<InstagramPost />`
-          },
+            usageCode: `<InstagramPost />`
+          }
+        ]
+      },
+      {
+        id: 'linkedin-post',
+        name: 'LinkedIn Post',
+        description: 'LinkedIn post card',
+        registryName: 'linkedin-post',
+        variants: [
           {
-            id: 'linkedin',
-            name: 'LinkedIn',
+            id: 'default',
+            name: 'Default',
             component: <LinkedInPost />,
-            usageCode: `import { LinkedInPost } from '@/components/social-cards'
-
-<LinkedInPost />`
-          },
+            usageCode: `<LinkedInPost />`
+          }
+        ]
+      },
+      {
+        id: 'youtube-post',
+        name: 'YouTube Post',
+        description: 'YouTube video card',
+        registryName: 'youtube-post',
+        variants: [
           {
-            id: 'youtube',
-            name: 'YouTube',
+            id: 'default',
+            name: 'Default',
             component: <YouTubePost />,
-            usageCode: `import { YouTubePost } from '@/components/social-cards'
-
-<YouTubePost />`
+            usageCode: `<YouTubePost />`
           }
         ]
       },
