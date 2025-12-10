@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
@@ -112,28 +111,6 @@ import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 // UI components
 import { GettingStarted } from '@/components/blocks/getting-started'
 import { VariantSection } from '@/components/blocks/variant-section'
-
-// Wrapper component for Table Multi Select with action buttons
-function TableMultiSelectWithActions() {
-  const [selectedCount, setSelectedCount] = useState(0)
-
-  return (
-    <div>
-      <InlineTable
-        selectable="multi"
-        onSelectionChange={(rows) => setSelectedCount(rows.length)}
-      />
-      <div className="flex justify-end gap-2 p-3">
-        <Button variant="outline" size="sm" disabled={selectedCount === 0}>
-          Download
-        </Button>
-        <Button size="sm" disabled={selectedCount === 0}>
-          Send
-        </Button>
-      </div>
-    </div>
-  )
-}
 
 // Types for the new structure
 interface BlockVariant {
@@ -273,23 +250,8 @@ const categories: Category[] = [
           {
             id: 'multi-select',
             name: 'Multi Select',
-            component: <TableMultiSelectWithActions />,
-            usageCode: `const [selectedCount, setSelectedCount] = useState(0)
-
-<div>
-  <InlineTable
-    selectable="multi"
-    onSelectionChange={(rows) => setSelectedCount(rows.length)}
-  />
-  <div className="flex justify-end gap-2 p-3">
-    <Button variant="outline" size="sm" disabled={selectedCount === 0}>
-      Download
-    </Button>
-    <Button size="sm" disabled={selectedCount === 0}>
-      Send
-    </Button>
-  </div>
-</div>`
+            component: <InlineTable selectable="multi" showActions />,
+            usageCode: `<InlineTable selectable="multi" showActions />`
           }
         ]
       },

@@ -1,7 +1,8 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Check, ChevronDown, ChevronUp, Minus } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Download, Minus, Send } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
 export interface TableColumn<T = Record<string, unknown>> {
@@ -23,6 +24,9 @@ export interface InlineTableProps<T = Record<string, unknown>> {
   stickyHeader?: boolean
   compact?: boolean
   selectedRows?: T[]
+  showActions?: boolean
+  onDownload?: (selectedRows: T[]) => void
+  onSend?: (selectedRows: T[]) => void
 }
 
 // Default demo data for the table
@@ -115,7 +119,10 @@ export function InlineTable<T extends Record<string, unknown>>({
   emptyMessage = 'No data available',
   stickyHeader = false,
   compact = false,
-  selectedRows: controlledSelectedRows
+  selectedRows: controlledSelectedRows,
+  showActions = false,
+  onDownload,
+  onSend
 }: InlineTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string
@@ -436,6 +443,36 @@ export function InlineTable<T extends Record<string, unknown>>({
           </tbody>
         </table>
       </div>
+
+      {/* Action buttons for multi-select */}
+      {showActions && selectable === 'multi' && (
+        <div className="mt-3 flex items-center justify-between border-t pt-3">
+          <span className="text-sm text-muted-foreground">
+            {selectedRowsSet.size > 0
+              ? `${selectedRowsSet.size} item${selectedRowsSet.size > 1 ? 's' : ''} selected`
+              : 'Select items'}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={selectedRowsSet.size === 0}
+              onClick={() => onDownload?.(sortedData.filter((_, i) => selectedRowsSet.has(i)))}
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              Download
+            </Button>
+            <Button
+              size="sm"
+              disabled={selectedRowsSet.size === 0}
+              onClick={() => onSend?.(sortedData.filter((_, i) => selectedRowsSet.has(i)))}
+            >
+              <Send className="mr-1.5 h-3.5 w-3.5" />
+              Send
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
