@@ -1,0 +1,45 @@
+name: CI-CD Manifest
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "20.x"
+      - name: Install root dependencies
+        run: npm install
+      - name: Install dependencies (workspaces)
+        run: npm ci --workspaces --ignore-scripts
+      - name: Build App
+        run: npm run build
+      - name: Bundle analysis
+        run: npx @codecov/bundle-analyzer ./dist --bundle-name=manifest --upload-token=${{ secrets.CODECOV_TOKEN }}
+        working-directory: ./packages/core/manifest
+      - name: Run tests
+        run: npm run test:ci
+      - name: Upload coverage reports to Codecov (Manifest package)
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: mnfst/manifest
+          directory: ./packages/core/manifest/coverage
+      - name: Changeset
+        run: |
+          git fetch origin master:refs/remotes/origin/master
+          npx changeset status --since=origin/master
