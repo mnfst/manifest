@@ -3,14 +3,12 @@
 import { ChatDemo } from '@/components/chat/chat-demo'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WaveCanvas } from '@/components/ui/wave-canvas'
-import {
-  InlineBlogPostList,
-  InlineFeaturedArticle
-} from '@/registry/inline/inline-blog'
-import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
-import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
-import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
-import { InlineProductCarousel } from '@/registry/inline/inline-product-carousel'
+import { BlogPostCard, BlogPost } from '@/registry/blogging/blog-post-card'
+import { BlogPostList } from '@/registry/blogging/blog-post-list'
+import { OrderConfirm } from '@/registry/payment/order-confirm'
+import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
+import { PaymentMethods } from '@/registry/payment/payment-methods'
+import { ProductList, Product } from '@/registry/list/product-list'
 import Link from 'next/link'
 
 function ChatGPTIcon({ className }: { className?: string }) {
@@ -121,6 +119,69 @@ const techCrunchArticles = [
   }
 ]
 
+const audioProducts: Product[] = [
+  {
+    id: '1',
+    name: 'Iyo Pro',
+    description: 'Premium Earbuds',
+    price: 299,
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
+    rating: 4.9,
+    badge: 'Best Seller',
+    inStock: true
+  },
+  {
+    id: '2',
+    name: 'Iyo Air',
+    description: 'Wireless Earbuds',
+    price: 149,
+    image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
+    rating: 4.8,
+    badge: 'New',
+    inStock: true
+  },
+  {
+    id: '3',
+    name: 'Iyo Studio',
+    description: 'Over-Ear Headphones',
+    price: 349,
+    originalPrice: 399,
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+    rating: 4.7,
+    badge: '-12%',
+    inStock: true
+  },
+  {
+    id: '4',
+    name: 'Iyo Sport',
+    description: 'Active Earbuds',
+    price: 199,
+    image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop',
+    rating: 4.8,
+    inStock: true
+  },
+  {
+    id: '5',
+    name: 'Iyo Mini',
+    description: 'Compact Earbuds',
+    price: 99,
+    originalPrice: 129,
+    image: 'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=400&h=400&fit=crop',
+    rating: 4.6,
+    badge: '-23%',
+    inStock: true
+  },
+  {
+    id: '6',
+    name: 'Iyo Max',
+    description: 'Premium Headphones',
+    price: 449,
+    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
+    rating: 4.9,
+    inStock: true
+  }
+]
+
 const featuredArticle = {
   id: '0',
   title: 'The accelerator is on the floor for autonomous vehicles',
@@ -152,7 +213,7 @@ const useCases = [
         id: '2',
         role: 'assistant' as const,
         content: 'Here are our best-selling audio products:',
-        component: <InlineProductCarousel />,
+        component: <ProductList products={audioProducts} variant="carousel" />,
         brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
         hasPadding: true,
         contentAfter:
@@ -167,7 +228,7 @@ const useCases = [
         id: '4',
         role: 'assistant' as const,
         content: "Excellent choice! Here's your order summary:",
-        component: <InlineOrderConfirm />,
+        component: <OrderConfirm />,
         brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
         contentAfter:
           "Please review the details and confirm when you're ready. Free shipping is included with your order."
@@ -187,7 +248,7 @@ const useCases = [
         id: '2',
         role: 'assistant' as const,
         content: 'Please select your payment method:',
-        component: <InlinePaymentMethods />,
+        component: <PaymentMethods />,
         brand: { name: 'Stripe', logo: <StripeLogo className="h-4 w-4" /> },
         contentAfter:
           'Your payment information is secured with end-to-end encryption. Select your preferred method to continue.'
@@ -201,7 +262,7 @@ const useCases = [
         id: '4',
         role: 'assistant' as const,
         content: 'Payment successful!',
-        component: <InlinePaymentConfirmed />,
+        component: <PaymentConfirmed />,
         brand: { name: 'Stripe', logo: <StripeLogo className="h-4 w-4" /> },
         contentAfter:
           "You'll receive a confirmation email shortly. Is there anything else I can help you with?"
@@ -221,7 +282,7 @@ const useCases = [
         id: '2',
         role: 'assistant' as const,
         content: "Here's the top story from TechCrunch:",
-        component: <InlineFeaturedArticle post={featuredArticle} />,
+        component: <BlogPostCard post={featuredArticle} variant="covered" />,
         brand: {
           name: 'TechCrunch',
           logo: <TechCrunchLogo className="h-4 w-4" />
@@ -239,7 +300,7 @@ const useCases = [
         role: 'assistant' as const,
         content: 'Here are more trending stories:',
         component: (
-          <InlineBlogPostList posts={techCrunchArticles} variant="horizontal" />
+          <BlogPostList posts={techCrunchArticles} variant="list" />
         ),
         brand: {
           name: 'TechCrunch',

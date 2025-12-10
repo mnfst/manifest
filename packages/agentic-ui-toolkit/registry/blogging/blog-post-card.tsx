@@ -51,7 +51,7 @@ export function BlogPostCard({
   showAuthor = true,
   showCategory = true,
   onReadMore
-}: InlineBlogPostCardProps) {
+}: BlogPostCardProps) {
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',

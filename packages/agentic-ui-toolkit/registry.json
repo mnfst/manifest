@@ -4,20 +4,6 @@
   "homepage": "https://manifest.build",
   "items": [
     {
-      "name": "weather-widget",
-      "type": "registry:component",
-      "title": "Weather Widget",
-      "description": "A weather widget displaying temperature, conditions, and additional weather details.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/misc/weather-widget/weather-widget.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
       "name": "card-form",
       "type": "registry:component",
       "title": "Card Form",
@@ -88,34 +74,6 @@
       ]
     },
     {
-      "name": "pricing-plans",
-      "type": "registry:component",
-      "title": "Pricing Plans",
-      "description": "A pricing plan selector with monthly/yearly toggle, multiple tiers, and feature lists.",
-      "dependencies": [],
-      "registryDependencies": ["card", "badge"],
-      "files": [
-        {
-          "path": "registry/pricing/pricing-plans.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "pricing-plans-grid",
-      "type": "registry:component",
-      "title": "Pricing Plans Grid",
-      "description": "A 3-column pricing grid with plans as cards, monthly/yearly toggle, and feature checkmarks.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["badge", "button"],
-      "files": [
-        {
-          "path": "registry/pricing/pricing-plans-grid.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
       "name": "bank-card-form",
       "type": "registry:component",
       "title": "Bank Card Form",
@@ -124,7 +82,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/bank-card-form.tsx",
+          "path": "registry/payment/bank-card-form.tsx",
           "type": "registry:component"
         }
       ]
@@ -138,7 +96,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/payment-methods.tsx",
+          "path": "registry/payment/payment-methods.tsx",
           "type": "registry:component"
         }
       ]
@@ -152,7 +110,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/order-confirm.tsx",
+          "path": "registry/payment/order-confirm.tsx",
           "type": "registry:component"
         }
       ]
@@ -166,7 +124,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/payment-success.tsx",
+          "path": "registry/payment/payment-success.tsx",
           "type": "registry:component"
         }
       ]
@@ -180,7 +138,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/payment-confirmed.tsx",
+          "path": "registry/payment/payment-confirmed.tsx",
           "type": "registry:component"
         }
       ]
@@ -194,7 +152,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/product-list.tsx",
+          "path": "registry/list/product-list.tsx",
           "type": "registry:component"
         }
       ]
@@ -208,7 +166,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/option-list.tsx",
+          "path": "registry/miscellaneous/option-list.tsx",
           "type": "registry:component"
         }
       ]
@@ -222,7 +180,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/amount-input.tsx",
+          "path": "registry/payment/amount-input.tsx",
           "type": "registry:component"
         }
       ]
@@ -236,7 +194,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/tag-select.tsx",
+          "path": "registry/miscellaneous/tag-select.tsx",
           "type": "registry:component"
         }
       ]
@@ -250,7 +208,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/quick-reply.tsx",
+          "path": "registry/messaging/quick-reply.tsx",
           "type": "registry:component"
         }
       ]
@@ -264,7 +222,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/progress-steps.tsx",
+          "path": "registry/miscellaneous/progress-steps.tsx",
           "type": "registry:component"
         }
       ]
@@ -278,35 +236,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/status-badge.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "bar-chart",
-      "type": "registry:component",
-      "title": "Bar Chart",
-      "description": "Simple bar chart with horizontal or vertical orientation.",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/inline/bar-chart.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "pie-chart",
-      "type": "registry:component",
-      "title": "Pie Chart",
-      "description": "Simple pie chart with legend and percentages.",
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/inline/pie-chart.tsx",
+          "path": "registry/miscellaneous/status-badge.tsx",
           "type": "registry:component"
         }
       ]
@@ -320,7 +250,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/stat-card.tsx",
+          "path": "registry/miscellaneous/stat-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -334,7 +264,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/skeleton.tsx",
+          "path": "registry/miscellaneous/skeleton.tsx",
           "type": "registry:component"
         }
       ]
@@ -348,7 +278,7 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/blog-post-card.tsx",
+          "path": "registry/blogging/blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -362,11 +292,11 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/blog-post-list.tsx",
+          "path": "registry/blogging/blog-post-list.tsx",
           "type": "registry:component"
         },
         {
-          "path": "registry/inline/blog-post-card.tsx",
+          "path": "registry/blogging/blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -380,11 +310,11 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/post-detail.tsx",
+          "path": "registry/blogging/post-detail.tsx",
           "type": "registry:component"
         },
         {
-          "path": "registry/inline/blog-post-card.tsx",
+          "path": "registry/blogging/blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -398,21 +328,7 @@
       "registryDependencies": ["button", "checkbox"],
       "files": [
         {
-          "path": "registry/inline/table.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "select-list",
-      "type": "registry:component",
-      "title": "Select List",
-      "description": "Card-based selection list with single or multi-select modes.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/inline/select-list.tsx",
+          "path": "registry/list/table.tsx",
           "type": "registry:component"
         }
       ]
@@ -426,7 +342,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/message-bubble.tsx",
+          "path": "registry/messaging/message-bubble.tsx",
           "type": "registry:component"
         }
       ]
@@ -440,7 +356,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/social-cards.tsx",
+          "path": "registry/miscellaneous/social-cards.tsx",
           "type": "registry:component"
         }
       ]

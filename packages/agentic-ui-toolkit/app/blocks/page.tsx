@@ -71,39 +71,46 @@ function TikTokIcon({ className }: { className?: string }) {
   )
 }
 
-// Components imports
-import { AmountInput } from '@/registry/inline/amount-input'
-import { PostDetail } from '@/registry/inline/post-detail'
-import { BlogPostList } from '@/registry/inline/blog-post-list'
-import { BlogPostCard } from '@/registry/inline/blog-post-card'
-import { BankCardForm } from '@/registry/inline/bank-card-form'
+// Blogging components
+import { BlogPostCard } from '@/registry/blogging/blog-post-card'
+import { BlogPostList } from '@/registry/blogging/blog-post-list'
+import { PostDetail } from '@/registry/blogging/post-detail'
+
+// List components
+import { ProductList } from '@/registry/list/product-list'
+import { Table } from '@/registry/list/table'
+
+// Payment components
+import { AmountInput } from '@/registry/payment/amount-input'
+import { BankCardForm } from '@/registry/payment/bank-card-form'
+import { OrderConfirm } from '@/registry/payment/order-confirm'
+import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
+import { PaymentMethods } from '@/registry/payment/payment-methods'
+import { PaymentSuccess } from '@/registry/payment/payment-success'
+
+// Messaging components
 import {
   ChatConversation,
   ImageMessageBubble,
   MessageBubble,
   MessageWithReactions,
   VoiceMessageBubble
-} from '@/registry/inline/message-bubble'
-import { OptionList } from '@/registry/inline/option-list'
-import { OrderConfirm } from '@/registry/inline/order-confirm'
-import { PaymentConfirmed } from '@/registry/inline/payment-confirmed'
-import { PaymentMethods } from '@/registry/inline/payment-methods'
-import { PaymentSuccess } from '@/registry/inline/payment-success'
-import { ProductList } from '@/registry/inline/product-list'
-import { ProgressSteps } from '@/registry/inline/progress-steps'
-import { QuickReply } from '@/registry/inline/quick-reply'
-import { SelectList } from '@/registry/inline/select-list'
+} from '@/registry/messaging/message-bubble'
+import { QuickReply } from '@/registry/messaging/quick-reply'
+
+// Miscellaneous components
+import { OptionList } from '@/registry/miscellaneous/option-list'
+import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
+import { Skeleton, SkeletonProductCard, SkeletonStats } from '@/registry/miscellaneous/skeleton'
 import {
   InstagramPost,
   LinkedInPost,
   XPost,
   YouTubePost
-} from '@/registry/inline/social-cards'
-import { Stats } from '@/registry/inline/stat-card'
-import { StatusBadge } from '@/registry/inline/status-badge'
-import { Table } from '@/registry/inline/table'
-import { TagSelect } from '@/registry/inline/tag-select'
-import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
+} from '@/registry/miscellaneous/social-cards'
+import { Stats } from '@/registry/miscellaneous/stat-card'
+import { StatusBadge } from '@/registry/miscellaneous/status-badge'
+import { TagSelect } from '@/registry/miscellaneous/tag-select'
 
 // UI components
 import { GettingStarted } from '@/components/blocks/getting-started'
@@ -489,38 +496,6 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
-        id: 'selection',
-        name: 'Selection',
-        description: 'Various selection interfaces for user input',
-        registryName: 'select-list',
-        variants: [
-          {
-            id: 'option-list',
-            name: 'Option List',
-            component: <OptionList />,
-            usageCode: `<OptionList />`
-          },
-          {
-            id: 'card-selection',
-            name: 'Card Selection',
-            component: <SelectList mode="multi" showConfirm />,
-            usageCode: `<SelectList mode="multi" showConfirm />`
-          },
-          {
-            id: 'tag-selection',
-            name: 'Tag Selection',
-            component: <TagSelect />,
-            usageCode: `<TagSelect />`
-          },
-          {
-            id: 'quick-reply',
-            name: 'Quick Reply',
-            component: <QuickReply />,
-            usageCode: `<QuickReply />`
-          }
-        ]
-      },
-      {
         id: 'social-posts',
         name: 'Social Cards',
         description: 'Social media post cards',
@@ -604,16 +579,63 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'weather-widget',
-        name: 'Weather Widget',
-        description: 'Weather information display',
-        registryName: 'weather-widget',
+        id: 'skeleton',
+        name: 'Skeleton',
+        description: 'Loading placeholder components',
+        registryName: 'skeleton',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <WeatherWidget />,
-            usageCode: `<WeatherWidget />`
+            component: (
+              <div className="space-y-4">
+                <SkeletonProductCard />
+                <SkeletonStats />
+              </div>
+            ),
+            usageCode: `<Skeleton className="h-4 w-32" />`
+          }
+        ]
+      },
+      {
+        id: 'quick-reply',
+        name: 'Quick Reply',
+        description: 'Quick reply buttons for chat',
+        registryName: 'quick-reply',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <QuickReply />,
+            usageCode: `<QuickReply />`
+          }
+        ]
+      },
+      {
+        id: 'option-list',
+        name: 'Option List',
+        description: 'Tag-style option selector',
+        registryName: 'option-list',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <OptionList />,
+            usageCode: `<OptionList />`
+          }
+        ]
+      },
+      {
+        id: 'tag-select',
+        name: 'Tag Select',
+        description: 'Colored tag selector',
+        registryName: 'tag-select',
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <TagSelect />,
+            usageCode: `<TagSelect />`
           }
         ]
       }
