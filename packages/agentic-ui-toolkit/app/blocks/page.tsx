@@ -274,7 +274,22 @@ const categories: Category[] = [
             id: 'multi-select',
             name: 'Multi Select',
             component: <TableMultiSelectWithActions />,
-            usageCode: `<InlineTable selectable="multi" onSelectionChange={(rows) => console.log(rows)} />`
+            usageCode: `const [selectedCount, setSelectedCount] = useState(0)
+
+<div>
+  <InlineTable
+    selectable="multi"
+    onSelectionChange={(rows) => setSelectedCount(rows.length)}
+  />
+  <div className="flex justify-end gap-2 p-3">
+    <Button variant="outline" size="sm" disabled={selectedCount === 0}>
+      Download
+    </Button>
+    <Button size="sm" disabled={selectedCount === 0}>
+      Send
+    </Button>
+  </div>
+</div>`
           }
         ]
       },
