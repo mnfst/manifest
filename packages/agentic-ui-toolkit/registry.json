@@ -460,15 +460,15 @@
       ]
     },
     {
-      "name": "inline-table",
+      "name": "table",
       "type": "registry:component",
-      "title": "Inline Table",
+      "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button", "checkbox"],
       "files": [
         {
-          "path": "registry/inline/inline-table.tsx",
+          "path": "registry/inline/table.tsx",
           "type": "registry:component"
         }
       ]

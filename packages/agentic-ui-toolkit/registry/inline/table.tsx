@@ -14,7 +14,7 @@ export interface TableColumn<T = Record<string, unknown>> {
   render?: (value: unknown, row: T, index: number) => React.ReactNode
 }
 
-export interface InlineTableProps<T = Record<string, unknown>> {
+export interface TableProps<T = Record<string, unknown>> {
   columns?: TableColumn<T>[]
   data?: T[]
   selectable?: 'none' | 'single' | 'multi'
@@ -110,7 +110,7 @@ function SkeletonRow({
   )
 }
 
-export function InlineTable<T extends Record<string, unknown>>({
+export function Table<T extends Record<string, unknown>>({
   columns = defaultColumns as unknown as TableColumn<T>[],
   data = defaultData as unknown as T[],
   selectable = 'none',
@@ -123,7 +123,7 @@ export function InlineTable<T extends Record<string, unknown>>({
   showActions = false,
   onDownload,
   onSend
-}: InlineTableProps<T>) {
+}: TableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string
     direction: 'asc' | 'desc'

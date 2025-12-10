@@ -44,7 +44,7 @@ function CodeViewer({ registryName }: { registryName: string }) {
 
   if (loading) {
     return (
-      <div className="rounded-lg bg-muted p-4 animate-pulse min-h-[300px]">
+      <div className="rounded-lg bg-muted p-4 animate-pulse h-[500px]">
         <div className="h-4 bg-muted-foreground/20 rounded w-3/4 mb-2" />
         <div className="h-4 bg-muted-foreground/20 rounded w-1/2 mb-2" />
         <div className="h-4 bg-muted-foreground/20 rounded w-2/3" />

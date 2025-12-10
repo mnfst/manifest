@@ -104,7 +104,7 @@ import {
 } from '@/registry/inline/inline-social-cards'
 import { InlineStats } from '@/registry/inline/inline-stat-card'
 import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
-import { InlineTable } from '@/registry/inline/inline-table'
+import { Table } from '@/registry/inline/table'
 import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
@@ -233,25 +233,25 @@ const categories: Category[] = [
         id: 'table',
         name: 'Table',
         description: 'Data table with optional selection',
-        registryName: 'inline-table',
+        registryName: 'table',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineTable />,
-            usageCode: `<InlineTable />`
+            component: <Table />,
+            usageCode: `<Table />`
           },
           {
             id: 'single-select',
             name: 'Single Select',
-            component: <InlineTable selectable="single" />,
-            usageCode: `<InlineTable selectable="single" />`
+            component: <Table selectable="single" />,
+            usageCode: `<Table selectable="single" />`
           },
           {
             id: 'multi-select',
             name: 'Multi Select',
-            component: <InlineTable selectable="multi" showActions />,
-            usageCode: `<InlineTable selectable="multi" showActions />`
+            component: <Table selectable="multi" showActions />,
+            usageCode: `<Table selectable="multi" showActions />`
           }
         ]
       },
