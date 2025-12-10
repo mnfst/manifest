@@ -189,9 +189,9 @@
       "name": "product-list",
       "type": "registry:component",
       "title": "Product List",
-      "description": "Product list with list, grid, and carousel variants.",
+      "description": "Product list with list, grid, carousel, and picker variants.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": [],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/inline/product-list.tsx",
@@ -413,20 +413,6 @@
       "files": [
         {
           "path": "registry/inline/inline-select-list.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "inline-product-table",
-      "type": "registry:component",
-      "title": "Inline Product Table",
-      "description": "Product picker table with quantity selection and add to cart functionality.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/inline/inline-product-table.tsx",
           "type": "registry:component"
         }
       ]

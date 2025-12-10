@@ -89,7 +89,6 @@ import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
 import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
 import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
 import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
-import { InlineProductTable } from '@/registry/inline/inline-product-table'
 import { ProductList } from '@/registry/inline/product-list'
 import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
 import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
@@ -280,8 +279,8 @@ const categories: Category[] = [
           {
             id: 'picker',
             name: 'Picker',
-            component: <InlineProductTable />,
-            usageCode: `<InlineProductTable />`
+            component: <ProductList variant="picker" />,
+            usageCode: `<ProductList variant="picker" />`
           }
         ]
       }
