@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, ExternalLink } from 'lucide-react'
 
-export interface InlinePaymentConfirmedProps {
+export interface PaymentConfirmedProps {
   orderId?: string
   productName?: string
   productDescription?: string
@@ -14,7 +14,7 @@ export interface InlinePaymentConfirmedProps {
   onTrackOrder?: () => void
 }
 
-export function InlinePaymentConfirmed({
+export function PaymentConfirmed({
   orderId = 'ORD-2024-7842',
   productName = "Air Force 1 '07",
   productDescription = 'Nike · Size 42 · White',
@@ -23,7 +23,7 @@ export function InlinePaymentConfirmed({
   currency = 'EUR',
   deliveryDate = 'Tue. Dec 10',
   onTrackOrder
-}: InlinePaymentConfirmedProps) {
+}: PaymentConfirmedProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

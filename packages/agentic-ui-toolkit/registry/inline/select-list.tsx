@@ -19,7 +19,7 @@ export interface SelectOptionGroup {
   items: SelectOption[]
 }
 
-export interface InlineSelectListProps {
+export interface SelectListProps {
   options?: SelectOption[] | SelectOptionGroup[]
   value?: string | string[]
   onChange?: (value: string | string[], selectedOptions: SelectOption[]) => void
@@ -100,7 +100,7 @@ function flattenOptions(
   return options
 }
 
-export function InlineSelectList({
+export function SelectList({
   options,
   value,
   onChange,
@@ -110,7 +110,7 @@ export function InlineSelectList({
   compact = false,
   grouped = false,
   emptyMessage = 'No options available'
-}: InlineSelectListProps) {
+}: SelectListProps) {
   const resolvedOptions =
     options ?? (grouped ? defaultGroupedOptions : defaultOptions)
   const flatOptions = flattenOptions(resolvedOptions)

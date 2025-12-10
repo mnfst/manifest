@@ -68,7 +68,7 @@ const defaultXPost: XPostProps = {
   verified: true
 }
 
-export function InlineXPost({
+export function XPost({
   author = defaultXPost.author,
   username = defaultXPost.username,
   avatar = defaultXPost.avatar,
@@ -151,7 +151,7 @@ const defaultInstagramPost: InstagramPostProps = {
   verified: true
 }
 
-export function InlineInstagramPost({
+export function InstagramPost({
   author = defaultInstagramPost.author,
   avatar = defaultInstagramPost.avatar,
   image = defaultInstagramPost.image,
@@ -259,7 +259,7 @@ const defaultLinkedInPost: LinkedInPostProps = {
   time: "2h"
 }
 
-export function InlineLinkedInPost({
+export function LinkedInPost({
   author = defaultLinkedInPost.author,
   headline = defaultLinkedInPost.headline,
   avatar = defaultLinkedInPost.avatar,
@@ -383,7 +383,7 @@ const defaultYouTubePost: YouTubePostProps = {
 
 import { useState } from "react"
 
-export function InlineYouTubePost({
+export function YouTubePost({
   channel = defaultYouTubePost.channel,
   avatar = defaultYouTubePost.avatar,
   title = defaultYouTubePost.title,
@@ -483,11 +483,11 @@ export function InlineYouTubePost({
 }
 
 // Combined Social Cards (grid of all platforms)
-export function InlineSocialCards() {
+export function SocialCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <InlineXPost />
-      <InlineLinkedInPost />
+      <XPost />
+      <LinkedInPost />
     </div>
   )
 }

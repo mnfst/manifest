@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, ChevronLeft, Clock } from 'lucide-react'
-import { BlogPost } from './inline-blog-post-card'
+import { BlogPost } from './blog-post-card'
 
 const defaultPost: BlogPost = {
   id: '1',

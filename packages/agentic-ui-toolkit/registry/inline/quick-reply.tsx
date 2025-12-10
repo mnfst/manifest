@@ -9,7 +9,7 @@ export interface QuickReply {
   icon?: React.ReactNode
 }
 
-export interface InlineQuickReplyProps {
+export interface QuickReplyProps {
   replies?: QuickReply[]
   onSelectReply?: (reply: QuickReply) => void
 }
@@ -21,10 +21,10 @@ const defaultReplies: QuickReply[] = [
   { id: '4', label: 'View details' }
 ]
 
-export function InlineQuickReply({
+export function QuickReply({
   replies = defaultReplies,
   onSelectReply
-}: InlineQuickReplyProps) {
+}: QuickReplyProps) {
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
       <div className="flex flex-wrap gap-2">

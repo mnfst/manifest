@@ -13,7 +13,7 @@ export interface PaymentMethod {
   isDefault?: boolean
 }
 
-export interface InlinePaymentMethodsProps {
+export interface PaymentMethodsProps {
   methods?: PaymentMethod[]
   amount?: number
   currency?: string
@@ -118,7 +118,7 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
   return <BrandLogo brand={method.brand} />
 }
 
-export function InlinePaymentMethods({
+export function PaymentMethods({
   methods = defaultMethods,
   amount = 279.0,
   currency = 'EUR',
@@ -127,7 +127,7 @@ export function InlinePaymentMethods({
   onAddCard,
   onPay,
   isLoading = false
-}: InlinePaymentMethodsProps) {
+}: PaymentMethodsProps) {
   const [selected, setSelected] = useState(
     selectedMethodId || methods.find((m) => m.isDefault)?.id || methods[0]?.id
   )

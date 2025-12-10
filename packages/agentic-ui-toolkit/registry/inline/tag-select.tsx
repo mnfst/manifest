@@ -11,7 +11,7 @@ export interface Tag {
   color?: 'default' | 'blue' | 'green' | 'red' | 'yellow' | 'purple'
 }
 
-export interface InlineTagSelectProps {
+export interface TagSelectProps {
   tags?: Tag[]
   selectedTagIds?: string[]
   onSelectTags?: (tagIds: string[]) => void
@@ -63,7 +63,7 @@ const colorClasses = {
   }
 }
 
-export function InlineTagSelect({
+export function TagSelect({
   tags = defaultTags,
   selectedTagIds = [],
   onSelectTags,
@@ -72,7 +72,7 @@ export function InlineTagSelect({
   showValidate = true,
   validateLabel = 'Validate selection',
   onValidate
-}: InlineTagSelectProps) {
+}: TagSelectProps) {
   const [selected, setSelected] = useState<string[]>(selectedTagIds)
 
   const handleToggle = (tagId: string) => {

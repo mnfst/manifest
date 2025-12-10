@@ -19,7 +19,7 @@ export interface MessageBubbleProps {
   status?: 'sent' | 'delivered' | 'read'
 }
 
-export function InlineMessageBubble({
+export function MessageBubble({
   content = 'Hey! How are you doing?',
   avatar = 'J',
   author = 'John',
@@ -75,7 +75,7 @@ export interface ImageMessageBubbleProps {
   status?: 'sent' | 'delivered' | 'read'
 }
 
-export function InlineImageMessageBubble({
+export function ImageMessageBubble({
   image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
   caption,
   avatar = 'J',
@@ -147,7 +147,7 @@ export interface ChatMessage {
   status?: 'sent' | 'delivered' | 'read'
 }
 
-export interface InlineChatConversationProps {
+export interface ChatConversationProps {
   messages?: ChatMessage[]
 }
 
@@ -195,14 +195,14 @@ const defaultMessages: ChatMessage[] = [
   }
 ]
 
-export function InlineChatConversation({
+export function ChatConversation({
   messages = defaultMessages
-}: InlineChatConversationProps) {
+}: ChatConversationProps) {
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
       {messages.map((message) =>
         message.type === 'image' ? (
-          <InlineImageMessageBubble
+          <ImageMessageBubble
             key={message.id}
             image={message.image!}
             caption={message.caption}
@@ -213,7 +213,7 @@ export function InlineChatConversation({
             status={message.status}
           />
         ) : (
-          <InlineMessageBubble
+          <MessageBubble
             key={message.id}
             content={message.content}
             avatar={message.avatar}
@@ -241,7 +241,7 @@ export interface MessageWithReactionsProps {
 
 const availableEmojis = ['❤️', '👍', '👎', '😂', '😮', '😢', '🎉', '🔥', '👏', '💯']
 
-export function InlineMessageWithReactions({
+export function MessageWithReactions({
   content = 'This is such great news! 🎉',
   avatar = 'A',
   author = 'Alex',
@@ -348,7 +348,7 @@ export interface VoiceMessageBubbleProps {
   audioSrc?: string
 }
 
-export function InlineVoiceMessageBubble({
+export function VoiceMessageBubble({
   duration = '0:42',
   avatar = 'M',
   author = 'Mike',

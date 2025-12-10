@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
 
-export interface InlineOrderConfirmProps {
+export interface OrderConfirmProps {
   productName?: string
   productVariant?: string
   productImage?: string
@@ -20,7 +20,7 @@ export interface InlineOrderConfirmProps {
 const DEFAULT_AIRPODS_IMAGE =
   'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
-export function InlineOrderConfirm({
+export function OrderConfirm({
   productName = 'Iyo Pro',
   productVariant = 'Midnight Black',
   productImage = DEFAULT_AIRPODS_IMAGE,
@@ -32,7 +32,7 @@ export function InlineOrderConfirm({
   freeShipping = true,
   onConfirm,
   isLoading = false
-}: InlineOrderConfirmProps) {
+}: OrderConfirmProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

@@ -22,7 +22,7 @@ export type StatusType =
   | "delivered"
   | "cancelled"
 
-export interface InlineStatusBadgeProps {
+export interface StatusBadgeProps {
   status?: StatusType
   label?: string
   showIcon?: boolean
@@ -87,12 +87,12 @@ const iconSizes = {
   lg: "h-4 w-4",
 }
 
-export function InlineStatusBadge({
+export function StatusBadge({
   status = "pending",
   label,
   showIcon = true,
   size = "md",
-}: InlineStatusBadgeProps) {
+}: StatusBadgeProps) {
   const config = statusConfig[status]
   const Icon = config.icon
   const displayLabel = label || config.defaultLabel

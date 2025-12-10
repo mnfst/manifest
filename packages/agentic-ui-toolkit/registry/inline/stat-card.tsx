@@ -3,7 +3,7 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export interface InlineStatCardProps {
+export interface StatCardProps {
   label: string
   value: string | number
   change?: number
@@ -12,17 +12,17 @@ export interface InlineStatCardProps {
   trend?: "up" | "down" | "neutral"
 }
 
-export interface InlineStatsProps {
-  stats?: InlineStatCardProps[]
+export interface StatsProps {
+  stats?: StatCardProps[]
 }
 
-const defaultStats: InlineStatCardProps[] = [
+const defaultStats: StatCardProps[] = [
   { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
   { label: "Orders", value: "342", change: -3.2, trend: "down" },
   { label: "Customers", value: "1,205", change: 0, trend: "neutral" },
 ]
 
-export function InlineStats({ stats = defaultStats }: InlineStatsProps) {
+export function Stats({ stats = defaultStats }: StatsProps) {
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
     switch (trend) {
       case "up":

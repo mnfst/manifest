@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { BlogPost, InlineBlogPostCard } from './inline-blog-post-card'
+import { BlogPost, BlogPostCard } from './blog-post-card'
 
 const defaultPosts: BlogPost[] = [
   {
@@ -73,7 +73,7 @@ const defaultPosts: BlogPost[] = [
   }
 ]
 
-export interface InlineBlogPostListProps {
+export interface BlogPostListProps {
   posts?: BlogPost[]
   variant?: 'list' | 'grid' | 'carousel'
   columns?: 2 | 3
@@ -82,14 +82,14 @@ export interface InlineBlogPostListProps {
   onReadMore?: (post: BlogPost) => void
 }
 
-export function InlineBlogPostList({
+export function BlogPostList({
   posts = defaultPosts,
   variant = 'list',
   columns = 2,
   showAuthor = true,
   showCategory = true,
   onReadMore
-}: InlineBlogPostListProps) {
+}: BlogPostListProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   // List variant
@@ -97,7 +97,7 @@ export function InlineBlogPostList({
     return (
       <div className="space-y-3">
         {posts.slice(0, 3).map((post) => (
-          <InlineBlogPostCard
+          <BlogPostCard
             key={post.id}
             post={post}
             variant="horizontal"
@@ -120,7 +120,7 @@ export function InlineBlogPostList({
         )}
       >
         {posts.map((post) => (
-          <InlineBlogPostCard
+          <BlogPostCard
             key={post.id}
             post={post}
             variant="compact"
@@ -162,7 +162,7 @@ export function InlineBlogPostList({
         >
           {posts.map((post) => (
             <div key={post.id} className="w-full shrink-0 px-0.5">
-              <InlineBlogPostCard
+              <BlogPostCard
                 post={post}
                 variant="compact"
                 showAuthor={showAuthor}
@@ -180,7 +180,7 @@ export function InlineBlogPostList({
         >
           {posts.map((post) => (
             <div key={post.id} className="w-1/2 shrink-0 px-1.5">
-              <InlineBlogPostCard
+              <BlogPostCard
                 post={post}
                 variant="compact"
                 showAuthor={showAuthor}
@@ -198,7 +198,7 @@ export function InlineBlogPostList({
         >
           {posts.map((post) => (
             <div key={post.id} className="w-1/3 shrink-0 px-1.5">
-              <InlineBlogPostCard
+              <BlogPostCard
                 post={post}
                 variant="compact"
                 showAuthor={showAuthor}

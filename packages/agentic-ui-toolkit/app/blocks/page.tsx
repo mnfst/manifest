@@ -72,37 +72,37 @@ function TikTokIcon({ className }: { className?: string }) {
 }
 
 // Components imports
-import { InlineAmountInput } from '@/registry/inline/inline-amount-input'
+import { AmountInput } from '@/registry/inline/amount-input'
 import { PostDetail } from '@/registry/inline/post-detail'
-import { InlineBlogPostList } from '@/registry/inline/inline-blog-post-list'
-import { InlineBlogPostCard } from '@/registry/inline/inline-blog-post-card'
-import { InlineCardForm } from '@/registry/inline/inline-card-form'
+import { BlogPostList } from '@/registry/inline/blog-post-list'
+import { BlogPostCard } from '@/registry/inline/blog-post-card'
+import { BankCardForm } from '@/registry/inline/bank-card-form'
 import {
-  InlineChatConversation,
-  InlineImageMessageBubble,
-  InlineMessageBubble,
-  InlineMessageWithReactions,
-  InlineVoiceMessageBubble
-} from '@/registry/inline/inline-message-bubble'
-import { InlineOptionList } from '@/registry/inline/inline-option-list'
-import { InlineOrderConfirm } from '@/registry/inline/inline-order-confirm'
-import { InlinePaymentConfirmed } from '@/registry/inline/inline-payment-confirmed'
-import { InlinePaymentMethods } from '@/registry/inline/inline-payment-methods'
-import { InlinePaymentSuccessCompact } from '@/registry/inline/inline-payment-success-compact'
+  ChatConversation,
+  ImageMessageBubble,
+  MessageBubble,
+  MessageWithReactions,
+  VoiceMessageBubble
+} from '@/registry/inline/message-bubble'
+import { OptionList } from '@/registry/inline/option-list'
+import { OrderConfirm } from '@/registry/inline/order-confirm'
+import { PaymentConfirmed } from '@/registry/inline/payment-confirmed'
+import { PaymentMethods } from '@/registry/inline/payment-methods'
+import { PaymentSuccess } from '@/registry/inline/payment-success'
 import { ProductList } from '@/registry/inline/product-list'
-import { InlineProgressSteps } from '@/registry/inline/inline-progress-steps'
-import { InlineQuickReply } from '@/registry/inline/inline-quick-reply'
-import { InlineSelectList } from '@/registry/inline/inline-select-list'
+import { ProgressSteps } from '@/registry/inline/progress-steps'
+import { QuickReply } from '@/registry/inline/quick-reply'
+import { SelectList } from '@/registry/inline/select-list'
 import {
-  InlineInstagramPost,
-  InlineLinkedInPost,
-  InlineXPost,
-  InlineYouTubePost
-} from '@/registry/inline/inline-social-cards'
-import { InlineStats } from '@/registry/inline/inline-stat-card'
-import { InlineStatusBadge } from '@/registry/inline/inline-status-badge'
+  InstagramPost,
+  LinkedInPost,
+  XPost,
+  YouTubePost
+} from '@/registry/inline/social-cards'
+import { Stats } from '@/registry/inline/stat-card'
+import { StatusBadge } from '@/registry/inline/status-badge'
 import { Table } from '@/registry/inline/table'
-import { InlineTagSelect } from '@/registry/inline/inline-tag-select'
+import { TagSelect } from '@/registry/inline/tag-select'
 import { WeatherWidget } from '@/registry/misc/weather-widget/weather-widget'
 
 // UI components
@@ -140,37 +140,37 @@ const categories: Category[] = [
         id: 'post-card',
         name: 'Post Card',
         description: 'Display blog posts with various layouts and styles',
-        registryName: 'inline-blog-post-card',
+        registryName: 'blog-post-card',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineBlogPostCard />,
-            usageCode: `<InlineBlogPostCard />`
+            component: <BlogPostCard />,
+            usageCode: `<BlogPostCard />`
           },
           {
             id: 'no-image',
             name: 'Without Image',
-            component: <InlineBlogPostCard showImage={false} />,
-            usageCode: `<InlineBlogPostCard showImage={false} />`
+            component: <BlogPostCard showImage={false} />,
+            usageCode: `<BlogPostCard showImage={false} />`
           },
           {
             id: 'compact',
             name: 'Compact',
-            component: <InlineBlogPostCard variant="compact" />,
-            usageCode: `<InlineBlogPostCard variant="compact" />`
+            component: <BlogPostCard variant="compact" />,
+            usageCode: `<BlogPostCard variant="compact" />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <InlineBlogPostCard variant="horizontal" />,
-            usageCode: `<InlineBlogPostCard variant="horizontal" />`
+            component: <BlogPostCard variant="horizontal" />,
+            usageCode: `<BlogPostCard variant="horizontal" />`
           },
           {
             id: 'covered',
             name: 'Covered',
-            component: <InlineBlogPostCard variant="covered" />,
-            usageCode: `<InlineBlogPostCard variant="covered" />`
+            component: <BlogPostCard variant="covered" />,
+            usageCode: `<BlogPostCard variant="covered" />`
           }
         ]
       },
@@ -178,25 +178,25 @@ const categories: Category[] = [
         id: 'post-list',
         name: 'Post List',
         description: 'Display multiple posts in various layouts',
-        registryName: 'inline-blog-post-list',
+        registryName: 'blog-post-list',
         variants: [
           {
             id: 'list',
             name: 'List',
-            component: <InlineBlogPostList variant="list" />,
-            usageCode: `<InlineBlogPostList variant="list" />`
+            component: <BlogPostList variant="list" />,
+            usageCode: `<BlogPostList variant="list" />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <InlineBlogPostList variant="grid" />,
-            usageCode: `<InlineBlogPostList variant="grid" />`
+            component: <BlogPostList variant="grid" />,
+            usageCode: `<BlogPostList variant="grid" />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <InlineBlogPostList variant="carousel" />,
-            usageCode: `<InlineBlogPostList variant="carousel" />`
+            component: <BlogPostList variant="carousel" />,
+            usageCode: `<BlogPostList variant="carousel" />`
           }
         ]
       },
@@ -294,12 +294,13 @@ const categories: Category[] = [
         id: 'order-confirm',
         name: 'Order Confirmation',
         description: 'Display order summary before payment',
-        registryName: 'inline-order-confirm',
+        registryName: 'order-confirm',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineOrderConfirm />
+            component: <OrderConfirm />,
+            usageCode: `<OrderConfirm />`
           }
         ]
       },
@@ -307,12 +308,13 @@ const categories: Category[] = [
         id: 'payment-methods',
         name: 'Payment Methods',
         description: 'Select payment method',
-        registryName: 'inline-payment-methods',
+        registryName: 'payment-methods',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlinePaymentMethods />
+            component: <PaymentMethods />,
+            usageCode: `<PaymentMethods />`
           }
         ]
       },
@@ -320,12 +322,13 @@ const categories: Category[] = [
         id: 'card-form',
         name: 'Bank Card Form',
         description: 'Credit card input form',
-        registryName: 'inline-card-form',
+        registryName: 'bank-card-form',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineCardForm />
+            component: <BankCardForm />,
+            usageCode: `<BankCardForm />`
           }
         ]
       },
@@ -333,12 +336,13 @@ const categories: Category[] = [
         id: 'amount-input',
         name: 'Amount Input',
         description: 'Input for monetary amounts',
-        registryName: 'inline-amount-input',
+        registryName: 'amount-input',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineAmountInput />
+            component: <AmountInput />,
+            usageCode: `<AmountInput />`
           }
         ]
       },
@@ -346,12 +350,13 @@ const categories: Category[] = [
         id: 'payment-success',
         name: 'Payment Success',
         description: 'Success confirmation after payment',
-        registryName: 'inline-payment-success',
+        registryName: 'payment-success',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlinePaymentSuccessCompact />
+            component: <PaymentSuccess />,
+            usageCode: `<PaymentSuccess />`
           }
         ]
       },
@@ -359,12 +364,13 @@ const categories: Category[] = [
         id: 'payment-confirmed',
         name: 'Payment Confirmation',
         description: 'Detailed payment confirmation',
-        registryName: 'inline-payment-confirmed',
+        registryName: 'payment-confirmed',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlinePaymentConfirmed />
+            component: <PaymentConfirmed />,
+            usageCode: `<PaymentConfirmed />`
           }
         ]
       }
@@ -378,19 +384,19 @@ const categories: Category[] = [
         id: 'message-bubble',
         name: 'Message Bubble',
         description: 'Chat message bubbles',
-        registryName: 'inline-message-bubble',
+        registryName: 'message-bubble',
         variants: [
           {
             id: 'default',
             name: 'Text Messages',
             component: (
               <div className="space-y-3">
-                <InlineMessageBubble
+                <MessageBubble
                   content="Hey! How are you doing today?"
                   avatar="S"
                   time="Dec 8, 10:30 AM"
                 />
-                <InlineMessageBubble
+                <MessageBubble
                   content="I'm doing great, thanks for asking!"
                   avatar="Y"
                   time="Dec 8, 10:31 AM"
@@ -398,33 +404,35 @@ const categories: Category[] = [
                   status="read"
                 />
               </div>
-            )
+            ),
+            usageCode: `<MessageBubble content="Hello!" avatar="S" time="10:30 AM" />`
           },
           {
             id: 'image',
             name: 'Image Messages',
             component: (
               <div className="space-y-3">
-                <InlineImageMessageBubble
+                <ImageMessageBubble
                   image="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop"
                   caption="Check out this view!"
                   avatar="A"
                   time="Dec 8, 2:45 PM"
                 />
-                <InlineImageMessageBubble
+                <ImageMessageBubble
                   image="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop"
                   time="Dec 8, 2:46 PM"
                   isOwn
                   status="delivered"
                 />
               </div>
-            )
+            ),
+            usageCode: `<ImageMessageBubble image="..." caption="Check out this view!" avatar="A" />`
           },
           {
             id: 'reactions',
             name: 'With Reactions',
             component: (
-              <InlineMessageWithReactions
+              <MessageWithReactions
                 content="We just hit 10,000 users!"
                 avatar="T"
                 time="Dec 8, 4:20 PM"
@@ -434,19 +442,20 @@ const categories: Category[] = [
                   { emoji: '👏', count: 2 }
                 ]}
               />
-            )
+            ),
+            usageCode: `<MessageWithReactions content="..." reactions={[{ emoji: '🎉', count: 5 }]} />`
           },
           {
             id: 'voice',
             name: 'Voice Messages',
             component: (
               <div className="space-y-3">
-                <InlineVoiceMessageBubble
+                <VoiceMessageBubble
                   duration="0:42"
                   avatar="M"
                   time="Dec 8, 3:15 PM"
                 />
-                <InlineVoiceMessageBubble
+                <VoiceMessageBubble
                   duration="1:23"
                   avatar="Y"
                   time="Dec 8, 3:17 PM"
@@ -454,7 +463,8 @@ const categories: Category[] = [
                   status="read"
                 />
               </div>
-            )
+            ),
+            usageCode: `<VoiceMessageBubble duration="0:42" avatar="M" />`
           }
         ]
       },
@@ -462,12 +472,13 @@ const categories: Category[] = [
         id: 'chat-conversation',
         name: 'Chat Conversation',
         description: 'Full chat conversation view',
-        registryName: 'inline-message-bubble',
+        registryName: 'message-bubble',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineChatConversation />
+            component: <ChatConversation />,
+            usageCode: `<ChatConversation />`
           }
         ]
       }
@@ -481,27 +492,31 @@ const categories: Category[] = [
         id: 'selection',
         name: 'Selection',
         description: 'Various selection interfaces for user input',
-        registryName: 'inline-select-list',
+        registryName: 'select-list',
         variants: [
           {
             id: 'option-list',
             name: 'Option List',
-            component: <InlineOptionList />
+            component: <OptionList />,
+            usageCode: `<OptionList />`
           },
           {
             id: 'card-selection',
             name: 'Card Selection',
-            component: <InlineSelectList mode="multi" showConfirm />
+            component: <SelectList mode="multi" showConfirm />,
+            usageCode: `<SelectList mode="multi" showConfirm />`
           },
           {
             id: 'tag-selection',
             name: 'Tag Selection',
-            component: <InlineTagSelect />
+            component: <TagSelect />,
+            usageCode: `<TagSelect />`
           },
           {
             id: 'quick-reply',
             name: 'Quick Reply',
-            component: <InlineQuickReply />
+            component: <QuickReply />,
+            usageCode: `<QuickReply />`
           }
         ]
       },
@@ -509,27 +524,31 @@ const categories: Category[] = [
         id: 'social-posts',
         name: 'Social Cards',
         description: 'Social media post cards',
-        registryName: 'inline-social-cards',
+        registryName: 'social-cards',
         variants: [
           {
             id: 'x',
             name: 'X (Twitter)',
-            component: <InlineXPost />
+            component: <XPost />,
+            usageCode: `<XPost />`
           },
           {
             id: 'instagram',
             name: 'Instagram',
-            component: <InlineInstagramPost />
+            component: <InstagramPost />,
+            usageCode: `<InstagramPost />`
           },
           {
             id: 'linkedin',
             name: 'LinkedIn',
-            component: <InlineLinkedInPost />
+            component: <LinkedInPost />,
+            usageCode: `<LinkedInPost />`
           },
           {
             id: 'youtube',
             name: 'YouTube',
-            component: <InlineYouTubePost />
+            component: <YouTubePost />,
+            usageCode: `<YouTubePost />`
           }
         ]
       },
@@ -537,21 +556,22 @@ const categories: Category[] = [
         id: 'status-badges',
         name: 'Status Badge',
         description: 'Various status indicators',
-        registryName: 'inline-status-badge',
+        registryName: 'status-badge',
         variants: [
           {
             id: 'default',
             name: 'All Statuses',
             component: (
               <div className="flex flex-wrap gap-2 bg-white dark:bg-zinc-900 p-4 rounded-md">
-                <InlineStatusBadge status="success" />
-                <InlineStatusBadge status="pending" />
-                <InlineStatusBadge status="processing" />
-                <InlineStatusBadge status="shipped" />
-                <InlineStatusBadge status="delivered" />
-                <InlineStatusBadge status="error" />
+                <StatusBadge status="success" />
+                <StatusBadge status="pending" />
+                <StatusBadge status="processing" />
+                <StatusBadge status="shipped" />
+                <StatusBadge status="delivered" />
+                <StatusBadge status="error" />
               </div>
-            )
+            ),
+            usageCode: `<StatusBadge status="success" />`
           }
         ]
       },
@@ -559,12 +579,13 @@ const categories: Category[] = [
         id: 'progress-steps',
         name: 'Progress Steps',
         description: 'Step-by-step progress indicator',
-        registryName: 'inline-progress-steps',
+        registryName: 'progress-steps',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineProgressSteps />
+            component: <ProgressSteps />,
+            usageCode: `<ProgressSteps />`
           }
         ]
       },
@@ -572,12 +593,13 @@ const categories: Category[] = [
         id: 'stats-cards',
         name: 'Stats Cards',
         description: 'Display statistics and metrics',
-        registryName: 'inline-stats',
+        registryName: 'stats',
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InlineStats />
+            component: <Stats />,
+            usageCode: `<Stats />`
           }
         ]
       },
@@ -590,7 +612,8 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <WeatherWidget />
+            component: <WeatherWidget />,
+            usageCode: `<WeatherWidget />`
           }
         ]
       }

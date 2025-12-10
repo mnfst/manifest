@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export interface InlineAmountInputProps {
+export interface AmountInputProps {
   value?: number
   min?: number
   max?: number
@@ -17,7 +17,7 @@ export interface InlineAmountInputProps {
   onConfirm?: (value: number) => void
 }
 
-export function InlineAmountInput({
+export function AmountInput({
   value = 50,
   min = 0,
   max = 10000,
@@ -27,7 +27,7 @@ export function InlineAmountInput({
   presets = [20, 50, 100, 200],
   onChange,
   onConfirm,
-}: InlineAmountInputProps) {
+}: AmountInputProps) {
   const [amount, setAmount] = useState(value)
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)

@@ -9,7 +9,7 @@ export interface Step {
   status: 'completed' | 'current' | 'pending'
 }
 
-export interface InlineProgressStepsProps {
+export interface ProgressStepsProps {
   steps?: Step[]
 }
 
@@ -20,9 +20,9 @@ const defaultSteps: Step[] = [
   { id: '4', label: 'Delivery', status: 'pending' }
 ]
 
-export function InlineProgressSteps({
+export function ProgressSteps({
   steps = defaultSteps
-}: InlineProgressStepsProps) {
+}: ProgressStepsProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
       {steps.map((step, index) => (

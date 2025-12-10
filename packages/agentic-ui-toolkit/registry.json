@@ -116,71 +116,71 @@
       ]
     },
     {
-      "name": "inline-card-form",
+      "name": "bank-card-form",
       "type": "registry:component",
-      "title": "Inline Card Form",
-      "description": "Compact card payment form with inline layout for chat interfaces.",
+      "title": "Bank Card Form",
+      "description": "Compact bank card payment form with inline layout for chat interfaces.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-card-form.tsx",
+          "path": "registry/inline/bank-card-form.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-payment-methods",
+      "name": "payment-methods",
       "type": "registry:component",
-      "title": "Inline Payment Methods",
-      "description": "Inline payment method selector for direct chat use with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
+      "title": "Payment Methods",
+      "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-payment-methods.tsx",
+          "path": "registry/inline/payment-methods.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-order-confirm",
+      "name": "order-confirm",
       "type": "registry:component",
-      "title": "Inline Order Confirm",
-      "description": "Inline order confirmation for direct chat use with product image, delivery info, and confirm action.",
+      "title": "Order Confirm",
+      "description": "Order confirmation with product image, delivery info, and confirm action.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-order-confirm.tsx",
+          "path": "registry/inline/order-confirm.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-payment-success",
+      "name": "payment-success",
       "type": "registry:component",
-      "title": "Inline Payment Success",
-      "description": "Inline payment success for direct chat use with order details, brand logo, and tracking button.",
+      "title": "Payment Success",
+      "description": "Payment success with order details, brand logo, and tracking button.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-payment-success.tsx",
+          "path": "registry/inline/payment-success.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-payment-confirmed",
+      "name": "payment-confirmed",
       "type": "registry:component",
-      "title": "Inline Payment Confirmed",
+      "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-payment-confirmed.tsx",
+          "path": "registry/inline/payment-confirmed.tsx",
           "type": "registry:component"
         }
       ]
@@ -200,147 +200,147 @@
       ]
     },
     {
-      "name": "inline-option-list",
+      "name": "option-list",
       "type": "registry:component",
-      "title": "Inline Option List",
+      "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-option-list.tsx",
+          "path": "registry/inline/option-list.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-amount-input",
+      "name": "amount-input",
       "type": "registry:component",
-      "title": "Inline Amount Input",
+      "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-amount-input.tsx",
+          "path": "registry/inline/amount-input.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-tag-select",
+      "name": "tag-select",
       "type": "registry:component",
-      "title": "Inline Tag Select",
+      "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-tag-select.tsx",
+          "path": "registry/inline/tag-select.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-quick-reply",
+      "name": "quick-reply",
       "type": "registry:component",
-      "title": "Inline Quick Reply",
+      "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-quick-reply.tsx",
+          "path": "registry/inline/quick-reply.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-progress-steps",
+      "name": "progress-steps",
       "type": "registry:component",
-      "title": "Inline Progress Steps",
+      "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-progress-steps.tsx",
+          "path": "registry/inline/progress-steps.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-status-badge",
+      "name": "status-badge",
       "type": "registry:component",
-      "title": "Inline Status Badge",
+      "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-status-badge.tsx",
+          "path": "registry/inline/status-badge.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-bar-chart",
+      "name": "bar-chart",
       "type": "registry:component",
-      "title": "Inline Bar Chart",
+      "title": "Bar Chart",
       "description": "Simple bar chart with horizontal or vertical orientation.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-bar-chart.tsx",
+          "path": "registry/inline/bar-chart.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-pie-chart",
+      "name": "pie-chart",
       "type": "registry:component",
-      "title": "Inline Pie Chart",
+      "title": "Pie Chart",
       "description": "Simple pie chart with legend and percentages.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-pie-chart.tsx",
+          "path": "registry/inline/pie-chart.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-stats",
+      "name": "stats",
       "type": "registry:component",
-      "title": "Inline Stats",
+      "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-stat-card.tsx",
+          "path": "registry/inline/stat-card.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-skeleton",
+      "name": "skeleton",
       "type": "registry:component",
-      "title": "Inline Skeleton Loaders",
+      "title": "Skeleton Loaders",
       "description": "Skeleton placeholder components with pulse animation for loading states.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-skeleton.tsx",
+          "path": "registry/inline/skeleton.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-blog-post-card",
+      "name": "blog-post-card",
       "type": "registry:component",
       "title": "Blog Post Card",
       "description": "Blog post card with image, title, excerpt, author info and read more button. Supports default, compact, and horizontal variants.",
@@ -348,13 +348,13 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-blog-post-card.tsx",
+          "path": "registry/inline/blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-blog-post-list",
+      "name": "blog-post-list",
       "type": "registry:component",
       "title": "Blog Post List",
       "description": "Blog post list with list, grid, and carousel variants.",
@@ -362,11 +362,11 @@
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-blog-post-list.tsx",
+          "path": "registry/inline/blog-post-list.tsx",
           "type": "registry:component"
         },
         {
-          "path": "registry/inline/inline-blog-post-card.tsx",
+          "path": "registry/inline/blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -384,7 +384,7 @@
           "type": "registry:component"
         },
         {
-          "path": "registry/inline/inline-blog-post-card.tsx",
+          "path": "registry/inline/blog-post-card.tsx",
           "type": "registry:component"
         }
       ]
@@ -404,43 +404,43 @@
       ]
     },
     {
-      "name": "inline-select-list",
+      "name": "select-list",
       "type": "registry:component",
-      "title": "Inline Select List",
+      "title": "Select List",
       "description": "Card-based selection list with single or multi-select modes.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/inline/inline-select-list.tsx",
+          "path": "registry/inline/select-list.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-message-bubble",
+      "name": "message-bubble",
       "type": "registry:component",
-      "title": "Inline Message Bubble",
+      "title": "Message Bubble",
       "description": "Chat message bubbles with support for text, images, voice, and reactions.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-message-bubble.tsx",
+          "path": "registry/inline/message-bubble.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "inline-social-cards",
+      "name": "social-cards",
       "type": "registry:component",
-      "title": "Inline Social Cards",
+      "title": "Social Cards",
       "description": "Social media post cards for X, Instagram, LinkedIn, and YouTube.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/inline/inline-social-cards.tsx",
+          "path": "registry/inline/social-cards.tsx",
           "type": "registry:component"
         }
       ]

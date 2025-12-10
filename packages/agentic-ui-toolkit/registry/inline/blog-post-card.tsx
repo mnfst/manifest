@@ -35,7 +35,7 @@ const defaultPost: BlogPost = {
   category: 'Tutorial'
 }
 
-export interface InlineBlogPostCardProps {
+export interface BlogPostCardProps {
   post?: BlogPost
   variant?: 'default' | 'compact' | 'horizontal' | 'covered'
   showImage?: boolean
@@ -44,7 +44,7 @@ export interface InlineBlogPostCardProps {
   onReadMore?: (post: BlogPost) => void
 }
 
-export function InlineBlogPostCard({
+export function BlogPostCard({
   post = defaultPost,
   variant = 'default',
   showImage = true,

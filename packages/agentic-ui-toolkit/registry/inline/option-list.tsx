@@ -12,7 +12,7 @@ export interface Option {
   disabled?: boolean
 }
 
-export interface InlineOptionListProps {
+export interface OptionListProps {
   options?: Option[]
   selectedOptionId?: string
   onSelectOption?: (option: Option) => void
@@ -27,14 +27,14 @@ const defaultOptions: Option[] = [
   { id: '3', label: 'Store pickup', description: 'Available in 2h' }
 ]
 
-export function InlineOptionList({
+export function OptionList({
   options = defaultOptions,
   selectedOptionId,
   onSelectOption,
   multiple = false,
   selectedOptionIds = [],
   onSelectOptions
-}: InlineOptionListProps) {
+}: OptionListProps) {
   const [selected, setSelected] = useState<string | string[]>(
     multiple ? selectedOptionIds : selectedOptionId || ''
   )
