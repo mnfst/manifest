@@ -1,0 +1,18 @@
+{
+  "name": "agentic-apps",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "MNFST, Inc.",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "nodemon": "^3.1.11"
+  }
+}
