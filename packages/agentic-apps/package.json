@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon",
+    "build": "tsc && npm run build:web",
+    "build:web": "vite build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,6 +15,9 @@
   "description": "",
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
+    "vite-plugin-singlefile": "^2.3.0"
   }
 }
