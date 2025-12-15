@@ -81,8 +81,8 @@ export function registerPdfViewerExtension(server: McpServer): void {
         'openai/outputTemplate': `ui://${extensionParams.id}.html`
       }
     },
-    async (args) => {
-      const pdfUrl = (args as { pdfUrl: string }).pdfUrl
+    async (args: { pdfUrl: string }) => {
+      const pdfUrl = args.pdfUrl
       const validation = await validatePdfUrl(pdfUrl)
       if (!validation.valid) {
         return {

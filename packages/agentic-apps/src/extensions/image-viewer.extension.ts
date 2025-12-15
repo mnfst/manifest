@@ -81,8 +81,8 @@ export function registerImageViewerExtension(server: McpServer): void {
         'openai/outputTemplate': `ui://${extensionParams.id}.html`
       }
     },
-    async (args) => {
-      const imageUrl = (args as { imageUrl: string }).imageUrl
+    async (args: { imageUrl: string }) => {
+      const imageUrl = args.imageUrl
       const validation = await validateImageUrl(imageUrl)
       if (!validation.valid) {
         return {

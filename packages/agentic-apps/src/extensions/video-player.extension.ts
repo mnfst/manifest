@@ -81,8 +81,8 @@ export function registerVideoPlayerExtension(server: McpServer): void {
         'openai/outputTemplate': `ui://${extensionParams.id}.html`
       }
     },
-    async (args) => {
-      const videoUrl = (args as { videoUrl: string }).videoUrl
+    async (args: { videoUrl: string }) => {
+      const videoUrl = args.videoUrl
       const validation = await validateVideoUrl(videoUrl)
       if (!validation.valid) {
         return {

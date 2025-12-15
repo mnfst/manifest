@@ -81,8 +81,8 @@ export function registerAudioPlayerExtension(server: McpServer): void {
         'openai/outputTemplate': `ui://${extensionParams.id}.html`
       }
     },
-    async (args) => {
-      const audioUrl = (args as { audioUrl: string }).audioUrl
+    async (args: { audioUrl: string }) => {
+      const audioUrl = args.audioUrl
       const validation = await validateAudioUrl(audioUrl)
       if (!validation.valid) {
         return {
