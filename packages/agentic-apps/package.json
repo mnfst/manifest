@@ -7,6 +7,7 @@
     "dev": "nodemon",
     "build": "tsc && npm run build:web",
     "build:web": "tsx scripts/build-web.ts",
+    "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
