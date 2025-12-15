@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import express from 'express'
 import { readFileSync } from 'node:fs'
+import { registerPdfViewerExtension } from './extensions/pdf-viewer.extension.js'
 
 const server = new McpServer({
   name: 'Manifest Agentic Apps',
@@ -37,6 +38,9 @@ server.registerTool(
     }
   }
 )
+
+// Register extensions
+registerPdfViewerExtension(server)
 
 const app = express()
 app.use(express.json())

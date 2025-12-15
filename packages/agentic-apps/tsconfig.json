@@ -1,7 +1,7 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
   "include": ["src/**/*"],
-  "exclude": ["vite.config.ts"],
+  "exclude": ["vite.config.ts", "src/web"],
   "compilerOptions": {
     // File Layout
     "rootDir": "./src",
