@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import express from 'express'
 import { registerPdfViewerExtension } from './extensions/pdf-viewer.extension.js'
 import { registerVideoPlayerExtension } from './extensions/video-player.extension.js'
@@ -22,7 +23,7 @@ app.use(express.json())
 
 app.use('/mcp', async (req, res, next) => {
   const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
+    sessionIdGenerator: () => crypto.randomUUID(),
     enableJsonResponse: true
   })
 
@@ -30,7 +31,7 @@ app.use('/mcp', async (req, res, next) => {
     transport.close()
   })
 
-  await server.connect(transport)
+  await server.connect(transport as Transport)
 
   await transport.handleRequest(req, res, req.body).catch(next)
 })
