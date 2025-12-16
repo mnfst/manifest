@@ -24,6 +24,15 @@ npm run build
 
 Compiles TypeScript and bundles HTML templates from `src/web/` into single-file outputs in `dist/web/`.
 
+## Docker
+
+Build and run the container:
+
+```bash
+docker build -t agentic-apps .
+docker run -p 3000:3000 agentic-apps
+```
+
 ## Use in ChatGPT
 
 Use `ngrok` package to expose your local machine to the web:
