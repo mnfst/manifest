@@ -109,7 +109,9 @@ export function BlogPostCard({
                   )}
                   <div className="text-xs">
                     <p className="font-medium">{post.author.name}</p>
-                    <p className="text-white/60">{formatDate(post.publishedAt)}</p>
+                    <p className="text-white/60">
+                      {formatDate(post.publishedAt)}
+                    </p>
                   </div>
                 </div>
               )}

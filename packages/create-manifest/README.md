@@ -23,12 +23,10 @@ The starter template includes:
 - TypeScript configuration
 - Hot reload with Nodemon
 - Vite for building web components
-- Example flow (GameBoy emulator)
 
 ## Requirements
 
-- Node.js 18+
-- npm 9+
+- Node.js 22+
 
 ## After Creation
 

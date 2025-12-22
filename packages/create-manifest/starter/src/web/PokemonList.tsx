@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import '@/globals.css'
 import { BlogPostList } from '@/components/blog-post-list'
 import type { BlogPost } from '@/components/blog-post-card'
 
@@ -38,58 +37,56 @@ function pokemonToBlogPost(pokemon: Pokemon): BlogPost {
   }
 }
 
-export function App() {
+export default function PokemonList() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
-    // Get theme from OpenAI host
-    if (window.openai?.theme) {
-      setTheme(window.openai.theme)
-    }
+    console.log('window.openai:', window.openai)
+    console.log('structuredContent:', window.openai?.content?.structuredContent)
 
     // Get structured content from OpenAI
     if (window.openai?.content?.structuredContent) {
       const content = window.openai.content
         .structuredContent as StructuredContent
+      console.log(
+        'Using structuredContent, pokemons count:',
+        content.pokemons?.length
+      )
       if (content.pokemons) {
         setPosts(content.pokemons.map(pokemonToBlogPost))
       }
       setLoading(false)
     } else {
       // Fallback: fetch directly if not in OpenAI context
+      console.log('No structuredContent, falling back to direct fetch')
       fetchPokemons()
     }
   }, [])
 
   async function fetchPokemons() {
     try {
-      const response = await fetch(
-        'https://pokeapi.co/api/v2/pokemon?limit=12'
-      )
+      const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=12')
       const data = await response.json()
 
       const pokemons = await Promise.all(
-        data.results.map(
-          async (pokemon: { name: string; url: string }) => {
-            const detailResponse = await fetch(pokemon.url)
-            const detail = await detailResponse.json()
+        data.results.map(async (pokemon: { name: string; url: string }) => {
+          const detailResponse = await fetch(pokemon.url)
+          const detail = await detailResponse.json()
 
-            return {
-              id: detail.id,
-              name: detail.name,
-              image:
-                detail.sprites.other['official-artwork'].front_default ||
-                detail.sprites.front_default,
-              types: detail.types.map(
-                (t: { type: { name: string } }) => t.type.name
-              ),
-              height: detail.height,
-              weight: detail.weight
-            }
+          return {
+            id: detail.id,
+            name: detail.name,
+            image:
+              detail.sprites.other['official-artwork'].front_default ||
+              detail.sprites.front_default,
+            types: detail.types.map(
+              (t: { type: { name: string } }) => t.type.name
+            ),
+            height: detail.height,
+            weight: detail.weight
           }
-        )
+        })
       )
 
       setPosts(pokemons.map(pokemonToBlogPost))
@@ -107,16 +104,14 @@ export function App() {
 
   if (loading) {
     return (
-      <div
-        className={`flex items-center justify-center p-8 ${theme === 'dark' ? 'dark' : ''}`}
-      >
+      <div className="flex items-center justify-center p-8">
         <div className="text-muted-foreground">Loading Pokemon...</div>
       </div>
     )
   }
 
   return (
-    <div className={`p-4 ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className="p-4">
       <BlogPostList
         posts={posts}
         variant="carousel"
@@ -126,22 +121,4 @@ export function App() {
       />
     </div>
   )
-}
-
-// Type declarations for OpenAI host
-declare global {
-  interface Window {
-    openai?: {
-      theme?: 'light' | 'dark'
-      content?: {
-        structuredContent?: unknown
-      }
-      sendFollowUpMessage?: (message: string) => void
-      callTool?: (name: string, args: Record<string, unknown>) => Promise<unknown>
-      openExternal?: (url: string) => void
-      requestDisplayMode?: (mode: 'inline' | 'fullscreen' | 'pip') => void
-      requestClose?: () => void
-      setWidgetState?: (state: Record<string, unknown>) => void
-    }
-  }
 }

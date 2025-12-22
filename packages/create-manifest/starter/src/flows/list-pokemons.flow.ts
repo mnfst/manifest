@@ -1,6 +1,6 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
-import { z } from "zod"
-import { readFileSync } from "node:fs"
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { getWidgetHTML, type ViteHandle } from 'vite-plugin-chatgpt-widgets'
+import { z } from 'zod'
 
 export interface Pokemon {
   id: number
@@ -9,10 +9,6 @@ export interface Pokemon {
   types: string[]
   height: number
   weight: number
-}
-
-export function renderHtml(): string {
-  return readFileSync("./dist/web/pokemon-list/pokemon-list.html", "utf-8")
 }
 
 async function fetchPokemons(limit: number = 12): Promise<Pokemon[]> {
@@ -30,7 +26,7 @@ async function fetchPokemons(limit: number = 12): Promise<Pokemon[]> {
         id: detail.id,
         name: detail.name,
         image:
-          detail.sprites.other["official-artwork"].front_default ||
+          detail.sprites.other['official-artwork'].front_default ||
           detail.sprites.front_default,
         types: detail.types.map(
           (t: { type: { name: string } }) => t.type.name
@@ -47,25 +43,34 @@ async function fetchPokemons(limit: number = 12): Promise<Pokemon[]> {
 /**
  * Registers the Pokemon List flow with the MCP server.
  */
-export function registerPokemonFlow(server: McpServer): void {
-  const uiVersion = "v1"
+export function registerPokemonFlow(
+  server: McpServer,
+  viteHandle: ViteHandle
+): void {
+  const uiVersion = 'v1'
   const resourceUri = `ui://pokemon-list.html?${uiVersion}`
 
-  server.registerResource("pokemon-list", resourceUri, {}, async () => ({
-    contents: [
-      {
-        uri: resourceUri,
-        mimeType: "text/html+skybridge",
-        text: renderHtml(),
-        _meta: { "openai/widgetPrefersBorder": false }
-      }
-    ]
-  }))
+  // Register resource that fetches fresh widget content on each request
+  server.registerResource('pokemon-list', resourceUri, {}, async () => {
+    // Fetch fresh widget HTML from Vite (enables HMR in dev mode)
+    const { content } = await getWidgetHTML('PokemonList', viteHandle)
+
+    return {
+      contents: [
+        {
+          uri: resourceUri,
+          mimeType: 'text/html+skybridge',
+          text: content,
+          _meta: { 'openai/widgetPrefersBorder': false }
+        }
+      ]
+    }
+  })
 
   server.registerTool(
-    "listPokemons",
+    'listPokemons',
     {
-      title: "Pokemon List",
+      title: 'Pokemon List',
       description: `Display a list of Pokemon in an interactive carousel.
 
 WHEN TO USE:
@@ -81,16 +86,18 @@ The tool fetches Pokemon data from the PokeAPI and displays them in a beautiful 
           .max(50)
           .optional()
           .default(12)
-          .describe("Number of Pokemon to fetch (1-50, default: 12)")
+          .describe('Number of Pokemon to fetch (1-50, default: 12)')
       }),
       _meta: {
-        "openai/outputTemplate": resourceUri,
-        "openai/toolInvocation/invoking": "Fetching Pokemon...",
-        "openai/toolInvocation/invoked": "Pokemon list ready!"
+        'openai/outputTemplate': resourceUri,
+        'openai/toolInvocation/invoking': 'Fetching Pokemon...',
+        'openai/toolInvocation/invoked': 'Pokemon list ready!'
       }
     },
     async (args: { limit?: number }) => {
+      console.log('listPokemons called with args:', JSON.stringify(args))
       const limit = args.limit ?? 12
+      console.log('Using limit:', limit)
 
       try {
         const pokemons = await fetchPokemons(limit)
@@ -98,7 +105,7 @@ The tool fetches Pokemon data from the PokeAPI and displays them in a beautiful 
         return {
           content: [
             {
-              type: "text" as const,
+              type: 'text' as const,
               text: `Found ${pokemons.length} Pokemon! Browse through the carousel to see them all.`
             }
           ],
@@ -110,8 +117,8 @@ The tool fetches Pokemon data from the PokeAPI and displays them in a beautiful 
         return {
           content: [
             {
-              type: "text" as const,
-              text: `Failed to fetch Pokemon: ${error instanceof Error ? error.message : "Unknown error"}`
+              type: 'text' as const,
+              text: `Failed to fetch Pokemon: ${error instanceof Error ? error.message : 'Unknown error'}`
             }
           ],
           isError: true
