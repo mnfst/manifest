@@ -14,8 +14,13 @@
   "license": "MIT",
   "description": "Manifest starter project for ChatGPT",
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.8",
     "@types/express": "^5.0.6",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.5.2",
     "nodemon": "^3.1.11",
+    "tailwindcss": "^4.1.8",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
@@ -23,8 +28,15 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^3.3.1",
     "zod": "^3.25.76"
   }
 }

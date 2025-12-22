@@ -1,10 +1,13 @@
 import { build } from 'vite'
 import { viteSingleFile } from 'vite-plugin-singlefile'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { readdirSync, statSync, rmSync, mkdirSync, existsSync } from 'fs'
 import { resolve, join, relative, dirname } from 'path'
 
-const webDir = resolve(import.meta.dirname, '../src/web')
-const outDir = resolve(import.meta.dirname, '../dist/web')
+const rootDir = resolve(import.meta.dirname, '..')
+const webDir = resolve(rootDir, 'src/web')
+const outDir = resolve(rootDir, 'dist/web')
 
 // Find all HTML files
 function findHtmlFiles(dir: string): string[] {
@@ -43,8 +46,13 @@ async function main() {
 
     await build({
       configFile: false,
-      plugins: [viteSingleFile()],
+      plugins: [react(), tailwindcss(), viteSingleFile()],
       root: dirname(htmlFile),
+      resolve: {
+        alias: {
+          '@': webDir
+        }
+      },
       build: {
         outDir: join(outDir, outputSubDir),
         emptyOutDir: false,

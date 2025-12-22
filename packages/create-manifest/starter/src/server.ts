@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import express from 'express'
-import { registerGameboyFlow } from './flows/gameboy.flow.js'
+import { registerPokemonFlow } from './flows/pokemon.flow.js'
 
 // Session storage
 interface SessionData {
@@ -18,7 +18,7 @@ function createServer() {
     version: '0.0.1'
   })
 
-  registerGameboyFlow(server)
+  registerPokemonFlow(server)
 
   return server
 }
@@ -115,5 +115,5 @@ app.delete('/mcp', async (req, res) => {
 const port = Number(process.env.PORT) || 3000
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`GameBoy MCP server listening on http://localhost:${port}/mcp`)
+  console.log(`Pokemon MCP server listening on http://localhost:${port}/mcp`)
 })
