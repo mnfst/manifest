@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>GameBoy Player</title>
+  <link rel="stylesheet" href="./gameboy-player.css">
+</head>
+<body>
+  <div class="gameboy-screen-container">
+    <div class="screen-bezel">
+      <div class="screen-headline">
+        <span>DOT MATRIX WITH STEREO SOUND</span>
+      </div>
+
+      <div class="battery-light" id="battery-light">
+        <span>BATTERY</span>
+      </div>
+
+      <div class="screen">
+        <canvas id="gameboy-screen" width="160" height="144"></canvas>
+        <div class="screen-overlay" id="screen-overlay">
+          <div class="loading-text" id="loading-text">Loading ROM...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error" id="error" style="display: none;"></div>
+
+  <!-- Hidden file input required by gameboy.js RomFileReader -->
+  <input type="file" id="file" style="display: none;" accept=".gb,.gbc">
+
+  <!-- GameBoy.js library from CDN -->
+  <script src="https://cdn.jsdelivr.net/gh/juchi/gameboy.js@master/dist/gameboy.min.js"></script>
+  <script type="module" src="./gameboy-player.ts"></script>
+</body>
+</html>

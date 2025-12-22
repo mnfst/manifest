@@ -1,32 +1,21 @@
 {
   "name": "create-manifest",
-  "version": "2.0.0",
-  "description": "Create a starter ChatGPT App project with Manifest UI Agentic toolkit",
-  "main": "dist/server.js",
-  "scripts": {
-    "test": "npm run test"
+  "version": "1.0.0",
+  "description": "Create a new Manifest project",
+  "type": "module",
+  "bin": {
+    "create-manifest": "./index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mnfst/manifest.git"
-  },
-  "keywords": [
-    "manifest"
-    "chatgpt",
-    "chatgpt-app",
-    "chatgpt",
-    "mcp",
-    "mcp-server",
-    "mcp-ui",
-    "ext-apps",
-    "ui",
-    "starter",
-    "server"
+  "files": [
+    "index.js",
+    "starter"
   ],
-  "author": "MNFST, Inc",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/mnfst/manifest/issues"
-  },
-  "homepage": "https://github.com/mnfst/manifest#readme"
+  "keywords": [
+    "manifest",
+    "mcp",
+    "create",
+    "cli"
+  ],
+  "author": "MNFST, Inc.",
+  "license": "MIT"
 }
