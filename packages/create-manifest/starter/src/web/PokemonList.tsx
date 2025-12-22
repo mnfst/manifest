@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BlogPostList } from '@/components/blog-post-list'
 import type { BlogPost } from '@/components/blog-post-card'
+import { PaymentMethods } from './components/payment-methods'
 
 interface Pokemon {
   id: number
@@ -112,6 +113,7 @@ export default function PokemonList() {
 
   return (
     <div className="p-4">
+      <PaymentMethods />
       <BlogPostList
         posts={posts}
         variant="carousel"

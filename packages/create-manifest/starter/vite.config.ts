@@ -31,6 +31,7 @@ export default defineConfig({
   server: {
     cors: {
       origin: true
-    }
+    },
+    allowedHosts: ['.ngrok-free.dev', '.ngrok.io']
   }
 })
