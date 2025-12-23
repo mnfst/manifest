@@ -2,8 +2,12 @@
 
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 
-import { CodeBlock } from './code-block'
+const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
+  ssr: false,
+  loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
+})
 
 const REGISTRY_URL = 'https://ui.manifest.build/r/{name}.json'
 
