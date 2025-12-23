@@ -43,16 +43,60 @@ export default function PokemonList() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('window.openai:', window.openai)
+    console.log('structuredContent:', window.openai?.content?.structuredContent)
+
     // Get structured content from OpenAI
     if (window.openai?.content?.structuredContent) {
       const content = window.openai.content
         .structuredContent as StructuredContent
+      console.log(
+        'Using structuredContent, pokemons count:',
+        content.pokemons?.length
+      )
       if (content.pokemons) {
         setPosts(content.pokemons.map(pokemonToBlogPost))
       }
+      setLoading(false)
+    } else {
+      // Fallback: fetch directly if not in OpenAI context
+      console.log('No structuredContent, falling back to direct fetch')
+      fetchPokemons()
     }
-    setLoading(false)
   }, [])
+
+  async function fetchPokemons() {
+    try {
+      const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=12')
+      const data = await response.json()
+
+      const pokemons = await Promise.all(
+        data.results.map(async (pokemon: { name: string; url: string }) => {
+          const detailResponse = await fetch(pokemon.url)
+          const detail = await detailResponse.json()
+
+          return {
+            id: detail.id,
+            name: detail.name,
+            image:
+              detail.sprites.other['official-artwork'].front_default ||
+              detail.sprites.front_default,
+            types: detail.types.map(
+              (t: { type: { name: string } }) => t.type.name
+            ),
+            height: detail.height,
+            weight: detail.weight
+          }
+        })
+      )
+
+      setPosts(pokemons.map(pokemonToBlogPost))
+    } catch (error) {
+      console.error('Failed to fetch Pokemon:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleReadMore = (post: BlogPost) => {
     const pokemonName = post.title.toLowerCase()
@@ -63,16 +107,6 @@ export default function PokemonList() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-muted-foreground">Loading Pokemon...</div>
-      </div>
-    )
-  }
-
-  if (posts.length === 0) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">
-          No data provided. Use the listPokemons tool.
-        </div>
       </div>
     )
   }
