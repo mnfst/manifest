@@ -3,12 +3,13 @@
 import { ChatDemo } from '@/components/chat/chat-demo'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WaveCanvas } from '@/components/ui/wave-canvas'
-import { BlogPostCard, BlogPost } from '@/registry/blogging/blog-post-card'
+import { BlogPostCard } from '@/registry/blogging/blog-post-card'
 import { BlogPostList } from '@/registry/blogging/blog-post-list'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
 import { PaymentMethods } from '@/registry/payment/payment-methods'
 import { ProductList, Product } from '@/registry/list/product-list'
+import { MessageSquare, Palette, Award } from 'lucide-react'
 import Link from 'next/link'
 
 function ChatGPTIcon({ className }: { className?: string }) {
@@ -57,7 +58,12 @@ function IyoLogo({ className }: { className?: string }) {
 
 function StripeLogo({ className }: { className?: string }) {
   return (
-    <img src="/images/Icon.jpeg" alt="Stripe" className={className} style={{ borderRadius: '4px' }} />
+    <img
+      src="/images/Icon.jpeg"
+      alt="Stripe"
+      className={className}
+      style={{ borderRadius: '4px' }}
+    />
   )
 }
 
@@ -125,7 +131,8 @@ const audioProducts: Product[] = [
     name: 'Iyo Pro',
     description: 'Premium Earbuds',
     price: 299,
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
     rating: 4.9,
     badge: 'Best Seller',
     inStock: true
@@ -135,7 +142,8 @@ const audioProducts: Product[] = [
     name: 'Iyo Air',
     description: 'Wireless Earbuds',
     price: 149,
-    image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
     rating: 4.8,
     badge: 'New',
     inStock: true
@@ -146,7 +154,8 @@ const audioProducts: Product[] = [
     description: 'Over-Ear Headphones',
     price: 349,
     originalPrice: 399,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
     rating: 4.7,
     badge: '-12%',
     inStock: true
@@ -156,7 +165,8 @@ const audioProducts: Product[] = [
     name: 'Iyo Sport',
     description: 'Active Earbuds',
     price: 199,
-    image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop',
     rating: 4.8,
     inStock: true
   },
@@ -166,7 +176,8 @@ const audioProducts: Product[] = [
     description: 'Compact Earbuds',
     price: 99,
     originalPrice: 129,
-    image: 'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=400&h=400&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=400&h=400&fit=crop',
     rating: 4.6,
     badge: '-23%',
     inStock: true
@@ -176,7 +187,8 @@ const audioProducts: Product[] = [
     name: 'Iyo Max',
     description: 'Premium Headphones',
     price: 449,
-    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
     rating: 4.9,
     inStock: true
   }
@@ -299,9 +311,7 @@ const useCases = [
         id: '4',
         role: 'assistant' as const,
         content: 'Here are more trending stories:',
-        component: (
-          <BlogPostList posts={techCrunchArticles} variant="list" />
-        ),
+        component: <BlogPostList posts={techCrunchArticles} variant="list" />,
         brand: {
           name: 'TechCrunch',
           logo: <TechCrunchLogo className="h-4 w-4" />
@@ -340,7 +350,7 @@ export default function Home() {
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               A collection of beautifully designed components for building
-              ChatGPT custom apps. Open source, accessible and customizable.
+              ChatGPT custom apps. Open source, ready-to-use and customizable.
             </p>
             <div className="pt-4">
               <Link
@@ -400,6 +410,117 @@ export default function Home() {
             </TabsContent>
           ))}
         </Tabs>
+      </div>
+
+      {/* Features Section with Wave Background */}
+      <div className="relative py-24 md:py-32 overflow-hidden">
+        <WaveCanvas
+          colors={[
+            '#fae7d5ff',
+            '#d0fdf3ff',
+            '#d3d5fbff',
+            '#cffcf2ff',
+            '#d3d5fbff'
+          ]}
+          darkColors={['#2a1f1a', '#1a2a28', '#1f1a2a', '#1a2a28', '#1a1a2a']}
+          waveOpacity={0.63}
+          speed="slow"
+          blur={60}
+          waveWidth={300}
+        />
+        <div className="relative z-10 px-4 lg:px-24 space-y-24">
+          {/* Advantages Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16 max-w-4xl mx-auto">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <MessageSquare
+                className="h-8 w-8 text-foreground"
+                strokeWidth={1.5}
+              />
+              <h2 className="text-xl font-medium text-foreground tracking-tight">
+                Made for agentic usage
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                All UI components have been built for being integrated in chat
+                apps like ChatGPT.
+              </p>
+            </div>
+            <div className="flex flex-col items-center text-center space-y-4">
+              <Palette className="h-8 w-8 text-foreground" strokeWidth={1.5} />
+              <h2 className="text-xl font-medium text-foreground tracking-tight">
+                Customize and extend
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Adapt it to your branding to provide unique experiences.
+              </p>
+            </div>
+            <div className="flex flex-col items-center text-center space-y-4">
+              <Award className="h-8 w-8 text-foreground" strokeWidth={1.5} />
+              <h2 className="text-xl font-medium text-foreground tracking-tight">
+                Built on the shoulders of giants
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Manifest UI is an official shadcn/ui registry.
+              </p>
+            </div>
+          </div>
+
+          {/* About Section */}
+          <div className="max-w-2xl mx-auto space-y-16">
+            <div className="text-center space-y-6">
+              <h2 className="text-2xl font-medium text-foreground tracking-tight">
+                The UI of the future
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Manifest UI is a shadcn/ui components library for building
+                ChatGPT Apps.
+                <br />
+                <br />
+                It is a refined set of blocks and components that developers can
+                integrate and customize to use in LLM and agentic interfaces
+                like ChatGPT.
+              </p>
+            </div>
+            <div className="text-center space-y-6">
+              <h2 className="text-2xl font-medium text-foreground tracking-tight">
+                Building with the community
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Manifest UI is an open source project hosted on GitHub. It is
+                built on top of other open source projects like React, Tailwind
+                and shadcn/ui. <br />
+                <br /> Every component is free and built with the community.
+                Contributions are welcome, as well as suggestions and bug
+                reports.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 pt-4">
+                <a
+                  href="https://github.com/mnfst/manifest/discussions"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm px-5 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+                >
+                  Suggest components
+                </a>
+                <a
+                  href="https://github.com/mnfst/manifest/issues"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm px-5 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+                >
+                  Submit a bug
+                </a>
+                <a
+                  href="https://github.com/mnfst/manifest"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm px-5 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+                >
+                  Star the project
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
