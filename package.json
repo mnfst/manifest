@@ -1,19 +1,36 @@
 {
-  "name": "generator",
+  "name": "chatgpt-app-builder",
   "version": "1.0.0",
-  "description": "ChatGPT App Generator",
-  "main": "index.js",
+  "private": true,
+  "description": "ChatGPT App Builder - Create ChatGPT apps from natural language prompts",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2"
+  },
+  "packageManager": "npm@10.2.0",
+  "engines": {
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mnfst/generator.git"
   },
   "author": "MNFST, Inc",
-  "license": "UNLICENSED",
-  "bugs": {
-    "url": "https://github.com/mnfst/generator/issues"
-  },
-  "homepage": "https://github.com/mnfst/generator#readme"
+  "license": "UNLICENSED"
 }

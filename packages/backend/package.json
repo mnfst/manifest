@@ -1,0 +1,44 @@
+{
+  "name": "@chatgpt-app-builder/backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "dev": "TS_NODE_TRANSPILE_ONLY=true node --require ts-node/register src/main.ts",
+    "start": "nest start",
+    "start:prod": "node dist/main",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "db:init": "ts-node src/scripts/init-db.ts"
+  },
+  "dependencies": {
+    "@chatgpt-app-builder/shared": "*",
+    "@langchain/core": "^0.3.26",
+    "@langchain/openai": "^0.3.17",
+    "@nestjs/common": "^10.4.15",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/platform-express": "^10.4.15",
+    "@nestjs/typeorm": "^10.0.2",
+    "better-sqlite3": "^11.7.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20",
+    "uuid": "^11.0.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "@swc/cli": "^0.7.9",
+    "@swc/core": "^1.15.7",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.10.2",
+    "@types/uuid": "^10.0.0",
+    "esbuild": "^0.27.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.2"
+  }
+}

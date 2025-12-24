@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{appName}} - Post List View</title>
+  <style>
+    :root {
+      {{themeVariables}}
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      padding: 16px;
+    }
+
+    .post-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .post-card {
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid hsl(var(--border, 214.3 31.8% 91.4%));
+      background: hsl(var(--card, var(--background)));
+    }
+
+    .post-card:hover {
+      background: hsl(var(--muted) / 0.5);
+    }
+
+    .post-category {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(var(--primary));
+      margin-bottom: 8px;
+    }
+
+    .post-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .post-excerpt {
+      font-size: 14px;
+      color: hsl(var(--muted-foreground));
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .post-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .post-tags {
+      display: flex;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+      background: hsl(var(--muted));
+      color: hsl(var(--muted-foreground));
+    }
+  </style>
+</head>
+<body>
+  <div class="post-list" id="post-list"></div>
+
+  <script>
+    // Receive data from parent frame (ChatGPT)
+    window.addEventListener('message', function(event) {
+      const data = event.data;
+      if (data && data.structuredContent) {
+        renderPosts(data.structuredContent);
+      }
+    });
+
+    function renderPosts(data) {
+      if (!data || !data.posts) return;
+
+      const container = document.getElementById('post-list');
+
+      container.innerHTML = data.posts
+        .map(post => {
+          const tagsHtml = post.tags && post.tags.length > 0
+            ? `<div class="post-tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+            : '';
+
+          return `
+            <article class="post-card">
+              ${post.category ? `<div class="post-category">${post.category}</div>` : ''}
+              <h3 class="post-title">${post.title}</h3>
+              <p class="post-excerpt">${post.excerpt}</p>
+              <div class="post-meta">
+                ${post.author ? `<span>By ${post.author}</span>` : ''}
+                ${post.date ? `<span>${post.date}</span>` : ''}
+              </div>
+              ${tagsHtml}
+            </article>
+          `;
+        })
+        .join('');
+    }
+  </script>
+</body>
+</html>
