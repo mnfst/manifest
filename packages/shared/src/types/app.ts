@@ -1,5 +1,5 @@
-import type { ThemeVariables } from './theme';
-import type { MockData } from './mock-data';
+import type { ThemeVariables } from './theme.js';
+import type { MockData } from './mock-data.js';
 
 /**
  * App status enum

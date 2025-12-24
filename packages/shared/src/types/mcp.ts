@@ -1,5 +1,5 @@
-import type { App } from './app';
-import type { MockData } from './mock-data';
+import type { App } from './app.js';
+import type { MockData } from './mock-data.js';
 
 /**
  * MCP tool response following ChatGPT Apps SDK format

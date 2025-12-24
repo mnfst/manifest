@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nest build",
-    "dev": "TS_NODE_TRANSPILE_ONLY=true node --require ts-node/register src/main.ts",
+    "dev": "TS_NODE_TRANSPILE_ONLY=true node --env-file=.env --require ts-node/register src/main.ts",
     "start": "nest start",
     "start:prod": "node dist/main",
     "clean": "rm -rf dist",
