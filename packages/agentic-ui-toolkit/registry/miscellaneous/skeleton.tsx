@@ -2,8 +2,20 @@
 
 import { cn } from '@/lib/utils'
 
+/*
+ * Skeleton Components - ChatGPT UI Guidelines Compliant
+ * - Uses system muted color for loading states
+ * - Pulse animation for visual feedback
+ * - Accessible: aria-hidden for decorative loading states
+ */
+
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-md bg-muted', className)} />
+  return (
+    <div
+      className={cn('animate-pulse rounded-md bg-muted', className)}
+      aria-hidden="true"
+    />
+  )
 }
 
 export function SkeletonWeather() {

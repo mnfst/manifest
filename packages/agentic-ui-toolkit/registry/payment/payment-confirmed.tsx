@@ -1,7 +1,15 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, ExternalLink } from 'lucide-react'
+import { Check, ExternalLink } from 'lucide-react'
+
+/*
+ * PaymentConfirmed Component - ChatGPT UI Guidelines Compliant
+ * - Use system colors (foreground/background) instead of custom green
+ * - Single CTA action (Track order)
+ * - Proper visual hierarchy
+ * - No nested scrolling
+ */
 
 export interface PaymentConfirmedProps {
   orderId?: string
@@ -32,13 +40,15 @@ export function PaymentConfirmed({
   }
 
   return (
-    <div className="w-full rounded-lg bg-card overflow-hidden">
+    <div className="w-full rounded-lg bg-card border overflow-hidden">
       {/* Mobile layout */}
       <div className="sm:hidden">
         {/* Header */}
-        <div className="flex flex-col items-center gap-1 px-3 py-3 bg-green-500/10 border-b border-green-500/20">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-          <span className="text-sm font-medium text-green-700 dark:text-green-400">
+        <div className="flex flex-col items-center gap-1 px-3 py-3 bg-muted border-b">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground">
+            <Check className="h-4 w-4 text-background" />
+          </div>
+          <span className="text-sm font-medium">
             Payment confirmed
           </span>
           <span className="text-xs text-muted-foreground">
@@ -49,7 +59,7 @@ export function PaymentConfirmed({
         <div className="p-4 space-y-4">
           {/* Product image centered */}
           <div className="flex justify-center">
-            <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted/30">
+            <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted">
               {productImage ? (
                 <img
                   src={productImage}
@@ -87,9 +97,11 @@ export function PaymentConfirmed({
       {/* Desktop layout */}
       <div className="hidden sm:block">
         {/* Header */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border-b border-green-500/20">
-          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-          <span className="text-sm font-medium text-green-700 dark:text-green-400">
+        <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground flex-shrink-0">
+            <Check className="h-3 w-3 text-background" />
+          </div>
+          <span className="text-sm font-medium">
             Payment confirmed
           </span>
           <span className="text-xs text-muted-foreground ml-auto">
@@ -99,7 +111,7 @@ export function PaymentConfirmed({
         {/* Product info */}
         <div className="p-4">
           <div className="flex gap-4">
-            <div className="h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden bg-muted/30">
+            <div className="h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
               {productImage ? (
                 <img
                   src={productImage}

@@ -2,6 +2,13 @@
 
 import { cn } from '@/lib/utils'
 
+/*
+ * QuickReply Component - ChatGPT UI Guidelines Compliant
+ * - Clear action buttons for quick responses
+ * - Use system colors (neutral grayscale)
+ * - Immediate visual feedback on hover
+ */
+
 export interface QuickReply {
   id: string
   label: string
@@ -26,15 +33,15 @@ export function QuickReply({
   onSelectReply
 }: QuickReplyProps) {
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
+    <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
         {replies.map((reply) => (
           <button
             key={reply.id}
             onClick={() => onSelectReply?.(reply)}
             className={cn(
-              'inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-primary transition-all',
-              'hover:bg-primary hover:text-primary-foreground hover:border-primary'
+              'inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-border bg-background px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-foreground transition-colors',
+              'hover:bg-foreground hover:text-background hover:border-foreground'
             )}
           >
             {reply.icon}

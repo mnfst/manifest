@@ -5,6 +5,18 @@ import { cn } from '@/lib/utils'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
+/*
+ * ProductList Component - ChatGPT UI Guidelines Compliant
+ * Carousel Rules:
+ * - Keep to 3-8 items per carousel for scannability
+ * - Reduce metadata to most relevant details (3 lines max)
+ * - Each card may have a single, optional CTA
+ * - Use consistent visual hierarchy across cards
+ *
+ * Selection Style:
+ * - Use ring-1 ring-foreground for selected items (no border-2 to avoid layout jumps)
+ */
+
 export interface Product {
   id: string
   name: string

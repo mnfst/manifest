@@ -124,8 +124,8 @@ export function OrderSummary({
             </div>
           )}
           {discount !== undefined && discount > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span className="flex items-center gap-1">
+            <div className="flex justify-between text-sm">
+              <span className="flex items-center gap-1 text-muted-foreground">
                 <Percent className="h-4 w-4" />
                 Discount
                 {discountCode && (
@@ -134,7 +134,7 @@ export function OrderSummary({
                   </Badge>
                 )}
               </span>
-              <span>-{formatCurrency(discount)}</span>
+              <span className="text-foreground">-{formatCurrency(discount)}</span>
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Calendar, ChevronLeft, Clock } from 'lucide-react'
+import { Calendar, ChevronLeft, Clock } from 'lucide-react'
 import { BlogPost } from './blog-post-card'
 
 const defaultPost: BlogPost = {
@@ -89,8 +89,19 @@ export interface PostDetailProps {
   showCover?: boolean
   showAuthor?: boolean
   relatedPosts?: BlogPost[]
+  displayMode?: 'inline' | 'fullscreen'
   onBack?: () => void
+  onReadMore?: () => void
   onReadRelated?: (post: BlogPost) => void
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength).trim() + '...'
 }
 
 export function PostDetail({
@@ -99,7 +110,9 @@ export function PostDetail({
   showCover = true,
   showAuthor = true,
   relatedPosts = defaultRelatedPosts,
+  displayMode = 'inline',
   onBack,
+  onReadMore,
   onReadRelated
 }: PostDetailProps) {
   const formatDate = (dateStr: string) => {
@@ -110,10 +123,75 @@ export function PostDetail({
     })
   }
 
+  const plainTextContent = stripHtml(content)
+  const truncatedContent = truncateText(plainTextContent, 340)
+  const isInline = displayMode === 'inline'
+
+  if (isInline) {
+    return (
+      <div className="rounded-lg border bg-card">
+        {showCover && post.coverImage && (
+          <div className="aspect-video overflow-hidden rounded-t-lg">
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+
+        <div className="p-4">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {post.category && (
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                {post.category}
+              </span>
+            )}
+            {post.tags &&
+              post.tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+                >
+                  {tag}
+                </span>
+              ))}
+          </div>
+
+          <h1 className="text-xl font-bold">{post.title}</h1>
+
+          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {formatDate(post.publishedAt)}
+            </span>
+            {post.readTime && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {post.readTime}
+              </span>
+            )}
+          </div>
+
+          <p className="mt-3 text-sm text-muted-foreground">
+            {truncatedContent}
+          </p>
+
+          <div className="mt-4">
+            <Button onClick={onReadMore}>
+              Read more
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Fullscreen mode
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="min-h-screen bg-background">
       {showCover && post.coverImage && (
-        <div className="aspect-video overflow-hidden rounded-t-lg">
+        <div className="aspect-[21/9] w-full overflow-hidden">
           <img
             src={post.coverImage}
             alt={post.title}
@@ -122,12 +200,12 @@ export function PostDetail({
         </div>
       )}
 
-      <div className="p-4">
+      <div className="mx-auto w-full max-w-[680px] px-4 py-8">
         {onBack && (
           <Button
             variant="ghost"
             size="sm"
-            className="mb-4 -ml-2"
+            className="mb-6 -ml-2"
             onClick={onBack}
           >
             <ChevronLeft className="mr-1 h-4 w-4" />
@@ -135,7 +213,7 @@ export function PostDetail({
           </Button>
         )}
 
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           {post.category && (
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
               {post.category}
@@ -152,27 +230,27 @@ export function PostDetail({
             ))}
         </div>
 
-        <h1 className="text-xl font-bold">{post.title}</h1>
+        <h1 className="text-3xl font-bold leading-tight">{post.title}</h1>
 
         {showAuthor && (
-          <div className="mt-4 flex items-center gap-3 border-b pb-4">
+          <div className="mt-6 flex items-center gap-3 border-b pb-6">
             {post.author.avatar && (
               <img
                 src={post.author.avatar}
                 alt={post.author.name}
-                className="h-10 w-10 rounded-full"
+                className="h-12 w-12 rounded-full"
               />
             )}
             <div>
               <p className="font-medium">{post.author.name}</p>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
+                  <Calendar className="h-3.5 w-3.5" />
                   {formatDate(post.publishedAt)}
                 </span>
                 {post.readTime && (
                   <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                    <Clock className="h-3.5 w-3.5" />
                     {post.readTime}
                   </span>
                 )}
@@ -181,25 +259,23 @@ export function PostDetail({
           </div>
         )}
 
-        <div className="prose prose-sm mt-4 max-w-none dark:prose-invert">
-          <p className="text-muted-foreground">{post.excerpt}</p>
+        <div className="prose prose-lg mt-8 max-w-none dark:prose-invert">
+          <p className="lead text-xl text-muted-foreground">{post.excerpt}</p>
           {content && <div dangerouslySetInnerHTML={{ __html: content }} />}
         </div>
 
         {relatedPosts && relatedPosts.length > 0 && (
-          <div className="mt-6 border-t pt-4">
-            <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-              Related Posts
-            </h3>
-            <div className="space-y-2">
+          <div className="mt-12 border-t pt-8">
+            <h3 className="mb-4 text-lg font-semibold">Related Posts</h3>
+            <div className="space-y-4">
               {relatedPosts.map((related) => (
                 <button
                   key={related.id}
                   onClick={() => onReadRelated?.(related)}
-                  className="flex w-full items-center gap-3 rounded-sm p-2 text-left transition-colors hover:bg-muted"
+                  className="flex w-full items-center gap-4 rounded-lg p-3 text-left transition-colors hover:bg-muted"
                 >
                   {related.coverImage && (
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
                       <img
                         src={related.coverImage}
                         alt={related.title}
@@ -208,14 +284,14 @@ export function PostDetail({
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm font-medium">
-                      {related.title}
+                    <p className="font-medium">{related.title}</p>
+                    <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                      {related.excerpt}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {related.readTime}
                     </p>
                   </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
               ))}
             </div>

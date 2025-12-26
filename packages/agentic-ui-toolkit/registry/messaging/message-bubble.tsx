@@ -9,6 +9,13 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 
+/*
+ * MessageBubble Components - ChatGPT UI Guidelines Compliant
+ * - Use system colors (foreground/background) instead of custom blue
+ * - Compact design suitable for chat embedding
+ * - Note: Dropdown for reactions may be clipped in iframes - consider inline alternatives
+ */
+
 // Single Message Bubble
 export interface MessageBubbleProps {
   content: string
@@ -54,7 +61,7 @@ export function MessageBubble({
               {status === 'sent' && <Check className="h-3 w-3" />}
               {status === 'delivered' && <CheckCheck className="h-3 w-3" />}
               {status === 'read' && (
-                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <CheckCheck className="h-3 w-3 text-foreground" />
               )}
             </span>
           )}
@@ -123,7 +130,7 @@ export function ImageMessageBubble({
               {status === 'sent' && <Check className="h-3 w-3" />}
               {status === 'delivered' && <CheckCheck className="h-3 w-3" />}
               {status === 'read' && (
-                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <CheckCheck className="h-3 w-3 text-foreground" />
               )}
             </span>
           )}
@@ -362,7 +369,7 @@ export function VoiceMessageBubble({
               {status === 'sent' && <Check className="h-3 w-3" />}
               {status === 'delivered' && <CheckCheck className="h-3 w-3" />}
               {status === 'read' && (
-                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <CheckCheck className="h-3 w-3 text-foreground" />
               )}
             </span>
           )}
