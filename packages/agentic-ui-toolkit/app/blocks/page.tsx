@@ -122,11 +122,14 @@ interface BlockVariant {
   usageCode?: string
 }
 
+type LayoutMode = 'inline' | 'fullscreen' | 'pip'
+
 interface BlockGroup {
   id: string
   name: string
   description: string
   registryName: string
+  layouts: LayoutMode[]
   variants: BlockVariant[]
 }
 
@@ -146,6 +149,7 @@ const categories: Category[] = [
         name: 'Post Card',
         description: 'Display blog posts with various layouts and styles',
         registryName: 'blog-post-card',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -184,6 +188,7 @@ const categories: Category[] = [
         name: 'Post List',
         description: 'Display multiple posts in various layouts',
         registryName: 'blog-post-list',
+        layouts: ['inline'],
         variants: [
           {
             id: 'list',
@@ -210,6 +215,7 @@ const categories: Category[] = [
         name: 'Post Detail',
         description: 'Full post view with cover and content',
         registryName: 'post-detail',
+        layouts: ['inline', 'fullscreen'],
         variants: [
           {
             id: 'default',
@@ -236,6 +242,7 @@ const categories: Category[] = [
         name: 'Table',
         description: 'Data table with optional selection',
         registryName: 'table',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -262,6 +269,7 @@ const categories: Category[] = [
         name: 'Product List',
         description: 'Display products in various layouts',
         registryName: 'product-list',
+        layouts: ['inline'],
         variants: [
           {
             id: 'list',
@@ -300,6 +308,7 @@ const categories: Category[] = [
         name: 'Order Confirmation',
         description: 'Display order summary before payment',
         registryName: 'order-confirm',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -314,6 +323,7 @@ const categories: Category[] = [
         name: 'Payment Methods',
         description: 'Select payment method',
         registryName: 'payment-methods',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -328,6 +338,7 @@ const categories: Category[] = [
         name: 'Bank Card Form',
         description: 'Credit card input form',
         registryName: 'bank-card-form',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -342,6 +353,7 @@ const categories: Category[] = [
         name: 'Amount Input',
         description: 'Input for monetary amounts',
         registryName: 'amount-input',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -356,6 +368,7 @@ const categories: Category[] = [
         name: 'Payment Success',
         description: 'Success confirmation after payment',
         registryName: 'payment-success',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -370,6 +383,7 @@ const categories: Category[] = [
         name: 'Payment Confirmation',
         description: 'Detailed payment confirmation',
         registryName: 'payment-confirmed',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -390,6 +404,7 @@ const categories: Category[] = [
         name: 'Message Bubble',
         description: 'Chat message bubbles',
         registryName: 'chat-conversation',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -478,6 +493,7 @@ const categories: Category[] = [
         name: 'Chat Conversation',
         description: 'Full chat conversation view',
         registryName: 'chat-conversation',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -498,6 +514,7 @@ const categories: Category[] = [
         name: 'X Post',
         description: 'X (Twitter) post card',
         registryName: 'x-post',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -512,6 +529,7 @@ const categories: Category[] = [
         name: 'Instagram Post',
         description: 'Instagram post card',
         registryName: 'instagram-post',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -526,6 +544,7 @@ const categories: Category[] = [
         name: 'LinkedIn Post',
         description: 'LinkedIn post card',
         registryName: 'linkedin-post',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -540,6 +559,7 @@ const categories: Category[] = [
         name: 'YouTube Post',
         description: 'YouTube video card',
         registryName: 'youtube-post',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -554,6 +574,7 @@ const categories: Category[] = [
         name: 'Status Badge',
         description: 'Various status indicators',
         registryName: 'status-badge',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -577,6 +598,7 @@ const categories: Category[] = [
         name: 'Progress Steps',
         description: 'Step-by-step progress indicator',
         registryName: 'progress-steps',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -591,6 +613,7 @@ const categories: Category[] = [
         name: 'Stats Cards',
         description: 'Display statistics and metrics',
         registryName: 'stats',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -605,6 +628,7 @@ const categories: Category[] = [
         name: 'Skeleton',
         description: 'Loading placeholder components',
         registryName: 'skeleton',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -624,6 +648,7 @@ const categories: Category[] = [
         name: 'Quick Reply',
         description: 'Quick reply buttons for chat',
         registryName: 'quick-reply',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -638,6 +663,7 @@ const categories: Category[] = [
         name: 'Option List',
         description: 'Tag-style option selector',
         registryName: 'option-list',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -652,6 +678,7 @@ const categories: Category[] = [
         name: 'Tag Select',
         description: 'Colored tag selector',
         registryName: 'tag-select',
+        layouts: ['inline'],
         variants: [
           {
             id: 'default',
@@ -745,8 +772,25 @@ function BlocksContent() {
           <div className="max-w-3xl mx-auto space-y-12">
             {/* Block Title */}
             <div>
-              <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
-              <p className="text-muted-foreground mt-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
+                <div className="flex gap-1.5">
+                  {selectedBlock.layouts.map((layout) => (
+                    <span
+                      key={layout}
+                      className={cn(
+                        'px-2 py-0.5 text-xs font-medium rounded-full',
+                        layout === 'inline' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                        layout === 'fullscreen' && 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                        layout === 'pip' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      )}
+                    >
+                      {layout}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-muted-foreground">
                 {selectedBlock.description}
               </p>
             </div>
