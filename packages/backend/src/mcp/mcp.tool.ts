@@ -2,41 +2,74 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppEntity } from '../entities/app.entity';
-import type { McpToolResponse, App } from '@chatgpt-app-builder/shared';
+import { FlowEntity } from '../flow/flow.entity';
+import { ViewEntity } from '../view/view.entity';
+import type { McpToolResponse, LayoutTemplate } from '@chatgpt-app-builder/shared';
 
 /**
  * Service for handling MCP tool calls for published apps
  * Implements ChatGPT Apps SDK response format
+ * Each flow in an app becomes an MCP tool
  */
 @Injectable()
 export class McpToolService {
   constructor(
     @InjectRepository(AppEntity)
-    private readonly appRepository: Repository<AppEntity>
+    private readonly appRepository: Repository<AppEntity>,
+    @InjectRepository(FlowEntity)
+    private readonly flowRepository: Repository<FlowEntity>,
+    @InjectRepository(ViewEntity)
+    private readonly viewRepository: Repository<ViewEntity>
   ) {}
 
   /**
-   * Get app by MCP slug
+   * Get app by slug (used for MCP server discovery)
    */
-  async getAppBySlug(mcpSlug: string): Promise<App | null> {
-    const entity = await this.appRepository.findOne({
-      where: { mcpSlug, status: 'published' },
+  async getAppBySlug(slug: string): Promise<AppEntity | null> {
+    return this.appRepository.findOne({
+      where: { slug, status: 'published' },
+      relations: ['flows'],
     });
-    return entity ? this.entityToApp(entity) : null;
   }
 
   /**
-   * Execute an MCP tool call for a published app
+   * Execute an MCP tool call for a published app's flow
    * Returns ChatGPT Apps SDK formatted response
    */
-  async executeTool(mcpSlug: string, input: { message: string }): Promise<McpToolResponse> {
-    const app = await this.getAppBySlug(mcpSlug);
+  async executeTool(
+    appSlug: string,
+    toolName: string,
+    input: { message: string }
+  ): Promise<McpToolResponse> {
+    const app = await this.getAppBySlug(appSlug);
     if (!app) {
-      throw new NotFoundException(`No published app found for slug: ${mcpSlug}`);
+      throw new NotFoundException(`No published app found for slug: ${appSlug}`);
+    }
+
+    // Find the flow that matches the tool name
+    const flow = await this.flowRepository.findOne({
+      where: { appId: app.id, toolName },
+      relations: ['views'],
+    });
+
+    if (!flow) {
+      throw new NotFoundException(`No tool found with name: ${toolName}`);
+    }
+
+    // Get the first view for layout and mock data
+    const views = flow.views?.sort((a, b) => a.order - b.order) || [];
+    const primaryView = views[0];
+
+    if (!primaryView) {
+      throw new NotFoundException(`No views found for tool: ${toolName}`);
     }
 
     // Generate response text based on the request
-    const responseText = this.generateResponseText(app, input.message);
+    const responseText = this.generateResponseText(
+      flow.name,
+      primaryView.layoutTemplate,
+      input.message
+    );
 
     // Return ChatGPT Apps SDK formatted response
     return {
@@ -46,71 +79,58 @@ export class McpToolService {
           text: responseText,
         },
       ],
-      structuredContent: app.mockData,
+      structuredContent: primaryView.mockData,
       _meta: {
-        'openai/outputTemplate': `ui://widget/${app.mcpSlug}.html`,
+        'openai/outputTemplate': `ui://widget/${app.slug}/${flow.toolName}.html`,
       },
     };
   }
 
   /**
-   * List all tools available for an MCP server
+   * List all tools available for an MCP server (one per flow)
    */
-  async listTools(mcpSlug: string): Promise<{
+  async listTools(appSlug: string): Promise<{
     name: string;
     description: string;
     inputSchema: object;
   }[]> {
-    const app = await this.getAppBySlug(mcpSlug);
+    const app = await this.getAppBySlug(appSlug);
     if (!app) {
       return [];
     }
 
-    return [
-      {
-        name: app.toolName || 'execute',
-        description: app.toolDescription || `Execute the ${app.name} app`,
-        inputSchema: {
-          type: 'object',
-          properties: {
-            message: {
-              type: 'string',
-              description: 'User query or request',
-            },
+    const flows = await this.flowRepository.find({
+      where: { appId: app.id },
+    });
+
+    return flows.map((flow) => ({
+      name: flow.toolName,
+      description: flow.toolDescription || `Execute the ${flow.name} flow`,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          message: {
+            type: 'string',
+            description: 'User query or request',
           },
-          required: ['message'],
         },
+        required: ['message'],
       },
-    ];
+    }));
   }
 
   /**
-   * Generate response text based on app context
+   * Generate response text based on flow context
    */
-  private generateResponseText(app: App, _message: string): string {
-    if (app.layoutTemplate === 'table') {
-      return `Here are the results from ${app.name}:`;
+  private generateResponseText(
+    flowName: string,
+    layoutTemplate: LayoutTemplate,
+    _message: string
+  ): string {
+    if (layoutTemplate === 'table') {
+      return `Here are the results from ${flowName}:`;
     } else {
-      return `Here's the content from ${app.name}:`;
+      return `Here's the content from ${flowName}:`;
     }
-  }
-
-  /**
-   * Convert entity to App interface
-   */
-  private entityToApp(entity: AppEntity): App {
-    return {
-      id: entity.id,
-      name: entity.name,
-      description: entity.description,
-      layoutTemplate: entity.layoutTemplate,
-      systemPrompt: entity.systemPrompt,
-      themeVariables: entity.themeVariables,
-      mockData: entity.mockData,
-      toolName: entity.toolName,
-      toolDescription: entity.toolDescription,
-      mcpSlug: entity.mcpSlug,
-      status: entity.status,
-    };
   }
 }

@@ -1,5 +1,4 @@
 import type { ThemeVariables } from './theme.js';
-import type { MockData } from './mock-data.js';
 
 /**
  * App status enum
@@ -35,38 +34,62 @@ export const LAYOUT_REGISTRY: Record<
 };
 
 /**
- * Main App entity representing a user-created ChatGPT application
+ * Main App entity representing an MCP server
+ * Contains flows (MCP tools) which contain views
  */
 export interface App {
   id: string;
   name: string;
   description?: string;
-  layoutTemplate: LayoutTemplate;
-  systemPrompt: string;
+  slug: string;
   themeVariables: ThemeVariables;
-  mockData: MockData;
-  toolName?: string;
-  toolDescription?: string;
-  mcpSlug?: string;
   status: AppStatus;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
- * Request to generate a new app from a prompt
+ * Request to create a new app
+ */
+export interface CreateAppRequest {
+  name: string;
+  description?: string;
+  themeVariables?: Partial<ThemeVariables>;
+}
+
+/**
+ * Request to update an app
+ */
+export interface UpdateAppRequest {
+  name?: string;
+  description?: string;
+  themeVariables?: Partial<ThemeVariables>;
+}
+
+/**
+ * App with flows included
+ */
+export interface AppWithFlows extends App {
+  flows?: import('./flow.js').Flow[];
+}
+
+/**
+ * Legacy types for backwards compatibility during transition
+ * @deprecated Use CreateAppRequest instead
  */
 export interface GenerateAppRequest {
   prompt: string;
 }
 
 /**
- * Request to send a chat message for customization
+ * @deprecated Use ViewChatRequest from view.ts instead
  */
 export interface ChatRequest {
   message: string;
 }
 
 /**
- * Response from chat endpoint
+ * @deprecated Use ViewChatResponse from view.ts instead
  */
 export interface ChatResponse {
   response: string;

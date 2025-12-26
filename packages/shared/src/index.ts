@@ -1,6 +1,34 @@
 // App types
-export type { App, AppStatus, LayoutTemplate, GenerateAppRequest, ChatRequest, ChatResponse } from './types/app.js';
+export type {
+  App,
+  AppStatus,
+  LayoutTemplate,
+  CreateAppRequest,
+  UpdateAppRequest,
+  AppWithFlows,
+  GenerateAppRequest,
+  ChatRequest,
+  ChatResponse,
+} from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';
+
+// Flow types
+export type {
+  Flow,
+  CreateFlowRequest,
+  UpdateFlowRequest,
+  GenerateFlowResponse,
+} from './types/flow.js';
+
+// View types
+export type {
+  View,
+  CreateViewRequest,
+  UpdateViewRequest,
+  ReorderViewsRequest,
+  ViewChatRequest,
+  ViewChatResponse,
+} from './types/view.js';
 
 // Theme types
 export type { ThemeVariables } from './types/theme.js';

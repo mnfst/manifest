@@ -1,0 +1,42 @@
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { AppEntity } from '../entities/app.entity';
+
+/**
+ * Flow entity representing an MCP tool belonging to an app
+ * Contains views for display
+ */
+@Entity('flows')
+export class FlowEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ type: 'uuid' })
+  appId!: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  name!: string;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  description?: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  toolName!: string;
+
+  @Column({ type: 'varchar', length: 500 })
+  toolDescription!: string;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  // Relation to parent app
+  @ManyToOne(() => AppEntity, (app) => app.flows, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'appId' })
+  app?: AppEntity;
+
+  // Relation to views
+  @OneToMany('ViewEntity', 'flow', { cascade: true })
+  views?: import('../view/view.entity').ViewEntity[];
+}

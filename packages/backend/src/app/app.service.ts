@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import slugify from 'slugify';
 import { AppEntity } from '../entities/app.entity';
-import type { App, PublishResult } from '@chatgpt-app-builder/shared';
+import type { App, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
 
 /**
  * Service for App CRUD operations
@@ -19,10 +21,47 @@ export class AppService {
   ) {}
 
   /**
+   * Generate a unique slug from app name
+   * Adds numeric suffix if slug already exists
+   */
+  async generateUniqueSlug(name: string): Promise<string> {
+    const baseSlug = slugify(name, {
+      lower: true,
+      strict: true,
+      trim: true,
+    }).substring(0, 50);
+
+    // Check if slug exists
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await this.appRepository.findOne({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    return slug;
+  }
+
+  /**
    * Create a new app and set as current session app
    */
-  async create(appData: Partial<App>): Promise<App> {
-    const entity = this.appRepository.create(appData);
+  async create(request: CreateAppRequest): Promise<App> {
+    const slug = await this.generateUniqueSlug(request.name);
+
+    const themeVariables: ThemeVariables = {
+      ...DEFAULT_THEME_VARIABLES,
+      ...request.themeVariables,
+    };
+
+    const entity = this.appRepository.create({
+      name: request.name,
+      description: request.description,
+      slug,
+      themeVariables,
+      status: 'draft',
+    });
+
     const saved = await this.appRepository.save(entity);
     this.currentAppId = saved.id;
     return this.entityToApp(saved);
@@ -37,10 +76,10 @@ export class AppService {
   }
 
   /**
-   * Get app by MCP slug
+   * Get app by slug
    */
-  async findBySlug(mcpSlug: string): Promise<App | null> {
-    const entity = await this.appRepository.findOne({ where: { mcpSlug } });
+  async findBySlug(slug: string): Promise<App | null> {
+    const entity = await this.appRepository.findOne({ where: { slug } });
     return entity ? this.entityToApp(entity) : null;
   }
 
@@ -57,52 +96,51 @@ export class AppService {
   /**
    * Update an app
    */
-  async update(id: string, updates: Partial<App>): Promise<App> {
+  async update(id: string, updates: UpdateAppRequest): Promise<App> {
     const entity = await this.appRepository.findOne({ where: { id } });
     if (!entity) {
       throw new NotFoundException(`App with id ${id} not found`);
     }
 
-    Object.assign(entity, updates);
+    if (updates.name !== undefined) {
+      entity.name = updates.name;
+    }
+    if (updates.description !== undefined) {
+      entity.description = updates.description;
+    }
+    if (updates.themeVariables !== undefined) {
+      entity.themeVariables = {
+        ...entity.themeVariables,
+        ...updates.themeVariables,
+      };
+    }
+
     const saved = await this.appRepository.save(entity);
     return this.entityToApp(saved);
   }
 
   /**
    * Publish an app to MCP server
+   * Note: Publishing now requires at least one flow with views
    */
   async publish(id: string): Promise<PublishResult> {
-    const entity = await this.appRepository.findOne({ where: { id } });
+    const entity = await this.appRepository.findOne({
+      where: { id },
+      relations: ['flows', 'flows.views'],
+    });
+
     if (!entity) {
       throw new NotFoundException(`App with id ${id} not found`);
     }
 
-    // Validate required fields for publishing
+    // Validate app has flows
     const errors: string[] = [];
-
-    if (!entity.toolName || entity.toolName.length < 1) {
-      errors.push('Tool name is required (1-50 characters)');
-    } else if (entity.toolName.length > 50) {
-      errors.push('Tool name must be 50 characters or less');
-    }
-
-    if (!entity.toolDescription || entity.toolDescription.length < 10) {
-      errors.push('Tool description is required (10-500 characters)');
-    } else if (entity.toolDescription.length > 500) {
-      errors.push('Tool description must be 500 characters or less');
-    }
-
-    if (!entity.mockData) {
-      errors.push('Mock data is required');
+    if (!entity.flows || entity.flows.length === 0) {
+      errors.push('App must have at least one flow to publish');
     }
 
     if (errors.length > 0) {
       throw new BadRequestException(errors.join('; '));
-    }
-
-    // Generate MCP slug if not set
-    if (!entity.mcpSlug) {
-      entity.mcpSlug = this.generateSlug(entity.name);
     }
 
     // Update status to published
@@ -112,8 +150,8 @@ export class AppService {
     const app = this.entityToApp(saved);
 
     return {
-      endpointUrl: `/servers/${app.mcpSlug}/mcp`,
-      uiUrl: `/servers/${app.mcpSlug}/ui/${app.layoutTemplate}.html`,
+      endpointUrl: `/servers/${app.slug}/mcp`,
+      uiUrl: `/servers/${app.slug}/ui`,
       app,
     };
   }
@@ -133,18 +171,6 @@ export class AppService {
   }
 
   /**
-   * Generate URL-safe slug from app name
-   */
-  private generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .substring(0, 50);
-  }
-
-  /**
    * Convert entity to App interface
    */
   private entityToApp(entity: AppEntity): App {
@@ -152,14 +178,11 @@ export class AppService {
       id: entity.id,
       name: entity.name,
       description: entity.description,
-      layoutTemplate: entity.layoutTemplate,
-      systemPrompt: entity.systemPrompt,
+      slug: entity.slug,
       themeVariables: entity.themeVariables,
-      mockData: entity.mockData,
-      toolName: entity.toolName,
-      toolDescription: entity.toolDescription,
-      mcpSlug: entity.mcpSlug,
       status: entity.status,
+      createdAt: entity.createdAt?.toISOString(),
+      updatedAt: entity.updatedAt?.toISOString(),
     };
   }
 }

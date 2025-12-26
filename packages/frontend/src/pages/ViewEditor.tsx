@@ -1,74 +1,70 @@
-/**
- * @deprecated This file is no longer used in the new App → Flow → View architecture.
- * View editing is now handled by ViewEditor.tsx at /app/:appId/flow/:flowId/view/:viewId
- * This file is kept for reference to legacy APIs (getCurrentApp, chat, publishApp).
- * It should be removed once the legacy APIs are removed.
- */
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { App } from '@chatgpt-app-builder/shared';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import type { App, Flow, View } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
-import { VisualDisplay } from '../components/editor/VisualDisplay';
-import { ChatPanel } from '../components/chat/ChatPanel';
-import { PublishButton } from '../components/editor/PublishButton';
+import { ViewChatPanel } from '../components/view/ViewChatPanel';
+import { ThemeProvider } from '../components/editor/ThemeProvider';
+import { LayoutRenderer } from '../components/editor/LayoutRenderer';
 
-type DeviceSize = 'phone' | 'tablet' | 'desktop' | 'custom';
+type DeviceSize = 'phone' | 'tablet' | 'desktop';
 
 const DEVICE_SIZES: Record<DeviceSize, { width: number; height: number; label: string }> = {
   phone: { width: 430, height: 932, label: 'Phone' },
   tablet: { width: 820, height: 1180, label: 'Tablet' },
   desktop: { width: 1280, height: 800, label: 'Desktop' },
-  custom: { width: 800, height: 600, label: 'Custom' },
 };
 
 /**
- * Editor page - Hybrid view with visual display and chat panel
- * Users can see their app configuration and customize via chat
- * @deprecated Use ViewEditor instead for the new architecture
+ * View editor page - Edit a specific view with chat interface
+ * Layout: Chat panel left, component preview right
  */
-function Editor() {
+function ViewEditor() {
+  const { appId, flowId, viewId } = useParams<{ appId: string; flowId: string; viewId: string }>();
   const navigate = useNavigate();
   const [app, setApp] = useState<App | null>(null);
+  const [flow, setFlow] = useState<Flow | null>(null);
+  const [view, setView] = useState<View | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [notification, setNotification] = useState<string | null>(null);
   const [deviceSize, setDeviceSize] = useState<DeviceSize>('desktop');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
 
-  // Fetch current app on mount
+  // Fetch app, flow, and view on mount
   useEffect(() => {
-    const fetchApp = async () => {
+    const fetchData = async () => {
+      if (!appId || !flowId || !viewId) {
+        setError('Missing required parameters');
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const currentApp = await api.getCurrentApp();
-        setApp(currentApp);
+        const [appData, flowData, viewData] = await Promise.all([
+          api.getApp(appId),
+          api.getFlow(flowId),
+          api.getView(viewId),
+        ]);
+        setApp(appData);
+        setFlow(flowData);
+        setView(viewData);
       } catch (err) {
-        if (err instanceof ApiClientError && err.status === 404) {
-          // No app in session, redirect to home
-          navigate('/');
+        if (err instanceof ApiClientError) {
+          setError(err.message);
         } else {
-          setError('Failed to load app');
+          setError('Failed to load view data');
         }
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchApp();
-  }, [navigate]);
+    fetchData();
+  }, [appId, flowId, viewId]);
 
-  const handleStartOver = () => {
-    navigate('/');
-  };
-
-  const handleAppUpdate = (updatedApp: App) => {
-    setApp(updatedApp);
-    setNotification('App updated!');
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const handlePublish = (publishedApp: App) => {
-    setApp(publishedApp);
-    setNotification('Published successfully!');
+  const handleViewUpdate = (updatedView: View) => {
+    setView(updatedView);
+    setNotification('View updated!');
     setTimeout(() => setNotification(null), 3000);
   };
 
@@ -77,22 +73,22 @@ function Editor() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-2">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">Loading your app...</p>
+          <p className="text-muted-foreground">Loading view...</p>
         </div>
       </div>
     );
   }
 
-  if (error || !app) {
+  if (error || !app || !flow || !view) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-destructive">{error || 'App not found'}</p>
+          <p className="text-destructive">{error || 'View not found'}</p>
           <button
-            onClick={handleStartOver}
+            onClick={() => navigate(`/app/${appId}`)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
           >
-            Start Over
+            Back to App
           </button>
         </div>
       </div>
@@ -103,10 +99,21 @@ function Editor() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header - Blue background */}
+      {/* Header */}
       <header className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">Manifest</h1>
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm">
+            <Link to={`/app/${appId}`} className="hover:underline opacity-80">
+              {app.name}
+            </Link>
+            <span className="opacity-50">/</span>
+            <Link to={`/app/${appId}/flow/${flowId}`} className="hover:underline opacity-80">
+              {flow.name}
+            </Link>
+            <span className="opacity-50">/</span>
+            <span className="font-medium">{view.name || 'View'}</span>
+          </nav>
           {notification && (
             <span className="px-2 py-1 bg-white/20 text-white rounded text-xs font-medium animate-pulse">
               {notification}
@@ -114,13 +121,12 @@ function Editor() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <PublishButton app={app} onPublish={handlePublish} />
-          <button
-            onClick={handleStartOver}
+          <Link
+            to={`/app/${appId}/flow/${flowId}`}
             className="px-3 py-1.5 text-sm bg-white/10 border border-white/30 rounded-lg hover:bg-white/20 transition-colors text-white"
           >
-            Start Over
-          </button>
+            Back to Flow
+          </Link>
         </div>
       </header>
 
@@ -129,17 +135,17 @@ function Editor() {
         {/* Chat Panel (left) */}
         <div className="w-80 flex flex-col border-r bg-gray-50">
           <div className="p-4 border-b bg-white">
-            <h2 className="font-semibold text-gray-800">Chat</h2>
+            <h2 className="font-semibold text-gray-800">Customize View</h2>
             <p className="text-xs text-gray-500">
-              Ask me to customize your app
+              Ask me to modify this view's layout and data
             </p>
           </div>
           <div className="flex-1 overflow-hidden">
-            <ChatPanel app={app} onAppUpdate={handleAppUpdate} />
+            <ViewChatPanel view={view} onViewUpdate={handleViewUpdate} />
           </div>
         </div>
 
-        {/* Visual Display Panel (right - main content area) */}
+        {/* Visual Display Panel (right) */}
         <div className="flex-1 overflow-hidden bg-gray-100 flex flex-col">
           {/* Toolbar */}
           <div className="bg-white border-b px-4 py-2 flex items-center justify-between">
@@ -195,7 +201,40 @@ function Editor() {
               }}
             >
               <div className={`h-full overflow-auto ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
-                <VisualDisplay app={app} isDarkMode={isDarkMode} />
+                {/* View Preview */}
+                <div className={`h-full flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                  {/* View info header */}
+                  <div className={`px-4 py-3 border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className={`font-semibold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {view.name || 'View Preview'}
+                        </h2>
+                        <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {flow.toolName}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {view.layoutTemplate}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Layout preview */}
+                  <div className="flex-1 overflow-auto p-4">
+                    <div className={`rounded-lg p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white border'}`}>
+                      <ThemeProvider themeVariables={app.themeVariables} isDarkMode={isDarkMode}>
+                        <LayoutRenderer
+                          layoutTemplate={view.layoutTemplate}
+                          mockData={view.mockData}
+                          isDarkMode={isDarkMode}
+                        />
+                      </ThemeProvider>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -205,4 +244,4 @@ function Editor() {
   );
 }
 
-export default Editor;
+export default ViewEditor;

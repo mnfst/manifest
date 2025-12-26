@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { App, LayoutTemplate, ThemeVariables, MockData } from '@chatgpt-app-builder/shared';
+import type { App, View, LayoutTemplate, ThemeVariables, MockData, UpdateViewRequest } from '@chatgpt-app-builder/shared';
 import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
 import { createLLM, getCurrentProvider } from './llm';
 import { z } from 'zod';
@@ -24,11 +24,32 @@ export interface GenerateAppResult {
 }
 
 /**
+ * Result of flow generation from prompt
+ */
+export interface GenerateFlowResult {
+  name: string;
+  description: string;
+  toolName: string;
+  toolDescription: string;
+  layoutTemplate: LayoutTemplate;
+  mockData: MockData;
+}
+
+/**
  * Result of chat processing
  */
 export interface ProcessChatResult {
   response: string;
   updates: Partial<App>;
+  changes: string[];
+}
+
+/**
+ * Result of view chat processing
+ */
+export interface ProcessViewChatResult {
+  response: string;
+  updates: UpdateViewRequest;
   changes: string[];
 }
 
@@ -80,6 +101,36 @@ export class AgentService {
       mockData,
       toolName: toolData.toolName,
       toolDescription: toolData.toolDescription,
+    };
+  }
+
+  /**
+   * Generate a new flow from a user prompt
+   * Executes: layout selection → tool generation → mock data generation
+   * This is used when creating a new flow within an existing app
+   */
+  async generateFlow(prompt: string): Promise<GenerateFlowResult> {
+    // Step 1: Select layout template
+    const layoutResult = await layoutSelectorTool.invoke({ prompt });
+    const layoutData = JSON.parse(layoutResult);
+    const layoutTemplate: LayoutTemplate = layoutData.layout;
+
+    // Step 2: Generate tool configuration
+    const toolResult = await toolGeneratorTool.invoke({ prompt, layoutTemplate });
+    const toolData = JSON.parse(toolResult);
+
+    // Step 3: Generate mock data
+    const mockResult = await mockDataGeneratorTool.invoke({ prompt, layoutTemplate });
+    const mockDataResult = JSON.parse(mockResult);
+    const mockData: MockData = mockDataResult.mockData;
+
+    return {
+      name: toolData.appName, // Use appName as flow name
+      description: toolData.appDescription,
+      toolName: toolData.toolName,
+      toolDescription: toolData.toolDescription,
+      layoutTemplate,
+      mockData,
     };
   }
 
@@ -211,6 +262,123 @@ Analyze the user's message and determine what configuration changes they want. I
 • Update colors (e.g., "change primary color to blue")
 • Modify the tool name (e.g., "rename tool to search_products")
 • Update the tool description`,
+        updates: {},
+        changes: [],
+      };
+    }
+  }
+
+  /**
+   * Process a chat message for view customization
+   * Uses LLM to interpret the message and update view properties
+   */
+  async processViewChat(message: string, currentView: View): Promise<ProcessViewChatResult> {
+    // Define schema for structured LLM output
+    const viewUpdateSchema = z.object({
+      layoutTemplate: z.enum(['table', 'post-list']).optional().describe('New layout template if user wants to change it'),
+      mockDataUpdate: z.object({
+        action: z.enum(['replace', 'add_column', 'remove_column', 'add_row', 'update_rows']).optional(),
+        columns: z.array(z.object({
+          key: z.string(),
+          header: z.string(),
+          type: z.enum(['text', 'number', 'date', 'badge', 'action']),
+        })).optional(),
+        rows: z.array(z.record(z.unknown())).optional(),
+      }).optional().describe('Updates to mock data if user wants to modify the data structure'),
+      changes: z.array(z.string()).describe('List of changes being made'),
+      response: z.string().describe('Friendly response to the user explaining what was changed'),
+      understood: z.boolean().describe('Whether the request was understood and actionable'),
+    });
+
+    // Create structured output LLM
+    const structuredLLM = this.llm.withStructuredOutput(viewUpdateSchema);
+
+    // Build the prompt with current view context
+    const mockDataSummary = currentView.mockData.type === 'table'
+      ? `Columns: ${currentView.mockData.columns.map(c => `${c.header} (${c.key})`).join(', ')}\nRows: ${currentView.mockData.rows.length} items`
+      : `Posts: ${currentView.mockData.posts.length} items`;
+
+    const systemPrompt = `You are an assistant helping users customize their view configuration.
+
+Current view configuration:
+- Name: ${currentView.name || 'Untitled'}
+- Layout: ${currentView.layoutTemplate}
+- Mock Data:
+  ${mockDataSummary}
+
+Available layouts: "table" (for tabular data), "post-list" (for blog/article style content)
+
+For table layout, columns can have types: text, number, date, badge, action
+
+Analyze the user's message and determine what changes they want to make to the view. You can:
+1. Change the layout template
+2. Add/remove/modify columns (for table layout)
+3. Add/modify sample data rows
+4. Update the view structure
+
+If you can't understand the request, set understood=false and provide a helpful response.`;
+
+    try {
+      const result = await structuredLLM.invoke([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message },
+      ]);
+
+      // Debug logging
+      console.log('🤖 View LLM Response:', JSON.stringify(result, null, 2));
+
+      const updates: UpdateViewRequest = {};
+      const changes: string[] = result.changes || [];
+
+      // Apply layout change
+      if (result.layoutTemplate && result.layoutTemplate !== currentView.layoutTemplate) {
+        updates.layoutTemplate = result.layoutTemplate;
+
+        // If layout changed, regenerate appropriate mock data
+        const mockResult = await mockDataGeneratorTool.invoke({
+          prompt: message,
+          layoutTemplate: result.layoutTemplate,
+        });
+        const mockDataResult = JSON.parse(mockResult);
+        updates.mockData = mockDataResult.mockData;
+      }
+
+      // Apply mock data updates (if not already changed by layout switch)
+      if (!updates.mockData && result.mockDataUpdate && currentView.mockData.type === 'table') {
+        const currentMockData = { ...currentView.mockData };
+
+        if (result.mockDataUpdate.action === 'replace' && result.mockDataUpdate.columns) {
+          currentMockData.columns = result.mockDataUpdate.columns;
+          if (result.mockDataUpdate.rows) {
+            currentMockData.rows = result.mockDataUpdate.rows;
+          }
+          updates.mockData = currentMockData;
+        } else if (result.mockDataUpdate.action === 'add_column' && result.mockDataUpdate.columns) {
+          currentMockData.columns = [...currentMockData.columns, ...result.mockDataUpdate.columns];
+          updates.mockData = currentMockData;
+        } else if (result.mockDataUpdate.action === 'update_rows' && result.mockDataUpdate.rows) {
+          currentMockData.rows = result.mockDataUpdate.rows;
+          updates.mockData = currentMockData;
+        }
+      }
+
+      // Debug: log final updates
+      console.log('📝 View updates to apply:', JSON.stringify(updates, null, 2));
+      console.log('📋 Changes:', changes);
+
+      return {
+        response: result.response,
+        updates,
+        changes,
+      };
+    } catch (error) {
+      console.error('View LLM chat error:', error);
+      return {
+        response: `I encountered an error processing your request. You can ask me to:
+• Change the layout (e.g., "switch to post-list layout")
+• Add columns (e.g., "add a price column")
+• Modify sample data (e.g., "add more sample rows")
+• Update the data structure`,
         updates: {},
         changes: [],
       };

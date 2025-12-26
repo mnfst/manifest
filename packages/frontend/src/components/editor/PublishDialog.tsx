@@ -87,14 +87,7 @@ export function PublishDialog({ result, error, onClose }: PublishDialogProps) {
                 </code>
               </div>
 
-              {result.app.toolName && (
-                <div className="bg-muted rounded-lg p-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
-                    Tool Name
-                  </p>
-                  <code className="text-sm font-mono">{result.app.toolName}</code>
-                </div>
-              )}
+              {/* Tool name will be shown per-flow in the new architecture */}
             </div>
 
             <div className="text-xs text-muted-foreground">

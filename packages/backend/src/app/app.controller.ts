@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Param,
   Body,
   HttpCode,
   HttpStatus,
@@ -12,6 +14,8 @@ import { AppService } from './app.service';
 import { AgentService } from '../agent/agent.service';
 import type {
   App,
+  CreateAppRequest,
+  UpdateAppRequest,
   GenerateAppRequest,
   ChatRequest,
   ChatResponse,
@@ -19,11 +23,17 @@ import type {
 } from '@chatgpt-app-builder/shared';
 
 /**
- * App controller with 4 core endpoints for POC
+ * App controller with endpoints for app management
+ * - POST /apps - Create app
+ * - GET /apps/:appId - Get app by ID
+ * - PATCH /apps/:appId - Update app
+ * - POST /apps/:appId/publish - Publish app
+ *
+ * Legacy endpoints (deprecated):
  * - POST /generate - Create app from prompt
  * - GET /current - Get current session app
  * - POST /chat - Customize via chat
- * - POST /publish - Publish to MCP server
+ * - POST /publish - Publish current app
  */
 @Controller('api')
 export class AppController {
@@ -33,8 +43,67 @@ export class AppController {
   ) {}
 
   /**
+   * POST /api/apps
+   * Create a new app
+   */
+  @Post('apps')
+  @HttpCode(HttpStatus.CREATED)
+  async createApp(@Body() request: CreateAppRequest): Promise<App> {
+    // Validate name
+    if (!request.name || request.name.trim().length === 0) {
+      throw new BadRequestException('Name is required');
+    }
+
+    if (request.name.length > 100) {
+      throw new BadRequestException('Name must be 100 characters or less');
+    }
+
+    return this.appService.create(request);
+  }
+
+  /**
+   * GET /api/apps/:appId
+   * Get app by ID
+   */
+  @Get('apps/:appId')
+  async getApp(@Param('appId') appId: string): Promise<App> {
+    const app = await this.appService.findById(appId);
+    if (!app) {
+      throw new NotFoundException(`App with id ${appId} not found`);
+    }
+    return app;
+  }
+
+  /**
+   * PATCH /api/apps/:appId
+   * Update app
+   */
+  @Patch('apps/:appId')
+  async updateApp(
+    @Param('appId') appId: string,
+    @Body() request: UpdateAppRequest
+  ): Promise<App> {
+    return this.appService.update(appId, request);
+  }
+
+  /**
+   * POST /api/apps/:appId/publish
+   * Publish app to MCP server
+   */
+  @Post('apps/:appId/publish')
+  @HttpCode(HttpStatus.OK)
+  async publishAppById(@Param('appId') appId: string): Promise<PublishResult> {
+    return this.appService.publish(appId);
+  }
+
+  // ============================================
+  // LEGACY ENDPOINTS (deprecated, for backwards compatibility)
+  // ============================================
+
+  /**
    * POST /api/generate
    * Generate a new app from a natural language prompt
+   * @deprecated Use POST /api/apps + POST /api/apps/:appId/flows for flow generation
    */
   @Post('generate')
   @HttpCode(HttpStatus.OK)
@@ -48,20 +117,14 @@ export class AppController {
       throw new BadRequestException('Prompt exceeds maximum length of 10,000 characters');
     }
 
-    // Generate app configuration using agent
+    // Generate app configuration using agent (legacy behavior)
     const result = await this.agentService.generateApp(request.prompt);
 
-    // Create and persist the app
+    // Create app with basic info (flow generation will be separate)
     const app = await this.appService.create({
       name: result.name,
       description: result.description,
-      layoutTemplate: result.layoutTemplate,
-      systemPrompt: request.prompt,
       themeVariables: result.themeVariables,
-      mockData: result.mockData,
-      toolName: result.toolName,
-      toolDescription: result.toolDescription,
-      status: 'draft',
     });
 
     return app;
@@ -70,6 +133,7 @@ export class AppController {
   /**
    * GET /api/current
    * Get the current session app
+   * @deprecated Use GET /api/apps/:appId
    */
   @Get('current')
   async getCurrentApp(): Promise<App> {
@@ -83,6 +147,7 @@ export class AppController {
   /**
    * POST /api/chat
    * Send a message to customize the current app
+   * @deprecated Use POST /api/views/:viewId/chat for view-scoped chat
    */
   @Post('chat')
   @HttpCode(HttpStatus.OK)
@@ -98,7 +163,7 @@ export class AppController {
       throw new NotFoundException('No app in current session');
     }
 
-    // Process chat message with agent
+    // Process chat message with agent (legacy behavior)
     const result = await this.agentService.processChat(request.message, currentApp);
 
     // Apply updates if any
@@ -117,6 +182,7 @@ export class AppController {
   /**
    * POST /api/publish
    * Publish the current app to MCP server
+   * @deprecated Use POST /api/apps/:appId/publish
    */
   @Post('publish')
   @HttpCode(HttpStatus.OK)

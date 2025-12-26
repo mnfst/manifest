@@ -1,17 +1,31 @@
-import type { App } from '@chatgpt-app-builder/shared';
+import type { App, LayoutTemplate, MockData } from '@chatgpt-app-builder/shared';
+import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
 import { ThemeProvider } from './ThemeProvider';
 import { LayoutRenderer } from './LayoutRenderer';
 
 interface VisualDisplayProps {
   app: App;
+  /** Layout template - passed separately in new architecture (from View) */
+  layoutTemplate?: LayoutTemplate;
+  /** Mock data - passed separately in new architecture (from View) */
+  mockData?: MockData;
+  /** Tool name - passed separately in new architecture (from Flow) */
+  toolName?: string;
   isDarkMode?: boolean;
 }
 
 /**
- * Visual display panel showing the current app configuration
+ * Visual display panel showing the current app/view configuration
  * Renders the selected layout with theme variables and mock data
+ * @deprecated This component will be replaced by ViewDisplay in the new architecture
  */
-export function VisualDisplay({ app, isDarkMode = false }: VisualDisplayProps) {
+export function VisualDisplay({
+  app,
+  layoutTemplate = 'table',
+  mockData = DEFAULT_TABLE_MOCK_DATA,
+  toolName,
+  isDarkMode = false
+}: VisualDisplayProps) {
   return (
     <div className={`h-full flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* App info header */}
@@ -27,7 +41,7 @@ export function VisualDisplay({ app, isDarkMode = false }: VisualDisplayProps) {
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
               isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
             }`}>
-              {app.layoutTemplate}
+              {layoutTemplate}
             </span>
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
               app.status === 'published'
@@ -47,8 +61,8 @@ export function VisualDisplay({ app, isDarkMode = false }: VisualDisplayProps) {
         <div className={`rounded-lg p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white border'}`}>
           <ThemeProvider themeVariables={app.themeVariables} isDarkMode={isDarkMode}>
             <LayoutRenderer
-              layoutTemplate={app.layoutTemplate}
-              mockData={app.mockData}
+              layoutTemplate={layoutTemplate}
+              mockData={mockData}
               isDarkMode={isDarkMode}
             />
           </ThemeProvider>
@@ -56,14 +70,14 @@ export function VisualDisplay({ app, isDarkMode = false }: VisualDisplayProps) {
       </div>
 
       {/* Tool info footer */}
-      {app.toolName && (
+      {toolName && (
         <div className={`px-4 py-2 border-t ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
           <div className="flex items-center gap-3 text-sm">
             <div className="flex items-center gap-2">
               <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>MCP Tool:</span>
               <code className={`px-2 py-0.5 rounded font-mono text-xs ${
                 isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'
-              }`}>{app.toolName}</code>
+              }`}>{toolName}</code>
             </div>
           </div>
         </div>
