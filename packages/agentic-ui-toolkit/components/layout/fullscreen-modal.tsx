@@ -18,7 +18,7 @@ export function FullscreenModal({
   onClose
 }: FullscreenModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+    <div className="fixed top-14 bottom-0 left-0 right-0 md:left-[226px] z-40 flex flex-col bg-background">
       {/* Header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
         <button
@@ -44,7 +44,7 @@ export function FullscreenModal({
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto overscroll-contain">{children}</div>
     </div>
   )
 }

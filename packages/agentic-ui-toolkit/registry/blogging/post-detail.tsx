@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Calendar, ChevronLeft, Clock } from 'lucide-react'
+import { Calendar, Clock } from 'lucide-react'
 import { BlogPost } from './blog-post-card'
 
 const defaultPost: BlogPost = {
@@ -90,7 +90,6 @@ export interface PostDetailProps {
   showAuthor?: boolean
   relatedPosts?: BlogPost[]
   displayMode?: 'inline' | 'fullscreen'
-  onBack?: () => void
   onReadMore?: () => void
   onReadRelated?: (post: BlogPost) => void
 }
@@ -111,7 +110,6 @@ export function PostDetail({
   showAuthor = true,
   relatedPosts = defaultRelatedPosts,
   displayMode = 'inline',
-  onBack,
   onReadMore,
   onReadRelated
 }: PostDetailProps) {
@@ -190,32 +188,19 @@ export function PostDetail({
   // Fullscreen mode
   return (
     <div className="min-h-screen bg-background">
-      {showCover && post.coverImage && (
-        <div className="aspect-[21/9] w-full overflow-hidden">
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      )}
-
-      <div className="mx-auto w-full max-w-[680px] px-4 py-8">
-        {onBack && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-6 -ml-2"
-            onClick={onBack}
-          >
-            <ChevronLeft className="mr-1 h-4 w-4" />
-            Back
-          </Button>
+      <article className="mx-auto w-full max-w-[680px] px-6 py-10">
+        {showCover && post.coverImage && (
+          <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
+          </div>
         )}
-
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
           {post.category && (
-            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
               {post.category}
             </span>
           )}
@@ -223,17 +208,19 @@ export function PostDetail({
             post.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+                className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
               >
                 {tag}
               </span>
             ))}
         </div>
 
-        <h1 className="text-3xl font-bold leading-tight">{post.title}</h1>
+        <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
+          {post.title}
+        </h1>
 
         {showAuthor && (
-          <div className="mt-6 flex items-center gap-3 border-b pb-6">
+          <div className="mt-8 flex items-center gap-4 border-b pb-8">
             {post.author.avatar && (
               <img
                 src={post.author.avatar}
@@ -259,14 +246,30 @@ export function PostDetail({
           </div>
         )}
 
-        <div className="prose prose-lg mt-8 max-w-none dark:prose-invert">
-          <p className="lead text-xl text-muted-foreground">{post.excerpt}</p>
-          {content && <div dangerouslySetInnerHTML={{ __html: content }} />}
+        {/* Medium-style content */}
+        <div className="mt-10">
+          <p className="text-[21px] leading-[1.8] text-muted-foreground mb-8">
+            {post.excerpt}
+          </p>
+          {content && (
+            <div
+              className="
+                text-[21px] leading-[1.8] tracking-[-0.003em]
+                [&>p]:mb-8
+                [&>h2]:text-[26px] [&>h2]:font-bold [&>h2]:mt-12 [&>h2]:mb-4 [&>h2]:leading-[1.3]
+                [&>h3]:text-[22px] [&>h3]:font-bold [&>h3]:mt-10 [&>h3]:mb-3 [&>h3]:leading-[1.3]
+                [&>ul]:mb-8 [&>ul]:pl-6 [&>ul>li]:mb-2
+                [&>ol]:mb-8 [&>ol]:pl-6 [&>ol>li]:mb-2
+                [&>blockquote]:border-l-4 [&>blockquote]:border-foreground [&>blockquote]:pl-6 [&>blockquote]:my-8 [&>blockquote]:italic
+              "
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          )}
         </div>
 
         {relatedPosts && relatedPosts.length > 0 && (
-          <div className="mt-12 border-t pt-8">
-            <h3 className="mb-4 text-lg font-semibold">Related Posts</h3>
+          <div className="mt-16 border-t pt-10">
+            <h3 className="mb-6 text-lg font-semibold">Related Posts</h3>
             <div className="space-y-4">
               {relatedPosts.map((related) => (
                 <button
@@ -297,7 +300,7 @@ export function PostDetail({
             </div>
           </div>
         )}
-      </div>
+      </article>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { PostDetail, PostDetailProps } from '@/registry/blogging/post-detail'
 import { useState } from 'react'
 
-interface PostDetailDemoProps extends Omit<PostDetailProps, 'onReadMore' | 'onBack' | 'displayMode'> {
+interface PostDetailDemoProps extends Omit<PostDetailProps, 'onReadMore' | 'displayMode'> {
   appName?: string
   appUrl?: string
 }
@@ -33,7 +33,6 @@ export function PostDetailDemo({
           <PostDetail
             {...props}
             displayMode="fullscreen"
-            onBack={() => setIsFullscreen(false)}
           />
         </FullscreenModal>
       )}
