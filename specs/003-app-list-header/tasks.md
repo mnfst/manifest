@@ -23,7 +23,7 @@
 
 **Purpose**: API client function needed by multiple user stories
 
-- [ ] T001 Add listApps() function to frontend API client in packages/frontend/src/lib/api.ts
+- [x] T001 Add listApps() function to frontend API client in packages/frontend/src/lib/api.ts
 
 ---
 
@@ -33,8 +33,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Add findAll() method to AppService in packages/backend/src/app/app.service.ts (returns all apps sorted by createdAt DESC)
-- [ ] T003 Add GET /api/apps endpoint to AppController in packages/backend/src/app/app.controller.ts
+- [x] T002 Add findAll() method to AppService in packages/backend/src/app/app.service.ts (returns all apps sorted by createdAt DESC)
+- [x] T003 Add GET /api/apps endpoint to AppController in packages/backend/src/app/app.controller.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -48,10 +48,10 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [P] [US1] Create AppCard component in packages/frontend/src/components/app/AppCard.tsx (display name, description, status badge, click to navigate)
-- [ ] T005 [P] [US1] Create AppList component in packages/frontend/src/components/app/AppList.tsx (grid layout, empty state handling)
-- [ ] T006 [US1] Modify Home page to display AppList instead of AppForm in packages/frontend/src/pages/Home.tsx
-- [ ] T007 [US1] Add loading and error states to Home page in packages/frontend/src/pages/Home.tsx
+- [x] T004 [P] [US1] Create AppCard component in packages/frontend/src/components/app/AppCard.tsx (display name, description, status badge, click to navigate)
+- [x] T005 [P] [US1] Create AppList component in packages/frontend/src/components/app/AppList.tsx (grid layout, empty state handling)
+- [x] T006 [US1] Modify Home page to display AppList instead of AppForm in packages/frontend/src/pages/Home.tsx
+- [x] T007 [US1] Add loading and error states to Home page in packages/frontend/src/pages/Home.tsx
 
 **Checkpoint**: User Story 1 complete - users can view all apps from home page
 
@@ -65,9 +65,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [P] [US2] Create CreateAppModal component in packages/frontend/src/components/app/CreateAppModal.tsx (modal wrapper for AppForm, backdrop click to close)
-- [ ] T009 [US2] Add "Create new app" button and modal state to Home page in packages/frontend/src/pages/Home.tsx
-- [ ] T010 [US2] Implement modal open/close logic and form submission in packages/frontend/src/pages/Home.tsx (refresh list after creation, navigate to new app)
+- [x] T008 [P] [US2] Create CreateAppModal component in packages/frontend/src/components/app/CreateAppModal.tsx (modal wrapper for AppForm, backdrop click to close)
+- [x] T009 [US2] Add "Create new app" button and modal state to Home page in packages/frontend/src/pages/Home.tsx
+- [x] T010 [US2] Implement modal open/close logic and form submission in packages/frontend/src/pages/Home.tsx (refresh list after creation, navigate to new app)
 
 **Checkpoint**: User Story 2 complete - users can create apps from home page
 
@@ -81,12 +81,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T011 [P] [US3] Create AppSwitcher component in packages/frontend/src/components/layout/AppSwitcher.tsx (dropdown with app list, click-outside-to-close)
-- [ ] T012 [P] [US3] Create Header component skeleton in packages/frontend/src/components/layout/Header.tsx (logo, center section for app switcher, right section placeholder)
-- [ ] T013 [US3] Integrate AppSwitcher into Header component in packages/frontend/src/components/layout/Header.tsx
-- [ ] T014 [US3] Add Header to AppDetail page in packages/frontend/src/pages/AppDetail.tsx (pass currentApp prop)
-- [ ] T015 [P] [US3] Add Header to FlowDetail page in packages/frontend/src/pages/FlowDetail.tsx (fetch app and pass to Header)
-- [ ] T016 [P] [US3] Add Header to ViewEditor page in packages/frontend/src/pages/ViewEditor.tsx (fetch app and pass to Header)
+- [x] T011 [P] [US3] Create AppSwitcher component in packages/frontend/src/components/layout/AppSwitcher.tsx (dropdown with app list, click-outside-to-close)
+- [x] T012 [P] [US3] Create Header component skeleton in packages/frontend/src/components/layout/Header.tsx (logo, center section for app switcher, right section placeholder)
+- [x] T013 [US3] Integrate AppSwitcher into Header component in packages/frontend/src/components/layout/Header.tsx
+- [x] T014 [US3] Add Header to AppDetail page in packages/frontend/src/pages/AppDetail.tsx (pass currentApp prop)
+- [x] T015 [P] [US3] Add Header to FlowDetail page in packages/frontend/src/pages/FlowDetail.tsx (fetch app and pass to Header)
+- [x] T016 [P] [US3] Add Header to ViewEditor page in packages/frontend/src/pages/ViewEditor.tsx (fetch app and pass to Header)
 
 **Checkpoint**: User Story 3 complete - users can switch between apps from any app page
 
@@ -100,8 +100,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T017 [P] [US4] Create UserAvatar component in packages/frontend/src/components/layout/UserAvatar.tsx (circular avatar with initials, hardcoded "Demo User")
-- [ ] T018 [US4] Integrate UserAvatar into Header right section in packages/frontend/src/components/layout/Header.tsx
+- [x] T017 [P] [US4] Create UserAvatar component in packages/frontend/src/components/layout/UserAvatar.tsx (circular avatar with initials, hardcoded "Demo User")
+- [x] T018 [US4] Integrate UserAvatar into Header right section in packages/frontend/src/components/layout/Header.tsx
 
 **Checkpoint**: User Story 4 complete - dummy user display visible in header
 
@@ -111,10 +111,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T019 Add empty state styling consistency across AppList in packages/frontend/src/components/app/AppList.tsx
-- [ ] T020 Handle long app names with truncation in AppSwitcher dropdown in packages/frontend/src/components/layout/AppSwitcher.tsx
-- [ ] T021 Add max-height and scroll to AppSwitcher dropdown for many apps in packages/frontend/src/components/layout/AppSwitcher.tsx
-- [ ] T022 Validate quickstart.md workflow end-to-end (create app → view list → switch apps → verify header)
+- [x] T019 Add empty state styling consistency across AppList in packages/frontend/src/components/app/AppList.tsx
+- [x] T020 Handle long app names with truncation in AppSwitcher dropdown in packages/frontend/src/components/layout/AppSwitcher.tsx
+- [x] T021 Add max-height and scroll to AppSwitcher dropdown for many apps in packages/frontend/src/components/layout/AppSwitcher.tsx
+- [x] T022 Validate quickstart.md workflow end-to-end (create app → view list → switch apps → verify header)
 
 ---
 

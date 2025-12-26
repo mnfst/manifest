@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { Flow, View } from '@chatgpt-app-builder/shared';
+import type { App, Flow, View } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
 import { ViewList } from '../components/view/ViewList';
+import { Header } from '../components/layout/Header';
 
 /**
  * Flow detail/editor page - Shows flow info and views list
@@ -11,6 +12,7 @@ import { ViewList } from '../components/view/ViewList';
 function FlowDetail() {
   const { appId, flowId } = useParams<{ appId: string; flowId: string }>();
   const navigate = useNavigate();
+  const [app, setApp] = useState<App | null>(null);
   const [flow, setFlow] = useState<Flow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,14 +20,18 @@ function FlowDetail() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadFlow() {
-      if (!flowId) return;
+    async function loadData() {
+      if (!appId || !flowId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
-        const loadedFlow = await api.getFlow(flowId);
+        const [loadedApp, loadedFlow] = await Promise.all([
+          api.getApp(appId),
+          api.getFlow(flowId),
+        ]);
+        setApp(loadedApp);
         setFlow(loadedFlow);
       } catch (err) {
         if (err instanceof ApiClientError) {
@@ -38,8 +44,8 @@ function FlowDetail() {
       }
     }
 
-    loadFlow();
-  }, [flowId]);
+    loadData();
+  }, [appId, flowId]);
 
   const handleViewClick = (view: View) => {
     navigate(`/app/${appId}/flow/${flowId}/view/${view.id}`);
@@ -118,7 +124,7 @@ function FlowDetail() {
     );
   }
 
-  if (!flow) {
+  if (!app || !flow) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -135,8 +141,11 @@ function FlowDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
+      {/* Global Header with App Switcher */}
+      <Header currentApp={app} />
+
+      {/* Flow Info Sub-header */}
+      <div className="border-b bg-card">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -153,7 +162,7 @@ function FlowDetail() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">

@@ -24,6 +24,7 @@ import type {
 
 /**
  * App controller with endpoints for app management
+ * - GET /apps - List all apps
  * - POST /apps - Create app
  * - GET /apps/:appId - Get app by ID
  * - PATCH /apps/:appId - Update app
@@ -41,6 +42,15 @@ export class AppController {
     private readonly appService: AppService,
     private readonly agentService: AgentService
   ) {}
+
+  /**
+   * GET /api/apps
+   * List all apps
+   */
+  @Get('apps')
+  async listApps(): Promise<App[]> {
+    return this.appService.findAll();
+  }
 
   /**
    * POST /api/apps

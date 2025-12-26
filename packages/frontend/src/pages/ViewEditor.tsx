@@ -5,6 +5,7 @@ import { api, ApiClientError } from '../lib/api';
 import { ViewChatPanel } from '../components/view/ViewChatPanel';
 import { ThemeProvider } from '../components/editor/ThemeProvider';
 import { LayoutRenderer } from '../components/editor/LayoutRenderer';
+import { Header } from '../components/layout/Header';
 
 type DeviceSize = 'phone' | 'tablet' | 'desktop';
 
@@ -99,23 +100,26 @@ function ViewEditor() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md">
+      {/* Global Header with App Switcher */}
+      <Header currentApp={app} />
+
+      {/* View Sub-header with Breadcrumb */}
+      <div className="bg-muted/50 border-b px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm">
-            <Link to={`/app/${appId}`} className="hover:underline opacity-80">
+            <Link to={`/app/${appId}`} className="text-muted-foreground hover:text-foreground">
               {app.name}
             </Link>
-            <span className="opacity-50">/</span>
-            <Link to={`/app/${appId}/flow/${flowId}`} className="hover:underline opacity-80">
+            <span className="text-muted-foreground">/</span>
+            <Link to={`/app/${appId}/flow/${flowId}`} className="text-muted-foreground hover:text-foreground">
               {flow.name}
             </Link>
-            <span className="opacity-50">/</span>
+            <span className="text-muted-foreground">/</span>
             <span className="font-medium">{view.name || 'View'}</span>
           </nav>
           {notification && (
-            <span className="px-2 py-1 bg-white/20 text-white rounded text-xs font-medium animate-pulse">
+            <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs font-medium animate-pulse">
               {notification}
             </span>
           )}
@@ -123,15 +127,15 @@ function ViewEditor() {
         <div className="flex items-center gap-2">
           <Link
             to={`/app/${appId}/flow/${flowId}`}
-            className="px-3 py-1.5 text-sm bg-white/10 border border-white/30 rounded-lg hover:bg-white/20 transition-colors text-white"
+            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-muted transition-colors"
           >
             Back to Flow
           </Link>
         </div>
-      </header>
+      </div>
 
       {/* Main content - Split view */}
-      <div className="flex flex-1 h-[calc(100vh-57px)]">
+      <div className="flex flex-1 h-[calc(100vh-100px)]">
         {/* Chat Panel (left) */}
         <div className="w-80 flex flex-col border-r bg-gray-50">
           <div className="p-4 border-b bg-white">

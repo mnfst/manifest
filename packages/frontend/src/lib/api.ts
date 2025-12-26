@@ -76,6 +76,14 @@ export const api = {
   // ============================================
 
   /**
+   * List all apps
+   * GET /api/apps
+   */
+  async listApps(): Promise<App[]> {
+    return fetchApi<App[]>('/apps');
+  },
+
+  /**
    * Create a new app
    * POST /api/apps
    */

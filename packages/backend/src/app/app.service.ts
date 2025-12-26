@@ -68,6 +68,16 @@ export class AppService {
   }
 
   /**
+   * Get all apps sorted by creation date (newest first)
+   */
+  async findAll(): Promise<App[]> {
+    const entities = await this.appRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+    return entities.map((e) => this.entityToApp(e));
+  }
+
+  /**
    * Get app by ID
    */
   async findById(id: string): Promise<App | null> {

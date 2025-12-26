@@ -4,6 +4,7 @@ import type { App, Flow } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
 import { PromptInput } from '../components/flow/PromptInput';
 import { FlowList } from '../components/flow/FlowList';
+import { Header } from '../components/layout/Header';
 
 /**
  * App detail page - Shows app info and flows list
@@ -132,15 +133,15 @@ function AppDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
+      {/* Global Header with App Switcher */}
+      <Header currentApp={app} />
+
+      {/* App Info Sub-header */}
+      <div className="border-b bg-card">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-                &larr; Back
-              </Link>
-              <h1 className="text-2xl font-bold mt-1">{app.name}</h1>
+              <h1 className="text-2xl font-bold">{app.name}</h1>
               {app.description && (
                 <p className="text-muted-foreground mt-1">{app.description}</p>
               )}
@@ -156,7 +157,7 @@ function AppDetail() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
