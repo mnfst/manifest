@@ -74,7 +74,7 @@ function TikTokIcon({ className }: { className?: string }) {
 // Blogging components
 import { BlogPostCard } from '@/registry/blogging/blog-post-card'
 import { BlogPostList } from '@/registry/blogging/blog-post-list'
-import { PostDetail } from '@/registry/blogging/post-detail'
+import { PostDetailDemo } from '@/components/blocks/post-detail-demo'
 
 // List components
 import { ProductList } from '@/registry/list/product-list'
@@ -214,13 +214,13 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'With Cover',
-            component: <PostDetail />,
+            component: <PostDetailDemo />,
             usageCode: `<PostDetail />`
           },
           {
             id: 'no-cover',
             name: 'Without Cover',
-            component: <PostDetail showCover={false} />,
+            component: <PostDetailDemo showCover={false} />,
             usageCode: `<PostDetail showCover={false} />`
           }
         ]
