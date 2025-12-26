@@ -1,40 +1,57 @@
 # create-manifest
 
-The `create manifest` create a new project with [Manifest](https://manifest.build).
+Create a new Manifest MCP server project with a single command.
+
+## Usage
 
 ```bash
-# NPM
-npx create-manifest@latest
-
-# Yarn
-yarn create manifest
+npx create-manifest my-app
 ```
 
-This will create a folder named my-project and install Manifest inside it.
-If you leave out the name, the CLI will ask you for it during setup.
+This will:
 
-You can add a flag to set up rules for your AI code Editor:
+1. Create a new directory `my-app`
+2. Copy the starter template
+3. Install dependencies
+4. Start the development server
 
-- `--cursor` for **Cursor**
-- `--copilot` for **GitHub Copilot**
-- `--windsurf` for **Windsurf**
+## What's Included
 
-## Develop
+The starter template includes:
+
+- MCP server setup with Express
+- TypeScript configuration
+- Hot reload with Nodemon
+- Vite for building web components
+
+## Requirements
+
+- Node.js 22+
+
+## After Creation
+
+Your project will be running at `http://localhost:3000`.
+
+To restart the dev server later:
 
 ```bash
-npm install
-
-# Run from a test folder to prevent messing with project files.
-mkdir test-folder
-cd test-folder
-../bin/dev.js
+cd my-app
+npm run dev
 ```
 
-However due to the monorepo workspace structure, the launch script will fail as the path to the node modules folder is different than when served. This is normal.
+## Available Scripts
 
-## Publish
+Inside the created project, you can run:
 
-```bash
-npm run build
-npm publish
-```
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm start` - Run production build
+
+## Learn More
+
+- [Manifest Documentation](https://manifest.build)
+- [MCP Protocol](https://modelcontextprotocol.io)
+
+## License
+
+MIT

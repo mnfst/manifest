@@ -4,24 +4,7 @@
   },
 
   "workbench.colorCustomizations": {
-    "activityBar.activeBackground": "#f8a94a",
-    "activityBar.activeBorder": "#57b3a0",
-    "activityBar.background": "#57b3a0",
-    "activityBar.foreground": "#2430F0",
-    "activityBar.inactiveForeground": "#2430F099",
-    "activityBarBadge.background": "#57b3a0",
-    "activityBarBadge.foreground": "#ecf7fd",
-    "statusBar.background": "#f8a94a",
-    "statusBar.foreground": "#2430F0",
-    "statusBarItem.hoverBackground": "#fef6ee",
-    "titleBar.activeBackground": "#f8a94a",
-    "titleBar.activeForeground": "#2430F0",
-    "titleBar.inactiveBackground": "#f8a94a99",
-    "titleBar.inactiveForeground": "#2430F099",
-    "sash.hoverBorder": "#f0f1ff",
-    "statusBarItem.remoteBackground": "#f8a94a",
-    "statusBarItem.remoteForeground": "#2430F0",
-    "commandCenter.border": "#2430F099"
+    "activityBar.activeBorder": "#57b3a0"
   },
   "cSpell.words": [
     "authenticable",

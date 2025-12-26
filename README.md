@@ -10,12 +10,13 @@
 </p>
 
 > [!WARNING]
-> 🚧 **Pivot in progress.** This repo contains our previous BaaS product. We're now building  a tool that allows to create Agentic UIs. More information here → [manifest.build](https://manifest.build)
+> Looking for the Manifest 1-file backend? See [this repo](https://github.com/mnfst/manifest-baas) instead.
 
 ---
 
 <p align='center'>
-<strong>1-file backend to ship fast</strong>
+<strong>Shadcn/ui components library for building ChatGPT Apps
+</strong>
 <br><br>  
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm download" src="https://img.shields.io/npm/dt/manifest.svg"></a>
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/manifest"></a>
@@ -28,77 +29,25 @@
   <a href="https://www.jsdelivr.com/package/npm/manifest" target="_blank"><img alt="jsdelivr" src="https://data.jsdelivr.com/v1/package/npm/manifest/badge"></a>
 <br>
 
-</p>
-
-```yaml
-name: Pokemon app 🐣
-
-entities:
-  Pokemon 🐉:
-    properties:
-      - name
-      - {
-          name: type,
-          type: choice,
-          options: { values: [Fire, Water, Grass, Electric] }
-        }
-      - { name: level, type: number }
-    belongsTo:
-      - Trainer
-
-  Trainer 🧑‍🎤:
-    properties:
-      - name
-      - { name: isChampion, type: boolean }
-```
-
-<a href="https://manifest.new" target="_blank"><img alt="Open in StackBlitz" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"></a>
-
 ## Why Manifest?
 
-Most backend platforms feel too heavy when all you want is to build something simple.
+Manifest helps developers create their agentic applications like ChatGPT or MCP Apps by giving them a set of components made for this format.
 
-They come with dashboards, setup flows, forms to fill, and rules you didn’t ask for. Even for a prototype, you end up creating an account, switching between tabs, and learning how the tool works before your app even starts.
+Each block and component is a production-ready asset that you can customize and extend to adapt to your project.
 
-Manifest allows you to create a backend with data, storage, logic and an admin panel. All is defined in a single file of code. ✨
-
-- Setup in seconds with no friction
-- Get your backend live fast so you can focus on your app
-- Simple for LLMs to create and edit
-- Deploy and run anywhere
-
-## Use cases
-
-Manifest fits great in those type of projects:
-
-- 🛠️ Rapid prototyping: POCs and MVPs
-- 🧩 Micro services: notification, payment, logging, file services...
-- 🏭 CRUD apps: mobile apps, directories, PIMs, E-shops
-- 🌐 Headless CMS: dynamic corporate websites, portfolios, blogs...
-
-## Key features
-
-<a href="https://manifest.build/docs/authentication" target="_blank">Auth</a> | <a href="https://manifest.build/docs/validation" target="_blank">Validation</a> | <a href="https://manifest.build/docs/upload#upload-a-file" target="_blank">Storage</a> | <a href="https://manifest.build/docs/upload#upload-an-image" target="_blank">Image resizing</a> | <a href="https://manifest.build/docs/install" target="_blank">Admin panel</a> | <a href="https://manifest.build/docs/endpoints" target="_blank">Dynamic endpoints</a> |
-<a href="https://manifest.build/docs/rest-api" target="_blank">REST API</a> | <a href="https://manifest.build/docs/javascript-sdk" target="_blank">JS SDK</a> | <a href="https://manifest.build/docs/webhooks" target="_blank">Webhooks</a>
+All elements are Open source and hosted in this repository.
 
 ## Getting started
 
-Run this command to create a new project with Manifest:
+Make sure you have shadcn/ui installed in your project and install [a block](https://ui.manifest.build/blocks) with your CLI:
 
 ```bash
 # Using npx
-npx create-manifest@latest
-
-# Using Yarn
-yarn create manifest
+npx shadcn@latest add @manifest/table
 ```
-
-> [!NOTE]  
-> Manifest is currently in BETA, use it at your own risk. It is stable enough to power small projects, prototypes and MVPs but we do not recommend to use it on critical platforms.
 
 ## Community & Resources
 
-- [Read the Docs](https://manifest.build/docs) to get started
 - [Chat with us](https://discord.gg/FepAked3W7) on our Discord
 - [Report bugs](https://github.com/mnfst/manifest/issues) on GitHub issues
 - [Suggest new features](https://github.com/mnfst/manifest/discussions/new?category=feature-request) on GitHub Discussions
@@ -109,7 +58,7 @@ Here is a few small things you can do:
 
 - Star the [Manifest repository](https://github.com/mnfst/manifest)
 - Give us your feedback on [Discord](https://discord.gg/FepAked3W7)
-- Sponsor Manifest through [Github](https://github.com/sponsors/mnfst) or [OpenCollective](https://opencollective.com/mnfst)
+- Sponsor Manifest through [Github](https://github.com/sponsors/mnfst)
 
 ## Contributors
 

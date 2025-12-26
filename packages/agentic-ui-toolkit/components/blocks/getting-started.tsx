@@ -2,8 +2,12 @@
 
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 
-import { CodeBlock } from './code-block'
+const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
+  ssr: false,
+  loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
+})
 
 const REGISTRY_URL = 'https://ui.manifest.build/r/{name}.json'
 
@@ -98,26 +102,13 @@ export function GettingStarted() {
 
       {/* Registry Configuration */}
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Registry Configuration</h2>
+        <h2 className="text-lg font-semibold">Using a block</h2>
         <p className="text-sm text-muted-foreground">
-          Add Manifest UI as a custom registry in your{' '}
-          <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">
-            components.json
-          </code>{' '}
-          file:
+          Simply browser to the block you want to use and run the provided
+          command to add it to your project. For example, to add the Table
+          block:
         </p>
-        <CodeBlock
-          code={`{
-  "registries": {
-    "@manifest": "${REGISTRY_URL}"
-  }
-}`}
-          language="json"
-        />
-        <p className="text-sm text-muted-foreground">
-          Then install any block from the registry:
-        </p>
-        <CodeBlock code="npx shadcn@latest add @manifest/inline-card-form" />
+        <CodeBlock code="npx shadcn@latest add @manifest/table" />
       </section>
 
       {/* Next Step */}
