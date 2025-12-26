@@ -10,7 +10,7 @@
 </p>
 
 > [!WARNING]
-> Looking for the Manifest 1-file backend? See [this repo](https://github.com/mnfst/manifest) instead.
+> Looking for the Manifest 1-file backend? See [this repo](https://github.com/mnfst/manifest-baas) instead.
 
 ---
 
