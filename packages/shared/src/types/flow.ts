@@ -1,4 +1,5 @@
 import type { View } from './view.js';
+import type { App } from './app.js';
 
 /**
  * Flow entity representing an MCP tool belonging to an app
@@ -58,4 +59,12 @@ export interface FlowDeletionCheck {
 export interface DeleteFlowResponse {
   success: boolean;
   deletedViewCount: number;
+}
+
+/**
+ * Flow with parent app data included
+ * Used for cross-app flow listings where app context is needed
+ */
+export interface FlowWithApp extends Flow {
+  app: Pick<App, 'id' | 'name' | 'slug'>;
 }

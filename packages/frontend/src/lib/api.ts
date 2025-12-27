@@ -10,6 +10,7 @@ import type {
   PublishResult,
   ApiError,
   Flow,
+  FlowWithApp,
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
@@ -158,6 +159,15 @@ export const api = {
   // ============================================
   // Flow Management APIs
   // ============================================
+
+  /**
+   * List all flows with parent app data
+   * GET /api/flows
+   * Used by the sidebar Flows page
+   */
+  async getAllFlows(): Promise<FlowWithApp[]> {
+    return fetchApi<FlowWithApp[]>('/flows');
+  },
 
   /**
    * List flows for an app

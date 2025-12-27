@@ -154,23 +154,9 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Manifest</h1>
-              <p className="text-sm text-muted-foreground">
-                Create MCP servers for ChatGPT apps
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 flex flex-col bg-background">
       {/* Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="flex-1 p-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
