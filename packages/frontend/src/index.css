@@ -44,3 +44,14 @@
     --ring: 221 83% 53%;
   }
 }
+
+/* React Flow custom styles */
+.react-flow__node {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.react-flow__attribution {
+  display: none;
+}
