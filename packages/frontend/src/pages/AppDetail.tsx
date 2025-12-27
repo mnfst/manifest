@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { App, Flow } from '@chatgpt-app-builder/shared';
-import { api, ApiClientError } from '../lib/api';
+import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
+import { api, ApiClientError, BACKEND_URL } from '../lib/api';
 import { PromptInput } from '../components/flow/PromptInput';
 import { FlowList } from '../components/flow/FlowList';
 import { Header } from '../components/layout/Header';
+import { PublishButton } from '../components/app/PublishButton';
 
 /**
  * App detail page - Shows app info and flows list
@@ -21,6 +22,7 @@ function AppDetail() {
   const [flowError, setFlowError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deletingFlowId, setDeletingFlowId] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -97,6 +99,21 @@ function AppDetail() {
     }
   };
 
+  const handlePublish = async (appId: string, status: AppStatus) => {
+    setPublishError(null);
+    try {
+      const updatedApp = await api.updateApp(appId, { status });
+      setApp(updatedApp);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setPublishError(err.message);
+      } else {
+        setPublishError('Failed to update app status');
+      }
+      throw err;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -146,16 +163,67 @@ function AppDetail() {
                 <p className="text-muted-foreground mt-1">{app.description}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                app.status === 'published'
-                  ? 'bg-green-500/20 text-green-600'
-                  : 'bg-amber-500/20 text-amber-600'
-              }`}>
-                {app.status}
-              </span>
-            </div>
+            <PublishButton
+              appId={app.id}
+              status={app.status}
+              onPublish={handlePublish}
+            />
           </div>
+          {publishError && (
+            <div className="mt-3 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+              {publishError}
+              <button
+                onClick={() => setPublishError(null)}
+                className="ml-2 underline hover:no-underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+          {app.status === 'published' && (
+            <div className="mt-3 space-y-3">
+              {/* Landing Page Link */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 font-medium">Share with your users</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <a
+                    href={`${BACKEND_URL}/servers/${app.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:text-blue-800 underline flex-1 truncate"
+                  >
+                    {BACKEND_URL}/servers/{app.slug}
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}`);
+                    }}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              {/* MCP Endpoint */}
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800 font-medium">MCP Server Endpoint</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="text-sm bg-white px-2 py-1 rounded border flex-1">
+                    {BACKEND_URL}/servers/{app.slug}/mcp
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}/mcp`);
+                    }}
+                    className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

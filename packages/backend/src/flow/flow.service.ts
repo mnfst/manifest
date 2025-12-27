@@ -80,6 +80,9 @@ export class FlowService {
     if (updates.toolDescription !== undefined) {
       entity.toolDescription = updates.toolDescription;
     }
+    if (updates.isActive !== undefined) {
+      entity.isActive = updates.isActive;
+    }
 
     const saved = await this.flowRepository.save(entity);
     return this.entityToFlow(saved);
@@ -108,6 +111,7 @@ export class FlowService {
       description: entity.description,
       toolName: entity.toolName,
       toolDescription: entity.toolDescription,
+      isActive: entity.isActive ?? true,
       views: entity.views?.map((view) => ({
         id: view.id,
         flowId: view.flowId,

@@ -10,6 +10,7 @@ export interface Flow {
   description?: string;
   toolName: string;
   toolDescription: string;
+  isActive: boolean;
   views?: View[];
   createdAt: string;
   updatedAt: string;
@@ -30,6 +31,7 @@ export interface UpdateFlowRequest {
   description?: string;
   toolName?: string;
   toolDescription?: string;
+  isActive?: boolean;
 }
 
 /**

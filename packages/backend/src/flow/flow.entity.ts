@@ -25,6 +25,9 @@ export class FlowEntity {
   @Column({ type: 'varchar', length: 500 })
   toolDescription!: string;
 
+  @Column({ type: 'boolean', default: true })
+  isActive!: boolean;
+
   @CreateDateColumn()
   createdAt!: Date;
 

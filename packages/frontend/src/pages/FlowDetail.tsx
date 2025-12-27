@@ -4,6 +4,7 @@ import type { App, Flow, View } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
 import { ViewList } from '../components/view/ViewList';
 import { Header } from '../components/layout/Header';
+import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 
 /**
  * Flow detail/editor page - Shows flow info and views list
@@ -18,6 +19,7 @@ function FlowDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isCreatingView, setIsCreatingView] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [toggleError, setToggleError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -103,6 +105,21 @@ function FlowDetail() {
     }
   };
 
+  const handleToggleActive = async (flowId: string, isActive: boolean) => {
+    setToggleError(null);
+    try {
+      const updatedFlow = await api.updateFlow(flowId, { isActive });
+      setFlow(updatedFlow);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setToggleError(err.message);
+      } else {
+        setToggleError('Failed to update flow status');
+      }
+      throw err; // Re-throw so the toggle component knows it failed
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -169,17 +186,33 @@ function FlowDetail() {
         {/* Flow Info */}
         <section className="space-y-4 mb-8">
           <h2 className="text-lg font-semibold">MCP Tool Info</h2>
-          <div className="border rounded-lg p-4 bg-card space-y-3">
+          <div className="border rounded-lg p-4 bg-card space-y-4">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm text-muted-foreground">Tool Name</p>
                 <code className="text-lg font-mono">{flow.toolName}</code>
               </div>
+              <FlowActiveToggle
+                flowId={flow.id}
+                isActive={flow.isActive}
+                onToggle={handleToggleActive}
+              />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Tool Description</p>
               <p className="text-sm mt-1">{flow.toolDescription}</p>
             </div>
+            {toggleError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+                {toggleError}
+                <button
+                  onClick={() => setToggleError(null)}
+                  className="ml-2 underline hover:no-underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
           </div>
         </section>
 

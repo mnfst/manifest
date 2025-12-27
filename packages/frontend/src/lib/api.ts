@@ -24,6 +24,12 @@ import type {
 const API_BASE = '/api';
 
 /**
+ * Backend server URL for MCP endpoints (not proxied)
+ * In production, this would come from environment variables
+ */
+export const BACKEND_URL = 'http://localhost:3001';
+
+/**
  * Custom error class for API errors
  */
 export class ApiClientError extends Error {

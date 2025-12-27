@@ -124,6 +124,9 @@ export class AppService {
         ...updates.themeVariables,
       };
     }
+    if (updates.status !== undefined) {
+      entity.status = updates.status;
+    }
 
     const saved = await this.appRepository.save(entity);
     return this.entityToApp(saved);

@@ -64,6 +64,7 @@ export interface UpdateAppRequest {
   name?: string;
   description?: string;
   themeVariables?: Partial<ThemeVariables>;
+  status?: AppStatus;
 }
 
 /**
