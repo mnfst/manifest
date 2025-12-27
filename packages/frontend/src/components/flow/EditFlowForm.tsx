@@ -39,8 +39,8 @@ export function EditFlowForm({
       return;
     }
 
-    if (trimmedName.length > 100) {
-      setValidationError('Flow name must be 100 characters or less');
+    if (trimmedName.length > 300) {
+      setValidationError('Flow name must be 300 characters or less');
       return;
     }
 
@@ -95,7 +95,7 @@ export function EditFlowForm({
             placeholder="My Flow"
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             disabled={isLoading}
-            maxLength={100}
+            maxLength={300}
             required
           />
         </div>

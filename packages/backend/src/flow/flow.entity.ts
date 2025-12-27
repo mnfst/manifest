@@ -13,7 +13,7 @@ export class FlowEntity {
   @Column({ type: 'uuid' })
   appId!: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 300 })
   name!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
