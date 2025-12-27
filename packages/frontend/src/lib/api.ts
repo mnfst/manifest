@@ -1,7 +1,9 @@
 import type {
   App,
+  AppWithFlowCount,
   CreateAppRequest,
   UpdateAppRequest,
+  DeleteAppResponse,
   GenerateAppRequest,
   ChatRequest,
   ChatResponse,
@@ -11,6 +13,8 @@ import type {
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
+  FlowDeletionCheck,
+  DeleteFlowResponse,
   View,
   CreateViewRequest,
   UpdateViewRequest,
@@ -82,11 +86,11 @@ export const api = {
   // ============================================
 
   /**
-   * List all apps
+   * List all apps with flow counts
    * GET /api/apps
    */
-  async listApps(): Promise<App[]> {
-    return fetchApi<App[]>('/apps');
+  async listApps(): Promise<AppWithFlowCount[]> {
+    return fetchApi<AppWithFlowCount[]>('/apps');
   },
 
   /**
@@ -116,6 +120,16 @@ export const api = {
     return fetchApi<App>(`/apps/${appId}`, {
       method: 'PATCH',
       body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Delete an app and all its flows (cascade delete)
+   * DELETE /api/apps/:appId
+   */
+  async deleteApp(appId: string): Promise<DeleteAppResponse> {
+    return fetchApi<DeleteAppResponse>(`/apps/${appId}`, {
+      method: 'DELETE',
     });
   },
 
@@ -172,11 +186,19 @@ export const api = {
   },
 
   /**
+   * Check what happens if a flow is deleted
+   * GET /api/flows/:flowId/deletion-check
+   */
+  async checkFlowDeletion(flowId: string): Promise<FlowDeletionCheck> {
+    return fetchApi<FlowDeletionCheck>(`/flows/${flowId}/deletion-check`);
+  },
+
+  /**
    * Delete a flow
    * DELETE /api/flows/:flowId
    */
-  async deleteFlow(flowId: string): Promise<void> {
-    await fetchApi<void>(`/flows/${flowId}`, {
+  async deleteFlow(flowId: string): Promise<DeleteFlowResponse> {
+    return fetchApi<DeleteFlowResponse>(`/flows/${flowId}`, {
       method: 'DELETE',
     });
   },

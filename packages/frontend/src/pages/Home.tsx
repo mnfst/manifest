@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { App } from '@chatgpt-app-builder/shared';
+import type { App, AppWithFlowCount } from '@chatgpt-app-builder/shared';
 import { AppList } from '../components/app/AppList';
 import { CreateAppModal } from '../components/app/CreateAppModal';
+import { EditAppModal } from '../components/app/EditAppModal';
+import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { api, ApiClientError } from '../lib/api';
 
 /**
@@ -11,12 +13,21 @@ import { api, ApiClientError } from '../lib/api';
  */
 function Home() {
   const navigate = useNavigate();
-  const [apps, setApps] = useState<App[]>([]);
+  const [apps, setApps] = useState<AppWithFlowCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+
+  // Edit app state
+  const [editingApp, setEditingApp] = useState<App | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Delete app state
+  const [deletingApp, setDeletingApp] = useState<AppWithFlowCount | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function loadApps() {
@@ -62,7 +73,8 @@ function Home() {
 
     try {
       const newApp = await api.createApp(data);
-      setApps((prev) => [newApp, ...prev]);
+      // New apps have 0 flows
+      setApps((prev) => [{ ...newApp, flowCount: 0 }, ...prev]);
       setIsModalOpen(false);
       navigate(`/app/${newApp.id}`);
     } catch (err) {
@@ -73,6 +85,71 @@ function Home() {
       }
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleEditApp = (app: App) => {
+    setEditingApp(app);
+    setEditError(null);
+  };
+
+  const handleCloseEditModal = () => {
+    if (!isEditing) {
+      setEditingApp(null);
+      setEditError(null);
+    }
+  };
+
+  const handleUpdateApp = async (appId: string, data: { name: string; description?: string }) => {
+    setIsEditing(true);
+    setEditError(null);
+
+    try {
+      const updatedApp = await api.updateApp(appId, data);
+      setApps((prev) =>
+        prev.map((app) => (app.id === appId ? { ...updatedApp, flowCount: app.flowCount } : app))
+      );
+      setEditingApp(null);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setEditError(err.message);
+      } else {
+        setEditError('Failed to update app');
+      }
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleDeleteApp = (app: App) => {
+    // Find the app with flow count from our apps array
+    const appWithCount = apps.find((a) => a.id === app.id);
+    if (appWithCount) {
+      setDeletingApp(appWithCount);
+    }
+  };
+
+  const handleCloseDeleteDialog = () => {
+    if (!isDeleting) {
+      setDeletingApp(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingApp) return;
+
+    setIsDeleting(true);
+
+    try {
+      await api.deleteApp(deletingApp.id);
+      setApps((prev) => prev.filter((app) => app.id !== deletingApp.id));
+      setDeletingApp(null);
+    } catch (err) {
+      // Error is handled in the dialog via the error state
+      // For now we just close the dialog on error
+      setDeletingApp(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -135,7 +212,7 @@ function Home() {
 
           {/* App list */}
           {!isLoading && !error && (
-            <AppList apps={apps} onAppClick={handleAppClick} />
+            <AppList apps={apps} onAppClick={handleAppClick} onAppEdit={handleEditApp} onAppDelete={handleDeleteApp} />
           )}
         </div>
       </main>
@@ -147,6 +224,31 @@ function Home() {
         onSubmit={handleCreateApp}
         isLoading={isCreating}
         error={createError}
+      />
+
+      {/* Edit App Modal */}
+      <EditAppModal
+        isOpen={!!editingApp}
+        app={editingApp}
+        onClose={handleCloseEditModal}
+        onSubmit={handleUpdateApp}
+        isLoading={isEditing}
+        error={editError}
+      />
+
+      {/* Delete App Confirmation */}
+      <DeleteConfirmDialog
+        isOpen={!!deletingApp}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        title="Delete App"
+        message={`Are you sure you want to delete "${deletingApp?.name}"? This action cannot be undone.`}
+        warningMessage={
+          deletingApp && deletingApp.flowCount > 0
+            ? `This will also delete ${deletingApp.flowCount} flow${deletingApp.flowCount !== 1 ? 's' : ''} and all associated views.`
+            : undefined
+        }
+        isLoading={isDeleting}
       />
     </div>
   );

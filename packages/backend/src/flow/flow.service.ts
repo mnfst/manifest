@@ -2,7 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from './flow.entity';
-import type { Flow, CreateFlowRequest, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import { AppEntity } from '../entities/app.entity';
 
 /**
  * Service for Flow CRUD operations
@@ -12,7 +13,9 @@ import type { Flow, CreateFlowRequest, UpdateFlowRequest } from '@chatgpt-app-bu
 export class FlowService {
   constructor(
     @InjectRepository(FlowEntity)
-    private readonly flowRepository: Repository<FlowEntity>
+    private readonly flowRepository: Repository<FlowEntity>,
+    @InjectRepository(AppEntity)
+    private readonly appRepository: Repository<AppEntity>
   ) {}
 
   /**
@@ -89,15 +92,62 @@ export class FlowService {
   }
 
   /**
-   * Delete a flow
+   * Check if a flow can be deleted and what the consequences are
    */
-  async delete(id: string): Promise<void> {
-    const entity = await this.flowRepository.findOne({ where: { id } });
+  async checkDeletion(id: string): Promise<FlowDeletionCheck> {
+    const entity = await this.flowRepository.findOne({
+      where: { id },
+      relations: ['app'],
+    });
+
     if (!entity) {
       throw new NotFoundException(`Flow with id ${id} not found`);
     }
 
+    // Get total flow count for the app
+    const flowCount = await this.flowRepository.count({
+      where: { appId: entity.appId },
+    });
+
+    const isLastFlow = flowCount === 1;
+    const appIsPublished = entity.app?.status === 'published';
+
+    let warningMessage: string | undefined;
+    if (isLastFlow && appIsPublished) {
+      warningMessage = 'This is the last flow. Deleting it will require unpublishing the app since apps need at least one flow to be published.';
+    } else if (isLastFlow) {
+      warningMessage = 'This is the last flow in this app.';
+    }
+
+    return {
+      canDelete: true,
+      isLastFlow,
+      appIsPublished,
+      warningMessage,
+    };
+  }
+
+  /**
+   * Delete a flow and return deletion info
+   */
+  async delete(id: string): Promise<DeleteFlowResponse> {
+    const entity = await this.flowRepository.findOne({
+      where: { id },
+      relations: ['views'],
+    });
+
+    if (!entity) {
+      throw new NotFoundException(`Flow with id ${id} not found`);
+    }
+
+    const deletedViewCount = entity.views?.length ?? 0;
+
     await this.flowRepository.remove(entity);
+
+    return {
+      success: true,
+      deletedViewCount,
+    };
   }
 
   /**

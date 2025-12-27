@@ -41,3 +41,21 @@ export interface GenerateFlowResponse {
   flow: Flow;
   redirectTo: string;
 }
+
+/**
+ * Pre-deletion check response for flows
+ */
+export interface FlowDeletionCheck {
+  canDelete: boolean;
+  isLastFlow: boolean;
+  appIsPublished: boolean;
+  warningMessage?: string;
+}
+
+/**
+ * Response from flow deletion
+ */
+export interface DeleteFlowResponse {
+  success: boolean;
+  deletedViewCount: number;
+}

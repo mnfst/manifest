@@ -1,0 +1,375 @@
+openapi: 3.0.3
+info:
+  title: App & Flow Management API
+  description: API endpoints for editing and deleting apps and flows
+  version: 1.0.0
+
+paths:
+  /api/apps:
+    get:
+      summary: List all apps with flow counts
+      description: Returns all apps sorted by creation date (newest first) with flow count included
+      operationId: listApps
+      responses:
+        '200':
+          description: List of apps with flow counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppWithFlowCount'
+
+  /api/apps/{appId}:
+    patch:
+      summary: Update an app
+      description: Update app name and/or description. Slug is immutable.
+      operationId: updateApp
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppRequest'
+      responses:
+        '200':
+          description: Updated app
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+    delete:
+      summary: Delete an app
+      description: Delete an app and all its flows and views (cascade delete)
+      operationId: deleteApp
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: App deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAppResponse'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+  /api/flows/{flowId}:
+    patch:
+      summary: Update a flow
+      description: Update flow name, description, toolName, or toolDescription
+      operationId: updateFlow
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFlowRequest'
+      responses:
+        '200':
+          description: Updated flow
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Flow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+    delete:
+      summary: Delete a flow
+      description: Delete a flow and all its views (cascade delete)
+      operationId: deleteFlow
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Flow deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteFlowResponse'
+        '404':
+          description: Flow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+  /api/flows/{flowId}/deletion-check:
+    get:
+      summary: Check flow deletion impact
+      description: Returns information about what will happen if this flow is deleted
+      operationId: checkFlowDeletion
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deletion check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowDeletionCheck'
+        '404':
+          description: Flow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+components:
+  schemas:
+    App:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - themeVariables
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        slug:
+          type: string
+        themeVariables:
+          type: object
+        status:
+          type: string
+          enum: [draft, published]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AppWithFlowCount:
+      allOf:
+        - $ref: '#/components/schemas/App'
+        - type: object
+          required:
+            - flowCount
+          properties:
+            flowCount:
+              type: integer
+              minimum: 0
+              description: Number of flows in this app
+
+    Flow:
+      type: object
+      required:
+        - id
+        - appId
+        - name
+        - toolName
+        - toolDescription
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        toolName:
+          type: string
+          maxLength: 100
+        toolDescription:
+          type: string
+          maxLength: 500
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdateAppRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+
+    UpdateFlowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        toolName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        toolDescription:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    DeleteAppResponse:
+      type: object
+      required:
+        - success
+        - deletedFlowCount
+      properties:
+        success:
+          type: boolean
+        deletedFlowCount:
+          type: integer
+          minimum: 0
+          description: Number of flows that were cascade-deleted
+
+    DeleteFlowResponse:
+      type: object
+      required:
+        - success
+        - deletedViewCount
+      properties:
+        success:
+          type: boolean
+        deletedViewCount:
+          type: integer
+          minimum: 0
+          description: Number of views that were cascade-deleted
+
+    FlowDeletionCheck:
+      type: object
+      required:
+        - canDelete
+        - isLastFlow
+        - appIsPublished
+      properties:
+        canDelete:
+          type: boolean
+          description: Whether the flow can be deleted
+        isLastFlow:
+          type: boolean
+          description: Whether this is the last flow in the app
+        appIsPublished:
+          type: boolean
+          description: Whether the parent app is published
+        warningMessage:
+          type: string
+          nullable: true
+          description: Warning message if deletion has consequences
+
+    ValidationError:
+      type: object
+      required:
+        - statusCode
+        - message
+        - errors
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    NotFoundError:
+      type: object
+      required:
+        - statusCode
+        - message
+      properties:
+        statusCode:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: App not found

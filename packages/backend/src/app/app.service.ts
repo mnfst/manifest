@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import slugify from 'slugify';
 import { AppEntity } from '../entities/app.entity';
-import type { App, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@chatgpt-app-builder/shared';
 import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
 
 /**
@@ -68,13 +68,15 @@ export class AppService {
   }
 
   /**
-   * Get all apps sorted by creation date (newest first)
+   * Get all apps sorted by creation date (newest first) with flow counts
    */
-  async findAll(): Promise<App[]> {
-    const entities = await this.appRepository.find({
-      order: { createdAt: 'DESC' },
-    });
-    return entities.map((e) => this.entityToApp(e));
+  async findAll(): Promise<AppWithFlowCount[]> {
+    const entities = await this.appRepository
+      .createQueryBuilder('app')
+      .loadRelationCountAndMap('app.flowCount', 'app.flows')
+      .orderBy('app.createdAt', 'DESC')
+      .getMany();
+    return entities.map((e) => this.entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
   }
 
   /**
@@ -184,6 +186,34 @@ export class AppService {
   }
 
   /**
+   * Delete an app and all its flows (cascade delete)
+   */
+  async delete(id: string): Promise<DeleteAppResponse> {
+    const entity = await this.appRepository.findOne({
+      where: { id },
+      relations: ['flows'],
+    });
+
+    if (!entity) {
+      throw new NotFoundException(`App with id ${id} not found`);
+    }
+
+    const deletedFlowCount = entity.flows?.length ?? 0;
+
+    // Clear current app if this is the current one
+    if (this.currentAppId === id) {
+      this.currentAppId = null;
+    }
+
+    await this.appRepository.remove(entity);
+
+    return {
+      success: true,
+      deletedFlowCount,
+    };
+  }
+
+  /**
    * Convert entity to App interface
    */
   private entityToApp(entity: AppEntity): App {
@@ -196,6 +226,16 @@ export class AppService {
       status: entity.status,
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),
+    };
+  }
+
+  /**
+   * Convert entity to AppWithFlowCount interface
+   */
+  private entityToAppWithFlowCount(entity: AppEntity & { flowCount: number }): AppWithFlowCount {
+    return {
+      ...this.entityToApp(entity),
+      flowCount: entity.flowCount ?? 0,
     };
   }
 }

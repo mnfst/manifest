@@ -4,13 +4,15 @@ import { AppCard } from './AppCard';
 interface AppListProps {
   apps: App[];
   onAppClick: (app: App) => void;
+  onAppEdit?: (app: App) => void;
+  onAppDelete?: (app: App) => void;
 }
 
 /**
  * Grid layout component for displaying a list of apps
  * Shows empty state when no apps exist
  */
-export function AppList({ apps, onAppClick }: AppListProps) {
+export function AppList({ apps, onAppClick, onAppEdit, onAppDelete }: AppListProps) {
   if (apps.length === 0) {
     return (
       <div className="text-center py-12 px-4">
@@ -27,7 +29,7 @@ export function AppList({ apps, onAppClick }: AppListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {apps.map((app) => (
-        <AppCard key={app.id} app={app} onClick={onAppClick} />
+        <AppCard key={app.id} app={app} onClick={onAppClick} onEdit={onAppEdit} onDelete={onAppDelete} />
       ))}
     </div>
   );

@@ -167,6 +167,7 @@ function AppDetail() {
               appId={app.id}
               status={app.status}
               onPublish={handlePublish}
+              flowCount={flows.length}
             />
           </div>
           {publishError && (

@@ -21,6 +21,8 @@ import type {
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
+  FlowDeletionCheck,
+  DeleteFlowResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -29,6 +31,7 @@ import type {
  * - POST /apps/:appId/flows - Create flow (AI-assisted)
  * - GET /flows/:flowId - Get flow by ID
  * - PATCH /flows/:flowId - Update flow
+ * - GET /flows/:flowId/deletion-check - Check flow deletion consequences
  * - DELETE /flows/:flowId - Delete flow
  */
 @Controller('api')
@@ -125,12 +128,21 @@ export class FlowController {
   }
 
   /**
+   * GET /api/flows/:flowId/deletion-check
+   * Check what happens if this flow is deleted
+   */
+  @Get('flows/:flowId/deletion-check')
+  async checkFlowDeletion(@Param('flowId') flowId: string): Promise<FlowDeletionCheck> {
+    return this.flowService.checkDeletion(flowId);
+  }
+
+  /**
    * DELETE /api/flows/:flowId
-   * Delete flow
+   * Delete flow and return deletion info
    */
   @Delete('flows/:flowId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteFlow(@Param('flowId') flowId: string): Promise<void> {
-    await this.flowService.delete(flowId);
+  @HttpCode(HttpStatus.OK)
+  async deleteFlow(@Param('flowId') flowId: string): Promise<DeleteFlowResponse> {
+    return this.flowService.delete(flowId);
   }
 }

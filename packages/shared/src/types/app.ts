@@ -75,6 +75,21 @@ export interface AppWithFlows extends App {
 }
 
 /**
+ * App with flow count for list views
+ */
+export interface AppWithFlowCount extends App {
+  flowCount: number;
+}
+
+/**
+ * Response from app deletion
+ */
+export interface DeleteAppResponse {
+  success: boolean;
+  deletedFlowCount: number;
+}
+
+/**
  * Legacy types for backwards compatibility during transition
  * @deprecated Use CreateAppRequest instead
  */

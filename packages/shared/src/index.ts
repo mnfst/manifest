@@ -6,6 +6,8 @@ export type {
   CreateAppRequest,
   UpdateAppRequest,
   AppWithFlows,
+  AppWithFlowCount,
+  DeleteAppResponse,
   GenerateAppRequest,
   ChatRequest,
   ChatResponse,
@@ -18,6 +20,8 @@ export type {
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
+  FlowDeletionCheck,
+  DeleteFlowResponse,
 } from './types/flow.js';
 
 // View types

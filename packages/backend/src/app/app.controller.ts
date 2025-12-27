@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   HttpCode,
@@ -14,20 +15,23 @@ import { AppService } from './app.service';
 import { AgentService } from '../agent/agent.service';
 import type {
   App,
+  AppWithFlowCount,
   CreateAppRequest,
   UpdateAppRequest,
   GenerateAppRequest,
   ChatRequest,
   ChatResponse,
   PublishResult,
+  DeleteAppResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
  * App controller with endpoints for app management
- * - GET /apps - List all apps
+ * - GET /apps - List all apps (with flow counts)
  * - POST /apps - Create app
  * - GET /apps/:appId - Get app by ID
  * - PATCH /apps/:appId - Update app
+ * - DELETE /apps/:appId - Delete app
  * - POST /apps/:appId/publish - Publish app
  *
  * Legacy endpoints (deprecated):
@@ -45,10 +49,10 @@ export class AppController {
 
   /**
    * GET /api/apps
-   * List all apps
+   * List all apps with flow counts
    */
   @Get('apps')
-  async listApps(): Promise<App[]> {
+  async listApps(): Promise<AppWithFlowCount[]> {
     return this.appService.findAll();
   }
 
@@ -94,6 +98,16 @@ export class AppController {
     @Body() request: UpdateAppRequest
   ): Promise<App> {
     return this.appService.update(appId, request);
+  }
+
+  /**
+   * DELETE /api/apps/:appId
+   * Delete app and all its flows (cascade delete)
+   */
+  @Delete('apps/:appId')
+  @HttpCode(HttpStatus.OK)
+  async deleteApp(@Param('appId') appId: string): Promise<DeleteAppResponse> {
+    return this.appService.delete(appId);
   }
 
   /**
