@@ -40,6 +40,17 @@ export class FlowService {
   }
 
   /**
+   * Get all flows with their parent app data
+   * Used for cross-app flow listings
+   */
+  async findAllWithApp(): Promise<FlowEntity[]> {
+    return this.flowRepository.find({
+      relations: ['app'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  /**
    * Get flow by ID
    */
   async findById(id: string): Promise<Flow | null> {

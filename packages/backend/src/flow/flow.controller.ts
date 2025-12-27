@@ -18,6 +18,7 @@ import { ViewService } from '../view/view.service';
 import { AgentService } from '../agent/agent.service';
 import type {
   Flow,
+  FlowWithApp,
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
@@ -27,6 +28,7 @@ import type {
 
 /**
  * Flow controller with endpoints for flow management
+ * - GET /flows - List all flows with parent app data
  * - GET /apps/:appId/flows - List flows for an app
  * - POST /apps/:appId/flows - Create flow (AI-assisted)
  * - GET /flows/:flowId - Get flow by ID
@@ -43,6 +45,32 @@ export class FlowController {
     @Inject(forwardRef(() => AgentService))
     private readonly agentService: AgentService
   ) {}
+
+  /**
+   * GET /api/flows
+   * List all flows with parent app data
+   * Used by the sidebar Flows page
+   */
+  @Get('flows')
+  async getAllFlows(): Promise<FlowWithApp[]> {
+    const entities = await this.flowService.findAllWithApp();
+    return entities.map((entity) => ({
+      id: entity.id,
+      appId: entity.appId,
+      name: entity.name,
+      description: entity.description,
+      toolName: entity.toolName,
+      toolDescription: entity.toolDescription,
+      isActive: entity.isActive ?? true,
+      createdAt: entity.createdAt?.toISOString(),
+      updatedAt: entity.updatedAt?.toISOString(),
+      app: {
+        id: entity.app.id,
+        name: entity.app.name,
+        slug: entity.app.slug,
+      },
+    }));
+  }
 
   /**
    * GET /api/apps/:appId/flows
