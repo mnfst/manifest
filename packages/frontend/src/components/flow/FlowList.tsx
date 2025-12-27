@@ -1,0 +1,45 @@
+import type { Flow } from '@chatgpt-app-builder/shared';
+import { FlowCard } from './FlowCard';
+
+interface FlowListProps {
+  flows: Flow[];
+  onFlowClick: (flow: Flow) => void;
+  onFlowDelete?: (flow: Flow) => void;
+  deletingFlowId?: string | null;
+}
+
+/**
+ * List of flows for an app with navigation and delete actions
+ */
+export function FlowList({
+  flows,
+  onFlowClick,
+  onFlowDelete,
+  deletingFlowId,
+}: FlowListProps) {
+  if (flows.length === 0) {
+    return (
+      <div className="text-center py-12 border-2 border-dashed rounded-lg bg-gray-50">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 mx-auto text-gray-300 mb-4">
+          <path fillRule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm2.25-3a.75.75 0 01.75.75v6.75a.75.75 0 01-1.5 0V9.75A.75.75 0 0113.5 9zm3.75-1.5a.75.75 0 00-1.5 0v9a.75.75 0 001.5 0v-9z" clipRule="evenodd" />
+        </svg>
+        <h3 className="text-lg font-medium text-gray-700 mb-1">No flows yet</h3>
+        <p className="text-gray-500">Create your first flow by describing what you want to build.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {flows.map((flow) => (
+        <FlowCard
+          key={flow.id}
+          flow={flow}
+          onClick={() => onFlowClick(flow)}
+          onDelete={onFlowDelete ? () => onFlowDelete(flow) : undefined}
+          isDeleting={deletingFlowId === flow.id}
+        />
+      ))}
+    </div>
+  );
+}

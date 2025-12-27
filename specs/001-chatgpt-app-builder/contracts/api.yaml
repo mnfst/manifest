@@ -1,0 +1,195 @@
+openapi: 3.0.3
+info:
+  title: ChatGPT App Builder API
+  description: |
+    Simplified REST API for POC. Single-session operation - each browser session
+    works with one app at a time, starting fresh. No persistence between sessions.
+  version: 1.0.0-poc
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+
+paths:
+  # Generate new app from prompt
+  /generate:
+    post:
+      summary: Generate app from natural language prompt
+      description: |
+        Creates a new app configuration from a prompt. Replaces any existing
+        session app. Agent performs: layout selection → tool generation →
+        theme generation → mock data generation.
+      operationId: generateApp
+      tags: [Core]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                  maxLength: 10000
+                  description: Natural language description of desired app
+      responses:
+        '200':
+          description: App generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+        '400':
+          description: Invalid prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Get current session app
+  /current:
+    get:
+      summary: Get current session app
+      description: Returns the current app configuration for this session
+      operationId: getCurrentApp
+      tags: [Core]
+      responses:
+        '200':
+          description: Current app configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+        '404':
+          description: No app in current session
+
+  # Chat for customizations
+  /chat:
+    post:
+      summary: Send message to customize app
+      description: |
+        Chat with the agent to customize the current app. The agent interprets
+        the message and updates app configuration (theme, layout, mock data).
+        Returns the updated app and a text response.
+      operationId: chat
+      tags: [Core]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  description: User message for customization or testing
+      responses:
+        '200':
+          description: Chat response with updated app
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: Agent's text response
+                  app:
+                    $ref: '#/components/schemas/App'
+                  changes:
+                    type: array
+                    items:
+                      type: string
+                    description: List of changes made (e.g., "Updated theme", "Changed layout")
+        '404':
+          description: No app in current session
+
+  # Publish to MCP server
+  /publish:
+    post:
+      summary: Publish app to MCP server
+      description: |
+        Publishes the current session app, making it available at
+        /servers/{mcpSlug}/mcp. Returns the MCP endpoint URL.
+      operationId: publishApp
+      tags: [Core]
+      responses:
+        '200':
+          description: App published successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [endpointUrl, uiUrl]
+                properties:
+                  endpointUrl:
+                    type: string
+                    description: MCP server endpoint
+                    example: /servers/my-support-bot/mcp
+                  uiUrl:
+                    type: string
+                    description: UI component URL for ChatGPT Apps SDK
+                    example: /servers/my-support-bot/ui/table.html
+                  app:
+                    $ref: '#/components/schemas/App'
+        '400':
+          description: App validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No app in current session
+
+components:
+  schemas:
+    App:
+      type: object
+      description: Complete app configuration (single entity)
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Display name (generated by agent)
+        description:
+          type: string
+          description: Brief description (generated by agent)
+        layoutTemplate:
+          type: string
+          enum: [table, post-list]
+        systemPrompt:
+          type: string
+          description: Original user prompt
+        themeVariables:
+          type: object
+          description: shadcn CSS variable overrides
+          additionalProperties:
+            type: string
+        mockData:
+          type: object
+          description: Layout-specific sample data
+        toolName:
+          type: string
+          description: LLM-friendly tool name
+        toolDescription:
+          type: string
+          description: Tool description for LLM discoverability
+        mcpSlug:
+          type: string
+          description: URL-safe slug for MCP endpoint
+        status:
+          type: string
+          enum: [draft, published]
+
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        code:
+          type: string

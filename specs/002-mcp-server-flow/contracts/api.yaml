@@ -1,0 +1,736 @@
+openapi: 3.0.3
+info:
+  title: MCP App Builder API
+  description: API for creating and managing MCP Apps, Flows, and Views
+  version: 2.0.0
+
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+
+paths:
+  # ============================================================================
+  # App Endpoints
+  # ============================================================================
+  /apps:
+    post:
+      summary: Create a new App
+      operationId: createApp
+      tags: [Apps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppRequest'
+      responses:
+        '201':
+          description: App created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /apps/current:
+    get:
+      summary: Get current session app
+      operationId: getCurrentApp
+      tags: [Apps]
+      responses:
+        '200':
+          description: Current app (or null if none)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppWithFlows'
+        '404':
+          description: No current app set
+
+  /apps/{appId}:
+    get:
+      summary: Get app by ID
+      operationId: getApp
+      tags: [Apps]
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: App details with flows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppWithFlows'
+        '404':
+          description: App not found
+
+    patch:
+      summary: Update app
+      operationId: updateApp
+      tags: [Apps]
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppRequest'
+      responses:
+        '200':
+          description: App updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+        '404':
+          description: App not found
+
+  /apps/{appId}/publish:
+    post:
+      summary: Publish app to MCP server
+      operationId: publishApp
+      tags: [Apps]
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: App published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResult'
+        '400':
+          description: Cannot publish (e.g., no flows)
+        '404':
+          description: App not found
+
+  # ============================================================================
+  # Flow Endpoints
+  # ============================================================================
+  /apps/{appId}/flows:
+    get:
+      summary: List flows for an app
+      operationId: listFlows
+      tags: [Flows]
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: List of flows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flow'
+        '404':
+          description: App not found
+
+    post:
+      summary: Create a flow via AI generation
+      operationId: createFlow
+      tags: [Flows]
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlowRequest'
+      responses:
+        '201':
+          description: Flow created with initial view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateFlowResponse'
+        '400':
+          description: Invalid request
+        '404':
+          description: App not found
+
+  /flows/{flowId}:
+    get:
+      summary: Get flow by ID
+      operationId: getFlow
+      tags: [Flows]
+      parameters:
+        - $ref: '#/components/parameters/FlowId'
+      responses:
+        '200':
+          description: Flow details with views
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowWithViews'
+        '404':
+          description: Flow not found
+
+    patch:
+      summary: Update flow
+      operationId: updateFlow
+      tags: [Flows]
+      parameters:
+        - $ref: '#/components/parameters/FlowId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFlowRequest'
+      responses:
+        '200':
+          description: Flow updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+        '404':
+          description: Flow not found
+
+    delete:
+      summary: Delete flow
+      operationId: deleteFlow
+      tags: [Flows]
+      parameters:
+        - $ref: '#/components/parameters/FlowId'
+      responses:
+        '204':
+          description: Flow deleted
+        '404':
+          description: Flow not found
+
+  # ============================================================================
+  # View Endpoints
+  # ============================================================================
+  /flows/{flowId}/views:
+    get:
+      summary: List views for a flow (ordered)
+      operationId: listViews
+      tags: [Views]
+      parameters:
+        - $ref: '#/components/parameters/FlowId'
+      responses:
+        '200':
+          description: Ordered list of views
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/View'
+        '404':
+          description: Flow not found
+
+    post:
+      summary: Add a view to a flow
+      operationId: createView
+      tags: [Views]
+      parameters:
+        - $ref: '#/components/parameters/FlowId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateViewRequest'
+      responses:
+        '201':
+          description: View created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+        '400':
+          description: Invalid request
+        '404':
+          description: Flow not found
+
+  /flows/{flowId}/views/reorder:
+    post:
+      summary: Reorder views within a flow
+      operationId: reorderViews
+      tags: [Views]
+      parameters:
+        - $ref: '#/components/parameters/FlowId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderViewsRequest'
+      responses:
+        '200':
+          description: Views reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/View'
+        '400':
+          description: Invalid view IDs
+        '404':
+          description: Flow not found
+
+  /views/{viewId}:
+    get:
+      summary: Get view by ID
+      operationId: getView
+      tags: [Views]
+      parameters:
+        - $ref: '#/components/parameters/ViewId'
+      responses:
+        '200':
+          description: View details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+        '404':
+          description: View not found
+
+    patch:
+      summary: Update view
+      operationId: updateView
+      tags: [Views]
+      parameters:
+        - $ref: '#/components/parameters/ViewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateViewRequest'
+      responses:
+        '200':
+          description: View updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+        '404':
+          description: View not found
+
+    delete:
+      summary: Delete view
+      operationId: deleteView
+      tags: [Views]
+      parameters:
+        - $ref: '#/components/parameters/ViewId'
+      responses:
+        '204':
+          description: View deleted
+        '400':
+          description: Cannot delete last view of flow
+        '404':
+          description: View not found
+
+  # ============================================================================
+  # Chat Endpoint (View-scoped)
+  # ============================================================================
+  /views/{viewId}/chat:
+    post:
+      summary: Chat to modify a view
+      operationId: chatWithView
+      tags: [Chat]
+      parameters:
+        - $ref: '#/components/parameters/ViewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: View updated via chat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '404':
+          description: View not found
+
+components:
+  parameters:
+    AppId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    FlowId:
+      name: flowId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ViewId:
+      name: viewId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # ==========================================================================
+    # App Schemas
+    # ==========================================================================
+    App:
+      type: object
+      required: [id, name, slug, themeVariables, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        slug:
+          type: string
+        themeVariables:
+          $ref: '#/components/schemas/ThemeVariables'
+        status:
+          $ref: '#/components/schemas/AppStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AppWithFlows:
+      allOf:
+        - $ref: '#/components/schemas/App'
+        - type: object
+          properties:
+            flows:
+              type: array
+              items:
+                $ref: '#/components/schemas/Flow'
+
+    AppStatus:
+      type: string
+      enum: [draft, published]
+
+    CreateAppRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        themeVariables:
+          $ref: '#/components/schemas/ThemeVariables'
+
+    UpdateAppRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        themeVariables:
+          $ref: '#/components/schemas/ThemeVariables'
+
+    # ==========================================================================
+    # Flow Schemas
+    # ==========================================================================
+    Flow:
+      type: object
+      required: [id, appId, name, toolName, toolDescription, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        toolName:
+          type: string
+        toolDescription:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FlowWithViews:
+      allOf:
+        - $ref: '#/components/schemas/Flow'
+        - type: object
+          properties:
+            views:
+              type: array
+              items:
+                $ref: '#/components/schemas/View'
+
+    CreateFlowRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          description: Natural language description for AI generation
+
+    UpdateFlowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        toolName:
+          type: string
+        toolDescription:
+          type: string
+
+    GenerateFlowResponse:
+      type: object
+      required: [flow, redirectTo]
+      properties:
+        flow:
+          $ref: '#/components/schemas/FlowWithViews'
+        redirectTo:
+          type: string
+          description: URL to flow editor page
+
+    # ==========================================================================
+    # View Schemas
+    # ==========================================================================
+    View:
+      type: object
+      required: [id, flowId, layoutTemplate, mockData, order, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        flowId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        layoutTemplate:
+          $ref: '#/components/schemas/LayoutTemplate'
+        mockData:
+          $ref: '#/components/schemas/MockData'
+        order:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateViewRequest:
+      type: object
+      required: [layoutTemplate]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        layoutTemplate:
+          $ref: '#/components/schemas/LayoutTemplate'
+        mockData:
+          $ref: '#/components/schemas/MockData'
+
+    UpdateViewRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        layoutTemplate:
+          $ref: '#/components/schemas/LayoutTemplate'
+        mockData:
+          $ref: '#/components/schemas/MockData'
+
+    ReorderViewsRequest:
+      type: object
+      required: [viewIds]
+      properties:
+        viewIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Ordered array of view IDs
+
+    LayoutTemplate:
+      type: string
+      enum: [table, post-list]
+
+    # ==========================================================================
+    # Chat Schemas
+    # ==========================================================================
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    ChatResponse:
+      type: object
+      required: [message, view]
+      properties:
+        message:
+          type: string
+        view:
+          $ref: '#/components/schemas/View'
+
+    # ==========================================================================
+    # Common Schemas
+    # ==========================================================================
+    ThemeVariables:
+      type: object
+      required:
+        - --primary
+        - --primary-foreground
+        - --background
+        - --foreground
+        - --muted
+        - --muted-foreground
+        - --accent
+        - --accent-foreground
+      properties:
+        --primary:
+          type: string
+        --primary-foreground:
+          type: string
+        --background:
+          type: string
+        --foreground:
+          type: string
+        --muted:
+          type: string
+        --muted-foreground:
+          type: string
+        --accent:
+          type: string
+        --accent-foreground:
+          type: string
+      additionalProperties:
+        type: string
+
+    MockData:
+      oneOf:
+        - $ref: '#/components/schemas/TableMockData'
+        - $ref: '#/components/schemas/PostListMockData'
+
+    TableMockData:
+      type: object
+      required: [type, columns, rows]
+      properties:
+        type:
+          type: string
+          enum: [table]
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableColumn'
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    TableColumn:
+      type: object
+      required: [key, header, type]
+      properties:
+        key:
+          type: string
+        header:
+          type: string
+        type:
+          type: string
+          enum: [text, number, date, badge, action]
+
+    PostListMockData:
+      type: object
+      required: [type, posts]
+      properties:
+        type:
+          type: string
+          enum: [post-list]
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostItem'
+
+    PostItem:
+      type: object
+      required: [id, title, excerpt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        author:
+          type: string
+        date:
+          type: string
+        image:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    PublishResult:
+      type: object
+      required: [success, mcpUrl]
+      properties:
+        success:
+          type: boolean
+        mcpUrl:
+          type: string
+        tools:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: integer
+        error:
+          type: string
