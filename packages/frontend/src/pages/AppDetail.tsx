@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, BACKEND_URL } from '../lib/api';
-import { PromptInput } from '../components/flow/PromptInput';
 import { FlowList } from '../components/flow/FlowList';
+import { CreateFlowModal } from '../components/flow/CreateFlowModal';
 import { Header } from '../components/layout/Header';
 import { PublishButton } from '../components/app/PublishButton';
 
@@ -23,6 +23,7 @@ function AppDetail() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deletingFlowId, setDeletingFlowId] = useState<string | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -60,7 +61,8 @@ function AppDetail() {
 
     try {
       const result = await api.createFlow(appId, { prompt });
-      // Navigate to the flow editor
+      // Close modal and navigate to the flow editor
+      setIsFlowModalOpen(false);
       navigate(result.redirectTo);
     } catch (err) {
       if (err instanceof ApiClientError) {
@@ -181,50 +183,73 @@ function AppDetail() {
               </button>
             </div>
           )}
-          {app.status === 'published' && (
-            <div className="mt-3 space-y-3">
-              {/* Landing Page Link */}
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800 font-medium">Share with your users</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <a
-                    href={`${BACKEND_URL}/servers/${app.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:text-blue-800 underline flex-1 truncate"
-                  >
-                    {BACKEND_URL}/servers/{app.slug}
-                  </a>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}`);
-                    }}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
+        </div>
+      </div>
 
-              {/* MCP Endpoint */}
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800 font-medium">MCP Server Endpoint</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <code className="text-sm bg-white px-2 py-1 rounded border flex-1">
-                    {BACKEND_URL}/servers/{app.slug}/mcp
-                  </code>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}/mcp`);
-                    }}
-                    className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                  >
-                    Copy
-                  </button>
+      {/* App Info Section - Moved below sub-header */}
+      <div className="border-b bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="space-y-4">
+            {/* Basic App Info */}
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Slug:</span>
+                <code className="bg-muted px-2 py-0.5 rounded">{app.slug}</code>
+              </div>
+              {app.createdAt && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Created:</span>
+                  <span>{new Date(app.createdAt).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Published Links - shown only when app is published */}
+            {app.status === 'published' && (
+              <div className="space-y-3">
+                {/* Landing Page Link */}
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 font-medium">Share with your users</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <a
+                      href={`${BACKEND_URL}/servers/${app.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:text-blue-800 underline flex-1 truncate"
+                    >
+                      {BACKEND_URL}/servers/{app.slug}
+                    </a>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}`);
+                      }}
+                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                {/* MCP Endpoint */}
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">MCP Server Endpoint</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <code className="text-sm bg-white px-2 py-1 rounded border flex-1">
+                      {BACKEND_URL}/servers/{app.slug}/mcp
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}/mcp`);
+                      }}
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -247,6 +272,7 @@ function AppDetail() {
             onFlowClick={handleFlowClick}
             onFlowDelete={handleFlowDelete}
             deletingFlowId={deletingFlowId}
+            onCreateFlow={() => setIsFlowModalOpen(true)}
           />
 
           {/* Delete confirmation message */}
@@ -262,48 +288,24 @@ function AppDetail() {
             </div>
           )}
 
-          {/* Create new flow section */}
-          <div className="border rounded-lg p-6 bg-card space-y-4">
-            <div>
-              <h3 className="font-medium text-lg">
-                {flows.length > 0 ? 'Add Another Flow' : 'Create Your First Flow'}
-              </h3>
-              <p className="text-muted-foreground text-sm mt-1">
-                Describe the MCP tool you want to create and we'll generate it for you.
-              </p>
-            </div>
-
-            <PromptInput
-              onSubmit={handleCreateFlow}
-              isLoading={isCreatingFlow}
-              placeholder="Example: A product catalog that shows items with name, price, and availability status"
-            />
-
-            {flowError && (
-              <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-                {flowError}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* App Info Section */}
-        <section className="mt-8 space-y-4">
-          <h2 className="text-lg font-semibold">App Info</h2>
-          <div className="border rounded-lg p-4 bg-card space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Slug:</span>
-              <code className="bg-muted px-2 py-0.5 rounded">{app.slug}</code>
-            </div>
-            {app.createdAt && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Created:</span>
-                <span>{new Date(app.createdAt).toLocaleDateString()}</span>
-              </div>
-            )}
-          </div>
+          {/* Create new flow button */}
+          <button
+            onClick={() => setIsFlowModalOpen(true)}
+            className="w-full px-6 py-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+          >
+            + Create New Flow
+          </button>
         </section>
       </main>
+
+      {/* Create Flow Modal */}
+      <CreateFlowModal
+        isOpen={isFlowModalOpen}
+        onClose={() => setIsFlowModalOpen(false)}
+        onSubmit={handleCreateFlow}
+        isLoading={isCreatingFlow}
+        error={flowError}
+      />
     </div>
   );
 }
