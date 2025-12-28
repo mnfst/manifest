@@ -144,7 +144,7 @@ function Home() {
       await api.deleteApp(deletingApp.id);
       setApps((prev) => prev.filter((app) => app.id !== deletingApp.id));
       setDeletingApp(null);
-    } catch (err) {
+    } catch {
       // Error is handled in the dialog via the error state
       // For now we just close the dialog on error
       setDeletingApp(null);
