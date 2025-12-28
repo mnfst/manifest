@@ -56,3 +56,7 @@ export {
 
 // MCP types
 export type { McpToolResponse, PublishResult, ApiError, McpToolInput } from './types/mcp.js';
+
+// Platform types
+export type { PlatformStyle, ThemeMode, PreviewPreferences } from './types/platform.js';
+export { DEFAULT_PREVIEW_PREFERENCES } from './types/platform.js';

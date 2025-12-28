@@ -6,6 +6,9 @@ import { ViewChatPanel } from '../components/view/ViewChatPanel';
 import { ThemeProvider } from '../components/editor/ThemeProvider';
 import { LayoutRenderer } from '../components/editor/LayoutRenderer';
 import { Header } from '../components/layout/Header';
+import { ChatStyleWrapper } from '../components/preview/ChatStyleWrapper';
+import { PlatformStyleSelector } from '../components/preview/PlatformStyleSelector';
+import { usePreviewPreferences } from '../hooks/usePreviewPreferences';
 
 type DeviceSize = 'phone' | 'tablet' | 'desktop';
 
@@ -28,8 +31,9 @@ function ViewEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deviceSize, setDeviceSize] = useState<DeviceSize>('desktop');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const { platformStyle, themeMode, setPlatformStyle, toggleThemeMode } = usePreviewPreferences();
+  const isDarkMode = themeMode === 'dark';
 
   // Fetch app, flow, and view on mount
   useEffect(() => {
@@ -153,50 +157,67 @@ function ViewEditor() {
         <div className="flex-1 overflow-hidden bg-gray-100 flex flex-col">
           {/* Toolbar */}
           <div className="bg-white border-b px-4 py-2 flex items-center justify-between">
-            {/* Device Size Selector */}
-            <div className="flex items-center gap-1">
-              {(Object.keys(DEVICE_SIZES) as DeviceSize[]).map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setDeviceSize(size)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    deviceSize === size
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {DEVICE_SIZES[size].label}
-                </button>
-              ))}
-              <span className="ml-2 text-xs text-gray-400">
-                {currentSize.width} × {currentSize.height}
-              </span>
+            {/* Left: Device Size + Platform Style */}
+            <div className="flex items-center gap-4">
+              {/* Device Size Selector */}
+              <div className="flex items-center gap-1">
+                {(Object.keys(DEVICE_SIZES) as DeviceSize[]).map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setDeviceSize(size)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                      deviceSize === size
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {DEVICE_SIZES[size].label}
+                  </button>
+                ))}
+                <span className="ml-2 text-xs text-gray-400">
+                  {currentSize.width} × {currentSize.height}
+                </span>
+              </div>
+
+              {/* Platform Style Selector */}
+              <div className="border-l pl-4">
+                <PlatformStyleSelector
+                  value={platformStyle}
+                  onChange={setPlatformStyle}
+                />
+              </div>
             </div>
 
-            {/* Dark Mode Toggle */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Dark Mode</span>
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${
-                  isDarkMode ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                    isDarkMode ? 'translate-x-5' : 'translate-x-0'
+            {/* Right: Template Badge + Dark Mode Toggle */}
+            <div className="flex items-center gap-4">
+              {/* Template Badge */}
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                {view.layoutTemplate}
+              </span>
+
+              {/* Dark Mode Toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Dark</span>
+                <button
+                  onClick={toggleThemeMode}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${
+                    isDarkMode ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
-                />
-              </button>
+                >
+                  <span
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                      isDarkMode ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Preview Container */}
           <div className="flex-1 overflow-auto p-6 flex items-start justify-center">
             <div
-              className={`bg-white rounded-lg shadow-lg overflow-hidden border transition-all ${
-                isDarkMode ? 'dark' : ''
-              }`}
+              className="rounded-lg shadow-lg overflow-hidden transition-all"
               style={{
                 width: currentSize.width,
                 height: currentSize.height,
@@ -204,42 +225,19 @@ function ViewEditor() {
                 maxHeight: 'calc(100vh - 180px)',
               }}
             >
-              <div className={`h-full overflow-auto ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
-                {/* View Preview */}
-                <div className={`h-full flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                  {/* View info header */}
-                  <div className={`px-4 py-3 border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className={`font-semibold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                          {view.name || 'View Preview'}
-                        </h2>
-                        <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {flow.toolName}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {view.layoutTemplate}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Layout preview */}
-                  <div className="flex-1 overflow-auto p-4">
-                    <div className={`rounded-lg p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white border'}`}>
-                      <ThemeProvider themeVariables={app.themeVariables} isDarkMode={isDarkMode}>
-                        <LayoutRenderer
-                          layoutTemplate={view.layoutTemplate}
-                          mockData={view.mockData}
-                          isDarkMode={isDarkMode}
-                        />
-                      </ThemeProvider>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ChatStyleWrapper
+                platformStyle={platformStyle}
+                themeMode={themeMode}
+                app={{ name: app.name, logoUrl: app.logoUrl }}
+              >
+                <ThemeProvider themeVariables={app.themeVariables} isDarkMode={isDarkMode}>
+                  <LayoutRenderer
+                    layoutTemplate={view.layoutTemplate}
+                    mockData={view.mockData}
+                    isDarkMode={isDarkMode}
+                  />
+                </ThemeProvider>
+              </ChatStyleWrapper>
             </div>
           </div>
         </div>

@@ -44,6 +44,7 @@ export interface App {
   slug: string;
   themeVariables: ThemeVariables;
   status: AppStatus;
+  logoUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -65,6 +66,7 @@ export interface UpdateAppRequest {
   description?: string;
   themeVariables?: Partial<ThemeVariables>;
   status?: AppStatus;
+  logoUrl?: string | null;
 }
 
 /**

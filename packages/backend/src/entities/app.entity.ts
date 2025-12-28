@@ -30,6 +30,9 @@ export class AppEntity {
   })
   status!: AppStatus;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  logoUrl?: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 

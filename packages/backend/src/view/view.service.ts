@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ViewEntity } from './view.entity';
-import type { View, CreateViewRequest, UpdateViewRequest, LayoutTemplate, MockData } from '@chatgpt-app-builder/shared';
+import type { View, CreateViewRequest, UpdateViewRequest } from '@chatgpt-app-builder/shared';
 import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
 
 /**
