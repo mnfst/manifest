@@ -158,6 +158,25 @@ knowledge silos, and makes maintenance sustainable.
 - Focus on functionality over optimization.
 - Document known limitations for post-POC resolution.
 
+### Auto-Serve for Testing
+
+When a feature implementation is complete and ready for user testing, Claude MUST
+automatically start the application for testing by running:
+
+```bash
+.specify/scripts/bash/serve-app.sh
+```
+
+This script will:
+- Find random available ports for both backend and frontend
+- Start both services in the background
+- Print the URLs for the user to access
+- Provide a stop command for when testing is complete
+
+This is MANDATORY after completing any implementation task that affects the running
+application. The user runs multiple instances simultaneously, so random ports are
+required to avoid conflicts.
+
 ### Post-POC Requirements (To Be Implemented)
 
 1. **Pre-Commit**: Linting, formatting, and local tests MUST pass.
