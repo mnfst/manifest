@@ -8,6 +8,7 @@ import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { UserIntentModal } from '../components/flow/UserIntentModal';
+import { MockDataModal } from '../components/flow/MockDataModal';
 
 /**
  * Flow detail/editor page - Shows flow info and views list
@@ -42,6 +43,10 @@ function FlowDetail() {
   const [showUserIntentModal, setShowUserIntentModal] = useState(false);
   const [isSavingUserIntent, setIsSavingUserIntent] = useState(false);
   const [userIntentError, setUserIntentError] = useState<string | null>(null);
+
+  // Mock data modal state
+  const [showMockDataModal, setShowMockDataModal] = useState(false);
+  const [mockDataView, setMockDataView] = useState<View | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -243,6 +248,28 @@ function FlowDetail() {
     }
   };
 
+  const handleMockDataEdit = (view: View) => {
+    setMockDataView(view);
+    setShowMockDataModal(true);
+  };
+
+  const handleCloseMockDataModal = () => {
+    setShowMockDataModal(false);
+    setMockDataView(null);
+  };
+
+  const handleMockDataUpdated = async () => {
+    // Reload flow to get updated mock data
+    if (flowId) {
+      try {
+        const updatedFlow = await api.getFlow(flowId);
+        setFlow(updatedFlow);
+      } catch (err) {
+        console.error('Failed to reload flow:', err);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -436,6 +463,7 @@ function FlowDetail() {
             onViewEdit={handleViewClick}
             onViewDelete={handleViewDelete}
             onUserIntentEdit={handleUserIntentEdit}
+            onMockDataEdit={handleMockDataEdit}
             onAddUserIntent={handleUserIntentEdit}
             onAddView={handleAddView}
             canDelete={views.length > 1}
@@ -472,6 +500,14 @@ function FlowDetail() {
         flow={flow}
         isLoading={isSavingUserIntent}
         error={userIntentError}
+      />
+
+      {/* Mock Data Modal */}
+      <MockDataModal
+        isOpen={showMockDataModal}
+        onClose={handleCloseMockDataModal}
+        view={mockDataView}
+        onMockDataUpdated={handleMockDataUpdated}
       />
     </div>
   );

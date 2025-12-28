@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ViewEntity } from './view.entity';
 import type { View, CreateViewRequest, UpdateViewRequest } from '@chatgpt-app-builder/shared';
 import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
+import { MockDataService } from '../mock-data/mock-data.service';
 
 /**
  * Service for View CRUD operations
@@ -13,7 +14,9 @@ import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
 export class ViewService {
   constructor(
     @InjectRepository(ViewEntity)
-    private readonly viewRepository: Repository<ViewEntity>
+    private readonly viewRepository: Repository<ViewEntity>,
+    @Inject(forwardRef(() => MockDataService))
+    private readonly mockDataService: MockDataService
   ) {}
 
   /**
@@ -38,7 +41,16 @@ export class ViewService {
     });
 
     const saved = await this.viewRepository.save(entity);
-    return this.entityToView(saved);
+
+    // Create separate MockDataEntity for this view
+    const mockDataDTO = await this.mockDataService.createForView(
+      saved.id,
+      saved.layoutTemplate
+    );
+
+    // Reload entity with the new relation
+    const reloaded = await this.viewRepository.findOne({ where: { id: saved.id } });
+    return this.entityToView(reloaded!, mockDataDTO);
   }
 
   /**
@@ -136,14 +148,24 @@ export class ViewService {
 
   /**
    * Convert entity to View interface
+   * Includes mockData from the separate MockDataEntity if available
    */
-  private entityToView(entity: ViewEntity): View {
+  private entityToView(entity: ViewEntity, mockDataDTO?: import('@chatgpt-app-builder/shared').MockDataEntityDTO): View {
+    // Use passed mockDataDTO, or convert from entity relation, or undefined
+    const mockData = mockDataDTO ?? (entity.mockDataEntity ? {
+      id: entity.mockDataEntity.id,
+      viewId: entity.mockDataEntity.viewId,
+      data: entity.mockDataEntity.data,
+      createdAt: entity.mockDataEntity.createdAt?.toISOString(),
+      updatedAt: entity.mockDataEntity.updatedAt?.toISOString(),
+    } : undefined);
+
     return {
       id: entity.id,
       flowId: entity.flowId,
       name: entity.name,
       layoutTemplate: entity.layoutTemplate,
-      mockData: entity.mockData,
+      mockData,
       order: entity.order,
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),

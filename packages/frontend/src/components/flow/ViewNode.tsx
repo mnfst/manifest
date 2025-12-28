@@ -20,10 +20,18 @@ export function ViewNode({ data }: NodeProps) {
 
   return (
     <div className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
-      {/* Left handle for incoming connections */}
+      {/* Top handle for incoming connection from MockDataNode */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        className="!bg-amber-400 !w-2 !h-2 !border-0"
+      />
+      {/* Left handle for incoming connections from UserIntent/other Views */}
       <Handle
         type="target"
         position={Position.Left}
+        id="left"
         className="!bg-gray-400 !w-2 !h-2 !border-0"
       />
 

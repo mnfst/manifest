@@ -4,6 +4,7 @@ import { ViewEntity } from './view.entity';
 import { ViewService } from './view.service';
 import { ViewController } from './view.controller';
 import { AgentModule } from '../agent/agent.module';
+import { MockDataModule } from '../mock-data/mock-data.module';
 
 /**
  * View module for managing display units within flows
@@ -12,6 +13,7 @@ import { AgentModule } from '../agent/agent.module';
   imports: [
     TypeOrmModule.forFeature([ViewEntity]),
     forwardRef(() => AgentModule),
+    forwardRef(() => MockDataModule),
   ],
   controllers: [ViewController],
   providers: [ViewService],

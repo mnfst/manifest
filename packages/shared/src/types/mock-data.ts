@@ -44,6 +44,39 @@ export interface PostListMockData {
 export type MockData = TableMockData | PostListMockData;
 
 /**
+ * MockData entity DTO - represents a mock data record in the database
+ */
+export interface MockDataEntityDTO {
+  id: string;
+  viewId: string;
+  data: MockData;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Request to update mock data
+ */
+export interface UpdateMockDataRequest {
+  data: MockData;
+}
+
+/**
+ * Request for mock data chat regeneration
+ */
+export interface MockDataChatRequest {
+  message: string;
+}
+
+/**
+ * Response from mock data chat regeneration
+ */
+export interface MockDataChatResponse {
+  message: string;
+  mockData: MockDataEntityDTO;
+}
+
+/**
  * Type guard for TableMockData
  */
 export function isTableMockData(data: MockData): data is TableMockData {

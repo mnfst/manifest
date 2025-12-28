@@ -21,6 +21,10 @@ import type {
   UpdateViewRequest,
   ViewChatRequest,
   ViewChatResponse,
+  MockDataEntityDTO,
+  UpdateMockDataRequest,
+  MockDataChatRequest,
+  MockDataChatResponse,
   Connector,
   CreateConnectorRequest,
   UpdateConnectorRequest,
@@ -298,6 +302,48 @@ export const api = {
    */
   async chatWithView(viewId: string, request: ViewChatRequest): Promise<ViewChatResponse> {
     return fetchApi<ViewChatResponse>(`/views/${viewId}/chat`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  // ============================================
+  // Mock Data APIs
+  // ============================================
+
+  /**
+   * Get mock data by ID
+   * GET /api/mock-data/:id
+   */
+  async getMockData(id: string): Promise<MockDataEntityDTO> {
+    return fetchApi<MockDataEntityDTO>(`/mock-data/${id}`);
+  },
+
+  /**
+   * Get mock data by view ID
+   * GET /api/mock-data/view/:viewId
+   */
+  async getMockDataByViewId(viewId: string): Promise<MockDataEntityDTO> {
+    return fetchApi<MockDataEntityDTO>(`/mock-data/view/${viewId}`);
+  },
+
+  /**
+   * Update mock data directly
+   * PUT /api/mock-data/:id
+   */
+  async updateMockData(id: string, request: UpdateMockDataRequest): Promise<MockDataEntityDTO> {
+    return fetchApi<MockDataEntityDTO>(`/mock-data/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Chat with mock data for AI-assisted regeneration
+   * POST /api/mock-data/:id/chat
+   */
+  async chatWithMockData(id: string, request: MockDataChatRequest): Promise<MockDataChatResponse> {
+    return fetchApi<MockDataChatResponse>(`/mock-data/${id}/chat`, {
       method: 'POST',
       body: JSON.stringify(request),
     });

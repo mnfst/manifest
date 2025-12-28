@@ -1,5 +1,5 @@
 import type { LayoutTemplate } from './app.js';
-import type { MockData } from './mock-data.js';
+import type { MockData, MockDataEntityDTO } from './mock-data.js';
 
 /**
  * View entity representing a display unit within a flow
@@ -9,7 +9,7 @@ export interface View {
   flowId: string;
   name?: string;
   layoutTemplate: LayoutTemplate;
-  mockData: MockData;
+  mockData?: MockDataEntityDTO;
   order: number;
   createdAt: string;
   updatedAt: string;

@@ -13,6 +13,7 @@ import '@xyflow/react/dist/style.css';
 import type { View, Flow } from '@chatgpt-app-builder/shared';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
+import { MockDataNode } from './MockDataNode';
 import { AddUserIntentNode } from './AddUserIntentNode';
 import { AddViewNode } from './AddViewNode';
 
@@ -22,6 +23,7 @@ interface FlowDiagramProps {
   onViewEdit: (view: View) => void;
   onViewDelete: (view: View) => void;
   onUserIntentEdit: () => void;
+  onMockDataEdit: (view: View) => void;
   onAddUserIntent?: () => void;
   onAddView?: () => void;
   canDelete: boolean;
@@ -39,6 +41,7 @@ function getFlowState(flow: Flow) {
 const nodeTypes = {
   viewNode: ViewNode,
   userIntentNode: UserIntentNode,
+  mockDataNode: MockDataNode,
   addUserIntentNode: AddUserIntentNode,
   addViewNode: AddViewNode,
 };
@@ -53,6 +56,7 @@ function FlowDiagramInner({
   onViewEdit,
   onViewDelete,
   onUserIntentEdit,
+  onMockDataEdit,
   onAddUserIntent,
   onAddView,
   canDelete,
@@ -93,7 +97,7 @@ function FlowDiagramInner({
     }
   }, [views, onViewEdit, onViewDelete, canDelete]);
 
-  // Generate nodes: User Intent node (or placeholder) + View nodes
+  // Generate nodes: User Intent node (or placeholder) + MockData nodes + View nodes
   const nodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
@@ -133,12 +137,27 @@ function FlowDiagramInner({
           },
         });
       } else {
-        // Add View nodes shifted to the right
+        // Add MockData nodes (above) and View nodes (below) for each view
         views.forEach((view, index) => {
+          const xPosition = 330 + index * 280;
+
+          // MockData node (above view)
+          nodeList.push({
+            id: `mockdata-${view.id}`,
+            type: 'mockDataNode',
+            position: { x: xPosition, y: 20 },
+            data: {
+              mockData: view.mockData,
+              layoutTemplate: view.layoutTemplate,
+              onEdit: () => onMockDataEdit(view),
+            },
+          });
+
+          // View node (below mockdata)
           nodeList.push({
             id: view.id,
             type: 'viewNode',
-            position: { x: 330 + index * 280, y: 80 },
+            position: { x: xPosition, y: 130 },
             data: {
               view,
               canDelete,
@@ -151,9 +170,9 @@ function FlowDiagramInner({
     }
 
     return nodeList;
-  }, [flow, flowState.hasUserIntent, flowState.hasViews, views, canDelete, dimensions, onViewEdit, onViewDelete, onUserIntentEdit, onAddUserIntent, onAddView]);
+  }, [flow, flowState.hasUserIntent, flowState.hasViews, views, canDelete, dimensions, onViewEdit, onViewDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddView]);
 
-  // Generate edges: User Intent → first View (or AddViewNode), then View → View
+  // Generate edges: User Intent → first View (or AddViewNode), MockData → View, then View → View
   const edges = useMemo<Edge[]>(() => {
     const edgeList: Edge[] = [];
 
@@ -182,6 +201,7 @@ function FlowDiagramInner({
         id: 'edge-user-intent-first-view',
         source: 'user-intent',
         target: views[0].id,
+        targetHandle: 'left',
         type: 'smoothstep',
         animated: false,
         style: { stroke: '#60a5fa', strokeWidth: 2 },
@@ -191,12 +211,30 @@ function FlowDiagramInner({
         },
       });
 
+      // Edges from MockData to View (vertical connection)
+      views.forEach((view) => {
+        edgeList.push({
+          id: `edge-mockdata-${view.id}`,
+          source: `mockdata-${view.id}`,
+          target: view.id,
+          targetHandle: 'top',
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#f59e0b', strokeWidth: 2 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#f59e0b',
+          },
+        });
+      });
+
       // Edges between consecutive Views
       views.slice(0, -1).forEach((view, index) => {
         edgeList.push({
           id: `edge-${view.id}-${views[index + 1].id}`,
           source: view.id,
           target: views[index + 1].id,
+          targetHandle: 'left',
           type: 'smoothstep',
           animated: false,
           style: { stroke: '#9ca3af', strokeWidth: 2 },

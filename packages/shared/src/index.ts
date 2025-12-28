@@ -46,6 +46,10 @@ export type {
   PostListMockData,
   TableColumn,
   PostItem,
+  MockDataEntityDTO,
+  UpdateMockDataRequest,
+  MockDataChatRequest,
+  MockDataChatResponse,
 } from './types/mock-data.js';
 export {
   isTableMockData,

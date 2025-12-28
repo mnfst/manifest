@@ -5,11 +5,13 @@ import { AppService } from './app.service';
 import { AppEntity } from '../entities/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
+import { MockDataEntity } from '../mock-data/mock-data.entity';
 import { ConnectorEntity } from '../entities/connector.entity';
 import { FlowModule } from '../flow/flow.module';
 import { ViewModule } from '../view/view.module';
 import { AgentModule } from '../agent/agent.module';
 import { McpModule } from '../mcp/mcp.module';
+import { MockDataModule } from '../mock-data/mock-data.module';
 import { ConnectorModule } from '../connector/connector.module';
 
 @Module({
@@ -17,7 +19,7 @@ import { ConnectorModule } from '../connector/connector.module';
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, ViewEntity, ConnectorEntity],
+      entities: [AppEntity, FlowEntity, ViewEntity, MockDataEntity, ConnectorEntity],
       synchronize: true, // POC only - use migrations in production
     }),
     TypeOrmModule.forFeature([AppEntity]),
@@ -25,6 +27,7 @@ import { ConnectorModule } from '../connector/connector.module';
     ViewModule,
     AgentModule,
     McpModule,
+    MockDataModule,
     ConnectorModule,
   ],
   controllers: [AppController],

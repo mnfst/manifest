@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { App, Flow, View } from '@chatgpt-app-builder/shared';
+import { DEFAULT_TABLE_MOCK_DATA, DEFAULT_POST_LIST_MOCK_DATA } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
 import { ViewChatPanel } from '../components/view/ViewChatPanel';
 import { ThemeProvider } from '../components/editor/ThemeProvider';
@@ -233,7 +234,7 @@ function ViewEditor() {
                 <ThemeProvider themeVariables={app.themeVariables} isDarkMode={isDarkMode}>
                   <LayoutRenderer
                     layoutTemplate={view.layoutTemplate}
-                    mockData={view.mockData}
+                    mockData={view.mockData?.data || (view.layoutTemplate === 'table' ? DEFAULT_TABLE_MOCK_DATA : DEFAULT_POST_LIST_MOCK_DATA)}
                     isDarkMode={isDarkMode}
                   />
                 </ThemeProvider>

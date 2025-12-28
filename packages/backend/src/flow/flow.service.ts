@@ -62,7 +62,7 @@ export class FlowService {
   async findById(id: string): Promise<Flow | null> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views'],
+      relations: ['views', 'views.mockDataEntity'],
     });
     return entity ? this.entityToFlow(entity) : null;
   }
@@ -73,7 +73,7 @@ export class FlowService {
   async findByAppId(appId: string): Promise<Flow[]> {
     const entities = await this.flowRepository.find({
       where: { appId },
-      relations: ['views'],
+      relations: ['views', 'views.mockDataEntity'],
       order: { createdAt: 'ASC' },
     });
     return entities.map((entity) => this.entityToFlow(entity));
@@ -85,7 +85,7 @@ export class FlowService {
   async update(id: string, updates: UpdateFlowRequest): Promise<Flow> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views'],
+      relations: ['views', 'views.mockDataEntity'],
     });
     if (!entity) {
       throw new NotFoundException(`Flow with id ${id} not found`);
@@ -121,7 +121,7 @@ export class FlowService {
     // Refetch with views to ensure relations are included in response
     const updated = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views'],
+      relations: ['views', 'views.mockDataEntity'],
     });
     return this.entityToFlow(updated!);
   }
@@ -168,7 +168,7 @@ export class FlowService {
   async delete(id: string): Promise<DeleteFlowResponse> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views'],
+      relations: ['views', 'views.mockDataEntity'],
     });
 
     if (!entity) {
@@ -205,7 +205,13 @@ export class FlowService {
         flowId: view.flowId,
         name: view.name,
         layoutTemplate: view.layoutTemplate,
-        mockData: view.mockData,
+        mockData: view.mockDataEntity ? {
+          id: view.mockDataEntity.id,
+          viewId: view.mockDataEntity.viewId,
+          data: view.mockDataEntity.data,
+          createdAt: view.mockDataEntity.createdAt?.toISOString(),
+          updatedAt: view.mockDataEntity.updatedAt?.toISOString(),
+        } : undefined,
         order: view.order,
         createdAt: view.createdAt?.toISOString(),
         updatedAt: view.updatedAt?.toISOString(),

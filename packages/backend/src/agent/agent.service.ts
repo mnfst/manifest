@@ -56,6 +56,14 @@ export interface ProcessViewChatResult {
 }
 
 /**
+ * Result of mock data chat processing
+ */
+export interface ProcessMockDataChatResult {
+  response: string;
+  mockData: MockData;
+}
+
+/**
  * Agent service for LangChain-powered operations
  * Orchestrates tools for app generation and customization
  */
@@ -363,6 +371,84 @@ If you can't understand the request, set understood=false and provide a helpful 
         updates: {},
         changes: [],
       };
+    }
+  }
+
+  /**
+   * Process a chat message to regenerate mock data
+   * Uses LLM to generate new mock data based on user instructions
+   */
+  async processMockDataChat(
+    message: string,
+    layoutTemplate: LayoutTemplate
+  ): Promise<ProcessMockDataChatResult> {
+    try {
+      // Define schema for table mock data
+      const tableMockDataSchema = z.object({
+        type: z.literal('table'),
+        columns: z.array(z.object({
+          key: z.string(),
+          header: z.string(),
+          type: z.enum(['text', 'number', 'date', 'badge', 'action']),
+        })),
+        rows: z.array(z.record(z.unknown())),
+      });
+
+      // Define schema for post-list mock data
+      const postListMockDataSchema = z.object({
+        type: z.literal('post-list'),
+        posts: z.array(z.object({
+          id: z.string(),
+          title: z.string(),
+          excerpt: z.string(),
+          author: z.string(),
+          date: z.string(),
+          category: z.string().optional(),
+          tags: z.array(z.string()).optional(),
+        })),
+      });
+
+      // Choose schema based on layout
+      const mockDataSchema = layoutTemplate === 'table' ? tableMockDataSchema : postListMockDataSchema;
+
+      // Create structured output LLM
+      const structuredLLM = this.llm.withStructuredOutput(mockDataSchema);
+
+      const systemPrompt = layoutTemplate === 'table'
+        ? `You are generating mock data for a table display. The user will describe what data they want.
+
+IMPORTANT: You MUST return a JSON object with exactly this structure:
+- "type": MUST be exactly "table" (this is required, do not use any other value)
+- "columns": array of column definitions with key, header, and type (text/number/date/badge/action)
+- "rows": array of data rows (3-5 rows) where each row has values for each column key
+
+Generate realistic sample data based on the user's request.
+Make sure to follow the user's specific requirements about the data values.`
+        : `You are generating mock data for a blog/post list display. The user will describe what posts they want.
+
+IMPORTANT: You MUST return a JSON object with exactly this structure:
+- "type": MUST be exactly "post-list" (this is required, do not use any other value)
+- "posts": array of post objects with id, title, excerpt, author, date, and optionally category and tags
+
+Generate realistic sample posts based on the user's request.
+Make sure to follow the user's specific requirements about the content.`;
+
+      const result = await structuredLLM.invoke([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message },
+      ]);
+
+      console.log('🤖 LLM-generated mock data:', JSON.stringify(result, null, 2));
+
+      return {
+        response: `I've regenerated the mock data based on your request: "${message}"`,
+        mockData: result as MockData,
+      };
+    } catch (error) {
+      console.error('Mock data generation error:', error);
+      throw new Error(
+        `Failed to generate mock data: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 }
