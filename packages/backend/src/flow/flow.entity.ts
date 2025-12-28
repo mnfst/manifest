@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { AppEntity } from '../entities/app.entity';
+import { AppEntity } from '../app/app.entity';
 import type { FlowParameter } from '@chatgpt-app-builder/shared';
 
 /**

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from './flow.entity';
 import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest, FlowParameter } from '@chatgpt-app-builder/shared';
-import { AppEntity } from '../entities/app.entity';
+import { AppEntity } from '../app/app.entity';
 
 /**
  * Service for Flow CRUD operations

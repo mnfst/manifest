@@ -5,7 +5,7 @@ import { FlowService } from './flow.service';
 import { FlowController } from './flow.controller';
 import { ViewModule } from '../view/view.module';
 import { AgentModule } from '../agent/agent.module';
-import { AppEntity } from '../entities/app.entity';
+import { AppEntity } from '../app/app.entity';
 
 /**
  * Flow module for managing MCP tools
