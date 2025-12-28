@@ -10,16 +10,16 @@ export function UserAvatar() {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground hidden sm:block">
-        {user.name}
-      </span>
+    <div className="flex items-center gap-3">
       <div
-        className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium text-primary"
+        className="w-9 h-9 rounded-full bg-nav-active flex items-center justify-center text-sm font-medium text-white"
         title={user.name}
       >
         {user.initials}
       </div>
+      <span className="text-sm font-medium">
+        {user.name}
+      </span>
     </div>
   );
 }

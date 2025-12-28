@@ -18,8 +18,8 @@ export function SidebarItem({ to, label, icon, isActive }: SidebarItemProps) {
       className={`
         flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
         ${isActive
-          ? 'bg-primary/10 text-primary font-medium'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          ? 'bg-nav-active text-white font-medium'
+          : 'text-nav-foreground hover:bg-nav-hover hover:text-white'
         }
       `}
     >

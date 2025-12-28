@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { SidebarItem } from './SidebarItem';
+import { UserAvatar } from './UserAvatar';
 
 /**
  * Apps icon - grid/dashboard style
@@ -37,11 +38,15 @@ export function Sidebar() {
   const isAppsActive = !isFlowsActive;
 
   return (
-    <aside className="w-56 border-r bg-card flex-shrink-0">
+    <aside className="w-56 bg-nav text-nav-foreground flex-shrink-0">
       <div className="h-full flex flex-col">
         {/* Logo/Brand */}
-        <div className="h-14 px-4 flex items-center border-b">
-          <span className="text-lg font-bold">Manifest</span>
+        <div className="h-14 px-4 flex items-center border-b border-nav-foreground/10">
+          <img
+            src="https://manifest.build/assets/images/logo-transparent.svg"
+            alt="Manifest"
+            className="h-8"
+          />
         </div>
 
         {/* Navigation Items */}
@@ -59,6 +64,11 @@ export function Sidebar() {
             isActive={isFlowsActive}
           />
         </nav>
+
+        {/* User Avatar at bottom */}
+        <div className="p-3 border-t border-nav-foreground/10">
+          <UserAvatar />
+        </div>
       </div>
     </aside>
   );

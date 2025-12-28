@@ -4,44 +4,74 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
+    /* Navigation colors - Manifest peacock theme (light teal) */
+    --nav-bg: 164 75% 53%;
+    --nav-hover: 166 72% 45%;
+    --nav-active: 168 76% 36%;
+    --nav-foreground: 24 69% 6%;
+
+    /* Manifest palette - sand/beige background */
+    --background: 30 33% 94%;
+    --foreground: 240 5% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-    --radius: 0.5rem;
+    --card-foreground: 240 5% 11%;
+    --primary: 168 76% 26%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 25% 90%;
+    --secondary-foreground: 240 5% 11%;
+    --muted: 30 20% 92%;
+    --muted-foreground: 30 10% 40%;
+    --accent: 164 75% 53%;
+    --accent-foreground: 240 5% 11%;
+    --destructive: 1 100% 68%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 15% 85%;
+    --input: 30 15% 85%;
+    --ring: 168 76% 26%;
+    --radius: 0.375rem;
   }
 
   .dark {
+    /* Dark theme with peacock navigation colors */
+    --nav-bg: 164 75% 53%;
+    --nav-hover: 166 72% 45%;
+    --nav-active: 168 76% 36%;
+    --nav-foreground: 24 69% 6%;
+
     --background: 222.2 47.4% 11.2%;
     --foreground: 210 40% 98%;
     --card: 222.2 47.4% 15%;
     --card-foreground: 210 40% 98%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 168 76% 36%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 164 75% 53%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 1 100% 68%;
+    --destructive-foreground: 0 0% 100%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 221 83% 53%;
+    --ring: 168 76% 36%;
+  }
+
+  /* Base typography with Inter font and responsive scaling */
+  html {
+    font-size: clamp(0.7rem, 0.5rem + 0.4vw, 1rem);
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'Fira Code', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
   }
 }
 
