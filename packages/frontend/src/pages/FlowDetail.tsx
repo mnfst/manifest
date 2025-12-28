@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck } from '@chatgpt-app-builder/shared';
+import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BookOpen } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
@@ -10,6 +10,8 @@ import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { UserIntentModal } from '../components/flow/UserIntentModal';
 import { MockDataModal } from '../components/flow/MockDataModal';
+import { StepTypeDrawer, type StepType } from '../components/flow/StepTypeDrawer';
+import { ReturnValueEditor } from '../components/flow/ReturnValueEditor';
 import { Tabs } from '../components/common/Tabs';
 import { FlowPreview } from '../components/preview/FlowPreview';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
@@ -51,6 +53,17 @@ function FlowDetail() {
   // Mock data modal state
   const [showMockDataModal, setShowMockDataModal] = useState(false);
   const [mockDataView, setMockDataView] = useState<View | null>(null);
+
+  // Step type drawer state
+  const [showStepTypeDrawer, setShowStepTypeDrawer] = useState(false);
+
+  // Return value state
+  const [showReturnValueEditor, setShowReturnValueEditor] = useState(false);
+  const [returnValueToEdit, setReturnValueToEdit] = useState<ReturnValue | null>(null);
+  const [returnValueToDelete, setReturnValueToDelete] = useState<ReturnValue | null>(null);
+  const [isSavingReturnValue, setIsSavingReturnValue] = useState(false);
+  const [returnValueError, setReturnValueError] = useState<string | null>(null);
+  const [isDeletingReturnValue, setIsDeletingReturnValue] = useState(false);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
@@ -287,6 +300,98 @@ function FlowDetail() {
     }
   };
 
+  // Step type drawer handlers
+  const handleAddStep = () => {
+    setShowStepTypeDrawer(true);
+  };
+
+  const handleCloseStepTypeDrawer = () => {
+    setShowStepTypeDrawer(false);
+  };
+
+  const handleStepTypeSelect = async (type: StepType) => {
+    if (type === 'view') {
+      await handleAddView();
+    } else if (type === 'returnValue') {
+      // Open return value editor for creating new
+      setReturnValueToEdit(null);
+      setReturnValueError(null);
+      setShowReturnValueEditor(true);
+    }
+  };
+
+  // Return value handlers
+  const handleReturnValueEdit = (returnValue: ReturnValue) => {
+    setReturnValueToEdit(returnValue);
+    setReturnValueError(null);
+    setShowReturnValueEditor(true);
+  };
+
+  const handleCloseReturnValueEditor = () => {
+    if (!isSavingReturnValue) {
+      setShowReturnValueEditor(false);
+      setReturnValueToEdit(null);
+      setReturnValueError(null);
+    }
+  };
+
+  const handleSaveReturnValue = async (text: string) => {
+    if (!flowId) return;
+
+    setIsSavingReturnValue(true);
+    setReturnValueError(null);
+
+    try {
+      if (returnValueToEdit) {
+        // Update existing
+        await api.updateReturnValue(returnValueToEdit.id, { text });
+      } else {
+        // Create new
+        await api.createReturnValue(flowId, { text });
+      }
+      // Reload flow to get updated return values
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+      setShowReturnValueEditor(false);
+      setReturnValueToEdit(null);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setReturnValueError(err.message);
+      } else {
+        setReturnValueError('Failed to save return value');
+      }
+    } finally {
+      setIsSavingReturnValue(false);
+    }
+  };
+
+  const handleReturnValueDelete = (returnValue: ReturnValue) => {
+    setReturnValueToDelete(returnValue);
+  };
+
+  const handleCloseReturnValueDeleteDialog = () => {
+    if (!isDeletingReturnValue) {
+      setReturnValueToDelete(null);
+    }
+  };
+
+  const handleConfirmDeleteReturnValue = async () => {
+    if (!returnValueToDelete || !flowId) return;
+
+    setIsDeletingReturnValue(true);
+    try {
+      await api.deleteReturnValue(returnValueToDelete.id);
+      // Reload flow to get updated return values
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+      setReturnValueToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete return value:', err);
+    } finally {
+      setIsDeletingReturnValue(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -322,7 +427,17 @@ function FlowDetail() {
   }
 
   const views = flow.views || [];
+  const returnValues = flow.returnValues || [];
+
+  // Determine step counts for display
+  const stepCount = views.length + returnValues.length;
   const hasViews = views.length > 0;
+  const hasReturnValues = returnValues.length > 0;
+
+  // For mutual exclusivity - determine which types are disabled
+  const disabledStepTypes: StepType[] = [];
+  if (hasViews) disabledStepTypes.push('returnValue');
+  if (hasReturnValues) disabledStepTypes.push('view');
 
   // Tab configuration with disabled state for Preview when no views
   const tabs: TabConfig[] = [
@@ -467,17 +582,21 @@ function FlowDetail() {
             <>
               <div className="px-6 py-4 flex items-center justify-between border-b bg-background">
                 <div>
-                  <h2 className="text-lg font-semibold">Views</h2>
+                  <h2 className="text-lg font-semibold">Steps</h2>
                   <p className="text-sm text-muted-foreground">
-                    {views.length} view{views.length !== 1 ? 's' : ''}
+                    {stepCount === 0 ? 'No steps yet' : (
+                      hasViews
+                        ? `${views.length} view${views.length !== 1 ? 's' : ''}`
+                        : `${returnValues.length} return value${returnValues.length !== 1 ? 's' : ''}`
+                    )}
                   </p>
                 </div>
                 <button
-                  onClick={handleAddView}
-                  disabled={isCreatingView}
+                  onClick={handleAddStep}
+                  disabled={isCreatingView || isSavingReturnValue}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isCreatingView ? (
+                  {isCreatingView || isSavingReturnValue ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Creating...
@@ -487,7 +606,7 @@ function FlowDetail() {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                         <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                       </svg>
-                      Add View
+                      Add Step
                     </>
                   )}
                 </button>
@@ -499,13 +618,16 @@ function FlowDetail() {
                   key={`flow-${flow.id}-${Boolean(flow.toolDescription?.trim())}`}
                   flow={flow}
                   views={views}
+                  returnValues={returnValues}
                   onViewEdit={handleViewClick}
                   onViewDelete={handleViewDelete}
+                  onReturnValueEdit={handleReturnValueEdit}
+                  onReturnValueDelete={handleReturnValueDelete}
                   onUserIntentEdit={handleUserIntentEdit}
                   onMockDataEdit={handleMockDataEdit}
                   onAddUserIntent={handleUserIntentEdit}
-                  onAddView={handleAddView}
-                  canDelete={views.length > 1}
+                  onAddStep={handleAddStep}
+                  canDelete={stepCount > 1}
                 />
               </div>
             </>
@@ -564,6 +686,34 @@ function FlowDetail() {
         onClose={handleCloseMockDataModal}
         view={mockDataView}
         onMockDataUpdated={handleMockDataUpdated}
+      />
+
+      {/* Step Type Drawer */}
+      <StepTypeDrawer
+        isOpen={showStepTypeDrawer}
+        onClose={handleCloseStepTypeDrawer}
+        onSelect={handleStepTypeSelect}
+        disabledTypes={disabledStepTypes}
+      />
+
+      {/* Return Value Editor */}
+      <ReturnValueEditor
+        isOpen={showReturnValueEditor}
+        onClose={handleCloseReturnValueEditor}
+        onSave={handleSaveReturnValue}
+        returnValue={returnValueToEdit}
+        isLoading={isSavingReturnValue}
+        error={returnValueError}
+      />
+
+      {/* Delete Return Value Confirmation */}
+      <DeleteConfirmDialog
+        isOpen={!!returnValueToDelete}
+        onClose={handleCloseReturnValueDeleteDialog}
+        onConfirm={handleConfirmDeleteReturnValue}
+        title="Delete Return Value"
+        message="Are you sure you want to delete this return value? This action cannot be undone."
+        isLoading={isDeletingReturnValue}
       />
     </div>
   );

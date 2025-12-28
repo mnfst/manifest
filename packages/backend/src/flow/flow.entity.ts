@@ -52,4 +52,8 @@ export class FlowEntity {
   // Relation to views
   @OneToMany('ViewEntity', 'flow', { cascade: true })
   views?: import('../view/view.entity').ViewEntity[];
+
+  // Relation to return values
+  @OneToMany('ReturnValueEntity', 'flow', { cascade: true })
+  returnValues?: import('../return-value/return-value.entity').ReturnValueEntity[];
 }

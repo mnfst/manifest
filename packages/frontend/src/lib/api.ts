@@ -29,6 +29,9 @@ import type {
   CreateConnectorRequest,
   UpdateConnectorRequest,
   DeleteConnectorResponse,
+  ReturnValue,
+  CreateReturnValueRequest,
+  UpdateReturnValueRequest,
   IconUploadResponse,
 } from '@chatgpt-app-builder/shared';
 
@@ -388,6 +391,69 @@ export const api = {
     return fetchApi<MockDataChatResponse>(`/mock-data/${id}/chat`, {
       method: 'POST',
       body: JSON.stringify(request),
+    });
+  },
+
+  // ============================================
+  // Return Value APIs
+  // ============================================
+
+  /**
+   * List return values for a flow
+   * GET /api/flows/:flowId/return-values
+   */
+  async listReturnValues(flowId: string): Promise<ReturnValue[]> {
+    return fetchApi<ReturnValue[]>(`/flows/${flowId}/return-values`);
+  },
+
+  /**
+   * Create a new return value
+   * POST /api/flows/:flowId/return-values
+   */
+  async createReturnValue(flowId: string, request: CreateReturnValueRequest): Promise<ReturnValue> {
+    return fetchApi<ReturnValue>(`/flows/${flowId}/return-values`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Get return value by ID
+   * GET /api/return-values/:returnValueId
+   */
+  async getReturnValue(returnValueId: string): Promise<ReturnValue> {
+    return fetchApi<ReturnValue>(`/return-values/${returnValueId}`);
+  },
+
+  /**
+   * Update a return value
+   * PATCH /api/return-values/:returnValueId
+   */
+  async updateReturnValue(returnValueId: string, request: UpdateReturnValueRequest): Promise<ReturnValue> {
+    return fetchApi<ReturnValue>(`/return-values/${returnValueId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Delete a return value
+   * DELETE /api/return-values/:returnValueId
+   */
+  async deleteReturnValue(returnValueId: string): Promise<void> {
+    await fetchApi<void>(`/return-values/${returnValueId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Reorder return values within a flow
+   * POST /api/flows/:flowId/return-values/reorder
+   */
+  async reorderReturnValues(flowId: string, orderedIds: string[]): Promise<ReturnValue[]> {
+    return fetchApi<ReturnValue[]>(`/flows/${flowId}/return-values/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({ orderedIds }),
     });
   },
 

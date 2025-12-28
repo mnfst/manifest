@@ -11,6 +11,7 @@ export type {
   GenerateAppRequest,
   ChatRequest,
   ChatResponse,
+  IconUploadResponse,
 } from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';
 
@@ -36,6 +37,14 @@ export type {
   ViewChatRequest,
   ViewChatResponse,
 } from './types/view.js';
+
+// Return value types
+export type {
+  ReturnValue,
+  CreateReturnValueRequest,
+  UpdateReturnValueRequest,
+  ReorderReturnValuesRequest,
+} from './types/return-value.js';
 
 // Theme types
 export type { ThemeVariables } from './types/theme.js';
