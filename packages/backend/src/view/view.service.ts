@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ViewEntity } from './view.entity';
+import { FlowEntity } from '../flow/flow.entity';
 import type { View, CreateViewRequest, UpdateViewRequest } from '@chatgpt-app-builder/shared';
 import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
 import { MockDataService } from '../mock-data/mock-data.service';
@@ -15,14 +16,33 @@ export class ViewService {
   constructor(
     @InjectRepository(ViewEntity)
     private readonly viewRepository: Repository<ViewEntity>,
+    @InjectRepository(FlowEntity)
+    private readonly flowRepository: Repository<FlowEntity>,
     @Inject(forwardRef(() => MockDataService))
     private readonly mockDataService: MockDataService
   ) {}
 
   /**
    * Create a new view for a flow
+   * Enforces mutual exclusivity: cannot add views if flow has return values
    */
   async create(flowId: string, data: CreateViewRequest): Promise<View> {
+    // Check if flow exists and has return values (mutual exclusivity)
+    const flow = await this.flowRepository.findOne({
+      where: { id: flowId },
+      relations: ['returnValues'],
+    });
+
+    if (!flow) {
+      throw new NotFoundException(`Flow with id ${flowId} not found`);
+    }
+
+    if (flow.returnValues && flow.returnValues.length > 0) {
+      throw new BadRequestException(
+        'Cannot add views to a flow that has return values. Flows must use either views or return values, not both.'
+      );
+    }
+
     // Get current max order for this flow
     const maxOrder = await this.viewRepository
       .createQueryBuilder('view')

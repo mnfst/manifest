@@ -10,32 +10,38 @@ import {
   type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { View, Flow } from '@chatgpt-app-builder/shared';
+import type { View, Flow, ReturnValue } from '@chatgpt-app-builder/shared';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
 import { MockDataNode } from './MockDataNode';
 import { AddUserIntentNode } from './AddUserIntentNode';
-import { AddViewNode } from './AddViewNode';
+import { AddStepNode } from './AddStepNode';
+import { ReturnValueNode } from './ReturnValueNode';
 
 interface FlowDiagramProps {
   flow: Flow;
   views: View[];
+  returnValues: ReturnValue[];
   onViewEdit: (view: View) => void;
   onViewDelete: (view: View) => void;
+  onReturnValueEdit: (returnValue: ReturnValue) => void;
+  onReturnValueDelete: (returnValue: ReturnValue) => void;
   onUserIntentEdit: () => void;
   onMockDataEdit: (view: View) => void;
   onAddUserIntent?: () => void;
-  onAddView?: () => void;
+  onAddStep?: () => void;
   canDelete: boolean;
 }
 
 /**
  * Determines the current state of a flow based on its data
  */
-function getFlowState(flow: Flow) {
+function getFlowState(flow: Flow, returnValues: ReturnValue[]) {
   const hasUserIntent = Boolean(flow.toolDescription?.trim());
   const hasViews = Boolean(flow.views?.length);
-  return { hasUserIntent, hasViews };
+  const hasReturnValues = returnValues.length > 0;
+  const hasSteps = hasViews || hasReturnValues;
+  return { hasUserIntent, hasViews, hasReturnValues, hasSteps };
 }
 
 const nodeTypes = {
@@ -43,25 +49,29 @@ const nodeTypes = {
   userIntentNode: UserIntentNode,
   mockDataNode: MockDataNode,
   addUserIntentNode: AddUserIntentNode,
-  addViewNode: AddViewNode,
+  addStepNode: AddStepNode,
+  returnValueNode: ReturnValueNode,
 };
 
 /**
  * Visual diagram of views using React Flow
- * Displays user intent node followed by view nodes in order
+ * Displays user intent node followed by view or return value nodes in order
  */
 function FlowDiagramInner({
   flow,
   views,
+  returnValues,
   onViewEdit,
   onViewDelete,
+  onReturnValueEdit,
+  onReturnValueDelete,
   onUserIntentEdit,
   onMockDataEdit,
   onAddUserIntent,
-  onAddView,
+  onAddStep,
   canDelete,
 }: FlowDiagramProps) {
-  const flowState = getFlowState(flow);
+  const flowState = getFlowState(flow, returnValues);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -126,17 +136,17 @@ function FlowDiagramInner({
         },
       });
 
-      // If no views yet, show AddViewNode placeholder
-      if (!flowState.hasViews && onAddView) {
+      // If no steps yet, show AddStepNode placeholder
+      if (!flowState.hasSteps && onAddStep) {
         nodeList.push({
-          id: 'add-view',
-          type: 'addViewNode',
+          id: 'add-step',
+          type: 'addStepNode',
           position: { x: 330, y: 80 },
           data: {
-            onClick: onAddView,
+            onClick: onAddStep,
           },
         });
-      } else {
+      } else if (flowState.hasViews) {
         // Add MockData nodes (above) and View nodes (below) for each view
         views.forEach((view, index) => {
           const xPosition = 330 + index * 280;
@@ -166,13 +176,30 @@ function FlowDiagramInner({
             },
           });
         });
+      } else if (flowState.hasReturnValues) {
+        // Add ReturnValue nodes
+        returnValues.forEach((returnValue, index) => {
+          const xPosition = 330 + index * 250;
+
+          nodeList.push({
+            id: returnValue.id,
+            type: 'returnValueNode',
+            position: { x: xPosition, y: 80 },
+            data: {
+              returnValue,
+              canDelete,
+              onEdit: () => onReturnValueEdit(returnValue),
+              onDelete: () => onReturnValueDelete(returnValue),
+            },
+          });
+        });
       }
     }
 
     return nodeList;
-  }, [flow, flowState.hasUserIntent, flowState.hasViews, views, canDelete, dimensions, onViewEdit, onViewDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddView]);
+  }, [flow, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, views, returnValues, canDelete, dimensions, onViewEdit, onViewDelete, onReturnValueEdit, onReturnValueDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddStep]);
 
-  // Generate edges: User Intent → first View (or AddViewNode), MockData → View, then View → View
+  // Generate edges: User Intent → first step (View/ReturnValue or AddStep), MockData → View, then step → step
   const edges = useMemo<Edge[]>(() => {
     const edgeList: Edge[] = [];
 
@@ -181,12 +208,12 @@ function FlowDiagramInner({
       return edgeList;
     }
 
-    // Edge from User Intent to AddViewNode placeholder (if no views)
-    if (!flowState.hasViews && onAddView) {
+    // Edge from User Intent to AddStepNode placeholder (if no steps)
+    if (!flowState.hasSteps && onAddStep) {
       edgeList.push({
-        id: 'edge-user-intent-add-view',
+        id: 'edge-user-intent-add-step',
         source: 'user-intent',
-        target: 'add-view',
+        target: 'add-step',
         type: 'smoothstep',
         animated: true,
         style: { stroke: '#d1d5db', strokeWidth: 2, strokeDasharray: '5,5' },
@@ -195,7 +222,7 @@ function FlowDiagramInner({
           color: '#d1d5db',
         },
       });
-    } else if (views.length > 0) {
+    } else if (flowState.hasViews && views.length > 0) {
       // Edge from User Intent to first View
       edgeList.push({
         id: 'edge-user-intent-first-view',
@@ -244,10 +271,42 @@ function FlowDiagramInner({
           },
         });
       });
+    } else if (flowState.hasReturnValues && returnValues.length > 0) {
+      // Edge from User Intent to first ReturnValue
+      edgeList.push({
+        id: 'edge-user-intent-first-return-value',
+        source: 'user-intent',
+        target: returnValues[0].id,
+        targetHandle: 'left',
+        type: 'smoothstep',
+        animated: false,
+        style: { stroke: '#22c55e', strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#22c55e',
+        },
+      });
+
+      // Edges between consecutive ReturnValues
+      returnValues.slice(0, -1).forEach((rv, index) => {
+        edgeList.push({
+          id: `edge-${rv.id}-${returnValues[index + 1].id}`,
+          source: rv.id,
+          target: returnValues[index + 1].id,
+          targetHandle: 'left',
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#9ca3af', strokeWidth: 2 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#9ca3af',
+          },
+        });
+      });
     }
 
     return edgeList;
-  }, [views, flowState.hasUserIntent, flowState.hasViews, onAddView]);
+  }, [views, returnValues, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, onAddStep]);
 
   // Even with no views, we still show the User Intent node
   // The empty state message is now shown inside the ReactFlow diagram

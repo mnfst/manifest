@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../entities/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
+import { ReturnValueEntity } from '../return-value/return-value.entity';
 import type { McpToolResponse, LayoutTemplate } from '@chatgpt-app-builder/shared';
 
 /**
@@ -50,6 +51,9 @@ export class McpToolService {
   /**
    * Execute an MCP tool call for a published app's flow
    * Returns ChatGPT Apps SDK formatted response
+   *
+   * For flows with views: returns structuredContent + widget metadata
+   * For flows with return values: returns text content array for LLM processing
    */
   async executeTool(
     appSlug: string,
@@ -61,10 +65,10 @@ export class McpToolService {
       throw new NotFoundException(`No published app found for slug: ${appSlug}`);
     }
 
-    // Find the flow that matches the tool name
+    // Find the flow that matches the tool name (include both views and returnValues)
     const flow = await this.flowRepository.findOne({
       where: { appId: app.id, toolName },
-      relations: ['views'],
+      relations: ['views', 'returnValues'],
     });
 
     if (!flow) {
@@ -76,12 +80,18 @@ export class McpToolService {
       throw new McpInactiveToolError(toolName);
     }
 
-    // Get the first view for layout and mock data
+    // Check if flow has return values - if so, return text content for LLM
+    const returnValues = flow.returnValues?.sort((a, b) => a.order - b.order) || [];
+    if (returnValues.length > 0) {
+      return this.executeReturnValueFlow(flow, returnValues);
+    }
+
+    // Otherwise, use view-based response with widget
     const views = flow.views?.sort((a, b) => a.order - b.order) || [];
     const primaryView = views[0];
 
     if (!primaryView) {
-      throw new NotFoundException(`No views found for tool: ${toolName}`);
+      throw new NotFoundException(`No views or return values found for tool: ${toolName}`);
     }
 
     // Generate response text based on the request
@@ -114,7 +124,29 @@ export class McpToolService {
   }
 
   /**
+   * Execute a flow with return values - returns text content array for LLM processing
+   * Each return value becomes a separate content item in order
+   */
+  private executeReturnValueFlow(
+    flow: FlowEntity,
+    returnValues: ReturnValueEntity[]
+  ): McpToolResponse {
+    // Return multiple return values as separate content items per MCP protocol
+    const content = returnValues.map((rv) => ({
+      type: 'text' as const,
+      text: rv.text,
+    }));
+
+    return {
+      content,
+      // No structuredContent or widget metadata for return value flows
+      // The text is meant for LLM processing, not UI display
+    };
+  }
+
+  /**
    * List all tools available for an MCP server (one per flow)
+   * Tools with views include widget metadata, tools with return values do not
    */
   async listTools(appSlug: string): Promise<{
     name: string;
@@ -128,6 +160,7 @@ export class McpToolService {
 
     const flows = await this.flowRepository.find({
       where: { appId: app.id, isActive: true },
+      relations: ['views', 'returnValues'],
     });
 
     return flows.map((flow) => {
@@ -141,7 +174,15 @@ export class McpToolService {
       }
       const description = parts.join('');
 
-      return {
+      // Check if flow has views (needs widget) or return values (no widget)
+      const hasViews = flow.views && flow.views.length > 0;
+
+      const toolDef: {
+        name: string;
+        description: string;
+        inputSchema: object;
+        _meta?: object;
+      } = {
         name: flow.toolName,
         description,
         inputSchema: {
@@ -154,18 +195,23 @@ export class McpToolService {
           },
           required: ['message'],
         },
-        // ChatGPT Apps SDK: Link tool to UI widget
-        _meta: {
+      };
+
+      // Only include widget metadata for flows with views
+      if (hasViews) {
+        toolDef._meta = {
           'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}.html`,
           'openai/toolInvocation/invoking': `Loading ${flow.name}...`,
           'openai/toolInvocation/invoked': `Loaded ${flow.name}`,
-        },
-      };
+        };
+      }
+
+      return toolDef;
     });
   }
 
   /**
-   * List all UI resources for an app (one per active flow)
+   * List all UI resources for an app (only flows with views, not return values)
    */
   async listResources(appSlug: string): Promise<{
     uri: string;
@@ -183,12 +229,15 @@ export class McpToolService {
       relations: ['views'],
     });
 
-    return flows.map((flow) => ({
-      uri: `ui://widget/${appSlug}/${flow.toolName}.html`,
-      name: `${flow.name} Widget`,
-      description: `UI widget for ${flow.toolName}`,
-      mimeType: 'text/html+skybridge',
-    }));
+    // Only include flows that have views (not return value flows)
+    return flows
+      .filter((flow) => flow.views && flow.views.length > 0)
+      .map((flow) => ({
+        uri: `ui://widget/${appSlug}/${flow.toolName}.html`,
+        name: `${flow.name} Widget`,
+        description: `UI widget for ${flow.toolName}`,
+        mimeType: 'text/html+skybridge',
+      }));
   }
 
   /**

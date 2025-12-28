@@ -23,6 +23,8 @@ export type {
   GenerateFlowResponse,
   FlowDeletionCheck,
   DeleteFlowResponse,
+  FlowParameter,
+  ParameterType,
 } from './types/flow.js';
 
 // View types
@@ -34,6 +36,14 @@ export type {
   ViewChatRequest,
   ViewChatResponse,
 } from './types/view.js';
+
+// Return value types
+export type {
+  ReturnValue,
+  CreateReturnValueRequest,
+  UpdateReturnValueRequest,
+  ReorderReturnValuesRequest,
+} from './types/return-value.js';
 
 // Theme types
 export type { ThemeVariables } from './types/theme.js';
