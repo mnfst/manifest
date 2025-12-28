@@ -7,6 +7,7 @@ import { Header } from '../components/layout/Header';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
+import { UserIntentModal } from '../components/flow/UserIntentModal';
 
 /**
  * Flow detail/editor page - Shows flow info and views list
@@ -36,6 +37,11 @@ function FlowDetail() {
   const [deletionCheck, setDeletionCheck] = useState<FlowDeletionCheck | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCheckingDeletion, setIsCheckingDeletion] = useState(false);
+
+  // User intent modal state
+  const [showUserIntentModal, setShowUserIntentModal] = useState(false);
+  const [isSavingUserIntent, setIsSavingUserIntent] = useState(false);
+  const [userIntentError, setUserIntentError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -196,6 +202,43 @@ function FlowDetail() {
       setShowDeleteDialog(false);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleUserIntentEdit = () => {
+    setShowUserIntentModal(true);
+    setUserIntentError(null);
+  };
+
+  const handleCloseUserIntentModal = () => {
+    if (!isSavingUserIntent) {
+      setShowUserIntentModal(false);
+      setUserIntentError(null);
+    }
+  };
+
+  const handleSaveUserIntent = async (data: {
+    toolDescription: string;
+    whenToUse: string;
+    whenNotToUse: string;
+  }) => {
+    if (!flowId) return;
+
+    setIsSavingUserIntent(true);
+    setUserIntentError(null);
+
+    try {
+      const updatedFlow = await api.updateFlow(flowId, data);
+      setFlow(updatedFlow);
+      setShowUserIntentModal(false);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setUserIntentError(err.message);
+      } else {
+        setUserIntentError('Failed to save user intent');
+      }
+    } finally {
+      setIsSavingUserIntent(false);
     }
   };
 
@@ -386,9 +429,11 @@ function FlowDetail() {
         {/* Full-width Flow Diagram - fills remaining viewport height */}
         <div className="flex-1 overflow-hidden">
           <FlowDiagram
+            flow={flow}
             views={views}
             onViewEdit={handleViewClick}
             onViewDelete={handleViewDelete}
+            onUserIntentEdit={handleUserIntentEdit}
             canDelete={views.length > 1}
           />
         </div>
@@ -413,6 +458,16 @@ function FlowDetail() {
         title="Delete View"
         message={`Are you sure you want to delete "${viewToDelete?.name || 'this view'}"? This action cannot be undone.`}
         isLoading={isDeletingView}
+      />
+
+      {/* User Intent Modal */}
+      <UserIntentModal
+        isOpen={showUserIntentModal}
+        onClose={handleCloseUserIntentModal}
+        onSave={handleSaveUserIntent}
+        flow={flow}
+        isLoading={isSavingUserIntent}
+        error={userIntentError}
       />
     </div>
   );

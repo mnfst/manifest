@@ -10,28 +10,34 @@ import {
   type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { View } from '@chatgpt-app-builder/shared';
+import type { View, Flow } from '@chatgpt-app-builder/shared';
 import { ViewNode } from './ViewNode';
+import { UserIntentNode } from './UserIntentNode';
 
 interface FlowDiagramProps {
+  flow: Flow;
   views: View[];
   onViewEdit: (view: View) => void;
   onViewDelete: (view: View) => void;
+  onUserIntentEdit: () => void;
   canDelete: boolean;
 }
 
 const nodeTypes = {
   viewNode: ViewNode,
+  userIntentNode: UserIntentNode,
 };
 
 /**
  * Visual diagram of views using React Flow
- * Displays views as connected nodes in order
+ * Displays user intent node followed by view nodes in order
  */
 function FlowDiagramInner({
+  flow,
   views,
   onViewEdit,
   onViewDelete,
+  onUserIntentEdit,
   canDelete,
 }: FlowDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,44 +75,80 @@ function FlowDiagramInner({
     }
   }, [views, onViewEdit, onViewDelete, canDelete]);
 
-  // Generate nodes from views
+  // Generate nodes: User Intent node + View nodes
   const nodes = useMemo<Node[]>(() => {
-    return views.map((view, index) => ({
-      id: view.id,
-      type: 'viewNode',
-      position: { x: 50 + index * 280, y: 80 },
-      data: {
-        view,
-        canDelete,
-        onEdit: () => onViewEdit(view),
-        onDelete: () => onViewDelete(view),
-      },
-    }));
-  }, [views, canDelete, onViewEdit, onViewDelete]);
+    const nodeList: Node[] = [];
 
-  // Generate edges between consecutive nodes
-  const edges = useMemo<Edge[]>(() => {
-    return views.slice(0, -1).map((view, index) => ({
-      id: `edge-${view.id}-${views[index + 1].id}`,
-      source: view.id,
-      target: views[index + 1].id,
-      type: 'smoothstep',
-      animated: false,
-      style: { stroke: '#9ca3af', strokeWidth: 2 },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: '#9ca3af',
+    // Add User Intent node at the beginning
+    nodeList.push({
+      id: 'user-intent',
+      type: 'userIntentNode',
+      position: { x: 50, y: 80 },
+      data: {
+        flow,
+        onEdit: onUserIntentEdit,
       },
-    }));
+    });
+
+    // Add View nodes shifted to the right
+    views.forEach((view, index) => {
+      nodeList.push({
+        id: view.id,
+        type: 'viewNode',
+        position: { x: 330 + index * 280, y: 80 },
+        data: {
+          view,
+          canDelete,
+          onEdit: () => onViewEdit(view),
+          onDelete: () => onViewDelete(view),
+        },
+      });
+    });
+
+    return nodeList;
+  }, [flow, views, canDelete, onViewEdit, onViewDelete, onUserIntentEdit]);
+
+  // Generate edges: User Intent → first View, then View → View
+  const edges = useMemo<Edge[]>(() => {
+    const edgeList: Edge[] = [];
+
+    // Edge from User Intent to first View (if views exist)
+    if (views.length > 0) {
+      edgeList.push({
+        id: 'edge-user-intent-first-view',
+        source: 'user-intent',
+        target: views[0].id,
+        type: 'smoothstep',
+        animated: false,
+        style: { stroke: '#60a5fa', strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#60a5fa',
+        },
+      });
+    }
+
+    // Edges between consecutive Views
+    views.slice(0, -1).forEach((view, index) => {
+      edgeList.push({
+        id: `edge-${view.id}-${views[index + 1].id}`,
+        source: view.id,
+        target: views[index + 1].id,
+        type: 'smoothstep',
+        animated: false,
+        style: { stroke: '#9ca3af', strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#9ca3af',
+        },
+      });
+    });
+
+    return edgeList;
   }, [views]);
 
-  if (views.length === 0) {
-    return (
-      <div ref={containerRef} className="w-full h-full bg-muted/30 flex items-center justify-center">
-        <p className="text-muted-foreground">No views yet. Add a view to get started.</p>
-      </div>
-    );
-  }
+  // Even with no views, we still show the User Intent node
+  // The empty state message is now shown inside the ReactFlow diagram
 
   return (
     <div ref={containerRef} className="w-full h-full bg-muted/30">

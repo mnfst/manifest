@@ -26,6 +26,8 @@ export class FlowService {
     description?: string;
     toolName: string;
     toolDescription: string;
+    whenToUse?: string;
+    whenNotToUse?: string;
   }): Promise<Flow> {
     const entity = this.flowRepository.create({
       appId,
@@ -33,6 +35,8 @@ export class FlowService {
       description: data.description,
       toolName: data.toolName,
       toolDescription: data.toolDescription,
+      whenToUse: data.whenToUse,
+      whenNotToUse: data.whenNotToUse,
     });
 
     const saved = await this.flowRepository.save(entity);
@@ -77,7 +81,10 @@ export class FlowService {
    * Update a flow
    */
   async update(id: string, updates: UpdateFlowRequest): Promise<Flow> {
-    const entity = await this.flowRepository.findOne({ where: { id } });
+    const entity = await this.flowRepository.findOne({
+      where: { id },
+      relations: ['views'],
+    });
     if (!entity) {
       throw new NotFoundException(`Flow with id ${id} not found`);
     }
@@ -94,12 +101,24 @@ export class FlowService {
     if (updates.toolDescription !== undefined) {
       entity.toolDescription = updates.toolDescription;
     }
+    if (updates.whenToUse !== undefined) {
+      entity.whenToUse = updates.whenToUse;
+    }
+    if (updates.whenNotToUse !== undefined) {
+      entity.whenNotToUse = updates.whenNotToUse;
+    }
     if (updates.isActive !== undefined) {
       entity.isActive = updates.isActive;
     }
 
-    const saved = await this.flowRepository.save(entity);
-    return this.entityToFlow(saved);
+    await this.flowRepository.save(entity);
+
+    // Refetch with views to ensure relations are included in response
+    const updated = await this.flowRepository.findOne({
+      where: { id },
+      relations: ['views'],
+    });
+    return this.entityToFlow(updated!);
   }
 
   /**
@@ -172,6 +191,8 @@ export class FlowService {
       description: entity.description,
       toolName: entity.toolName,
       toolDescription: entity.toolDescription,
+      whenToUse: entity.whenToUse,
+      whenNotToUse: entity.whenNotToUse,
       isActive: entity.isActive ?? true,
       views: entity.views?.map((view) => ({
         id: view.id,

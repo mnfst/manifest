@@ -25,6 +25,12 @@ export class FlowEntity {
   @Column({ type: 'varchar', length: 500 })
   toolDescription!: string;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  whenToUse?: string;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  whenNotToUse?: string;
+
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
