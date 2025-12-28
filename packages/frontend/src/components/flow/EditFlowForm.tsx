@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { Flow, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import type { Flow, UpdateFlowRequest, FlowParameter } from '@chatgpt-app-builder/shared';
+import { ParameterEditor, areParametersValid } from './ParameterEditor';
 
 interface EditFlowFormProps {
   flow: Flow;
@@ -24,6 +25,7 @@ export function EditFlowForm({
   const [description, setDescription] = useState(flow.description || '');
   const [toolName, setToolName] = useState(flow.toolName);
   const [toolDescription, setToolDescription] = useState(flow.toolDescription);
+  const [parameters, setParameters] = useState<FlowParameter[]>(flow.parameters ?? []);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -69,11 +71,17 @@ export function EditFlowForm({
       return;
     }
 
+    if (!areParametersValid(parameters)) {
+      setValidationError('Please fix parameter errors before saving');
+      return;
+    }
+
     await onSave({
       name: trimmedName,
       description: description.trim() || undefined,
       toolName: trimmedToolName,
       toolDescription: trimmedToolDescription,
+      parameters,
     });
   };
 
@@ -162,6 +170,15 @@ export function EditFlowForm({
         <p className="text-xs text-muted-foreground mt-1">
           This description helps ChatGPT understand when to use this tool
         </p>
+      </div>
+
+      {/* Parameters */}
+      <div className="border-t pt-4">
+        <ParameterEditor
+          parameters={parameters}
+          onChange={setParameters}
+          disabled={isLoading}
+        />
       </div>
 
       {(error || validationError) && (

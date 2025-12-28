@@ -2,6 +2,21 @@ import type { View } from './view.js';
 import type { App } from './app.js';
 
 /**
+ * Parameter type enum for MCP tool parameters
+ */
+export type ParameterType = 'string' | 'number' | 'integer' | 'boolean';
+
+/**
+ * Parameter definition for an MCP tool flow
+ */
+export interface FlowParameter {
+  name: string;
+  type: ParameterType;
+  description: string;
+  optional: boolean;
+}
+
+/**
  * Flow entity representing an MCP tool belonging to an app
  */
 export interface Flow {
@@ -14,6 +29,7 @@ export interface Flow {
   whenToUse?: string;
   whenNotToUse?: string;
   isActive: boolean;
+  parameters?: FlowParameter[];
   views?: View[];
   createdAt: string;
   updatedAt: string;
@@ -26,6 +42,7 @@ export interface Flow {
 export interface CreateFlowRequest {
   name: string;
   description?: string;
+  parameters?: FlowParameter[];
 }
 
 /**
@@ -39,6 +56,7 @@ export interface UpdateFlowRequest {
   whenToUse?: string;
   whenNotToUse?: string;
   isActive?: boolean;
+  parameters?: FlowParameter[];
 }
 
 /**

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import type { FlowParameter } from '@chatgpt-app-builder/shared';
+import { ParameterEditor, areParametersValid } from './ParameterEditor';
 
 interface CreateFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { name: string; description?: string }) => void;
+  onSubmit: (data: { name: string; description?: string; parameters?: FlowParameter[] }) => void;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -43,16 +45,19 @@ export function CreateFlowModal({
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [parameters, setParameters] = useState<FlowParameter[]>([]);
 
   const toolName = toSnakeCase(name);
   const isToolNameValid = name.trim().length === 0 || isValidToolName(toolName);
-  const canSubmit = name.trim().length > 0 && isValidToolName(toolName) && !isLoading;
+  const parametersValid = areParametersValid(parameters);
+  const canSubmit = name.trim().length > 0 && isValidToolName(toolName) && parametersValid && !isLoading;
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setName('');
       setDescription('');
+      setParameters([]);
       // Focus the name input after a short delay to ensure modal is rendered
       setTimeout(() => nameInputRef.current?.focus(), 100);
     }
@@ -96,6 +101,7 @@ export function CreateFlowModal({
     onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
+      parameters: parameters.length > 0 ? parameters : undefined,
     });
   };
 
@@ -106,7 +112,7 @@ export function CreateFlowModal({
     >
       <div
         ref={modalRef}
-        className="bg-card border rounded-lg shadow-lg w-full max-w-lg animate-in fade-in zoom-in-95 duration-200"
+        className="bg-card border rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="flow-modal-title"
@@ -137,7 +143,7 @@ export function CreateFlowModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto flex-1">
           <p className="text-muted-foreground text-sm">
             Give your flow a name and optional description. The tool name will be generated automatically.
           </p>
@@ -202,6 +208,15 @@ export function CreateFlowModal({
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{description.length}/500 characters</span>
             </div>
+          </div>
+
+          {/* Parameters */}
+          <div className="border-t pt-4">
+            <ParameterEditor
+              parameters={parameters}
+              onChange={setParameters}
+              disabled={isLoading}
+            />
           </div>
 
           {error && (

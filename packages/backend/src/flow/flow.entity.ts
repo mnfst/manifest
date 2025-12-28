@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { AppEntity } from '../entities/app.entity';
+import type { FlowParameter } from '@chatgpt-app-builder/shared';
 
 /**
  * Flow entity representing an MCP tool belonging to an app
@@ -33,6 +34,9 @@ export class FlowEntity {
 
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
+
+  @Column({ type: 'simple-json', nullable: true })
+  parameters?: FlowParameter[];
 
   @CreateDateColumn()
   createdAt!: Date;

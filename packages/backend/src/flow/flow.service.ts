@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from './flow.entity';
-import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest, FlowParameter } from '@chatgpt-app-builder/shared';
 import { AppEntity } from '../entities/app.entity';
 
 /**
@@ -28,6 +28,7 @@ export class FlowService {
     toolDescription: string;
     whenToUse?: string;
     whenNotToUse?: string;
+    parameters?: FlowParameter[];
   }): Promise<Flow> {
     const entity = this.flowRepository.create({
       appId,
@@ -37,6 +38,7 @@ export class FlowService {
       toolDescription: data.toolDescription,
       whenToUse: data.whenToUse,
       whenNotToUse: data.whenNotToUse,
+      parameters: data.parameters ?? [],
     });
 
     const saved = await this.flowRepository.save(entity);
@@ -109,6 +111,9 @@ export class FlowService {
     }
     if (updates.isActive !== undefined) {
       entity.isActive = updates.isActive;
+    }
+    if (updates.parameters !== undefined) {
+      entity.parameters = updates.parameters;
     }
 
     await this.flowRepository.save(entity);
@@ -194,6 +199,7 @@ export class FlowService {
       whenToUse: entity.whenToUse,
       whenNotToUse: entity.whenNotToUse,
       isActive: entity.isActive ?? true,
+      parameters: entity.parameters ?? [],
       views: entity.views?.map((view) => ({
         id: view.id,
         flowId: view.flowId,

@@ -28,7 +28,54 @@ import type {
   GenerateFlowResponse,
   FlowDeletionCheck,
   DeleteFlowResponse,
+  FlowParameter,
 } from '@chatgpt-app-builder/shared';
+
+const VALID_PARAMETER_TYPES = ['string', 'number', 'integer', 'boolean'] as const;
+
+/**
+ * Validate parameters array
+ * @throws BadRequestException if validation fails
+ */
+function validateParameters(parameters: FlowParameter[] | undefined): void {
+  if (!parameters || parameters.length === 0) {
+    return;
+  }
+
+  const seenNames = new Set<string>();
+
+  for (let i = 0; i < parameters.length; i++) {
+    const param = parameters[i];
+    const paramLabel = `Parameter ${i + 1}`;
+
+    // Validate name is non-empty
+    if (!param.name || param.name.trim().length === 0) {
+      throw new BadRequestException(`${paramLabel}: Name is required`);
+    }
+
+    // Validate name length
+    if (param.name.length > 50) {
+      throw new BadRequestException(`${paramLabel}: Name exceeds maximum length of 50 characters`);
+    }
+
+    // Validate name uniqueness
+    const normalizedName = param.name.trim().toLowerCase();
+    if (seenNames.has(normalizedName)) {
+      throw new BadRequestException(`Duplicate parameter name: "${param.name}"`);
+    }
+    seenNames.add(normalizedName);
+
+    // Validate type
+    if (!VALID_PARAMETER_TYPES.includes(param.type as typeof VALID_PARAMETER_TYPES[number])) {
+      throw new BadRequestException(`${paramLabel}: Invalid type "${param.type}". Must be one of: ${VALID_PARAMETER_TYPES.join(', ')}`);
+    }
+
+    // Validate optional is boolean
+    if (typeof param.optional !== 'boolean') {
+      throw new BadRequestException(`${paramLabel}: Optional must be a boolean`);
+    }
+  }
+}
 
 /**
  * Flow controller with endpoints for flow management
@@ -68,6 +115,7 @@ export class FlowController {
       whenToUse: entity.whenToUse,
       whenNotToUse: entity.whenNotToUse,
       isActive: entity.isActive ?? true,
+      parameters: entity.parameters ?? [],
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),
       app: {
@@ -120,12 +168,16 @@ export class FlowController {
       throw new BadRequestException('Description exceeds maximum length of 500 characters');
     }
 
+    // Validate parameters if provided
+    validateParameters(request.parameters);
+
     // Create the flow with minimal data (no views, empty user intent)
     const flow = await this.flowService.create(appId, {
       name: request.name.trim(),
       description: request.description?.trim(),
       toolName,
       toolDescription: '', // Empty until user adds via User Intent modal
+      parameters: request.parameters ?? [],
     });
 
     // Fetch flow with views (will be empty)
@@ -162,6 +214,10 @@ export class FlowController {
     @Param('flowId') flowId: string,
     @Body() request: UpdateFlowRequest
   ): Promise<Flow> {
+    // Validate parameters if provided
+    if (request.parameters !== undefined) {
+      validateParameters(request.parameters);
+    }
     return this.flowService.update(flowId, request);
   }
 

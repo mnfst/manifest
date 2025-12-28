@@ -18,6 +18,7 @@ export function FlowCard({
   isDeleting,
 }: FlowCardProps) {
   const viewCount = flow.views?.length ?? 0;
+  const paramCount = flow.parameters?.length ?? 0;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
@@ -44,6 +45,13 @@ export function FlowCard({
               </p>
             )}
             <div className="flex items-center gap-3 mt-2">
+              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm.75 4.25a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5h-7.5z" clipRule="evenodd" />
+                </svg>
+                {paramCount} param{paramCount !== 1 ? 's' : ''}
+              </span>
+              <span className="text-xs text-gray-300">•</span>
               <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                   <path fillRule="evenodd" d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5zm0 3a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z" clipRule="evenodd" />

@@ -53,7 +53,7 @@ function AppDetail() {
     loadData();
   }, [appId]);
 
-  const handleCreateFlow = async (data: { name: string; description?: string }) => {
+  const handleCreateFlow = async (data: { name: string; description?: string; parameters?: import('@chatgpt-app-builder/shared').FlowParameter[] }) => {
     if (!appId) return;
 
     setIsCreatingFlow(true);

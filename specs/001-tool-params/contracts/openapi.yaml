@@ -1,0 +1,274 @@
+openapi: 3.0.3
+info:
+  title: MCP Tool Parameters API
+  description: API contract for flow parameter management
+  version: 1.0.0
+
+paths:
+  /api/apps/{appId}/flows:
+    post:
+      summary: Create a new flow with optional parameters
+      operationId: createFlow
+      tags:
+        - Flows
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlowRequest'
+      responses:
+        '201':
+          description: Flow created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateFlowResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/flows/{flowId}:
+    get:
+      summary: Get flow by ID (includes parameters)
+      operationId: getFlow
+      tags:
+        - Flows
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Flow retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+        '404':
+          description: Flow not found
+
+    patch:
+      summary: Update flow (including parameters)
+      operationId: updateFlow
+      tags:
+        - Flows
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFlowRequest'
+      responses:
+        '200':
+          description: Flow updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flow'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Flow not found
+
+components:
+  schemas:
+    ParameterType:
+      type: string
+      enum:
+        - string
+        - number
+        - integer
+        - boolean
+      description: Data type of the parameter
+
+    FlowParameter:
+      type: object
+      required:
+        - name
+        - type
+        - optional
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Parameter identifier (unique within flow)
+        type:
+          $ref: '#/components/schemas/ParameterType'
+        optional:
+          type: boolean
+          default: false
+          description: Whether the parameter is optional
+
+    CreateFlowRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 300
+          description: Flow name
+        description:
+          type: string
+          maxLength: 500
+          description: Optional flow description
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlowParameter'
+          description: Optional list of parameters
+
+    UpdateFlowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 300
+        description:
+          type: string
+          maxLength: 500
+        toolName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: '^[a-z][a-z0-9_]*$'
+        toolDescription:
+          type: string
+          maxLength: 500
+        whenToUse:
+          type: string
+          maxLength: 500
+        whenNotToUse:
+          type: string
+          maxLength: 500
+        isActive:
+          type: boolean
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlowParameter'
+          description: Complete list of parameters (replaces existing)
+
+    Flow:
+      type: object
+      required:
+        - id
+        - appId
+        - name
+        - toolName
+        - toolDescription
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        toolName:
+          type: string
+        toolDescription:
+          type: string
+        whenToUse:
+          type: string
+        whenNotToUse:
+          type: string
+        isActive:
+          type: boolean
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlowParameter'
+        views:
+          type: array
+          items:
+            $ref: '#/components/schemas/View'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    View:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        flowId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        layoutTemplate:
+          type: string
+        mockData:
+          type: object
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFlowResponse:
+      type: object
+      required:
+        - flow
+        - redirectTo
+      properties:
+        flow:
+          $ref: '#/components/schemas/Flow'
+        redirectTo:
+          type: string
+          description: URL to redirect to after creation
+
+    ErrorResponse:
+      type: object
+      required:
+        - statusCode
+        - message
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
