@@ -25,6 +25,17 @@ function FlowsIcon() {
 }
 
 /**
+ * Connectors icon - database style
+ */
+function ConnectorsIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+      <path fillRule="evenodd" d="M10 1c-1.828 0-3.623.149-5.371.435a.75.75 0 00-.629.74v.387c-.827.157-1.642.345-2.445.564a.75.75 0 00-.555.867c.326 2.083 1.1 3.947 2.228 5.51A10.954 10.954 0 002 13.5v.268a.75.75 0 00.629.74C4.377 14.851 6.171 15 10 15s5.623-.149 7.371-.492a.75.75 0 00.629-.74V13.5c0-1.68-.576-3.226-1.228-4.997a12.2 12.2 0 002.228-5.51.75.75 0 00-.555-.867 25.26 25.26 0 00-2.445-.564v-.387a.75.75 0 00-.629-.74A28.095 28.095 0 0010 1zM4.5 4.29v-.122c1.724-.242 3.576-.418 5.5-.418 1.924 0 3.776.176 5.5.418v.123a13.665 13.665 0 01-5.5.709 13.665 13.665 0 01-5.5-.71zm0 8.95v-.122c1.724-.242 3.576-.418 5.5-.418 1.924 0 3.776.176 5.5.418v.123a13.665 13.665 0 01-5.5.709 13.665 13.665 0 01-5.5-.71z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+/**
  * Navigation sidebar component
  * Provides quick access to Apps and Flows sections
  */
@@ -35,7 +46,8 @@ export function Sidebar() {
   // Determine active section based on current route
   const isFlowsActive = pathname === '/flows' || pathname.startsWith('/flows/') ||
     pathname.includes('/flow/');
-  const isAppsActive = !isFlowsActive;
+  const isConnectorsActive = pathname === '/connectors' || pathname.startsWith('/connectors/');
+  const isAppsActive = !isFlowsActive && !isConnectorsActive;
 
   return (
     <aside className="w-56 bg-nav text-nav-foreground flex-shrink-0">
@@ -62,6 +74,12 @@ export function Sidebar() {
             label="Flows"
             icon={<FlowsIcon />}
             isActive={isFlowsActive}
+          />
+          <SidebarItem
+            to="/connectors"
+            label="Connectors"
+            icon={<ConnectorsIcon />}
+            isActive={isConnectorsActive}
           />
         </nav>
 

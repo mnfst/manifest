@@ -61,5 +61,15 @@ export type { McpToolResponse, PublishResult, ApiError, McpToolInput } from './t
 export type { PlatformStyle, ThemeMode, PreviewPreferences } from './types/platform.js';
 export { DEFAULT_PREVIEW_PREFERENCES } from './types/platform.js';
 
+// Connector types
+export type {
+  Connector,
+  MySQLConnectorConfig,
+  CreateConnectorRequest,
+  UpdateConnectorRequest,
+  DeleteConnectorResponse,
+} from './types/connector.js';
+export { ConnectorType, ConnectorCategory, getCategoryFromType } from './types/connector.js';
+
 // String utilities
 export { toSnakeCase, isValidToolName } from './utils/string.js';

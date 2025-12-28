@@ -5,17 +5,19 @@ import { AppService } from './app.service';
 import { AppEntity } from '../entities/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
+import { ConnectorEntity } from '../entities/connector.entity';
 import { FlowModule } from '../flow/flow.module';
 import { ViewModule } from '../view/view.module';
 import { AgentModule } from '../agent/agent.module';
 import { McpModule } from '../mcp/mcp.module';
+import { ConnectorModule } from '../connector/connector.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, ViewEntity],
+      entities: [AppEntity, FlowEntity, ViewEntity, ConnectorEntity],
       synchronize: true, // POC only - use migrations in production
     }),
     TypeOrmModule.forFeature([AppEntity]),
@@ -23,6 +25,7 @@ import { McpModule } from '../mcp/mcp.module';
     ViewModule,
     AgentModule,
     McpModule,
+    ConnectorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

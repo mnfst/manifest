@@ -21,6 +21,7 @@
     "@nestjs/platform-express": "^10.4.15",
     "@nestjs/typeorm": "^10.0.2",
     "better-sqlite3": "^11.7.0",
+    "mysql2": "^3.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "slugify": "^1.6.6",

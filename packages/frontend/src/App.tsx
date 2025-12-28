@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import FlowsPage from './pages/FlowsPage';
+import { ConnectorsPage } from './pages/ConnectorsPage';
 import AppDetail from './pages/AppDetail';
 import FlowDetail from './pages/FlowDetail';
 import ViewEditor from './pages/ViewEditor';
@@ -20,6 +21,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/flows" element={<FlowsPage />} />
+            <Route path="/connectors" element={<ConnectorsPage />} />
             <Route path="/app/:appId" element={<AppDetail />} />
             <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
             <Route path="/app/:appId/flow/:flowId/view/:viewId" element={<ViewEditor />} />
