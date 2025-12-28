@@ -20,10 +20,12 @@ export interface Flow {
 }
 
 /**
- * Request to create a flow via AI generation
+ * Request to create a flow with name and description
+ * Tool name is auto-generated from name using snake_case conversion
  */
 export interface CreateFlowRequest {
-  prompt: string;
+  name: string;
+  description?: string;
 }
 
 /**

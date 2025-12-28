@@ -53,14 +53,14 @@ function AppDetail() {
     loadData();
   }, [appId]);
 
-  const handleCreateFlow = async (prompt: string) => {
+  const handleCreateFlow = async (data: { name: string; description?: string }) => {
     if (!appId) return;
 
     setIsCreatingFlow(true);
     setFlowError(null);
 
     try {
-      const result = await api.createFlow(appId, { prompt });
+      const result = await api.createFlow(appId, data);
       // Close modal and navigate to the flow editor
       setIsFlowModalOpen(false);
       navigate(result.redirectTo);

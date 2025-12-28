@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: Flow Creation API
+  description: |
+    Simplified flow creation endpoint.
+    Replaces the previous prompt-based flow generation with direct name/description input.
+  version: 2.0.0
+
+paths:
+  /api/apps/{appId}/flows:
+    post:
+      summary: Create a new flow
+      description: |
+        Creates a new flow with minimal required data.
+        The tool name is auto-generated from the flow name using snake_case conversion.
+        The flow is created without user intent data or views - these are added later.
+      operationId: createFlow
+      tags:
+        - Flows
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          description: The ID of the app to create the flow in
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlowRequest'
+            examples:
+              simple:
+                summary: Basic flow creation
+                value:
+                  name: "Product Catalog"
+                  description: "Display product listings"
+              nameOnly:
+                summary: Name only (description optional)
+                value:
+                  name: "User Dashboard"
+      responses:
+        '201':
+          description: Flow created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateFlowResponse'
+              examples:
+                success:
+                  summary: Successful creation
+                  value:
+                    flow:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      appId: "660e8400-e29b-41d4-a716-446655440001"
+                      name: "Product Catalog"
+                      description: "Display product listings"
+                      toolName: "product_catalog"
+                      toolDescription: ""
+                      whenToUse: null
+                      whenNotToUse: null
+                      isActive: true
+                      views: []
+                      createdAt: "2025-12-28T10:00:00.000Z"
+                      updatedAt: "2025-12-28T10:00:00.000Z"
+                    redirectTo: "/app/660e8400-e29b-41d4-a716-446655440001/flow/550e8400-e29b-41d4-a716-446655440000"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyName:
+                  summary: Empty name
+                  value:
+                    statusCode: 400
+                    message: "Name is required"
+                    error: "Bad Request"
+                invalidToolName:
+                  summary: Name produces invalid tool name
+                  value:
+                    statusCode: 400
+                    message: "Name must contain at least one letter or number"
+                    error: "Bad Request"
+                nameTooLong:
+                  summary: Name exceeds limit
+                  value:
+                    statusCode: 400
+                    message: "Name exceeds maximum length of 300 characters"
+                    error: "Bad Request"
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: "App not found"
+                error: "Not Found"
+
+components:
+  schemas:
+    CreateFlowRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 300
+          description: Display name for the flow. Used to auto-generate the tool name.
+          example: "Product Catalog"
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Optional description of what this flow does.
+          example: "Display product listings from the inventory"
+
+    CreateFlowResponse:
+      type: object
+      required:
+        - flow
+        - redirectTo
+      properties:
+        flow:
+          $ref: '#/components/schemas/Flow'
+        redirectTo:
+          type: string
+          description: URL path to redirect the user to after creation
+          example: "/app/{appId}/flow/{flowId}"
+
+    Flow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        toolName:
+          type: string
+          description: Auto-generated snake_case identifier for the MCP tool
+        toolDescription:
+          type: string
+          description: Empty string on creation, set via User Intent modal
+        whenToUse:
+          type: string
+          nullable: true
+        whenNotToUse:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        views:
+          type: array
+          items:
+            $ref: '#/components/schemas/View'
+          description: Empty array on creation
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    View:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        flowId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        layoutTemplate:
+          type: string
+          enum: [table, post-list]
+        mockData:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string

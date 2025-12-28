@@ -107,35 +107,12 @@ export class AgentService {
   }
 
   /**
-   * Generate a new flow from a user prompt
-   * Executes: layout selection → tool generation → mock data generation
-   * This is used when creating a new flow within an existing app
+   * @deprecated This method is no longer used. Flow creation now uses simplified
+   * name/description input with auto-generated tool names. User intent and views
+   * are added separately after flow creation.
    */
-  async generateFlow(prompt: string): Promise<GenerateFlowResult> {
-    // Step 1: Select layout template
-    const layoutResult = await layoutSelectorTool.invoke({ prompt });
-    const layoutData = JSON.parse(layoutResult);
-    const layoutTemplate: LayoutTemplate = layoutData.layout;
-
-    // Step 2: Generate tool configuration
-    const toolResult = await toolGeneratorTool.invoke({ prompt, layoutTemplate });
-    const toolData = JSON.parse(toolResult);
-
-    // Step 3: Generate mock data
-    const mockResult = await mockDataGeneratorTool.invoke({ prompt, layoutTemplate });
-    const mockDataResult = JSON.parse(mockResult);
-    const mockData: MockData = mockDataResult.mockData;
-
-    return {
-      name: toolData.appName, // Use appName as flow name
-      description: toolData.appDescription,
-      toolName: toolData.toolName,
-      toolDescription: toolData.toolDescription,
-      whenToUse: toolData.whenToUse,
-      whenNotToUse: toolData.whenNotToUse,
-      layoutTemplate,
-      mockData,
-    };
+  async generateFlow(_prompt: string): Promise<GenerateFlowResult> {
+    throw new Error('generateFlow is deprecated. Use simplified flow creation instead.');
   }
 
   /**

@@ -16,6 +16,10 @@ import {
 import { FlowService } from './flow.service';
 import { ViewService } from '../view/view.service';
 import { AgentService } from '../agent/agent.service';
+import {
+  toSnakeCase,
+  isValidToolName,
+} from '@chatgpt-app-builder/shared';
 import type {
   Flow,
   FlowWithApp,
@@ -85,7 +89,8 @@ export class FlowController {
 
   /**
    * POST /api/apps/:appId/flows
-   * Create a new flow using AI-assisted generation
+   * Create a new flow with name and description
+   * Tool name is auto-generated from name using snake_case conversion
    */
   @Post('apps/:appId/flows')
   @HttpCode(HttpStatus.CREATED)
@@ -93,36 +98,37 @@ export class FlowController {
     @Param('appId') appId: string,
     @Body() request: CreateFlowRequest
   ): Promise<GenerateFlowResponse> {
-    // Validate prompt
-    if (!request.prompt || request.prompt.trim().length === 0) {
-      throw new BadRequestException('Prompt is required');
+    // Validate name
+    if (!request.name || request.name.trim().length === 0) {
+      throw new BadRequestException('Name is required');
     }
 
-    if (request.prompt.length > 10000) {
-      throw new BadRequestException('Prompt exceeds maximum length of 10,000 characters');
+    if (request.name.length > 300) {
+      throw new BadRequestException('Name exceeds maximum length of 300 characters');
     }
 
-    // Generate flow configuration using agent
-    const result = await this.agentService.generateFlow(request.prompt);
+    // Generate tool name from name
+    const toolName = toSnakeCase(request.name);
 
-    // Create the flow
+    // Validate that the generated tool name is valid
+    if (!isValidToolName(toolName)) {
+      throw new BadRequestException('Name must contain at least one letter or number');
+    }
+
+    // Validate description length if provided
+    if (request.description && request.description.length > 500) {
+      throw new BadRequestException('Description exceeds maximum length of 500 characters');
+    }
+
+    // Create the flow with minimal data (no views, empty user intent)
     const flow = await this.flowService.create(appId, {
-      name: result.name,
-      description: result.description,
-      toolName: result.toolName,
-      toolDescription: result.toolDescription,
-      whenToUse: result.whenToUse,
-      whenNotToUse: result.whenNotToUse,
+      name: request.name.trim(),
+      description: request.description?.trim(),
+      toolName,
+      toolDescription: '', // Empty until user adds via User Intent modal
     });
 
-    // Create initial view with generated data
-    await this.viewService.create(flow.id, {
-      name: 'Main View',
-      layoutTemplate: result.layoutTemplate,
-      mockData: result.mockData,
-    });
-
-    // Fetch flow with views
+    // Fetch flow with views (will be empty)
     const flowWithViews = await this.flowService.findById(flow.id);
     if (!flowWithViews) {
       throw new NotFoundException('Flow not found after creation');

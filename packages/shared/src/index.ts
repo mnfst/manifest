@@ -60,3 +60,6 @@ export type { McpToolResponse, PublishResult, ApiError, McpToolInput } from './t
 // Platform types
 export type { PlatformStyle, ThemeMode, PreviewPreferences } from './types/platform.js';
 export { DEFAULT_PREVIEW_PREFERENCES } from './types/platform.js';
+
+// String utilities
+export { toSnakeCase, isValidToolName } from './utils/string.js';

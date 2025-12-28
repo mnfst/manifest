@@ -228,6 +228,7 @@ function FlowDetail() {
     setUserIntentError(null);
 
     try {
+      // updateFlow returns the complete flow with views included
       const updatedFlow = await api.updateFlow(flowId, data);
       setFlow(updatedFlow);
       setShowUserIntentModal(false);
@@ -429,11 +430,14 @@ function FlowDetail() {
         {/* Full-width Flow Diagram - fills remaining viewport height */}
         <div className="flex-1 overflow-hidden">
           <FlowDiagram
+            key={`flow-${flow.id}-${Boolean(flow.toolDescription?.trim())}`}
             flow={flow}
             views={views}
             onViewEdit={handleViewClick}
             onViewDelete={handleViewDelete}
             onUserIntentEdit={handleUserIntentEdit}
+            onAddUserIntent={handleUserIntentEdit}
+            onAddView={handleAddView}
             canDelete={views.length > 1}
           />
         </div>
