@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
-import { api, ApiClientError, BACKEND_URL } from '../lib/api';
+import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
 import { CreateFlowModal } from '../components/flow/CreateFlowModal';
 import { Header } from '../components/layout/Header';
 import { PublishButton } from '../components/app/PublishButton';
+import { ShareModal } from '../components/app/ShareModal';
+import { AppIconUpload } from '../components/app/AppIconUpload';
 
 /**
  * App detail page - Shows app info and flows list
@@ -24,6 +26,8 @@ function AppDetail() {
   const [deletingFlowId, setDeletingFlowId] = useState<string | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -116,6 +120,19 @@ function AppDetail() {
     }
   };
 
+  const handleIconUpload = async (file: File) => {
+    if (!appId) return;
+
+    setIsUploadingIcon(true);
+    try {
+      const result = await api.uploadAppIcon(appId, file);
+      // Update local app state with new icon URL
+      setApp((prev) => prev ? { ...prev, logoUrl: result.iconUrl } : prev);
+    } finally {
+      setIsUploadingIcon(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -159,18 +176,52 @@ function AppDetail() {
       <div className="border-b bg-card">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">{app.name}</h1>
-              {app.description && (
-                <p className="text-muted-foreground mt-1">{app.description}</p>
-              )}
+            <div className="flex items-center gap-4">
+              {/* App Icon with Upload */}
+              <AppIconUpload
+                currentIconUrl={resolveIconUrl(app.logoUrl)}
+                appName={app.name}
+                onUpload={handleIconUpload}
+                isLoading={isUploadingIcon}
+              />
+              <div>
+                <h1 className="text-2xl font-bold">{app.name}</h1>
+                {app.description && (
+                  <p className="text-muted-foreground mt-1">{app.description}</p>
+                )}
+              </div>
             </div>
-            <PublishButton
-              appId={app.id}
-              status={app.status}
-              onPublish={handlePublish}
-              flowCount={flows.length}
-            />
+            <div className="flex items-center gap-3">
+              {/* Share button - only visible when published */}
+              {app.status === 'published' && (
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  title="Share app"
+                  aria-label="Share app"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    />
+                  </svg>
+                </button>
+              )}
+              <PublishButton
+                appId={app.id}
+                status={app.status}
+                onPublish={handlePublish}
+                flowCount={flows.length}
+              />
+            </div>
           </div>
           {publishError && (
             <div className="mt-3 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
@@ -203,52 +254,6 @@ function AppDetail() {
                 </div>
               )}
             </div>
-
-            {/* Published Links - shown only when app is published */}
-            {app.status === 'published' && (
-              <div className="space-y-3">
-                {/* Landing Page Link */}
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800 font-medium">Share with your users</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <a
-                      href={`${BACKEND_URL}/servers/${app.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800 underline flex-1 truncate"
-                    >
-                      {BACKEND_URL}/servers/{app.slug}
-                    </a>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}`);
-                      }}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                {/* MCP Endpoint */}
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800 font-medium">MCP Server Endpoint</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="text-sm bg-white px-2 py-1 rounded border flex-1">
-                      {BACKEND_URL}/servers/{app.slug}/mcp
-                    </code>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${BACKEND_URL}/servers/${app.slug}/mcp`);
-                      }}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -259,7 +264,7 @@ function AppDetail() {
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Flows (MCP Tools)</h2>
+              <h2 className="text-lg font-semibold">Flows</h2>
               <p className="text-sm text-muted-foreground">
                 {flows.length} flow{flows.length !== 1 ? 's' : ''}
               </p>
@@ -305,6 +310,13 @@ function AppDetail() {
         onSubmit={handleCreateFlow}
         isLoading={isCreatingFlow}
         error={flowError}
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        appSlug={app.slug}
       />
     </div>
   );

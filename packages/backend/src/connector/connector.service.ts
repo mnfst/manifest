@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as mysql from 'mysql2/promise';
-import { ConnectorEntity } from '../entities/connector.entity';
+import { ConnectorEntity } from './connector.entity';
 import type {
   Connector,
   CreateConnectorRequest,

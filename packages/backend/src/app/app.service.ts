@@ -2,9 +2,30 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import slugify from 'slugify';
-import { AppEntity } from '../entities/app.entity';
+import { AppEntity } from './app.entity';
 import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@chatgpt-app-builder/shared';
 import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+
+/**
+ * Default app icons - 8 distinct pixel art icons assigned randomly on app creation
+ */
+const DEFAULT_ICONS = [
+  '/icons/icon-red.png',
+  '/icons/icon-orange.png',
+  '/icons/icon-yellow.png',
+  '/icons/icon-green.png',
+  '/icons/icon-blue.png',
+  '/icons/icon-purple.png',
+  '/icons/icon-pink.png',
+  '/icons/icon-gray.png',
+];
+
+/**
+ * Get a random default icon for new apps
+ */
+function getRandomDefaultIcon(): string {
+  return DEFAULT_ICONS[Math.floor(Math.random() * DEFAULT_ICONS.length)];
+}
 
 /**
  * Service for App CRUD operations
@@ -60,6 +81,7 @@ export class AppService {
       slug,
       themeVariables,
       status: 'draft',
+      logoUrl: getRandomDefaultIcon(),
     });
 
     const saved = await this.appRepository.save(entity);
@@ -186,6 +208,20 @@ export class AppService {
   }
 
   /**
+   * Update app icon URL
+   */
+  async updateIcon(id: string, iconUrl: string): Promise<App> {
+    const entity = await this.appRepository.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`App with id ${id} not found`);
+    }
+
+    entity.logoUrl = iconUrl;
+    const saved = await this.appRepository.save(entity);
+    return this.entityToApp(saved);
+  }
+
+  /**
    * Delete an app and all its flows (cascade delete)
    */
   async delete(id: string): Promise<DeleteAppResponse> {
@@ -224,6 +260,7 @@ export class AppService {
       slug: entity.slug,
       themeVariables: entity.themeVariables,
       status: entity.status,
+      logoUrl: entity.logoUrl,
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),
     };

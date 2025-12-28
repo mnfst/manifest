@@ -11,6 +11,7 @@ export type {
   GenerateAppRequest,
   ChatRequest,
   ChatResponse,
+  IconUploadResponse,
 } from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';
 
@@ -18,13 +19,13 @@ export { LAYOUT_REGISTRY } from './types/app.js';
 export type {
   Flow,
   FlowWithApp,
+  FlowParameter,
+  ParameterType,
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
   FlowDeletionCheck,
   DeleteFlowResponse,
-  FlowParameter,
-  ParameterType,
 } from './types/flow.js';
 
 // View types

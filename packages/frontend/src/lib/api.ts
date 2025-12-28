@@ -32,6 +32,7 @@ import type {
   ReturnValue,
   CreateReturnValueRequest,
   UpdateReturnValueRequest,
+  IconUploadResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -43,7 +44,21 @@ const API_BASE = '/api';
  * Backend server URL for MCP endpoints (not proxied)
  * In production, this would come from environment variables
  */
-export const BACKEND_URL = 'http://localhost:3001';
+export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+/**
+ * Resolve icon URL - prepends backend URL for uploaded icons
+ * Default icons (in /icons/) are served from frontend, uploads from backend
+ */
+export function resolveIconUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  // Uploaded icons need backend URL prefix
+  if (url.startsWith('/uploads/')) {
+    return `${BACKEND_URL}${url}`;
+  }
+  // Default icons are served from frontend public folder
+  return url;
+}
 
 /**
  * Custom error class for API errors
@@ -155,6 +170,33 @@ export const api = {
     return fetchApi<DeleteAppResponse>(`/apps/${appId}`, {
       method: 'DELETE',
     });
+  },
+
+  /**
+   * Upload a custom app icon
+   * POST /api/apps/:appId/icon
+   */
+  async uploadAppIcon(appId: string, file: File): Promise<IconUploadResponse> {
+    const formData = new FormData();
+    formData.append('icon', file);
+
+    const response = await fetch(`${API_BASE}/apps/${appId}/icon`, {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type header - browser will set it with boundary for multipart
+    });
+
+    if (!response.ok) {
+      let errorData: ApiError = { message: 'Upload failed' };
+      try {
+        errorData = await response.json();
+      } catch {
+        // Use default error message
+      }
+      throw new ApiClientError(errorData.message, errorData.code, response.status);
+    }
+
+    return response.json();
   },
 
   /**

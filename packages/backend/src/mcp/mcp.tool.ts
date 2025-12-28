@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AppEntity } from '../entities/app.entity';
+import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
 import { ReturnValueEntity } from '../return-value/return-value.entity';

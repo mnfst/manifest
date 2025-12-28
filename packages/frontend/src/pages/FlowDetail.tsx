@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue } from '@chatgpt-app-builder/shared';
+import { Hammer, Eye, BookOpen } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
 import { Header } from '../components/layout/Header';
@@ -11,6 +12,9 @@ import { UserIntentModal } from '../components/flow/UserIntentModal';
 import { MockDataModal } from '../components/flow/MockDataModal';
 import { StepTypeDrawer, type StepType } from '../components/flow/StepTypeDrawer';
 import { ReturnValueEditor } from '../components/flow/ReturnValueEditor';
+import { Tabs } from '../components/common/Tabs';
+import { FlowPreview } from '../components/preview/FlowPreview';
+import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
  * Flow detail/editor page - Shows flow info and views list
@@ -60,6 +64,19 @@ function FlowDetail() {
   const [isSavingReturnValue, setIsSavingReturnValue] = useState(false);
   const [returnValueError, setReturnValueError] = useState<string | null>(null);
   const [isDeletingReturnValue, setIsDeletingReturnValue] = useState(false);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
+  const [previewKey, setPreviewKey] = useState(0);
+
+  // Handle tab changes with animation restart
+  const handleTabChange = (tab: FlowDetailTab) => {
+    setActiveTab(tab);
+    if (tab === 'preview') {
+      // Increment key to restart animation when switching to preview
+      setPreviewKey(prev => prev + 1);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -422,6 +439,13 @@ function FlowDetail() {
   if (hasViews) disabledStepTypes.push('returnValue');
   if (hasReturnValues) disabledStepTypes.push('view');
 
+  // Tab configuration with disabled state for Preview when no views
+  const tabs: TabConfig[] = [
+    { id: 'build', label: 'Build', icon: Hammer },
+    { id: 'preview', label: 'Preview', icon: Eye, disabled: !hasViews },
+    { id: 'usage', label: 'Usage', icon: BookOpen },
+  ];
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Global Header with App Switcher */}
@@ -540,57 +564,88 @@ function FlowDetail() {
         </div>
       </div>
 
-      {/* Steps Section - Full Width, fills remaining height */}
+      {/* Tabs and Main Content - Full Width, fills remaining height */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between border-b bg-background">
-          <div>
-            <h2 className="text-lg font-semibold">Steps</h2>
-            <p className="text-sm text-muted-foreground">
-              {stepCount === 0 ? 'No steps yet' : (
-                hasViews
-                  ? `${views.length} view${views.length !== 1 ? 's' : ''}`
-                  : `${returnValues.length} return value${returnValues.length !== 1 ? 's' : ''}`
-              )}
-            </p>
-          </div>
-          <button
-            onClick={handleAddStep}
-            disabled={isCreatingView || isSavingReturnValue}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
-          >
-            {isCreatingView || isSavingReturnValue ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                Add Step
-              </>
-            )}
-          </button>
+        {/* Tab bar */}
+        <div className="px-6 bg-background">
+          <Tabs
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            tabs={tabs}
+          />
         </div>
 
-        {/* Full-width Flow Diagram - fills remaining viewport height */}
-        <div className="flex-1 overflow-hidden">
-          <FlowDiagram
-            key={`flow-${flow.id}-${Boolean(flow.toolDescription?.trim())}`}
-            flow={flow}
-            views={views}
-            returnValues={returnValues}
-            onViewEdit={handleViewClick}
-            onViewDelete={handleViewDelete}
-            onReturnValueEdit={handleReturnValueEdit}
-            onReturnValueDelete={handleReturnValueDelete}
-            onUserIntentEdit={handleUserIntentEdit}
-            onMockDataEdit={handleMockDataEdit}
-            onAddUserIntent={handleUserIntentEdit}
-            onAddStep={handleAddStep}
-            canDelete={stepCount > 1}
-          />
+        {/* Tab Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Build Tab - Flow Diagram Editor */}
+          {activeTab === 'build' && (
+            <>
+              <div className="px-6 py-4 flex items-center justify-between border-b bg-background">
+                <div>
+                  <h2 className="text-lg font-semibold">Steps</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {stepCount === 0 ? 'No steps yet' : (
+                      hasViews
+                        ? `${views.length} view${views.length !== 1 ? 's' : ''}`
+                        : `${returnValues.length} return value${returnValues.length !== 1 ? 's' : ''}`
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={handleAddStep}
+                  disabled={isCreatingView || isSavingReturnValue}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isCreatingView || isSavingReturnValue ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                      </svg>
+                      Add Step
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Full-width Flow Diagram - fills remaining viewport height */}
+              <div className="flex-1 overflow-hidden">
+                <FlowDiagram
+                  key={`flow-${flow.id}-${Boolean(flow.toolDescription?.trim())}`}
+                  flow={flow}
+                  views={views}
+                  returnValues={returnValues}
+                  onViewEdit={handleViewClick}
+                  onViewDelete={handleViewDelete}
+                  onReturnValueEdit={handleReturnValueEdit}
+                  onReturnValueDelete={handleReturnValueDelete}
+                  onUserIntentEdit={handleUserIntentEdit}
+                  onMockDataEdit={handleMockDataEdit}
+                  onAddUserIntent={handleUserIntentEdit}
+                  onAddStep={handleAddStep}
+                  canDelete={stepCount > 1}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Preview Tab - ChatGPT Conversation Simulation */}
+          {activeTab === 'preview' && hasViews && (
+            <div className="flex-1 overflow-hidden">
+              <FlowPreview key={previewKey} flow={flow} app={app} />
+            </div>
+          )}
+
+          {/* Usage Tab - Coming Soon Placeholder */}
+          {activeTab === 'usage' && (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-muted-foreground text-lg">Coming Soon...</p>
+            </div>
+          )}
         </div>
       </main>
 

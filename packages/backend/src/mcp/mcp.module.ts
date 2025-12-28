@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { McpToolService } from './mcp.tool';
 import { UiController } from './ui.controller';
-import { AppEntity } from '../entities/app.entity';
+import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
 import { AppService } from '../app/app.service';

@@ -92,6 +92,13 @@ export interface DeleteAppResponse {
 }
 
 /**
+ * Response from icon upload
+ */
+export interface IconUploadResponse {
+  iconUrl: string;
+}
+
+/**
  * Legacy types for backwards compatibility during transition
  * @deprecated Use CreateAppRequest instead
  */

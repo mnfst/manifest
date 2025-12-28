@@ -48,3 +48,4 @@ data/
 *.tmp
 *.temp
 .cache/
+packages/backend/uploads/
