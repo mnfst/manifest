@@ -4,12 +4,22 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['Fira Code', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', 'monospace'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        nav: {
+          DEFAULT: 'hsl(var(--nav-bg))',
+          hover: 'hsl(var(--nav-hover))',
+          active: 'hsl(var(--nav-active))',
+          foreground: 'hsl(var(--nav-foreground))',
+        },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',

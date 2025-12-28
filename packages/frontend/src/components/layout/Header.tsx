@@ -1,7 +1,5 @@
-import { Link } from 'react-router-dom';
 import type { App } from '@chatgpt-app-builder/shared';
 import { AppSwitcher } from './AppSwitcher';
-import { UserAvatar } from './UserAvatar';
 
 interface HeaderProps {
   currentApp: App;
@@ -13,23 +11,10 @@ interface HeaderProps {
  */
 export function Header({ currentApp }: HeaderProps) {
   return (
-    <header className="border-b bg-card">
-      <div className="h-14 px-4 flex items-center justify-between">
-        {/* Left: Logo */}
-        <Link
-          to="/"
-          className="text-lg font-bold hover:opacity-80 transition-opacity"
-        >
-          Manifest
-        </Link>
-
+    <header className="bg-nav text-nav-foreground">
+      <div className="h-14 px-4 flex items-center justify-center">
         {/* Center: App Switcher */}
-        <div className="flex items-center">
-          <AppSwitcher currentApp={currentApp} />
-        </div>
-
-        {/* Right: User Avatar */}
-        <UserAvatar />
+        <AppSwitcher currentApp={currentApp} />
       </div>
     </header>
   );
