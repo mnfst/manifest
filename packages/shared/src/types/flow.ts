@@ -11,6 +11,8 @@ export interface Flow {
   description?: string;
   toolName: string;
   toolDescription: string;
+  whenToUse?: string;
+  whenNotToUse?: string;
   isActive: boolean;
   views?: View[];
   createdAt: string;
@@ -32,6 +34,8 @@ export interface UpdateFlowRequest {
   description?: string;
   toolName?: string;
   toolDescription?: string;
+  whenToUse?: string;
+  whenNotToUse?: string;
   isActive?: boolean;
 }
 

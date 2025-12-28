@@ -130,26 +130,38 @@ export class McpToolService {
       where: { appId: app.id, isActive: true },
     });
 
-    return flows.map((flow) => ({
-      name: flow.toolName,
-      description: flow.toolDescription || `Execute the ${flow.name} flow`,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          message: {
-            type: 'string',
-            description: 'User query or request',
+    return flows.map((flow) => {
+      // Build composite description with whenToUse/whenNotToUse
+      const parts = [flow.toolDescription || `Execute the ${flow.name} flow`];
+      if (flow.whenToUse) {
+        parts.push(`\nWHEN TO USE:\n${flow.whenToUse}`);
+      }
+      if (flow.whenNotToUse) {
+        parts.push(`\nWHEN NOT TO USE:\n${flow.whenNotToUse}`);
+      }
+      const description = parts.join('');
+
+      return {
+        name: flow.toolName,
+        description,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            message: {
+              type: 'string',
+              description: 'User query or request',
+            },
           },
+          required: ['message'],
         },
-        required: ['message'],
-      },
-      // ChatGPT Apps SDK: Link tool to UI widget
-      _meta: {
-        'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}.html`,
-        'openai/toolInvocation/invoking': `Loading ${flow.name}...`,
-        'openai/toolInvocation/invoked': `Loaded ${flow.name}`,
-      },
-    }));
+        // ChatGPT Apps SDK: Link tool to UI widget
+        _meta: {
+          'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}.html`,
+          'openai/toolInvocation/invoking': `Loading ${flow.name}...`,
+          'openai/toolInvocation/invoked': `Loaded ${flow.name}`,
+        },
+      };
+    });
   }
 
   /**

@@ -61,6 +61,8 @@ export class FlowController {
       description: entity.description,
       toolName: entity.toolName,
       toolDescription: entity.toolDescription,
+      whenToUse: entity.whenToUse,
+      whenNotToUse: entity.whenNotToUse,
       isActive: entity.isActive ?? true,
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),
@@ -109,6 +111,8 @@ export class FlowController {
       description: result.description,
       toolName: result.toolName,
       toolDescription: result.toolDescription,
+      whenToUse: result.whenToUse,
+      whenNotToUse: result.whenNotToUse,
     });
 
     // Create initial view with generated data

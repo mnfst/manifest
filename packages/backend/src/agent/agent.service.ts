@@ -31,6 +31,8 @@ export interface GenerateFlowResult {
   description: string;
   toolName: string;
   toolDescription: string;
+  whenToUse: string;
+  whenNotToUse: string;
   layoutTemplate: LayoutTemplate;
   mockData: MockData;
 }
@@ -129,6 +131,8 @@ export class AgentService {
       description: toolData.appDescription,
       toolName: toolData.toolName,
       toolDescription: toolData.toolDescription,
+      whenToUse: toolData.whenToUse,
+      whenNotToUse: toolData.whenNotToUse,
       layoutTemplate,
       mockData,
     };

@@ -15,6 +15,8 @@ const toolGeneratorSchema = z.object({
 export interface ToolGeneratorOutput {
   toolName: string;
   toolDescription: string;
+  whenToUse: string;
+  whenNotToUse: string;
   appName: string;
   appDescription: string;
 }
@@ -86,14 +88,23 @@ The description should explain what the tool does, when to use it, and what info
       : 'Returns content in a list/feed format';
 
     const toolDescription = `${capitalize(action)} ${domain}s based on user queries. ${layoutContext}. ` +
-      `Use this tool when the user asks about ${domain}-related information. ` +
       `Provide relevant search terms or identifiers for best results.`;
+
+    // Generate whenToUse based on domain and action
+    const whenToUse = `When the user asks about ${domain}-related information, wants to ${action} ${domain}s, ` +
+      `or needs to look up specific ${domain} details.`;
+
+    // Generate whenNotToUse based on domain
+    const whenNotToUse = `When the user wants to create, modify, or delete ${domain}s. ` +
+      `This tool is read-only and designed for querying existing data.`;
 
     const appDescription = `A ChatGPT app that helps users ${action} and explore ${domain} information.`;
 
     const result: ToolGeneratorOutput = {
       toolName,
       toolDescription,
+      whenToUse,
+      whenNotToUse,
       appName,
       appDescription,
     };
