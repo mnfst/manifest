@@ -78,6 +78,8 @@ import { PostListDemo } from '@/components/blocks/post-list-demo'
 // List components
 import { ProductList } from '@/registry/list/product-list'
 import { Table } from '@/registry/list/table'
+import { TableFooter } from '@/registry/list/table-footer'
+import { TableHeader } from '@/registry/list/table-header'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -220,35 +222,6 @@ const categories: Category[] = [
     name: 'List',
     blocks: [
       {
-        id: 'table',
-        name: 'Table',
-        description: 'Data table with optional selection',
-        registryName: 'table',
-        layouts: ['inline'],
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <Table />,
-            usageCode: `<Table />`
-          },
-          {
-            id: 'single-select',
-            name: 'Single Select',
-            component: <Table appearance={{ selectable: 'single' }} />,
-            usageCode: `<Table appearance={{ selectable: "single" }} />`
-          },
-          {
-            id: 'multi-select',
-            name: 'Multi Select',
-            component: (
-              <Table appearance={{ selectable: 'multi', showActions: true }} />
-            ),
-            usageCode: `<Table appearance={{ selectable: "multi", showActions: true }} />`
-          }
-        ]
-      },
-      {
         id: 'product-list',
         name: 'Product List',
         description: 'Display products in various layouts',
@@ -278,6 +251,104 @@ const categories: Category[] = [
             name: 'Picker',
             component: <ProductList appearance={{ variant: 'picker' }} />,
             usageCode: `<ProductList appearance={{ variant: "picker" }} />`
+          }
+        ]
+      },
+      {
+        id: 'table',
+        name: 'Table',
+        description: 'Data table with header, footer, expand to fullscreen, and optional selection',
+        registryName: 'table',
+        layouts: ['inline', 'fullscreen'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <Table data={{ title: 'API Usage' }} />,
+            usageCode: `<Table data={{ title: "API Usage" }} />`
+          },
+          {
+            id: 'single-select',
+            name: 'Single Select',
+            component: <Table data={{ title: 'Models' }} appearance={{ selectable: 'single' }} />,
+            usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} />`
+          },
+          {
+            id: 'multi-select',
+            name: 'Multi Select',
+            component: (
+              <Table data={{ title: 'Export Data' }} appearance={{ selectable: 'multi', showActions: true }} />
+            ),
+            usageCode: `<Table data={{ title: "Export Data" }} appearance={{ selectable: "multi", showActions: true }} />`
+          }
+        ]
+      },
+      {
+        id: 'table-header',
+        name: 'Table Header',
+        description: 'Header for tables with optional title, image, and expand button',
+        registryName: 'table-header',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Image + Title + Expand',
+            component: (
+              <TableHeader
+                data={{ title: 'API Usage', titleImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=40&h=40&fit=crop' }}
+                actions={{ onExpand: () => {} }}
+              />
+            ),
+            usageCode: `<TableHeader data={{ title: "API Usage", titleImage: "..." }} actions={{ onExpand: () => {} }} />`
+          },
+          {
+            id: 'title-expand',
+            name: 'Title + Expand',
+            component: (
+              <TableHeader
+                data={{ title: 'Recent Orders' }}
+                actions={{ onExpand: () => {} }}
+              />
+            ),
+            usageCode: `<TableHeader data={{ title: "Recent Orders" }} actions={{ onExpand: () => {} }} />`
+          },
+          {
+            id: 'image-title',
+            name: 'Image + Title (No Expand)',
+            component: (
+              <TableHeader
+                data={{ title: 'Analytics', titleImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=40&h=40&fit=crop' }}
+                appearance={{ showExpand: false }}
+              />
+            ),
+            usageCode: `<TableHeader data={{ title: "Analytics", titleImage: "..." }} appearance={{ showExpand: false }} />`
+          }
+        ]
+      },
+      {
+        id: 'table-footer',
+        name: 'Table Footer',
+        description: 'Footer showing remaining items, timestamp, and refresh action',
+        registryName: 'table-footer',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <TableFooter />,
+            usageCode: `<TableFooter />`
+          },
+          {
+            id: 'no-more',
+            name: 'Without More Count',
+            component: <TableFooter appearance={{ showMoreCount: false }} />,
+            usageCode: `<TableFooter appearance={{ showMoreCount: false }} />`
+          },
+          {
+            id: 'timestamp-only',
+            name: 'Timestamp Only',
+            component: <TableFooter appearance={{ showMoreCount: false, showRefresh: false }} />,
+            usageCode: `<TableFooter appearance={{ showMoreCount: false, showRefresh: false }} />`
           }
         ]
       }

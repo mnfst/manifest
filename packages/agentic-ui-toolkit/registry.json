@@ -342,15 +342,29 @@
       ]
     },
     {
-      "name": "list-footer",
+      "name": "table-header",
       "type": "registry:component",
-      "title": "List Footer",
-      "description": "Footer for lists showing item count, timestamp, and refresh button.",
+      "title": "Table Header",
+      "description": "Header for tables with optional title, image, and expand button.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/list/list-footer.tsx",
+          "path": "registry/list/table-header.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "table-footer",
+      "type": "registry:component",
+      "title": "Table Footer",
+      "description": "Footer for tables showing item count, timestamp, and refresh button.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/list/table-footer.tsx",
           "type": "registry:component"
         }
       ]
