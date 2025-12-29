@@ -342,6 +342,20 @@
       ]
     },
     {
+      "name": "list-footer",
+      "type": "registry:component",
+      "title": "List Footer",
+      "description": "Footer for lists showing item count, timestamp, and refresh button.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/list/list-footer.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "message-bubble",
       "type": "registry:component",
       "title": "Message Bubble",

@@ -192,16 +192,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
         )}
 
         <div className="p-4">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {post.category && (
-              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                {post.category}
-              </span>
-            )}
-            {post.tags && post.tags.length > 0 && (
-              <TagList tags={post.tags} maxVisible={2} size="small" />
-            )}
-          </div>
+          {post.category && (
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {post.category}
+            </p>
+          )}
 
           <h1 className="text-xl font-bold">{post.title}</h1>
 
@@ -221,6 +216,12 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <p className="mt-3 text-sm text-muted-foreground">
             {truncatedContent}
           </p>
+
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <TagList tags={post.tags} maxVisible={2} size="small" />
+            </div>
+          )}
 
           <div className="mt-4">
             <Button onClick={onReadMore}>
@@ -245,20 +246,21 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
             />
           </div>
         )}
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          {post.category && (
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              {post.category}
-            </span>
-          )}
-          {post.tags && post.tags.length > 0 && (
-            <TagList tags={post.tags} maxVisible={2} size="default" />
-          )}
-        </div>
+        {post.category && (
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {post.category}
+          </p>
+        )}
 
         <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
           {post.title}
         </h1>
+
+        {post.tags && post.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <TagList tags={post.tags} maxVisible={2} size="default" />
+          </div>
+        )}
 
         {showAuthor && (
           <div className="mt-8 flex items-center gap-4 border-b pb-8">
