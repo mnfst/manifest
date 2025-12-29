@@ -3,19 +3,21 @@
 import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
 
 export interface XPostProps {
-  author?: string
-  username?: string
-  avatar?: string
-  content?: string
-  time?: string
-  likes?: string
-  retweets?: string
-  replies?: string
-  views?: string
-  verified?: boolean
+  data?: {
+    author?: string
+    username?: string
+    avatar?: string
+    content?: string
+    time?: string
+    likes?: string
+    retweets?: string
+    replies?: string
+    views?: string
+    verified?: boolean
+  }
 }
 
-const defaultProps: XPostProps = {
+const defaultData = {
   author: "Manifest",
   username: "manifest",
   avatar: "M",
@@ -28,18 +30,19 @@ const defaultProps: XPostProps = {
   verified: true
 }
 
-export function XPost({
-  author = defaultProps.author,
-  username = defaultProps.username,
-  avatar = defaultProps.avatar,
-  content = defaultProps.content,
-  time = defaultProps.time,
-  likes = defaultProps.likes,
-  retweets = defaultProps.retweets,
-  replies = defaultProps.replies,
-  views = defaultProps.views,
-  verified = defaultProps.verified
-}: XPostProps) {
+export function XPost({ data }: XPostProps) {
+  const {
+    author = defaultData.author,
+    username = defaultData.username,
+    avatar = defaultData.avatar,
+    content = defaultData.content,
+    time = defaultData.time,
+    likes = defaultData.likes,
+    retweets = defaultData.retweets,
+    replies = defaultData.replies,
+    views = defaultData.views,
+    verified = defaultData.verified
+  } = data ?? {}
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex gap-3">

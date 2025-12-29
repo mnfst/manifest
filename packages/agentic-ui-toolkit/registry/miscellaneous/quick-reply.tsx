@@ -17,8 +17,12 @@ export interface QuickReply {
 }
 
 export interface QuickReplyProps {
-  replies?: QuickReply[]
-  onSelectReply?: (reply: QuickReply) => void
+  data?: {
+    replies?: QuickReply[]
+  }
+  actions?: {
+    onSelectReply?: (reply: QuickReply) => void
+  }
 }
 
 const defaultReplies: QuickReply[] = [
@@ -28,10 +32,9 @@ const defaultReplies: QuickReply[] = [
   { id: '4', label: 'View details' }
 ]
 
-export function QuickReply({
-  replies = defaultReplies,
-  onSelectReply
-}: QuickReplyProps) {
+export function QuickReply({ data, actions }: QuickReplyProps) {
+  const { replies = defaultReplies } = data ?? {}
+  const { onSelectReply } = actions ?? {}
   return (
     <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">

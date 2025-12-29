@@ -44,22 +44,24 @@ const defaultPost: BlogPost = {
 }
 
 export interface BlogPostCardProps {
-  post?: BlogPost
-  variant?: 'default' | 'compact' | 'horizontal' | 'covered'
-  showImage?: boolean
-  showAuthor?: boolean
-  showCategory?: boolean
-  onReadMore?: (post: BlogPost) => void
+  data?: {
+    post?: BlogPost
+  }
+  actions?: {
+    onReadMore?: (post: BlogPost) => void
+  }
+  appearance?: {
+    variant?: 'default' | 'compact' | 'horizontal' | 'covered'
+    showImage?: boolean
+    showAuthor?: boolean
+    showCategory?: boolean
+  }
 }
 
-export function BlogPostCard({
-  post = defaultPost,
-  variant = 'default',
-  showImage = true,
-  showAuthor = true,
-  showCategory = true,
-  onReadMore
-}: BlogPostCardProps) {
+export function BlogPostCard({ data, actions, appearance }: BlogPostCardProps) {
+  const { post = defaultPost } = data ?? {}
+  const { onReadMore } = actions ?? {}
+  const { variant = 'default', showImage = true, showAuthor = true, showCategory = true } = appearance ?? {}
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',

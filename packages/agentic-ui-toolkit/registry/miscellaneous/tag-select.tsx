@@ -19,14 +19,22 @@ export interface Tag {
 }
 
 export interface TagSelectProps {
-  tags?: Tag[]
-  selectedTagIds?: string[]
-  onSelectTags?: (tagIds: string[]) => void
-  mode?: 'single' | 'multiple'
-  showClear?: boolean
-  showValidate?: boolean
-  validateLabel?: string
-  onValidate?: (tagIds: string[]) => void
+  data?: {
+    tags?: Tag[]
+  }
+  actions?: {
+    onSelectTags?: (tagIds: string[]) => void
+    onValidate?: (tagIds: string[]) => void
+  }
+  appearance?: {
+    mode?: 'single' | 'multiple'
+    showClear?: boolean
+    showValidate?: boolean
+    validateLabel?: string
+  }
+  control?: {
+    selectedTagIds?: string[]
+  }
 }
 
 const defaultTags: Tag[] = [
@@ -44,16 +52,11 @@ const tagClasses = {
   unselected: 'bg-background text-foreground border-border hover:bg-muted'
 }
 
-export function TagSelect({
-  tags = defaultTags,
-  selectedTagIds = [],
-  onSelectTags,
-  mode = 'multiple',
-  showClear = true,
-  showValidate = true,
-  validateLabel = 'Validate selection',
-  onValidate
-}: TagSelectProps) {
+export function TagSelect({ data, actions, appearance, control }: TagSelectProps) {
+  const { tags = defaultTags } = data ?? {}
+  const { onSelectTags, onValidate } = actions ?? {}
+  const { mode = 'multiple', showClear = true, showValidate = true, validateLabel = 'Validate selection' } = appearance ?? {}
+  const { selectedTagIds = [] } = control ?? {}
   const [selected, setSelected] = useState<string[]>(selectedTagIds)
 
   const handleToggle = (tagId: string) => {

@@ -10,17 +10,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export interface LinkedInPostProps {
-  author?: string
-  headline?: string
-  avatar?: string
-  content?: string
-  likes?: string
-  comments?: string
-  reposts?: string
-  time?: string
+  data?: {
+    author?: string
+    headline?: string
+    avatar?: string
+    content?: string
+    likes?: string
+    comments?: string
+    reposts?: string
+    time?: string
+  }
 }
 
-const defaultProps: LinkedInPostProps = {
+const defaultData = {
   author: "Manifest",
   headline: "Agentic UI Toolkit | 10K+ Developers",
   avatar: "M",
@@ -31,16 +33,17 @@ const defaultProps: LinkedInPostProps = {
   time: "2h"
 }
 
-export function LinkedInPost({
-  author = defaultProps.author,
-  headline = defaultProps.headline,
-  avatar = defaultProps.avatar,
-  content = defaultProps.content,
-  likes = defaultProps.likes,
-  comments = defaultProps.comments,
-  reposts = defaultProps.reposts,
-  time = defaultProps.time
-}: LinkedInPostProps) {
+export function LinkedInPost({ data }: LinkedInPostProps) {
+  const {
+    author = defaultData.author,
+    headline = defaultData.headline,
+    avatar = defaultData.avatar,
+    content = defaultData.content,
+    likes = defaultData.likes,
+    comments = defaultData.comments,
+    reposts = defaultData.reposts,
+    time = defaultData.time
+  } = data ?? {}
   return (
     <div className="rounded-xl border bg-card">
       <div className="p-4">

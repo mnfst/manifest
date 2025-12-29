@@ -88,26 +88,29 @@ import { PaymentMethods } from '@/registry/payment/payment-methods'
 import { PaymentSuccess } from '@/registry/payment/payment-success'
 
 // Messaging components
+import { ChatConversation } from '@/registry/messaging/chat-conversation'
 import {
   ImageMessageBubble,
   MessageBubble,
   MessageWithReactions,
   VoiceMessageBubble
 } from '@/registry/messaging/message-bubble'
-import { ChatConversation } from '@/registry/messaging/chat-conversation'
 import { QuickReply } from '@/registry/miscellaneous/quick-reply'
 
 // Miscellaneous components
-import { OptionList } from '@/registry/miscellaneous/option-list'
-import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
-import { Skeleton, SkeletonProductCard, SkeletonStats } from '@/registry/miscellaneous/skeleton'
-import { XPost } from '@/registry/miscellaneous/x-post'
 import { InstagramPost } from '@/registry/miscellaneous/instagram-post'
 import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
-import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
+import { OptionList } from '@/registry/miscellaneous/option-list'
+import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
+import {
+  SkeletonProductCard,
+  SkeletonStats
+} from '@/registry/miscellaneous/skeleton'
 import { Stats } from '@/registry/miscellaneous/stat-card'
 import { StatusBadge } from '@/registry/miscellaneous/status-badge'
 import { TagSelect } from '@/registry/miscellaneous/tag-select'
+import { XPost } from '@/registry/miscellaneous/x-post'
+import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 
 // UI components
 import { GettingStarted } from '@/components/blocks/getting-started'
@@ -146,7 +149,8 @@ const categories: Category[] = [
       {
         id: 'post-card',
         name: 'Post Card',
-        description: 'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
+        description:
+          'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
         registryName: 'blog-post-card',
         layouts: ['inline', 'fullscreen'],
         variants: [
@@ -159,26 +163,26 @@ const categories: Category[] = [
           {
             id: 'no-image',
             name: 'Without Image',
-            component: <BlogPostCardDemo showImage={false} />,
-            usageCode: `<BlogPostCard showImage={false} />`
+            component: <BlogPostCardDemo appearance={{ showImage: false }} />,
+            usageCode: `<BlogPostCard appearance={{ showImage: false }} />`
           },
           {
             id: 'compact',
             name: 'Compact',
-            component: <BlogPostCardDemo variant="compact" />,
-            usageCode: `<BlogPostCard variant="compact" />`
+            component: <BlogPostCardDemo appearance={{ variant: 'compact' }} />,
+            usageCode: `<BlogPostCard appearance={{ variant: "compact" }} />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <BlogPostCardDemo variant="horizontal" />,
-            usageCode: `<BlogPostCard variant="horizontal" />`
+            component: <BlogPostCardDemo appearance={{ variant: 'horizontal' }} />,
+            usageCode: `<BlogPostCard appearance={{ variant: "horizontal" }} />`
           },
           {
             id: 'covered',
             name: 'Covered',
-            component: <BlogPostCardDemo variant="covered" />,
-            usageCode: `<BlogPostCard variant="covered" />`
+            component: <BlogPostCardDemo appearance={{ variant: 'covered' }} />,
+            usageCode: `<BlogPostCard appearance={{ variant: "covered" }} />`
           }
         ]
       },
@@ -192,20 +196,20 @@ const categories: Category[] = [
           {
             id: 'list',
             name: 'List',
-            component: <BlogPostList variant="list" />,
-            usageCode: `<BlogPostList variant="list" />`
+            component: <BlogPostList appearance={{ variant: 'list' }} />,
+            usageCode: `<BlogPostList appearance={{ variant: "list" }} />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <BlogPostList variant="grid" />,
-            usageCode: `<BlogPostList variant="grid" />`
+            component: <BlogPostList appearance={{ variant: 'grid' }} />,
+            usageCode: `<BlogPostList appearance={{ variant: "grid" }} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <BlogPostList variant="carousel" />,
-            usageCode: `<BlogPostList variant="carousel" />`
+            component: <BlogPostList appearance={{ variant: 'carousel' }} />,
+            usageCode: `<BlogPostList appearance={{ variant: "carousel" }} />`
           }
         ]
       }
@@ -231,14 +235,16 @@ const categories: Category[] = [
           {
             id: 'single-select',
             name: 'Single Select',
-            component: <Table selectable="single" />,
-            usageCode: `<Table selectable="single" />`
+            component: <Table appearance={{ selectable: 'single' }} />,
+            usageCode: `<Table appearance={{ selectable: "single" }} />`
           },
           {
             id: 'multi-select',
             name: 'Multi Select',
-            component: <Table selectable="multi" showActions />,
-            usageCode: `<Table selectable="multi" showActions />`
+            component: (
+              <Table appearance={{ selectable: 'multi', showActions: true }} />
+            ),
+            usageCode: `<Table appearance={{ selectable: "multi", showActions: true }} />`
           }
         ]
       },
@@ -252,26 +258,26 @@ const categories: Category[] = [
           {
             id: 'list',
             name: 'List',
-            component: <ProductList variant="list" />,
-            usageCode: `<ProductList variant="list" />`
+            component: <ProductList appearance={{ variant: 'list' }} />,
+            usageCode: `<ProductList appearance={{ variant: "list" }} />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <ProductList variant="grid" />,
-            usageCode: `<ProductList variant="grid" />`
+            component: <ProductList appearance={{ variant: 'grid' }} />,
+            usageCode: `<ProductList appearance={{ variant: "grid" }} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <ProductList variant="carousel" />,
-            usageCode: `<ProductList variant="carousel" />`
+            component: <ProductList appearance={{ variant: 'carousel' }} />,
+            usageCode: `<ProductList appearance={{ variant: "carousel" }} />`
           },
           {
             id: 'picker',
             name: 'Picker',
-            component: <ProductList variant="picker" />,
-            usageCode: `<ProductList variant="picker" />`
+            component: <ProductList appearance={{ variant: 'picker' }} />,
+            usageCode: `<ProductList appearance={{ variant: "picker" }} />`
           }
         ]
       }
@@ -390,20 +396,24 @@ const categories: Category[] = [
             component: (
               <div className="space-y-3">
                 <MessageBubble
-                  content="Hey! How are you doing today?"
-                  avatar="S"
-                  time="Dec 8, 10:30 AM"
+                  data={{
+                    content: 'Hey! How are you doing today?',
+                    avatar: 'S',
+                    time: 'Dec 8, 10:30 AM'
+                  }}
                 />
                 <MessageBubble
-                  content="I'm doing great, thanks for asking!"
-                  avatar="Y"
-                  time="Dec 8, 10:31 AM"
-                  isOwn
-                  status="read"
+                  data={{
+                    content: "I'm doing great, thanks for asking!",
+                    avatar: 'Y',
+                    time: 'Dec 8, 10:31 AM'
+                  }}
+                  appearance={{ isOwn: true }}
+                  control={{ status: 'read' }}
                 />
               </div>
             ),
-            usageCode: `<MessageBubble content="Hello!" avatar="S" time="10:30 AM" />`
+            usageCode: `<MessageBubble data={{ content: "Hello!", avatar: "S", time: "10:30 AM" }} />`
           },
           {
             id: 'image',
@@ -411,37 +421,45 @@ const categories: Category[] = [
             component: (
               <div className="space-y-3">
                 <ImageMessageBubble
-                  image="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop"
-                  caption="Check out this view!"
-                  avatar="A"
-                  time="Dec 8, 2:45 PM"
+                  data={{
+                    image:
+                      'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
+                    caption: 'Check out this view!',
+                    avatar: 'A',
+                    time: 'Dec 8, 2:45 PM'
+                  }}
                 />
                 <ImageMessageBubble
-                  image="https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop"
-                  time="Dec 8, 2:46 PM"
-                  isOwn
-                  status="delivered"
+                  data={{
+                    image:
+                      'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop',
+                    time: 'Dec 8, 2:46 PM'
+                  }}
+                  appearance={{ isOwn: true }}
+                  control={{ status: 'delivered' }}
                 />
               </div>
             ),
-            usageCode: `<ImageMessageBubble image="..." caption="Check out this view!" avatar="A" />`
+            usageCode: `<ImageMessageBubble data={{ image: "...", caption: "Check out this view!", avatar: "A" }} />`
           },
           {
             id: 'reactions',
             name: 'With Reactions',
             component: (
               <MessageWithReactions
-                content="We just hit 10,000 users!"
-                avatar="T"
-                time="Dec 8, 4:20 PM"
-                reactions={[
-                  { emoji: '🎉', count: 5 },
-                  { emoji: '❤️', count: 3 },
-                  { emoji: '👏', count: 2 }
-                ]}
+                data={{
+                  content: 'We just hit 10,000 users!',
+                  avatar: 'T',
+                  time: 'Dec 8, 4:20 PM',
+                  reactions: [
+                    { emoji: '🎉', count: 5 },
+                    { emoji: '❤️', count: 3 },
+                    { emoji: '👏', count: 2 }
+                  ]
+                }}
               />
             ),
-            usageCode: `<MessageWithReactions content="..." reactions={[{ emoji: '🎉', count: 5 }]} />`
+            usageCode: `<MessageWithReactions data={{ content: "...", reactions: [{ emoji: '🎉', count: 5 }] }} />`
           },
           {
             id: 'voice',
@@ -449,20 +467,24 @@ const categories: Category[] = [
             component: (
               <div className="space-y-3">
                 <VoiceMessageBubble
-                  duration="0:42"
-                  avatar="M"
-                  time="Dec 8, 3:15 PM"
+                  data={{
+                    duration: '0:42',
+                    avatar: 'M',
+                    time: 'Dec 8, 3:15 PM'
+                  }}
                 />
                 <VoiceMessageBubble
-                  duration="1:23"
-                  avatar="Y"
-                  time="Dec 8, 3:17 PM"
-                  isOwn
-                  status="read"
+                  data={{
+                    duration: '1:23',
+                    avatar: 'Y',
+                    time: 'Dec 8, 3:17 PM'
+                  }}
+                  appearance={{ isOwn: true }}
+                  control={{ status: 'read' }}
                 />
               </div>
             ),
-            usageCode: `<VoiceMessageBubble duration="0:42" avatar="M" />`
+            usageCode: `<VoiceMessageBubble data={{ duration: "0:42", avatar: "M" }} />`
           }
         ]
       },
@@ -559,15 +581,15 @@ const categories: Category[] = [
             name: 'All Statuses',
             component: (
               <div className="flex flex-wrap gap-2 bg-white dark:bg-zinc-900 p-4 rounded-md">
-                <StatusBadge status="success" />
-                <StatusBadge status="pending" />
-                <StatusBadge status="processing" />
-                <StatusBadge status="shipped" />
-                <StatusBadge status="delivered" />
-                <StatusBadge status="error" />
+                <StatusBadge data={{ status: 'success' }} />
+                <StatusBadge data={{ status: 'pending' }} />
+                <StatusBadge data={{ status: 'processing' }} />
+                <StatusBadge data={{ status: 'shipped' }} />
+                <StatusBadge data={{ status: 'delivered' }} />
+                <StatusBadge data={{ status: 'error' }} />
               </div>
             ),
-            usageCode: `<StatusBadge status="success" />`
+            usageCode: `<StatusBadge data={{ status: "success" }} />`
           }
         ]
       },
@@ -617,7 +639,7 @@ const categories: Category[] = [
                 <SkeletonStats />
               </div>
             ),
-            usageCode: `<Skeleton className="h-4 w-32" />`
+            usageCode: `<Skeleton appearance={{ className: "h-4 w-32" }} />`
           }
         ]
       },
@@ -758,9 +780,12 @@ function BlocksContent() {
                       key={layout}
                       className={cn(
                         'px-2 py-0.5 text-xs font-medium rounded-full',
-                        layout === 'inline' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                        layout === 'fullscreen' && 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-                        layout === 'pip' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                        layout === 'inline' &&
+                          'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                        layout === 'fullscreen' &&
+                          'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                        layout === 'pip' &&
+                          'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                       )}
                     >
                       {layout}

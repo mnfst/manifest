@@ -30,14 +30,22 @@ export interface Product {
 }
 
 export interface ProductListProps {
-  products?: Product[]
-  variant?: 'list' | 'grid' | 'carousel' | 'picker'
-  currency?: string
-  columns?: 3 | 4
-  onSelectProduct?: (product: Product) => void
-  selectedProductId?: string
-  onAddToCart?: (products: Product[]) => void
-  buttonLabel?: string
+  data?: {
+    products?: Product[]
+  }
+  actions?: {
+    onSelectProduct?: (product: Product) => void
+    onAddToCart?: (products: Product[]) => void
+  }
+  appearance?: {
+    variant?: 'list' | 'grid' | 'carousel' | 'picker'
+    currency?: string
+    columns?: 3 | 4
+    buttonLabel?: string
+  }
+  control?: {
+    selectedProductId?: string
+  }
 }
 
 const defaultProducts: Product[] = [
@@ -777,16 +785,11 @@ function PickerVariant({
   )
 }
 
-export function ProductList({
-  products = defaultProducts,
-  variant = 'list',
-  currency = 'EUR',
-  columns = 4,
-  onSelectProduct,
-  selectedProductId,
-  onAddToCart,
-  buttonLabel
-}: ProductListProps) {
+export function ProductList({ data, actions, appearance, control }: ProductListProps) {
+  const { products = defaultProducts } = data ?? {}
+  const { onSelectProduct, onAddToCart } = actions ?? {}
+  const { variant = 'list', currency = 'EUR', columns = 4, buttonLabel } = appearance ?? {}
+  const { selectedProductId } = control ?? {}
   const [selected, setSelected] = useState<string | undefined>(selectedProductId)
 
   const formatCurrency = (value: number) => {

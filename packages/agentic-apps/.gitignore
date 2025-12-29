@@ -1,0 +1,6 @@
+dist
+node_modules
+vite.config.js
+vite.config.js.map
+vite.config.d.ts
+vite.config.d.ts.map

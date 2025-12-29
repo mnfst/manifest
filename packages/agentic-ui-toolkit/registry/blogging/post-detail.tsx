@@ -4,6 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Calendar, Clock } from 'lucide-react'
 import { BlogPost } from './blog-post-card'
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '')
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength).trim() + '...'
+}
+
 const defaultPost: BlogPost = {
   id: '1',
   title: 'Getting Started with Agentic UI Components',
@@ -84,35 +93,27 @@ const defaultRelatedPosts: BlogPost[] = [
 ]
 
 export interface PostDetailProps {
-  post?: BlogPost
-  content?: string
-  showCover?: boolean
-  showAuthor?: boolean
-  relatedPosts?: BlogPost[]
-  displayMode?: 'inline' | 'fullscreen'
-  onReadMore?: () => void
-  onReadRelated?: (post: BlogPost) => void
+  data?: {
+    post?: BlogPost
+    content?: string
+    relatedPosts?: BlogPost[]
+  }
+  actions?: {
+    onBack?: () => void
+    onReadMore?: () => void
+    onReadRelated?: (post: BlogPost) => void
+  }
+  appearance?: {
+    showCover?: boolean
+    showAuthor?: boolean
+    displayMode?: 'inline' | 'fullscreen'
+  }
 }
 
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-}
-
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text
-  return text.slice(0, maxLength).trim() + '...'
-}
-
-export function PostDetail({
-  post = defaultPost,
-  content = defaultContent,
-  showCover = true,
-  showAuthor = true,
-  relatedPosts = defaultRelatedPosts,
-  displayMode = 'inline',
-  onReadMore,
-  onReadRelated
-}: PostDetailProps) {
+export function PostDetail({ data, actions, appearance }: PostDetailProps) {
+  const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
+  const { onBack, onReadMore, onReadRelated } = actions ?? {}
+  const { showCover = true, showAuthor = true, displayMode = 'fullscreen' } = appearance ?? {}
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'long',

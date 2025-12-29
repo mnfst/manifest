@@ -1,9 +1,14 @@
 'use client'
 
-import { CodeBlock } from '@/components/blocks/code-block'
+import dynamic from 'next/dynamic'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useEffect, useState } from 'react'
+
+const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
+  ssr: false,
+  loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
+})
 
 interface VariantSectionProps {
   name: string

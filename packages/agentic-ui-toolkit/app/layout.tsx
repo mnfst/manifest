@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Manifest Agentic UI Toolkit',
+  title: 'ChatGPT apps shadcn/ui components - Manifest UI',
   description:
-    'Beautiful UI blocks for building conversational interfaces. Ready-to-use components for ChatGPT, Claude, and other AI assistants.',
+    'A collection of beautifully designed components for building ChatGPT apps and agentic UIs. Built on top of shadcn/ui.',
   metadataBase: new URL('https://ui.manifest.build'),
   icons: {
     icon: [
@@ -28,11 +28,11 @@ export const metadata: Metadata = {
     apple: '/favicon.png'
   },
   openGraph: {
-    title: 'Manifest Agentic UI Toolkit',
+    title: 'ChatGPT apps shadcn/ui components - Manifest UI',
     description:
-      'Beautiful UI blocks for building conversational interfaces. Ready-to-use components for ChatGPT, Claude, and other AI assistants.',
+      'A collection of beautifully designed components for building ChatGPT apps and agentic UIs. Built on top of shadcn/ui.',
     url: 'https://ui.manifest.build',
-    siteName: 'Manifest Agentic UI Toolkit',
+    siteName: 'ChatGPT apps shadcn/ui components - Manifest UI',
     locale: 'en_US',
     type: 'website',
     images: [
@@ -46,8 +46,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Manifest Agentic UI Toolkit',
-    description: 'Beautiful UI blocks for building conversational interfaces.',
+    title: 'ChatGPT apps shadcn/ui components - Manifest UI',
+    description:
+      'Beautifully designed components for building ChatGPT apps and agentic UIs. Built on top of shadcn/ui.',
     images: ['/og-image.png']
   }
 }

@@ -74,22 +74,24 @@ const defaultPosts: BlogPost[] = [
 ]
 
 export interface BlogPostListProps {
-  posts?: BlogPost[]
-  variant?: 'list' | 'grid' | 'carousel'
-  columns?: 2 | 3
-  showAuthor?: boolean
-  showCategory?: boolean
-  onReadMore?: (post: BlogPost) => void
+  data?: {
+    posts?: BlogPost[]
+  }
+  actions?: {
+    onReadMore?: (post: BlogPost) => void
+  }
+  appearance?: {
+    variant?: 'list' | 'grid' | 'carousel'
+    columns?: 2 | 3
+    showAuthor?: boolean
+    showCategory?: boolean
+  }
 }
 
-export function BlogPostList({
-  posts = defaultPosts,
-  variant = 'list',
-  columns = 2,
-  showAuthor = true,
-  showCategory = true,
-  onReadMore
-}: BlogPostListProps) {
+export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
+  const { posts = defaultPosts } = data ?? {}
+  const { onReadMore } = actions ?? {}
+  const { variant = 'list', columns = 2, showAuthor = true, showCategory = true } = appearance ?? {}
   const [currentIndex, setCurrentIndex] = useState(0)
 
   // List variant
@@ -99,11 +101,9 @@ export function BlogPostList({
         {posts.slice(0, 3).map((post) => (
           <BlogPostCard
             key={post.id}
-            post={post}
-            variant="horizontal"
-            showAuthor={showAuthor}
-            showCategory={showCategory}
-            onReadMore={onReadMore}
+            data={{ post }}
+            appearance={{ variant: "horizontal", showAuthor, showCategory }}
+            actions={{ onReadMore }}
           />
         ))}
       </div>
@@ -122,12 +122,9 @@ export function BlogPostList({
         {posts.map((post) => (
           <BlogPostCard
             key={post.id}
-            post={post}
-            variant="compact"
-            showImage={false}
-            showAuthor={showAuthor}
-            showCategory={showCategory}
-            onReadMore={onReadMore}
+            data={{ post }}
+            appearance={{ variant: "compact", showImage: false, showAuthor, showCategory }}
+            actions={{ onReadMore }}
           />
         ))}
       </div>
@@ -163,11 +160,9 @@ export function BlogPostList({
           {posts.map((post) => (
             <div key={post.id} className="w-full shrink-0 px-0.5">
               <BlogPostCard
-                post={post}
-                variant="compact"
-                showAuthor={showAuthor}
-                showCategory={showCategory}
-                onReadMore={onReadMore}
+                data={{ post }}
+                appearance={{ variant: "compact", showAuthor, showCategory }}
+                actions={{ onReadMore }}
               />
             </div>
           ))}
@@ -181,11 +176,9 @@ export function BlogPostList({
           {posts.map((post) => (
             <div key={post.id} className="w-1/2 shrink-0 px-1.5">
               <BlogPostCard
-                post={post}
-                variant="compact"
-                showAuthor={showAuthor}
-                showCategory={showCategory}
-                onReadMore={onReadMore}
+                data={{ post }}
+                appearance={{ variant: "compact", showAuthor, showCategory }}
+                actions={{ onReadMore }}
               />
             </div>
           ))}
@@ -199,11 +192,9 @@ export function BlogPostList({
           {posts.map((post) => (
             <div key={post.id} className="w-1/3 shrink-0 px-1.5">
               <BlogPostCard
-                post={post}
-                variant="compact"
-                showAuthor={showAuthor}
-                showCategory={showCategory}
-                onReadMore={onReadMore}
+                data={{ post }}
+                appearance={{ variant: "compact", showAuthor, showCategory }}
+                actions={{ onReadMore }}
               />
             </div>
           ))}

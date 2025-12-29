@@ -1,9 +1,0 @@
-{
-  "name": "@PROJECT_NAME/api",
-  "version": "0.1.0",
-  "description": "A backend made with Manifest: https://manifest.build",
-  "private": true,
-  "license": "UNLICENSED",
-  "scripts": {},
-  "dependencies": {}
-}

@@ -12,26 +12,33 @@ import { Check, ExternalLink } from 'lucide-react'
  */
 
 export interface PaymentConfirmedProps {
-  orderId?: string
-  productName?: string
-  productDescription?: string
-  productImage?: string
-  price?: number
-  currency?: string
-  deliveryDate?: string
-  onTrackOrder?: () => void
+  data?: {
+    orderId?: string
+    productName?: string
+    productDescription?: string
+    productImage?: string
+    price?: number
+    deliveryDate?: string
+  }
+  actions?: {
+    onTrackOrder?: () => void
+  }
+  appearance?: {
+    currency?: string
+  }
 }
 
-export function PaymentConfirmed({
-  orderId = 'ORD-2024-7842',
-  productName = "Air Force 1 '07",
-  productDescription = 'Nike · Size 42 · White',
-  productImage = '/demo/shoe-1.png',
-  price = 119,
-  currency = 'EUR',
-  deliveryDate = 'Tue. Dec 10',
-  onTrackOrder
-}: PaymentConfirmedProps) {
+export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmedProps) {
+  const {
+    orderId = 'ORD-2024-7842',
+    productName = "Air Force 1 '07",
+    productDescription = 'Nike · Size 42 · White',
+    productImage = '/demo/shoe-1.png',
+    price = 119,
+    deliveryDate = 'Tue. Dec 10',
+  } = data ?? {}
+  const { onTrackOrder } = actions ?? {}
+  const { currency = 'EUR' } = appearance ?? {}
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
