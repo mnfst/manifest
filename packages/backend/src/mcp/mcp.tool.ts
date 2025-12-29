@@ -6,6 +6,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
 import { ReturnValueEntity } from '../return-value/return-value.entity';
 import { CallFlowEntity } from '../call-flow/call-flow.entity';
+import { ActionConnectionEntity } from '../action-connection/action-connection.entity';
 import type { McpToolResponse, LayoutTemplate } from '@chatgpt-app-builder/shared';
 
 /**
@@ -36,7 +37,9 @@ export class McpToolService {
     @InjectRepository(FlowEntity)
     private readonly flowRepository: Repository<FlowEntity>,
     @InjectRepository(ViewEntity)
-    private readonly viewRepository: Repository<ViewEntity>
+    private readonly viewRepository: Repository<ViewEntity>,
+    @InjectRepository(ActionConnectionEntity)
+    private readonly actionConnectionRepository: Repository<ActionConnectionEntity>
   ) {}
 
   /**
@@ -386,11 +389,18 @@ export class McpToolService {
         throw new NotFoundException(`No views found for tool: ${toolName}`);
       }
 
+      // Fetch action connections for this view (with targets)
+      const actionConnections = await this.actionConnectionRepository.find({
+        where: { viewId: primaryView.id },
+        relations: ['targetReturnValue', 'targetCallFlow', 'targetCallFlow.targetFlow'],
+      });
+
       // Generate the widget HTML using ChatGPT Apps SDK bridge
       const widgetHtml = this.generateWidgetHtml(
         flow.name,
         primaryView.layoutTemplate,
-        app.themeVariables
+        app.themeVariables,
+        actionConnections
       );
 
       return {
@@ -414,7 +424,8 @@ export class McpToolService {
   private generateWidgetHtml(
     flowName: string,
     layoutTemplate: LayoutTemplate,
-    themeVariables: Record<string, string>
+    themeVariables: Record<string, string>,
+    actionConnections: ActionConnectionEntity[] = []
   ): string {
     const cssVariables = Object.entries(themeVariables)
       .filter(([, value]) => value !== undefined)
@@ -598,7 +609,10 @@ export class McpToolService {
 </body>
 </html>`;
     } else {
-      // Card layout
+      // Post-list / Blog post layout with action buttons
+      // Generate action handlers based on connections
+      const actionHandlersJs = this.generateActionHandlersJs(actionConnections);
+
       return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -618,35 +632,81 @@ export class McpToolService {
     }
     body.dark { --text-color: #e5e5e5; --bg-card: #2d2d2d; --border-color: #404040; }
     body.light { --text-color: #1a1a2e; --bg-card: #ffffff; --border-color: #e5e5e5; }
-    .card {
+    .posts-container { display: flex; flex-direction: column; gap: 16px; }
+    .post-card {
       background: var(--bg-card, #ffffff);
       border: 1px solid var(--border-color, #e5e5e5);
       border-radius: 8px;
-      padding: 16px;
+      overflow: hidden;
+      display: flex;
+      gap: 12px;
     }
-    .card-title {
-      font-size: 18px;
+    .post-image {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .post-content { flex: 1; padding: 12px 12px 12px 0; }
+    .post-title {
+      font-size: 14px;
       font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-color, #1a1a2e);
+    }
+    .post-excerpt {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
       margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    .card-content {
-      color: var(--text-color, #666);
-      line-height: 1.5;
+    .post-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #888;
     }
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .author-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+    .read-more-btn {
+      padding: 4px 10px;
+      background: #a855f7;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .read-more-btn:hover { background: #9333ea; }
+    .read-more-btn:disabled { background: #d1d5db; cursor: not-allowed; }
     .loading { text-align: center; padding: 40px; color: #666; }
   </style>
 </head>
 <body>
   <div id="root">
     <div id="loading" class="loading">Loading...</div>
-    <div id="card-container" class="card" style="display: none;">
-      <div id="card-title" class="card-title"></div>
-      <div id="card-content" class="card-content"></div>
-    </div>
+    <div id="posts-container" class="posts-container" style="display: none;"></div>
   </div>
 
   <script>
     (function() {
+      ${actionHandlersJs}
+
       function applyTheme() {
         var theme = window.openai && window.openai.theme ? window.openai.theme : 'light';
         document.body.className = theme;
@@ -663,28 +723,69 @@ export class McpToolService {
         applyTheme();
         var data = getToolData();
         if (data) {
-          renderCard(data);
+          renderPosts(data);
         }
       }
 
       window.addEventListener('openai:set_globals', function(event) {
         applyTheme();
         if (event.detail && event.detail.toolOutput) {
-          renderCard(event.detail.toolOutput);
+          renderPosts(event.detail.toolOutput);
         }
       });
 
       window.addEventListener('message', function(event) {
         if (event.data) {
-          renderCard(event.data.structuredContent || event.data);
+          renderPosts(event.data.structuredContent || event.data);
         }
       });
 
-      function renderCard(data) {
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function renderPosts(data) {
+        var posts = data.posts || [];
+        if (posts.length === 0) {
+          document.getElementById('loading').textContent = 'No posts to display';
+          return;
+        }
+
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('card-container').style.display = 'block';
-        document.getElementById('card-title').textContent = data.title || 'Content';
-        document.getElementById('card-content').innerHTML = data.content || JSON.stringify(data, null, 2);
+        var container = document.getElementById('posts-container');
+        container.style.display = 'flex';
+
+        container.innerHTML = posts.slice(0, 3).map(function(post, index) {
+          var hasReadMoreAction = typeof handleOnReadMore === 'function';
+          return '<div class="post-card">' +
+            (post.coverImage ? '<img class="post-image" src="' + escapeHtml(post.coverImage) + '" alt="">' : '') +
+            '<div class="post-content">' +
+              '<div class="post-title">' + escapeHtml(post.title || 'Untitled') + '</div>' +
+              '<div class="post-excerpt">' + escapeHtml(post.excerpt || '') + '</div>' +
+              '<div class="post-meta">' +
+                '<div class="post-author">' +
+                  (post.author && post.author.avatar ? '<img class="author-avatar" src="' + escapeHtml(post.author.avatar) + '" alt="">' : '') +
+                  '<span>' + escapeHtml(post.author ? post.author.name : 'Unknown') + '</span>' +
+                '</div>' +
+                (hasReadMoreAction ? '<button class="read-more-btn" data-action="onReadMore" data-post-id="' + escapeHtml(post.id || String(index)) + '">Read More</button>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        // Add click handlers for action buttons
+        container.querySelectorAll('[data-action]').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            var action = e.target.getAttribute('data-action');
+            var postId = e.target.getAttribute('data-post-id');
+            if (action === 'onReadMore' && typeof handleOnReadMore === 'function') {
+              var post = posts.find(function(p) { return p.id === postId || String(posts.indexOf(p)) === postId; });
+              handleOnReadMore(post);
+            }
+          });
+        });
 
         if (window.openai && window.openai.notifyIntrinsicHeight) {
           window.openai.notifyIntrinsicHeight(document.body.scrollHeight);
@@ -701,6 +802,64 @@ export class McpToolService {
 </body>
 </html>`;
     }
+  }
+
+  /**
+   * Generate JavaScript handlers for action connections
+   * Creates functions that call window.openai APIs when actions are triggered
+   */
+  private generateActionHandlersJs(actionConnections: ActionConnectionEntity[]): string {
+    const handlers: string[] = [];
+
+    for (const connection of actionConnections) {
+      if (connection.actionName === 'onReadMore') {
+        if (connection.targetType === 'return-value' && connection.targetReturnValue) {
+          // Return the text value back to ChatGPT
+          const returnText = JSON.stringify(connection.targetReturnValue.text || '');
+          handlers.push(`
+      function handleOnReadMore(post) {
+        var returnText = ${returnText};
+        // Replace placeholder with actual post content if needed
+        if (post && post.title) {
+          returnText = returnText.replace('{{title}}', post.title);
+        }
+        if (post && post.excerpt) {
+          returnText = returnText.replace('{{excerpt}}', post.excerpt);
+        }
+        if (post && post.id) {
+          returnText = returnText.replace('{{id}}', post.id);
+        }
+        if (window.openai && window.openai.returnValue) {
+          window.openai.returnValue({ text: returnText });
+        } else {
+          console.log('Action: onReadMore', post, returnText);
+        }
+      }`);
+        } else if (connection.targetType === 'call-flow' && connection.targetCallFlow?.targetFlow) {
+          // Call another tool/flow
+          const targetToolName = JSON.stringify(connection.targetCallFlow.targetFlow.toolName);
+          handlers.push(`
+      function handleOnReadMore(post) {
+        var targetTool = ${targetToolName};
+        var message = 'Read more about: ' + (post ? post.title : 'selected item');
+        if (window.openai && window.openai.callTool) {
+          window.openai.callTool(targetTool, { message: message });
+        } else {
+          console.log('Action: onReadMore -> callTool', targetTool, message);
+        }
+      }`);
+        }
+      }
+    }
+
+    // If no handlers generated, provide a no-op
+    if (handlers.length === 0) {
+      handlers.push(`
+      // No action connections configured
+      var handleOnReadMore = null;`);
+    }
+
+    return handlers.join('\n');
   }
 
   /**

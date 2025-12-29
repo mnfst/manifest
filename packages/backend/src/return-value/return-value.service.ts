@@ -20,23 +20,17 @@ export class ReturnValueService {
 
   /**
    * Create a new return value for a flow
-   * Enforces mutual exclusivity: cannot add return values if flow has views
+   * Return values and call flows are mutually exclusive
    */
   async create(flowId: string, data: CreateReturnValueRequest): Promise<ReturnValue> {
-    // Check if flow exists and has views or call flows (mutual exclusivity)
+    // Check if flow exists and has call flows (mutual exclusivity with call flows only)
     const flow = await this.flowRepository.findOne({
       where: { id: flowId },
-      relations: ['views', 'callFlows'],
+      relations: ['callFlows'],
     });
 
     if (!flow) {
       throw new NotFoundException(`Flow with id ${flowId} not found`);
-    }
-
-    if (flow.views && flow.views.length > 0) {
-      throw new BadRequestException(
-        'Cannot add return values to a flow that has views. Flows must use either views or return values, not both.'
-      );
     }
 
     if (flow.callFlows && flow.callFlows.length > 0) {

@@ -20,23 +20,17 @@ export class CallFlowService {
 
   /**
    * Create a new call flow for a flow
-   * Enforces mutual exclusivity: cannot add call flows if flow has views or return values
+   * Call flows and return values are mutually exclusive
    */
   async create(flowId: string, data: CreateCallFlowRequest): Promise<CallFlow> {
-    // Check if flow exists and validate mutual exclusivity
+    // Check if flow exists and has return values (mutual exclusivity with return values only)
     const flow = await this.flowRepository.findOne({
       where: { id: flowId },
-      relations: ['views', 'returnValues'],
+      relations: ['returnValues'],
     });
 
     if (!flow) {
       throw new NotFoundException(`Flow with id ${flowId} not found`);
-    }
-
-    if (flow.views && flow.views.length > 0) {
-      throw new BadRequestException(
-        'Cannot add call flows to a flow that has views. Flows must use either views or end actions, not both.'
-      );
     }
 
     if (flow.returnValues && flow.returnValues.length > 0) {

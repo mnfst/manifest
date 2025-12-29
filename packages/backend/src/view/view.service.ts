@@ -24,29 +24,16 @@ export class ViewService {
 
   /**
    * Create a new view for a flow
-   * Enforces mutual exclusivity: cannot add views if flow has return values
+   * Views can now coexist with return values and call flows
    */
   async create(flowId: string, data: CreateViewRequest): Promise<View> {
-    // Check if flow exists and has return values or call flows (mutual exclusivity)
+    // Check if flow exists
     const flow = await this.flowRepository.findOne({
       where: { id: flowId },
-      relations: ['returnValues', 'callFlows'],
     });
 
     if (!flow) {
       throw new NotFoundException(`Flow with id ${flowId} not found`);
-    }
-
-    if (flow.returnValues && flow.returnValues.length > 0) {
-      throw new BadRequestException(
-        'Cannot add views to a flow that has return values. Flows must use either views or return values, not both.'
-      );
-    }
-
-    if (flow.callFlows && flow.callFlows.length > 0) {
-      throw new BadRequestException(
-        'Cannot add views to a flow that has call flows. Flows must use either views or end actions, not both.'
-      );
     }
 
     // Get current max order for this flow
@@ -115,6 +102,16 @@ export class ViewService {
     }
     if (updates.mockData !== undefined) {
       entity.mockData = updates.mockData;
+
+      // Also update the separate MockDataEntity if it exists
+      const mockDataEntity = await this.mockDataService.findByViewId(id);
+      if (mockDataEntity) {
+        await this.mockDataService.update(
+          mockDataEntity.id,
+          updates.mockData,
+          updates.layoutTemplate ?? entity.layoutTemplate
+        );
+      }
     }
 
     const saved = await this.viewRepository.save(entity);

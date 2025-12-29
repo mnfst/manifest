@@ -11,25 +11,45 @@ export type AppStatus = 'draft' | 'published';
 export type LayoutTemplate = 'table' | 'post-list';
 
 /**
+ * Defines an action that can be triggered by a UI component
+ */
+export interface LayoutAction {
+  name: string;
+  label: string;
+  description: string;
+}
+
+/**
+ * Layout template configuration with Manifest UI block information and actions
+ */
+export interface LayoutTemplateConfig {
+  manifestBlock: string;
+  installCommand: string;
+  useCase: string;
+  actions: LayoutAction[];
+}
+
+/**
  * Layout registry with Manifest UI block information
  */
-export const LAYOUT_REGISTRY: Record<
-  LayoutTemplate,
-  {
-    manifestBlock: string;
-    installCommand: string;
-    useCase: string;
-  }
-> = {
+export const LAYOUT_REGISTRY: Record<LayoutTemplate, LayoutTemplateConfig> = {
   table: {
     manifestBlock: '@manifest/table',
     installCommand: 'npx shadcn@latest add @manifest/table',
     useCase: 'Tabular data, lists, order history',
+    actions: [],
   },
   'post-list': {
     manifestBlock: '@manifest/blog-post-list',
     installCommand: 'npx shadcn@latest add @manifest/blog-post-list',
     useCase: 'Content feeds, articles, blog posts',
+    actions: [
+      {
+        name: 'onReadMore',
+        label: 'Read More',
+        description: 'Triggered when user clicks Read More button',
+      },
+    ],
   },
 };
 

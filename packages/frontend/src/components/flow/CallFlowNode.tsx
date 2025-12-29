@@ -47,6 +47,14 @@ export function CallFlowNode({ data }: NodeProps) {
         id="left"
         className="!bg-purple-400 !w-2 !h-2 !border-0"
       />
+      {/* Action target handle - for incoming action connections */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="action-target"
+        className="!bg-purple-500 !w-2.5 !h-2.5 !border-2 !border-purple-300"
+        style={{ top: '70%' }}
+      />
 
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">

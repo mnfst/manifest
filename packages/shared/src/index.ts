@@ -3,6 +3,8 @@ export type {
   App,
   AppStatus,
   LayoutTemplate,
+  LayoutAction,
+  LayoutTemplateConfig,
   CreateAppRequest,
   UpdateAppRequest,
   AppWithFlows,
@@ -14,6 +16,14 @@ export type {
   IconUploadResponse,
 } from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';
+
+// Action connection types
+export type {
+  ActionTargetType,
+  ActionConnection,
+  CreateActionConnectionRequest,
+  UpdateActionConnectionRequest,
+} from './types/action-connection.js';
 
 // Flow types
 export type {
