@@ -6,7 +6,6 @@ import { api, ApiClientError } from '../lib/api';
 import { ViewChatPanel } from '../components/view/ViewChatPanel';
 import { ThemeProvider } from '../components/editor/ThemeProvider';
 import { LayoutRenderer } from '../components/editor/LayoutRenderer';
-import { Header } from '../components/layout/Header';
 import { ChatStyleWrapper } from '../components/preview/ChatStyleWrapper';
 import { PlatformStyleSelector } from '../components/preview/PlatformStyleSelector';
 import { usePreviewPreferences } from '../hooks/usePreviewPreferences';
@@ -105,9 +104,6 @@ function ViewEditor() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Global Header with App Switcher */}
-      <Header currentApp={app} />
-
       {/* View Sub-header with Breadcrumb */}
       <div className="bg-muted/50 border-b px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">

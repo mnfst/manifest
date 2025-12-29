@@ -22,7 +22,6 @@ import {
 } from '@chatgpt-app-builder/shared';
 import type {
   Flow,
-  FlowWithApp,
   CreateFlowRequest,
   UpdateFlowRequest,
   GenerateFlowResponse,
@@ -96,35 +95,6 @@ export class FlowController {
     @Inject(forwardRef(() => AgentService))
     private readonly agentService: AgentService
   ) {}
-
-  /**
-   * GET /api/flows
-   * List all flows with parent app data
-   * Used by the sidebar Flows page
-   */
-  @Get('flows')
-  async getAllFlows(): Promise<FlowWithApp[]> {
-    const entities = await this.flowService.findAllWithApp();
-    return entities.map((entity) => ({
-      id: entity.id,
-      appId: entity.appId,
-      name: entity.name,
-      description: entity.description,
-      toolName: entity.toolName,
-      toolDescription: entity.toolDescription,
-      whenToUse: entity.whenToUse,
-      whenNotToUse: entity.whenNotToUse,
-      isActive: entity.isActive ?? true,
-      parameters: entity.parameters ?? [],
-      createdAt: entity.createdAt?.toISOString(),
-      updatedAt: entity.updatedAt?.toISOString(),
-      app: {
-        id: entity.app.id,
-        name: entity.app.name,
-        slug: entity.app.slug,
-      },
-    }));
-  }
 
   /**
    * GET /api/apps/:appId/flows
