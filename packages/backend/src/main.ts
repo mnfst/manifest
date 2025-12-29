@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { AppModule } from './app/app.module';
 
 /**
@@ -47,6 +48,29 @@ async function bootstrap() {
 
   // Serve uploaded files from /uploads path
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
+
+  // In production (Docker), serve frontend static files
+  // The frontend dist is expected at /app/frontend when running in Docker
+  const frontendPath = process.env.FRONTEND_DIST_PATH || join(__dirname, '..', '..', '..', 'frontend', 'dist');
+  if (existsSync(frontendPath)) {
+    console.log(`📦 Serving frontend static files from ${frontendPath}`);
+    app.useStaticAssets(frontendPath);
+    // Serve index.html for SPA routing (all non-API routes)
+    app.use((req, res, next) => {
+      // Skip API routes, uploads, and MCP server routes
+      if (req.path.startsWith('/api') ||
+          req.path.startsWith('/uploads') ||
+          req.path.startsWith('/servers')) {
+        return next();
+      }
+      // For all other routes, serve index.html (SPA routing)
+      const indexPath = join(frontendPath, 'index.html');
+      if (existsSync(indexPath) && !req.path.includes('.')) {
+        return res.sendFile(indexPath);
+      }
+      next();
+    });
+  }
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

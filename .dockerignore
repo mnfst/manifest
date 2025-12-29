@@ -1,0 +1,86 @@
+# Dependencies - will be installed fresh in container
+node_modules/
+**/node_modules/
+
+# Build outputs - will be built fresh in container
+dist/
+**/dist/
+build/
+**/build/
+.next/
+out/
+
+# Environment files - secrets should not be in image
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.editorconfig
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+**/coverage/
+
+# Turbo cache
+.turbo/
+**/.turbo/
+
+# TypeScript build info
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+**/.cache/
+
+# Uploads directory
+packages/backend/uploads/
+
+# Git
+.git/
+.gitignore
+
+# Docker files (prevent recursive copy)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation and specs
+*.md
+specs/
+.specify/
+.claude/
+docs/
+
+# GitHub
+.github/
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/tests/
