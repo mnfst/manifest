@@ -1,6 +1,12 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip'
 import { Calendar, Clock, ExternalLink } from 'lucide-react'
 import { Post } from './post-card'
 
@@ -11,6 +17,49 @@ function stripHtml(html: string): string {
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return text.slice(0, maxLength).trim() + '...'
+}
+
+function TagList({
+  tags,
+  maxVisible = 2,
+  size = 'default'
+}: {
+  tags: string[]
+  maxVisible?: number
+  size?: 'small' | 'default'
+}) {
+  const visibleTags = tags.slice(0, maxVisible)
+  const remainingTags = tags.slice(maxVisible)
+  const hasMore = remainingTags.length > 0
+
+  const tagClass =
+    size === 'small'
+      ? 'rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium'
+      : 'rounded-full bg-muted px-3 py-1 text-xs font-medium'
+
+  return (
+    <>
+      {visibleTags.map((tag) => (
+        <span key={tag} className={tagClass}>
+          {tag}
+        </span>
+      ))}
+      {hasMore && (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={`${tagClass} cursor-default`}>
+                +{remainingTags.length}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{remainingTags.join(', ')}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </>
+  )
 }
 
 const defaultPost: Post = {
@@ -26,7 +75,7 @@ const defaultPost: Post = {
   },
   publishedAt: '2024-01-15',
   readTime: '5 min read',
-  tags: ['Tutorial', 'Components', 'AI'],
+  tags: ['Tutorial', 'Components', 'AI', 'React', 'TypeScript'],
   category: 'Tutorial'
 }
 
@@ -149,15 +198,9 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
                 {post.category}
               </span>
             )}
-            {post.tags &&
-              post.tags.slice(0, 2).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
-                >
-                  {tag}
-                </span>
-              ))}
+            {post.tags && post.tags.length > 0 && (
+              <TagList tags={post.tags} maxVisible={2} size="small" />
+            )}
           </div>
 
           <h1 className="text-xl font-bold">{post.title}</h1>
@@ -208,15 +251,9 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
               {post.category}
             </span>
           )}
-          {post.tags &&
-            post.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
-              >
-                {tag}
-              </span>
-            ))}
+          {post.tags && post.tags.length > 0 && (
+            <TagList tags={post.tags} maxVisible={2} size="default" />
+          )}
         </div>
 
         <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">

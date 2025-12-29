@@ -1,7 +1,7 @@
 'use client'
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
-import { PostCard, PostCardProps, Post } from '@/registry/blogging/post-card'
+import { Post, PostCard, PostCardProps } from '@/registry/blogging/post-card'
 import { PostDetail } from '@/registry/blogging/post-detail'
 import { useState } from 'react'
 
@@ -16,7 +16,7 @@ interface PostCardDemoProps {
 
 export function PostCardDemo({
   appName = 'Blog App',
-  appUrl = 'https://example.com',
+  appUrl,
   data,
   appearance
 }: PostCardDemoProps) {

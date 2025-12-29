@@ -13,7 +13,7 @@ interface PostDetailDemoProps {
 
 export function PostDetailDemo({
   appName = 'Blog App',
-  appUrl = 'https://example.com',
+  appUrl,
   data,
   appearance
 }: PostDetailDemoProps) {

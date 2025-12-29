@@ -83,30 +83,31 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
         </div>
         {/* Minimal overlay - solid color instead of gradient per ChatGPT guidelines */}
         <div className="absolute inset-0 bg-black/60" />
-        <div className="absolute inset-0 flex flex-col justify-between p-4 text-white">
-          <div className="flex gap-1">
-            {showCategory && post.category && (
-              <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs">
-                {post.category}
-              </span>
-            )}
-            {post.tags &&
-              post.tags.slice(0, 1).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-md bg-white/20 px-2 py-0.5 text-xs"
-                >
-                  {tag}
-                </span>
-              ))}
-          </div>
+        <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
           <div>
-            <h2 className="text-lg font-semibold leading-tight">
+            {showCategory && post.category && (
+              <p className="text-[10px] font-medium uppercase tracking-wide text-white/70">
+                {post.category}
+              </p>
+            )}
+            <h2 className="mt-1 text-lg font-semibold leading-tight">
               {post.title}
             </h2>
             <p className="mt-1 line-clamp-2 text-sm text-white/80">
               {post.excerpt}
             </p>
+            {post.tags && post.tags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {post.tags.slice(0, 2).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-md bg-white/20 px-2 py-0.5 text-xs"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {showAuthor && (
                 <div className="flex items-center gap-2">
@@ -155,9 +156,9 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
         <div className="flex flex-1 flex-col justify-between">
           <div>
             {showCategory && post.category && (
-              <span className="mb-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                 {post.category}
-              </span>
+              </p>
             )}
             <h3 className="line-clamp-2 text-sm font-medium leading-tight">
               {post.title}
@@ -165,6 +166,18 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
             <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
               {post.excerpt}
             </p>
+            {post.tags && post.tags.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {post.tags.slice(0, 2).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -201,14 +214,26 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
       <div className="flex h-full flex-col justify-between rounded-lg border bg-card p-3">
         <div>
           {showCategory && post.category && (
-            <span className="mb-2 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {post.category}
-            </span>
+            </p>
           )}
           <h3 className="line-clamp-2 text-sm font-medium">{post.title}</h3>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
             {post.excerpt}
           </p>
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {post.tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
@@ -245,15 +270,18 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
       )}
       <div className="flex flex-1 flex-col justify-between p-4">
         <div>
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            {showCategory && post.category && (
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                {post.category}
-              </span>
-            )}
-            {post.tags &&
-              post.tags.length > 0 &&
-              post.tags.slice(0, 2).map((tag) => (
+          {showCategory && post.category && (
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {post.category}
+            </p>
+          )}
+          <h3 className="line-clamp-2 font-medium">{post.title}</h3>
+          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+            {post.excerpt}
+          </p>
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {post.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
                   className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
@@ -261,11 +289,8 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
                   {tag}
                 </span>
               ))}
-          </div>
-          <h3 className="line-clamp-2 font-medium">{post.title}</h3>
-          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-            {post.excerpt}
-          </p>
+            </div>
+          )}
         </div>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {showAuthor && (

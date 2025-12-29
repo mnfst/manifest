@@ -2,8 +2,8 @@
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { Post } from '@/registry/blogging/post-card'
-import { PostList, PostListProps } from '@/registry/blogging/post-list'
 import { PostDetail } from '@/registry/blogging/post-detail'
+import { PostList, PostListProps } from '@/registry/blogging/post-list'
 import { useState } from 'react'
 
 interface PostListDemoProps {
@@ -15,7 +15,7 @@ interface PostListDemoProps {
 
 export function PostListDemo({
   appName = 'Blog App',
-  appUrl = 'https://example.com',
+  appUrl,
   data,
   appearance
 }: PostListDemoProps) {
