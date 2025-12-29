@@ -4,35 +4,44 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
 
 export interface OrderConfirmProps {
-  productName?: string
-  productVariant?: string
-  productImage?: string
-  quantity?: number
-  price?: number
-  currency?: string
-  deliveryDate?: string
-  deliveryAddress?: string
-  freeShipping?: boolean
-  onConfirm?: () => void
-  isLoading?: boolean
+  data?: {
+    productName?: string
+    productVariant?: string
+    productImage?: string
+    quantity?: number
+    price?: number
+    deliveryDate?: string
+    deliveryAddress?: string
+    freeShipping?: boolean
+  }
+  actions?: {
+    onConfirm?: () => void
+  }
+  appearance?: {
+    currency?: string
+  }
+  control?: {
+    isLoading?: boolean
+  }
 }
 
 const DEFAULT_AIRPODS_IMAGE =
   'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
-export function OrderConfirm({
-  productName = 'Iyo Pro',
-  productVariant = 'Midnight Black',
-  productImage = DEFAULT_AIRPODS_IMAGE,
-  quantity = 1,
-  price = 299.0,
-  currency = 'USD',
-  deliveryDate = 'Tue. Dec 10',
-  deliveryAddress = '123 Main Street, 10001',
-  freeShipping = true,
-  onConfirm,
-  isLoading = false
-}: OrderConfirmProps) {
+export function OrderConfirm({ data, actions, appearance, control }: OrderConfirmProps) {
+  const {
+    productName = 'Iyo Pro',
+    productVariant = 'Midnight Black',
+    productImage = DEFAULT_AIRPODS_IMAGE,
+    quantity = 1,
+    price = 299.0,
+    deliveryDate = 'Tue. Dec 10',
+    deliveryAddress = '123 Main Street, 10001',
+    freeShipping = true,
+  } = data ?? {}
+  const { onConfirm } = actions ?? {}
+  const { currency = 'USD' } = appearance ?? {}
+  const { isLoading = false } = control ?? {}
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

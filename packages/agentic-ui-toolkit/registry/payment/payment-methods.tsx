@@ -14,14 +14,22 @@ export interface PaymentMethod {
 }
 
 export interface PaymentMethodsProps {
-  methods?: PaymentMethod[]
-  amount?: number
-  currency?: string
-  selectedMethodId?: string
-  onSelectMethod?: (methodId: string) => void
-  onAddCard?: () => void
-  onPay?: (methodId: string) => void
-  isLoading?: boolean
+  data?: {
+    methods?: PaymentMethod[]
+    amount?: number
+  }
+  actions?: {
+    onSelectMethod?: (methodId: string) => void
+    onAddCard?: () => void
+    onPay?: (methodId: string) => void
+  }
+  appearance?: {
+    currency?: string
+  }
+  control?: {
+    selectedMethodId?: string
+    isLoading?: boolean
+  }
 }
 
 const defaultMethods: PaymentMethod[] = [
@@ -118,16 +126,11 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
   return <BrandLogo brand={method.brand} />
 }
 
-export function PaymentMethods({
-  methods = defaultMethods,
-  amount = 279.0,
-  currency = 'EUR',
-  selectedMethodId,
-  onSelectMethod,
-  onAddCard,
-  onPay,
-  isLoading = false
-}: PaymentMethodsProps) {
+export function PaymentMethods({ data, actions, appearance, control }: PaymentMethodsProps) {
+  const { methods = defaultMethods, amount = 279.0 } = data ?? {}
+  const { onSelectMethod, onAddCard, onPay } = actions ?? {}
+  const { currency = 'EUR' } = appearance ?? {}
+  const { selectedMethodId, isLoading = false } = control ?? {}
   const [selected, setSelected] = useState(
     selectedMethodId || methods.find((m) => m.isDefault)?.id || methods[0]?.id
   )
@@ -159,7 +162,7 @@ export function PaymentMethods({
             key={method.id}
             onClick={() => handleSelect(method.id)}
             className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors',
+              'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors cursor-pointer',
               selected === method.id
                 ? 'border-foreground ring-1 ring-foreground'
                 : 'border-border  hover:border-foreground/50'
@@ -176,7 +179,7 @@ export function PaymentMethods({
         ))}
         <button
           onClick={onAddCard}
-          className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Add

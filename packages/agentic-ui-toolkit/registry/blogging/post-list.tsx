@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { BlogPost, BlogPostCard } from './blog-post-card'
+import { Post, PostCard } from './post-card'
 
-const defaultPosts: BlogPost[] = [
+const defaultPosts: Post[] = [
   {
     id: '1',
     title: 'Getting Started with Agentic UI Components',
@@ -73,23 +73,25 @@ const defaultPosts: BlogPost[] = [
   }
 ]
 
-export interface BlogPostListProps {
-  posts?: BlogPost[]
-  variant?: 'list' | 'grid' | 'carousel'
-  columns?: 2 | 3
-  showAuthor?: boolean
-  showCategory?: boolean
-  onReadMore?: (post: BlogPost) => void
+export interface PostListProps {
+  data?: {
+    posts?: Post[]
+  }
+  actions?: {
+    onReadMore?: (post: Post) => void
+  }
+  appearance?: {
+    variant?: 'list' | 'grid' | 'carousel'
+    columns?: 2 | 3
+    showAuthor?: boolean
+    showCategory?: boolean
+  }
 }
 
-export function BlogPostList({
-  posts = defaultPosts,
-  variant = 'list',
-  columns = 2,
-  showAuthor = true,
-  showCategory = true,
-  onReadMore
-}: BlogPostListProps) {
+export function PostList({ data, actions, appearance }: PostListProps) {
+  const { posts = defaultPosts } = data ?? {}
+  const { onReadMore } = actions ?? {}
+  const { variant = 'list', columns = 2, showAuthor = true, showCategory = true } = appearance ?? {}
   const [currentIndex, setCurrentIndex] = useState(0)
 
   // List variant
@@ -97,13 +99,11 @@ export function BlogPostList({
     return (
       <div className="space-y-3">
         {posts.slice(0, 3).map((post) => (
-          <BlogPostCard
+          <PostCard
             key={post.id}
-            post={post}
-            variant="horizontal"
-            showAuthor={showAuthor}
-            showCategory={showCategory}
-            onReadMore={onReadMore}
+            data={{ post }}
+            appearance={{ variant: "horizontal", showAuthor, showCategory }}
+            actions={{ onReadMore }}
           />
         ))}
       </div>
@@ -120,14 +120,11 @@ export function BlogPostList({
         )}
       >
         {posts.map((post) => (
-          <BlogPostCard
+          <PostCard
             key={post.id}
-            post={post}
-            variant="compact"
-            showImage={false}
-            showAuthor={showAuthor}
-            showCategory={showCategory}
-            onReadMore={onReadMore}
+            data={{ post }}
+            appearance={{ variant: "compact", showImage: false, showAuthor, showCategory }}
+            actions={{ onReadMore }}
           />
         ))}
       </div>
@@ -162,12 +159,10 @@ export function BlogPostList({
         >
           {posts.map((post) => (
             <div key={post.id} className="w-full shrink-0 px-0.5">
-              <BlogPostCard
-                post={post}
-                variant="compact"
-                showAuthor={showAuthor}
-                showCategory={showCategory}
-                onReadMore={onReadMore}
+              <PostCard
+                data={{ post }}
+                appearance={{ variant: "compact", showAuthor, showCategory }}
+                actions={{ onReadMore }}
               />
             </div>
           ))}
@@ -180,12 +175,10 @@ export function BlogPostList({
         >
           {posts.map((post) => (
             <div key={post.id} className="w-1/2 shrink-0 px-1.5">
-              <BlogPostCard
-                post={post}
-                variant="compact"
-                showAuthor={showAuthor}
-                showCategory={showCategory}
-                onReadMore={onReadMore}
+              <PostCard
+                data={{ post }}
+                appearance={{ variant: "compact", showAuthor, showCategory }}
+                actions={{ onReadMore }}
               />
             </div>
           ))}
@@ -198,12 +191,10 @@ export function BlogPostList({
         >
           {posts.map((post) => (
             <div key={post.id} className="w-1/3 shrink-0 px-1.5">
-              <BlogPostCard
-                post={post}
-                variant="compact"
-                showAuthor={showAuthor}
-                showCategory={showCategory}
-                onReadMore={onReadMore}
+              <PostCard
+                data={{ post }}
+                appearance={{ variant: "compact", showAuthor, showCategory }}
+                actions={{ onReadMore }}
               />
             </div>
           ))}
@@ -216,7 +207,7 @@ export function BlogPostList({
               key={i}
               onClick={() => setCurrentIndex(i)}
               className={cn(
-                'h-1.5 rounded-full transition-all',
+                'h-1.5 rounded-full transition-all cursor-pointer',
                 i === currentIndex
                   ? 'w-4 bg-foreground'
                   : 'w-1.5 bg-muted-foreground/30'

@@ -21,12 +21,18 @@ export interface CardFormData {
   cvv: string
 }
 
-interface CardFormProps {
-  onSubmit?: (data: CardFormData) => void
-  isLoading?: boolean
+export interface CardFormProps {
+  actions?: {
+    onSubmit?: (data: CardFormData) => void
+  }
+  control?: {
+    isLoading?: boolean
+  }
 }
 
-export function CardForm({ onSubmit, isLoading = false }: CardFormProps) {
+export function CardForm({ actions, control }: CardFormProps) {
+  const { onSubmit } = actions ?? {}
+  const { isLoading = false } = control ?? {}
   const [formData, setFormData] = useState<CardFormData>({
     cardNumber: '',
     cardHolder: '',

@@ -13,7 +13,9 @@ export interface StatCardProps {
 }
 
 export interface StatsProps {
-  stats?: StatCardProps[]
+  data?: {
+    stats?: StatCardProps[]
+  }
 }
 
 const defaultStats: StatCardProps[] = [
@@ -22,7 +24,8 @@ const defaultStats: StatCardProps[] = [
   { label: "Customers", value: "1,205", change: 0, trend: "neutral" },
 ]
 
-export function Stats({ stats = defaultStats }: StatsProps) {
+export function Stats({ data }: StatsProps) {
+  const { stats = defaultStats } = data ?? {}
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
     switch (trend) {
       case "up":

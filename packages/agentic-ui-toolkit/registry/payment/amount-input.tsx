@@ -6,28 +6,30 @@ import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface AmountInputProps {
-  value?: number
-  min?: number
-  max?: number
-  step?: number
-  currency?: string
-  label?: string
-  presets?: number[]
-  onChange?: (value: number) => void
-  onConfirm?: (value: number) => void
+  data?: {
+    presets?: number[]
+  }
+  actions?: {
+    onChange?: (value: number) => void
+    onConfirm?: (value: number) => void
+  }
+  appearance?: {
+    min?: number
+    max?: number
+    step?: number
+    currency?: string
+    label?: string
+  }
+  control?: {
+    value?: number
+  }
 }
 
-export function AmountInput({
-  value = 50,
-  min = 0,
-  max = 10000,
-  step = 10,
-  currency = "EUR",
-  label = "Amount",
-  presets = [20, 50, 100, 200],
-  onChange,
-  onConfirm,
-}: AmountInputProps) {
+export function AmountInput({ data, actions, appearance, control }: AmountInputProps) {
+  const { presets = [20, 50, 100, 200] } = data ?? {}
+  const { onChange, onConfirm } = actions ?? {}
+  const { min = 0, max = 10000, step = 10, currency = "EUR", label = "Amount" } = appearance ?? {}
+  const { value = 50 } = control ?? {}
   const [amount, setAmount] = useState(value)
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -86,7 +88,7 @@ export function AmountInput({
           <button
             onClick={() => handleChange(amount - step)}
             disabled={amount <= min}
-            className="h-8 w-8 rounded-full border border-border flex items-center justify-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-8 w-8 rounded-full border border-border flex items-center justify-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -109,7 +111,7 @@ export function AmountInput({
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-xl sm:text-2xl font-bold hover:text-primary transition-colors"
+                className="text-xl sm:text-2xl font-bold hover:text-primary transition-colors cursor-pointer"
               >
                 {getCurrencySymbol()}{amount}
               </button>
@@ -118,7 +120,7 @@ export function AmountInput({
           <button
             onClick={() => handleChange(amount + step)}
             disabled={amount >= max}
-            className="h-8 w-8 rounded-full border border-border flex items-center justify-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-8 w-8 rounded-full border border-border flex items-center justify-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -133,7 +135,7 @@ export function AmountInput({
               key={preset}
               onClick={() => handlePreset(preset)}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs sm:text-sm transition-colors",
+                "rounded-full border px-3 py-1 text-xs sm:text-sm transition-colors cursor-pointer",
                 amount === preset
                   ? "border-foreground ring-1 ring-foreground"
                   : "border-border hover:bg-muted"

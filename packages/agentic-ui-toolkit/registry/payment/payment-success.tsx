@@ -1,27 +1,42 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, ExternalLink } from 'lucide-react'
+import { Check, ExternalLink } from 'lucide-react'
+
+/*
+ * PaymentSuccess Component - ChatGPT UI Guidelines Compliant
+ * - Use system colors for icons (foreground/background instead of green)
+ * - Single CTA action (Track order)
+ * - Compact inline layout for desktop
+ * - No nested scrolling
+ */
 
 export interface PaymentSuccessProps {
-  orderId?: string
-  productName?: string
-  productImage?: string
-  price?: number
-  currency?: string
-  deliveryDate?: string
-  onTrackOrder?: () => void
+  data?: {
+    orderId?: string
+    productName?: string
+    productImage?: string
+    price?: number
+    deliveryDate?: string
+  }
+  actions?: {
+    onTrackOrder?: () => void
+  }
+  appearance?: {
+    currency?: string
+  }
 }
 
-export function PaymentSuccess({
-  orderId = 'ORD-2024-7842',
-  productName = "Air Force 1 '07",
-  productImage = '/demo/shoe-1.png',
-  price = 119,
-  currency = 'EUR',
-  deliveryDate = 'Tue. Dec 10',
-  onTrackOrder
-}: PaymentSuccessProps) {
+export function PaymentSuccess({ data, actions, appearance }: PaymentSuccessProps) {
+  const {
+    orderId = 'ORD-2024-7842',
+    productName = "Air Force 1 '07",
+    productImage = '/demo/shoe-1.png',
+    price = 119,
+    deliveryDate = 'Tue. Dec 10',
+  } = data ?? {}
+  const { onTrackOrder } = actions ?? {}
+  const { currency = 'EUR' } = appearance ?? {}
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -30,20 +45,20 @@ export function PaymentSuccess({
   }
 
   return (
-    <div className="w-full rounded-md sm:rounded-lg bg-card">
+    <div className="w-full rounded-lg bg-card border">
       {/* Mobile layout */}
       <div className="sm:hidden p-4 space-y-4">
         {/* Success icon and title */}
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground">
+            <Check className="h-5 w-5 text-background" />
           </div>
           <p className="font-semibold text-base">Payment successful</p>
         </div>
 
         {/* Product image centered */}
         <div className="flex justify-center">
-          <div className="h-24 w-24 rounded-md sm:rounded-lg overflow-hidden bg-muted/30">
+          <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted">
             {productImage ? (
               <img
                 src={productImage}
@@ -86,11 +101,11 @@ export function PaymentSuccess({
       </div>
 
       {/* Desktop layout - compact inline */}
-      <div className="hidden sm:flex items-center gap-3 px-3 py-2">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-500/10">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
+      <div className="hidden sm:flex items-center gap-3 p-3">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground">
+          <Check className="h-4 w-4 text-background" />
         </div>
-        <div className="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-muted/30">
+        <div className="h-9 w-9 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
           {productImage ? (
             <img
               src={productImage}

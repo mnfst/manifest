@@ -5,6 +5,18 @@ import { cn } from '@/lib/utils'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
+/*
+ * ProductList Component - ChatGPT UI Guidelines Compliant
+ * Carousel Rules:
+ * - Keep to 3-8 items per carousel for scannability
+ * - Reduce metadata to most relevant details (3 lines max)
+ * - Each card may have a single, optional CTA
+ * - Use consistent visual hierarchy across cards
+ *
+ * Selection Style:
+ * - Use ring-1 ring-foreground for selected items (no border-2 to avoid layout jumps)
+ */
+
 export interface Product {
   id: string
   name: string
@@ -18,14 +30,22 @@ export interface Product {
 }
 
 export interface ProductListProps {
-  products?: Product[]
-  variant?: 'list' | 'grid' | 'carousel' | 'picker'
-  currency?: string
-  columns?: 3 | 4
-  onSelectProduct?: (product: Product) => void
-  selectedProductId?: string
-  onAddToCart?: (products: Product[]) => void
-  buttonLabel?: string
+  data?: {
+    products?: Product[]
+  }
+  actions?: {
+    onSelectProduct?: (product: Product) => void
+    onAddToCart?: (products: Product[]) => void
+  }
+  appearance?: {
+    variant?: 'list' | 'grid' | 'carousel' | 'picker'
+    currency?: string
+    columns?: 3 | 4
+    buttonLabel?: string
+  }
+  control?: {
+    selectedProductId?: string
+  }
 }
 
 const defaultProducts: Product[] = [
@@ -105,11 +125,11 @@ function ProductHorizontalCard({
       onClick={onSelect}
       disabled={!product.inStock}
       className={cn(
-        'w-full flex items-center gap-3 rounded-[12px] border p-2 text-left transition-all',
+        'w-full flex items-center gap-3 rounded-[12px] border p-2 text-left transition-all cursor-pointer',
         selected
           ? 'bg-card border-foreground ring-1 ring-foreground'
           : 'bg-card border-border hover:border-foreground/50',
-        !product.inStock && 'opacity-50 cursor-not-allowed'
+        !product.inStock && 'opacity-50 !cursor-not-allowed'
       )}
     >
       <div className="relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden">
@@ -215,11 +235,11 @@ function GridVariant({
             onClick={() => onSelect(product)}
             disabled={!product.inStock}
             className={cn(
-              'rounded-[12px] border text-left transition-all overflow-hidden',
+              'rounded-[12px] border text-left transition-all overflow-hidden cursor-pointer',
               selected === product.id
                 ? 'bg-card border-foreground ring-1 ring-foreground'
                 : 'bg-card border-border hover:border-foreground/50',
-              !product.inStock && 'opacity-50 cursor-not-allowed'
+              !product.inStock && 'opacity-50 !cursor-not-allowed'
             )}
           >
             <div className="relative">
@@ -317,12 +337,12 @@ function CarouselVariant({
       onClick={() => onSelect(product)}
       disabled={!product.inStock}
       className={cn(
-        'w-full rounded-[12px] border text-left',
+        'w-full rounded-[12px] border text-left cursor-pointer',
         'flex items-center gap-3 p-2',
         selected === product.id
           ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
           : 'bg-card border-border hover:border-foreground/50',
-        !product.inStock && 'opacity-50'
+        !product.inStock && 'opacity-50 !cursor-not-allowed'
       )}
     >
       <div className="relative h-16 w-16 flex-shrink-0 rounded overflow-hidden bg-muted/30">
@@ -375,7 +395,7 @@ function CarouselVariant({
           type="button"
           onClick={() => onDotClick(i)}
           className={cn(
-            'h-1.5 rounded-full transition-all duration-300',
+            'h-1.5 rounded-full transition-all duration-300 cursor-pointer',
             i === active
               ? 'w-4 bg-foreground'
               : 'w-1.5 bg-foreground/30 hover:bg-foreground/50'
@@ -436,7 +456,7 @@ function CarouselVariant({
               onClick={goLeft}
               disabled={currentIndex === 0}
               className={cn(
-                'absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center',
+                'absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center cursor-pointer',
                 currentIndex === 0 ? 'opacity-0' : 'hover:bg-background'
               )}
             >
@@ -452,7 +472,7 @@ function CarouselVariant({
               }}
               disabled={isAtEnd}
               className={cn(
-                'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center',
+                'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center cursor-pointer',
                 isAtEnd ? 'opacity-0' : 'hover:bg-background'
               )}
             >
@@ -471,11 +491,11 @@ function CarouselVariant({
                     onClick={() => onSelect(product)}
                     disabled={!product.inStock}
                     className={cn(
-                      'flex-shrink-0 w-40 rounded-[12px] border text-left',
+                      'flex-shrink-0 w-40 rounded-[12px] border text-left cursor-pointer',
                       selected === product.id
                         ? 'bg-card border-foreground ring-1 ring-foreground'
                         : 'bg-card border-border hover:border-foreground/50',
-                      !product.inStock && 'opacity-50'
+                      !product.inStock && 'opacity-50 !cursor-not-allowed'
                     )}
                   >
                     <div className="relative h-28 w-full bg-muted/30 rounded-t-[11px] overflow-hidden">
@@ -587,11 +607,11 @@ function PickerVariant({
             onClick={() => handleSelect(product)}
             disabled={!product.inStock}
             className={cn(
-              'w-full flex items-center gap-3 rounded-md sm:rounded-lg border bg-card p-2 text-left transition-all',
+              'w-full flex items-center gap-3 rounded-md sm:rounded-lg border bg-card p-2 text-left transition-all cursor-pointer',
               selectedIds.has(product.id)
                 ? 'border-foreground ring-1 ring-foreground'
                 : 'border-border hover:border-foreground/30',
-              !product.inStock && 'opacity-50 cursor-not-allowed'
+              !product.inStock && 'opacity-50 !cursor-not-allowed'
             )}
           >
             {/* Checkbox */}
@@ -765,16 +785,11 @@ function PickerVariant({
   )
 }
 
-export function ProductList({
-  products = defaultProducts,
-  variant = 'list',
-  currency = 'EUR',
-  columns = 4,
-  onSelectProduct,
-  selectedProductId,
-  onAddToCart,
-  buttonLabel
-}: ProductListProps) {
+export function ProductList({ data, actions, appearance, control }: ProductListProps) {
+  const { products = defaultProducts } = data ?? {}
+  const { onSelectProduct, onAddToCart } = actions ?? {}
+  const { variant = 'list', currency = 'EUR', columns = 4, buttonLabel } = appearance ?? {}
+  const { selectedProductId } = control ?? {}
   const [selected, setSelected] = useState<string | undefined>(selectedProductId)
 
   const formatCurrency = (value: number) => {

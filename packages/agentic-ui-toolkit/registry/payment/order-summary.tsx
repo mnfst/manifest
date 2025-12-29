@@ -20,14 +20,18 @@ export interface OrderItem {
 }
 
 export interface OrderSummaryProps {
-  items: OrderItem[]
-  subtotal: number
-  shipping?: number
-  tax?: number
-  discount?: number
-  discountCode?: string
-  total: number
-  currency?: string
+  data?: {
+    items?: OrderItem[]
+    subtotal?: number
+    shipping?: number
+    tax?: number
+    discount?: number
+    discountCode?: string
+    total?: number
+  }
+  appearance?: {
+    currency?: string
+  }
 }
 
 const defaultItems: OrderItem[] = [
@@ -35,7 +39,7 @@ const defaultItems: OrderItem[] = [
   { id: "2", name: "Wireless Charger", quantity: 2, price: 29.99 },
 ]
 
-const defaultProps: OrderSummaryProps = {
+const defaultData = {
   items: defaultItems,
   subtotal: 259.97,
   shipping: 9.99,
@@ -43,19 +47,19 @@ const defaultProps: OrderSummaryProps = {
   discount: 25.0,
   discountCode: "SAVE10",
   total: 266.54,
-  currency: "USD",
 }
 
-export function OrderSummary({
-  items = defaultProps.items,
-  subtotal = defaultProps.subtotal,
-  shipping = defaultProps.shipping,
-  tax = defaultProps.tax,
-  discount = defaultProps.discount,
-  discountCode = defaultProps.discountCode,
-  total = defaultProps.total,
-  currency = "USD",
-}: Partial<OrderSummaryProps>) {
+export function OrderSummary({ data, appearance }: OrderSummaryProps) {
+  const {
+    items = defaultData.items,
+    subtotal = defaultData.subtotal,
+    shipping = defaultData.shipping,
+    tax = defaultData.tax,
+    discount = defaultData.discount,
+    discountCode = defaultData.discountCode,
+    total = defaultData.total,
+  } = data ?? {}
+  const { currency = "USD" } = appearance ?? {}
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -124,8 +128,8 @@ export function OrderSummary({
             </div>
           )}
           {discount !== undefined && discount > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span className="flex items-center gap-1">
+            <div className="flex justify-between text-sm">
+              <span className="flex items-center gap-1 text-muted-foreground">
                 <Percent className="h-4 w-4" />
                 Discount
                 {discountCode && (
@@ -134,7 +138,7 @@ export function OrderSummary({
                   </Badge>
                 )}
               </span>
-              <span>-{formatCurrency(discount)}</span>
+              <span className="text-foreground">-{formatCurrency(discount)}</span>
             </div>
           )}
         </div>

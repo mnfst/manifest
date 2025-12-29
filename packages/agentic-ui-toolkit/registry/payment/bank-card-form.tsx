@@ -4,19 +4,29 @@ import { Button } from '@/components/ui/button'
 import { CreditCard, Lock } from 'lucide-react'
 import { useState } from 'react'
 
-export interface BankCardFormProps {
-  onSubmit?: (data: { cardNumber: string; expiry: string; cvv: string }) => void
-  submitLabel?: string
-  amount?: number
-  currency?: string
+export interface BankCardFormData {
+  cardNumber: string
+  expiry: string
+  cvv: string
 }
 
-export function BankCardForm({
-  onSubmit,
-  submitLabel,
-  amount = 279,
-  currency = 'EUR'
-}: BankCardFormProps) {
+export interface BankCardFormProps {
+  data?: {
+    amount?: number
+  }
+  actions?: {
+    onSubmit?: (data: BankCardFormData) => void
+  }
+  appearance?: {
+    submitLabel?: string
+    currency?: string
+  }
+}
+
+export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
+  const { amount = 279 } = data ?? {}
+  const { onSubmit } = actions ?? {}
+  const { submitLabel, currency = 'EUR' } = appearance ?? {}
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')

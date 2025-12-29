@@ -6,11 +6,16 @@ import {
   AlertCircle,
   XCircle,
   Loader2,
-  Package,
   Truck,
-  CheckCircle2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+/*
+ * StatusBadge Component - ChatGPT UI Guidelines Compliant
+ * - Use system colors for text, icons, and spatial elements
+ * - Neutral grayscale palette with subtle differentiation
+ * - Icons use monochromatic outlined style
+ */
 
 export type StatusType =
   | "success"
@@ -23,10 +28,14 @@ export type StatusType =
   | "cancelled"
 
 export interface StatusBadgeProps {
-  status?: StatusType
-  label?: string
-  showIcon?: boolean
-  size?: "sm" | "md" | "lg"
+  data?: {
+    status?: StatusType
+  }
+  appearance?: {
+    label?: string
+    showIcon?: boolean
+    size?: "sm" | "md" | "lg"
+  }
 }
 
 const statusConfig: Record<
@@ -35,42 +44,42 @@ const statusConfig: Record<
 > = {
   success: {
     icon: Check,
-    className: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+    className: "bg-muted text-foreground border-border",
     defaultLabel: "Success",
   },
   pending: {
     icon: Clock,
-    className: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
+    className: "bg-muted text-muted-foreground border-border",
     defaultLabel: "Pending",
   },
   processing: {
     icon: Loader2,
-    className: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
+    className: "bg-muted text-foreground border-border",
     defaultLabel: "Processing",
   },
   warning: {
     icon: AlertCircle,
-    className: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+    className: "bg-muted text-foreground border-border",
     defaultLabel: "Warning",
   },
   error: {
     icon: XCircle,
-    className: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+    className: "bg-destructive/10 text-destructive border-destructive/20",
     defaultLabel: "Error",
   },
   shipped: {
     icon: Truck,
-    className: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800",
+    className: "bg-muted text-foreground border-border",
     defaultLabel: "Shipped",
   },
   delivered: {
-    icon: CheckCircle2,
-    className: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+    icon: Check,
+    className: "bg-foreground text-background border-foreground",
     defaultLabel: "Delivered",
   },
   cancelled: {
     icon: XCircle,
-    className: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700",
+    className: "bg-muted text-muted-foreground border-border",
     defaultLabel: "Cancelled",
   },
 }
@@ -87,12 +96,9 @@ const iconSizes = {
   lg: "h-4 w-4",
 }
 
-export function StatusBadge({
-  status = "pending",
-  label,
-  showIcon = true,
-  size = "md",
-}: StatusBadgeProps) {
+export function StatusBadge({ data, appearance }: StatusBadgeProps) {
+  const { status = "pending" } = data ?? {}
+  const { label, showIcon = true, size = "md" } = appearance ?? {}
   const config = statusConfig[status]
   const Icon = config.icon
   const displayLabel = label || config.defaultLabel

@@ -10,17 +10,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export interface LinkedInPostProps {
-  author?: string
-  headline?: string
-  avatar?: string
-  content?: string
-  likes?: string
-  comments?: string
-  reposts?: string
-  time?: string
+  data?: {
+    author?: string
+    headline?: string
+    avatar?: string
+    content?: string
+    likes?: string
+    comments?: string
+    reposts?: string
+    time?: string
+  }
 }
 
-const defaultProps: LinkedInPostProps = {
+const defaultData = {
   author: "Manifest",
   headline: "Agentic UI Toolkit | 10K+ Developers",
   avatar: "M",
@@ -31,16 +33,17 @@ const defaultProps: LinkedInPostProps = {
   time: "2h"
 }
 
-export function LinkedInPost({
-  author = defaultProps.author,
-  headline = defaultProps.headline,
-  avatar = defaultProps.avatar,
-  content = defaultProps.content,
-  likes = defaultProps.likes,
-  comments = defaultProps.comments,
-  reposts = defaultProps.reposts,
-  time = defaultProps.time
-}: LinkedInPostProps) {
+export function LinkedInPost({ data }: LinkedInPostProps) {
+  const {
+    author = defaultData.author,
+    headline = defaultData.headline,
+    avatar = defaultData.avatar,
+    content = defaultData.content,
+    likes = defaultData.likes,
+    comments = defaultData.comments,
+    reposts = defaultData.reposts,
+    time = defaultData.time
+  } = data ?? {}
   return (
     <div className="rounded-xl border bg-card">
       <div className="p-4">
@@ -57,7 +60,7 @@ export function LinkedInPost({
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="text-muted-foreground hover:text-foreground transition-colors">
+                  <button className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
                 </DropdownMenuTrigger>
@@ -105,19 +108,19 @@ export function LinkedInPost({
         <span>{comments} comments · {reposts} reposts</span>
       </div>
       <div className="px-2 py-1 border-t flex items-center justify-around">
-        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground">
+        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground cursor-pointer">
           <ThumbsUp className="h-5 w-5" />
           <span>Like</span>
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground">
+        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground cursor-pointer">
           <MessageCircle className="h-5 w-5" />
           <span>Comment</span>
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground">
+        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground cursor-pointer">
           <Repeat2 className="h-5 w-5" />
           <span>Repost</span>
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground">
+        <button className="flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors text-sm text-muted-foreground cursor-pointer">
           <Send className="h-5 w-5" />
           <span>Send</span>
         </button>

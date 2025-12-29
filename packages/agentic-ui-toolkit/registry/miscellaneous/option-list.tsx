@@ -4,6 +4,14 @@ import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
 
+/*
+ * OptionList Component - ChatGPT UI Guidelines Compliant
+ * - Use system colors (bg-card instead of specific colors)
+ * - Selection uses ring-1 pattern for no layout jumps
+ * - Single/multiple selection modes
+ * - Compact pill/chip design
+ */
+
 export interface Option {
   id: string
   label: string
@@ -13,12 +21,20 @@ export interface Option {
 }
 
 export interface OptionListProps {
-  options?: Option[]
-  selectedOptionId?: string
-  onSelectOption?: (option: Option) => void
-  multiple?: boolean
-  selectedOptionIds?: string[]
-  onSelectOptions?: (options: Option[]) => void
+  data?: {
+    options?: Option[]
+  }
+  actions?: {
+    onSelectOption?: (option: Option) => void
+    onSelectOptions?: (options: Option[]) => void
+  }
+  appearance?: {
+    multiple?: boolean
+  }
+  control?: {
+    selectedOptionId?: string
+    selectedOptionIds?: string[]
+  }
 }
 
 const defaultOptions: Option[] = [
@@ -27,14 +43,11 @@ const defaultOptions: Option[] = [
   { id: '3', label: 'Store pickup', description: 'Available in 2h' }
 ]
 
-export function OptionList({
-  options = defaultOptions,
-  selectedOptionId,
-  onSelectOption,
-  multiple = false,
-  selectedOptionIds = [],
-  onSelectOptions
-}: OptionListProps) {
+export function OptionList({ data, actions, appearance, control }: OptionListProps) {
+  const { options = defaultOptions } = data ?? {}
+  const { onSelectOption, onSelectOptions } = actions ?? {}
+  const { multiple = false } = appearance ?? {}
+  const { selectedOptionId, selectedOptionIds = [] } = control ?? {}
   const [selected, setSelected] = useState<string | string[]>(
     multiple ? selectedOptionIds : selectedOptionId || ''
   )
@@ -63,7 +76,7 @@ export function OptionList({
   }
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
+    <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <button
@@ -71,11 +84,11 @@ export function OptionList({
             onClick={() => handleSelect(option)}
             disabled={option.disabled}
             className={cn(
-              'inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm transition-all',
+              'inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm transition-colors cursor-pointer',
               isSelected(option.id)
-                ? 'border-primary bg-primary text-primary-foreground'
+                ? 'border-foreground bg-foreground text-background'
                 : 'border-border bg-background hover:bg-muted',
-              option.disabled && 'opacity-50 cursor-not-allowed'
+              option.disabled && 'opacity-50 !cursor-not-allowed'
             )}
           >
             {option.icon}
@@ -85,11 +98,11 @@ export function OptionList({
                 className={cn(
                   'text-[10px] sm:text-xs',
                   isSelected(option.id)
-                    ? 'text-primary-foreground/70'
+                    ? 'text-background/70'
                     : 'text-muted-foreground'
                 )}
               >
-                • {option.description}
+                · {option.description}
               </span>
             )}
             {isSelected(option.id) && multiple && (

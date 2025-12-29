@@ -3,6 +3,14 @@
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 
+/*
+ * ProgressSteps Component - ChatGPT UI Guidelines Compliant
+ * - Use system colors (bg-card instead of specific colors)
+ * - Horizontal/vertical responsive layout
+ * - Clear visual hierarchy for step states
+ * - Step-by-step inline wizard pattern
+ */
+
 export interface Step {
   id: string
   label: string
@@ -10,7 +18,9 @@ export interface Step {
 }
 
 export interface ProgressStepsProps {
-  steps?: Step[]
+  data?: {
+    steps?: Step[]
+  }
 }
 
 const defaultSteps: Step[] = [
@@ -20,11 +30,10 @@ const defaultSteps: Step[] = [
   { id: '4', label: 'Delivery', status: 'pending' }
 ]
 
-export function ProgressSteps({
-  steps = defaultSteps
-}: ProgressStepsProps) {
+export function ProgressSteps({ data }: ProgressStepsProps) {
+  const { steps = defaultSteps } = data ?? {}
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-card rounded-lg p-4">
       {steps.map((step, index) => (
         <div key={step.id} className="flex items-center gap-2">
           <div className="flex items-center gap-2">
@@ -49,7 +58,7 @@ export function ProgressSteps({
             </span>
           </div>
           {index < steps.length - 1 && (
-            <div className="hidden sm:block w-4 h-px bg-muted-foreground/30" />
+            <div className="hidden sm:block w-4 h-px bg-border" />
           )}
         </div>
       ))}

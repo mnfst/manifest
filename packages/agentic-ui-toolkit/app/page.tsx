@@ -3,8 +3,8 @@
 import { ChatDemo } from '@/components/chat/chat-demo'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WaveCanvas } from '@/components/ui/wave-canvas'
-import { BlogPostCard } from '@/registry/blogging/blog-post-card'
-import { BlogPostList } from '@/registry/blogging/blog-post-list'
+import { PostCard } from '@/registry/blogging/post-card'
+import { PostList } from '@/registry/blogging/post-list'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
 import { PaymentMethods } from '@/registry/payment/payment-methods'
@@ -225,7 +225,7 @@ const useCases = [
         id: '2',
         role: 'assistant' as const,
         content: 'Here are our best-selling audio products:',
-        component: <ProductList products={audioProducts} variant="carousel" />,
+        component: <ProductList data={{ products: audioProducts }} appearance={{ variant: "carousel" }} />,
         brand: { name: 'Iyo', logo: <IyoLogo className="h-4 w-4" /> },
         hasPadding: true,
         contentAfter:
@@ -294,7 +294,7 @@ const useCases = [
         id: '2',
         role: 'assistant' as const,
         content: "Here's the top story from TechCrunch:",
-        component: <BlogPostCard post={featuredArticle} variant="covered" />,
+        component: <PostCard data={{ post: featuredArticle }} appearance={{ variant: "covered" }} />,
         brand: {
           name: 'TechCrunch',
           logo: <TechCrunchLogo className="h-4 w-4" />
@@ -311,7 +311,7 @@ const useCases = [
         id: '4',
         role: 'assistant' as const,
         content: 'Here are more trending stories:',
-        component: <BlogPostList posts={techCrunchArticles} variant="list" />,
+        component: <PostList data={{ posts: techCrunchArticles }} appearance={{ variant: "list" }} />,
         brand: {
           name: 'TechCrunch',
           logo: <TechCrunchLogo className="h-4 w-4" />

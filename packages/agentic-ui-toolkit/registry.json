@@ -270,33 +270,41 @@
       ]
     },
     {
-      "name": "blog-post-card",
+      "name": "post-card",
       "type": "registry:component",
-      "title": "Blog Post Card",
-      "description": "Blog post card with image, title, excerpt, author info and read more button. Supports default, compact, and horizontal variants.",
+      "title": "Post Card",
+      "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/blogging/blog-post-card.tsx",
+          "path": "registry/blogging/post-card.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/blogging/post-detail.tsx",
           "type": "registry:component"
         }
       ]
     },
     {
-      "name": "blog-post-list",
+      "name": "post-list",
       "type": "registry:component",
-      "title": "Blog Post List",
-      "description": "Blog post list with list, grid, and carousel variants.",
+      "title": "Post List",
+      "description": "Post list with list, grid, and carousel variants. Includes post-detail for fullscreen view.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/blogging/blog-post-list.tsx",
+          "path": "registry/blogging/post-list.tsx",
           "type": "registry:component"
         },
         {
-          "path": "registry/blogging/blog-post-card.tsx",
+          "path": "registry/blogging/post-card.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/blogging/post-detail.tsx",
           "type": "registry:component"
         }
       ]
@@ -314,7 +322,7 @@
           "type": "registry:component"
         },
         {
-          "path": "registry/blogging/blog-post-card.tsx",
+          "path": "registry/blogging/post-card.tsx",
           "type": "registry:component"
         }
       ]

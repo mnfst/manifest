@@ -9,24 +9,33 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 
+/*
+ * MessageBubble Components - ChatGPT UI Guidelines Compliant
+ * - Use system colors (foreground/background) instead of custom blue
+ * - Compact design suitable for chat embedding
+ * - Note: Dropdown for reactions may be clipped in iframes - consider inline alternatives
+ */
+
 // Single Message Bubble
 export interface MessageBubbleProps {
-  content: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  status?: 'sent' | 'delivered' | 'read'
+  data?: {
+    content?: string
+    avatar?: string
+    author?: string
+    time?: string
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
+  control?: {
+    status?: 'sent' | 'delivered' | 'read'
+  }
 }
 
-export function MessageBubble({
-  content = 'Hey! How are you doing?',
-  avatar = 'J',
-  author = 'John',
-  time = '10:30 AM',
-  isOwn = false,
-  status
-}: MessageBubbleProps) {
+export function MessageBubble({ data, appearance, control }: MessageBubbleProps) {
+  const { content = 'Hey! How are you doing?', avatar = 'J', author = 'John', time = '10:30 AM' } = data ?? {}
+  const { isOwn = false } = appearance ?? {}
+  const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
       {!isOwn && (
@@ -54,7 +63,7 @@ export function MessageBubble({
               {status === 'sent' && <Check className="h-3 w-3" />}
               {status === 'delivered' && <CheckCheck className="h-3 w-3" />}
               {status === 'read' && (
-                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <CheckCheck className="h-3 w-3 text-foreground" />
               )}
             </span>
           )}
@@ -66,24 +75,31 @@ export function MessageBubble({
 
 // Image Message Bubble
 export interface ImageMessageBubbleProps {
-  image: string
-  caption?: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  status?: 'sent' | 'delivered' | 'read'
+  data?: {
+    image?: string
+    caption?: string
+    avatar?: string
+    author?: string
+    time?: string
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
+  control?: {
+    status?: 'sent' | 'delivered' | 'read'
+  }
 }
 
-export function ImageMessageBubble({
-  image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-  caption,
-  avatar = 'J',
-  author = 'John',
-  time = '10:32 AM',
-  isOwn = false,
-  status
-}: ImageMessageBubbleProps) {
+export function ImageMessageBubble({ data, appearance, control }: ImageMessageBubbleProps) {
+  const {
+    image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
+    caption,
+    avatar = 'J',
+    author = 'John',
+    time = '10:32 AM',
+  } = data ?? {}
+  const { isOwn = false } = appearance ?? {}
+  const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
       {!isOwn && (
@@ -123,7 +139,7 @@ export function ImageMessageBubble({
               {status === 'sent' && <Check className="h-3 w-3" />}
               {status === 'delivered' && <CheckCheck className="h-3 w-3" />}
               {status === 'read' && (
-                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <CheckCheck className="h-3 w-3 text-foreground" />
               )}
             </span>
           )}
@@ -135,29 +151,36 @@ export function ImageMessageBubble({
 
 // Message with reactions
 export interface MessageWithReactionsProps {
-  content: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  reactions?: { emoji: string; count: number }[]
-  onReact?: (emoji: string) => void
+  data?: {
+    content?: string
+    avatar?: string
+    author?: string
+    time?: string
+    reactions?: { emoji: string; count: number }[]
+  }
+  actions?: {
+    onReact?: (emoji: string) => void
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
 }
 
 const availableEmojis = ['❤️', '👍', '👎', '😂', '😮', '😢', '🎉', '🔥', '👏', '💯']
 
-export function MessageWithReactions({
-  content = 'This is such great news! 🎉',
-  avatar = 'A',
-  author = 'Alex',
-  time = '2:45 PM',
-  isOwn = false,
-  reactions: initialReactions = [
-    { emoji: '❤️', count: 3 },
-    { emoji: '👍', count: 2 }
-  ],
-  onReact
-}: MessageWithReactionsProps) {
+export function MessageWithReactions({ data, actions, appearance }: MessageWithReactionsProps) {
+  const {
+    content = 'This is such great news! 🎉',
+    avatar = 'A',
+    author = 'Alex',
+    time = '2:45 PM',
+    reactions: initialReactions = [
+      { emoji: '❤️', count: 3 },
+      { emoji: '👍', count: 2 }
+    ],
+  } = data ?? {}
+  const { onReact } = actions ?? {}
+  const { isOwn = false } = appearance ?? {}
   const [reactions, setReactions] = useState(initialReactions)
 
   const handleReact = (emoji: string) => {
@@ -213,7 +236,7 @@ export function MessageWithReactions({
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors">
+              <button className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors cursor-pointer">
                 <Smile className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -223,7 +246,7 @@ export function MessageWithReactions({
                   <button
                     key={emoji}
                     onClick={() => handleReact(emoji)}
-                    className="h-8 w-8 flex items-center justify-center text-lg hover:bg-muted rounded transition-colors"
+                    className="h-8 w-8 flex items-center justify-center text-lg hover:bg-muted rounded transition-colors cursor-pointer"
                   >
                     {emoji}
                   </button>
@@ -244,24 +267,31 @@ export function MessageWithReactions({
 
 // Voice Message Bubble
 export interface VoiceMessageBubbleProps {
-  duration?: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  status?: 'sent' | 'delivered' | 'read'
-  audioSrc?: string
+  data?: {
+    duration?: string
+    avatar?: string
+    author?: string
+    time?: string
+    audioSrc?: string
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
+  control?: {
+    status?: 'sent' | 'delivered' | 'read'
+  }
 }
 
-export function VoiceMessageBubble({
-  duration = '0:42',
-  avatar = 'M',
-  author = 'Mike',
-  time = '3:15 PM',
-  isOwn = false,
-  status,
-  audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-}: VoiceMessageBubbleProps) {
+export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBubbleProps) {
+  const {
+    duration = '0:42',
+    avatar = 'M',
+    author = 'Mike',
+    time = '3:15 PM',
+    audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  } = data ?? {}
+  const { isOwn = false } = appearance ?? {}
+  const { status } = control ?? {}
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState('0:00')
@@ -321,7 +351,7 @@ export function VoiceMessageBubble({
           <button
             onClick={togglePlay}
             className={cn(
-              'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors',
+              'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer',
               isOwn ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30' : 'bg-foreground/10 hover:bg-foreground/20'
             )}
           >
@@ -362,7 +392,7 @@ export function VoiceMessageBubble({
               {status === 'sent' && <Check className="h-3 w-3" />}
               {status === 'delivered' && <CheckCheck className="h-3 w-3" />}
               {status === 'read' && (
-                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <CheckCheck className="h-3 w-3 text-foreground" />
               )}
             </span>
           )}

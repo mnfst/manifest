@@ -3,19 +3,21 @@
 import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
 
 export interface XPostProps {
-  author?: string
-  username?: string
-  avatar?: string
-  content?: string
-  time?: string
-  likes?: string
-  retweets?: string
-  replies?: string
-  views?: string
-  verified?: boolean
+  data?: {
+    author?: string
+    username?: string
+    avatar?: string
+    content?: string
+    time?: string
+    likes?: string
+    retweets?: string
+    replies?: string
+    views?: string
+    verified?: boolean
+  }
 }
 
-const defaultProps: XPostProps = {
+const defaultData = {
   author: "Manifest",
   username: "manifest",
   avatar: "M",
@@ -28,18 +30,19 @@ const defaultProps: XPostProps = {
   verified: true
 }
 
-export function XPost({
-  author = defaultProps.author,
-  username = defaultProps.username,
-  avatar = defaultProps.avatar,
-  content = defaultProps.content,
-  time = defaultProps.time,
-  likes = defaultProps.likes,
-  retweets = defaultProps.retweets,
-  replies = defaultProps.replies,
-  views = defaultProps.views,
-  verified = defaultProps.verified
-}: XPostProps) {
+export function XPost({ data }: XPostProps) {
+  const {
+    author = defaultData.author,
+    username = defaultData.username,
+    avatar = defaultData.avatar,
+    content = defaultData.content,
+    time = defaultData.time,
+    likes = defaultData.likes,
+    retweets = defaultData.retweets,
+    replies = defaultData.replies,
+    views = defaultData.views,
+    verified = defaultData.verified
+  } = data ?? {}
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex gap-3">
@@ -59,28 +62,28 @@ export function XPost({
           </div>
           <p className="text-sm mt-1 whitespace-pre-wrap">{content}</p>
           <div className="flex items-center justify-between mt-3 text-muted-foreground max-w-md">
-            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs cursor-pointer">
               <MessageCircle className="h-4 w-4" />
               <span>{replies}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-green-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-green-500 transition-colors text-xs cursor-pointer">
               <Repeat2 className="h-4 w-4" />
               <span>{retweets}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-pink-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-pink-500 transition-colors text-xs cursor-pointer">
               <Heart className="h-4 w-4" />
               <span>{likes}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs cursor-pointer">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 12h4l3 8 4-16 3 8h4" />
               </svg>
               <span>{views}</span>
             </button>
-            <button className="hover:text-blue-500 transition-colors">
+            <button className="hover:text-blue-500 transition-colors cursor-pointer">
               <Bookmark className="h-4 w-4" />
             </button>
-            <button className="hover:text-blue-500 transition-colors">
+            <button className="hover:text-blue-500 transition-colors cursor-pointer">
               <Share className="h-4 w-4" />
             </button>
           </div>

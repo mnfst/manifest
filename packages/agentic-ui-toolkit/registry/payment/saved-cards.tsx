@@ -22,14 +22,22 @@ export interface SavedCard {
 }
 
 export interface SavedCardsProps {
-  cards?: SavedCard[]
-  selectedCardId?: string
-  onSelectCard?: (cardId: string) => void
-  onAddNewCard?: () => void
-  onPay?: (cardId: string) => void
-  amount?: number
-  currency?: string
-  isLoading?: boolean
+  data?: {
+    cards?: SavedCard[]
+    amount?: number
+  }
+  actions?: {
+    onSelectCard?: (cardId: string) => void
+    onAddNewCard?: () => void
+    onPay?: (cardId: string) => void
+  }
+  appearance?: {
+    currency?: string
+  }
+  control?: {
+    selectedCardId?: string
+    isLoading?: boolean
+  }
 }
 
 const defaultCards: SavedCard[] = [
@@ -62,16 +70,11 @@ const brandColors: Record<string, string> = {
   amex: "bg-blue-400",
 }
 
-export function SavedCards({
-  cards = defaultCards,
-  selectedCardId,
-  onSelectCard,
-  onAddNewCard,
-  onPay,
-  amount = 279.0,
-  currency = "EUR",
-  isLoading = false,
-}: SavedCardsProps) {
+export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
+  const { cards = defaultCards, amount = 279.0 } = data ?? {}
+  const { onSelectCard, onAddNewCard, onPay } = actions ?? {}
+  const { currency = "EUR" } = appearance ?? {}
+  const { selectedCardId, isLoading = false } = control ?? {}
   const [selected, setSelected] = useState(
     selectedCardId || cards.find((c) => c.isDefault)?.id || cards[0]?.id
   )
@@ -105,7 +108,7 @@ export function SavedCards({
           <button
             key={card.id}
             onClick={() => handleSelect(card.id)}
-            className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+            className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
               selected === card.id
                 ? "border-primary bg-primary/5 ring-1 ring-primary"
                 : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -135,7 +138,7 @@ export function SavedCards({
 
         <button
           onClick={onAddNewCard}
-          className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all"
+          className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer"
         >
           <div className="flex h-10 w-14 items-center justify-center rounded-md bg-muted">
             <Plus className="h-5 w-5 text-muted-foreground" />

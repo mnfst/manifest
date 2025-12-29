@@ -1,9 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { ArrowRight } from 'lucide-react'
 
-export interface BlogPost {
+export interface Post {
   id: string
   title: string
   excerpt: string
@@ -16,9 +15,10 @@ export interface BlogPost {
   readTime?: string
   tags?: string[]
   category?: string
+  url?: string
 }
 
-const defaultPost: BlogPost = {
+const defaultPost: Post = {
   id: '1',
   title: 'Getting Started with Agentic UI Components',
   excerpt:
@@ -35,23 +35,30 @@ const defaultPost: BlogPost = {
   category: 'Tutorial'
 }
 
-export interface BlogPostCardProps {
-  post?: BlogPost
-  variant?: 'default' | 'compact' | 'horizontal' | 'covered'
-  showImage?: boolean
-  showAuthor?: boolean
-  showCategory?: boolean
-  onReadMore?: (post: BlogPost) => void
+export interface PostCardProps {
+  data?: {
+    post?: Post
+  }
+  actions?: {
+    onReadMore?: (post: Post) => void
+  }
+  appearance?: {
+    variant?: 'default' | 'compact' | 'horizontal' | 'covered'
+    showImage?: boolean
+    showAuthor?: boolean
+    showCategory?: boolean
+  }
 }
 
-export function BlogPostCard({
-  post = defaultPost,
-  variant = 'default',
-  showImage = true,
-  showAuthor = true,
-  showCategory = true,
-  onReadMore
-}: BlogPostCardProps) {
+export function PostCard({ data, actions, appearance }: PostCardProps) {
+  const { post = defaultPost } = data ?? {}
+  const { onReadMore } = actions ?? {}
+  const {
+    variant = 'default',
+    showImage = true,
+    showAuthor = true,
+    showCategory = true
+  } = appearance ?? {}
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
@@ -62,8 +69,8 @@ export function BlogPostCard({
 
   if (variant === 'covered') {
     return (
-      <div className="relative overflow-hidden rounded-lg">
-        <div className="min-h-[320px] sm:aspect-[16/9] sm:min-h-0 w-full">
+      <div className="relative overflow-hidden rounded-lg border">
+        <div className="min-h-[280px] sm:aspect-[16/9] sm:min-h-0 w-full">
           {post.coverImage ? (
             <img
               src={post.coverImage}
@@ -74,11 +81,12 @@ export function BlogPostCard({
             <div className="absolute inset-0 h-full w-full bg-muted" />
           )}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+        {/* Minimal overlay - solid color instead of gradient per ChatGPT guidelines */}
+        <div className="absolute inset-0 bg-black/60" />
         <div className="absolute inset-0 flex flex-col justify-between p-4 text-white">
           <div className="flex gap-1">
             {showCategory && post.category && (
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs backdrop-blur-sm">
+              <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs">
                 {post.category}
               </span>
             )}
@@ -86,14 +94,16 @@ export function BlogPostCard({
               post.tags.slice(0, 1).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-white/20 px-2 py-0.5 text-xs backdrop-blur-sm"
+                  className="rounded-md bg-white/20 px-2 py-0.5 text-xs"
                 >
                   {tag}
                 </span>
               ))}
           </div>
           <div>
-            <h2 className="text-lg font-bold leading-tight">{post.title}</h2>
+            <h2 className="text-lg font-semibold leading-tight">
+              {post.title}
+            </h2>
             <p className="mt-1 line-clamp-2 text-sm text-white/80">
               {post.excerpt}
             </p>
@@ -104,7 +114,7 @@ export function BlogPostCard({
                     <img
                       src={post.author.avatar}
                       alt={post.author.name}
-                      className="h-6 w-6 rounded-full ring-2 ring-white/30"
+                      className="h-6 w-6 rounded-full ring-1 ring-white/30"
                     />
                   )}
                   <div className="text-xs">
@@ -132,7 +142,7 @@ export function BlogPostCard({
 
   if (variant === 'horizontal') {
     return (
-      <div className="test flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3">
         {showImage && post.coverImage && (
           <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
@@ -179,7 +189,6 @@ export function BlogPostCard({
               onClick={() => onReadMore?.(post)}
             >
               Read
-              <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
           </div>
         </div>
@@ -189,7 +198,7 @@ export function BlogPostCard({
 
   if (variant === 'compact') {
     return (
-      <div className="flex h-full flex-col justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+      <div className="flex h-full flex-col justify-between rounded-lg border bg-card p-3">
         <div>
           {showCategory && post.category && (
             <span className="mb-2 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -216,7 +225,6 @@ export function BlogPostCard({
           </div>
           <Button size="sm" onClick={() => onReadMore?.(post)}>
             Read more
-            <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         </div>
       </div>
@@ -225,7 +233,7 @@ export function BlogPostCard({
 
   // Default variant
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:bg-muted/50">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card">
       {showImage && post.coverImage && (
         <div className="aspect-video overflow-hidden">
           <img
@@ -279,7 +287,6 @@ export function BlogPostCard({
           )}
           <Button size="sm" onClick={() => onReadMore?.(post)}>
             Read
-            <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </div>
