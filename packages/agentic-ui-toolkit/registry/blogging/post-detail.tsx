@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar, Clock, ExternalLink } from 'lucide-react'
 import { BlogPost } from './blog-post-card'
 
 function stripHtml(html: string): string {
@@ -56,7 +56,8 @@ const defaultRelatedPosts: BlogPost[] = [
     publishedAt: '2024-01-12',
     readTime: '8 min read',
     tags: ['Design', 'UX'],
-    category: 'Design'
+    category: 'Design',
+    url: 'https://example.com/posts/designing-conversational-interfaces'
   },
   {
     id: '3',
@@ -72,7 +73,8 @@ const defaultRelatedPosts: BlogPost[] = [
     publishedAt: '2024-01-10',
     readTime: '12 min read',
     tags: ['MCP', 'Backend', 'Integration'],
-    category: 'Development'
+    category: 'Development',
+    url: 'https://example.com/posts/mcp-integration-patterns'
   },
   {
     id: '4',
@@ -88,6 +90,7 @@ const defaultRelatedPosts: BlogPost[] = [
     publishedAt: '2024-01-08',
     readTime: '10 min read',
     tags: ['Payments', 'Security'],
+    url: 'https://example.com/posts/building-payment-flows',
     category: 'Tutorial'
   }
 ]
@@ -273,9 +276,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
             <h3 className="mb-6 text-lg font-semibold">Related Posts</h3>
             <div className="space-y-4">
               {relatedPosts.map((related) => (
-                <button
+                <a
                   key={related.id}
-                  onClick={() => onReadRelated?.(related)}
+                  href={related.url || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex w-full items-center gap-4 rounded-lg p-3 text-left transition-colors hover:bg-muted cursor-pointer"
                 >
                   {related.coverImage && (
@@ -296,7 +301,8 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
                       {related.readTime}
                     </p>
                   </div>
-                </button>
+                  <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </a>
               ))}
             </div>
           </div>

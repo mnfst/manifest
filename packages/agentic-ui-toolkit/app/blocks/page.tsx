@@ -191,7 +191,7 @@ const categories: Category[] = [
         name: 'Post List',
         description: 'Display multiple posts in various layouts',
         registryName: 'blog-post-list',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen'],
         variants: [
           {
             id: 'list',

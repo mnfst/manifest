@@ -24,6 +24,7 @@ export interface BlogPost {
   readTime?: string
   tags?: string[]
   category?: string
+  url?: string
 }
 
 const defaultPost: BlogPost = {
@@ -145,7 +146,7 @@ export function BlogPostCard({ data, actions, appearance }: BlogPostCardProps) {
 
   if (variant === 'horizontal') {
     return (
-      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3">
         {showImage && post.coverImage && (
           <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
@@ -201,7 +202,7 @@ export function BlogPostCard({ data, actions, appearance }: BlogPostCardProps) {
 
   if (variant === 'compact') {
     return (
-      <div className="flex h-full flex-col justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
+      <div className="flex h-full flex-col justify-between rounded-lg border bg-card p-3">
         <div>
           {showCategory && post.category && (
             <span className="mb-2 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -236,7 +237,7 @@ export function BlogPostCard({ data, actions, appearance }: BlogPostCardProps) {
 
   // Default variant
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:bg-muted/50">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card">
       {showImage && post.coverImage && (
         <div className="aspect-video overflow-hidden">
           <img
