@@ -72,8 +72,8 @@ function TikTokIcon({ className }: { className?: string }) {
 }
 
 // Blogging components
-import { BlogPostCardDemo } from '@/components/blocks/blog-post-card-demo'
-import { BlogPostListDemo } from '@/components/blocks/blog-post-list-demo'
+import { PostCardDemo } from '@/components/blocks/post-card-demo'
+import { PostListDemo } from '@/components/blocks/post-list-demo'
 
 // List components
 import { ProductList } from '@/registry/list/product-list'
@@ -151,38 +151,38 @@ const categories: Category[] = [
         name: 'Post Card',
         description:
           'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
-        registryName: 'blog-post-card',
+        registryName: 'post-card',
         layouts: ['inline', 'fullscreen'],
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <BlogPostCardDemo />,
-            usageCode: `<BlogPostCard />`
+            component: <PostCardDemo />,
+            usageCode: `<PostCard />`
           },
           {
             id: 'no-image',
             name: 'Without Image',
-            component: <BlogPostCardDemo appearance={{ showImage: false }} />,
-            usageCode: `<BlogPostCard appearance={{ showImage: false }} />`
+            component: <PostCardDemo appearance={{ showImage: false }} />,
+            usageCode: `<PostCard appearance={{ showImage: false }} />`
           },
           {
             id: 'compact',
             name: 'Compact',
-            component: <BlogPostCardDemo appearance={{ variant: 'compact' }} />,
-            usageCode: `<BlogPostCard appearance={{ variant: "compact" }} />`
+            component: <PostCardDemo appearance={{ variant: 'compact' }} />,
+            usageCode: `<PostCard appearance={{ variant: "compact" }} />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <BlogPostCardDemo appearance={{ variant: 'horizontal' }} />,
-            usageCode: `<BlogPostCard appearance={{ variant: "horizontal" }} />`
+            component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
+            usageCode: `<PostCard appearance={{ variant: "horizontal" }} />`
           },
           {
             id: 'covered',
             name: 'Covered',
-            component: <BlogPostCardDemo appearance={{ variant: 'covered' }} />,
-            usageCode: `<BlogPostCard appearance={{ variant: "covered" }} />`
+            component: <PostCardDemo appearance={{ variant: 'covered' }} />,
+            usageCode: `<PostCard appearance={{ variant: "covered" }} />`
           }
         ]
       },
@@ -190,26 +190,26 @@ const categories: Category[] = [
         id: 'post-list',
         name: 'Post List',
         description: 'Display multiple posts in various layouts',
-        registryName: 'blog-post-list',
+        registryName: 'post-list',
         layouts: ['inline', 'fullscreen'],
         variants: [
           {
             id: 'list',
             name: 'List',
-            component: <BlogPostListDemo appearance={{ variant: 'list' }} />,
-            usageCode: `<BlogPostList appearance={{ variant: "list" }} />`
+            component: <PostListDemo appearance={{ variant: 'list' }} />,
+            usageCode: `<PostList appearance={{ variant: "list" }} />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <BlogPostListDemo appearance={{ variant: 'grid' }} />,
-            usageCode: `<BlogPostList appearance={{ variant: "grid" }} />`
+            component: <PostListDemo appearance={{ variant: 'grid' }} />,
+            usageCode: `<PostList appearance={{ variant: "grid" }} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <BlogPostListDemo appearance={{ variant: 'carousel' }} />,
-            usageCode: `<BlogPostList appearance={{ variant: "carousel" }} />`
+            component: <PostListDemo appearance={{ variant: 'carousel' }} />,
+            usageCode: `<PostList appearance={{ variant: "carousel" }} />`
           }
         ]
       }

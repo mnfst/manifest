@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { BlogPost, BlogPostCard } from './blog-post-card'
+import { Post, PostCard } from './post-card'
 
-const defaultPosts: BlogPost[] = [
+const defaultPosts: Post[] = [
   {
     id: '1',
     title: 'Getting Started with Agentic UI Components',
@@ -73,12 +73,12 @@ const defaultPosts: BlogPost[] = [
   }
 ]
 
-export interface BlogPostListProps {
+export interface PostListProps {
   data?: {
-    posts?: BlogPost[]
+    posts?: Post[]
   }
   actions?: {
-    onReadMore?: (post: BlogPost) => void
+    onReadMore?: (post: Post) => void
   }
   appearance?: {
     variant?: 'list' | 'grid' | 'carousel'
@@ -88,7 +88,7 @@ export interface BlogPostListProps {
   }
 }
 
-export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
+export function PostList({ data, actions, appearance }: PostListProps) {
   const { posts = defaultPosts } = data ?? {}
   const { onReadMore } = actions ?? {}
   const { variant = 'list', columns = 2, showAuthor = true, showCategory = true } = appearance ?? {}
@@ -99,7 +99,7 @@ export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
     return (
       <div className="space-y-3">
         {posts.slice(0, 3).map((post) => (
-          <BlogPostCard
+          <PostCard
             key={post.id}
             data={{ post }}
             appearance={{ variant: "horizontal", showAuthor, showCategory }}
@@ -120,7 +120,7 @@ export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
         )}
       >
         {posts.map((post) => (
-          <BlogPostCard
+          <PostCard
             key={post.id}
             data={{ post }}
             appearance={{ variant: "compact", showImage: false, showAuthor, showCategory }}
@@ -159,7 +159,7 @@ export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
         >
           {posts.map((post) => (
             <div key={post.id} className="w-full shrink-0 px-0.5">
-              <BlogPostCard
+              <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
                 actions={{ onReadMore }}
@@ -175,7 +175,7 @@ export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
         >
           {posts.map((post) => (
             <div key={post.id} className="w-1/2 shrink-0 px-1.5">
-              <BlogPostCard
+              <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
                 actions={{ onReadMore }}
@@ -191,7 +191,7 @@ export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
         >
           {posts.map((post) => (
             <div key={post.id} className="w-1/3 shrink-0 px-1.5">
-              <BlogPostCard
+              <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
                 actions={{ onReadMore }}

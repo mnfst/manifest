@@ -2,16 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 
-/*
- * BlogPostCard Component - ChatGPT UI Guidelines Compliant
- * - Avoid custom gradients on backgrounds (covered variant uses minimal overlay)
- * - Maintain visual hierarchy: headline, supporting text, CTA
- * - Single CTA per card
- * - Consistent border radius with system (rounded-lg)
- * - 3 lines max metadata
- */
-
-export interface BlogPost {
+export interface Post {
   id: string
   title: string
   excerpt: string
@@ -27,7 +18,7 @@ export interface BlogPost {
   url?: string
 }
 
-const defaultPost: BlogPost = {
+const defaultPost: Post = {
   id: '1',
   title: 'Getting Started with Agentic UI Components',
   excerpt:
@@ -44,12 +35,12 @@ const defaultPost: BlogPost = {
   category: 'Tutorial'
 }
 
-export interface BlogPostCardProps {
+export interface PostCardProps {
   data?: {
-    post?: BlogPost
+    post?: Post
   }
   actions?: {
-    onReadMore?: (post: BlogPost) => void
+    onReadMore?: (post: Post) => void
   }
   appearance?: {
     variant?: 'default' | 'compact' | 'horizontal' | 'covered'
@@ -59,10 +50,15 @@ export interface BlogPostCardProps {
   }
 }
 
-export function BlogPostCard({ data, actions, appearance }: BlogPostCardProps) {
+export function PostCard({ data, actions, appearance }: PostCardProps) {
   const { post = defaultPost } = data ?? {}
   const { onReadMore } = actions ?? {}
-  const { variant = 'default', showImage = true, showAuthor = true, showCategory = true } = appearance ?? {}
+  const {
+    variant = 'default',
+    showImage = true,
+    showAuthor = true,
+    showCategory = true
+  } = appearance ?? {}
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',

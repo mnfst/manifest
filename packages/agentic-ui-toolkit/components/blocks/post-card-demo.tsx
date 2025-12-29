@@ -1,30 +1,30 @@
 'use client'
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
-import { BlogPostCard, BlogPostCardProps, BlogPost } from '@/registry/blogging/blog-post-card'
+import { PostCard, PostCardProps, Post } from '@/registry/blogging/post-card'
 import { PostDetail } from '@/registry/blogging/post-detail'
 import { useState } from 'react'
 
-interface BlogPostCardDemoProps {
+interface PostCardDemoProps {
   data?: {
-    post?: BlogPost
+    post?: Post
   }
-  appearance?: BlogPostCardProps['appearance']
+  appearance?: PostCardProps['appearance']
   appName?: string
   appUrl?: string
 }
 
-export function BlogPostCardDemo({
+export function PostCardDemo({
   appName = 'Blog App',
   appUrl = 'https://example.com',
   data,
   appearance
-}: BlogPostCardDemoProps) {
+}: PostCardDemoProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   return (
     <>
-      <BlogPostCard
+      <PostCard
         data={data}
         appearance={appearance}
         actions={{ onReadMore: () => setIsFullscreen(true) }}

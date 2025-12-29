@@ -1,29 +1,29 @@
 'use client'
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
-import { BlogPost } from '@/registry/blogging/blog-post-card'
-import { BlogPostList, BlogPostListProps } from '@/registry/blogging/blog-post-list'
+import { Post } from '@/registry/blogging/post-card'
+import { PostList, PostListProps } from '@/registry/blogging/post-list'
 import { PostDetail } from '@/registry/blogging/post-detail'
 import { useState } from 'react'
 
-interface BlogPostListDemoProps {
-  data?: BlogPostListProps['data']
-  appearance?: BlogPostListProps['appearance']
+interface PostListDemoProps {
+  data?: PostListProps['data']
+  appearance?: PostListProps['appearance']
   appName?: string
   appUrl?: string
 }
 
-export function BlogPostListDemo({
+export function PostListDemo({
   appName = 'Blog App',
   appUrl = 'https://example.com',
   data,
   appearance
-}: BlogPostListDemoProps) {
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
+}: PostListDemoProps) {
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
 
   return (
     <>
-      <BlogPostList
+      <PostList
         data={data}
         appearance={appearance}
         actions={{ onReadMore: (post) => setSelectedPost(post) }}

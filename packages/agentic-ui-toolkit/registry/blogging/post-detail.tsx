@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, ExternalLink } from 'lucide-react'
-import { BlogPost } from './blog-post-card'
+import { Post } from './post-card'
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '')
@@ -13,7 +13,7 @@ function truncateText(text: string, maxLength: number): string {
   return text.slice(0, maxLength).trim() + '...'
 }
 
-const defaultPost: BlogPost = {
+const defaultPost: Post = {
   id: '1',
   title: 'Getting Started with Agentic UI Components',
   excerpt:
@@ -41,7 +41,7 @@ const defaultContent = `
   <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
 `
 
-const defaultRelatedPosts: BlogPost[] = [
+const defaultRelatedPosts: Post[] = [
   {
     id: '2',
     title: 'Designing for Conversational Interfaces',
@@ -97,14 +97,14 @@ const defaultRelatedPosts: BlogPost[] = [
 
 export interface PostDetailProps {
   data?: {
-    post?: BlogPost
+    post?: Post
     content?: string
-    relatedPosts?: BlogPost[]
+    relatedPosts?: Post[]
   }
   actions?: {
     onBack?: () => void
     onReadMore?: () => void
-    onReadRelated?: (post: BlogPost) => void
+    onReadRelated?: (post: Post) => void
   }
   appearance?: {
     showCover?: boolean
