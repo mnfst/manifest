@@ -72,9 +72,8 @@ function TikTokIcon({ className }: { className?: string }) {
 }
 
 // Blogging components
-import { BlogPostCard } from '@/registry/blogging/blog-post-card'
+import { BlogPostCardDemo } from '@/components/blocks/blog-post-card-demo'
 import { BlogPostList } from '@/registry/blogging/blog-post-list'
-import { PostDetailDemo } from '@/components/blocks/post-detail-demo'
 
 // List components
 import { ProductList } from '@/registry/list/product-list'
@@ -147,38 +146,38 @@ const categories: Category[] = [
       {
         id: 'post-card',
         name: 'Post Card',
-        description: 'Display blog posts with various layouts and styles',
+        description: 'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
         registryName: 'blog-post-card',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen'],
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <BlogPostCard />,
+            component: <BlogPostCardDemo />,
             usageCode: `<BlogPostCard />`
           },
           {
             id: 'no-image',
             name: 'Without Image',
-            component: <BlogPostCard showImage={false} />,
+            component: <BlogPostCardDemo showImage={false} />,
             usageCode: `<BlogPostCard showImage={false} />`
           },
           {
             id: 'compact',
             name: 'Compact',
-            component: <BlogPostCard variant="compact" />,
+            component: <BlogPostCardDemo variant="compact" />,
             usageCode: `<BlogPostCard variant="compact" />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <BlogPostCard variant="horizontal" />,
+            component: <BlogPostCardDemo variant="horizontal" />,
             usageCode: `<BlogPostCard variant="horizontal" />`
           },
           {
             id: 'covered',
             name: 'Covered',
-            component: <BlogPostCard variant="covered" />,
+            component: <BlogPostCardDemo variant="covered" />,
             usageCode: `<BlogPostCard variant="covered" />`
           }
         ]
@@ -207,27 +206,6 @@ const categories: Category[] = [
             name: 'Carousel',
             component: <BlogPostList variant="carousel" />,
             usageCode: `<BlogPostList variant="carousel" />`
-          }
-        ]
-      },
-      {
-        id: 'post-detail',
-        name: 'Post Detail',
-        description: 'Full post view with cover and content',
-        registryName: 'post-detail',
-        layouts: ['inline', 'fullscreen'],
-        variants: [
-          {
-            id: 'default',
-            name: 'With Cover',
-            component: <PostDetailDemo />,
-            usageCode: `<PostDetail />`
-          },
-          {
-            id: 'no-cover',
-            name: 'Without Cover',
-            component: <PostDetailDemo showCover={false} />,
-            usageCode: `<PostDetail showCover={false} />`
           }
         ]
       }
