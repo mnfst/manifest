@@ -108,7 +108,7 @@ export function YouTubePost({ data }: YouTubePostProps) {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="text-muted-foreground hover:text-foreground shrink-0 transition-colors">
+              <button className="text-muted-foreground hover:text-foreground shrink-0 transition-colors cursor-pointer">
                 <MoreHorizontal className="h-5 w-5" />
               </button>
             </DropdownMenuTrigger>

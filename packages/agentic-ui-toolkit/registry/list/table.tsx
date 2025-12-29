@@ -329,7 +329,7 @@ export function Table<T extends Record<string, unknown>>({
                     type="button"
                     onClick={handleSelectAll}
                     className={cn(
-                      'flex h-4 w-4 items-center justify-center rounded border transition-colors',
+                      'flex h-4 w-4 items-center justify-center rounded border transition-colors cursor-pointer',
                       selectedRowsSet.size === sortedData.length &&
                         sortedData.length > 0
                         ? 'bg-foreground border-foreground text-background'

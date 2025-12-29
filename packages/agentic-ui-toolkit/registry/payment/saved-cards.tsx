@@ -108,7 +108,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
           <button
             key={card.id}
             onClick={() => handleSelect(card.id)}
-            className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+            className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
               selected === card.id
                 ? "border-primary bg-primary/5 ring-1 ring-primary"
                 : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -138,7 +138,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
 
         <button
           onClick={onAddNewCard}
-          className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all"
+          className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer"
         >
           <div className="flex h-10 w-14 items-center justify-center rounded-md bg-muted">
             <Plus className="h-5 w-5 text-muted-foreground" />

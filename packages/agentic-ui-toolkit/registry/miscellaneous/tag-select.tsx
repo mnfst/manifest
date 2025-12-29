@@ -93,7 +93,7 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
             key={tag.id}
             onClick={() => handleToggle(tag.id)}
             className={cn(
-              'inline-flex items-center gap-1 sm:gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm transition-colors',
+              'inline-flex items-center gap-1 sm:gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm transition-colors cursor-pointer',
               isSelected(tag.id) ? tagClasses.selected : tagClasses.unselected
             )}
           >
@@ -109,7 +109,7 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
         {showClear && selected.length > 0 ? (
           <button
             onClick={handleClear}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             <X className="h-3 w-3" />
             Clear selection ({selected.length})

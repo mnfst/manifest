@@ -73,7 +73,7 @@ function TikTokIcon({ className }: { className?: string }) {
 
 // Blogging components
 import { BlogPostCardDemo } from '@/components/blocks/blog-post-card-demo'
-import { BlogPostList } from '@/registry/blogging/blog-post-list'
+import { BlogPostListDemo } from '@/components/blocks/blog-post-list-demo'
 
 // List components
 import { ProductList } from '@/registry/list/product-list'
@@ -196,19 +196,19 @@ const categories: Category[] = [
           {
             id: 'list',
             name: 'List',
-            component: <BlogPostList appearance={{ variant: 'list' }} />,
+            component: <BlogPostListDemo appearance={{ variant: 'list' }} />,
             usageCode: `<BlogPostList appearance={{ variant: "list" }} />`
           },
           {
             id: 'grid',
             name: 'Grid',
-            component: <BlogPostList appearance={{ variant: 'grid' }} />,
+            component: <BlogPostListDemo appearance={{ variant: 'grid' }} />,
             usageCode: `<BlogPostList appearance={{ variant: "grid" }} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <BlogPostList appearance={{ variant: 'carousel' }} />,
+            component: <BlogPostListDemo appearance={{ variant: 'carousel' }} />,
             usageCode: `<BlogPostList appearance={{ variant: "carousel" }} />`
           }
         ]

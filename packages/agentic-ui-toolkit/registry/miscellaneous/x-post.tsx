@@ -62,28 +62,28 @@ export function XPost({ data }: XPostProps) {
           </div>
           <p className="text-sm mt-1 whitespace-pre-wrap">{content}</p>
           <div className="flex items-center justify-between mt-3 text-muted-foreground max-w-md">
-            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs cursor-pointer">
               <MessageCircle className="h-4 w-4" />
               <span>{replies}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-green-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-green-500 transition-colors text-xs cursor-pointer">
               <Repeat2 className="h-4 w-4" />
               <span>{retweets}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-pink-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-pink-500 transition-colors text-xs cursor-pointer">
               <Heart className="h-4 w-4" />
               <span>{likes}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs">
+            <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-xs cursor-pointer">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 12h4l3 8 4-16 3 8h4" />
               </svg>
               <span>{views}</span>
             </button>
-            <button className="hover:text-blue-500 transition-colors">
+            <button className="hover:text-blue-500 transition-colors cursor-pointer">
               <Bookmark className="h-4 w-4" />
             </button>
-            <button className="hover:text-blue-500 transition-colors">
+            <button className="hover:text-blue-500 transition-colors cursor-pointer">
               <Share className="h-4 w-4" />
             </button>
           </div>

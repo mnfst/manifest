@@ -276,7 +276,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
                 <button
                   key={related.id}
                   onClick={() => onReadRelated?.(related)}
-                  className="flex w-full items-center gap-4 rounded-lg p-3 text-left transition-colors hover:bg-muted"
+                  className="flex w-full items-center gap-4 rounded-lg p-3 text-left transition-colors hover:bg-muted cursor-pointer"
                 >
                   {related.coverImage && (
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">

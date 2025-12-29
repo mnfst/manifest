@@ -207,7 +207,7 @@ export function BlogPostList({ data, actions, appearance }: BlogPostListProps) {
               key={i}
               onClick={() => setCurrentIndex(i)}
               className={cn(
-                'h-1.5 rounded-full transition-all',
+                'h-1.5 rounded-full transition-all cursor-pointer',
                 i === currentIndex
                   ? 'w-4 bg-foreground'
                   : 'w-1.5 bg-muted-foreground/30'

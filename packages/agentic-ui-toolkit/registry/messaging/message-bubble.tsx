@@ -236,7 +236,7 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors">
+              <button className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors cursor-pointer">
                 <Smile className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -246,7 +246,7 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
                   <button
                     key={emoji}
                     onClick={() => handleReact(emoji)}
-                    className="h-8 w-8 flex items-center justify-center text-lg hover:bg-muted rounded transition-colors"
+                    className="h-8 w-8 flex items-center justify-center text-lg hover:bg-muted rounded transition-colors cursor-pointer"
                   >
                     {emoji}
                   </button>
@@ -351,7 +351,7 @@ export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBu
           <button
             onClick={togglePlay}
             className={cn(
-              'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors',
+              'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer',
               isOwn ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30' : 'bg-foreground/10 hover:bg-foreground/20'
             )}
           >
