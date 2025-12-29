@@ -62,7 +62,7 @@ export class FlowService {
   async findById(id: string): Promise<Flow | null> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views', 'views.mockDataEntity', 'returnValues'],
+      relations: ['views', 'views.mockDataEntity', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
     });
     return entity ? this.entityToFlow(entity) : null;
   }
@@ -73,7 +73,7 @@ export class FlowService {
   async findByAppId(appId: string): Promise<Flow[]> {
     const entities = await this.flowRepository.find({
       where: { appId },
-      relations: ['views', 'views.mockDataEntity', 'returnValues'],
+      relations: ['views', 'views.mockDataEntity', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
       order: { createdAt: 'ASC' },
     });
     return entities.map((entity) => this.entityToFlow(entity));
@@ -118,10 +118,10 @@ export class FlowService {
 
     await this.flowRepository.save(entity);
 
-    // Refetch with views and returnValues to ensure relations are included in response
+    // Refetch with all relations including callFlows
     const updated = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views', 'views.mockDataEntity', 'returnValues'],
+      relations: ['views', 'views.mockDataEntity', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
     });
     return this.entityToFlow(updated!);
   }
@@ -223,6 +223,20 @@ export class FlowService {
         order: rv.order,
         createdAt: rv.createdAt?.toISOString(),
         updatedAt: rv.updatedAt?.toISOString(),
+      })),
+      callFlows: entity.callFlows?.map((cf) => ({
+        id: cf.id,
+        flowId: cf.flowId,
+        targetFlowId: cf.targetFlowId,
+        targetFlow: cf.targetFlow ? {
+          id: cf.targetFlow.id,
+          appId: cf.targetFlow.appId,
+          name: cf.targetFlow.name,
+          toolName: cf.targetFlow.toolName,
+        } : undefined,
+        order: cf.order,
+        createdAt: cf.createdAt?.toISOString(),
+        updatedAt: cf.updatedAt?.toISOString(),
       })),
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { Layout, FileText, X } from 'lucide-react';
+import { Layout, FileText, PhoneForwarded, X } from 'lucide-react';
 
-export type StepType = 'view' | 'returnValue';
+export type StepType = 'view' | 'returnValue' | 'callFlow';
 
 interface StepTypeDrawerProps {
   isOpen: boolean;
@@ -63,6 +63,7 @@ export function StepTypeDrawer({
 
   const isViewDisabled = disabledTypes.includes('view');
   const isReturnValueDisabled = disabledTypes.includes('returnValue');
+  const isCallFlowDisabled = disabledTypes.includes('callFlow');
 
   return (
     <div
@@ -152,6 +153,38 @@ export function StepTypeDrawer({
                 {isReturnValueDisabled && (
                   <p className="text-xs text-amber-600 mt-2">
                     Cannot add return values to a flow with views
+                  </p>
+                )}
+              </div>
+            </div>
+          </button>
+
+          {/* Call Flow Option */}
+          <button
+            onClick={() => handleSelect('callFlow')}
+            disabled={isCallFlowDisabled}
+            className={`w-full p-4 border rounded-lg text-left transition-all group ${
+              isCallFlowDisabled
+                ? 'opacity-50 cursor-not-allowed bg-muted'
+                : 'hover:border-primary hover:bg-primary/5 cursor-pointer'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                isCallFlowDisabled ? 'bg-gray-100' : 'bg-purple-100 group-hover:bg-purple-200'
+              }`}>
+                <PhoneForwarded className={`w-5 h-5 ${isCallFlowDisabled ? 'text-gray-400' : 'text-purple-600'}`} />
+              </div>
+              <div className="flex-1">
+                <h3 className={`font-medium ${isCallFlowDisabled ? 'text-muted-foreground' : 'text-foreground'}`}>
+                  Call Flow
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Trigger another flow in this app when this action executes
+                </p>
+                {isCallFlowDisabled && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Cannot add call flows to a flow with views or return values
                   </p>
                 )}
               </div>

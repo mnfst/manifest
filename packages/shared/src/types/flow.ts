@@ -1,6 +1,7 @@
 import type { View } from './view.js';
 import type { App } from './app.js';
 import type { ReturnValue } from './return-value.js';
+import type { CallFlow } from './call-flow.js';
 
 /**
  * Parameter type enum for MCP tool parameters
@@ -33,6 +34,7 @@ export interface Flow {
   parameters?: FlowParameter[];
   views?: View[];
   returnValues?: ReturnValue[];
+  callFlows?: CallFlow[];
   createdAt: string;
   updatedAt: string;
 }

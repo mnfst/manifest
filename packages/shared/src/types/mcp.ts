@@ -9,22 +9,32 @@ export interface McpToolResponse {
   /**
    * Text content to display in ChatGPT conversation
    */
-  content: Array<{ type: 'text'; text: string }>;
+  content?: Array<{ type: 'text'; text: string }>;
 
   /**
    * Structured data to pass to the UI component
+   * Optional for return value flows and call flow flows that don't display UI
    */
-  structuredContent: MockData;
+  structuredContent?: MockData | Record<string, unknown>;
 
   /**
    * Metadata for ChatGPT Apps SDK
+   * Optional for return value flows that don't display UI
    */
-  _meta: {
+  _meta?: {
     /**
      * URL to the UI component that ChatGPT renders in an iframe
      * Format: ui://widget/{mcpSlug}.html
      */
-    'openai/outputTemplate': string;
+    'openai/outputTemplate'?: string;
+    /**
+     * Whether to show border around widget
+     */
+    'openai/widgetPrefersBorder'?: boolean;
+    /**
+     * Additional metadata fields
+     */
+    [key: string]: unknown;
   };
 }
 

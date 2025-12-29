@@ -56,4 +56,8 @@ export class FlowEntity {
   // Relation to return values
   @OneToMany('ReturnValueEntity', 'flow', { cascade: true })
   returnValues?: import('../return-value/return-value.entity').ReturnValueEntity[];
+
+  // Relation to call flows
+  @OneToMany('CallFlowEntity', 'flow', { cascade: true })
+  callFlows?: import('../call-flow/call-flow.entity').CallFlowEntity[];
 }

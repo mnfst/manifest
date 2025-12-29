@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue } from '@chatgpt-app-builder/shared';
+import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue, CallFlow } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BookOpen } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
@@ -12,6 +12,7 @@ import { UserIntentModal } from '../components/flow/UserIntentModal';
 import { MockDataModal } from '../components/flow/MockDataModal';
 import { StepTypeDrawer, type StepType } from '../components/flow/StepTypeDrawer';
 import { ReturnValueEditor } from '../components/flow/ReturnValueEditor';
+import { CallFlowEditor } from '../components/flow/CallFlowEditor';
 import { Tabs } from '../components/common/Tabs';
 import { FlowPreview } from '../components/preview/FlowPreview';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
@@ -65,6 +66,15 @@ function FlowDetail() {
   const [returnValueError, setReturnValueError] = useState<string | null>(null);
   const [isDeletingReturnValue, setIsDeletingReturnValue] = useState(false);
 
+  // Call flow state
+  const [showCallFlowEditor, setShowCallFlowEditor] = useState(false);
+  const [callFlowToEdit, setCallFlowToEdit] = useState<CallFlow | null>(null);
+  const [callFlowToDelete, setCallFlowToDelete] = useState<CallFlow | null>(null);
+  const [isSavingCallFlow, setIsSavingCallFlow] = useState(false);
+  const [callFlowError, setCallFlowError] = useState<string | null>(null);
+  const [isDeletingCallFlow, setIsDeletingCallFlow] = useState(false);
+  const [availableFlows, setAvailableFlows] = useState<Flow[]>([]);
+
   // Tab state
   const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
   const [previewKey, setPreviewKey] = useState(0);
@@ -86,12 +96,14 @@ function FlowDetail() {
       setError(null);
 
       try {
-        const [loadedApp, loadedFlow] = await Promise.all([
+        const [loadedApp, loadedFlow, loadedFlows] = await Promise.all([
           api.getApp(appId),
           api.getFlow(flowId),
+          api.listFlows(appId),
         ]);
         setApp(loadedApp);
         setFlow(loadedFlow);
+        setAvailableFlows(loadedFlows);
       } catch (err) {
         if (err instanceof ApiClientError) {
           setError(err.message);
@@ -317,6 +329,11 @@ function FlowDetail() {
       setReturnValueToEdit(null);
       setReturnValueError(null);
       setShowReturnValueEditor(true);
+    } else if (type === 'callFlow') {
+      // Open call flow editor for creating new
+      setCallFlowToEdit(null);
+      setCallFlowError(null);
+      setShowCallFlowEditor(true);
     }
   };
 
@@ -392,6 +409,78 @@ function FlowDetail() {
     }
   };
 
+  // Call flow handlers
+  const handleCallFlowEdit = (callFlow: CallFlow) => {
+    setCallFlowToEdit(callFlow);
+    setCallFlowError(null);
+    setShowCallFlowEditor(true);
+  };
+
+  const handleCloseCallFlowEditor = () => {
+    if (!isSavingCallFlow) {
+      setShowCallFlowEditor(false);
+      setCallFlowToEdit(null);
+      setCallFlowError(null);
+    }
+  };
+
+  const handleSaveCallFlow = async (targetFlowId: string) => {
+    if (!flowId) return;
+
+    setIsSavingCallFlow(true);
+    setCallFlowError(null);
+
+    try {
+      if (callFlowToEdit) {
+        // Update existing
+        await api.updateCallFlow(callFlowToEdit.id, { targetFlowId });
+      } else {
+        // Create new
+        await api.createCallFlow(flowId, { targetFlowId });
+      }
+      // Reload flow to get updated call flows
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+      setShowCallFlowEditor(false);
+      setCallFlowToEdit(null);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setCallFlowError(err.message);
+      } else {
+        setCallFlowError('Failed to save call flow');
+      }
+    } finally {
+      setIsSavingCallFlow(false);
+    }
+  };
+
+  const handleCallFlowDelete = (callFlow: CallFlow) => {
+    setCallFlowToDelete(callFlow);
+  };
+
+  const handleCloseCallFlowDeleteDialog = () => {
+    if (!isDeletingCallFlow) {
+      setCallFlowToDelete(null);
+    }
+  };
+
+  const handleConfirmDeleteCallFlow = async () => {
+    if (!callFlowToDelete || !flowId) return;
+
+    setIsDeletingCallFlow(true);
+    try {
+      await api.deleteCallFlow(callFlowToDelete.id);
+      // Reload flow to get updated call flows
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+      setCallFlowToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete call flow:', err);
+    } finally {
+      setIsDeletingCallFlow(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -428,16 +517,25 @@ function FlowDetail() {
 
   const views = flow.views || [];
   const returnValues = flow.returnValues || [];
+  const callFlows = flow.callFlows || [];
 
   // Determine step counts for display
-  const stepCount = views.length + returnValues.length;
+  const stepCount = views.length + returnValues.length + callFlows.length;
   const hasViews = views.length > 0;
   const hasReturnValues = returnValues.length > 0;
+  const hasCallFlows = callFlows.length > 0;
 
   // For mutual exclusivity - determine which types are disabled
   const disabledStepTypes: StepType[] = [];
-  if (hasViews) disabledStepTypes.push('returnValue');
-  if (hasReturnValues) disabledStepTypes.push('view');
+  if (hasViews) {
+    disabledStepTypes.push('returnValue', 'callFlow');
+  }
+  if (hasReturnValues) {
+    disabledStepTypes.push('view', 'callFlow');
+  }
+  if (hasCallFlows) {
+    disabledStepTypes.push('view', 'returnValue');
+  }
 
   // Tab configuration with disabled state for Preview when no views
   const tabs: TabConfig[] = [
@@ -587,16 +685,18 @@ function FlowDetail() {
                     {stepCount === 0 ? 'No steps yet' : (
                       hasViews
                         ? `${views.length} view${views.length !== 1 ? 's' : ''}`
-                        : `${returnValues.length} return value${returnValues.length !== 1 ? 's' : ''}`
+                        : hasReturnValues
+                        ? `${returnValues.length} return value${returnValues.length !== 1 ? 's' : ''}`
+                        : `${callFlows.length} call flow${callFlows.length !== 1 ? 's' : ''}`
                     )}
                   </p>
                 </div>
                 <button
                   onClick={handleAddStep}
-                  disabled={isCreatingView || isSavingReturnValue}
+                  disabled={isCreatingView || isSavingReturnValue || isSavingCallFlow}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isCreatingView || isSavingReturnValue ? (
+                  {isCreatingView || isSavingReturnValue || isSavingCallFlow ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Creating...
@@ -619,10 +719,13 @@ function FlowDetail() {
                   flow={flow}
                   views={views}
                   returnValues={returnValues}
+                  callFlows={callFlows}
                   onViewEdit={handleViewClick}
                   onViewDelete={handleViewDelete}
                   onReturnValueEdit={handleReturnValueEdit}
                   onReturnValueDelete={handleReturnValueDelete}
+                  onCallFlowEdit={handleCallFlowEdit}
+                  onCallFlowDelete={handleCallFlowDelete}
                   onUserIntentEdit={handleUserIntentEdit}
                   onMockDataEdit={handleMockDataEdit}
                   onAddUserIntent={handleUserIntentEdit}
@@ -714,6 +817,28 @@ function FlowDetail() {
         title="Delete Return Value"
         message="Are you sure you want to delete this return value? This action cannot be undone."
         isLoading={isDeletingReturnValue}
+      />
+
+      {/* Call Flow Editor */}
+      <CallFlowEditor
+        isOpen={showCallFlowEditor}
+        onClose={handleCloseCallFlowEditor}
+        onSave={handleSaveCallFlow}
+        callFlow={callFlowToEdit}
+        currentFlowId={flowId || ''}
+        availableFlows={availableFlows}
+        isLoading={isSavingCallFlow}
+        error={callFlowError}
+      />
+
+      {/* Delete Call Flow Confirmation */}
+      <DeleteConfirmDialog
+        isOpen={!!callFlowToDelete}
+        onClose={handleCloseCallFlowDeleteDialog}
+        onConfirm={handleConfirmDeleteCallFlow}
+        title="Delete Call Flow"
+        message="Are you sure you want to delete this call flow? This action cannot be undone."
+        isLoading={isDeletingCallFlow}
       />
     </div>
   );

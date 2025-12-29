@@ -32,6 +32,9 @@ import type {
   ReturnValue,
   CreateReturnValueRequest,
   UpdateReturnValueRequest,
+  CallFlow,
+  CreateCallFlowRequest,
+  UpdateCallFlowRequest,
   IconUploadResponse,
 } from '@chatgpt-app-builder/shared';
 
@@ -452,6 +455,69 @@ export const api = {
    */
   async reorderReturnValues(flowId: string, orderedIds: string[]): Promise<ReturnValue[]> {
     return fetchApi<ReturnValue[]>(`/flows/${flowId}/return-values/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({ orderedIds }),
+    });
+  },
+
+  // ============================================
+  // Call Flow APIs
+  // ============================================
+
+  /**
+   * List call flows for a flow
+   * GET /api/flows/:flowId/call-flows
+   */
+  async listCallFlows(flowId: string): Promise<CallFlow[]> {
+    return fetchApi<CallFlow[]>(`/flows/${flowId}/call-flows`);
+  },
+
+  /**
+   * Create a new call flow
+   * POST /api/flows/:flowId/call-flows
+   */
+  async createCallFlow(flowId: string, request: CreateCallFlowRequest): Promise<CallFlow> {
+    return fetchApi<CallFlow>(`/flows/${flowId}/call-flows`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Get call flow by ID
+   * GET /api/call-flows/:callFlowId
+   */
+  async getCallFlow(callFlowId: string): Promise<CallFlow> {
+    return fetchApi<CallFlow>(`/call-flows/${callFlowId}`);
+  },
+
+  /**
+   * Update a call flow
+   * PATCH /api/call-flows/:callFlowId
+   */
+  async updateCallFlow(callFlowId: string, request: UpdateCallFlowRequest): Promise<CallFlow> {
+    return fetchApi<CallFlow>(`/call-flows/${callFlowId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Delete a call flow
+   * DELETE /api/call-flows/:callFlowId
+   */
+  async deleteCallFlow(callFlowId: string): Promise<void> {
+    await fetchApi<void>(`/call-flows/${callFlowId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Reorder call flows within a flow
+   * POST /api/flows/:flowId/call-flows/reorder
+   */
+  async reorderCallFlows(flowId: string, orderedIds: string[]): Promise<CallFlow[]> {
+    return fetchApi<CallFlow[]>(`/flows/${flowId}/call-flows/reorder`, {
       method: 'POST',
       body: JSON.stringify({ orderedIds }),
     });
