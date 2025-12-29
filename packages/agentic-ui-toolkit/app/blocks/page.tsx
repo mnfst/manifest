@@ -270,16 +270,29 @@ const categories: Category[] = [
           {
             id: 'single-select',
             name: 'Single Select',
-            component: <Table data={{ title: 'Models' }} appearance={{ selectable: 'single' }} />,
-            usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} />`
+            component: (
+              <Table
+                data={{ title: 'Models' }}
+                appearance={{ selectable: 'single' }}
+                actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
+              />
+            ),
+            usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} actions={{ onCopy: (rows) => ... }} />`
           },
           {
             id: 'multi-select',
             name: 'Multi Select',
             component: (
-              <Table data={{ title: 'Export Data' }} appearance={{ selectable: 'multi', showActions: true }} />
+              <Table
+                data={{ title: 'Export Data' }}
+                appearance={{ selectable: 'multi' }}
+                actions={{
+                  onDownload: (rows) => console.log('Download:', rows),
+                  onShare: (rows) => console.log('Share:', rows)
+                }}
+              />
             ),
-            usageCode: `<Table data={{ title: "Export Data" }} appearance={{ selectable: "multi", showActions: true }} />`
+            usageCode: `<Table data={{ title: "Export Data" }} appearance={{ selectable: "multi" }} actions={{ onDownload, onShare }} />`
           }
         ]
       },

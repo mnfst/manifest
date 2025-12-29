@@ -8,11 +8,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Copy,
   Download,
   Maximize2,
   Minus,
   RefreshCw,
-  Send,
+  Share2,
   X
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
@@ -37,8 +38,9 @@ export interface TableProps<T = Record<string, unknown>> {
   }
   actions?: {
     onSelectionChange?: (selectedRows: T[]) => void
+    onCopy?: (selectedRows: T[]) => void
     onDownload?: (selectedRows: T[]) => void
-    onSend?: (selectedRows: T[]) => void
+    onShare?: (selectedRows: T[]) => void
     onRefresh?: () => void
     onExpand?: () => void
   }
@@ -171,16 +173,26 @@ function SkeletonRow({
 function TableHeader({
   title,
   titleImage,
-  onExpand
+  onExpand,
+  selectable,
+  hasSelection,
+  onCopy,
+  onDownload,
+  onShare
 }: {
   title?: string
   titleImage?: string
   onExpand?: () => void
+  selectable?: 'none' | 'single' | 'multi'
+  hasSelection?: boolean
+  onCopy?: () => void
+  onDownload?: () => void
+  onShare?: () => void
 }) {
   if (!title && !onExpand) return null
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b bg-card rounded-t-lg">
+    <div className="flex items-center justify-between px-4 py-3 border-b bg-card rounded-t-lg h-14">
       <div className="flex items-center gap-2">
         {titleImage && (
           <img
@@ -191,15 +203,67 @@ function TableHeader({
         )}
         {title && <span className="font-medium">{title}</span>}
       </div>
-      {onExpand && (
-        <button
-          onClick={onExpand}
-          className="flex h-8 w-8 items-center justify-center rounded-full border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
-          aria-label="Expand table"
-        >
-          <Maximize2 className="h-4 w-4" />
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        {/* Action buttons - icons only, disabled when no selection */}
+        {selectable === 'single' && onCopy && (
+          <button
+            onClick={hasSelection ? onCopy : undefined}
+            disabled={!hasSelection}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+              hasSelection
+                ? 'text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer'
+                : 'text-muted-foreground/40 cursor-not-allowed'
+            )}
+            aria-label="Copy"
+          >
+            <Copy className="h-4 w-4" />
+          </button>
+        )}
+        {selectable === 'multi' && (
+          <>
+            {onDownload && (
+              <button
+                onClick={hasSelection ? onDownload : undefined}
+                disabled={!hasSelection}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                  hasSelection
+                    ? 'text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer'
+                    : 'text-muted-foreground/40 cursor-not-allowed'
+                )}
+                aria-label="Download"
+              >
+                <Download className="h-4 w-4" />
+              </button>
+            )}
+            {onShare && (
+              <button
+                onClick={hasSelection ? onShare : undefined}
+                disabled={!hasSelection}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                  hasSelection
+                    ? 'text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer'
+                    : 'text-muted-foreground/40 cursor-not-allowed'
+                )}
+                aria-label="Share"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+            )}
+          </>
+        )}
+        {onExpand && (
+          <button
+            onClick={onExpand}
+            className="flex h-8 w-8 items-center justify-center rounded-full border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+            aria-label="Expand table"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -263,7 +327,12 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
   onClose,
   selectable,
   compact,
-  onSelectionChange
+  onSelectionChange,
+  onCopy,
+  onDownload,
+  onShare,
+  lastUpdated,
+  onRefresh
 }: {
   title?: string
   titleImage?: string
@@ -273,6 +342,11 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
   selectable: 'none' | 'single' | 'multi'
   compact: boolean
   onSelectionChange?: (selectedRows: T[]) => void
+  onCopy?: (selectedRows: T[]) => void
+  onDownload?: (selectedRows: T[]) => void
+  onShare?: (selectedRows: T[]) => void
+  lastUpdated?: Date | string
+  onRefresh?: () => void
 }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortConfig, setSortConfig] = useState<{
@@ -373,38 +447,86 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
     )
   }
 
+  const hasSelection = selectedRowsSet.size > 0
+  const getSelectedRows = () => sortedData.filter((_, i) => selectedRowsSet.has(i))
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
-      {/* Header */}
+    <div className="fixed top-14 bottom-0 left-0 right-0 md:left-[226px] z-40 flex flex-col bg-background">
+      {/* Modal Header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-muted hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-2">
-          {titleImage && (
-            <img
-              src={titleImage}
-              alt=""
-              className="h-5 w-5 rounded object-cover"
-            />
-          )}
-          <span className="text-sm font-medium">{title || 'Table'}</span>
-        </div>
+        <span className="text-sm font-medium">{title || 'Table'}</span>
 
         <div className="w-8" />
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto px-4">
+        {/* Table Header - inside content, above table */}
+        <div className="flex items-center justify-between py-3 h-14">
+          <div className="flex items-center gap-2">
+            {titleImage && (
+              <img
+                src={titleImage}
+                alt=""
+                className="h-5 w-5 rounded object-cover"
+              />
+            )}
+            <span className="font-medium">{title || 'Table'}</span>
+          </div>
+
+          {/* Action buttons - always visible, disabled when no selection */}
+          <div className="flex items-center gap-2">
+            {selectable === 'single' && onCopy && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onCopy(getSelectedRows())}
+                disabled={!hasSelection}
+              >
+                <Copy className="mr-1.5 h-3.5 w-3.5" />
+                Copy
+              </Button>
+            )}
+            {selectable === 'multi' && (
+              <>
+                {onDownload && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDownload(getSelectedRows())}
+                    disabled={!hasSelection}
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    Download
+                  </Button>
+                )}
+                {onShare && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onShare(getSelectedRows())}
+                    disabled={!hasSelection}
+                  >
+                    <Share2 className="mr-1.5 h-3.5 w-3.5" />
+                    Share
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
         <div className="w-full">
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b bg-muted/50">
+              <thead className="border-b">
                 <tr>
                   {selectable !== 'none' && (
                     <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')} />
@@ -530,6 +652,40 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
           )}
         </div>
       </div>
+
+      {/* Footer - no borders */}
+      <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span>{sortedData.length} records found</span>
+          {lastUpdated && (
+            <>
+              <span className="text-muted-foreground/50">·</span>
+              <span>
+                Data as of{' '}
+                {(typeof lastUpdated === 'string'
+                  ? new Date(lastUpdated)
+                  : lastUpdated
+                ).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit'
+                })}
+              </span>
+            </>
+          )}
+        </div>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            aria-label="Refresh"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -548,7 +704,7 @@ export function Table<T extends Record<string, unknown>>({
     lastUpdated = new Date(),
     totalRows
   } = dataProps ?? {}
-  const { onSelectionChange, onDownload, onSend, onRefresh, onExpand } =
+  const { onSelectionChange, onCopy, onDownload, onShare, onRefresh, onExpand } =
     actions ?? {}
   const {
     selectable = 'none',
@@ -698,6 +854,11 @@ export function Table<T extends Record<string, unknown>>({
             title={title}
             titleImage={titleImage}
             onExpand={handleExpand}
+            selectable={selectable}
+            hasSelection={selectedRowsSet.size > 0}
+            onCopy={onCopy ? () => onCopy(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
+            onDownload={onDownload ? () => onDownload(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
+            onShare={onShare ? () => onShare(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
           />
         )}
 
@@ -932,42 +1093,6 @@ export function Table<T extends Record<string, unknown>>({
             onRefresh={onRefresh}
           />
         )}
-
-        {/* Action buttons for multi-select */}
-        {showActions && selectable === 'multi' && (
-          <div className="px-4 py-3 flex items-center justify-between border-t">
-            <span className="text-sm text-muted-foreground">
-              {selectedRowsSet.size > 0
-                ? `${selectedRowsSet.size} item${selectedRowsSet.size > 1 ? 's' : ''} selected`
-                : 'Select items'}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={selectedRowsSet.size === 0}
-                onClick={() =>
-                  onDownload?.(
-                    visibleData.filter((_, i) => selectedRowsSet.has(i))
-                  )
-                }
-              >
-                <Download className="mr-1.5 h-3.5 w-3.5" />
-                Download
-              </Button>
-              <Button
-                size="sm"
-                disabled={selectedRowsSet.size === 0}
-                onClick={() =>
-                  onSend?.(visibleData.filter((_, i) => selectedRowsSet.has(i)))
-                }
-              >
-                <Send className="mr-1.5 h-3.5 w-3.5" />
-                Send
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Fullscreen Modal */}
@@ -981,6 +1106,11 @@ export function Table<T extends Record<string, unknown>>({
           selectable={selectable}
           compact={compact}
           onSelectionChange={onSelectionChange}
+          onCopy={onCopy}
+          onDownload={onDownload}
+          onShare={onShare}
+          lastUpdated={lastUpdated}
+          onRefresh={onRefresh}
         />
       )}
     </>
