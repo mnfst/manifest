@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Pencil } from 'lucide-react';
 import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
 import { CreateFlowModal } from '../components/flow/CreateFlowModal';
-import { Header } from '../components/layout/Header';
 import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
+import { EditAppModal } from '../components/app/EditAppModal';
 
 /**
  * App detail page - Shows app info and flows list
@@ -28,6 +29,9 @@ function AppDetail() {
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isUploadingIcon, setIsUploadingIcon] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditingApp, setIsEditingApp] = useState(false);
+  const [editAppError, setEditAppError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -133,6 +137,24 @@ function AppDetail() {
     }
   };
 
+  const handleEditApp = async (appId: string, data: { name: string; description?: string }) => {
+    setIsEditingApp(true);
+    setEditAppError(null);
+    try {
+      const updatedApp = await api.updateApp(appId, data);
+      setApp(updatedApp);
+      setIsEditModalOpen(false);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setEditAppError(err.message);
+      } else {
+        setEditAppError('Failed to update app');
+      }
+    } finally {
+      setIsEditingApp(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -169,9 +191,6 @@ function AppDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Global Header with App Switcher */}
-      <Header currentApp={app} />
-
       {/* App Info Sub-header */}
       <div className="border-b bg-card">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -185,7 +204,16 @@ function AppDetail() {
                 isLoading={isUploadingIcon}
               />
               <div>
-                <h1 className="text-2xl font-bold">{app.name}</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold">{app.name}</h1>
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="p-2 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit app"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                </div>
                 {app.description && (
                   <p className="text-muted-foreground mt-1">{app.description}</p>
                 )}
@@ -269,6 +297,15 @@ function AppDetail() {
                 {flows.length} flow{flows.length !== 1 ? 's' : ''}
               </p>
             </div>
+            <button
+              onClick={() => setIsFlowModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+              Create New Flow
+            </button>
           </div>
 
           {/* Existing flows list */}
@@ -292,14 +329,6 @@ function AppDetail() {
               </button>
             </div>
           )}
-
-          {/* Create new flow button */}
-          <button
-            onClick={() => setIsFlowModalOpen(true)}
-            className="w-full px-6 py-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-          >
-            + Create New Flow
-          </button>
         </section>
       </main>
 
@@ -317,6 +346,19 @@ function AppDetail() {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         appSlug={app.slug}
+      />
+
+      {/* Edit App Modal */}
+      <EditAppModal
+        isOpen={isEditModalOpen}
+        app={app}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditAppError(null);
+        }}
+        onSubmit={handleEditApp}
+        isLoading={isEditingApp}
+        error={editAppError}
       />
     </div>
   );

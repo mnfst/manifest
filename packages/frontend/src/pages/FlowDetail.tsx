@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue, CallFlow, ActionConnection } from '@chatgpt-app-builder/shared';
-import { Hammer, Eye, BookOpen } from 'lucide-react';
+import { Hammer, Eye, BarChart3 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
-import { Header } from '../components/layout/Header';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
@@ -28,7 +27,7 @@ function FlowDetail() {
   const [flow, setFlow] = useState<Flow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isCreatingView, setIsCreatingView] = useState(false);
+  const [, setIsCreatingView] = useState(false);
   const [toggleError, setToggleError] = useState<string | null>(null);
 
   // Delete view state
@@ -549,14 +548,11 @@ function FlowDetail() {
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
     { id: 'preview', label: 'Preview', icon: Eye, disabled: !hasViews },
-    { id: 'usage', label: 'Usage', icon: BookOpen },
+    { id: 'usage', label: 'Usage', icon: BarChart3 },
   ];
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Global Header with App Switcher */}
-      <Header currentApp={app} />
-
       {/* Flow Info Sub-header */}
       <div className="border-b bg-card">
         <div className="px-6 py-4">
@@ -672,8 +668,8 @@ function FlowDetail() {
 
       {/* Tabs and Main Content - Full Width, fills remaining height */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Tab bar */}
-        <div className="px-6 bg-background">
+        {/* Tab bar - centered */}
+        <div className="px-6 bg-background flex justify-center">
           <Tabs
             activeTab={activeTab}
             onTabChange={handleTabChange}
@@ -686,40 +682,6 @@ function FlowDetail() {
           {/* Build Tab - Flow Diagram Editor */}
           {activeTab === 'build' && (
             <>
-              <div className="px-6 py-4 flex items-center justify-between border-b bg-background">
-                <div>
-                  <h2 className="text-lg font-semibold">Steps</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {stepCount === 0 ? 'No steps yet' : (
-                      hasViews
-                        ? `${views.length} view${views.length !== 1 ? 's' : ''}`
-                        : hasReturnValues
-                        ? `${returnValues.length} return value${returnValues.length !== 1 ? 's' : ''}`
-                        : `${callFlows.length} call flow${callFlows.length !== 1 ? 's' : ''}`
-                    )}
-                  </p>
-                </div>
-                <button
-                  onClick={handleAddStep}
-                  disabled={isCreatingView || isSavingReturnValue || isSavingCallFlow}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isCreatingView || isSavingReturnValue || isSavingCallFlow ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                      </svg>
-                      Add Step
-                    </>
-                  )}
-                </button>
-              </div>
-
               {/* Full-width Flow Diagram - fills remaining viewport height */}
               <div className="flex-1 overflow-hidden">
                 <FlowDiagram

@@ -1,17 +1,10 @@
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SidebarItem } from './SidebarItem';
 import { UserAvatar } from './UserAvatar';
-
-/**
- * Apps icon - grid/dashboard style
- */
-function AppsIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-      <path fillRule="evenodd" d="M4.25 2A2.25 2.25 0 002 4.25v2.5A2.25 2.25 0 004.25 9h2.5A2.25 2.25 0 009 6.75v-2.5A2.25 2.25 0 006.75 2h-2.5zm0 9A2.25 2.25 0 002 13.25v2.5A2.25 2.25 0 004.25 18h2.5A2.25 2.25 0 009 15.75v-2.5A2.25 2.25 0 006.75 11h-2.5zm9-9A2.25 2.25 0 0011 4.25v2.5A2.25 2.25 0 0013.25 9h2.5A2.25 2.25 0 0018 6.75v-2.5A2.25 2.25 0 0015.75 2h-2.5zm0 9A2.25 2.25 0 0011 13.25v2.5A2.25 2.25 0 0013.25 18h2.5A2.25 2.25 0 0018 15.75v-2.5A2.25 2.25 0 0015.75 11h-2.5z" clipRule="evenodd" />
-    </svg>
-  );
-}
+import { SidebarAppSelector } from './SidebarAppSelector';
+import { CreateAppModal } from '../app/CreateAppModal';
+import { api } from '../../lib/api';
 
 /**
  * Flows icon - workflow/branch style
@@ -36,18 +29,47 @@ function ConnectorsIcon() {
 }
 
 /**
+ * Extract appId from URL pathname
+ */
+function extractAppIdFromPath(pathname: string): string | null {
+  const match = pathname.match(/^\/app\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
+/**
  * Navigation sidebar component
  * Provides quick access to Apps and Flows sections
  */
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location.pathname;
+  const currentAppId = extractAppIdFromPath(pathname);
+
+  // Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   // Determine active section based on current route
-  const isFlowsActive = pathname === '/flows' || pathname.startsWith('/flows/') ||
-    pathname.includes('/flow/');
+  // Flows is active when on app detail page or any flow page
+  const isFlowsActive = pathname.startsWith('/app/') || pathname === '/flows' || pathname.startsWith('/flows/');
   const isConnectorsActive = pathname === '/connectors' || pathname.startsWith('/connectors/');
-  const isAppsActive = !isFlowsActive && !isConnectorsActive;
+
+  // Handle app creation
+  const handleCreateApp = async (data: { name: string; description?: string }) => {
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      const app = await api.createApp(data);
+      setIsCreateModalOpen(false);
+      navigate(`/app/${app.id}`);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Failed to create app');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   return (
     <aside className="w-56 bg-nav text-nav-foreground flex-shrink-0">
@@ -61,16 +83,15 @@ export function Sidebar() {
           />
         </div>
 
+        {/* App Selector */}
+        <div className="py-2 border-b border-nav-foreground/10">
+          <SidebarAppSelector onCreateApp={() => setIsCreateModalOpen(true)} />
+        </div>
+
         {/* Navigation Items */}
         <nav className="flex-1 p-3 space-y-1">
           <SidebarItem
-            to="/"
-            label="Apps"
-            icon={<AppsIcon />}
-            isActive={isAppsActive}
-          />
-          <SidebarItem
-            to="/flows"
+            to={currentAppId ? `/app/${currentAppId}` : '/'}
             label="Flows"
             icon={<FlowsIcon />}
             isActive={isFlowsActive}
@@ -88,6 +109,18 @@ export function Sidebar() {
           <UserAvatar />
         </div>
       </div>
+
+      {/* Create App Modal */}
+      <CreateAppModal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setCreateError(null);
+        }}
+        onSubmit={handleCreateApp}
+        isLoading={isCreating}
+        error={createError}
+      />
     </aside>
   );
 }
