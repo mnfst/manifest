@@ -10,8 +10,8 @@ This guide provides step-by-step implementation instructions for the UI consiste
 ## Prerequisites
 
 - Node.js >=18.0.0
-- npm or yarn
-- Running development environment: `npm run dev` from repository root
+- pnpm 9.0.0+
+- Running development environment: `pnpm dev` from repository root
 
 ## Implementation Sequence
 

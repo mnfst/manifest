@@ -12,7 +12,7 @@ This guide provides step-by-step instructions for implementing the flow preview 
 ## Prerequisites
 
 - Node.js 18+ installed
-- Repository cloned and dependencies installed (`npm install`)
+- Repository cloned and dependencies installed (`pnpm install`)
 - Familiarity with React, TypeScript, and Tailwind CSS
 - Understanding of existing FlowDetail page structure
 
@@ -114,7 +114,7 @@ This guide provides step-by-step instructions for implementing the flow preview 
 
 ```bash
 # Start development server
-npm run dev
+pnpm dev
 
 # Navigate to any flow detail page
 # http://localhost:5173/app/{appId}/flow/{flowId}

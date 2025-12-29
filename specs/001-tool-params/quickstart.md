@@ -6,17 +6,17 @@
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm 10.x
+- pnpm 9.x
 - SQLite (bundled via better-sqlite3)
 
 ## Setup
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development servers (backend + frontend)
-npm run dev
+pnpm dev
 ```
 
 Backend runs on `http://localhost:3001`
@@ -28,7 +28,7 @@ Frontend runs on `http://localhost:5173`
 1. Add `FlowParameter` interface to `packages/shared/src/types/flow.ts`
 2. Add `ParameterType` type union
 3. Update `Flow`, `CreateFlowRequest`, `UpdateFlowRequest` interfaces
-4. Build shared package: `npm run build -w packages/shared`
+4. Build shared package: `pnpm --filter @chatgpt-app-builder/shared build`
 
 ### Phase 2: Backend Entity
 1. Add `parameters` column to `FlowEntity` in `packages/backend/src/flow/flow.entity.ts`

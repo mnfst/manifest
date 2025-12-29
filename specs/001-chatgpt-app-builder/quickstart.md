@@ -5,7 +5,7 @@
 ## Prerequisites
 
 - Node.js 18+ installed
-- npm 9+ installed
+- pnpm 9+ installed
 - OpenAI API key (or other LLM provider key)
 
 ## Project Setup
@@ -14,7 +14,7 @@
 
 ```bash
 # From repository root
-npm install
+pnpm install
 ```
 
 This installs all workspace dependencies via Turborepo.
@@ -40,7 +40,7 @@ VITE_API_URL=http://localhost:3001/api
 
 ```bash
 # From packages/backend
-npm run db:init
+pnpm db:init
 ```
 
 This creates the SQLite database and runs initial migrations.
@@ -49,17 +49,17 @@ This creates the SQLite database and runs initial migrations.
 
 ```bash
 # From repository root - starts all packages in dev mode
-npm run dev
+pnpm dev
 ```
 
 Or start individually:
 
 ```bash
 # Terminal 1: Backend (port 3001)
-cd packages/backend && npm run dev
+cd packages/backend && pnpm dev
 
 # Terminal 2: Frontend (port 5173)
-cd packages/frontend && npm run dev
+cd packages/frontend && pnpm dev
 ```
 
 ## Usage Walkthrough
@@ -149,33 +149,33 @@ const result = await client.callTool({
 console.log(result);
 ```
 
-## Available npm Scripts
+## Available pnpm Scripts
 
 ### Root (Turborepo)
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start all packages in development mode |
-| `npm run build` | Build all packages |
-| `npm run lint` | Lint all packages |
-| `npm run type-check` | Type-check all packages |
+| `pnpm dev` | Start all packages in development mode |
+| `pnpm build` | Build all packages |
+| `pnpm lint` | Lint all packages |
+| `pnpm type-check` | Type-check all packages |
 
 ### Backend (`packages/backend`)
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start NestJS in watch mode (port 3001) |
-| `npm run build` | Build for production |
-| `npm run db:init` | Initialize SQLite database |
-| `npm run db:migrate` | Run pending migrations |
+| `pnpm dev` | Start NestJS in watch mode (port 3001) |
+| `pnpm build` | Build for production |
+| `pnpm db:init` | Initialize SQLite database |
+| `pnpm db:migrate` | Run pending migrations |
 
 ### Frontend (`packages/frontend`)
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start Vite dev server (port 5173) |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
+| `pnpm dev` | Start Vite dev server (port 5173) |
+| `pnpm build` | Build for production |
+| `pnpm preview` | Preview production build |
 
 ## Project Structure Overview
 
@@ -261,7 +261,7 @@ description: "Order stuff"
 - Check LLM_PROVIDER matches your key type
 
 ### "Database errors"
-- Delete `packages/backend/data/app.db` and run `npm run db:init`
+- Delete `packages/backend/data/app.db` and run `pnpm db:init`
 
 ### "MCP connection failed"
 - Ensure the app is published (status: published)

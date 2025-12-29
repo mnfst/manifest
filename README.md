@@ -20,7 +20,7 @@ Build ChatGPT-powered applications from natural language prompts. This tool prov
 | **Database** | SQLite (via better-sqlite3) |
 | **AI** | LangChain with OpenAI |
 | **UI Components** | Manifest UI (shadcn-based) |
-| **Monorepo** | Turborepo with npm workspaces |
+| **Monorepo** | Turborepo with pnpm workspaces |
 
 ## Project Structure
 
@@ -47,7 +47,7 @@ generator/
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- npm >= 10.2.0
+- pnpm >= 9.0.0 (install via `npm install -g pnpm` or use corepack: `corepack enable`)
 - OpenAI API key
 
 ### Installation
@@ -58,7 +58,7 @@ git clone https://github.com/mnfst/generator.git
 cd generator
 
 # Install dependencies
-npm install
+pnpm install
 
 # Configure environment
 cp packages/backend/.env.example packages/backend/.env
@@ -69,7 +69,7 @@ cp packages/backend/.env.example packages/backend/.env
 
 ```bash
 # Start all services (frontend, backend, shared)
-npm run dev
+pnpm dev
 ```
 
 This starts:
@@ -81,13 +81,13 @@ This starts:
 
 ```bash
 # Build all packages
-npm run build
+pnpm build
 
 # Type check
-npm run type-check
+pnpm type-check
 
 # Lint
-npm run lint
+pnpm lint
 ```
 
 ## How It Works

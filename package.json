@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "ChatGPT App Builder - Create ChatGPT apps from natural language prompts",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -23,7 +20,7 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.2"
   },
-  "packageManager": "npm@10.2.0",
+  "packageManager": "pnpm@9.15.4",
   "engines": {
     "node": ">=18.0.0"
   },

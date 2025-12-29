@@ -22,10 +22,10 @@ After implementation, verify the feature works:
 1. **Start the application**
    ```bash
    # Terminal 1: Backend
-   cd packages/backend && npm run start:dev
+   cd packages/backend && pnpm start:dev
 
    # Terminal 2: Frontend
-   cd packages/frontend && npm run dev
+   cd packages/frontend && pnpm dev
    ```
 
 2. **Check sidebar visibility**

@@ -19,6 +19,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-22
 - TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, Vite 6.0.5, Tailwind CSS 3.4.17, lucide-react (012-app-detail-improvements)
 - SQLite via TypeORM (better-sqlite3 11.7.0) (012-app-detail-improvements)
 - TypeScript 5.7.2, Node.js >=18.0.0 + NestJS 10.4.15, React 18.3.1, Vite 6.0.5, TypeORM 0.3.20, @xyflow/react 12.10.0, Tailwind CSS 3.4.17, lucide-react 0.562.0 (014-call-flow-action)
+- TypeScript 5.7.2, Node.js >=18.0.0 + Turborepo 2.3.3, NestJS 10.4.15 (backend), React 18.3.1 + Vite 6.0.5 (frontend) (017-npm-to-pnpm)
+- SQLite via better-sqlite3 (no changes needed for migration) (017-npm-to-pnpm)
 
 - TypeScript 5.x (all packages) (001-chatgpt-app-builder)
 
@@ -32,16 +34,16 @@ tests/
 
 ## Commands
 
-npm test && npm run lint
+pnpm test && pnpm lint
 
 ## Code Style
 
 TypeScript 5.x (all packages): Follow standard conventions
 
 ## Recent Changes
+- 017-npm-to-pnpm: Added TypeScript 5.7.2, Node.js >=18.0.0 + Turborepo 2.3.3, NestJS 10.4.15 (backend), React 18.3.1 + Vite 6.0.5 (frontend)
 - 015-ui-actions: Added TypeScript 5.7.2, Node.js >=18.0.0
 - 014-call-flow-action: Added TypeScript 5.7.2, Node.js >=18.0.0 + NestJS 10.4.15, React 18.3.1, Vite 6.0.5, TypeORM 0.3.20, @xyflow/react 12.10.0, Tailwind CSS 3.4.17, lucide-react 0.562.0
-- 001-flow-return-value: Added TypeScript 5.7.2, Node.js >=18.0.0 + NestJS 10.4.15, React 18.3.1, Vite 6.0.5, TypeORM 0.3.20, Tailwind CSS 3.4.17, @xyflow/react 12.10.0, lucide-react 0.562.0
 
 
 <!-- MANUAL ADDITIONS START -->

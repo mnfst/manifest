@@ -6,15 +6,15 @@
 ## Prerequisites
 
 - Node.js 18+
-- npm 10+
+- pnpm 9+
 - Running backend and frontend from the generator monorepo
 
 ## Development Setup
 
 ```bash
 # From repository root
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 This starts both backend (port 3000) and frontend (port 5173).
