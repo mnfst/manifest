@@ -1,0 +1,329 @@
+openapi: 3.0.3
+info:
+  title: Action Connections API
+  description: REST API for managing UI component action connections
+  version: 1.0.0
+
+paths:
+  /api/views/{viewId}/action-connections:
+    get:
+      summary: List action connections for a view
+      description: Returns all action connections for a specific view
+      operationId: getActionConnectionsByView
+      tags:
+        - ActionConnections
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The view ID
+      responses:
+        '200':
+          description: List of action connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActionConnection'
+        '404':
+          description: View not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create an action connection
+      description: Creates a new action connection for a view's action
+      operationId: createActionConnection
+      tags:
+        - ActionConnections
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The view ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActionConnectionRequest'
+      responses:
+        '201':
+          description: Action connection created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionConnection'
+        '400':
+          description: Invalid request (invalid action name, invalid target, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: View not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Action connection already exists for this action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/views/{viewId}/action-connections/{actionName}:
+    get:
+      summary: Get action connection by action name
+      description: Returns the action connection for a specific action on a view
+      operationId: getActionConnection
+      tags:
+        - ActionConnections
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The view ID
+        - name: actionName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The action name (e.g., "onReadMore")
+      responses:
+        '200':
+          description: Action connection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionConnection'
+        '404':
+          description: View or action connection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update action connection
+      description: Updates the target of an existing action connection
+      operationId: updateActionConnection
+      tags:
+        - ActionConnections
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The view ID
+        - name: actionName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The action name (e.g., "onReadMore")
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateActionConnectionRequest'
+      responses:
+        '200':
+          description: Action connection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionConnection'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: View or action connection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete action connection
+      description: Removes the connection for a specific action
+      operationId: deleteActionConnection
+      tags:
+        - ActionConnections
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The view ID
+        - name: actionName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The action name (e.g., "onReadMore")
+      responses:
+        '204':
+          description: Action connection deleted
+        '404':
+          description: View or action connection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/flows/{flowId}/action-connections:
+    get:
+      summary: List all action connections for a flow
+      description: Returns all action connections across all views in a flow
+      operationId: getActionConnectionsByFlow
+      tags:
+        - ActionConnections
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The flow ID
+      responses:
+        '200':
+          description: List of action connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActionConnection'
+        '404':
+          description: Flow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ActionTargetType:
+      type: string
+      enum:
+        - return-value
+        - call-flow
+      description: Type of target for the action connection
+
+    ActionConnection:
+      type: object
+      required:
+        - id
+        - viewId
+        - actionName
+        - targetType
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+        viewId:
+          type: string
+          format: uuid
+          description: Parent view ID
+        actionName:
+          type: string
+          description: Action identifier (e.g., "onReadMore")
+          example: onReadMore
+        targetType:
+          $ref: '#/components/schemas/ActionTargetType'
+        targetReturnValueId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Target return value ID (if targetType is return-value)
+        targetCallFlowId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Target call flow ID (if targetType is call-flow)
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    CreateActionConnectionRequest:
+      type: object
+      required:
+        - actionName
+        - targetType
+      properties:
+        actionName:
+          type: string
+          description: Action identifier (e.g., "onReadMore")
+          example: onReadMore
+        targetType:
+          $ref: '#/components/schemas/ActionTargetType'
+        targetReturnValueId:
+          type: string
+          format: uuid
+          description: Required when targetType is return-value
+        targetCallFlowId:
+          type: string
+          format: uuid
+          description: Required when targetType is call-flow
+
+    UpdateActionConnectionRequest:
+      type: object
+      required:
+        - targetType
+      properties:
+        targetType:
+          $ref: '#/components/schemas/ActionTargetType'
+        targetReturnValueId:
+          type: string
+          format: uuid
+          description: Required when targetType is return-value
+        targetCallFlowId:
+          type: string
+          format: uuid
+          description: Required when targetType is call-flow
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details

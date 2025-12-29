@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue, CallFlow } from '@chatgpt-app-builder/shared';
+import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue, CallFlow, ActionConnection } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BookOpen } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
@@ -75,6 +75,9 @@ function FlowDetail() {
   const [isDeletingCallFlow, setIsDeletingCallFlow] = useState(false);
   const [availableFlows, setAvailableFlows] = useState<Flow[]>([]);
 
+  // Action connections state
+  const [actionConnections, setActionConnections] = useState<ActionConnection[]>([]);
+
   // Tab state
   const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
   const [previewKey, setPreviewKey] = useState(0);
@@ -96,14 +99,16 @@ function FlowDetail() {
       setError(null);
 
       try {
-        const [loadedApp, loadedFlow, loadedFlows] = await Promise.all([
+        const [loadedApp, loadedFlow, loadedFlows, loadedActionConnections] = await Promise.all([
           api.getApp(appId),
           api.getFlow(flowId),
           api.listFlows(appId),
+          api.listActionConnectionsByFlow(flowId),
         ]);
         setApp(loadedApp);
         setFlow(loadedFlow);
         setAvailableFlows(loadedFlows);
+        setActionConnections(loadedActionConnections);
       } catch (err) {
         if (err instanceof ApiClientError) {
           setError(err.message);
@@ -481,6 +486,11 @@ function FlowDetail() {
     }
   };
 
+  // Action connection handlers
+  const handleActionConnectionChange = async (connections: ActionConnection[]) => {
+    setActionConnections(connections);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -525,16 +535,14 @@ function FlowDetail() {
   const hasReturnValues = returnValues.length > 0;
   const hasCallFlows = callFlows.length > 0;
 
-  // For mutual exclusivity - determine which types are disabled
+  // Views can now coexist with return values and call flows
+  // Only return values and call flows are mutually exclusive
   const disabledStepTypes: StepType[] = [];
-  if (hasViews) {
-    disabledStepTypes.push('returnValue', 'callFlow');
-  }
   if (hasReturnValues) {
-    disabledStepTypes.push('view', 'callFlow');
+    disabledStepTypes.push('callFlow');
   }
   if (hasCallFlows) {
-    disabledStepTypes.push('view', 'returnValue');
+    disabledStepTypes.push('returnValue');
   }
 
   // Tab configuration with disabled state for Preview when no views
@@ -720,6 +728,7 @@ function FlowDetail() {
                   views={views}
                   returnValues={returnValues}
                   callFlows={callFlows}
+                  actionConnections={actionConnections}
                   onViewEdit={handleViewClick}
                   onViewDelete={handleViewDelete}
                   onReturnValueEdit={handleReturnValueEdit}
@@ -731,6 +740,7 @@ function FlowDetail() {
                   onAddUserIntent={handleUserIntentEdit}
                   onAddStep={handleAddStep}
                   canDelete={stepCount > 1}
+                  onActionConnectionsChange={handleActionConnectionChange}
                 />
               </div>
             </>

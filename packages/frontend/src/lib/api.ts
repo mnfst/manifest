@@ -36,6 +36,9 @@ import type {
   CreateCallFlowRequest,
   UpdateCallFlowRequest,
   IconUploadResponse,
+  ActionConnection,
+  CreateActionConnectionRequest,
+  UpdateActionConnectionRequest,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -647,6 +650,66 @@ export const api = {
     return fetchApi<{ success: boolean; message: string }>('/connectors/test', {
       method: 'POST',
       body: JSON.stringify(config),
+    });
+  },
+
+  // ============================================
+  // Action Connection APIs
+  // ============================================
+
+  /**
+   * List action connections for a view
+   * GET /api/views/:viewId/action-connections
+   */
+  async listActionConnectionsByView(viewId: string): Promise<ActionConnection[]> {
+    return fetchApi<ActionConnection[]>(`/views/${viewId}/action-connections`);
+  },
+
+  /**
+   * List all action connections for a flow (across all views)
+   * GET /api/flows/:flowId/action-connections
+   */
+  async listActionConnectionsByFlow(flowId: string): Promise<ActionConnection[]> {
+    return fetchApi<ActionConnection[]>(`/flows/${flowId}/action-connections`);
+  },
+
+  /**
+   * Create a new action connection
+   * POST /api/views/:viewId/action-connections
+   */
+  async createActionConnection(viewId: string, request: CreateActionConnectionRequest): Promise<ActionConnection> {
+    return fetchApi<ActionConnection>(`/views/${viewId}/action-connections`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Get action connection by view ID and action name
+   * GET /api/views/:viewId/action-connections/:actionName
+   */
+  async getActionConnection(viewId: string, actionName: string): Promise<ActionConnection> {
+    return fetchApi<ActionConnection>(`/views/${viewId}/action-connections/${actionName}`);
+  },
+
+  /**
+   * Update an action connection
+   * PUT /api/views/:viewId/action-connections/:actionName
+   */
+  async updateActionConnection(viewId: string, actionName: string, request: UpdateActionConnectionRequest): Promise<ActionConnection> {
+    return fetchApi<ActionConnection>(`/views/${viewId}/action-connections/${actionName}`, {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Delete an action connection
+   * DELETE /api/views/:viewId/action-connections/:actionName
+   */
+  async deleteActionConnection(viewId: string, actionName: string): Promise<void> {
+    await fetchApi<void>(`/views/${viewId}/action-connections/${actionName}`, {
+      method: 'DELETE',
     });
   },
 };

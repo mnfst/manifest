@@ -5,6 +5,7 @@ import { UiController } from './ui.controller';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
+import { ActionConnectionEntity } from '../action-connection/action-connection.entity';
 import { AppService } from '../app/app.service';
 
 /**
@@ -16,7 +17,7 @@ import { AppService } from '../app/app.service';
  * In production, would use @rekog/mcp-nest for full MCP protocol support
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([AppEntity, FlowEntity, ViewEntity])],
+  imports: [TypeOrmModule.forFeature([AppEntity, FlowEntity, ViewEntity, ActionConnectionEntity])],
   controllers: [UiController],
   providers: [McpToolService, AppService],
   exports: [McpToolService],

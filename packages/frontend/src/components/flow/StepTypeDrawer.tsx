@@ -61,7 +61,6 @@ export function StepTypeDrawer({
     }
   };
 
-  const isViewDisabled = disabledTypes.includes('view');
   const isReturnValueDisabled = disabledTypes.includes('returnValue');
   const isCallFlowDisabled = disabledTypes.includes('callFlow');
 
@@ -95,34 +94,22 @@ export function StepTypeDrawer({
             Choose the type of step to add to your flow:
           </p>
 
-          {/* View Option */}
+          {/* View Option - always enabled */}
           <button
             onClick={() => handleSelect('view')}
-            disabled={isViewDisabled}
-            className={`w-full p-4 border rounded-lg text-left transition-all group ${
-              isViewDisabled
-                ? 'opacity-50 cursor-not-allowed bg-muted'
-                : 'hover:border-primary hover:bg-primary/5 cursor-pointer'
-            }`}
+            className="w-full p-4 border rounded-lg text-left transition-all group hover:border-primary hover:bg-primary/5 cursor-pointer"
           >
             <div className="flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                isViewDisabled ? 'bg-gray-100' : 'bg-blue-100 group-hover:bg-blue-200'
-              }`}>
-                <Layout className={`w-5 h-5 ${isViewDisabled ? 'text-gray-400' : 'text-blue-600'}`} />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-blue-100 group-hover:bg-blue-200">
+                <Layout className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1">
-                <h3 className={`font-medium ${isViewDisabled ? 'text-muted-foreground' : 'text-foreground'}`}>
+                <h3 className="font-medium text-foreground">
                   View
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   Display data in the ChatGPT interface using a layout template
                 </p>
-                {isViewDisabled && (
-                  <p className="text-xs text-amber-600 mt-2">
-                    Cannot add views to a flow with return values
-                  </p>
-                )}
               </div>
             </div>
           </button>
@@ -152,7 +139,7 @@ export function StepTypeDrawer({
                 </p>
                 {isReturnValueDisabled && (
                   <p className="text-xs text-amber-600 mt-2">
-                    Cannot add return values to a flow with views
+                    Cannot add return values to a flow with call flows
                   </p>
                 )}
               </div>
@@ -184,7 +171,7 @@ export function StepTypeDrawer({
                 </p>
                 {isCallFlowDisabled && (
                   <p className="text-xs text-amber-600 mt-2">
-                    Cannot add call flows to a flow with views or return values
+                    Cannot add call flows to a flow with return values
                   </p>
                 )}
               </div>

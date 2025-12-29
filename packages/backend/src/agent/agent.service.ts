@@ -283,9 +283,14 @@ Analyze the user's message and determine what configuration changes they want. I
     const structuredLLM = this.llm.withStructuredOutput(viewUpdateSchema);
 
     // Build the prompt with current view context
-    const mockDataSummary = currentView.mockData.type === 'table'
-      ? `Columns: ${currentView.mockData.columns.map(c => `${c.header} (${c.key})`).join(', ')}\nRows: ${currentView.mockData.rows.length} items`
-      : `Posts: ${currentView.mockData.posts.length} items`;
+    let mockDataSummary = 'No data';
+    if (currentView.mockData?.type === 'table' && currentView.mockData.columns) {
+      mockDataSummary = `Columns: ${currentView.mockData.columns.map(c => `${c.header} (${c.key})`).join(', ')}\nRows: ${currentView.mockData.rows?.length || 0} items`;
+    } else if (currentView.mockData?.posts) {
+      mockDataSummary = `Posts: ${currentView.mockData.posts.length} items`;
+    } else if (currentView.mockData) {
+      mockDataSummary = `Data: ${JSON.stringify(currentView.mockData).slice(0, 100)}...`;
+    }
 
     const systemPrompt = `You are an assistant helping users customize their view configuration.
 
