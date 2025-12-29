@@ -84,24 +84,25 @@ const defaultRelatedPosts: BlogPost[] = [
 ]
 
 export interface PostDetailProps {
-  post?: BlogPost
-  content?: string
-  showCover?: boolean
-  showAuthor?: boolean
-  relatedPosts?: BlogPost[]
-  onBack?: () => void
-  onReadRelated?: (post: BlogPost) => void
+  data?: {
+    post?: BlogPost
+    content?: string
+    relatedPosts?: BlogPost[]
+  }
+  actions?: {
+    onBack?: () => void
+    onReadRelated?: (post: BlogPost) => void
+  }
+  appearance?: {
+    showCover?: boolean
+    showAuthor?: boolean
+  }
 }
 
-export function PostDetail({
-  post = defaultPost,
-  content = defaultContent,
-  showCover = true,
-  showAuthor = true,
-  relatedPosts = defaultRelatedPosts,
-  onBack,
-  onReadRelated
-}: PostDetailProps) {
+export function PostDetail({ data, actions, appearance }: PostDetailProps) {
+  const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
+  const { onBack, onReadRelated } = actions ?? {}
+  const { showCover = true, showAuthor = true } = appearance ?? {}
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'long',

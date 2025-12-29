@@ -23,10 +23,14 @@ export type StatusType =
   | "cancelled"
 
 export interface StatusBadgeProps {
-  status?: StatusType
-  label?: string
-  showIcon?: boolean
-  size?: "sm" | "md" | "lg"
+  data?: {
+    status?: StatusType
+  }
+  appearance?: {
+    label?: string
+    showIcon?: boolean
+    size?: "sm" | "md" | "lg"
+  }
 }
 
 const statusConfig: Record<
@@ -87,12 +91,9 @@ const iconSizes = {
   lg: "h-4 w-4",
 }
 
-export function StatusBadge({
-  status = "pending",
-  label,
-  showIcon = true,
-  size = "md",
-}: StatusBadgeProps) {
+export function StatusBadge({ data, appearance }: StatusBadgeProps) {
+  const { status = "pending" } = data ?? {}
+  const { label, showIcon = true, size = "md" } = appearance ?? {}
   const config = statusConfig[status]
   const Icon = config.icon
   const displayLabel = label || config.defaultLabel

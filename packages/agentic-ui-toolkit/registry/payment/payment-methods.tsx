@@ -14,14 +14,22 @@ export interface PaymentMethod {
 }
 
 export interface PaymentMethodsProps {
-  methods?: PaymentMethod[]
-  amount?: number
-  currency?: string
-  selectedMethodId?: string
-  onSelectMethod?: (methodId: string) => void
-  onAddCard?: () => void
-  onPay?: (methodId: string) => void
-  isLoading?: boolean
+  data?: {
+    methods?: PaymentMethod[]
+    amount?: number
+  }
+  actions?: {
+    onSelectMethod?: (methodId: string) => void
+    onAddCard?: () => void
+    onPay?: (methodId: string) => void
+  }
+  appearance?: {
+    currency?: string
+  }
+  control?: {
+    selectedMethodId?: string
+    isLoading?: boolean
+  }
 }
 
 const defaultMethods: PaymentMethod[] = [
@@ -118,16 +126,11 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
   return <BrandLogo brand={method.brand} />
 }
 
-export function PaymentMethods({
-  methods = defaultMethods,
-  amount = 279.0,
-  currency = 'EUR',
-  selectedMethodId,
-  onSelectMethod,
-  onAddCard,
-  onPay,
-  isLoading = false
-}: PaymentMethodsProps) {
+export function PaymentMethods({ data, actions, appearance, control }: PaymentMethodsProps) {
+  const { methods = defaultMethods, amount = 279.0 } = data ?? {}
+  const { onSelectMethod, onAddCard, onPay } = actions ?? {}
+  const { currency = 'EUR' } = appearance ?? {}
+  const { selectedMethodId, isLoading = false } = control ?? {}
   const [selected, setSelected] = useState(
     selectedMethodId || methods.find((m) => m.isDefault)?.id || methods[0]?.id
   )

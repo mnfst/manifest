@@ -11,19 +11,21 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export interface YouTubePostProps {
-  channel?: string
-  avatar?: string
-  title?: string
-  views?: string
-  time?: string
-  duration?: string
-  thumbnail?: string
-  subscribers?: string
-  verified?: boolean
-  videoId?: string
+  data?: {
+    channel?: string
+    avatar?: string
+    title?: string
+    views?: string
+    time?: string
+    duration?: string
+    thumbnail?: string
+    subscribers?: string
+    verified?: boolean
+    videoId?: string
+  }
 }
 
-const defaultProps: YouTubePostProps = {
+const defaultData = {
   channel: "NetworkChuck",
   avatar: "N",
   title: "you need to learn MCP RIGHT NOW!! (Model Context Protocol)",
@@ -36,17 +38,18 @@ const defaultProps: YouTubePostProps = {
   videoId: "GuTcle5edjk"
 }
 
-export function YouTubePost({
-  channel = defaultProps.channel,
-  avatar = defaultProps.avatar,
-  title = defaultProps.title,
-  views = defaultProps.views,
-  time = defaultProps.time,
-  duration = defaultProps.duration,
-  thumbnail = defaultProps.thumbnail,
-  verified = defaultProps.verified,
-  videoId = defaultProps.videoId
-}: YouTubePostProps) {
+export function YouTubePost({ data }: YouTubePostProps) {
+  const {
+    channel = defaultData.channel,
+    avatar = defaultData.avatar,
+    title = defaultData.title,
+    views = defaultData.views,
+    time = defaultData.time,
+    duration = defaultData.duration,
+    thumbnail = defaultData.thumbnail,
+    verified = defaultData.verified,
+    videoId = defaultData.videoId
+  } = data ?? {}
   const [isPlaying, setIsPlaying] = useState(false)
 
   return (

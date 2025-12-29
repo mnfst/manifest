@@ -22,14 +22,22 @@ export interface SavedCard {
 }
 
 export interface SavedCardsProps {
-  cards?: SavedCard[]
-  selectedCardId?: string
-  onSelectCard?: (cardId: string) => void
-  onAddNewCard?: () => void
-  onPay?: (cardId: string) => void
-  amount?: number
-  currency?: string
-  isLoading?: boolean
+  data?: {
+    cards?: SavedCard[]
+    amount?: number
+  }
+  actions?: {
+    onSelectCard?: (cardId: string) => void
+    onAddNewCard?: () => void
+    onPay?: (cardId: string) => void
+  }
+  appearance?: {
+    currency?: string
+  }
+  control?: {
+    selectedCardId?: string
+    isLoading?: boolean
+  }
 }
 
 const defaultCards: SavedCard[] = [
@@ -62,16 +70,11 @@ const brandColors: Record<string, string> = {
   amex: "bg-blue-400",
 }
 
-export function SavedCards({
-  cards = defaultCards,
-  selectedCardId,
-  onSelectCard,
-  onAddNewCard,
-  onPay,
-  amount = 279.0,
-  currency = "EUR",
-  isLoading = false,
-}: SavedCardsProps) {
+export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
+  const { cards = defaultCards, amount = 279.0 } = data ?? {}
+  const { onSelectCard, onAddNewCard, onPay } = actions ?? {}
+  const { currency = "EUR" } = appearance ?? {}
+  const { selectedCardId, isLoading = false } = control ?? {}
   const [selected, setSelected] = useState(
     selectedCardId || cards.find((c) => c.isDefault)?.id || cards[0]?.id
   )

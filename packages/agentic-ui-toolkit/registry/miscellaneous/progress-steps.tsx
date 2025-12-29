@@ -10,7 +10,9 @@ export interface Step {
 }
 
 export interface ProgressStepsProps {
-  steps?: Step[]
+  data?: {
+    steps?: Step[]
+  }
 }
 
 const defaultSteps: Step[] = [
@@ -20,9 +22,8 @@ const defaultSteps: Step[] = [
   { id: '4', label: 'Delivery', status: 'pending' }
 ]
 
-export function ProgressSteps({
-  steps = defaultSteps
-}: ProgressStepsProps) {
+export function ProgressSteps({ data }: ProgressStepsProps) {
+  const { steps = defaultSteps } = data ?? {}
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-white dark:bg-zinc-900 rounded-md sm:rounded-lg p-4">
       {steps.map((step, index) => (

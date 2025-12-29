@@ -11,22 +11,24 @@ import {
 
 // Single Message Bubble
 export interface MessageBubbleProps {
-  content: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  status?: 'sent' | 'delivered' | 'read'
+  data?: {
+    content?: string
+    avatar?: string
+    author?: string
+    time?: string
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
+  control?: {
+    status?: 'sent' | 'delivered' | 'read'
+  }
 }
 
-export function MessageBubble({
-  content = 'Hey! How are you doing?',
-  avatar = 'J',
-  author = 'John',
-  time = '10:30 AM',
-  isOwn = false,
-  status
-}: MessageBubbleProps) {
+export function MessageBubble({ data, appearance, control }: MessageBubbleProps) {
+  const { content = 'Hey! How are you doing?', avatar = 'J', author = 'John', time = '10:30 AM' } = data ?? {}
+  const { isOwn = false } = appearance ?? {}
+  const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
       {!isOwn && (
@@ -66,24 +68,31 @@ export function MessageBubble({
 
 // Image Message Bubble
 export interface ImageMessageBubbleProps {
-  image: string
-  caption?: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  status?: 'sent' | 'delivered' | 'read'
+  data?: {
+    image?: string
+    caption?: string
+    avatar?: string
+    author?: string
+    time?: string
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
+  control?: {
+    status?: 'sent' | 'delivered' | 'read'
+  }
 }
 
-export function ImageMessageBubble({
-  image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-  caption,
-  avatar = 'J',
-  author = 'John',
-  time = '10:32 AM',
-  isOwn = false,
-  status
-}: ImageMessageBubbleProps) {
+export function ImageMessageBubble({ data, appearance, control }: ImageMessageBubbleProps) {
+  const {
+    image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
+    caption,
+    avatar = 'J',
+    author = 'John',
+    time = '10:32 AM',
+  } = data ?? {}
+  const { isOwn = false } = appearance ?? {}
+  const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
       {!isOwn && (
@@ -135,29 +144,36 @@ export function ImageMessageBubble({
 
 // Message with reactions
 export interface MessageWithReactionsProps {
-  content: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  reactions?: { emoji: string; count: number }[]
-  onReact?: (emoji: string) => void
+  data?: {
+    content?: string
+    avatar?: string
+    author?: string
+    time?: string
+    reactions?: { emoji: string; count: number }[]
+  }
+  actions?: {
+    onReact?: (emoji: string) => void
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
 }
 
 const availableEmojis = ['❤️', '👍', '👎', '😂', '😮', '😢', '🎉', '🔥', '👏', '💯']
 
-export function MessageWithReactions({
-  content = 'This is such great news! 🎉',
-  avatar = 'A',
-  author = 'Alex',
-  time = '2:45 PM',
-  isOwn = false,
-  reactions: initialReactions = [
-    { emoji: '❤️', count: 3 },
-    { emoji: '👍', count: 2 }
-  ],
-  onReact
-}: MessageWithReactionsProps) {
+export function MessageWithReactions({ data, actions, appearance }: MessageWithReactionsProps) {
+  const {
+    content = 'This is such great news! 🎉',
+    avatar = 'A',
+    author = 'Alex',
+    time = '2:45 PM',
+    reactions: initialReactions = [
+      { emoji: '❤️', count: 3 },
+      { emoji: '👍', count: 2 }
+    ],
+  } = data ?? {}
+  const { onReact } = actions ?? {}
+  const { isOwn = false } = appearance ?? {}
   const [reactions, setReactions] = useState(initialReactions)
 
   const handleReact = (emoji: string) => {
@@ -244,24 +260,31 @@ export function MessageWithReactions({
 
 // Voice Message Bubble
 export interface VoiceMessageBubbleProps {
-  duration?: string
-  avatar?: string
-  author?: string
-  time?: string
-  isOwn?: boolean
-  status?: 'sent' | 'delivered' | 'read'
-  audioSrc?: string
+  data?: {
+    duration?: string
+    avatar?: string
+    author?: string
+    time?: string
+    audioSrc?: string
+  }
+  appearance?: {
+    isOwn?: boolean
+  }
+  control?: {
+    status?: 'sent' | 'delivered' | 'read'
+  }
 }
 
-export function VoiceMessageBubble({
-  duration = '0:42',
-  avatar = 'M',
-  author = 'Mike',
-  time = '3:15 PM',
-  isOwn = false,
-  status,
-  audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-}: VoiceMessageBubbleProps) {
+export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBubbleProps) {
+  const {
+    duration = '0:42',
+    avatar = 'M',
+    author = 'Mike',
+    time = '3:15 PM',
+    audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  } = data ?? {}
+  const { isOwn = false } = appearance ?? {}
+  const { status } = control ?? {}
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState('0:00')

@@ -10,16 +10,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export interface InstagramPostProps {
-  author?: string
-  avatar?: string
-  image?: string
-  likes?: string
-  caption?: string
-  time?: string
-  verified?: boolean
+  data?: {
+    author?: string
+    avatar?: string
+    image?: string
+    likes?: string
+    caption?: string
+    time?: string
+    verified?: boolean
+  }
 }
 
-const defaultProps: InstagramPostProps = {
+const defaultData = {
   author: "manifest.ai",
   avatar: "M",
   image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&h=600&fit=crop",
@@ -29,15 +31,16 @@ const defaultProps: InstagramPostProps = {
   verified: true
 }
 
-export function InstagramPost({
-  author = defaultProps.author,
-  avatar = defaultProps.avatar,
-  image = defaultProps.image,
-  likes = defaultProps.likes,
-  caption = defaultProps.caption,
-  time = defaultProps.time,
-  verified = defaultProps.verified
-}: InstagramPostProps) {
+export function InstagramPost({ data }: InstagramPostProps) {
+  const {
+    author = defaultData.author,
+    avatar = defaultData.avatar,
+    image = defaultData.image,
+    likes = defaultData.likes,
+    caption = defaultData.caption,
+    time = defaultData.time,
+    verified = defaultData.verified
+  } = data ?? {}
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       <div className="flex items-center justify-between p-3">

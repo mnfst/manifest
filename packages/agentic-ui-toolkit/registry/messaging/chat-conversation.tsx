@@ -22,7 +22,9 @@ export interface ChatMessage {
 }
 
 export interface ChatConversationProps {
-  messages?: ChatMessage[]
+  data?: {
+    messages?: ChatMessage[]
+  }
 }
 
 const defaultMessages: ChatMessage[] = [
@@ -69,32 +71,35 @@ const defaultMessages: ChatMessage[] = [
   }
 ]
 
-export function ChatConversation({
-  messages = defaultMessages
-}: ChatConversationProps) {
+export function ChatConversation({ data }: ChatConversationProps) {
+  const { messages = defaultMessages } = data ?? {}
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
       {messages.map((message) =>
         message.type === 'image' ? (
           <ImageMessageBubble
             key={message.id}
-            image={message.image!}
-            caption={message.caption}
-            avatar={message.avatar}
-            author={message.author}
-            time={message.time}
-            isOwn={message.isOwn}
-            status={message.status}
+            data={{
+              image: message.image!,
+              caption: message.caption,
+              avatar: message.avatar,
+              author: message.author,
+              time: message.time,
+            }}
+            appearance={{ isOwn: message.isOwn }}
+            control={{ status: message.status }}
           />
         ) : (
           <MessageBubble
             key={message.id}
-            content={message.content}
-            avatar={message.avatar}
-            author={message.author}
-            time={message.time}
-            isOwn={message.isOwn}
-            status={message.status}
+            data={{
+              content: message.content,
+              avatar: message.avatar,
+              author: message.author,
+              time: message.time,
+            }}
+            appearance={{ isOwn: message.isOwn }}
+            control={{ status: message.status }}
           />
         )
       )}

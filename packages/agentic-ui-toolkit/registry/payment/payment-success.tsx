@@ -4,24 +4,31 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle2, ExternalLink } from 'lucide-react'
 
 export interface PaymentSuccessProps {
-  orderId?: string
-  productName?: string
-  productImage?: string
-  price?: number
-  currency?: string
-  deliveryDate?: string
-  onTrackOrder?: () => void
+  data?: {
+    orderId?: string
+    productName?: string
+    productImage?: string
+    price?: number
+    deliveryDate?: string
+  }
+  actions?: {
+    onTrackOrder?: () => void
+  }
+  appearance?: {
+    currency?: string
+  }
 }
 
-export function PaymentSuccess({
-  orderId = 'ORD-2024-7842',
-  productName = "Air Force 1 '07",
-  productImage = '/demo/shoe-1.png',
-  price = 119,
-  currency = 'EUR',
-  deliveryDate = 'Tue. Dec 10',
-  onTrackOrder
-}: PaymentSuccessProps) {
+export function PaymentSuccess({ data, actions, appearance }: PaymentSuccessProps) {
+  const {
+    orderId = 'ORD-2024-7842',
+    productName = "Air Force 1 '07",
+    productImage = '/demo/shoe-1.png',
+    price = 119,
+    deliveryDate = 'Tue. Dec 10',
+  } = data ?? {}
+  const { onTrackOrder } = actions ?? {}
+  const { currency = 'EUR' } = appearance ?? {}
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

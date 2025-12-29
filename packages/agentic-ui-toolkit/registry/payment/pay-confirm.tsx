@@ -13,24 +13,28 @@ import { Separator } from "@/components/ui/separator"
 import { CheckCircle2, CreditCard, ShieldCheck } from "lucide-react"
 
 export interface PayConfirmProps {
-  amount: number
-  currency?: string
-  cardLast4?: string
-  cardBrand?: string
-  onConfirm?: () => void
-  onCancel?: () => void
-  isLoading?: boolean
+  data?: {
+    amount: number
+    cardLast4?: string
+    cardBrand?: string
+  }
+  actions?: {
+    onConfirm?: () => void
+    onCancel?: () => void
+  }
+  appearance?: {
+    currency?: string
+  }
+  control?: {
+    isLoading?: boolean
+  }
 }
 
-export function PayConfirm({
-  amount,
-  currency = "USD",
-  cardLast4 = "4242",
-  cardBrand = "Visa",
-  onConfirm,
-  onCancel,
-  isLoading = false,
-}: PayConfirmProps) {
+export function PayConfirm({ data, actions, appearance, control }: PayConfirmProps) {
+  const { amount = 0, cardLast4 = "4242", cardBrand = "Visa" } = data ?? {}
+  const { onConfirm, onCancel } = actions ?? {}
+  const { currency = "USD" } = appearance ?? {}
+  const { isLoading = false } = control ?? {}
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",

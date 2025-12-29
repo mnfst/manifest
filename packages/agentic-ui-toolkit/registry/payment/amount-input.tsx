@@ -6,28 +6,30 @@ import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface AmountInputProps {
-  value?: number
-  min?: number
-  max?: number
-  step?: number
-  currency?: string
-  label?: string
-  presets?: number[]
-  onChange?: (value: number) => void
-  onConfirm?: (value: number) => void
+  data?: {
+    presets?: number[]
+  }
+  actions?: {
+    onChange?: (value: number) => void
+    onConfirm?: (value: number) => void
+  }
+  appearance?: {
+    min?: number
+    max?: number
+    step?: number
+    currency?: string
+    label?: string
+  }
+  control?: {
+    value?: number
+  }
 }
 
-export function AmountInput({
-  value = 50,
-  min = 0,
-  max = 10000,
-  step = 10,
-  currency = "EUR",
-  label = "Amount",
-  presets = [20, 50, 100, 200],
-  onChange,
-  onConfirm,
-}: AmountInputProps) {
+export function AmountInput({ data, actions, appearance, control }: AmountInputProps) {
+  const { presets = [20, 50, 100, 200] } = data ?? {}
+  const { onChange, onConfirm } = actions ?? {}
+  const { min = 0, max = 10000, step = 10, currency = "EUR", label = "Amount" } = appearance ?? {}
+  const { value = 50 } = control ?? {}
   const [amount, setAmount] = useState(value)
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)

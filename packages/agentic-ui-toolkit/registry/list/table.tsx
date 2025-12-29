@@ -15,18 +15,26 @@ export interface TableColumn<T = Record<string, unknown>> {
 }
 
 export interface TableProps<T = Record<string, unknown>> {
-  columns?: TableColumn<T>[]
-  data?: T[]
-  selectable?: 'none' | 'single' | 'multi'
-  onSelectionChange?: (selectedRows: T[]) => void
-  loading?: boolean
-  emptyMessage?: string
-  stickyHeader?: boolean
-  compact?: boolean
-  selectedRows?: T[]
-  showActions?: boolean
-  onDownload?: (selectedRows: T[]) => void
-  onSend?: (selectedRows: T[]) => void
+  data?: {
+    columns?: TableColumn<T>[]
+    rows?: T[]
+  }
+  actions?: {
+    onSelectionChange?: (selectedRows: T[]) => void
+    onDownload?: (selectedRows: T[]) => void
+    onSend?: (selectedRows: T[]) => void
+  }
+  appearance?: {
+    selectable?: 'none' | 'single' | 'multi'
+    emptyMessage?: string
+    stickyHeader?: boolean
+    compact?: boolean
+    showActions?: boolean
+  }
+  control?: {
+    loading?: boolean
+    selectedRows?: T[]
+  }
 }
 
 // Default demo data for the table
@@ -111,19 +119,24 @@ function SkeletonRow({
 }
 
 export function Table<T extends Record<string, unknown>>({
-  columns = defaultColumns as unknown as TableColumn<T>[],
-  data = defaultData as unknown as T[],
-  selectable = 'none',
-  onSelectionChange,
-  loading = false,
-  emptyMessage = 'No data available',
-  stickyHeader = false,
-  compact = false,
-  selectedRows: controlledSelectedRows,
-  showActions = false,
-  onDownload,
-  onSend
+  data: dataProps,
+  actions,
+  appearance,
+  control
 }: TableProps<T>) {
+  const {
+    columns = defaultColumns as unknown as TableColumn<T>[],
+    rows: tableData = defaultData as unknown as T[],
+  } = dataProps ?? {}
+  const { onSelectionChange, onDownload, onSend } = actions ?? {}
+  const {
+    selectable = 'none',
+    emptyMessage = 'No data available',
+    stickyHeader = false,
+    compact = false,
+    showActions = false,
+  } = appearance ?? {}
+  const { loading = false, selectedRows: controlledSelectedRows } = control ?? {}
   const [sortConfig, setSortConfig] = useState<{
     key: string
     direction: 'asc' | 'desc'
@@ -133,7 +146,7 @@ export function Table<T extends Record<string, unknown>>({
   )
 
   const selectedRowsSet = controlledSelectedRows
-    ? new Set(controlledSelectedRows.map((row) => data.indexOf(row)))
+    ? new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
     : internalSelectedRows
 
   const handleSort = useCallback((accessor: string) => {
@@ -149,9 +162,9 @@ export function Table<T extends Record<string, unknown>>({
   }, [])
 
   const sortedData = useMemo(() => {
-    if (!sortConfig) return data
+    if (!sortConfig) return tableData
 
-    return [...data].sort((a, b) => {
+    return [...tableData].sort((a, b) => {
       const aValue = a[sortConfig.key as keyof T]
       const bValue = b[sortConfig.key as keyof T]
 
@@ -166,7 +179,7 @@ export function Table<T extends Record<string, unknown>>({
 
       return sortConfig.direction === 'asc' ? comparison : -comparison
     })
-  }, [data, sortConfig])
+  }, [tableData, sortConfig])
 
   const handleRowSelect = useCallback(
     (index: number) => {

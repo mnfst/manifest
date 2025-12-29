@@ -13,12 +13,20 @@ export interface Option {
 }
 
 export interface OptionListProps {
-  options?: Option[]
-  selectedOptionId?: string
-  onSelectOption?: (option: Option) => void
-  multiple?: boolean
-  selectedOptionIds?: string[]
-  onSelectOptions?: (options: Option[]) => void
+  data?: {
+    options?: Option[]
+  }
+  actions?: {
+    onSelectOption?: (option: Option) => void
+    onSelectOptions?: (options: Option[]) => void
+  }
+  appearance?: {
+    multiple?: boolean
+  }
+  control?: {
+    selectedOptionId?: string
+    selectedOptionIds?: string[]
+  }
 }
 
 const defaultOptions: Option[] = [
@@ -27,14 +35,11 @@ const defaultOptions: Option[] = [
   { id: '3', label: 'Store pickup', description: 'Available in 2h' }
 ]
 
-export function OptionList({
-  options = defaultOptions,
-  selectedOptionId,
-  onSelectOption,
-  multiple = false,
-  selectedOptionIds = [],
-  onSelectOptions
-}: OptionListProps) {
+export function OptionList({ data, actions, appearance, control }: OptionListProps) {
+  const { options = defaultOptions } = data ?? {}
+  const { onSelectOption, onSelectOptions } = actions ?? {}
+  const { multiple = false } = appearance ?? {}
+  const { selectedOptionId, selectedOptionIds = [] } = control ?? {}
   const [selected, setSelected] = useState<string | string[]>(
     multiple ? selectedOptionIds : selectedOptionId || ''
   )
