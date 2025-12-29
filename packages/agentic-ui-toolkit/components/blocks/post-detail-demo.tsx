@@ -4,7 +4,9 @@ import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { PostDetail, PostDetailProps } from '@/registry/blogging/post-detail'
 import { useState } from 'react'
 
-interface PostDetailDemoProps extends Omit<PostDetailProps, 'onReadMore' | 'displayMode'> {
+interface PostDetailDemoProps {
+  data?: PostDetailProps['data']
+  appearance?: Omit<PostDetailProps['appearance'], 'displayMode'>
   appName?: string
   appUrl?: string
 }
@@ -12,16 +14,17 @@ interface PostDetailDemoProps extends Omit<PostDetailProps, 'onReadMore' | 'disp
 export function PostDetailDemo({
   appName = 'Blog App',
   appUrl = 'https://example.com',
-  ...props
+  data,
+  appearance
 }: PostDetailDemoProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   return (
     <>
       <PostDetail
-        {...props}
-        displayMode="inline"
-        onReadMore={() => setIsFullscreen(true)}
+        data={data}
+        appearance={{ ...appearance, displayMode: 'inline' }}
+        actions={{ onReadMore: () => setIsFullscreen(true) }}
       />
 
       {isFullscreen && (
@@ -31,8 +34,8 @@ export function PostDetailDemo({
           onClose={() => setIsFullscreen(false)}
         >
           <PostDetail
-            {...props}
-            displayMode="fullscreen"
+            data={data}
+            appearance={{ ...appearance, displayMode: 'fullscreen' }}
           />
         </FullscreenModal>
       )}
