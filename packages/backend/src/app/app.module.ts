@@ -8,6 +8,7 @@ import { ViewEntity } from '../view/view.entity';
 import { MockDataEntity } from '../mock-data/mock-data.entity';
 import { ConnectorEntity } from '../connector/connector.entity';
 import { ReturnValueEntity } from '../return-value/return-value.entity';
+import { CallFlowEntity } from '../call-flow/call-flow.entity';
 import { FlowModule } from '../flow/flow.module';
 import { ViewModule } from '../view/view.module';
 import { AgentModule } from '../agent/agent.module';
@@ -15,13 +16,14 @@ import { McpModule } from '../mcp/mcp.module';
 import { MockDataModule } from '../mock-data/mock-data.module';
 import { ConnectorModule } from '../connector/connector.module';
 import { ReturnValueModule } from '../return-value/return-value.module';
+import { CallFlowModule } from '../call-flow/call-flow.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, ViewEntity, MockDataEntity, ConnectorEntity, ReturnValueEntity],
+      entities: [AppEntity, FlowEntity, ViewEntity, MockDataEntity, ConnectorEntity, ReturnValueEntity, CallFlowEntity],
       synchronize: true, // POC only - use migrations in production
     }),
     TypeOrmModule.forFeature([AppEntity]),
@@ -32,6 +34,7 @@ import { ReturnValueModule } from '../return-value/return-value.module';
     MockDataModule,
     ConnectorModule,
     ReturnValueModule,
+    CallFlowModule,
   ],
   controllers: [AppController],
   providers: [AppService],

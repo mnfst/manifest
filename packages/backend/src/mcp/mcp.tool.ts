@@ -5,6 +5,7 @@ import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { ViewEntity } from '../view/view.entity';
 import { ReturnValueEntity } from '../return-value/return-value.entity';
+import { CallFlowEntity } from '../call-flow/call-flow.entity';
 import type { McpToolResponse, LayoutTemplate } from '@chatgpt-app-builder/shared';
 
 /**
@@ -65,10 +66,10 @@ export class McpToolService {
       throw new NotFoundException(`No published app found for slug: ${appSlug}`);
     }
 
-    // Find the flow that matches the tool name (include both views and returnValues)
+    // Find the flow that matches the tool name (include views, returnValues, and callFlows)
     const flow = await this.flowRepository.findOne({
       where: { appId: app.id, toolName },
-      relations: ['views', 'returnValues'],
+      relations: ['views', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
     });
 
     if (!flow) {
@@ -84,6 +85,12 @@ export class McpToolService {
     const returnValues = flow.returnValues?.sort((a, b) => a.order - b.order) || [];
     if (returnValues.length > 0) {
       return this.executeReturnValueFlow(flow, returnValues);
+    }
+
+    // Check if flow has call flows - if so, trigger target flows via callTool
+    const callFlows = flow.callFlows?.sort((a, b) => a.order - b.order) || [];
+    if (callFlows.length > 0) {
+      return this.executeCallFlowFlow(app, flow, callFlows);
     }
 
     // Otherwise, use view-based response with widget
@@ -145,6 +152,54 @@ export class McpToolService {
   }
 
   /**
+   * Execute a flow with call flows - returns HTML widget that triggers target flows
+   * Uses window.openai.callTool() from the ChatGPT Apps SDK to invoke target flows
+   */
+  private executeCallFlowFlow(
+    app: AppEntity,
+    flow: FlowEntity,
+    callFlows: CallFlowEntity[]
+  ): McpToolResponse {
+    // Get the first call flow (for now we support single call flow per flow)
+    const primaryCallFlow = callFlows[0];
+    const targetFlow = primaryCallFlow.targetFlow;
+
+    if (!targetFlow) {
+      // Target flow was deleted - return error message
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error: The target flow for this action no longer exists.`,
+          },
+        ],
+      };
+    }
+
+    // Return response with widget that will trigger the target flow
+    return {
+      structuredContent: {
+        action: 'callFlow',
+        targetToolName: targetFlow.toolName,
+        targetFlowName: targetFlow.name,
+      },
+      content: [
+        {
+          type: 'text',
+          text: `Triggering ${targetFlow.name}...`,
+        },
+      ],
+      _meta: {
+        'openai/outputTemplate': `ui://widget/${app.slug}/${flow.toolName}-callflow.html`,
+        'openai/widgetPrefersBorder': false,
+        flowName: flow.name,
+        toolName: flow.toolName,
+        targetToolName: targetFlow.toolName,
+      },
+    };
+  }
+
+  /**
    * List all tools available for an MCP server (one per flow)
    * Tools with views include widget metadata, tools with return values do not
    */
@@ -160,7 +215,7 @@ export class McpToolService {
 
     const flows = await this.flowRepository.find({
       where: { appId: app.id, isActive: true },
-      relations: ['views', 'returnValues'],
+      relations: ['views', 'returnValues', 'callFlows'],
     });
 
     return flows.map((flow) => {
@@ -174,8 +229,9 @@ export class McpToolService {
       }
       const description = parts.join('');
 
-      // Check if flow has views (needs widget) or return values (no widget)
+      // Check if flow has views or call flows (needs widget) or return values (no widget)
       const hasViews = flow.views && flow.views.length > 0;
+      const hasCallFlows = flow.callFlows && flow.callFlows.length > 0;
 
       const toolDef: {
         name: string;
@@ -197,12 +253,18 @@ export class McpToolService {
         },
       };
 
-      // Only include widget metadata for flows with views
+      // Only include widget metadata for flows with views or call flows
       if (hasViews) {
         toolDef._meta = {
           'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}.html`,
           'openai/toolInvocation/invoking': `Loading ${flow.name}...`,
           'openai/toolInvocation/invoked': `Loaded ${flow.name}`,
+        };
+      } else if (hasCallFlows) {
+        toolDef._meta = {
+          'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}-callflow.html`,
+          'openai/toolInvocation/invoking': `Triggering ${flow.name}...`,
+          'openai/toolInvocation/invoked': `Triggered ${flow.name}`,
         };
       }
 
@@ -211,7 +273,7 @@ export class McpToolService {
   }
 
   /**
-   * List all UI resources for an app (only flows with views, not return values)
+   * List all UI resources for an app (flows with views or call flows)
    */
   async listResources(appSlug: string): Promise<{
     uri: string;
@@ -226,18 +288,31 @@ export class McpToolService {
 
     const flows = await this.flowRepository.find({
       where: { appId: app.id, isActive: true },
-      relations: ['views'],
+      relations: ['views', 'callFlows'],
     });
 
-    // Only include flows that have views (not return value flows)
-    return flows
-      .filter((flow) => flow.views && flow.views.length > 0)
-      .map((flow) => ({
-        uri: `ui://widget/${appSlug}/${flow.toolName}.html`,
-        name: `${flow.name} Widget`,
-        description: `UI widget for ${flow.toolName}`,
-        mimeType: 'text/html+skybridge',
-      }));
+    // Include flows that have views or call flows (not return value flows)
+    const resources: { uri: string; name: string; description: string; mimeType: string }[] = [];
+
+    for (const flow of flows) {
+      if (flow.views && flow.views.length > 0) {
+        resources.push({
+          uri: `ui://widget/${appSlug}/${flow.toolName}.html`,
+          name: `${flow.name} Widget`,
+          description: `UI widget for ${flow.toolName}`,
+          mimeType: 'text/html+skybridge',
+        });
+      } else if (flow.callFlows && flow.callFlows.length > 0) {
+        resources.push({
+          uri: `ui://widget/${appSlug}/${flow.toolName}-callflow.html`,
+          name: `${flow.name} Call Flow Widget`,
+          description: `Call flow trigger widget for ${flow.toolName}`,
+          mimeType: 'text/html+skybridge',
+        });
+      }
+    }
+
+    return resources;
   }
 
   /**
@@ -253,45 +328,83 @@ export class McpToolService {
       throw new NotFoundException(`No published app found for slug: ${appSlug}`);
     }
 
-    // Parse the URI: ui://widget/{appSlug}/{toolName}.html
-    const match = uri.match(/^ui:\/\/widget\/([^/]+)\/([^.]+)\.html$/);
-    if (!match || match[1] !== appSlug) {
-      throw new NotFoundException(`Invalid resource URI: ${uri}`);
+    // Parse the URI: ui://widget/{appSlug}/{toolName}.html or {toolName}-callflow.html
+    const callFlowMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^-]+)-callflow\.html$/);
+    const viewMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^.]+)\.html$/);
+
+    if (callFlowMatch && callFlowMatch[1] === appSlug) {
+      // Call flow widget
+      const toolName = callFlowMatch[2];
+      const flow = await this.flowRepository.findOne({
+        where: { appId: app.id, toolName, isActive: true },
+        relations: ['callFlows', 'callFlows.targetFlow'],
+      });
+
+      if (!flow) {
+        throw new NotFoundException(`No active flow found for tool: ${toolName}`);
+      }
+
+      const callFlows = flow.callFlows?.sort((a, b) => a.order - b.order) || [];
+      const primaryCallFlow = callFlows[0];
+
+      if (!primaryCallFlow || !primaryCallFlow.targetFlow) {
+        throw new NotFoundException(`No valid call flow found for tool: ${toolName}`);
+      }
+
+      // Generate the call flow widget HTML
+      const widgetHtml = this.generateCallFlowWidgetHtml(
+        flow.name,
+        primaryCallFlow.targetFlow.toolName,
+        primaryCallFlow.targetFlow.name
+      );
+
+      return {
+        uri,
+        mimeType: 'text/html+skybridge',
+        text: widgetHtml,
+        _meta: {
+          'openai/widgetPrefersBorder': false,
+          'openai/widgetDescription': `Call flow trigger for ${flow.name}`,
+        },
+      };
+    } else if (viewMatch && viewMatch[1] === appSlug) {
+      // Regular view widget
+      const toolName = viewMatch[2];
+      const flow = await this.flowRepository.findOne({
+        where: { appId: app.id, toolName, isActive: true },
+        relations: ['views'],
+      });
+
+      if (!flow) {
+        throw new NotFoundException(`No active flow found for tool: ${toolName}`);
+      }
+
+      const views = flow.views?.sort((a, b) => a.order - b.order) || [];
+      const primaryView = views[0];
+
+      if (!primaryView) {
+        throw new NotFoundException(`No views found for tool: ${toolName}`);
+      }
+
+      // Generate the widget HTML using ChatGPT Apps SDK bridge
+      const widgetHtml = this.generateWidgetHtml(
+        flow.name,
+        primaryView.layoutTemplate,
+        app.themeVariables
+      );
+
+      return {
+        uri,
+        mimeType: 'text/html+skybridge',
+        text: widgetHtml,
+        _meta: {
+          'openai/widgetPrefersBorder': true,
+          'openai/widgetDescription': `Interactive widget for ${flow.name}`,
+        },
+      };
     }
 
-    const toolName = match[2];
-    const flow = await this.flowRepository.findOne({
-      where: { appId: app.id, toolName, isActive: true },
-      relations: ['views'],
-    });
-
-    if (!flow) {
-      throw new NotFoundException(`No active flow found for tool: ${toolName}`);
-    }
-
-    const views = flow.views?.sort((a, b) => a.order - b.order) || [];
-    const primaryView = views[0];
-
-    if (!primaryView) {
-      throw new NotFoundException(`No views found for tool: ${toolName}`);
-    }
-
-    // Generate the widget HTML using ChatGPT Apps SDK bridge
-    const widgetHtml = this.generateWidgetHtml(
-      flow.name,
-      primaryView.layoutTemplate,
-      app.themeVariables
-    );
-
-    return {
-      uri,
-      mimeType: 'text/html+skybridge',
-      text: widgetHtml,
-      _meta: {
-        'openai/widgetPrefersBorder': true,
-        'openai/widgetDescription': `Interactive widget for ${flow.name}`,
-      },
-    };
+    throw new NotFoundException(`Invalid resource URI: ${uri}`);
   }
 
   /**
@@ -588,6 +701,126 @@ export class McpToolService {
 </body>
 </html>`;
     }
+  }
+
+  /**
+   * Generate call flow widget HTML that triggers window.openai.callTool
+   * This widget automatically invokes the target flow when rendered
+   */
+  private generateCallFlowWidgetHtml(
+    flowName: string,
+    targetToolName: string,
+    targetFlowName: string
+  ): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${flowName} - Call Flow</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: transparent;
+      color: #1a1a2e;
+      padding: 12px;
+    }
+    body.dark { color: #e5e5e5; }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e5e5e5;
+      border-top-color: #10a37f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .success { color: #10a37f; }
+    .error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="status" id="status">
+      <div class="spinner"></div>
+      <span>Triggering ${targetFlowName}...</span>
+    </div>
+  </div>
+
+  <script>
+    // ChatGPT Apps SDK - Call Flow Widget
+    // Automatically triggers the target flow using window.openai.callTool
+    (function() {
+      var TARGET_TOOL = '${targetToolName}';
+      var triggered = false;
+
+      function applyTheme() {
+        var theme = window.openai && window.openai.theme ? window.openai.theme : 'light';
+        document.body.className = theme;
+      }
+
+      function showSuccess() {
+        var status = document.getElementById('status');
+        status.innerHTML = '<span class="success">✓ Flow triggered successfully</span>';
+      }
+
+      function showError(message) {
+        var status = document.getElementById('status');
+        status.innerHTML = '<span class="error">✕ ' + message + '</span>';
+      }
+
+      function triggerFlow() {
+        if (triggered) return;
+        triggered = true;
+
+        applyTheme();
+
+        // Use ChatGPT Apps SDK to call the target tool
+        if (window.openai && window.openai.callTool) {
+          try {
+            // callTool(toolName, args) - invoke another MCP tool
+            window.openai.callTool(TARGET_TOOL, { message: 'Triggered from call flow action' });
+            showSuccess();
+          } catch (e) {
+            showError('Failed to trigger flow: ' + e.message);
+          }
+        } else {
+          // SDK not available - show message
+          showError('ChatGPT Apps SDK not available');
+        }
+
+        // Notify ChatGPT of content height
+        if (window.openai && window.openai.notifyIntrinsicHeight) {
+          window.openai.notifyIntrinsicHeight(document.body.scrollHeight);
+        }
+      }
+
+      // Trigger on load or when globals are set
+      window.addEventListener('openai:set_globals', function() {
+        applyTheme();
+        triggerFlow();
+      });
+
+      // Initialize on load
+      if (document.readyState === 'complete') {
+        triggerFlow();
+      } else {
+        window.addEventListener('DOMContentLoaded', triggerFlow);
+      }
+    })();
+  </script>
+</body>
+</html>`;
   }
 
   /**

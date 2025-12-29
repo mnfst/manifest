@@ -27,10 +27,10 @@ export class ViewService {
    * Enforces mutual exclusivity: cannot add views if flow has return values
    */
   async create(flowId: string, data: CreateViewRequest): Promise<View> {
-    // Check if flow exists and has return values (mutual exclusivity)
+    // Check if flow exists and has return values or call flows (mutual exclusivity)
     const flow = await this.flowRepository.findOne({
       where: { id: flowId },
-      relations: ['returnValues'],
+      relations: ['returnValues', 'callFlows'],
     });
 
     if (!flow) {
@@ -40,6 +40,12 @@ export class ViewService {
     if (flow.returnValues && flow.returnValues.length > 0) {
       throw new BadRequestException(
         'Cannot add views to a flow that has return values. Flows must use either views or return values, not both.'
+      );
+    }
+
+    if (flow.callFlows && flow.callFlows.length > 0) {
+      throw new BadRequestException(
+        'Cannot add views to a flow that has call flows. Flows must use either views or end actions, not both.'
       );
     }
 

@@ -10,22 +10,26 @@ import {
   type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { View, Flow, ReturnValue } from '@chatgpt-app-builder/shared';
+import type { View, Flow, ReturnValue, CallFlow } from '@chatgpt-app-builder/shared';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
 import { MockDataNode } from './MockDataNode';
 import { AddUserIntentNode } from './AddUserIntentNode';
 import { AddStepNode } from './AddStepNode';
 import { ReturnValueNode } from './ReturnValueNode';
+import { CallFlowNode } from './CallFlowNode';
 
 interface FlowDiagramProps {
   flow: Flow;
   views: View[];
   returnValues: ReturnValue[];
+  callFlows: CallFlow[];
   onViewEdit: (view: View) => void;
   onViewDelete: (view: View) => void;
   onReturnValueEdit: (returnValue: ReturnValue) => void;
   onReturnValueDelete: (returnValue: ReturnValue) => void;
+  onCallFlowEdit: (callFlow: CallFlow) => void;
+  onCallFlowDelete: (callFlow: CallFlow) => void;
   onUserIntentEdit: () => void;
   onMockDataEdit: (view: View) => void;
   onAddUserIntent?: () => void;
@@ -36,12 +40,13 @@ interface FlowDiagramProps {
 /**
  * Determines the current state of a flow based on its data
  */
-function getFlowState(flow: Flow, returnValues: ReturnValue[]) {
+function getFlowState(flow: Flow, returnValues: ReturnValue[], callFlows: CallFlow[]) {
   const hasUserIntent = Boolean(flow.toolDescription?.trim());
   const hasViews = Boolean(flow.views?.length);
   const hasReturnValues = returnValues.length > 0;
-  const hasSteps = hasViews || hasReturnValues;
-  return { hasUserIntent, hasViews, hasReturnValues, hasSteps };
+  const hasCallFlows = callFlows.length > 0;
+  const hasSteps = hasViews || hasReturnValues || hasCallFlows;
+  return { hasUserIntent, hasViews, hasReturnValues, hasCallFlows, hasSteps };
 }
 
 const nodeTypes = {
@@ -51,6 +56,7 @@ const nodeTypes = {
   addUserIntentNode: AddUserIntentNode,
   addStepNode: AddStepNode,
   returnValueNode: ReturnValueNode,
+  callFlowNode: CallFlowNode,
 };
 
 /**
@@ -61,17 +67,20 @@ function FlowDiagramInner({
   flow,
   views,
   returnValues,
+  callFlows,
   onViewEdit,
   onViewDelete,
   onReturnValueEdit,
   onReturnValueDelete,
+  onCallFlowEdit,
+  onCallFlowDelete,
   onUserIntentEdit,
   onMockDataEdit,
   onAddUserIntent,
   onAddStep,
   canDelete,
 }: FlowDiagramProps) {
-  const flowState = getFlowState(flow, returnValues);
+  const flowState = getFlowState(flow, returnValues, callFlows);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -193,11 +202,28 @@ function FlowDiagramInner({
             },
           });
         });
+      } else if (flowState.hasCallFlows) {
+        // Add CallFlow nodes
+        callFlows.forEach((callFlow, index) => {
+          const xPosition = 330 + index * 250;
+
+          nodeList.push({
+            id: callFlow.id,
+            type: 'callFlowNode',
+            position: { x: xPosition, y: 80 },
+            data: {
+              callFlow,
+              canDelete,
+              onEdit: () => onCallFlowEdit(callFlow),
+              onDelete: () => onCallFlowDelete(callFlow),
+            },
+          });
+        });
       }
     }
 
     return nodeList;
-  }, [flow, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, views, returnValues, canDelete, dimensions, onViewEdit, onViewDelete, onReturnValueEdit, onReturnValueDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddStep]);
+  }, [flow, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, flowState.hasCallFlows, views, returnValues, callFlows, canDelete, dimensions, onViewEdit, onViewDelete, onReturnValueEdit, onReturnValueDelete, onCallFlowEdit, onCallFlowDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddStep]);
 
   // Generate edges: User Intent → first step (View/ReturnValue or AddStep), MockData → View, then step → step
   const edges = useMemo<Edge[]>(() => {
@@ -272,7 +298,8 @@ function FlowDiagramInner({
         });
       });
     } else if (flowState.hasReturnValues && returnValues.length > 0) {
-      // Edge from User Intent to first ReturnValue
+      // Edge from User Intent to first ReturnValue only
+      // No edges between consecutive ReturnValues - they are end actions with no outgoing connections
       edgeList.push({
         id: 'edge-user-intent-first-return-value',
         source: 'user-intent',
@@ -286,27 +313,26 @@ function FlowDiagramInner({
           color: '#22c55e',
         },
       });
-
-      // Edges between consecutive ReturnValues
-      returnValues.slice(0, -1).forEach((rv, index) => {
-        edgeList.push({
-          id: `edge-${rv.id}-${returnValues[index + 1].id}`,
-          source: rv.id,
-          target: returnValues[index + 1].id,
-          targetHandle: 'left',
-          type: 'smoothstep',
-          animated: false,
-          style: { stroke: '#9ca3af', strokeWidth: 2 },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: '#9ca3af',
-          },
-        });
+    } else if (flowState.hasCallFlows && callFlows.length > 0) {
+      // Edge from User Intent to first CallFlow only (purple theme)
+      // No edges between consecutive CallFlows - they are end actions with no outgoing connections
+      edgeList.push({
+        id: 'edge-user-intent-first-call-flow',
+        source: 'user-intent',
+        target: callFlows[0].id,
+        targetHandle: 'left',
+        type: 'smoothstep',
+        animated: false,
+        style: { stroke: '#a855f7', strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#a855f7',
+        },
       });
     }
 
     return edgeList;
-  }, [views, returnValues, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, onAddStep]);
+  }, [views, returnValues, callFlows, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, flowState.hasCallFlows, onAddStep]);
 
   // Even with no views, we still show the User Intent node
   // The empty state message is now shown inside the ReactFlow diagram

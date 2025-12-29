@@ -1,29 +1,28 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { ReturnValue } from '@chatgpt-app-builder/shared';
-import { FileText, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
+import type { CallFlow } from '@chatgpt-app-builder/shared';
+import { PhoneForwarded, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
-export interface ReturnValueNodeData extends Record<string, unknown> {
-  returnValue: ReturnValue;
+export interface CallFlowNodeData extends Record<string, unknown> {
+  callFlow: CallFlow;
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 /**
- * Custom React Flow node for displaying a return value
- * Green-themed card design to distinguish from views
+ * Custom React Flow node for displaying a call flow end action
+ * Purple-themed card design to distinguish from views and return values
  * No right-side handle as it's a terminal/end action
  */
-export function ReturnValueNode({ data }: NodeProps) {
-  const { returnValue, canDelete, onEdit, onDelete } = data as ReturnValueNodeData;
+export function CallFlowNode({ data }: NodeProps) {
+  const { callFlow, canDelete, onEdit, onDelete } = data as CallFlowNodeData;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isEmpty = !returnValue.text?.trim();
-  const previewText = returnValue.text?.slice(0, 50) || '';
-  const hasMore = (returnValue.text?.length || 0) > 50;
+  const hasTarget = callFlow.targetFlowId && callFlow.targetFlow;
+  const targetName = callFlow.targetFlow?.name || 'Unknown Flow';
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -40,40 +39,40 @@ export function ReturnValueNode({ data }: NodeProps) {
   }, [isDropdownOpen]);
 
   return (
-    <div className="bg-white rounded-lg border-2 border-green-200 hover:border-green-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
+    <div className="bg-white rounded-lg border-2 border-purple-200 hover:border-purple-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
       {/* Left handle for incoming connections from UserIntent/other nodes */}
       <Handle
         type="target"
         position={Position.Left}
         id="left"
-        className="!bg-green-400 !w-2 !h-2 !border-0"
+        className="!bg-purple-400 !w-2 !h-2 !border-0"
       />
 
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">
           {/* Icon container */}
           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-            isEmpty ? 'bg-amber-50' : 'bg-green-100'
+            hasTarget ? 'bg-purple-100' : 'bg-amber-50'
           }`}>
-            {isEmpty ? (
-              <AlertCircle className="w-6 h-6 text-amber-500" />
+            {hasTarget ? (
+              <PhoneForwarded className="w-6 h-6 text-purple-600" />
             ) : (
-              <FileText className="w-6 h-6 text-green-600" />
+              <AlertCircle className="w-6 h-6 text-amber-500" />
             )}
           </div>
 
-          {/* Return value info */}
+          {/* Call flow info */}
           <div className="text-center w-full">
             <h3 className="font-medium text-gray-900 text-sm">
-              Return Value
+              Call Flow
             </h3>
-            {isEmpty ? (
-              <p className="text-xs text-amber-600 mt-1">
-                Not configured
+            {hasTarget ? (
+              <p className="text-xs text-gray-500 mt-1 truncate" title={targetName}>
+                {targetName}
               </p>
             ) : (
-              <p className="text-xs text-gray-500 mt-1 truncate" title={returnValue.text}>
-                {previewText}{hasMore ? '...' : ''}
+              <p className="text-xs text-amber-600 mt-1">
+                {callFlow.targetFlowId ? 'Target deleted' : 'Not configured'}
               </p>
             )}
           </div>

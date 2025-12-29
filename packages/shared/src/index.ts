@@ -46,6 +46,14 @@ export type {
   ReorderReturnValuesRequest,
 } from './types/return-value.js';
 
+// Call flow types
+export type {
+  CallFlow,
+  CreateCallFlowRequest,
+  UpdateCallFlowRequest,
+  ReorderCallFlowsRequest,
+} from './types/call-flow.js';
+
 // Theme types
 export type { ThemeVariables } from './types/theme.js';
 export { DEFAULT_THEME_VARIABLES } from './types/theme.js';
