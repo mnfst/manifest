@@ -16,17 +16,17 @@ This feature restructures the application from a single-entity model (App with l
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- npm >= 10.2.0
+- pnpm >= 9.0.0
 - OPENAI_API_KEY in backend `.env` (optional, mock fallback available)
 
 ### Setup
 
 ```bash
 # From repository root
-npm install
+pnpm install
 
 # Start development servers
-npm run dev
+pnpm dev
 
 # Backend runs at http://localhost:3001
 # Frontend runs at http://localhost:5173

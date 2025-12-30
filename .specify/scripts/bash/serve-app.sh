@@ -47,7 +47,7 @@ lsof -ti :$FRONTEND_PORT | xargs kill -9 2>/dev/null || true
 # Start backend in background
 echo "Starting backend..."
 cd "$PROJECT_ROOT/packages/backend"
-PORT=$BACKEND_PORT npm run dev > /tmp/backend-$BACKEND_PORT.log 2>&1 &
+PORT=$BACKEND_PORT pnpm dev > /tmp/backend-$BACKEND_PORT.log 2>&1 &
 BACKEND_PID=$!
 
 # Wait for backend to be ready

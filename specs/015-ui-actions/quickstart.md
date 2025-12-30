@@ -12,7 +12,7 @@ This feature enables UI component actions in the flow diagram. Views display act
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm 10.2.0+
+- pnpm 9.0.0+
 - Existing generator codebase with backend, frontend, and shared packages
 
 ---
@@ -71,7 +71,7 @@ This feature enables UI component actions in the flow diagram. Views display act
 
 After each phase, validate:
 
-1. **Phase 1**: Run `npm run type-check` - no TypeScript errors
+1. **Phase 1**: Run `pnpm type-check` - no TypeScript errors
 2. **Phase 2**: Start backend, verify `/api/views/:viewId/action-connections` endpoint responds
 3. **Phase 3**: Open flow with post-list view, verify "onReadMore" handle appears
 4. **Phase 4**: Execute tool, click action button, verify target executes
