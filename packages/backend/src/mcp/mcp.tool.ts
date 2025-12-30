@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, Connection } from '@chatgpt-app-builder/shared';
 
 /**
  * MCP protocol error for inactive tools
@@ -50,10 +50,118 @@ export class McpToolService {
   }
 
   /**
+   * Get nodes connected to user-intent in topological order.
+   * Only nodes reachable from user-intent (via connections) will be executed.
+   * Uses BFS to traverse the connection graph and returns nodes in execution order.
+   *
+   * @param nodes - All nodes in the flow
+   * @param connections - All connections in the flow
+   * @returns Nodes connected to user-intent in topological (execution) order
+   */
+  private getConnectedNodes(
+    nodes: NodeInstance[],
+    connections: Connection[]
+  ): NodeInstance[] {
+    // Build adjacency list from connections
+    const adjacencyList = new Map<string, string[]>();
+    const inDegree = new Map<string, number>();
+
+    // Initialize all nodes
+    for (const node of nodes) {
+      adjacencyList.set(node.id, []);
+      inDegree.set(node.id, 0);
+    }
+
+    // Build graph from connections
+    for (const conn of connections) {
+      const targets = adjacencyList.get(conn.sourceNodeId);
+      if (targets) {
+        targets.push(conn.targetNodeId);
+        inDegree.set(conn.targetNodeId, (inDegree.get(conn.targetNodeId) ?? 0) + 1);
+      }
+    }
+
+    // Find nodes directly connected from user-intent (sourceNodeId === 'user-intent')
+    const startNodeIds = connections
+      .filter(conn => conn.sourceNodeId === 'user-intent')
+      .map(conn => conn.targetNodeId);
+
+    if (startNodeIds.length === 0) {
+      // No connections from user-intent, return empty (nothing to execute)
+      return [];
+    }
+
+    // BFS to find all reachable nodes from user-intent connections
+    const reachable = new Set<string>(startNodeIds);
+    const queue = [...startNodeIds];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const neighbors = adjacencyList.get(current) ?? [];
+
+      for (const neighbor of neighbors) {
+        if (!reachable.has(neighbor)) {
+          reachable.add(neighbor);
+          queue.push(neighbor);
+        }
+      }
+    }
+
+    // Topological sort (Kahn's algorithm) on reachable nodes only
+    // Start with nodes that have no incoming edges from reachable set
+    const reachableInDegree = new Map<string, number>();
+    for (const nodeId of reachable) {
+      reachableInDegree.set(nodeId, 0);
+    }
+
+    for (const conn of connections) {
+      if (reachable.has(conn.sourceNodeId) && reachable.has(conn.targetNodeId)) {
+        reachableInDegree.set(
+          conn.targetNodeId,
+          (reachableInDegree.get(conn.targetNodeId) ?? 0) + 1
+        );
+      }
+    }
+
+    // Nodes directly from user-intent have effective in-degree 0 in our traversal
+    const sortQueue: string[] = [];
+    for (const nodeId of reachable) {
+      if (reachableInDegree.get(nodeId) === 0) {
+        sortQueue.push(nodeId);
+      }
+    }
+
+    const sortedIds: string[] = [];
+    while (sortQueue.length > 0) {
+      const current = sortQueue.shift()!;
+      sortedIds.push(current);
+
+      const neighbors = adjacencyList.get(current) ?? [];
+      for (const neighbor of neighbors) {
+        if (reachable.has(neighbor)) {
+          const newDegree = (reachableInDegree.get(neighbor) ?? 1) - 1;
+          reachableInDegree.set(neighbor, newDegree);
+          if (newDegree === 0) {
+            sortQueue.push(neighbor);
+          }
+        }
+      }
+    }
+
+    // Map sorted IDs back to node instances
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    return sortedIds
+      .map(id => nodeMap.get(id))
+      .filter((n): n is NodeInstance => n !== undefined);
+  }
+
+  /**
    * Execute an MCP tool call for a published app's flow
    * Returns ChatGPT Apps SDK formatted response
    *
-   * Uses flow.nodes to determine execution path:
+   * Uses flow.nodes and flow.connections to determine execution path:
+   * - Only nodes connected to user-intent are executed
+   * - Execution follows topological order based on connections
    * - Interface nodes: return structuredContent + widget metadata
    * - Return nodes: return text content array for LLM processing
    * - CallFlow nodes: trigger target flow
@@ -80,9 +188,17 @@ export class McpToolService {
       throw new McpInactiveToolError(toolName);
     }
 
-    const nodes = flow.nodes ?? [];
+    const allNodes = flow.nodes ?? [];
+    const connections = flow.connections ?? [];
 
-    // Get nodes by type
+    // Get only nodes connected to user-intent in execution order
+    const connectedNodes = this.getConnectedNodes(allNodes, connections);
+
+    // If no nodes are connected, fall back to legacy behavior (all nodes)
+    // This maintains backward compatibility for flows without explicit connections
+    const nodes = connectedNodes.length > 0 ? connectedNodes : allNodes;
+
+    // Get nodes by type (from connected/executable nodes only)
     const interfaceNodes = nodes.filter(n => n.type === 'Interface');
     const returnNodes = nodes.filter(n => n.type === 'Return');
     const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
@@ -100,7 +216,7 @@ export class McpToolService {
       return this.executeInterfaceFlow(app, flow, interfaceNodes[0], input);
     }
 
-    throw new NotFoundException(`No nodes found for tool: ${toolName}`);
+    throw new NotFoundException(`No connected nodes found for tool: ${toolName}`);
   }
 
   /**

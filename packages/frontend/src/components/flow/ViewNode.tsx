@@ -50,8 +50,8 @@ export function ViewNode({ data, id }: NodeProps) {
       <Handle
         type="target"
         position={Position.Left}
-        id="left"
-        className="!bg-gray-400 !w-2 !h-2 !border-0"
+        id="input"
+        className="!bg-blue-400 !w-3 !h-3 !border-2 !border-blue-200"
       />
 
       <div className="p-4">
@@ -82,8 +82,8 @@ export function ViewNode({ data, id }: NodeProps) {
       <Handle
         type="source"
         position={Position.Right}
-        id="right"
-        className="!bg-gray-400 !w-2 !h-2 !border-0"
+        id="output"
+        className="!bg-blue-400 !w-3 !h-3 !border-2 !border-blue-200"
       />
 
       {/* Action handles on the right side (purple themed) - labels outside node */}

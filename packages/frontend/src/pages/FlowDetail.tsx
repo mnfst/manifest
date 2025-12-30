@@ -214,8 +214,10 @@ function FlowDetail() {
 
     try {
       const updatedFlow = await api.updateFlow(flowId, data);
-      setFlow(updatedFlow);
+      // Close modal first to prevent any race conditions with state updates
       setShowUserIntentModal(false);
+      // Then update the flow state
+      setFlow(updatedFlow);
     } catch (err) {
       if (err instanceof ApiClientError) {
         setUserIntentError(err.message);
@@ -385,9 +387,13 @@ function FlowDetail() {
         <div className="px-6 py-4">
           {isEditing ? (
             <div className="max-w-4xl mx-auto">
-              <Link to={`/app/${appId}`} className="text-sm text-muted-foreground hover:text-foreground">
+              <button
+                type="button"
+                onClick={() => navigate(`/app/${appId}`)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 &larr; Back to App
-              </Link>
+              </button>
               <h1 className="text-2xl font-bold mt-1 mb-4">{flow.name}</h1>
               <EditFlowForm
                 flow={flow}
@@ -400,9 +406,13 @@ function FlowDetail() {
           ) : (
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
-                <Link to={`/app/${appId}`} className="text-sm text-muted-foreground hover:text-foreground">
-                  &larr; Back to App
-                </Link>
+                <button
+                type="button"
+                onClick={() => navigate(`/app/${appId}`)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                &larr; Back to App
+              </button>
                 <h1 className="text-2xl font-bold mt-1">{flow.name}</h1>
                 {flow.description && <p className="text-muted-foreground mt-1">{flow.description}</p>}
               </div>

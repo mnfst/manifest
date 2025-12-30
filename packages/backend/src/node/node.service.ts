@@ -162,6 +162,7 @@ export class NodeService {
   /**
    * T031: Add a new connection between nodes.
    * Validates that source and target nodes exist.
+   * Special case: 'user-intent' is a virtual trigger node that always exists when a flow has toolDescription.
    */
   async addConnection(flowId: string, request: CreateConnectionRequest): Promise<Connection> {
     const flow = await this.findFlow(flowId);
@@ -169,13 +170,25 @@ export class NodeService {
     const connections = flow.connections ?? [];
 
     // Validate source node exists
-    if (!nodes.some((n) => n.id === request.sourceNodeId)) {
+    // 'user-intent' is a virtual node representing the flow trigger (always valid if flow has toolDescription)
+    const isUserIntentSource = request.sourceNodeId === 'user-intent';
+    if (!isUserIntentSource && !nodes.some((n) => n.id === request.sourceNodeId)) {
       throw new BadRequestException(`Source node ${request.sourceNodeId} not found in flow`);
     }
 
     // Validate target node exists
     if (!nodes.some((n) => n.id === request.targetNodeId)) {
       throw new BadRequestException(`Target node ${request.targetNodeId} not found in flow`);
+    }
+
+    // Prevent self-connections
+    if (request.sourceNodeId === request.targetNodeId) {
+      throw new BadRequestException('Cannot connect a node to itself');
+    }
+
+    // Check for circular reference
+    if (this.wouldCreateCycle(request.sourceNodeId, request.targetNodeId, connections)) {
+      throw new BadRequestException('This connection would create a circular reference');
     }
 
     // Check for duplicate connection (same source/target with same handles)
@@ -225,6 +238,39 @@ export class NodeService {
   // ==========================================================================
   // Helper Methods
   // ==========================================================================
+
+  /**
+   * Check if adding a connection would create a cycle in the graph.
+   * Uses DFS to detect if there's a path from targetNodeId back to sourceNodeId.
+   */
+  private wouldCreateCycle(
+    sourceNodeId: string,
+    targetNodeId: string,
+    connections: Connection[]
+  ): boolean {
+    // Check if there's already a path from target back to source
+    const visited = new Set<string>();
+    const stack = [targetNodeId];
+
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (current === sourceNodeId) {
+        return true; // Found a cycle
+      }
+      if (visited.has(current)) {
+        continue;
+      }
+      visited.add(current);
+
+      // Find all nodes this one connects to
+      for (const conn of connections) {
+        if (conn.sourceNodeId === current) {
+          stack.push(conn.targetNodeId);
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Find a flow by ID or throw NotFoundException.

@@ -57,7 +57,8 @@ export function UserIntentNode({ data }: NodeProps) {
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-blue-400 !w-2 !h-2 !border-0"
+        id="output"
+        className="!bg-blue-400 !w-3 !h-3 !border-2 !border-blue-200"
       />
     </div>
   );

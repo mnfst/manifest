@@ -49,8 +49,8 @@ export function ReturnValueNode({ data }: NodeProps) {
       <Handle
         type="target"
         position={Position.Left}
-        id="left"
-        className="!bg-green-400 !w-2 !h-2 !border-0"
+        id="input"
+        className="!bg-green-400 !w-3 !h-3 !border-2 !border-green-200"
       />
 
       <div className="p-4">
