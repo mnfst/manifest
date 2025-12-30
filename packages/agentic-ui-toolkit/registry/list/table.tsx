@@ -401,7 +401,6 @@ export function Table<T extends Record<string, unknown>>({
     emptyMessage = 'No data available',
     stickyHeader = false,
     compact = false,
-    showActions = false,
     showHeader = true,
     showFooter = true,
     maxRows = 5,
@@ -432,9 +431,13 @@ export function Table<T extends Record<string, unknown>>({
   const rowsPerPage = 15
   const isFullscreen = displayMode === 'fullscreen'
 
-  const selectedRowsSet = controlledSelectedRows
-    ? new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
-    : internalSelectedRows
+  // Memoize controlled selection to avoid recreating Set on every render
+  const controlledSelectedSet = useMemo(() => {
+    if (!controlledSelectedRows) return null
+    return new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
+  }, [controlledSelectedRows, tableData])
+
+  const selectedRowsSet = controlledSelectedSet ?? internalSelectedRows
 
   // Apply filters to data (fullscreen only)
   const filteredData = useMemo(() => {
