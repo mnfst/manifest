@@ -4,7 +4,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useSyncExternalStore,
   type ReactNode
 } from 'react'
@@ -114,6 +116,59 @@ export function HostAPIProvider({
   )
 
   const isRealHost = !!openai
+
+  // Store callback in ref to avoid re-running effect
+  const onDisplayModeRequestRef = useRef(onDisplayModeRequest)
+  onDisplayModeRequestRef.current = onDisplayModeRequest
+
+  // In preview mode, inject a mock window.openai so registry components work
+  // Only run once on mount (empty deps) to avoid infinite loops
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    // Don't override if real ChatGPT window.openai exists
+    if (window.openai && !('_isPreviewMock' in window.openai)) return
+
+    // Create mock window.openai for preview
+    const mockOpenAI: OpenAIBridge & { _isPreviewMock: boolean } = {
+      _isPreviewMock: true,
+      theme: overrideTheme ?? 'light',
+      displayMode: overrideDisplayMode ?? 'inline',
+      locale: 'en-US',
+      toolInput: {},
+      toolOutput: null,
+      toolResponseMetadata: {},
+      widgetState: null,
+      setWidgetState: (state) => console.log('[Preview] setWidgetState:', state),
+      callTool: async (name, args) => {
+        console.log('[Preview] callTool:', name, args)
+        return { success: true, preview: true }
+      },
+      sendFollowUpMessage: ({ prompt }) => console.log('[Preview] sendFollowUpMessage:', prompt),
+      requestDisplayMode: ({ mode }) => {
+        console.log('[Preview] requestDisplayMode:', mode)
+        onDisplayModeRequestRef.current?.(mode)
+      },
+      openExternal: ({ href }) => window.open(href, '_blank', 'noopener,noreferrer'),
+      requestClose: () => console.log('[Preview] requestClose'),
+      notifyIntrinsicHeight: () => {},
+      requestModal: () => {},
+      uploadFile: async (file) => {
+        console.log('[Preview] uploadFile:', file.name)
+        return { fileId: `preview-${Date.now()}` }
+      },
+      getFileDownloadUrl: async ({ fileId }) => `https://example.com/preview/${fileId}`
+    }
+
+    window.openai = mockOpenAI
+
+    return () => {
+      // Cleanup on unmount
+      if (window.openai && '_isPreviewMock' in window.openai) {
+        delete window.openai
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Build context from window.openai or use defaults/overrides
   const hostContext: HostContext = useMemo(() => {
