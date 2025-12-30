@@ -337,15 +337,19 @@ function TableFooter({
         )}
         {!hasLeftContent && <span>&nbsp;</span>}
       </div>
-      {onRefresh && (
-        <button
-          onClick={onRefresh}
-          className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          aria-label="Refresh"
-        >
-          <RefreshCw className="h-4 w-4" />
-        </button>
-      )}
+      <button
+        onClick={onRefresh}
+        className={cn(
+          'transition-colors',
+          onRefresh
+            ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+            : 'text-muted-foreground/40 cursor-not-allowed'
+        )}
+        disabled={!onRefresh}
+        aria-label="Refresh"
+      >
+        <RefreshCw className="h-4 w-4" />
+      </button>
     </div>
   )
 }
@@ -943,15 +947,19 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
                 </>
               )}
             </div>
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                aria-label="Refresh"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </button>
-            )}
+            <button
+              onClick={onRefresh}
+              className={cn(
+                'transition-colors',
+                onRefresh
+                  ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                  : 'text-muted-foreground/40 cursor-not-allowed'
+              )}
+              disabled={!onRefresh}
+              aria-label="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>

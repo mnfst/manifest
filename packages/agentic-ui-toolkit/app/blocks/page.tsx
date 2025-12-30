@@ -78,8 +78,6 @@ import { PostListDemo } from '@/components/blocks/post-list-demo'
 // List components
 import { ProductList } from '@/registry/list/product-list'
 import { Table } from '@/registry/list/table'
-import { TableFooter } from '@/registry/list/table-footer'
-import { TableHeader } from '@/registry/list/table-header'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -293,75 +291,6 @@ const categories: Category[] = [
               />
             ),
             usageCode: `<Table data={{ title: "Export Data" }} appearance={{ selectable: "multi" }} actions={{ onDownload, onShare }} />`
-          }
-        ]
-      },
-      {
-        id: 'table-header',
-        name: 'Table Header',
-        description: 'Header for tables with optional title, image, and expand button',
-        registryName: 'table-header',
-        layouts: ['inline'],
-        variants: [
-          {
-            id: 'default',
-            name: 'Image + Title + Expand',
-            component: (
-              <TableHeader
-                data={{ title: 'API Usage', titleImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=40&h=40&fit=crop' }}
-                actions={{ onExpand: () => {} }}
-              />
-            ),
-            usageCode: `<TableHeader data={{ title: "API Usage", titleImage: "..." }} actions={{ onExpand: () => {} }} />`
-          },
-          {
-            id: 'title-expand',
-            name: 'Title + Expand',
-            component: (
-              <TableHeader
-                data={{ title: 'Recent Orders' }}
-                actions={{ onExpand: () => {} }}
-              />
-            ),
-            usageCode: `<TableHeader data={{ title: "Recent Orders" }} actions={{ onExpand: () => {} }} />`
-          },
-          {
-            id: 'image-title',
-            name: 'Image + Title (No Expand)',
-            component: (
-              <TableHeader
-                data={{ title: 'Analytics', titleImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=40&h=40&fit=crop' }}
-                appearance={{ showExpand: false }}
-              />
-            ),
-            usageCode: `<TableHeader data={{ title: "Analytics", titleImage: "..." }} appearance={{ showExpand: false }} />`
-          }
-        ]
-      },
-      {
-        id: 'table-footer',
-        name: 'Table Footer',
-        description: 'Footer showing remaining items, timestamp, and refresh action',
-        registryName: 'table-footer',
-        layouts: ['inline'],
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <TableFooter />,
-            usageCode: `<TableFooter />`
-          },
-          {
-            id: 'no-more',
-            name: 'Without More Count',
-            component: <TableFooter appearance={{ showMoreCount: false }} />,
-            usageCode: `<TableFooter appearance={{ showMoreCount: false }} />`
-          },
-          {
-            id: 'timestamp-only',
-            name: 'Timestamp Only',
-            component: <TableFooter appearance={{ showMoreCount: false, showRefresh: false }} />,
-            usageCode: `<TableFooter appearance={{ showMoreCount: false, showRefresh: false }} />`
           }
         ]
       }
@@ -892,6 +821,7 @@ function BlocksContent() {
                 usageCode={variant.usageCode}
               />
             ))}
+
           </div>
         ) : (
           <GettingStarted />
