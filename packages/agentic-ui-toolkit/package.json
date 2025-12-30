@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run registry:build && next dev --webpack",
-    "build": "npm run registry:build && next build",
+    "dev": "pnpm run registry:build && next dev --webpack",
+    "build": "pnpm run registry:build && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "registry:build": "shadcn build"
   },
   "dependencies": {
@@ -39,8 +39,11 @@
     "@types/react-dom": "19.1.2",
     "eslint": "^9.32.0",
     "eslint-config-next": "16.0.7",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "tailwindcss": "^4.1.11",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.14.0"
   },
   "overrides": {
     "@types/react": "19.1.2",

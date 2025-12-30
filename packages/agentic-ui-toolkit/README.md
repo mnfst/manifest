@@ -7,13 +7,13 @@ A custom shadcn component registry built with Next.js 15 and Tailwind v4.
 ### Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Serve the development UI
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 This starts the Next.js development server with Turbopack at `http://localhost:3000`.
@@ -21,7 +21,7 @@ This starts the Next.js development server with Turbopack at `http://localhost:3
 ### Build the registry
 
 ```bash
-npm run registry:build
+pnpm run registry:build
 ```
 
 This generates static JSON files in `public/r/` that can be consumed by the shadcn CLI.
@@ -84,7 +84,7 @@ This generates static JSON files in `public/r/` that can be consumed by the shad
 4. **Build the registry**
 
    ```bash
-   npm run registry:build
+   pnpm run registry:build
    ```
 
 5. **Preview the component** (optional)
