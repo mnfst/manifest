@@ -39,7 +39,7 @@ export function AddUserIntentNode({ data }: NodeProps) {
               Add user intent
             </h3>
             <p className="text-xs text-gray-400 mt-1">
-              Define how AI will use this tool
+              Define what user intent detection will trigger this flow
             </p>
           </div>
         </div>

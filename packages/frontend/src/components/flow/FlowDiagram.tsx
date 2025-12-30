@@ -308,10 +308,11 @@ function FlowDiagramInner({
         xPosition += 250;
       });
 
-      // Show AddStepNode only if there are no end actions (Return or CallFlow nodes)
-      // End actions are terminal - nothing comes after them
-      const hasEndActions = flowState.hasReturnNodes || flowState.hasCallFlowNodes;
-      if (onAddStep && !hasEndActions) {
+      // Show AddStepNode only if there are no steps at all yet
+      // Once there are Interface nodes, users connect via action handles
+      // Once there are Return/CallFlow nodes, the flow is complete
+      const hasAnySteps = flowState.hasInterfaceNodes || flowState.hasReturnNodes || flowState.hasCallFlowNodes;
+      if (onAddStep && !hasAnySteps) {
         nodeList.push({
           id: 'add-step',
           type: 'addStepNode',

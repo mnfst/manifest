@@ -123,3 +123,7 @@ When the system is updated, existing flows with separate View, ReturnValue, and 
 - Node type definitions will be objects/classes with a standard interface
 - The nodes package will be part of the existing monorepo structure alongside backend and frontend packages
 - MockData will become a property within Interface node parameters rather than a separate entity
+
+## Development Notes
+
+- **Commits**: Do NOT commit automatically. The user will verify changes and commit manually.

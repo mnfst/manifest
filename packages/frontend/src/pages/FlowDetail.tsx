@@ -256,8 +256,12 @@ function FlowDetail() {
   };
 
   const handleMockDataEdit = useCallback((node: NodeInstance) => {
-    // TODO: Open mock data modal for this interface node
-    console.log('Edit mock data for node:', node);
+    // Open the node edit modal for the Interface node
+    // Mock data is part of the Interface node's parameters
+    setNodeToEdit(node);
+    setNodeTypeToCreate(null);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
   }, []);
 
   const handleConnectionsChange = useCallback((connections: Connection[]) => {
