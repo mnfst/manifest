@@ -1,0 +1,109 @@
+# ============================================================================
+# GitHub Actions Workflow: Build and Push Docker Image
+# ============================================================================
+# Triggers:
+#   - Push to main branch
+#   - Manual dispatch (workflow_dispatch)
+#
+# Requirements (Repository Secrets):
+#   - DOCKERHUB_USERNAME: DockerHub username
+#   - DOCKERHUB_TOKEN: DockerHub access token (not password)
+#
+# Output:
+#   - Image pushed to DockerHub with tags:
+#     - latest (always updated on main)
+#     - git commit SHA (for version tracking)
+# ============================================================================
+
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      push_to_registry:
+        description: 'Push to DockerHub'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  # DockerHub repository name (change this to your repository)
+  DOCKER_IMAGE: mnfst/generator
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------------------------------------------------------------
+      # Checkout and Setup
+      # ---------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ---------------------------------------------------------------------
+      # DockerHub Authentication
+      # ---------------------------------------------------------------------
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ---------------------------------------------------------------------
+      # Image Metadata
+      # Generate tags and labels for the Docker image
+      # ---------------------------------------------------------------------
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=,format=short
+
+      # ---------------------------------------------------------------------
+      # Build and Push
+      # Uses BuildKit with caching for efficient builds
+      # ---------------------------------------------------------------------
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name == 'push' || github.event.inputs.push_to_registry == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Enable BuildKit cache for faster rebuilds
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Build arguments (if needed in future)
+          build-args: |
+            NODE_ENV=production
+
+      # ---------------------------------------------------------------------
+      # Summary
+      # ---------------------------------------------------------------------
+      - name: Image digest
+        run: |
+          echo "## Docker Image Built Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ env.DOCKER_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pull command:**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.DOCKER_IMAGE }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
