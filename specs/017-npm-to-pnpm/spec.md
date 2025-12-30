@@ -3,7 +3,7 @@
 **Feature Branch**: `017-npm-to-pnpm`
 **Created**: 2025-12-29
 **Status**: Draft
-**Input**: User description: "As this monorepo is getting bigger, i want to switch package manager from NPM to pnpm. Please adapt all the files, including the documentations/guides ones."
+**Input**: User description: "As this monorepo is getting bigger, i want to switch package manager from NPM to pnpm. Please adapt all the files, including the documentation/guides ones."
 
 ## User Scenarios & Testing *(mandatory)*
 
