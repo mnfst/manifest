@@ -27,6 +27,7 @@ The starter template includes:
 ## Requirements
 
 - Node.js 22+
+- pnpm
 
 ## After Creation
 
@@ -36,16 +37,16 @@ To restart the dev server later:
 
 ```bash
 cd my-app
-npm run dev
+pnpm run dev
 ```
 
 ## Available Scripts
 
 Inside the created project, you can run:
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Run production build
+- `pnpm run dev` - Start development server with hot reload
+- `pnpm run build` - Build for production
+- `pnpm start` - Run production build
 
 ## Learn More
 

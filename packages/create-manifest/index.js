@@ -32,7 +32,7 @@ writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 console.log('Installing dependencies...\n')
 
 // Install dependencies
-execSync('npm install', {
+execSync('pnpm install', {
   cwd: targetDir,
   stdio: 'inherit'
 })
@@ -40,7 +40,7 @@ execSync('npm install', {
 console.log('\nStarting development server...\n')
 
 // Run dev script
-const dev = spawn('npm', ['run', 'dev'], {
+const dev = spawn('pnpm', ['run', 'dev'], {
   cwd: targetDir,
   stdio: 'inherit',
   shell: true

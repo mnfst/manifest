@@ -3,7 +3,7 @@
 ## Development
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ## Exposing with ngrok

@@ -17,8 +17,8 @@ import {
 import { cn } from '@/lib/utils'
 
 // Import shared OpenAI types
-import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
 import '@/lib/openai-types' // Side effect: extends Window interface
+import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -43,7 +43,9 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 // Hook to subscribe to window.openai changes (official pattern)
 // =============================================================================
 
-function useOpenAIGlobal<K extends keyof OpenAIBridge>(key: K): OpenAIBridge[K] | undefined {
+function useOpenAIGlobal<K extends keyof OpenAIBridge>(
+  key: K
+): OpenAIBridge[K] | undefined {
   return useSyncExternalStore(
     (onChange) => {
       if (typeof window === 'undefined') return () => {}
@@ -60,7 +62,13 @@ function useOpenAIGlobal<K extends keyof OpenAIBridge>(key: K): OpenAIBridge[K] 
 interface FilterCondition {
   id: string
   field: string
-  operator: 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'isEmpty' | 'isNotEmpty'
+  operator:
+    | 'contains'
+    | 'equals'
+    | 'startsWith'
+    | 'endsWith'
+    | 'isEmpty'
+    | 'isNotEmpty'
   value: string
 }
 
@@ -342,15 +350,11 @@ function TableFooter({
   return (
     <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/50 rounded-b-lg">
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        {moreCount && moreCount > 0 && (
-          <span>+{moreCount} more</span>
-        )}
+        {moreCount && moreCount > 0 && <span>+{moreCount} more</span>}
         {moreCount && moreCount > 0 && lastUpdated && (
           <span className="text-muted-foreground/50">·</span>
         )}
-        {lastUpdated && (
-          <span>Data as of {formatTimestamp(lastUpdated)}</span>
-        )}
+        {lastUpdated && <span>Data as of {formatTimestamp(lastUpdated)}</span>}
         {!hasLeftContent && <span>&nbsp;</span>}
       </div>
       <button
@@ -384,8 +388,14 @@ export function Table<T extends Record<string, unknown>>({
     lastUpdated = new Date(),
     totalRows
   } = dataProps ?? {}
-  const { onSelectionChange, onCopy, onDownload, onShare, onRefresh, onExpand } =
-    actions ?? {}
+  const {
+    onSelectionChange,
+    onCopy,
+    onDownload,
+    onShare,
+    onRefresh,
+    onExpand
+  } = actions ?? {}
   const {
     selectable = 'none',
     emptyMessage = 'No data available',
@@ -397,7 +407,8 @@ export function Table<T extends Record<string, unknown>>({
     maxRows = 5,
     displayMode: propDisplayMode
   } = appearance ?? {}
-  const { loading = false, selectedRows: controlledSelectedRows } = control ?? {}
+  const { loading = false, selectedRows: controlledSelectedRows } =
+    control ?? {}
 
   // Get display mode from window.openai (ChatGPT) or use prop/default
   const openaiDisplayMode = useOpenAIGlobal('displayMode')
@@ -490,15 +501,18 @@ export function Table<T extends Record<string, unknown>>({
 
   // Pagination (fullscreen) or limit rows (inline)
   const visibleData = isFullscreen
-    ? sortedData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+    ? sortedData.slice(
+        (currentPage - 1) * rowsPerPage,
+        currentPage * rowsPerPage
+      )
     : sortedData.slice(0, maxRows)
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage)
   const moreCount = totalRows
     ? totalRows - maxRows
     : sortedData.length > maxRows
-      ? sortedData.length - maxRows
-      : 0
+    ? sortedData.length - maxRows
+    : 0
 
   // Filter helpers
   const addFilter = () => {
@@ -555,7 +569,15 @@ export function Table<T extends Record<string, unknown>>({
       setInternalSelectedRows(newSelected)
       onSelectionChange?.(sortedData.filter((_, i) => newSelected.has(i)))
     },
-    [selectable, selectedRowsSet, sortedData, onSelectionChange, isFullscreen, currentPage, rowsPerPage]
+    [
+      selectable,
+      selectedRowsSet,
+      sortedData,
+      onSelectionChange,
+      isFullscreen,
+      currentPage,
+      rowsPerPage
+    ]
   )
 
   const handleSelectAll = useCallback(() => {
@@ -607,7 +629,8 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const hasSelection = selectedRowsSet.size > 0
-  const getSelectedRows = () => sortedData.filter((_, i) => selectedRowsSet.has(i))
+  const getSelectedRows = () =>
+    sortedData.filter((_, i) => selectedRowsSet.has(i))
 
   // FULLSCREEN MODE - fills 100% of available space (host controls the container)
   if (isFullscreen) {
@@ -672,7 +695,9 @@ export function Table<T extends Record<string, unknown>>({
                 <button
                   className={cn(
                     'text-sm transition-colors cursor-pointer px-2 py-1 rounded hover:bg-muted',
-                    filters.length > 0 ? 'text-foreground' : 'text-muted-foreground'
+                    filters.length > 0
+                      ? 'text-foreground'
+                      : 'text-muted-foreground'
                   )}
                 >
                   Filter
@@ -692,7 +717,10 @@ export function Table<T extends Record<string, unknown>>({
                   ) : (
                     <div className="space-y-2">
                       {filters.map((filter, index) => (
-                        <div key={filter.id} className="flex items-center gap-2">
+                        <div
+                          key={filter.id}
+                          className="flex items-center gap-2"
+                        >
                           <span className="text-sm text-muted-foreground w-12">
                             {index === 0 ? 'Where' : 'And'}
                           </span>
@@ -730,10 +758,16 @@ export function Table<T extends Record<string, unknown>>({
                             <SelectContent>
                               <SelectItem value="contains">contains</SelectItem>
                               <SelectItem value="equals">equals</SelectItem>
-                              <SelectItem value="startsWith">starts with</SelectItem>
-                              <SelectItem value="endsWith">ends with</SelectItem>
+                              <SelectItem value="startsWith">
+                                starts with
+                              </SelectItem>
+                              <SelectItem value="endsWith">
+                                ends with
+                              </SelectItem>
                               <SelectItem value="isEmpty">is empty</SelectItem>
-                              <SelectItem value="isNotEmpty">is not empty</SelectItem>
+                              <SelectItem value="isNotEmpty">
+                                is not empty
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           {filter.operator !== 'isEmpty' &&
@@ -742,7 +776,9 @@ export function Table<T extends Record<string, unknown>>({
                                 placeholder="Enter a value"
                                 value={filter.value}
                                 onChange={(e) =>
-                                  updateFilter(filter.id, { value: e.target.value })
+                                  updateFilter(filter.id, {
+                                    value: e.target.value
+                                  })
                                 }
                                 className="w-32"
                               />
@@ -812,13 +848,12 @@ export function Table<T extends Record<string, unknown>>({
                       >
                         <Type className="h-4 w-4 text-muted-foreground" />
                         <span className="flex-1">{col.header}</span>
-                        {sortConfig?.key === col.accessor && (
-                          sortConfig.direction === 'asc' ? (
+                        {sortConfig?.key === col.accessor &&
+                          (sortConfig.direction === 'asc' ? (
                             <ArrowUpAZ className="h-4 w-4 text-muted-foreground" />
                           ) : (
                             <ArrowDownAZ className="h-4 w-4 text-muted-foreground" />
-                          )
-                        )}
+                          ))}
                       </button>
                     ))}
                   </div>
@@ -836,7 +871,9 @@ export function Table<T extends Record<string, unknown>>({
                 <thead className="border-b">
                   <tr>
                     {selectable !== 'none' && (
-                      <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')} />
+                      <th
+                        className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')}
+                      />
                     )}
                     {columns.map((column, index) => (
                       <th
@@ -850,7 +887,8 @@ export function Table<T extends Record<string, unknown>>({
                         )}
                         style={{ width: column.width }}
                         onClick={() =>
-                          column.sortable && handleSort(column.accessor as string)
+                          column.sortable &&
+                          handleSort(column.accessor as string)
                         }
                       >
                         <span
@@ -869,7 +907,8 @@ export function Table<T extends Record<string, unknown>>({
                 </thead>
                 <tbody>
                   {visibleData.map((row, rowIndex) => {
-                    const globalIndex = (currentPage - 1) * rowsPerPage + rowIndex
+                    const globalIndex =
+                      (currentPage - 1) * rowsPerPage + rowIndex
                     return (
                       <tr
                         key={rowIndex}
@@ -1003,7 +1042,10 @@ export function Table<T extends Record<string, unknown>>({
 
   // INLINE MODE - compact card with limited rows
   return (
-    <div className="w-full rounded-lg border bg-card" style={{ maxHeight: '458px' }}>
+    <div
+      className="w-full rounded-lg border bg-card"
+      style={{ maxHeight: '458px' }}
+    >
       {/* Table Header */}
       {showHeader && (
         <TableHeader
@@ -1012,9 +1054,26 @@ export function Table<T extends Record<string, unknown>>({
           onExpand={handleExpand}
           selectable={selectable}
           hasSelection={selectedRowsSet.size > 0}
-          onCopy={onCopy ? () => onCopy(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
-          onDownload={onDownload ? () => onDownload(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
-          onShare={onShare ? () => onShare(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
+          onCopy={
+            onCopy
+              ? () =>
+                  onCopy(visibleData.filter((_, i) => selectedRowsSet.has(i)))
+              : undefined
+          }
+          onDownload={
+            onDownload
+              ? () =>
+                  onDownload(
+                    visibleData.filter((_, i) => selectedRowsSet.has(i))
+                  )
+              : undefined
+          }
+          onShare={
+            onShare
+              ? () =>
+                  onShare(visibleData.filter((_, i) => selectedRowsSet.has(i)))
+              : undefined
+          }
         />
       )}
 
@@ -1022,16 +1081,15 @@ export function Table<T extends Record<string, unknown>>({
       <div
         className="sm:hidden overflow-y-auto"
         style={{
-          maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${showFooter ? '41px' : '0px'})`
+          maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${
+            showFooter ? '41px' : '0px'
+          })`
         }}
       >
         <div className="p-2 space-y-2">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-md border bg-card p-3 space-y-2"
-              >
+              <div key={i} className="rounded-md border bg-card p-3 space-y-2">
                 {columns.slice(0, 4).map((_, j) => (
                   <div
                     key={j}
@@ -1096,7 +1154,9 @@ export function Table<T extends Record<string, unknown>>({
       <div
         className="hidden sm:block overflow-y-auto"
         style={{
-          maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${showFooter ? '41px' : '0px'})`
+          maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${
+            showFooter ? '41px' : '0px'
+          })`
         }}
       >
         <table className="w-full text-sm" role="grid">

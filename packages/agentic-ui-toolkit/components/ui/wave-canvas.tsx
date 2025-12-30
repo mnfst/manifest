@@ -26,14 +26,12 @@ export const WaveCanvas = ({
     ctx: CanvasRenderingContext2D | null,
     canvas: HTMLCanvasElement | null;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDark, setIsDark] = useState(false);
   const isDarkRef = useRef(false);
 
   // Detect dark mode
   useEffect(() => {
     const checkDarkMode = () => {
       const dark = document.documentElement.classList.contains("dark");
-      setIsDark(dark);
       isDarkRef.current = dark;
     };
 
