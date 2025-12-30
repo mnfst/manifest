@@ -1,10 +1,10 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { MockDataEntityDTO, LayoutTemplate } from '@chatgpt-app-builder/shared';
+import type { MockData, LayoutTemplate } from '@chatgpt-app-builder/shared';
 import { Database } from 'lucide-react';
 
 export interface MockDataNodeData extends Record<string, unknown> {
-  mockData?: MockDataEntityDTO;
+  mockData?: MockData | null;
   layoutTemplate: LayoutTemplate;
   onEdit: () => void;
 }
@@ -19,14 +19,14 @@ export function MockDataNode({ data }: NodeProps) {
 
   // Get preview info based on mock data type
   const getPreviewText = () => {
-    if (!mockData?.data) return 'No data';
+    if (!mockData) return 'No data';
 
-    if (mockData.data.type === 'table') {
-      const rowCount = mockData.data.rows?.length || 0;
-      const colCount = mockData.data.columns?.length || 0;
+    if (mockData.type === 'table') {
+      const rowCount = mockData.rows?.length || 0;
+      const colCount = mockData.columns?.length || 0;
       return `${rowCount} rows, ${colCount} cols`;
-    } else if (mockData.data.type === 'post-list') {
-      const postCount = mockData.data.posts?.length || 0;
+    } else if (mockData.type === 'post-list') {
+      const postCount = mockData.posts?.length || 0;
       return `${postCount} posts`;
     }
     return 'Data available';

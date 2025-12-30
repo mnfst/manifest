@@ -40,11 +40,12 @@ export function UserIntentNode({ data }: NodeProps) {
 
           {/* Edit button */}
           <button
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors nodrag"
           >
             <Pencil className="w-3 h-3" />
             Edit

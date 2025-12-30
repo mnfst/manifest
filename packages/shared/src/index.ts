@@ -17,14 +17,6 @@ export type {
 } from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';
 
-// Action connection types
-export type {
-  ActionTargetType,
-  ActionConnection,
-  CreateActionConnectionRequest,
-  UpdateActionConnectionRequest,
-} from './types/action-connection.js';
-
 // Flow types
 export type {
   Flow,
@@ -38,54 +30,9 @@ export type {
   DeleteFlowResponse,
 } from './types/flow.js';
 
-// View types
-export type {
-  View,
-  CreateViewRequest,
-  UpdateViewRequest,
-  ReorderViewsRequest,
-  ViewChatRequest,
-  ViewChatResponse,
-} from './types/view.js';
-
-// Return value types
-export type {
-  ReturnValue,
-  CreateReturnValueRequest,
-  UpdateReturnValueRequest,
-  ReorderReturnValuesRequest,
-} from './types/return-value.js';
-
-// Call flow types
-export type {
-  CallFlow,
-  CreateCallFlowRequest,
-  UpdateCallFlowRequest,
-  ReorderCallFlowsRequest,
-} from './types/call-flow.js';
-
 // Theme types
 export type { ThemeVariables } from './types/theme.js';
 export { DEFAULT_THEME_VARIABLES } from './types/theme.js';
-
-// Mock data types
-export type {
-  MockData,
-  TableMockData,
-  PostListMockData,
-  TableColumn,
-  PostItem,
-  MockDataEntityDTO,
-  UpdateMockDataRequest,
-  MockDataChatRequest,
-  MockDataChatResponse,
-} from './types/mock-data.js';
-export {
-  isTableMockData,
-  isPostListMockData,
-  DEFAULT_TABLE_MOCK_DATA,
-  DEFAULT_POST_LIST_MOCK_DATA,
-} from './types/mock-data.js';
 
 // MCP types
 export type { McpToolResponse, PublishResult, ApiError, McpToolInput } from './types/mcp.js';
@@ -103,6 +50,38 @@ export type {
   DeleteConnectorResponse,
 } from './types/connector.js';
 export { ConnectorType, ConnectorCategory, getCategoryFromType } from './types/connector.js';
+
+// Node types (new unified node architecture)
+export type {
+  Position,
+  NodeType,
+  NodeInstance,
+  Connection,
+  InterfaceNodeParameters,
+  ReturnNodeParameters,
+  CallFlowNodeParameters,
+  CreateNodeRequest,
+  UpdateNodeRequest,
+  UpdateNodePositionRequest,
+  BatchPositionUpdate,
+  CreateConnectionRequest,
+  // Mock data types (moved from mock-data.ts)
+  MockData,
+  TableMockData,
+  PostListMockData,
+  TableColumn,
+  PostItem,
+} from './types/node.js';
+export {
+  isInterfaceNode,
+  isReturnNode,
+  isCallFlowNode,
+  // Mock data utilities
+  isTableMockData,
+  isPostListMockData,
+  DEFAULT_TABLE_MOCK_DATA,
+  DEFAULT_POST_LIST_MOCK_DATA,
+} from './types/node.js';
 
 // String utilities
 export { toSnakeCase, isValidToolName } from './utils/string.js';

@@ -15,29 +15,18 @@ import type {
   GenerateFlowResponse,
   FlowDeletionCheck,
   DeleteFlowResponse,
-  View,
-  CreateViewRequest,
-  UpdateViewRequest,
-  ViewChatRequest,
-  ViewChatResponse,
-  MockDataEntityDTO,
-  UpdateMockDataRequest,
-  MockDataChatRequest,
-  MockDataChatResponse,
   Connector,
   CreateConnectorRequest,
   UpdateConnectorRequest,
   DeleteConnectorResponse,
-  ReturnValue,
-  CreateReturnValueRequest,
-  UpdateReturnValueRequest,
-  CallFlow,
-  CreateCallFlowRequest,
-  UpdateCallFlowRequest,
   IconUploadResponse,
-  ActionConnection,
-  CreateActionConnectionRequest,
-  UpdateActionConnectionRequest,
+  // Node/Connection types (new unified node architecture)
+  NodeInstance,
+  Connection,
+  CreateNodeRequest,
+  UpdateNodeRequest,
+  UpdateNodePositionRequest,
+  CreateConnectionRequest,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -275,244 +264,90 @@ export const api = {
   },
 
   // ============================================
-  // View Management APIs
+  // Node Management APIs (new unified architecture)
   // ============================================
 
   /**
-   * List views for a flow
-   * GET /api/flows/:flowId/views
+   * Get all nodes in a flow
+   * GET /api/flows/:flowId/nodes
    */
-  async listViews(flowId: string): Promise<View[]> {
-    return fetchApi<View[]>(`/flows/${flowId}/views`);
+  async getNodes(flowId: string): Promise<NodeInstance[]> {
+    return fetchApi<NodeInstance[]>(`/flows/${flowId}/nodes`);
   },
 
   /**
-   * Create a new view
-   * POST /api/flows/:flowId/views
+   * Create a new node in a flow
+   * POST /api/flows/:flowId/nodes
    */
-  async createView(flowId: string, request: CreateViewRequest): Promise<View> {
-    return fetchApi<View>(`/flows/${flowId}/views`, {
+  async createNode(flowId: string, request: CreateNodeRequest): Promise<NodeInstance> {
+    return fetchApi<NodeInstance>(`/flows/${flowId}/nodes`, {
       method: 'POST',
       body: JSON.stringify(request),
     });
   },
 
   /**
-   * Get view by ID
-   * GET /api/views/:viewId
+   * Update a node
+   * PATCH /api/flows/:flowId/nodes/:nodeId
    */
-  async getView(viewId: string): Promise<View> {
-    return fetchApi<View>(`/views/${viewId}`);
-  },
-
-  /**
-   * Update a view
-   * PATCH /api/views/:viewId
-   */
-  async updateView(viewId: string, request: UpdateViewRequest): Promise<View> {
-    return fetchApi<View>(`/views/${viewId}`, {
+  async updateNode(flowId: string, nodeId: string, request: UpdateNodeRequest): Promise<NodeInstance> {
+    return fetchApi<NodeInstance>(`/flows/${flowId}/nodes/${nodeId}`, {
       method: 'PATCH',
       body: JSON.stringify(request),
     });
   },
 
   /**
-   * Delete a view
-   * DELETE /api/views/:viewId
+   * Update node position (optimized endpoint)
+   * PATCH /api/flows/:flowId/nodes/:nodeId/position
    */
-  async deleteView(viewId: string): Promise<void> {
-    await fetchApi<void>(`/views/${viewId}`, {
-      method: 'DELETE',
-    });
-  },
-
-  /**
-   * Reorder views within a flow
-   * POST /api/flows/:flowId/views/reorder
-   */
-  async reorderViews(flowId: string, viewIds: string[]): Promise<View[]> {
-    return fetchApi<View[]>(`/flows/${flowId}/views/reorder`, {
-      method: 'POST',
-      body: JSON.stringify({ viewIds }),
-    });
-  },
-
-  /**
-   * Chat with a view for AI-assisted modifications
-   * POST /api/views/:viewId/chat
-   */
-  async chatWithView(viewId: string, request: ViewChatRequest): Promise<ViewChatResponse> {
-    return fetchApi<ViewChatResponse>(`/views/${viewId}/chat`, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  // ============================================
-  // Mock Data APIs
-  // ============================================
-
-  /**
-   * Get mock data by ID
-   * GET /api/mock-data/:id
-   */
-  async getMockData(id: string): Promise<MockDataEntityDTO> {
-    return fetchApi<MockDataEntityDTO>(`/mock-data/${id}`);
-  },
-
-  /**
-   * Get mock data by view ID
-   * GET /api/mock-data/view/:viewId
-   */
-  async getMockDataByViewId(viewId: string): Promise<MockDataEntityDTO> {
-    return fetchApi<MockDataEntityDTO>(`/mock-data/view/${viewId}`);
-  },
-
-  /**
-   * Update mock data directly
-   * PUT /api/mock-data/:id
-   */
-  async updateMockData(id: string, request: UpdateMockDataRequest): Promise<MockDataEntityDTO> {
-    return fetchApi<MockDataEntityDTO>(`/mock-data/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Chat with mock data for AI-assisted regeneration
-   * POST /api/mock-data/:id/chat
-   */
-  async chatWithMockData(id: string, request: MockDataChatRequest): Promise<MockDataChatResponse> {
-    return fetchApi<MockDataChatResponse>(`/mock-data/${id}/chat`, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  // ============================================
-  // Return Value APIs
-  // ============================================
-
-  /**
-   * List return values for a flow
-   * GET /api/flows/:flowId/return-values
-   */
-  async listReturnValues(flowId: string): Promise<ReturnValue[]> {
-    return fetchApi<ReturnValue[]>(`/flows/${flowId}/return-values`);
-  },
-
-  /**
-   * Create a new return value
-   * POST /api/flows/:flowId/return-values
-   */
-  async createReturnValue(flowId: string, request: CreateReturnValueRequest): Promise<ReturnValue> {
-    return fetchApi<ReturnValue>(`/flows/${flowId}/return-values`, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Get return value by ID
-   * GET /api/return-values/:returnValueId
-   */
-  async getReturnValue(returnValueId: string): Promise<ReturnValue> {
-    return fetchApi<ReturnValue>(`/return-values/${returnValueId}`);
-  },
-
-  /**
-   * Update a return value
-   * PATCH /api/return-values/:returnValueId
-   */
-  async updateReturnValue(returnValueId: string, request: UpdateReturnValueRequest): Promise<ReturnValue> {
-    return fetchApi<ReturnValue>(`/return-values/${returnValueId}`, {
+  async updateNodePosition(flowId: string, nodeId: string, position: UpdateNodePositionRequest): Promise<NodeInstance> {
+    return fetchApi<NodeInstance>(`/flows/${flowId}/nodes/${nodeId}/position`, {
       method: 'PATCH',
-      body: JSON.stringify(request),
+      body: JSON.stringify(position),
     });
   },
 
   /**
-   * Delete a return value
-   * DELETE /api/return-values/:returnValueId
+   * Delete a node (cascades to remove connections)
+   * DELETE /api/flows/:flowId/nodes/:nodeId
    */
-  async deleteReturnValue(returnValueId: string): Promise<void> {
-    await fetchApi<void>(`/return-values/${returnValueId}`, {
+  async deleteNode(flowId: string, nodeId: string): Promise<void> {
+    await fetchApi<void>(`/flows/${flowId}/nodes/${nodeId}`, {
       method: 'DELETE',
     });
   },
 
-  /**
-   * Reorder return values within a flow
-   * POST /api/flows/:flowId/return-values/reorder
-   */
-  async reorderReturnValues(flowId: string, orderedIds: string[]): Promise<ReturnValue[]> {
-    return fetchApi<ReturnValue[]>(`/flows/${flowId}/return-values/reorder`, {
-      method: 'POST',
-      body: JSON.stringify({ orderedIds }),
-    });
-  },
-
   // ============================================
-  // Call Flow APIs
+  // Connection Management APIs
   // ============================================
 
   /**
-   * List call flows for a flow
-   * GET /api/flows/:flowId/call-flows
+   * Get all connections in a flow
+   * GET /api/flows/:flowId/connections
    */
-  async listCallFlows(flowId: string): Promise<CallFlow[]> {
-    return fetchApi<CallFlow[]>(`/flows/${flowId}/call-flows`);
+  async getConnections(flowId: string): Promise<Connection[]> {
+    return fetchApi<Connection[]>(`/flows/${flowId}/connections`);
   },
 
   /**
-   * Create a new call flow
-   * POST /api/flows/:flowId/call-flows
+   * Create a new connection between nodes
+   * POST /api/flows/:flowId/connections
    */
-  async createCallFlow(flowId: string, request: CreateCallFlowRequest): Promise<CallFlow> {
-    return fetchApi<CallFlow>(`/flows/${flowId}/call-flows`, {
+  async createConnection(flowId: string, request: CreateConnectionRequest): Promise<Connection> {
+    return fetchApi<Connection>(`/flows/${flowId}/connections`, {
       method: 'POST',
       body: JSON.stringify(request),
     });
   },
 
   /**
-   * Get call flow by ID
-   * GET /api/call-flows/:callFlowId
+   * Delete a connection
+   * DELETE /api/flows/:flowId/connections/:connectionId
    */
-  async getCallFlow(callFlowId: string): Promise<CallFlow> {
-    return fetchApi<CallFlow>(`/call-flows/${callFlowId}`);
-  },
-
-  /**
-   * Update a call flow
-   * PATCH /api/call-flows/:callFlowId
-   */
-  async updateCallFlow(callFlowId: string, request: UpdateCallFlowRequest): Promise<CallFlow> {
-    return fetchApi<CallFlow>(`/call-flows/${callFlowId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Delete a call flow
-   * DELETE /api/call-flows/:callFlowId
-   */
-  async deleteCallFlow(callFlowId: string): Promise<void> {
-    await fetchApi<void>(`/call-flows/${callFlowId}`, {
+  async deleteConnection(flowId: string, connectionId: string): Promise<void> {
+    await fetchApi<void>(`/flows/${flowId}/connections/${connectionId}`, {
       method: 'DELETE',
-    });
-  },
-
-  /**
-   * Reorder call flows within a flow
-   * POST /api/flows/:flowId/call-flows/reorder
-   */
-  async reorderCallFlows(flowId: string, orderedIds: string[]): Promise<CallFlow[]> {
-    return fetchApi<CallFlow[]>(`/flows/${flowId}/call-flows/reorder`, {
-      method: 'POST',
-      body: JSON.stringify({ orderedIds }),
     });
   },
 
@@ -643,63 +478,4 @@ export const api = {
     });
   },
 
-  // ============================================
-  // Action Connection APIs
-  // ============================================
-
-  /**
-   * List action connections for a view
-   * GET /api/views/:viewId/action-connections
-   */
-  async listActionConnectionsByView(viewId: string): Promise<ActionConnection[]> {
-    return fetchApi<ActionConnection[]>(`/views/${viewId}/action-connections`);
-  },
-
-  /**
-   * List all action connections for a flow (across all views)
-   * GET /api/flows/:flowId/action-connections
-   */
-  async listActionConnectionsByFlow(flowId: string): Promise<ActionConnection[]> {
-    return fetchApi<ActionConnection[]>(`/flows/${flowId}/action-connections`);
-  },
-
-  /**
-   * Create a new action connection
-   * POST /api/views/:viewId/action-connections
-   */
-  async createActionConnection(viewId: string, request: CreateActionConnectionRequest): Promise<ActionConnection> {
-    return fetchApi<ActionConnection>(`/views/${viewId}/action-connections`, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Get action connection by view ID and action name
-   * GET /api/views/:viewId/action-connections/:actionName
-   */
-  async getActionConnection(viewId: string, actionName: string): Promise<ActionConnection> {
-    return fetchApi<ActionConnection>(`/views/${viewId}/action-connections/${actionName}`);
-  },
-
-  /**
-   * Update an action connection
-   * PUT /api/views/:viewId/action-connections/:actionName
-   */
-  async updateActionConnection(viewId: string, actionName: string, request: UpdateActionConnectionRequest): Promise<ActionConnection> {
-    return fetchApi<ActionConnection>(`/views/${viewId}/action-connections/${actionName}`, {
-      method: 'PUT',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Delete an action connection
-   * DELETE /api/views/:viewId/action-connections/:actionName
-   */
-  async deleteActionConnection(viewId: string, actionName: string): Promise<void> {
-    await fetchApi<void>(`/views/${viewId}/action-connections/${actionName}`, {
-      method: 'DELETE',
-    });
-  },
 };

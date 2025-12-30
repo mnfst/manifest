@@ -16,11 +16,12 @@ export function AddUserIntentNode({ data }: NodeProps) {
 
   return (
     <div
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-all w-[200px] cursor-pointer group nopan"
+      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-all w-[200px] cursor-pointer group nopan nodrag"
     >
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">

@@ -1,7 +1,5 @@
-import type { View } from './view.js';
 import type { App } from './app.js';
-import type { ReturnValue } from './return-value.js';
-import type { CallFlow } from './call-flow.js';
+import type { NodeInstance, Connection } from './node.js';
 
 /**
  * Parameter type enum for MCP tool parameters
@@ -19,7 +17,8 @@ export interface FlowParameter {
 }
 
 /**
- * Flow entity representing an MCP tool belonging to an app
+ * Flow entity representing an MCP tool belonging to an app.
+ * Contains nodes and connections stored as JSON arrays.
  */
 export interface Flow {
   id: string;
@@ -32,9 +31,10 @@ export interface Flow {
   whenNotToUse?: string;
   isActive: boolean;
   parameters?: FlowParameter[];
-  views?: View[];
-  returnValues?: ReturnValue[];
-  callFlows?: CallFlow[];
+  /** Node instances within this flow */
+  nodes: NodeInstance[];
+  /** Connections between nodes */
+  connections: Connection[];
   createdAt: string;
   updatedAt: string;
 }
