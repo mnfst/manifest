@@ -7,6 +7,7 @@ import type {
   FlowDeletionCheck,
   NodeInstance,
   Connection,
+  NodeType,
 } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BarChart3, Plus, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
@@ -16,6 +17,7 @@ import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { UserIntentModal } from '../components/flow/UserIntentModal';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
 import { AddStepModal } from '../components/flow/AddStepModal';
+import { NodeEditModal } from '../components/flow/NodeEditModal';
 import { Tabs } from '../components/common/Tabs';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
@@ -51,9 +53,19 @@ function FlowDetail() {
   // Add step modal state
   const [showAddStepModal, setShowAddStepModal] = useState(false);
 
+  // Node edit modal state
+  const [showNodeEditModal, setShowNodeEditModal] = useState(false);
+  const [nodeToEdit, setNodeToEdit] = useState<NodeInstance | null>(null);
+  const [nodeTypeToCreate, setNodeTypeToCreate] = useState<NodeType | null>(null);
+  const [isSavingNode, setIsSavingNode] = useState(false);
+  const [nodeEditError, setNodeEditError] = useState<string | null>(null);
+
   // Node delete state
   const [nodeToDelete, setNodeToDelete] = useState<NodeInstance | null>(null);
   const [isDeletingNode, setIsDeletingNode] = useState(false);
+
+  // All flows for CallFlow node selection
+  const [allFlows, setAllFlows] = useState<Flow[]>([]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
@@ -76,8 +88,9 @@ function FlowDetail() {
         setApp(loadedApp);
         setFlow(loadedFlow);
 
-        // Load all flows for the app to build the flowNameLookup
+        // Load all flows for the app to build the flowNameLookup and for CallFlow selection
         const flows = await api.listFlows(appId);
+        setAllFlows(flows);
         const lookup: Record<string, string> = {};
         flows.forEach((f: Flow) => {
           lookup[f.id] = f.name;
@@ -216,8 +229,10 @@ function FlowDetail() {
 
   // Node handlers
   const handleNodeEdit = useCallback((node: NodeInstance) => {
-    // TODO: Open node editor modal based on node type
-    console.log('Edit node:', node);
+    setNodeToEdit(node);
+    setNodeTypeToCreate(null);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
   }, []);
 
   const handleNodeDelete = useCallback((node: NodeInstance) => {
@@ -254,30 +269,64 @@ function FlowDetail() {
     setShowAddStepModal(true);
   }, []);
 
-  const handleAddStepSelect = async (stepType: 'Interface' | 'Return' | 'CallFlow') => {
+  const handleAddStepSelect = (stepType: 'Interface' | 'Return' | 'CallFlow') => {
+    // Close the add step modal and open the node edit modal in create mode
+    setShowAddStepModal(false);
+    setNodeToEdit(null);
+    setNodeTypeToCreate(stepType);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  };
+
+  const handleCloseNodeEditModal = () => {
+    if (!isSavingNode) {
+      setShowNodeEditModal(false);
+      setNodeToEdit(null);
+      setNodeTypeToCreate(null);
+      setNodeEditError(null);
+    }
+  };
+
+  const handleSaveNode = async (data: { name: string; parameters: Record<string, unknown> }) => {
     if (!flowId || !flow) return;
 
-    const nodes = flow.nodes ?? [];
-    const xOffset = nodes.length * 280 + 330;
-
-    const defaultParams: Record<string, unknown> = stepType === 'Interface'
-      ? { layoutTemplate: 'table', mockData: null }
-      : stepType === 'Return'
-        ? { text: '' }
-        : { targetFlowId: null };
+    setIsSavingNode(true);
+    setNodeEditError(null);
 
     try {
-      await api.createNode(flowId, {
-        type: stepType,
-        name: `${stepType} ${nodes.filter(n => n.type === stepType).length + 1}`,
-        position: { x: xOffset, y: 100 },
-        parameters: defaultParams,
-      });
+      if (nodeToEdit) {
+        // Edit mode - update existing node
+        await api.updateNode(flowId, nodeToEdit.id, {
+          name: data.name,
+          parameters: data.parameters,
+        });
+      } else if (nodeTypeToCreate) {
+        // Create mode - create new node
+        const nodes = flow.nodes ?? [];
+        const xOffset = nodes.length * 280 + 330;
+
+        await api.createNode(flowId, {
+          type: nodeTypeToCreate,
+          name: data.name,
+          position: { x: xOffset, y: 100 },
+          parameters: data.parameters,
+        });
+      }
+
+      // Refresh flow data
       const updatedFlow = await api.getFlow(flowId);
       setFlow(updatedFlow);
-      setShowAddStepModal(false);
+      setShowNodeEditModal(false);
+      setNodeToEdit(null);
+      setNodeTypeToCreate(null);
     } catch (err) {
-      console.error('Failed to create node:', err);
+      if (err instanceof ApiClientError) {
+        setNodeEditError(err.message);
+      } else {
+        setNodeEditError('Failed to save node');
+      }
+    } finally {
+      setIsSavingNode(false);
     }
   };
 
@@ -475,6 +524,19 @@ function FlowDetail() {
         isOpen={showAddStepModal}
         onClose={() => setShowAddStepModal(false)}
         onSelect={handleAddStepSelect}
+      />
+
+      {/* Node Edit Modal */}
+      <NodeEditModal
+        isOpen={showNodeEditModal}
+        onClose={handleCloseNodeEditModal}
+        onSave={handleSaveNode}
+        node={nodeToEdit}
+        nodeType={nodeTypeToCreate}
+        flows={allFlows}
+        currentFlowId={flowId || ''}
+        isLoading={isSavingNode}
+        error={nodeEditError}
       />
     </div>
   );
