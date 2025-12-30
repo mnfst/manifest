@@ -30,6 +30,7 @@ export interface Location {
   priceSubtext?: string
   rating?: number
   coordinates: [number, number] // [lat, lng]
+  link?: string
 }
 
 export interface MapCarouselProps {
@@ -57,7 +58,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$284 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.6,
-    coordinates: [37.7879, -122.4137]
+    coordinates: [37.7879, -122.4137],
+    link: 'https://manifest.build/'
   },
   {
     id: '2',
@@ -68,7 +70,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$299 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 9.0,
-    coordinates: [37.7856, -122.4104]
+    coordinates: [37.7856, -122.4104],
+    link: 'https://manifest.build/'
   },
   {
     id: '3',
@@ -79,7 +82,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$527 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 9.4,
-    coordinates: [37.7919, -122.4081]
+    coordinates: [37.7919, -122.4081],
+    link: 'https://manifest.build/'
   },
   {
     id: '4',
@@ -90,7 +94,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$438 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.9,
-    coordinates: [37.7923, -122.4102]
+    coordinates: [37.7923, -122.4102],
+    link: 'https://manifest.build/'
   },
   {
     id: '5',
@@ -101,7 +106,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$358 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.4,
-    coordinates: [37.7935, -122.3930]
+    coordinates: [37.7935, -122.3930],
+    link: 'https://manifest.build/'
   },
   {
     id: '6',
@@ -112,7 +118,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$308 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.7,
-    coordinates: [37.7870, -122.4010]
+    coordinates: [37.7870, -122.4010],
+    link: 'https://manifest.build/'
   },
   {
     id: '7',
@@ -123,7 +130,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$227 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.2,
-    coordinates: [37.7942, -122.4028]
+    coordinates: [37.7942, -122.4028],
+    link: 'https://manifest.build/'
   },
   {
     id: '8',
@@ -134,7 +142,8 @@ const defaultLocations: Location[] = [
     priceLabel: '$166 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 7.8,
-    coordinates: [37.7875, -122.4089]
+    coordinates: [37.7875, -122.4089],
+    link: 'https://manifest.build/'
   }
 ]
 
@@ -391,6 +400,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     (location: Location) => {
       if (hasDragged) return
       handleSelectLocation(location)
+      if (location.link) {
+        window.open(location.link, '_blank', 'noopener,noreferrer')
+      }
     },
     [hasDragged, handleSelectLocation]
   )
