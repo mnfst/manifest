@@ -12,35 +12,15 @@ There are several ways to contribute to Manifest other than developing:
 
 - 🐛 Report a bug using [GitHub issues](https://github.com/mnfst/manifest/issues/new?assignees=SebConejo&labels=bug&projects=&template=%F0%9F%90%9B-bug-report.md&title=)
 - ✨ Suggest an enhancement using [GitHub discussions](https://github.com/mnfst/manifest/discussions/new?category=feature-request)
-- 🪶 Correct or improve the doc in its [own repository](https://github.com/mnfst/docs/issues/new)
 - 🔧 To work on issues, first check out our [Good First Issue](https://github.com/mnfst/manifest/labels/good%20first%20issue).
 
 Otherwise, you also can offer your help by talking to a team member on our [Discord](https://discord.com/invite/FepAked3W7) 🤗.
-
-## Packages and repositories
-
-Before coding it is important to understand where the functionality you want to change is located.
-
-Manifest is a set of several packages and [repositories](https://github.com/orgs/mnfst/repositories) built with open source software, using TypeScript as the main language.
-
-| Name            | Description                                                     | Stack            | Repo                                          | Package                                                          |
-| --------------- | --------------------------------------------------------------- | ---------------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| Manifest        | Manifest core                                                   | NestJS / TypeORM | [manifest](https://github.com/mnfst/manifest) | [manifest](https://www.npmjs.com/package/manifest)               |
-| Manifest Admin  | Official Admin Panel                                            | Angular          | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| Create Manifest | NPX install script                                              | OCLIF            | [manifest](https://github.com/mnfst/manifest) | [create-manifest](https://www.npmjs.com/package/create-manifest) |
-| JSON Schema     | Manifest JSON SCHEMA: https://schema.manifest.build/schema.json | JSON             | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| Types           | Manifest Types library                                          | TypeScript       | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| Helpers         | Manifest Helpers library                                        | TypeScript       | [manifest](https://github.com/mnfst/manifest) | -                                                                |
-| JS SDK          | Client JavaScript SDK                                           | TypeScript       | [manifest](https://github.com/mnfst/manifest) | [@mnfst/sdk](https://www.npmjs.com/package/@mnfst/sdk)           |
-| Website         | Official website: https://manifest.build                        | NextJS           | [website](https://github.com/mnfst/website)   | -                                                                |
-| Docs            | Documentation: https://manifest.build/docs                      | Docusaurus       | [docs](https://github.com/mnfst/docs)         | -                                                                |
 
 ## Development workflow and guidelines
 
 ### Prerequisites
 
 - You are familiar with Git (issues and PR) and **Github flow**
-- You have read the [docs](https://manifest.build/docs)
 - You have looked at the [Code of Conduct](https://github.com/mnfst/manifest/blob/master/CODE_OF_CONDUCT.md) and [MIT License](https://github.com/mnfst/manifest/blob/master/LICENSE)
 
 ### Before you start
