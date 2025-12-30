@@ -1,8 +1,23 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import {
+  ArrowDownAZ,
+  ArrowUpAZ,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -13,10 +28,27 @@ import {
   Maximize2,
   Minus,
   RefreshCw,
+  Search,
   Share2,
+  Trash2,
+  Type,
   X
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+
+// Filter types
+interface FilterCondition {
+  id: string
+  field: string
+  operator: 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'isEmpty' | 'isNotEmpty'
+  value: string
+}
+
+// Sort types
+interface SortCondition {
+  field: string
+  direction: 'asc' | 'desc'
+}
 
 export interface TableColumn<T = Record<string, unknown>> {
   header: string
@@ -355,12 +387,49 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
   } | null>(null)
   const [selectedRowsSet, setSelectedRowsSet] = useState<Set<number>>(new Set())
 
+  // Filter state
+  const [filters, setFilters] = useState<FilterCondition[]>([])
+  const [filterOpen, setFilterOpen] = useState(false)
+
+  // Sort popover state
+  const [sortOpen, setSortOpen] = useState(false)
+  const [sortSearch, setSortSearch] = useState('')
+
   const rowsPerPage = 15
 
-  const sortedData = useMemo(() => {
-    if (!sortConfig) return rows
+  // Apply filters to data
+  const filteredData = useMemo(() => {
+    if (filters.length === 0) return rows
 
-    return [...rows].sort((a, b) => {
+    return rows.filter((row) => {
+      return filters.every((filter) => {
+        const value = String(row[filter.field as keyof T] ?? '').toLowerCase()
+        const filterValue = filter.value.toLowerCase()
+
+        switch (filter.operator) {
+          case 'contains':
+            return value.includes(filterValue)
+          case 'equals':
+            return value === filterValue
+          case 'startsWith':
+            return value.startsWith(filterValue)
+          case 'endsWith':
+            return value.endsWith(filterValue)
+          case 'isEmpty':
+            return value === ''
+          case 'isNotEmpty':
+            return value !== ''
+          default:
+            return true
+        }
+      })
+    })
+  }, [rows, filters])
+
+  const sortedData = useMemo(() => {
+    if (!sortConfig) return filteredData
+
+    return [...filteredData].sort((a, b) => {
       const aValue = a[sortConfig.key as keyof T]
       const bValue = b[sortConfig.key as keyof T]
 
@@ -375,7 +444,47 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
 
       return sortConfig.direction === 'asc' ? comparison : -comparison
     })
-  }, [rows, sortConfig])
+  }, [filteredData, sortConfig])
+
+  // Filter helpers
+  const addFilter = () => {
+    const firstColumn = columns[0]?.accessor as string
+    setFilters([
+      ...filters,
+      {
+        id: crypto.randomUUID(),
+        field: firstColumn || '',
+        operator: 'contains',
+        value: ''
+      }
+    ])
+  }
+
+  const updateFilter = (id: string, updates: Partial<FilterCondition>) => {
+    setFilters(filters.map((f) => (f.id === id ? { ...f, ...updates } : f)))
+  }
+
+  const removeFilter = (id: string) => {
+    setFilters(filters.filter((f) => f.id !== id))
+  }
+
+  // Sort helpers
+  const handleSortField = (accessor: string) => {
+    setSortConfig((current) => {
+      if (current?.key === accessor) {
+        if (current.direction === 'asc') {
+          return { key: accessor, direction: 'desc' }
+        }
+        return null
+      }
+      return { key: accessor, direction: 'asc' }
+    })
+    setSortOpen(false)
+  }
+
+  const filteredColumns = columns.filter((col) =>
+    col.header.toLowerCase().includes(sortSearch.toLowerCase())
+  )
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage)
   const paginatedData = sortedData.slice(
@@ -482,7 +591,7 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
             <span className="font-medium">{title || 'Table'}</span>
           </div>
 
-          {/* Action buttons - always visible, disabled when no selection */}
+          {/* Action buttons and Filter/Sort */}
           <div className="flex items-center gap-2">
             {selectable === 'single' && onCopy && (
               <Button
@@ -521,6 +630,166 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
                 )}
               </>
             )}
+
+            {/* Filter Button */}
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    'text-sm transition-colors cursor-pointer px-2 py-1 rounded hover:bg-muted',
+                    filters.length > 0 ? 'text-foreground' : 'text-muted-foreground'
+                  )}
+                >
+                  Filter
+                  {filters.length > 0 && (
+                    <span className="ml-1 text-xs bg-muted-foreground/20 px-1.5 py-0.5 rounded">
+                      {filters.length}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto min-w-[400px] p-0">
+                <div className="p-3 space-y-3">
+                  {filters.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No filter conditions are applied
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {filters.map((filter, index) => (
+                        <div key={filter.id} className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground w-12">
+                            {index === 0 ? 'Where' : 'And'}
+                          </span>
+                          <Select
+                            value={filter.field}
+                            onValueChange={(value) =>
+                              updateFilter(filter.id, { field: value })
+                            }
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {columns.map((col) => (
+                                <SelectItem
+                                  key={col.accessor as string}
+                                  value={col.accessor as string}
+                                >
+                                  {col.header}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={filter.operator}
+                            onValueChange={(value) =>
+                              updateFilter(filter.id, {
+                                operator: value as FilterCondition['operator']
+                              })
+                            }
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="contains">contains</SelectItem>
+                              <SelectItem value="equals">equals</SelectItem>
+                              <SelectItem value="startsWith">starts with</SelectItem>
+                              <SelectItem value="endsWith">ends with</SelectItem>
+                              <SelectItem value="isEmpty">is empty</SelectItem>
+                              <SelectItem value="isNotEmpty">is not empty</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {filter.operator !== 'isEmpty' &&
+                            filter.operator !== 'isNotEmpty' && (
+                              <Input
+                                placeholder="Enter a value"
+                                value={filter.value}
+                                onChange={(e) =>
+                                  updateFilter(filter.id, { value: e.target.value })
+                                }
+                                className="w-32"
+                              />
+                            )}
+                          <button
+                            onClick={() => removeFilter(filter.id)}
+                            className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={addFilter}
+                      className="text-primary border-primary hover:bg-primary/10"
+                    >
+                      + Add condition
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Sort Button */}
+            <Popover open={sortOpen} onOpenChange={setSortOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    'text-sm transition-colors cursor-pointer px-2 py-1 rounded hover:bg-muted',
+                    sortConfig ? 'text-foreground' : 'text-muted-foreground'
+                  )}
+                >
+                  Sort
+                  {sortConfig && (
+                    <span className="ml-1 text-xs bg-muted-foreground/20 px-1.5 py-0.5 rounded">
+                      1
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-56 p-0">
+                <div className="p-3 space-y-2">
+                  <p className="text-sm font-medium">Sort by</p>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Find a field"
+                      value={sortSearch}
+                      onChange={(e) => setSortSearch(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {filteredColumns.map((col) => (
+                      <button
+                        key={col.accessor as string}
+                        onClick={() => handleSortField(col.accessor as string)}
+                        className={cn(
+                          'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors cursor-pointer text-left',
+                          sortConfig?.key === col.accessor && 'bg-muted'
+                        )}
+                      >
+                        <Type className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1">{col.header}</span>
+                        {sortConfig?.key === col.accessor && (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUpAZ className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ArrowDownAZ className="h-4 w-4 text-muted-foreground" />
+                          )
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
         <div className="w-full">
@@ -650,41 +919,41 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Footer - no borders */}
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <span>{sortedData.length} records found</span>
-          {lastUpdated && (
-            <>
-              <span className="text-muted-foreground/50">·</span>
-              <span>
-                Data as of{' '}
-                {(typeof lastUpdated === 'string'
-                  ? new Date(lastUpdated)
-                  : lastUpdated
-                ).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit'
-                })}
-              </span>
-            </>
-          )}
+          {/* Footer - inside content, right after table */}
+          <div className="flex items-center justify-between py-3 mt-2">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span>{sortedData.length} records found</span>
+              {lastUpdated && (
+                <>
+                  <span className="text-muted-foreground/50">·</span>
+                  <span>
+                    Data as of{' '}
+                    {(typeof lastUpdated === 'string'
+                      ? new Date(lastUpdated)
+                      : lastUpdated
+                    ).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </>
+              )}
+            </div>
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label="Refresh"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
-        {onRefresh && (
-          <button
-            onClick={onRefresh}
-            className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            aria-label="Refresh"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-        )}
       </div>
     </div>
   )
