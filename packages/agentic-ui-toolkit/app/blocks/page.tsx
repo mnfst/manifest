@@ -11,8 +11,8 @@ import { PostCardDemo } from '@/components/blocks/post-card-demo'
 import { PostListDemo } from '@/components/blocks/post-list-demo'
 
 // List components
-import { ProductList } from '@/registry/list/product-list'
 import { TableDemo } from '@/components/blocks/table-demo'
+import { ProductList } from '@/registry/list/product-list'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -35,6 +35,7 @@ import { QuickReply } from '@/registry/miscellaneous/quick-reply'
 // Miscellaneous components
 import { InstagramPost } from '@/registry/miscellaneous/instagram-post'
 import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
+import { MapCarousel } from '@/registry/miscellaneous/map-carousel'
 import { OptionList } from '@/registry/miscellaneous/option-list'
 import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
 import {
@@ -190,7 +191,8 @@ const categories: Category[] = [
       {
         id: 'table',
         name: 'Table',
-        description: 'Data table with header, footer, expand to fullscreen, and optional selection',
+        description:
+          'Data table with header, footer, expand to fullscreen, and optional selection',
         registryName: 'table',
         layouts: ['inline', 'fullscreen'],
         variants: [
@@ -457,6 +459,22 @@ const categories: Category[] = [
     id: 'misc',
     name: 'Miscellaneous',
     blocks: [
+      {
+        id: 'map-carousel',
+        name: 'Map Carousel',
+        description:
+          'Interactive map with location markers and a draggable carousel of cards',
+        registryName: 'map-carousel',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <MapCarousel />,
+            usageCode: `<MapCarousel />`
+          }
+        ]
+      },
       {
         id: 'x-post',
         name: 'X Post',
@@ -756,7 +774,6 @@ function BlocksContent() {
                 usageCode={variant.usageCode}
               />
             ))}
-
           </div>
         ) : (
           <GettingStarted />

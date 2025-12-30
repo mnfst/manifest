@@ -428,6 +428,20 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "map-carousel",
+      "type": "registry:component",
+      "title": "Map Carousel",
+      "description": "Interactive map with location markers and a draggable carousel of cards.",
+      "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/miscellaneous/map-carousel.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
