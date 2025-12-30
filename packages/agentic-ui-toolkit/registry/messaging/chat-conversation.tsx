@@ -2,9 +2,7 @@
 
 import {
   MessageBubble,
-  ImageMessageBubble,
-  type MessageBubbleProps,
-  type ImageMessageBubbleProps
+  ImageMessageBubble
 } from './message-bubble'
 
 // Chat Conversation (multiple messages)

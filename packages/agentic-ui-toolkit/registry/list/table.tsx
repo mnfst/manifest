@@ -145,9 +145,13 @@ export function Table<T extends Record<string, unknown>>({
     new Set()
   )
 
-  const selectedRowsSet = controlledSelectedRows
-    ? new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
-    : internalSelectedRows
+  // Memoize controlled selection to avoid recreating Set on every render
+  const controlledSelectedSet = useMemo(() => {
+    if (!controlledSelectedRows) return null
+    return new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
+  }, [controlledSelectedRows, tableData])
+
+  const selectedRowsSet = controlledSelectedSet ?? internalSelectedRows
 
   const handleSort = useCallback((accessor: string) => {
     setSortConfig((current) => {

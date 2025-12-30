@@ -9,68 +9,6 @@ const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
 })
 
-const REGISTRY_URL = 'https://ui.manifest.build/r/{name}.json'
-
-const categories = [
-  {
-    name: 'Payment',
-    blocks: [
-      { id: 'order-confirm', name: 'Order Confirmation' },
-      { id: 'payment-methods', name: 'Payment Methods' },
-      { id: 'card-form', name: 'Card Form' },
-      { id: 'amount-input', name: 'Amount Input' },
-      { id: 'payment-success', name: 'Payment Success' },
-      { id: 'payment-confirmed', name: 'Payment Confirmed' }
-    ]
-  },
-  {
-    name: 'Products',
-    blocks: [
-      { id: 'product-grid', name: 'Product Grid' },
-      { id: 'product-carousel', name: 'Product Carousel' },
-      { id: 'product-horizontal', name: 'Product Horizontal' },
-      { id: 'product-horizontal-grid', name: 'Product Horizontal Grid' },
-      {
-        id: 'product-horizontal-carousel',
-        name: 'Product Horizontal Carousel'
-      },
-      { id: 'product-picker', name: 'Product Picker' }
-    ]
-  },
-  {
-    name: 'Selection',
-    blocks: [
-      { id: 'option-list', name: 'Option List' },
-      { id: 'card-selection', name: 'Card Selection' },
-      { id: 'multi-card-selection', name: 'Multi Card Selection' },
-      { id: 'tag-selection', name: 'Tag Selection' },
-      { id: 'quick-reply', name: 'Quick Reply' }
-    ]
-  },
-  {
-    name: 'Status & Progress',
-    blocks: [
-      { id: 'progress-steps', name: 'Progress Steps' },
-      { id: 'status-badges', name: 'Status Badges' }
-    ]
-  },
-  {
-    name: 'Lists & Tables',
-    blocks: [
-      { id: 'table', name: 'Table' },
-      { id: 'table-single-select', name: 'Table Single Select' },
-      { id: 'table-multi-select', name: 'Table Multi Select' }
-    ]
-  },
-  {
-    name: 'Miscellaneous',
-    blocks: [
-      { id: 'stats-cards', name: 'Stats Cards' },
-      { id: 'weather-widget', name: 'Weather Widget' }
-    ]
-  }
-]
-
 export function GettingStarted() {
   return (
     <div className="max-w-3xl mx-auto space-y-8">

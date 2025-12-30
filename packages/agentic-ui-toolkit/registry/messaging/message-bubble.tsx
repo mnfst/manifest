@@ -33,7 +33,7 @@ export interface MessageBubbleProps {
 }
 
 export function MessageBubble({ data, appearance, control }: MessageBubbleProps) {
-  const { content = 'Hey! How are you doing?', avatar = 'J', author = 'John', time = '10:30 AM' } = data ?? {}
+  const { content = 'Hey! How are you doing?', avatar = 'J', time = '10:30 AM' } = data ?? {}
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
@@ -95,7 +95,6 @@ export function ImageMessageBubble({ data, appearance, control }: ImageMessageBu
     image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
     caption,
     avatar = 'J',
-    author = 'John',
     time = '10:32 AM',
   } = data ?? {}
   const { isOwn = false } = appearance ?? {}
@@ -172,7 +171,6 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
   const {
     content = 'This is such great news! 🎉',
     avatar = 'A',
-    author = 'Alex',
     time = '2:45 PM',
     reactions: initialReactions = [
       { emoji: '❤️', count: 3 },
@@ -286,7 +284,6 @@ export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBu
   const {
     duration = '0:42',
     avatar = 'M',
-    author = 'Mike',
     time = '3:15 PM',
     audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
   } = data ?? {}

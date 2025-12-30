@@ -211,7 +211,6 @@ function HeaderContent() {
   const searchParams = useSearchParams()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isBlocksPage = pathname.startsWith('/blocks')
-  const isSocialCardsPage = pathname.startsWith('/social-cards')
   const blockId = searchParams.get('block')
 
   // Close mobile menu on route change
