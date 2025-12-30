@@ -85,9 +85,6 @@ jobs:
           # Enable BuildKit cache for faster rebuilds
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Build arguments (if needed in future)
-          build-args: |
-            NODE_ENV=production
 
       # ---------------------------------------------------------------------
       # Summary

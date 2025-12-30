@@ -50,7 +50,7 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
 
   // In production (Docker), serve frontend static files
-  // The frontend dist is expected at /app/frontend when running in Docker
+  // The frontend dist is expected at /app/packages/frontend/dist when running in Docker (via FRONTEND_DIST_PATH)
   const frontendPath = process.env.FRONTEND_DIST_PATH || join(__dirname, '..', '..', '..', 'frontend', 'dist');
   if (existsSync(frontendPath)) {
     console.log(`📦 Serving frontend static files from ${frontendPath}`);
@@ -63,9 +63,15 @@ async function bootstrap() {
           req.path.startsWith('/servers')) {
         return next();
       }
-      // For all other routes, serve index.html (SPA routing)
+      // If the requested path maps to an existing static file, let the static assets middleware handle it
+      const relativePath = req.path.replace(/^\/+/, '');
+      const requestedFilePath = join(frontendPath, relativePath);
+      if (existsSync(requestedFilePath)) {
+        return next();
+      }
+      // Otherwise, fall back to index.html for SPA routes
       const indexPath = join(frontendPath, 'index.html');
-      if (existsSync(indexPath) && !req.path.includes('.')) {
+      if (existsSync(indexPath)) {
         return res.sendFile(indexPath);
       }
       next();

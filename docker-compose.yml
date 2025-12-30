@@ -37,7 +37,7 @@ services:
       - app-uploads:/app/packages/backend/uploads
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/apps"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/api/apps', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));\""]
       interval: 30s
       timeout: 10s
       start_period: 10s

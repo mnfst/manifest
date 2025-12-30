@@ -67,7 +67,8 @@ RUN echo "Building backend package..." && \
     cd packages/backend && npm run build
 
 # 3. Build frontend (depends on shared)
-# Note: Frontend build needs the backend API URL set for production
+# Note: For production builds in this image, VITE_API_URL is set to empty
+#       so the frontend uses relative URLs to a same-origin backend API.
 ENV VITE_API_URL=""
 RUN echo "Building frontend package..." && \
     cd packages/frontend && npm run build
@@ -87,15 +88,18 @@ RUN apk add --no-cache vips
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S appuser -u 1001 -G nodejs
 
-# Copy package files
+# Copy package files (for runtime metadata and tooling)
+# Note: frontend package.json is intentionally not copied here. The frontend is
+# built as static assets in /packages/frontend/dist and has no Node runtime
+# dependencies in the production image.
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 
-# Install production dependencies only
-# --omit=dev: Skip devDependencies
-# --maxsockets=2: Limit parallel connections
-RUN npm ci --omit=dev --maxsockets=2 --prefer-offline && \
+# Reuse dependencies from deps stage and prune devDependencies for production
+# This is faster than reinstalling since we already have all deps from the deps stage
+COPY --from=deps /app/node_modules ./node_modules
+RUN npm prune --production && \
     npm cache clean --force
 
 # Copy built artifacts from build stage
@@ -121,9 +125,9 @@ ENV FRONTEND_DIST_PATH=/app/packages/frontend/dist
 # Expose the application port
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/apps || exit 1
+# Health check (use node since wget is not available in Alpine by default)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3001/api/apps', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"
 
 # Start the application
 CMD ["node", "packages/backend/dist/main.js"]
