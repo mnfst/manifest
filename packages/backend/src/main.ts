@@ -53,7 +53,8 @@ async function bootstrap() {
 
   console.log(`\n🚀 Backend server running on http://localhost:${port}`);
   console.log(`📡 API available at http://localhost:${port}/api`);
-  console.log(`🔧 MCP servers at http://localhost:${port}/servers/{slug}/mcp\n`);
+  console.log(`🔧 MCP servers at http://localhost:${port}/servers/{slug}/mcp`);
+  console.log(`🌐 Frontend running on http://localhost:5173\n`);
 }
 
 bootstrap();
