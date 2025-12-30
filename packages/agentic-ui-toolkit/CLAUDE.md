@@ -46,7 +46,7 @@ The registry is defined in `registry.json` and uses the shadcn registry schema. 
 Uses shadcn style with:
 
 - Tailwind CSS v4
-- CSS variables for themingc'est ou dans la sepc qui tu dis
+- CSS variables for theming
 - Lucide icons
 - Server Components enabled (RSC: true)
 
@@ -56,3 +56,29 @@ Uses shadcn style with:
 2. Add entry to `registry.json` with proper file paths and dependencies
 3. Run `pnpm run registry:build` to generate the distributable JSON
 4. Import in `app/page.tsx` to preview
+
+## Analytics Tracking (Vercel)
+
+**IMPORTANT**: When adding or updating blocks, maintain Vercel Analytics tracking for user interactions.
+
+### Existing Tracking Events
+
+The following events are tracked via `@vercel/analytics`:
+
+| Event Name | Properties | Location |
+|-----------|------------|----------|
+| `install_command_copied` | `{ command, inline: boolean }` | `components/blocks/install-commands.tsx`, `components/blocks/install-command-inline.tsx` |
+| `code_copied` | `{ code }` | `components/blocks/code-block.tsx` |
+
+### When Adding New Blocks
+
+1. **Use existing components**: When displaying install commands, use `<InstallCommands>` or `<InstallCommandInline>` components - they already have tracking built-in
+2. **Use CodeBlock for code display**: The `<CodeBlock>` component tracks code copies automatically
+3. **New interaction types**: If adding a new type of user interaction (not copy), add tracking using:
+   ```tsx
+   import { track } from '@vercel/analytics'
+
+   // Track the event
+   track('event_name', { property: 'value' })
+   ```
+4. **Consistency**: Keep event names snake_case and properties descriptive

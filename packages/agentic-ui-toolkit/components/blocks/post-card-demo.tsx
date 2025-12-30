@@ -1,9 +1,10 @@
 'use client'
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
-import { PostCard, PostCardProps, Post } from '@/registry/blogging/post-card'
+import { HostAPIProvider, DisplayMode } from '@/lib/host-api'
+import { Post, PostCard, PostCardProps } from '@/registry/blogging/post-card'
 import { PostDetail } from '@/registry/blogging/post-detail'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 interface PostCardDemoProps {
   data?: {
@@ -14,27 +15,41 @@ interface PostCardDemoProps {
   appUrl?: string
 }
 
+/**
+ * Demo wrapper for PostCard that handles display mode switching.
+ * This simulates how the host (ChatGPT, Claude) would handle fullscreen requests.
+ */
 export function PostCardDemo({
   appName = 'Blog App',
-  appUrl = 'https://example.com',
+  appUrl,
   data,
   appearance
 }: PostCardDemoProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('inline')
+
+  const handleDisplayModeRequest = useCallback((mode: DisplayMode) => {
+    setDisplayMode(mode)
+  }, [])
 
   return (
-    <>
-      <PostCard
-        data={data}
-        appearance={appearance}
-        actions={{ onReadMore: () => setIsFullscreen(true) }}
-      />
+    <HostAPIProvider
+      displayMode={displayMode}
+      onDisplayModeRequest={handleDisplayModeRequest}
+    >
+      {/* Inline mode */}
+      {displayMode === 'inline' && (
+        <PostCard
+          data={data}
+          appearance={appearance}
+        />
+      )}
 
-      {isFullscreen && (
+      {/* Fullscreen mode - show full post detail */}
+      {displayMode === 'fullscreen' && (
         <FullscreenModal
           appName={appName}
           appUrl={appUrl}
-          onClose={() => setIsFullscreen(false)}
+          onClose={() => setDisplayMode('inline')}
         >
           <PostDetail
             data={{ post: data?.post }}
@@ -42,6 +57,6 @@ export function PostCardDemo({
           />
         </FullscreenModal>
       )}
-    </>
+    </HostAPIProvider>
   )
 }

@@ -1,8 +1,17 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip'
 import { Calendar, Clock, ExternalLink } from 'lucide-react'
 import { Post } from './post-card'
+
+// Import shared OpenAI types
+import '@/lib/openai-types' // Side effect: extends Window interface
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '')
@@ -11,6 +20,49 @@ function stripHtml(html: string): string {
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return text.slice(0, maxLength).trim() + '...'
+}
+
+function TagList({
+  tags,
+  maxVisible = 2,
+  size = 'default'
+}: {
+  tags: string[]
+  maxVisible?: number
+  size?: 'small' | 'default'
+}) {
+  const visibleTags = tags.slice(0, maxVisible)
+  const remainingTags = tags.slice(maxVisible)
+  const hasMore = remainingTags.length > 0
+
+  const tagClass =
+    size === 'small'
+      ? 'rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium'
+      : 'rounded-full bg-muted px-3 py-1 text-xs font-medium'
+
+  return (
+    <>
+      {visibleTags.map((tag) => (
+        <span key={tag} className={tagClass}>
+          {tag}
+        </span>
+      ))}
+      {hasMore && (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={`${tagClass} cursor-default`}>
+                +{remainingTags.length}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{remainingTags.join(', ')}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </>
+  )
 }
 
 const defaultPost: Post = {
@@ -26,7 +78,7 @@ const defaultPost: Post = {
   },
   publishedAt: '2024-01-15',
   readTime: '5 min read',
-  tags: ['Tutorial', 'Components', 'AI'],
+  tags: ['Tutorial', 'Components', 'AI', 'React', 'TypeScript'],
   category: 'Tutorial'
 }
 
@@ -117,6 +169,17 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
   const { onReadMore } = actions ?? {}
   const { showCover = true, showAuthor = true, displayMode = 'fullscreen' } = appearance ?? {}
+
+  // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
+  const handleReadMore = () => {
+    if (onReadMore) {
+      onReadMore()
+    } else if (typeof window !== 'undefined' && window.openai) {
+      // Request fullscreen mode from ChatGPT host
+      window.openai.requestDisplayMode({ mode: 'fullscreen' })
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'long',
@@ -143,22 +206,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
         )}
 
         <div className="p-4">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {post.category && (
-              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                {post.category}
-              </span>
-            )}
-            {post.tags &&
-              post.tags.slice(0, 2).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
-                >
-                  {tag}
-                </span>
-              ))}
-          </div>
+          {post.category && (
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {post.category}
+            </p>
+          )}
 
           <h1 className="text-xl font-bold">{post.title}</h1>
 
@@ -179,8 +231,14 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
             {truncatedContent}
           </p>
 
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <TagList tags={post.tags} maxVisible={2} size="small" />
+            </div>
+          )}
+
           <div className="mt-4">
-            <Button onClick={onReadMore}>
+            <Button onClick={handleReadMore}>
               Read more
             </Button>
           </div>
@@ -202,26 +260,21 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
             />
           </div>
         )}
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          {post.category && (
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              {post.category}
-            </span>
-          )}
-          {post.tags &&
-            post.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
-              >
-                {tag}
-              </span>
-            ))}
-        </div>
+        {post.category && (
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {post.category}
+          </p>
+        )}
 
         <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
           {post.title}
         </h1>
+
+        {post.tags && post.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <TagList tags={post.tags} maxVisible={2} size="default" />
+          </div>
+        )}
 
         {showAuthor && (
           <div className="mt-8 flex items-center gap-4 border-b pb-8">

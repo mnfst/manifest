@@ -333,7 +333,7 @@
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "checkbox"],
+      "registryDependencies": ["button", "checkbox", "popover", "select", "input"],
       "files": [
         {
           "path": "registry/list/table.tsx",
@@ -425,6 +425,20 @@
       "files": [
         {
           "path": "registry/miscellaneous/youtube-post.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "map-carousel",
+      "type": "registry:component",
+      "title": "Map Carousel",
+      "description": "Interactive map with location markers and a draggable carousel of cards.",
+      "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/miscellaneous/map-carousel.tsx",
           "type": "registry:component"
         }
       ]

@@ -11,8 +11,8 @@ import { PostCardDemo } from '@/components/blocks/post-card-demo'
 import { PostListDemo } from '@/components/blocks/post-list-demo'
 
 // List components
+import { TableDemo } from '@/components/blocks/table-demo'
 import { ProductList } from '@/registry/list/product-list'
-import { Table } from '@/registry/list/table'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -35,6 +35,7 @@ import { QuickReply } from '@/registry/miscellaneous/quick-reply'
 // Miscellaneous components
 import { InstagramPost } from '@/registry/miscellaneous/instagram-post'
 import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
+import { MapCarousel } from '@/registry/miscellaneous/map-carousel'
 import { OptionList } from '@/registry/miscellaneous/option-list'
 import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
 import {
@@ -155,35 +156,6 @@ const categories: Category[] = [
     name: 'List',
     blocks: [
       {
-        id: 'table',
-        name: 'Table',
-        description: 'Data table with optional selection',
-        registryName: 'table',
-        layouts: ['inline'],
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <Table />,
-            usageCode: `<Table />`
-          },
-          {
-            id: 'single-select',
-            name: 'Single Select',
-            component: <Table appearance={{ selectable: 'single' }} />,
-            usageCode: `<Table appearance={{ selectable: "single" }} />`
-          },
-          {
-            id: 'multi-select',
-            name: 'Multi Select',
-            component: (
-              <Table appearance={{ selectable: 'multi', showActions: true }} />
-            ),
-            usageCode: `<Table appearance={{ selectable: "multi", showActions: true }} />`
-          }
-        ]
-      },
-      {
         id: 'product-list',
         name: 'Product List',
         description: 'Display products in various layouts',
@@ -213,6 +185,49 @@ const categories: Category[] = [
             name: 'Picker',
             component: <ProductList appearance={{ variant: 'picker' }} />,
             usageCode: `<ProductList appearance={{ variant: "picker" }} />`
+          }
+        ]
+      },
+      {
+        id: 'table',
+        name: 'Table',
+        description:
+          'Data table with header, footer, expand to fullscreen, and optional selection',
+        registryName: 'table',
+        layouts: ['inline', 'fullscreen'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <TableDemo data={{ title: 'API Usage' }} />,
+            usageCode: `<Table data={{ title: "API Usage" }} />`
+          },
+          {
+            id: 'single-select',
+            name: 'Single Select',
+            component: (
+              <TableDemo
+                data={{ title: 'Models' }}
+                appearance={{ selectable: 'single' }}
+                actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
+              />
+            ),
+            usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} actions={{ onCopy: (rows) => ... }} />`
+          },
+          {
+            id: 'multi-select',
+            name: 'Multi Select',
+            component: (
+              <TableDemo
+                data={{ title: 'Export Data' }}
+                appearance={{ selectable: 'multi' }}
+                actions={{
+                  onDownload: (rows) => console.log('Download:', rows),
+                  onShare: (rows) => console.log('Share:', rows)
+                }}
+              />
+            ),
+            usageCode: `<Table data={{ title: "Export Data" }} appearance={{ selectable: "multi" }} actions={{ onDownload, onShare }} />`
           }
         ]
       }
@@ -444,6 +459,22 @@ const categories: Category[] = [
     id: 'misc',
     name: 'Miscellaneous',
     blocks: [
+      {
+        id: 'map-carousel',
+        name: 'Map Carousel',
+        description:
+          'Interactive map with location markers and a draggable carousel of cards',
+        registryName: 'map-carousel',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <MapCarousel />,
+            usageCode: `<MapCarousel />`
+          }
+        ]
+      },
       {
         id: 'x-post',
         name: 'X Post',
