@@ -134,12 +134,12 @@ Base path: `packages/agentic-ui-toolkit/`
 
 ### Implementation for User Story 5
 
-- [ ] T028 [P] [US5] Create Claude-style chat demo component in components/chat/claude-demo.tsx
-- [ ] T029 [US5] Add headline and subtitle to homepage in app/page.tsx
-- [ ] T030 [US5] Add sub-tabs for ChatGPT/Claude interface switching in app/page.tsx
-- [ ] T031 [US5] Integrate ClaudeDemo component into sub-tabs in app/page.tsx
-- [ ] T032 [US5] Ensure first use case tab selected by default in app/page.tsx
-- [ ] T033 [US5] Make homepage demos responsive for mobile in app/page.tsx
+- [ ] T030 [P] [US5] Create Claude-style chat demo component in components/chat/claude-demo.tsx
+- [ ] T031 [US5] Add headline and subtitle to homepage in app/page.tsx
+- [ ] T032 [US5] Add sub-tabs for ChatGPT/Claude interface switching in app/page.tsx
+- [ ] T033 [US5] Integrate ClaudeDemo component into sub-tabs in app/page.tsx
+- [ ] T034 [US5] Ensure first use case tab selected by default in app/page.tsx
+- [ ] T035 [US5] Make homepage demos responsive for mobile in app/page.tsx
 
 **Checkpoint**: User Story 5 complete - homepage with interactive demos and AI interface sub-tabs
 
@@ -149,13 +149,13 @@ Base path: `packages/agentic-ui-toolkit/`
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T034 [P] Add 404 handling for non-existent block URLs in app/blocks/page.tsx
-- [ ] T035 [P] Add loading states for block previews in components/blocks/block-preview.tsx
-- [ ] T036 [P] Add error boundary for block preview failures in components/blocks/block-preview.tsx
-- [ ] T037 Verify all blocks from registry.json are browsable in app/blocks/page.tsx
-- [ ] T038 Performance check: homepage loads < 3 seconds
-- [ ] T039 Performance check: tab switching < 500ms
-- [ ] T040 Verify light/dark theme works on all pages
+- [ ] T036 [P] Add 404 handling for non-existent block URLs in app/blocks/page.tsx
+- [ ] T037 [P] Add loading states for block previews in components/blocks/block-preview.tsx
+- [ ] T038 [P] Add error boundary for block preview failures in components/blocks/block-preview.tsx
+- [ ] T039 Verify all blocks from registry.json are browsable in app/blocks/page.tsx
+- [ ] T040 Performance check: homepage loads < 3 seconds
+- [ ] T041 Performance check: tab switching < 500ms
+- [ ] T042 Verify light/dark theme works on all pages
 
 ---
 
@@ -230,17 +230,17 @@ T005: header.tsx
 
 ### Task Count Summary
 
-| Phase | Tasks | Parallelizable |
-|-------|-------|----------------|
-| Setup | 3 | 3 |
-| Foundational | 3 | 2 |
-| US1: Browse | 6 | 1 |
-| US2: Variants | 7 | 1 |
-| US3: Install | 5 | 1 |
-| US4: Code | 5 | 1 |
-| US5: Homepage | 6 | 1 |
-| Polish | 7 | 3 |
-| **Total** | **42** | **13** |
+| Phase | Tasks | IDs | Parallelizable |
+|-------|-------|-----|----------------|
+| Setup | 3 | T001-T003 | 3 |
+| Foundational | 3 | T004-T006 | 2 |
+| US1: Browse | 6 | T007-T012 | 1 |
+| US2: Variants | 7 | T013-T019 | 1 |
+| US3: Install | 5 | T020-T024 | 1 |
+| US4: Code | 5 | T025-T029 | 1 |
+| US5: Homepage | 6 | T030-T035 | 1 |
+| Polish | 7 | T036-T042 | 3 |
+| **Total** | **42** | **T001-T042** | **13** |
 
 ---
 
