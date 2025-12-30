@@ -61,11 +61,15 @@ Uses shadcn style with:
 
 **IMPORTANT**: When adding or updating blocks, maintain Vercel Analytics tracking for user interactions.
 
+### Pricing Constraint
+
+**CRITICAL**: Our Vercel plan includes custom events with **maximum 2 properties per event**. Additional events beyond the plan limit cost $30 per 1M events. Always limit tracking to 2 properties maximum.
+
 ### Existing Tracking Events
 
 The following events are tracked via `@vercel/analytics`:
 
-| Event Name | Properties | Location |
+| Event Name | Properties (max 2) | Location |
 |-----------|------------|----------|
 | `install_command_copied` | `{ command, inline: boolean }` | `components/blocks/install-commands.tsx`, `components/blocks/install-command-inline.tsx` |
 | `code_copied` | `{ code }` | `components/blocks/code-block.tsx` |
@@ -78,7 +82,8 @@ The following events are tracked via `@vercel/analytics`:
    ```tsx
    import { track } from '@vercel/analytics'
 
-   // Track the event
-   track('event_name', { property: 'value' })
+   // Track the event - MAXIMUM 2 PROPERTIES
+   track('event_name', { property1: 'value1', property2: 'value2' })
    ```
 4. **Consistency**: Keep event names snake_case and properties descriptive
+5. **Property limit**: Never exceed 2 properties per event to stay within the Vercel Analytics free tier
