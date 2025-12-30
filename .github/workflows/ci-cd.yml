@@ -42,7 +42,3 @@ jobs:
         run: pnpm run build
       - name: Run tests
         run: pnpm run test
-      - name: Changeset
-        run: |
-          git fetch origin main:refs/remotes/origin/main
-          pnpm changeset status --since=origin/main

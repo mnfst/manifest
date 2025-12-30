@@ -26,7 +26,7 @@ Otherwise, you also can offer your help by talking to a team member on our [Disc
 ### Before you start
 
 - Manifest is built on the concept of simplicity, contributions should go in that direction
-- Each PR code quality is checked with [CodeFactor](https://www.codefactor.io/) for syntax, [CodeCov](https://codecov.com/) for testing coverage and [Changesets](https://github.com/changesets/changesets) for version numbers and changelogs
+- Each PR code quality is checked with [CodeFactor](https://www.codefactor.io/) for syntax and [CodeCov](https://codecov.com/) for testing coverage
 - Commit labels should be made using the [Conventional Commits convention](https://www.conventionalcommits.org/en/v1.0.0/)
 - Please create only one thing per pull request as it is easier to validate and merge
 
@@ -35,7 +35,6 @@ Otherwise, you also can offer your help by talking to a team member on our [Disc
 1. Make sure that there is an [existing issue](https://github.com/mnfst/manifest/issues) for what you will be working on. If not, [create one](https://github.com/mnfst/manifest/issues/new) as this ensures that others can contribute with thoughts or suggest alternatives
 2. When ready, **create a branch** for the issue your are fixing from the Github issue "Development" paragraph in the sidebar
 3. Make your changes
-4. Run `npx changeset` and add the [changeset](https://github.com/changesets/changesets) for your work
 5. Open a [Pull Request from your fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork) from your branch to the `master` branch
 6. The core team will review it soon, ask for feedback, and eventually merge it
 
