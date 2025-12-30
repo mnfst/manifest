@@ -2,6 +2,9 @@
 
 import { Button } from '@/components/ui/button'
 
+// Import shared OpenAI types
+import '@/lib/openai-types' // Side effect: extends Window interface
+
 export interface Post {
   id: string
   title: string
@@ -59,6 +62,17 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
     showAuthor = true,
     showCategory = true
   } = appearance ?? {}
+
+  // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
+  const handleReadMore = () => {
+    if (onReadMore) {
+      onReadMore(post)
+    } else if (typeof window !== 'undefined' && window.openai) {
+      // Request fullscreen mode from ChatGPT host
+      window.openai.requestDisplayMode({ mode: 'fullscreen' })
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
@@ -130,7 +144,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
                 size="sm"
                 variant="secondary"
                 className="w-full sm:w-auto"
-                onClick={() => onReadMore?.(post)}
+                onClick={handleReadMore}
               >
                 Read article
               </Button>
@@ -199,7 +213,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
             <Button
               size="sm"
               className="w-full sm:w-auto"
-              onClick={() => onReadMore?.(post)}
+              onClick={handleReadMore}
             >
               Read
             </Button>
@@ -248,7 +262,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
               {formatDate(post.publishedAt)}
             </span>
           </div>
-          <Button size="sm" onClick={() => onReadMore?.(post)}>
+          <Button size="sm" onClick={handleReadMore}>
             Read more
           </Button>
         </div>
@@ -310,7 +324,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
               </div>
             </div>
           )}
-          <Button size="sm" onClick={() => onReadMore?.(post)}>
+          <Button size="sm" onClick={handleReadMore}>
             Read
           </Button>
         </div>

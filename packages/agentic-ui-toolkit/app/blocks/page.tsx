@@ -77,7 +77,7 @@ import { PostListDemo } from '@/components/blocks/post-list-demo'
 
 // List components
 import { ProductList } from '@/registry/list/product-list'
-import { Table } from '@/registry/list/table'
+import { TableDemo } from '@/components/blocks/table-demo'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -262,14 +262,14 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <Table data={{ title: 'API Usage' }} />,
+            component: <TableDemo data={{ title: 'API Usage' }} />,
             usageCode: `<Table data={{ title: "API Usage" }} />`
           },
           {
             id: 'single-select',
             name: 'Single Select',
             component: (
-              <Table
+              <TableDemo
                 data={{ title: 'Models' }}
                 appearance={{ selectable: 'single' }}
                 actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
@@ -281,7 +281,7 @@ const categories: Category[] = [
             id: 'multi-select',
             name: 'Multi Select',
             component: (
-              <Table
+              <TableDemo
                 data={{ title: 'Export Data' }}
                 appearance={{ selectable: 'multi' }}
                 actions={{

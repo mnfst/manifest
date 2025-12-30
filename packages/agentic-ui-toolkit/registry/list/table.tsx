@@ -15,6 +15,10 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+
+// Import shared OpenAI types
+import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
+import '@/lib/openai-types' // Side effect: extends Window interface
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -31,10 +35,26 @@ import {
   Search,
   Share2,
   Trash2,
-  Type,
-  X
+  Type
 } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+
+// =============================================================================
+// Hook to subscribe to window.openai changes (official pattern)
+// =============================================================================
+
+function useOpenAIGlobal<K extends keyof OpenAIBridge>(key: K): OpenAIBridge[K] | undefined {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (typeof window === 'undefined') return () => {}
+      const handler = () => onChange()
+      window.addEventListener('openai:set_globals', handler)
+      return () => window.removeEventListener('openai:set_globals', handler)
+    },
+    () => (typeof window !== 'undefined' ? window.openai?.[key] : undefined),
+    () => undefined
+  )
+}
 
 // Filter types
 interface FilterCondition {
@@ -42,12 +62,6 @@ interface FilterCondition {
   field: string
   operator: 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'isEmpty' | 'isNotEmpty'
   value: string
-}
-
-// Sort types
-interface SortCondition {
-  field: string
-  direction: 'asc' | 'desc'
 }
 
 export interface TableColumn<T = Record<string, unknown>> {
@@ -85,6 +99,8 @@ export interface TableProps<T = Record<string, unknown>> {
     showHeader?: boolean
     showFooter?: boolean
     maxRows?: number
+    /** Display mode: 'inline' (default) or 'fullscreen'. In fullscreen, shows pagination and filters. */
+    displayMode?: DisplayMode
   }
   control?: {
     loading?: boolean
@@ -201,7 +217,7 @@ function SkeletonRow({
   )
 }
 
-// TableHeader component
+// TableHeader component (inline mode)
 function TableHeader({
   title,
   titleImage,
@@ -354,58 +370,66 @@ function TableFooter({
   )
 }
 
-// Fullscreen Table Modal
-function FullscreenTableModal<T extends Record<string, unknown>>({
-  title,
-  titleImage,
-  columns,
-  rows,
-  onClose,
-  selectable,
-  compact,
-  onSelectionChange,
-  onCopy,
-  onDownload,
-  onShare,
-  lastUpdated,
-  onRefresh
-}: {
-  title?: string
-  titleImage?: string
-  columns: TableColumn<T>[]
-  rows: T[]
-  onClose: () => void
-  selectable: 'none' | 'single' | 'multi'
-  compact: boolean
-  onSelectionChange?: (selectedRows: T[]) => void
-  onCopy?: (selectedRows: T[]) => void
-  onDownload?: (selectedRows: T[]) => void
-  onShare?: (selectedRows: T[]) => void
-  lastUpdated?: Date | string
-  onRefresh?: () => void
-}) {
+export function Table<T extends Record<string, unknown>>({
+  data: dataProps,
+  actions,
+  appearance,
+  control
+}: TableProps<T>) {
+  const {
+    columns = defaultColumns as unknown as TableColumn<T>[],
+    rows: tableData = defaultData as unknown as T[],
+    title,
+    titleImage,
+    lastUpdated = new Date(),
+    totalRows
+  } = dataProps ?? {}
+  const { onSelectionChange, onCopy, onDownload, onShare, onRefresh, onExpand } =
+    actions ?? {}
+  const {
+    selectable = 'none',
+    emptyMessage = 'No data available',
+    stickyHeader = false,
+    compact = false,
+    showActions = false,
+    showHeader = true,
+    showFooter = true,
+    maxRows = 5,
+    displayMode: propDisplayMode
+  } = appearance ?? {}
+  const { loading = false, selectedRows: controlledSelectedRows } = control ?? {}
+
+  // Get display mode from window.openai (ChatGPT) or use prop/default
+  const openaiDisplayMode = useOpenAIGlobal('displayMode')
+  const displayMode = propDisplayMode ?? openaiDisplayMode ?? 'inline'
+
   const [currentPage, setCurrentPage] = useState(1)
   const [sortConfig, setSortConfig] = useState<{
     key: string
     direction: 'asc' | 'desc'
   } | null>(null)
-  const [selectedRowsSet, setSelectedRowsSet] = useState<Set<number>>(new Set())
+  const [internalSelectedRows, setInternalSelectedRows] = useState<Set<number>>(
+    new Set()
+  )
 
-  // Filter state
+  // Filter state (fullscreen only)
   const [filters, setFilters] = useState<FilterCondition[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
-
-  // Sort popover state
   const [sortOpen, setSortOpen] = useState(false)
   const [sortSearch, setSortSearch] = useState('')
 
   const rowsPerPage = 15
+  const isFullscreen = displayMode === 'fullscreen'
 
-  // Apply filters to data
+  const selectedRowsSet = controlledSelectedRows
+    ? new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
+    : internalSelectedRows
+
+  // Apply filters to data (fullscreen only)
   const filteredData = useMemo(() => {
-    if (filters.length === 0) return rows
+    if (!isFullscreen || filters.length === 0) return tableData
 
-    return rows.filter((row) => {
+    return tableData.filter((row) => {
       return filters.every((filter) => {
         const value = String(row[filter.field as keyof T] ?? '').toLowerCase()
         const filterValue = filter.value.toLowerCase()
@@ -428,12 +452,26 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
         }
       })
     })
-  }, [rows, filters])
+  }, [tableData, filters, isFullscreen])
+
+  const handleSort = useCallback((accessor: string) => {
+    setSortConfig((current) => {
+      if (current?.key === accessor) {
+        if (current.direction === 'asc') {
+          return { key: accessor, direction: 'desc' }
+        }
+        return null
+      }
+      return { key: accessor, direction: 'asc' }
+    })
+    setSortOpen(false)
+  }, [])
 
   const sortedData = useMemo(() => {
-    if (!sortConfig) return filteredData
+    const dataToSort = isFullscreen ? filteredData : tableData
+    if (!sortConfig) return dataToSort
 
-    return [...filteredData].sort((a, b) => {
+    return [...dataToSort].sort((a, b) => {
       const aValue = a[sortConfig.key as keyof T]
       const bValue = b[sortConfig.key as keyof T]
 
@@ -448,7 +486,19 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
 
       return sortConfig.direction === 'asc' ? comparison : -comparison
     })
-  }, [filteredData, sortConfig])
+  }, [tableData, filteredData, sortConfig, isFullscreen])
+
+  // Pagination (fullscreen) or limit rows (inline)
+  const visibleData = isFullscreen
+    ? sortedData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+    : sortedData.slice(0, maxRows)
+
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage)
+  const moreCount = totalRows
+    ? totalRows - maxRows
+    : sortedData.length > maxRows
+      ? sortedData.length - maxRows
+      : 0
 
   // Filter helpers
   const addFilter = () => {
@@ -472,66 +522,53 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
     setFilters(filters.filter((f) => f.id !== id))
   }
 
-  // Sort helpers
-  const handleSortField = (accessor: string) => {
-    setSortConfig((current) => {
-      if (current?.key === accessor) {
-        if (current.direction === 'asc') {
-          return { key: accessor, direction: 'desc' }
-        }
-        return null
-      }
-      return { key: accessor, direction: 'asc' }
-    })
-    setSortOpen(false)
-  }
-
   const filteredColumns = columns.filter((col) =>
     col.header.toLowerCase().includes(sortSearch.toLowerCase())
   )
 
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage)
-  const paginatedData = sortedData.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
+  const handleRowSelect = useCallback(
+    (index: number) => {
+      if (selectable === 'none') return
+
+      // In fullscreen mode, calculate global index
+      const globalIndex = isFullscreen
+        ? (currentPage - 1) * rowsPerPage + index
+        : index
+
+      const newSelected = new Set(selectedRowsSet)
+
+      if (selectable === 'single') {
+        if (newSelected.has(globalIndex)) {
+          newSelected.clear()
+        } else {
+          newSelected.clear()
+          newSelected.add(globalIndex)
+        }
+      } else {
+        if (newSelected.has(globalIndex)) {
+          newSelected.delete(globalIndex)
+        } else {
+          newSelected.add(globalIndex)
+        }
+      }
+
+      setInternalSelectedRows(newSelected)
+      onSelectionChange?.(sortedData.filter((_, i) => newSelected.has(i)))
+    },
+    [selectable, selectedRowsSet, sortedData, onSelectionChange, isFullscreen, currentPage, rowsPerPage]
   )
 
-  const handleSort = (accessor: string) => {
-    setSortConfig((current) => {
-      if (current?.key === accessor) {
-        if (current.direction === 'asc') {
-          return { key: accessor, direction: 'desc' }
-        }
-        return null
-      }
-      return { key: accessor, direction: 'asc' }
-    })
-  }
+  const handleSelectAll = useCallback(() => {
+    if (selectable !== 'multi') return
 
-  const handleRowSelect = (index: number) => {
-    if (selectable === 'none') return
+    const allSelected = selectedRowsSet.size === visibleData.length
+    const newSelected = allSelected
+      ? new Set<number>()
+      : new Set(visibleData.map((_, i) => i))
 
-    const globalIndex = (currentPage - 1) * rowsPerPage + index
-    const newSelected = new Set(selectedRowsSet)
-
-    if (selectable === 'single') {
-      if (newSelected.has(globalIndex)) {
-        newSelected.clear()
-      } else {
-        newSelected.clear()
-        newSelected.add(globalIndex)
-      }
-    } else {
-      if (newSelected.has(globalIndex)) {
-        newSelected.delete(globalIndex)
-      } else {
-        newSelected.add(globalIndex)
-      }
-    }
-
-    setSelectedRowsSet(newSelected)
-    onSelectionChange?.(sortedData.filter((_, i) => newSelected.has(i)))
-  }
+    setInternalSelectedRows(newSelected)
+    onSelectionChange?.(allSelected ? [] : visibleData)
+  }, [selectable, selectedRowsSet.size, visibleData, onSelectionChange])
 
   const getValue = (row: T, accessor: string): unknown => {
     const keys = accessor.split('.')
@@ -560,30 +597,24 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
     )
   }
 
+  const handleExpand = () => {
+    if (onExpand) {
+      onExpand()
+    } else if (typeof window !== 'undefined' && window.openai) {
+      // Request fullscreen mode from ChatGPT host
+      window.openai.requestDisplayMode({ mode: 'fullscreen' })
+    }
+  }
+
   const hasSelection = selectedRowsSet.size > 0
   const getSelectedRows = () => sortedData.filter((_, i) => selectedRowsSet.has(i))
 
-  return (
-    <div className="fixed top-14 bottom-0 left-0 right-0 md:left-[226px] z-40 flex flex-col bg-background">
-      {/* Modal Header */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-        <button
-          onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <span className="text-sm font-medium">{title || 'Table'}</span>
-
-        <div className="w-8" />
-      </header>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto px-4">
-        {/* Table Header - inside content, above table */}
-        <div className="flex items-center justify-between py-3 h-14">
+  // FULLSCREEN MODE - fills 100% of available space (host controls the container)
+  if (isFullscreen) {
+    return (
+      <div className="flex h-full w-full flex-col bg-background">
+        {/* Fullscreen Header */}
+        <div className="flex items-center justify-between px-4 py-3 h-14">
           <div className="flex items-center gap-2">
             {titleImage && (
               <img
@@ -773,7 +804,7 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
                     {filteredColumns.map((col) => (
                       <button
                         key={col.accessor as string}
-                        onClick={() => handleSortField(col.accessor as string)}
+                        onClick={() => handleSort(col.accessor as string)}
                         className={cn(
                           'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors cursor-pointer text-left',
                           sortConfig?.key === col.accessor && 'bg-muted'
@@ -796,600 +827,428 @@ function FullscreenTableModal<T extends Record<string, unknown>>({
             </Popover>
           </div>
         </div>
-        <div className="w-full">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b">
-                <tr>
-                  {selectable !== 'none' && (
-                    <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')} />
-                  )}
-                  {columns.map((column, index) => (
-                    <th
-                      key={index}
-                      className={cn(
-                        'px-3 font-medium text-muted-foreground group text-left',
-                        compact ? 'py-2' : 'py-3',
-                        column.align === 'right' && 'text-right',
-                        column.sortable &&
-                          'cursor-pointer select-none hover:text-foreground'
-                      )}
-                      style={{ width: column.width }}
-                      onClick={() =>
-                        column.sortable && handleSort(column.accessor as string)
-                      }
-                    >
-                      <span
+
+        {/* Table Content */}
+        <div className="flex-1 overflow-auto px-4">
+          <div className="w-full">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b">
+                  <tr>
+                    {selectable !== 'none' && (
+                      <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')} />
+                    )}
+                    {columns.map((column, index) => (
+                      <th
+                        key={index}
                         className={cn(
-                          'inline-flex items-center gap-1',
-                          column.align === 'right' && 'justify-end'
+                          'px-3 font-medium text-muted-foreground group text-left',
+                          compact ? 'py-2' : 'py-3',
+                          column.align === 'right' && 'text-right',
+                          column.sortable &&
+                            'cursor-pointer select-none hover:text-foreground'
+                        )}
+                        style={{ width: column.width }}
+                        onClick={() =>
+                          column.sortable && handleSort(column.accessor as string)
+                        }
+                      >
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1',
+                            column.align === 'right' && 'justify-end'
+                          )}
+                        >
+                          {column.header}
+                          {column.sortable &&
+                            getSortIcon(column.accessor as string)}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleData.map((row, rowIndex) => {
+                    const globalIndex = (currentPage - 1) * rowsPerPage + rowIndex
+                    return (
+                      <tr
+                        key={rowIndex}
+                        onClick={() => handleRowSelect(rowIndex)}
+                        className={cn(
+                          'border-b border-border last:border-0 transition-colors',
+                          selectable !== 'none' &&
+                            'cursor-pointer hover:bg-muted/30'
                         )}
                       >
-                        {column.header}
-                        {column.sortable &&
-                          getSortIcon(column.accessor as string)}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.map((row, rowIndex) => {
-                  const globalIndex = (currentPage - 1) * rowsPerPage + rowIndex
-                  return (
-                    <tr
-                      key={rowIndex}
-                      onClick={() => handleRowSelect(rowIndex)}
-                      className={cn(
-                        'border-b border-border last:border-0 transition-colors',
-                        selectable !== 'none' &&
-                          'cursor-pointer hover:bg-muted/30'
-                      )}
-                    >
-                      {selectable !== 'none' && (
-                        <td className={cn('px-3', compact ? 'py-2' : 'py-3')}>
-                          <div
-                            className={cn(
-                              'flex h-4 w-4 items-center justify-center rounded border transition-colors',
-                              selectedRowsSet.has(globalIndex)
-                                ? 'bg-foreground border-foreground text-background'
-                                : 'border-border'
-                            )}
-                          >
-                            {selectedRowsSet.has(globalIndex) && (
-                              <Check className="h-3 w-3" />
-                            )}
-                          </div>
-                        </td>
-                      )}
-                      {columns.map((column, colIndex) => {
-                        const value = getValue(row, column.accessor as string)
-                        const displayValue = column.render
-                          ? column.render(value, row, rowIndex)
-                          : formatNumber(value)
-
-                        return (
-                          <td
-                            key={colIndex}
-                            className={cn(
-                              'px-3',
-                              compact ? 'py-2' : 'py-3',
-                              column.align === 'center' && 'text-center',
-                              column.align === 'right' && 'text-right',
-                              colIndex === 0 && 'font-medium'
-                            )}
-                          >
-                            {displayValue}
+                        {selectable !== 'none' && (
+                          <td className={cn('px-3', compact ? 'py-2' : 'py-3')}>
+                            <div
+                              className={cn(
+                                'flex h-4 w-4 items-center justify-center rounded border transition-colors',
+                                selectedRowsSet.has(globalIndex)
+                                  ? 'bg-foreground border-foreground text-background'
+                                  : 'border-border'
+                              )}
+                            >
+                              {selectedRowsSet.has(globalIndex) && (
+                                <Check className="h-3 w-3" />
+                              )}
+                            </div>
                           </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        )}
+                        {columns.map((column, colIndex) => {
+                          const value = getValue(row, column.accessor as string)
+                          const displayValue = column.render
+                            ? column.render(value, row, rowIndex)
+                            : formatNumber(value)
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * rowsPerPage + 1}-
-                {Math.min(currentPage * rowsPerPage, sortedData.length)} of{' '}
-                {sortedData.length} rows
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm">
-                  Page {currentPage} of {totalPages}
+                          return (
+                            <td
+                              key={colIndex}
+                              className={cn(
+                                'px-3',
+                                compact ? 'py-2' : 'py-3',
+                                column.align === 'center' && 'text-center',
+                                column.align === 'right' && 'text-right',
+                                colIndex === 0 && 'font-medium'
+                              )}
+                            >
+                              {displayValue}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Showing {(currentPage - 1) * rowsPerPage + 1}-
+                  {Math.min(currentPage * rowsPerPage, sortedData.length)} of{' '}
+                  {sortedData.length} rows
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Footer - inside content, right after table */}
-          <div className="flex items-center justify-between py-3 mt-2">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <span>{sortedData.length} records found</span>
-              {lastUpdated && (
-                <>
-                  <span className="text-muted-foreground/50">·</span>
-                  <span>
-                    Data as of{' '}
-                    {(typeof lastUpdated === 'string'
-                      ? new Date(lastUpdated)
-                      : lastUpdated
-                    ).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit'
-                    })}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm">
+                    Page {currentPage} of {totalPages}
                   </span>
-                </>
-              )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex items-center justify-between py-3 mt-2">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <span>{sortedData.length} records found</span>
+                {lastUpdated && (
+                  <>
+                    <span className="text-muted-foreground/50">·</span>
+                    <span>
+                      Data as of{' '}
+                      {(typeof lastUpdated === 'string'
+                        ? new Date(lastUpdated)
+                        : lastUpdated
+                      ).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={onRefresh}
+                className={cn(
+                  'transition-colors',
+                  onRefresh
+                    ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                    : 'text-muted-foreground/40 cursor-not-allowed'
+                )}
+                disabled={!onRefresh}
+                aria-label="Refresh"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              onClick={onRefresh}
-              className={cn(
-                'transition-colors',
-                onRefresh
-                  ? 'text-muted-foreground hover:text-foreground cursor-pointer'
-                  : 'text-muted-foreground/40 cursor-not-allowed'
-              )}
-              disabled={!onRefresh}
-              aria-label="Refresh"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-export function Table<T extends Record<string, unknown>>({
-  data: dataProps,
-  actions,
-  appearance,
-  control
-}: TableProps<T>) {
-  const {
-    columns = defaultColumns as unknown as TableColumn<T>[],
-    rows: tableData = defaultData as unknown as T[],
-    title,
-    titleImage,
-    lastUpdated = new Date(),
-    totalRows
-  } = dataProps ?? {}
-  const { onSelectionChange, onCopy, onDownload, onShare, onRefresh, onExpand } =
-    actions ?? {}
-  const {
-    selectable = 'none',
-    emptyMessage = 'No data available',
-    stickyHeader = false,
-    compact = false,
-    showActions = false,
-    showHeader = true,
-    showFooter = true,
-    maxRows = 5
-  } = appearance ?? {}
-  const { loading = false, selectedRows: controlledSelectedRows } = control ?? {}
-
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [sortConfig, setSortConfig] = useState<{
-    key: string
-    direction: 'asc' | 'desc'
-  } | null>(null)
-  const [internalSelectedRows, setInternalSelectedRows] = useState<Set<number>>(
-    new Set()
-  )
-
-  const selectedRowsSet = controlledSelectedRows
-    ? new Set(controlledSelectedRows.map((row) => tableData.indexOf(row)))
-    : internalSelectedRows
-
-  const handleSort = useCallback((accessor: string) => {
-    setSortConfig((current) => {
-      if (current?.key === accessor) {
-        if (current.direction === 'asc') {
-          return { key: accessor, direction: 'desc' }
-        }
-        return null
-      }
-      return { key: accessor, direction: 'asc' }
-    })
-  }, [])
-
-  const sortedData = useMemo(() => {
-    if (!sortConfig) return tableData
-
-    return [...tableData].sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof T]
-      const bValue = b[sortConfig.key as keyof T]
-
-      if (aValue === bValue) return 0
-
-      let comparison = 0
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        comparison = aValue - bValue
-      } else {
-        comparison = String(aValue).localeCompare(String(bValue))
-      }
-
-      return sortConfig.direction === 'asc' ? comparison : -comparison
-    })
-  }, [tableData, sortConfig])
-
-  // Limit visible rows in inline mode
-  const visibleData = sortedData.slice(0, maxRows)
-  const moreCount = totalRows
-    ? totalRows - maxRows
-    : sortedData.length > maxRows
-      ? sortedData.length - maxRows
-      : 0
-
-  const handleRowSelect = useCallback(
-    (index: number) => {
-      if (selectable === 'none') return
-
-      const newSelected = new Set(selectedRowsSet)
-
-      if (selectable === 'single') {
-        if (newSelected.has(index)) {
-          newSelected.clear()
-        } else {
-          newSelected.clear()
-          newSelected.add(index)
-        }
-      } else {
-        if (newSelected.has(index)) {
-          newSelected.delete(index)
-        } else {
-          newSelected.add(index)
-        }
-      }
-
-      setInternalSelectedRows(newSelected)
-      onSelectionChange?.(sortedData.filter((_, i) => newSelected.has(i)))
-    },
-    [selectable, selectedRowsSet, sortedData, onSelectionChange]
-  )
-
-  const handleSelectAll = useCallback(() => {
-    if (selectable !== 'multi') return
-
-    const allSelected = selectedRowsSet.size === visibleData.length
-    const newSelected = allSelected
-      ? new Set<number>()
-      : new Set(visibleData.map((_, i) => i))
-
-    setInternalSelectedRows(newSelected)
-    onSelectionChange?.(allSelected ? [] : visibleData)
-  }, [selectable, selectedRowsSet.size, visibleData, onSelectionChange])
-
-  const getValue = (row: T, accessor: string): unknown => {
-    const keys = accessor.split('.')
-    let value: unknown = row
-    for (const key of keys) {
-      value = (value as Record<string, unknown>)?.[key]
-    }
-    return value
-  }
-
-  const formatNumber = (value: unknown): string => {
-    if (typeof value === 'number') {
-      return new Intl.NumberFormat('en-US').format(value)
-    }
-    return String(value ?? '')
-  }
-
-  const getSortIcon = (accessor: string) => {
-    if (sortConfig?.key !== accessor) {
-      return <Minus className="h-3 w-3 opacity-0 group-hover:opacity-30" />
-    }
-    return sortConfig.direction === 'asc' ? (
-      <ChevronUp className="h-3 w-3" />
-    ) : (
-      <ChevronDown className="h-3 w-3" />
     )
   }
 
-  const handleExpand = () => {
-    if (onExpand) {
-      onExpand()
-    } else {
-      setIsFullscreen(true)
-    }
-  }
-
+  // INLINE MODE - compact card with limited rows
   return (
-    <>
-      <div className="w-full rounded-lg border bg-card" style={{ maxHeight: '458px' }}>
-        {/* Table Header */}
-        {showHeader && (
-          <TableHeader
-            title={title}
-            titleImage={titleImage}
-            onExpand={handleExpand}
-            selectable={selectable}
-            hasSelection={selectedRowsSet.size > 0}
-            onCopy={onCopy ? () => onCopy(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
-            onDownload={onDownload ? () => onDownload(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
-            onShare={onShare ? () => onShare(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
-          />
-        )}
+    <div className="w-full rounded-lg border bg-card" style={{ maxHeight: '458px' }}>
+      {/* Table Header */}
+      {showHeader && (
+        <TableHeader
+          title={title}
+          titleImage={titleImage}
+          onExpand={handleExpand}
+          selectable={selectable}
+          hasSelection={selectedRowsSet.size > 0}
+          onCopy={onCopy ? () => onCopy(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
+          onDownload={onDownload ? () => onDownload(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
+          onShare={onShare ? () => onShare(visibleData.filter((_, i) => selectedRowsSet.has(i))) : undefined}
+        />
+      )}
 
-        {/* Mobile: Card view */}
-        <div
-          className="sm:hidden overflow-y-auto"
-          style={{
-            maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${showFooter ? '41px' : '0px'})`
-          }}
-        >
-          <div className="p-2 space-y-2">
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-md border bg-card p-3 space-y-2"
-                >
-                  {columns.slice(0, 4).map((_, j) => (
-                    <div
-                      key={j}
-                      className="h-4 bg-muted animate-pulse rounded w-3/4"
-                    />
-                  ))}
-                </div>
-              ))
-            ) : visibleData.length === 0 ? (
-              <div className="rounded-md border bg-card p-6 text-center text-sm text-muted-foreground">
-                {emptyMessage}
-              </div>
-            ) : (
-              visibleData.map((row, rowIndex) => (
-                <button
-                  key={rowIndex}
-                  type="button"
-                  onClick={() => handleRowSelect(rowIndex)}
-                  disabled={selectable === 'none'}
-                  className={cn(
-                    'w-full rounded-md border bg-card p-3 text-left transition-all',
-                    selectable !== 'none' &&
-                      'cursor-pointer hover:border-foreground/30',
-                    selectedRowsSet.has(rowIndex) &&
-                      'border-foreground ring-1 ring-foreground'
-                  )}
-                >
-                  <div className="space-y-1.5">
-                    {columns.map((column, colIndex) => {
-                      const value = getValue(row, column.accessor as string)
-                      const displayValue = column.render
-                        ? column.render(value, row, rowIndex)
-                        : formatNumber(value)
-
-                      return (
-                        <div
-                          key={colIndex}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="text-xs text-muted-foreground">
-                            {column.header}
-                          </span>
-                          <span
-                            className={cn(
-                              'text-xs font-medium',
-                              colIndex === 0 && 'font-semibold'
-                            )}
-                          >
-                            {displayValue}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Desktop: Table view */}
-        <div
-          className="hidden sm:block overflow-y-auto"
-          style={{
-            maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${showFooter ? '41px' : '0px'})`
-          }}
-        >
-          <table className="w-full text-sm" role="grid">
-            <thead
-              className={cn(
-                'border-b bg-muted/50',
-                stickyHeader && 'sticky top-0 z-10'
-              )}
-            >
-              <tr>
-                {selectable === 'multi' && (
-                  <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')}>
-                    <button
-                      type="button"
-                      onClick={handleSelectAll}
-                      className={cn(
-                        'flex h-4 w-4 items-center justify-center rounded border transition-colors cursor-pointer',
-                        selectedRowsSet.size === visibleData.length &&
-                          visibleData.length > 0
-                          ? 'bg-foreground border-foreground text-background'
-                          : 'border-border hover:border-foreground/50'
-                      )}
-                      aria-label="Select all rows"
-                    >
-                      {selectedRowsSet.size === visibleData.length &&
-                        visibleData.length > 0 && <Check className="h-3 w-3" />}
-                    </button>
-                  </th>
-                )}
-                {selectable === 'single' && (
-                  <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')} />
-                )}
-                {columns.map((column, index) => (
-                  <th
-                    key={index}
-                    className={cn(
-                      'px-3 font-medium text-muted-foreground group text-left',
-                      compact ? 'py-2' : 'py-3',
-                      column.align === 'right' && 'text-right',
-                      column.sortable &&
-                        'cursor-pointer select-none hover:text-foreground'
-                    )}
-                    style={{ width: column.width }}
-                    onClick={() =>
-                      column.sortable && handleSort(column.accessor as string)
-                    }
-                    role={
-                      column.sortable ? 'columnheader button' : 'columnheader'
-                    }
-                    aria-sort={
-                      sortConfig?.key === column.accessor
-                        ? sortConfig.direction === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1',
-                        column.align === 'right' && 'justify-end'
-                      )}
-                    >
-                      {column.header}
-                      {column.sortable && getSortIcon(column.accessor as string)}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: maxRows }).map((_, i) => (
-                  <SkeletonRow
-                    key={i}
-                    columns={columns.length + (selectable !== 'none' ? 1 : 0)}
-                    compact={compact}
+      {/* Mobile: Card view */}
+      <div
+        className="sm:hidden overflow-y-auto"
+        style={{
+          maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${showFooter ? '41px' : '0px'})`
+        }}
+      >
+        <div className="p-2 space-y-2">
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-md border bg-card p-3 space-y-2"
+              >
+                {columns.slice(0, 4).map((_, j) => (
+                  <div
+                    key={j}
+                    className="h-4 bg-muted animate-pulse rounded w-3/4"
                   />
-                ))
-              ) : visibleData.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length + (selectable !== 'none' ? 1 : 0)}
-                    className="px-3 py-8 text-center text-muted-foreground"
-                  >
-                    {emptyMessage}
-                  </td>
-                </tr>
-              ) : (
-                visibleData.map((row, rowIndex) => (
-                  <tr
-                    key={rowIndex}
-                    onClick={() => handleRowSelect(rowIndex)}
-                    className={cn(
-                      'border-b border-border last:border-0 transition-colors',
-                      selectable !== 'none' && 'cursor-pointer hover:bg-muted/30'
-                    )}
-                    role="row"
-                    aria-selected={selectedRowsSet.has(rowIndex)}
-                  >
-                    {selectable !== 'none' && (
-                      <td className={cn('px-3', compact ? 'py-2' : 'py-3')}>
-                        <div
-                          className={cn(
-                            'flex h-4 w-4 items-center justify-center rounded border transition-colors',
-                            selectedRowsSet.has(rowIndex)
-                              ? 'bg-foreground border-foreground text-background'
-                              : 'border-border'
-                          )}
-                        >
-                          {selectedRowsSet.has(rowIndex) && (
-                            <Check className="h-3 w-3" />
-                          )}
-                        </div>
-                      </td>
-                    )}
-                    {columns.map((column, colIndex) => {
-                      const value = getValue(row, column.accessor as string)
-                      const displayValue = column.render
-                        ? column.render(value, row, rowIndex)
-                        : formatNumber(value)
+                ))}
+              </div>
+            ))
+          ) : visibleData.length === 0 ? (
+            <div className="rounded-md border bg-card p-6 text-center text-sm text-muted-foreground">
+              {emptyMessage}
+            </div>
+          ) : (
+            visibleData.map((row, rowIndex) => (
+              <button
+                key={rowIndex}
+                type="button"
+                onClick={() => handleRowSelect(rowIndex)}
+                disabled={selectable === 'none'}
+                className={cn(
+                  'w-full rounded-md border bg-card p-3 text-left transition-all',
+                  selectable !== 'none' &&
+                    'cursor-pointer hover:border-foreground/30',
+                  selectedRowsSet.has(rowIndex) &&
+                    'border-foreground ring-1 ring-foreground'
+                )}
+              >
+                <div className="space-y-1.5">
+                  {columns.map((column, colIndex) => {
+                    const value = getValue(row, column.accessor as string)
+                    const displayValue = column.render
+                      ? column.render(value, row, rowIndex)
+                      : formatNumber(value)
 
-                      return (
-                        <td
-                          key={colIndex}
+                    return (
+                      <div
+                        key={colIndex}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-xs text-muted-foreground">
+                          {column.header}
+                        </span>
+                        <span
                           className={cn(
-                            'px-3',
-                            compact ? 'py-2' : 'py-3',
-                            column.align === 'center' && 'text-center',
-                            column.align === 'right' && 'text-right',
-                            colIndex === 0 && 'font-medium'
+                            'text-xs font-medium',
+                            colIndex === 0 && 'font-semibold'
                           )}
                         >
                           {displayValue}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </button>
+            ))
+          )}
         </div>
-
-        {/* Table Footer */}
-        {showFooter && (
-          <TableFooter
-            moreCount={moreCount}
-            lastUpdated={lastUpdated}
-            onRefresh={onRefresh}
-          />
-        )}
       </div>
 
-      {/* Fullscreen Modal */}
-      {isFullscreen && (
-        <FullscreenTableModal
-          title={title}
-          titleImage={titleImage}
-          columns={columns}
-          rows={sortedData}
-          onClose={() => setIsFullscreen(false)}
-          selectable={selectable}
-          compact={compact}
-          onSelectionChange={onSelectionChange}
-          onCopy={onCopy}
-          onDownload={onDownload}
-          onShare={onShare}
+      {/* Desktop: Table view */}
+      <div
+        className="hidden sm:block overflow-y-auto"
+        style={{
+          maxHeight: `calc(458px - ${showHeader ? '57px' : '0px'} - ${showFooter ? '41px' : '0px'})`
+        }}
+      >
+        <table className="w-full text-sm" role="grid">
+          <thead
+            className={cn(
+              'border-b bg-muted/50',
+              stickyHeader && 'sticky top-0 z-10'
+            )}
+          >
+            <tr>
+              {selectable === 'multi' && (
+                <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')}>
+                  <button
+                    type="button"
+                    onClick={handleSelectAll}
+                    className={cn(
+                      'flex h-4 w-4 items-center justify-center rounded border transition-colors cursor-pointer',
+                      selectedRowsSet.size === visibleData.length &&
+                        visibleData.length > 0
+                        ? 'bg-foreground border-foreground text-background'
+                        : 'border-border hover:border-foreground/50'
+                    )}
+                    aria-label="Select all rows"
+                  >
+                    {selectedRowsSet.size === visibleData.length &&
+                      visibleData.length > 0 && <Check className="h-3 w-3" />}
+                  </button>
+                </th>
+              )}
+              {selectable === 'single' && (
+                <th className={cn('w-10 px-3', compact ? 'py-2' : 'py-3')} />
+              )}
+              {columns.map((column, index) => (
+                <th
+                  key={index}
+                  className={cn(
+                    'px-3 font-medium text-muted-foreground group text-left',
+                    compact ? 'py-2' : 'py-3',
+                    column.align === 'right' && 'text-right',
+                    column.sortable &&
+                      'cursor-pointer select-none hover:text-foreground'
+                  )}
+                  style={{ width: column.width }}
+                  onClick={() =>
+                    column.sortable && handleSort(column.accessor as string)
+                  }
+                  role={
+                    column.sortable ? 'columnheader button' : 'columnheader'
+                  }
+                  aria-sort={
+                    sortConfig?.key === column.accessor
+                      ? sortConfig.direction === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : undefined
+                  }
+                >
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1',
+                      column.align === 'right' && 'justify-end'
+                    )}
+                  >
+                    {column.header}
+                    {column.sortable && getSortIcon(column.accessor as string)}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              Array.from({ length: maxRows }).map((_, i) => (
+                <SkeletonRow
+                  key={i}
+                  columns={columns.length + (selectable !== 'none' ? 1 : 0)}
+                  compact={compact}
+                />
+              ))
+            ) : visibleData.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={columns.length + (selectable !== 'none' ? 1 : 0)}
+                  className="px-3 py-8 text-center text-muted-foreground"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              visibleData.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  onClick={() => handleRowSelect(rowIndex)}
+                  className={cn(
+                    'border-b border-border last:border-0 transition-colors',
+                    selectable !== 'none' && 'cursor-pointer hover:bg-muted/30'
+                  )}
+                  role="row"
+                  aria-selected={selectedRowsSet.has(rowIndex)}
+                >
+                  {selectable !== 'none' && (
+                    <td className={cn('px-3', compact ? 'py-2' : 'py-3')}>
+                      <div
+                        className={cn(
+                          'flex h-4 w-4 items-center justify-center rounded border transition-colors',
+                          selectedRowsSet.has(rowIndex)
+                            ? 'bg-foreground border-foreground text-background'
+                            : 'border-border'
+                        )}
+                      >
+                        {selectedRowsSet.has(rowIndex) && (
+                          <Check className="h-3 w-3" />
+                        )}
+                      </div>
+                    </td>
+                  )}
+                  {columns.map((column, colIndex) => {
+                    const value = getValue(row, column.accessor as string)
+                    const displayValue = column.render
+                      ? column.render(value, row, rowIndex)
+                      : formatNumber(value)
+
+                    return (
+                      <td
+                        key={colIndex}
+                        className={cn(
+                          'px-3',
+                          compact ? 'py-2' : 'py-3',
+                          column.align === 'center' && 'text-center',
+                          column.align === 'right' && 'text-right',
+                          colIndex === 0 && 'font-medium'
+                        )}
+                      >
+                        {displayValue}
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Table Footer */}
+      {showFooter && (
+        <TableFooter
+          moreCount={moreCount}
           lastUpdated={lastUpdated}
           onRefresh={onRefresh}
         />
       )}
-    </>
+    </div>
   )
 }

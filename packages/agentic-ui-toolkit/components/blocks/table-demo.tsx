@@ -2,30 +2,27 @@
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { HostAPIProvider, DisplayMode } from '@/lib/host-api'
-import { PostDetail, PostDetailProps } from '@/registry/blogging/post-detail'
+import { Table, TableProps } from '@/registry/list/table'
 import { useState, useCallback } from 'react'
 
-interface PostDetailDemoProps {
-  data?: PostDetailProps['data']
-  appearance?: Omit<PostDetailProps['appearance'], 'displayMode'>
+interface TableDemoProps<T extends Record<string, unknown> = Record<string, unknown>> extends TableProps<T> {
   appName?: string
   appUrl?: string
 }
 
 /**
- * Demo wrapper for PostDetail that handles display mode switching.
+ * Demo wrapper for Table that handles display mode switching.
  * This simulates how the host (ChatGPT, Claude) would handle fullscreen requests.
  *
- * The PostDetail component calls `hostAPI.requestDisplayMode('fullscreen')` when
- * "Read more" is clicked, and this wrapper receives that request and shows
+ * The Table component calls `hostAPI.requestDisplayMode('fullscreen')` when
+ * the expand button is clicked, and this wrapper receives that request and shows
  * the fullscreen modal.
  */
-export function PostDetailDemo({
-  appName = 'Blog App',
+export function TableDemo<T extends Record<string, unknown> = Record<string, unknown>>({
+  appName = 'Data Table',
   appUrl,
-  data,
-  appearance
-}: PostDetailDemoProps) {
+  ...tableProps
+}: TableDemoProps<T>) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('inline')
 
   const handleDisplayModeRequest = useCallback((mode: DisplayMode) => {
@@ -37,11 +34,11 @@ export function PostDetailDemo({
       displayMode={displayMode}
       onDisplayModeRequest={handleDisplayModeRequest}
     >
-      {/* Inline mode - PostDetail will call requestDisplayMode when "Read more" is clicked */}
+      {/* Inline mode - Table will call requestDisplayMode when expand is clicked */}
       {displayMode === 'inline' && (
-        <PostDetail
-          data={data}
-          appearance={{ ...appearance, displayMode: 'inline' }}
+        <Table
+          {...tableProps}
+          appearance={{ ...tableProps.appearance, displayMode: 'inline' }}
         />
       )}
 
@@ -52,9 +49,9 @@ export function PostDetailDemo({
           appUrl={appUrl}
           onClose={() => setDisplayMode('inline')}
         >
-          <PostDetail
-            data={data}
-            appearance={{ ...appearance, displayMode: 'fullscreen' }}
+          <Table
+            {...tableProps}
+            appearance={{ ...tableProps.appearance, displayMode: 'fullscreen' }}
           />
         </FullscreenModal>
       )}

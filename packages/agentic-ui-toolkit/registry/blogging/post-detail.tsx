@@ -10,6 +10,9 @@ import {
 import { Calendar, Clock, ExternalLink } from 'lucide-react'
 import { Post } from './post-card'
 
+// Import shared OpenAI types
+import '@/lib/openai-types' // Side effect: extends Window interface
+
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '')
 }
@@ -166,6 +169,17 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
   const { onBack, onReadMore, onReadRelated } = actions ?? {}
   const { showCover = true, showAuthor = true, displayMode = 'fullscreen' } = appearance ?? {}
+
+  // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
+  const handleReadMore = () => {
+    if (onReadMore) {
+      onReadMore()
+    } else if (typeof window !== 'undefined' && window.openai) {
+      // Request fullscreen mode from ChatGPT host
+      window.openai.requestDisplayMode({ mode: 'fullscreen' })
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'long',
@@ -224,7 +238,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           )}
 
           <div className="mt-4">
-            <Button onClick={onReadMore}>
+            <Button onClick={handleReadMore}>
               Read more
             </Button>
           </div>

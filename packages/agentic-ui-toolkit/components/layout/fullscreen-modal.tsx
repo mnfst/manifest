@@ -11,6 +11,23 @@ export interface FullscreenModalProps {
   onClose?: () => void
 }
 
+/**
+ * Fullscreen modal that simulates the host's fullscreen container.
+ *
+ * IMPORTANT: This is for PREVIEW mode only on our website.
+ * In real ChatGPT/Claude environments, the HOST controls the fullscreen container.
+ * Our components should NOT render this directly - they call requestDisplayMode('fullscreen')
+ * and the host wraps them in their own fullscreen container.
+ *
+ * Usage (in preview wrapper, NOT in distributed components):
+ * ```tsx
+ * {isFullscreen && (
+ *   <FullscreenModal appName="My App" onClose={() => setIsFullscreen(false)}>
+ *     <MyComponent displayMode="fullscreen" />
+ *   </FullscreenModal>
+ * )}
+ * ```
+ */
 export function FullscreenModal({
   children,
   appName,
@@ -19,7 +36,7 @@ export function FullscreenModal({
 }: FullscreenModalProps) {
   return (
     <div className="fixed top-14 bottom-0 left-0 right-0 md:left-[226px] z-40 flex flex-col bg-background">
-      {/* Header */}
+      {/* Header - simulates ChatGPT's fullscreen header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
         <button
           onClick={onClose}
@@ -43,7 +60,7 @@ export function FullscreenModal({
         )}
       </header>
 
-      {/* Content */}
+      {/* Content - component fills this space at 100% */}
       <div className="flex-1 overflow-auto overscroll-contain">{children}</div>
     </div>
   )
