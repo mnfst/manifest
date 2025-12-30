@@ -64,10 +64,9 @@ Manifest is a set of several packages and [repositories](https://github.com/orgs
 From the root of the repository, run:
 
 ```
-npm install
-npm install --workspaces
+pnpm install
 
-npm run dev
+pnpm run dev
 ```
 
 Then you can play around with your `manifest.yml` file at `packages/core/manifest/manifest/manifest.yml` and see the results:
@@ -78,13 +77,13 @@ Then you can play around with your `manifest.yml` file at `packages/core/manifes
 Once the app is running, don't forget to seed to generate an _admin_ user and dummy data:
 
 ```
-npm run seed
+pnpm run seed
 ```
 
 ### Test
 
 ```
-npm run test
+pnpm run test
 ```
 
 **Happy coding!** 🤗
