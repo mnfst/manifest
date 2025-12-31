@@ -17,7 +17,6 @@ import {
 import { cn } from '@/lib/utils'
 
 // Import shared OpenAI types
-import '@/lib/openai-types' // Side effect: extends Window interface
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -37,15 +36,15 @@ import {
   Type
 } from 'lucide-react'
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
-import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
+import type { DisplayMode, OpenAiProperties } from '@/lib/openai-types'
 
 // =============================================================================
 // Hook to subscribe to window.openai changes (official pattern)
 // =============================================================================
 
-function useOpenAIGlobal<K extends keyof OpenAIBridge>(
+function useOpenAIGlobal<K extends keyof OpenAiProperties>(
   key: K
-): OpenAIBridge[K] | undefined {
+): OpenAiProperties[K] | undefined {
   return useSyncExternalStore(
     (onChange) => {
       if (typeof window === 'undefined') return () => {}
