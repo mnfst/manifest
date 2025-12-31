@@ -1,18 +1,23 @@
 // =============================================================================
 // OpenAI Apps SDK TypeScript types
-// Re-exports from skybridge/web which provides the canonical types
+// These types are compatible with skybridge/web which extends Window globally
 // https://developers.openai.com/apps-sdk/reference/
 // =============================================================================
 
-// Re-export types from skybridge/web
-export type {
-  DisplayMode,
-  Theme,
-  OpenAiMethods,
-  OpenAiProperties
-} from 'skybridge/web'
+export type DisplayMode = 'inline' | 'fullscreen' | 'pip'
+export type Theme = 'light' | 'dark'
 
-// Legacy alias for backwards compatibility
-import type { OpenAiMethods, OpenAiProperties } from 'skybridge/web'
+// Properties available on window.openai (read-only context)
+export type OpenAiProperties = {
+  theme: Theme
+  displayMode: DisplayMode
+  maxHeight: number
+  locale: string
+  toolInput: Record<string, unknown>
+  toolOutput: Record<string, unknown> | { text: string } | null
+  toolResponseMetadata: Record<string, unknown> | null
+  widgetState: Record<string, unknown> | null
+}
 
-export type OpenAIBridge = OpenAiMethods & OpenAiProperties
+// Note: window.openai is globally typed by skybridge/web
+// We only define the property types needed for our components
