@@ -1,7 +1,16 @@
-import { mountWidget } from "skybridge/web";
+import { mountWidget } from 'skybridge/web'
+
+// Import components from the registry:
+// npx shadcn@latest add @manifest-dev/x-post
+// import { XPost } from '../components/x-post'
 
 const MyWidget: React.FC = () => {
-  return <h1>Canvas</h1>;
-};
+  return (
+    <div>
+      <h1>Hello world</h1>
+      {/* Add your components here */}
+    </div>
+  )
+}
 
-mountWidget(<MyWidget />);
+mountWidget(<MyWidget />)

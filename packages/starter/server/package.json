@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "main": "dist/index.js",
-  "description": "Alpic MCP Server Template",
+  "description": "Manifest MCP Server",
   "files": [
     "dist"
   ],
@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "lint": "biome ci",
+    "lint": "prettier --check .",
     "start": "node dist/index.js",
     "inspector": "mcp-inspector http://localhost:3000/mcp"
   },

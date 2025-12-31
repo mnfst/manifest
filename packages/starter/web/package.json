@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "echo 'Not implemented",
+    "dev": "echo 'Not implemented'",
     "build": "tsc -b && vite build",
-    "lint": "biome ci",
+    "lint": "prettier --check .",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -28,8 +28,8 @@ export function GettingStarted() {
         <h1 className="text-2xl font-bold">Getting Started</h1>
         <p className="text-muted-foreground mt-2">
           Manifest UI is a shadcn/ui component library for building ChatGPT
-          Apps. You can either start a new project with Manifest UI pre-installed
-          or add Manifest UI to your existing app:
+          Apps. You can either start a new project with Manifest UI
+          pre-installed or add Manifest UI to your existing app:
         </p>
       </div>
 
@@ -93,7 +93,9 @@ export function GettingStarted() {
           >
             Skybridge
           </a>{' '}
-          library for live reloads and simpler API. Simply run this command:
+          library for live reloads and simpler API. This MCP server exposes one
+          tool call **canvas** that is a placeholder for your future UIs. Simply
+          run this single command to get started:
         </p>
 
         <CodeBlock code="npx create-manifest@latest my-chatgpt-app" />
@@ -127,7 +129,9 @@ export function GettingStarted() {
             MCP Inspector
           </a>
           , but if you want to see your app in ChatGPT, you will need one more
-          step as ChatGPT only accepts <code className="text-sm bg-muted px-1.5 py-0.5 rounded">https</code> URLs. Install{' '}
+          step as ChatGPT only accepts{' '}
+          <code className="text-sm bg-muted px-1.5 py-0.5 rounded">https</code>{' '}
+          URLs. Install{' '}
           <a
             href="https://ngrok.com"
             target="_blank"
@@ -143,13 +147,18 @@ export function GettingStarted() {
 
         <p className="text-muted-foreground">
           Then go to ChatGPT, create a new app in{' '}
-          <span className="font-medium text-foreground">Settings &gt; Apps</span>{' '}
+          <span className="font-medium text-foreground">
+            Settings &gt; Apps
+          </span>{' '}
           and add the ngrok URL to connect it.
         </p>
       </section>
 
       {/* Add to Existing Section */}
-      <section id="add-to-existing" className="space-y-6 pt-8 border-t scroll-mt-8">
+      <section
+        id="add-to-existing"
+        className="space-y-6 pt-8 border-t scroll-mt-8"
+      >
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10 text-primary">
             <FolderPlus className="h-5 w-5" />

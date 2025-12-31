@@ -1,32 +1,33 @@
-import { McpServer } from "skybridge/server";
+import { McpServer } from 'skybridge/server'
 
 const server = new McpServer(
   {
-    name: "alpic-openai-app",
-    version: "0.0.1",
+    name: 'manifest-starter',
+    version: '0.0.1'
   },
-  { capabilities: {} },
+  { capabilities: {} }
 ).registerWidget(
-  "canvas", // Must match the filename: my-widget.tsx
+  'canvas', // Must match the filename: canvas.tsx
   {},
   {
-    description: "Canvas widget",
+    description:
+      'Canvas widget. Use this the display the canvas with elements.',
     inputSchema: {
-      message: { type: "string" },
-    },
+      message: { type: 'string' }
+    }
   },
   async ({ message }) => {
     // Your widget logic here
     return {
       content: [
         {
-          type: "text",
-          text: message || "Hello World",
-        },
-      ],
-    };
-  },
-);
+          type: 'text',
+          text: message || 'Hello World'
+        }
+      ]
+    }
+  }
+)
 
-export default server;
-export type AppType = typeof server;
+export default server
+export type AppType = typeof server
