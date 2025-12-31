@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm run registry:build && next dev --webpack",
+    "dev": "pnpm run registry:build && next dev --turbopack -p 3001",
     "build": "pnpm run registry:build && next build",
     "start": "next start",
     "lint": "eslint .",

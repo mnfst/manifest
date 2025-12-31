@@ -6,6 +6,10 @@
   "bin": {
     "create-manifest": "./index.js"
   },
+  "scripts": {
+    "prepublishOnly": "cp -r ../starter ./starter",
+    "postpublish": "rm -rf ./starter"
+  },
   "files": [
     "index.js",
     "starter"
