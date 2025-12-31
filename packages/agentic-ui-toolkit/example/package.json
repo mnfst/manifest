@@ -1,0 +1,23 @@
+{
+  "name": "apps-sdk-template",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Alpic MCP Server Template",
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "scripts": {
+    "dev": "pnpm --filter @apps-sdk-template/server dev",
+    "build": "pnpm web:build && rm -rf server/dist && pnpm --filter=@apps-sdk-template/server --prod deploy server/dist && cp -r web/dist server/dist/assets && pnpm --filter=@apps-sdk-template/server build",
+    "lint": "biome ci",
+    "start": "pnpm server:start",
+    "inspector": "pnpm --filter @apps-sdk-template/server inspector",
+    "server:build": "pnpm --filter @apps-sdk-template/server build",
+    "server:start": "pnpm --filter @apps-sdk-template/server start",
+    "web:build": "pnpm --filter @apps-sdk-template/web build",
+    "web:preview": "pnpm --filter @apps-sdk-template/web preview"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "tsx": "^4.19.4"
+  }
+}
