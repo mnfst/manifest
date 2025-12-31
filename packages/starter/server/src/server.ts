@@ -1,4 +1,5 @@
 import { McpServer } from 'skybridge/server'
+import { z } from 'zod'
 
 const server = new McpServer(
   {
@@ -13,7 +14,7 @@ const server = new McpServer(
     description:
       'Canvas widget. Use this the display the canvas with elements.',
     inputSchema: {
-      message: { type: 'string' }
+      message: z.string().optional()
     }
   },
   async ({ message }) => {
