@@ -34,6 +34,7 @@ pnpm run dev
 ```
 
 This runs both packages in parallel via Turborepo:
+
 - **Registry** at `http://localhost:3001` - Component documentation
 - **Starter** at `http://localhost:3000` - Example MCP server
 
@@ -47,6 +48,8 @@ npx shadcn@latest add @manifest-dev/x-post
 This downloads the component, installs dependencies, and creates the file in `src/components/`.
 
 Browse available components at `http://localhost:3001`.
+
+> ⚠ Make sure that your are not commiting files in the "starter" package unless you are working on this package.
 
 ## Connecting to ChatGPT
 
@@ -76,12 +79,12 @@ The MCP server endpoint is available at `/mcp`, not at the root path.
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm run dev` | Start all dev servers (registry + starter) |
-| `pnpm run build` | Build all packages |
-| `pnpm run lint` | Lint all packages |
-| `pnpm run test` | Run tests |
+| Command          | Description                                |
+| ---------------- | ------------------------------------------ |
+| `pnpm run dev`   | Start all dev servers (registry + starter) |
+| `pnpm run build` | Build all packages                         |
+| `pnpm run lint`  | Lint all packages                          |
+| `pnpm run test`  | Run tests                                  |
 
 ## Working with Individual Packages
 
