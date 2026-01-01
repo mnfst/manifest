@@ -2,12 +2,31 @@
 
 A custom shadcn component registry built with Next.js 15 and Tailwind v4.
 
+## Prerequisites
+
+- **Node.js** (v18 or later)
+- **pnpm** (package manager)
+- **ngrok** - Required for proxying the example app to the web. Install from [ngrok.com](https://ngrok.com/download) or via:
+  ```bash
+  # macOS
+  brew install ngrok
+
+  # Linux (snap)
+  snap install ngrok
+
+  # Or download from https://ngrok.com/download
+  ```
+
 ## Getting Started
 
 ### Install dependencies
 
 ```bash
+# Install registry dependencies
 pnpm install
+
+# Install example project dependencies
+pnpm run example:install
 ```
 
 ### Serve the development UI
@@ -16,7 +35,31 @@ pnpm install
 pnpm run dev
 ```
 
-This starts the Next.js development server with Turbopack at `http://localhost:3000`.
+This starts two services concurrently:
+- **Registry**: Next.js dev server at `http://localhost:3001`
+- **Example**: Example MCP server at `http://localhost:3000`
+
+> **Note**: The example server runs on port 3000 because the skybridge library requires Vite dev server on this port for HMR to work correctly.
+
+### Expose the example server with ngrok
+
+To connect your example app to external services like ChatGPT, you need to expose port 3000 to the web using ngrok. In a separate terminal:
+
+```bash
+ngrok http 3000
+```
+
+Copy the public URL (e.g., `https://xxxx.ngrok-free.app`) and use it to configure your MCP connection.
+
+### Run registry only
+
+If you only need the registry without the example app:
+
+```bash
+pnpm run dev:registry
+```
+
+This starts only the Next.js development server with Turbopack at `http://localhost:3001`.
 
 ### Build the registry
 

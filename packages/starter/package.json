@@ -1,0 +1,24 @@
+{
+  "name": "manifest-starter",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Manifest MCP Server Starter",
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "scripts": {
+    "dev": "pnpm --filter @manifest-starter/server dev",
+    "build": "pnpm web:build && rm -rf server/dist && pnpm --filter=@manifest-starter/server --prod deploy server/dist && cp -r web/dist server/dist/assets && pnpm --filter=@manifest-starter/server build",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "start": "pnpm server:start",
+    "inspector": "pnpm --filter @manifest-starter/server inspector",
+    "server:build": "pnpm --filter @manifest-starter/server build",
+    "server:start": "pnpm --filter @manifest-starter/server start",
+    "web:build": "pnpm --filter @manifest-starter/web build",
+    "web:preview": "pnpm --filter @manifest-starter/web preview"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.4"
+  }
+}

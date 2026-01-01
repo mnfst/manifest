@@ -2,7 +2,7 @@
   "name": "manifest",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=registry --filter=manifest-starter",
     "lint": "turbo run lint",
     "test": "turbo run test"
   },

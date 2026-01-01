@@ -3,7 +3,7 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export interface StatCardProps {
+export interface StatCard {
   label: string
   value: string | number
   change?: number
@@ -14,11 +14,11 @@ export interface StatCardProps {
 
 export interface StatsProps {
   data?: {
-    stats?: StatCardProps[]
+    stats?: StatCard[]
   }
 }
 
-const defaultStats: StatCardProps[] = [
+const defaultStats: StatCard[] = [
   { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
   { label: "Orders", value: "342", change: -3.2, trend: "down" },
   { label: "Customers", value: "1,205", change: 0, trend: "neutral" },
