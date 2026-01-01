@@ -32,10 +32,8 @@ jobs:
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', '.npmrc') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
       - name: Install dependencies
-        run: pnpm install --force
+        run: pnpm install
       - name: Build App
         run: pnpm run build
       - name: Run tests
