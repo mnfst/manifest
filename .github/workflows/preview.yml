@@ -31,11 +31,20 @@ jobs:
           echo "Deploying..."
           railway up --service generator --ci --detach
 
-          # Get the deployment URL
-          DEPLOY_URL=$(railway domain --service generator --json 2>/dev/null | jq -r '.[0]' || echo "")
-          if [ -z "$DEPLOY_URL" ] || [ "$DEPLOY_URL" = "null" ]; then
-            DEPLOY_URL=$(railway domain --service generator 2>/dev/null | head -1 || echo "")
+          # Get the deployment URL from status
+          echo "Getting deployment URL..."
+          railway status --json > status.json 2>/dev/null || true
+          cat status.json
+
+          # Try to extract domain from status
+          DEPLOY_URL=$(jq -r '.domains[0] // empty' status.json 2>/dev/null || echo "")
+
+          # If no domain found, try railway open --json
+          if [ -z "$DEPLOY_URL" ]; then
+            DEPLOY_URL=$(railway service --json 2>/dev/null | jq -r '.serviceInfo.deployments[0].staticUrl // empty' || echo "")
           fi
+
+          echo "Deployment URL: $DEPLOY_URL"
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
