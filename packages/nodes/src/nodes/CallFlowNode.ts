@@ -11,6 +11,7 @@ export const CallFlowNode: NodeTypeDefinition = {
   displayName: 'Call Flow',
   icon: 'git-branch',
   group: ['flow', 'logic'],
+  category: 'action',
   description: 'Invoke another flow and pass its result to connected nodes.',
 
   inputs: ['main'],

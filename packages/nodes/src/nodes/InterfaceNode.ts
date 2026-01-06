@@ -9,9 +9,10 @@ import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
  */
 export const InterfaceNode: NodeTypeDefinition = {
   name: 'Interface',
-  displayName: 'Display Interface',
+  displayName: 'Agentic Interface',
   icon: 'layout-template',
   group: ['ui', 'display'],
+  category: 'interface',
   description: 'Display a UI interface with data in a layout template. Supports user actions.',
 
   inputs: ['main'],

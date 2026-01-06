@@ -9,8 +9,27 @@ import type {
   UpdateNodeRequest,
   UpdateNodePositionRequest,
   CreateConnectionRequest,
+  NodeTypeCategory,
 } from '@chatgpt-app-builder/shared';
 import { v4 as uuidv4 } from 'uuid';
+import { builtInNodeList, toNodeTypeInfo, type NodeTypeInfo } from '@chatgpt-app-builder/nodes';
+
+/**
+ * Category info for grouping nodes in the UI
+ */
+interface CategoryInfo {
+  id: NodeTypeCategory;
+  displayName: string;
+  order: number;
+}
+
+/**
+ * Response for GET /api/node-types
+ */
+export interface NodeTypesResponse {
+  nodeTypes: NodeTypeInfo[];
+  categories: CategoryInfo[];
+}
 
 /**
  * Service for Node and Connection CRUD operations.
@@ -22,6 +41,27 @@ export class NodeService {
     @InjectRepository(FlowEntity)
     private readonly flowRepository: Repository<FlowEntity>
   ) {}
+
+  // ==========================================================================
+  // Node Types API
+  // ==========================================================================
+
+  /**
+   * Get all available node types with their metadata and categories.
+   * Used by the frontend to populate the add-step modal.
+   */
+  getNodeTypes(): NodeTypesResponse {
+    const nodeTypes = builtInNodeList.map(toNodeTypeInfo);
+
+    const categories: CategoryInfo[] = [
+      { id: 'trigger', displayName: 'Triggers', order: 1 },
+      { id: 'interface', displayName: 'Agentic Interfaces', order: 2 },
+      { id: 'action', displayName: 'Actions', order: 3 },
+      { id: 'return', displayName: 'Return Values', order: 4 },
+    ];
+
+    return { nodeTypes, categories };
+  }
 
   // ==========================================================================
   // Node CRUD Operations (T026-T030)
@@ -162,7 +202,7 @@ export class NodeService {
   /**
    * T031: Add a new connection between nodes.
    * Validates that source and target nodes exist.
-   * Special case: 'user-intent' is a virtual trigger node that always exists when a flow has toolDescription.
+   * Validates that target node is not a trigger node (trigger nodes only have outputs).
    */
   async addConnection(flowId: string, request: CreateConnectionRequest): Promise<Connection> {
     const flow = await this.findFlow(flowId);
@@ -170,15 +210,19 @@ export class NodeService {
     const connections = flow.connections ?? [];
 
     // Validate source node exists
-    // 'user-intent' is a virtual node representing the flow trigger (always valid if flow has toolDescription)
-    const isUserIntentSource = request.sourceNodeId === 'user-intent';
-    if (!isUserIntentSource && !nodes.some((n) => n.id === request.sourceNodeId)) {
+    if (!nodes.some((n) => n.id === request.sourceNodeId)) {
       throw new BadRequestException(`Source node ${request.sourceNodeId} not found in flow`);
     }
 
     // Validate target node exists
-    if (!nodes.some((n) => n.id === request.targetNodeId)) {
+    const targetNode = nodes.find((n) => n.id === request.targetNodeId);
+    if (!targetNode) {
       throw new BadRequestException(`Target node ${request.targetNodeId} not found in flow`);
+    }
+
+    // Validate target node is not a trigger node (trigger nodes don't accept incoming connections)
+    if (targetNode.type === 'UserIntent') {
+      throw new BadRequestException('Cannot create connection to trigger node. Trigger nodes do not accept incoming connections.');
     }
 
     // Prevent self-connections

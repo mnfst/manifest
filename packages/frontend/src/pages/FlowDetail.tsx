@@ -14,7 +14,6 @@ import { api, ApiClientError } from '../lib/api';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
-import { UserIntentModal } from '../components/flow/UserIntentModal';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
 import { AddStepModal } from '../components/flow/AddStepModal';
 import { NodeEditModal } from '../components/flow/NodeEditModal';
@@ -44,11 +43,6 @@ function FlowDetail() {
   const [deletionCheck, setDeletionCheck] = useState<FlowDeletionCheck | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCheckingDeletion, setIsCheckingDeletion] = useState(false);
-
-  // User intent modal state
-  const [showUserIntentModal, setShowUserIntentModal] = useState(false);
-  const [isSavingUserIntent, setIsSavingUserIntent] = useState(false);
-  const [userIntentError, setUserIntentError] = useState<string | null>(null);
 
   // Add step modal state
   const [showAddStepModal, setShowAddStepModal] = useState(false);
@@ -190,45 +184,6 @@ function FlowDetail() {
     }
   };
 
-  const handleUserIntentEdit = () => {
-    setShowUserIntentModal(true);
-    setUserIntentError(null);
-  };
-
-  const handleCloseUserIntentModal = () => {
-    if (!isSavingUserIntent) {
-      setShowUserIntentModal(false);
-      setUserIntentError(null);
-    }
-  };
-
-  const handleSaveUserIntent = async (data: {
-    toolDescription: string;
-    whenToUse: string;
-    whenNotToUse: string;
-  }) => {
-    if (!flowId) return;
-
-    setIsSavingUserIntent(true);
-    setUserIntentError(null);
-
-    try {
-      const updatedFlow = await api.updateFlow(flowId, data);
-      // Close modal first to prevent any race conditions with state updates
-      setShowUserIntentModal(false);
-      // Then update the flow state
-      setFlow(updatedFlow);
-    } catch (err) {
-      if (err instanceof ApiClientError) {
-        setUserIntentError(err.message);
-      } else {
-        setUserIntentError('Failed to save user intent');
-      }
-    } finally {
-      setIsSavingUserIntent(false);
-    }
-  };
-
   // Node handlers
   const handleNodeEdit = useCallback((node: NodeInstance) => {
     setNodeToEdit(node);
@@ -267,15 +222,15 @@ function FlowDetail() {
   }, []);
 
   const handleConnectionsChange = useCallback((connections: Connection[]) => {
-    if (!flow) return;
-    setFlow({ ...flow, connections });
-  }, [flow]);
+    // Use functional update to avoid depending on flow object (prevents callback instability)
+    setFlow(prevFlow => prevFlow ? { ...prevFlow, connections } : null);
+  }, []);
 
   const handleAddStep = useCallback(() => {
     setShowAddStepModal(true);
   }, []);
 
-  const handleAddStepSelect = (stepType: 'Interface' | 'Return' | 'CallFlow') => {
+  const handleAddStepSelect = (stepType: NodeType) => {
     // Close the add step modal and open the node edit modal in create mode
     setShowAddStepModal(false);
     setNodeToEdit(null);
@@ -467,9 +422,7 @@ function FlowDetail() {
                 flow={flow}
                 onNodeEdit={handleNodeEdit}
                 onNodeDelete={handleNodeDelete}
-                onUserIntentEdit={handleUserIntentEdit}
                 onMockDataEdit={handleMockDataEdit}
-                onAddUserIntent={handleUserIntentEdit}
                 onAddStep={handleAddStep}
                 canDelete={canDeleteNodes}
                 onConnectionsChange={handleConnectionsChange}
@@ -521,16 +474,6 @@ function FlowDetail() {
         title="Delete Node"
         message={`Are you sure you want to delete "${nodeToDelete?.name}"? This will also remove any connections to this node.`}
         isLoading={isDeletingNode}
-      />
-
-      {/* User Intent Modal */}
-      <UserIntentModal
-        isOpen={showUserIntentModal}
-        onClose={handleCloseUserIntentModal}
-        onSave={handleSaveUserIntent}
-        flow={flow}
-        isLoading={isSavingUserIntent}
-        error={userIntentError}
       />
 
       {/* Add Step Modal */}

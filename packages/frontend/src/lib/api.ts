@@ -27,7 +27,40 @@ import type {
   UpdateNodeRequest,
   UpdateNodePositionRequest,
   CreateConnectionRequest,
+  NodeTypeCategory,
 } from '@chatgpt-app-builder/shared';
+
+/**
+ * Node type info returned by GET /api/node-types
+ */
+export interface NodeTypeInfo {
+  name: string;
+  displayName: string;
+  icon: string;
+  group: string[];
+  category: NodeTypeCategory;
+  description: string;
+  inputs: string[];
+  outputs: string[];
+  defaultParameters: Record<string, unknown>;
+}
+
+/**
+ * Category info for grouping nodes in the UI
+ */
+export interface CategoryInfo {
+  id: NodeTypeCategory;
+  displayName: string;
+  order: number;
+}
+
+/**
+ * Response from GET /api/node-types
+ */
+export interface NodeTypesResponse {
+  nodeTypes: NodeTypeInfo[];
+  categories: CategoryInfo[];
+}
 
 /**
  * API base URL - uses Vite proxy in development
@@ -266,6 +299,14 @@ export const api = {
   // ============================================
   // Node Management APIs (new unified architecture)
   // ============================================
+
+  /**
+   * Get all available node types with metadata
+   * GET /api/node-types
+   */
+  async getNodeTypes(): Promise<NodeTypesResponse> {
+    return fetchApi<NodeTypesResponse>('/node-types');
+  },
 
   /**
    * Get all nodes in a flow

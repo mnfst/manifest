@@ -137,13 +137,22 @@ export interface Position {
 }
 
 // =============================================================================
+// Node Type Categories
+// =============================================================================
+
+/**
+ * Classification for node types determining their role in flow execution.
+ */
+export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return';
+
+// =============================================================================
 // Node Types
 // =============================================================================
 
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'Interface' | 'Return' | 'CallFlow';
+export type NodeType = 'Interface' | 'Return' | 'CallFlow' | 'UserIntent';
 
 // =============================================================================
 // Node Instance (stored in Flow.nodes JSON column)
@@ -224,6 +233,17 @@ export interface ReturnNodeParameters {
 export interface CallFlowNodeParameters {
   /** ID of the target flow to invoke (null if unset) */
   targetFlowId: string | null;
+}
+
+/**
+ * Parameters for a UserIntent trigger node.
+ */
+export interface UserIntentNodeParameters {
+  /** Scenarios when AI should use this flow (max 500 chars) */
+  whenToUse?: string;
+
+  /** Scenarios when AI should NOT use this flow (max 500 chars) */
+  whenNotToUse?: string;
 }
 
 // =============================================================================
@@ -316,4 +336,13 @@ export function isCallFlowNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: CallFlowNodeParameters } {
   return node.type === 'CallFlow';
+}
+
+/**
+ * Check if a node is a UserIntent trigger node.
+ */
+export function isUserIntentNode(
+  node: NodeInstance
+): node is NodeInstance & { parameters: UserIntentNodeParameters } {
+  return node.type === 'UserIntent';
 }
