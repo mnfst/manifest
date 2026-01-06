@@ -34,15 +34,10 @@ jobs:
           # Get the deployment URL from status
           echo "Getting deployment URL..."
           railway status --json > status.json 2>/dev/null || true
-          cat status.json
 
-          # Try to extract domain from status
-          DEPLOY_URL=$(jq -r '.domains[0] // empty' status.json 2>/dev/null || echo "")
-
-          # If no domain found, try railway open --json
-          if [ -z "$DEPLOY_URL" ]; then
-            DEPLOY_URL=$(railway service --json 2>/dev/null | jq -r '.serviceInfo.deployments[0].staticUrl // empty' || echo "")
-          fi
+          # Extract domain for pr-$PR_NUMBER environment
+          PR_NUM=${{ github.event.pull_request.number }}
+          DEPLOY_URL=$(jq -r --arg env "pr-$PR_NUM" '.environments.edges[] | select(.node.name == $env) | .node.serviceInstances.edges[0].node.domains.serviceDomains[0].domain // empty' status.json 2>/dev/null || echo "")
 
           echo "Deployment URL: $DEPLOY_URL"
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
