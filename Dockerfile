@@ -130,8 +130,9 @@ ENV FRONTEND_DIST_PATH=/app/packages/frontend/dist
 EXPOSE 3001
 
 # Health check (use node since wget is not available in Alpine by default)
+# Uses PORT env var which Railway sets dynamically
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3001/api/apps', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"
+    CMD node -e "const port = process.env.PORT || 3001; require('http').get('http://localhost:' + port + '/api/apps', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"
 
 # Start the application
 CMD ["node", "packages/backend/dist/main.js"]

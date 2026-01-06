@@ -31,13 +31,21 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Enable CORS for frontend (allow all localhost ports in dev)
+  // Enable CORS
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
+      // Allow requests with no origin (like mobile apps, curl, or same-origin)
       if (!origin) return callback(null, true);
       // Allow any localhost origin in development
       if (origin.match(/^http:\/\/localhost:\d+$/)) {
+        return callback(null, true);
+      }
+      // Allow Railway and other production domains
+      if (origin.includes('.up.railway.app') || origin.includes('.railway.app')) {
+        return callback(null, true);
+      }
+      // In production, allow same-origin requests (frontend served by backend)
+      if (process.env.NODE_ENV === 'production') {
         return callback(null, true);
       }
       callback(null, false);
@@ -79,9 +87,9 @@ async function bootstrap() {
   }
 
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`\n🚀 Backend server running on http://localhost:${port}`);
+  console.log(`\n🚀 Backend server running on http://0.0.0.0:${port}`);
   console.log(`📡 API available at http://localhost:${port}/api`);
   console.log(`🔧 MCP servers at http://localhost:${port}/servers/{slug}/mcp`);
   console.log(`🌐 Frontend running on http://localhost:5173\n`);
