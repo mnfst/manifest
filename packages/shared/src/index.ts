@@ -55,11 +55,13 @@ export { ConnectorType, ConnectorCategory, getCategoryFromType } from './types/c
 export type {
   Position,
   NodeType,
+  NodeTypeCategory,
   NodeInstance,
   Connection,
   InterfaceNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
+  UserIntentNodeParameters,
   CreateNodeRequest,
   UpdateNodeRequest,
   UpdateNodePositionRequest,
@@ -76,6 +78,7 @@ export {
   isInterfaceNode,
   isReturnNode,
   isCallFlowNode,
+  isUserIntentNode,
   // Mock data utilities
   isTableMockData,
   isPostListMockData,

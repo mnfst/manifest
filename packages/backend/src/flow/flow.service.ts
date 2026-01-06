@@ -27,8 +27,6 @@ export class FlowService {
     description?: string;
     toolName: string;
     toolDescription: string;
-    whenToUse?: string;
-    whenNotToUse?: string;
     parameters?: FlowParameter[];
   }): Promise<Flow> {
     const entity = this.flowRepository.create({
@@ -37,8 +35,6 @@ export class FlowService {
       description: data.description,
       toolName: data.toolName,
       toolDescription: data.toolDescription,
-      whenToUse: data.whenToUse,
-      whenNotToUse: data.whenNotToUse,
       parameters: data.parameters ?? [],
       nodes: [],
       connections: [],
@@ -91,12 +87,6 @@ export class FlowService {
     }
     if (updates.toolDescription !== undefined) {
       entity.toolDescription = updates.toolDescription;
-    }
-    if (updates.whenToUse !== undefined) {
-      entity.whenToUse = updates.whenToUse;
-    }
-    if (updates.whenNotToUse !== undefined) {
-      entity.whenNotToUse = updates.whenNotToUse;
     }
     if (updates.isActive !== undefined) {
       entity.isActive = updates.isActive;
@@ -184,8 +174,6 @@ export class FlowService {
       description: entity.description,
       toolName: entity.toolName,
       toolDescription: entity.toolDescription,
-      whenToUse: entity.whenToUse,
-      whenNotToUse: entity.whenNotToUse,
       isActive: entity.isActive ?? true,
       parameters: entity.parameters ?? [],
       nodes: entity.nodes ?? [],

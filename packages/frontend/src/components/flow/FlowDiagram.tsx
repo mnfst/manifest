@@ -26,7 +26,6 @@ import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
 import { MockDataNode } from './MockDataNode';
 import { AddUserIntentNode } from './AddUserIntentNode';
-import { AddStepNode } from './AddStepNode';
 import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
 import { DeletableEdge } from './DeletableEdge';
@@ -35,9 +34,7 @@ interface FlowDiagramProps {
   flow: Flow;
   onNodeEdit: (node: NodeInstance) => void;
   onNodeDelete: (node: NodeInstance) => void;
-  onUserIntentEdit: () => void;
   onMockDataEdit: (node: NodeInstance) => void;
-  onAddUserIntent?: () => void;
   onAddStep?: () => void;
   canDelete: boolean;
   onConnectionsChange?: (connections: Connection[]) => void;
@@ -48,16 +45,17 @@ interface FlowDiagramProps {
  * Determines the current state of a flow based on its data
  */
 function getFlowState(flow: Flow) {
-  const hasUserIntent = Boolean(flow.toolDescription?.trim());
   const nodes = flow.nodes ?? [];
+  const userIntentNodes = nodes.filter(n => n.type === 'UserIntent');
   const interfaceNodes = nodes.filter(n => n.type === 'Interface');
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
+  const hasUserIntentNodes = userIntentNodes.length > 0;
   const hasInterfaceNodes = interfaceNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasSteps = hasInterfaceNodes || hasReturnNodes || hasCallFlowNodes;
-  return { hasUserIntent, hasInterfaceNodes, hasReturnNodes, hasCallFlowNodes, hasSteps, interfaceNodes, returnNodes, callFlowNodes };
+  return { hasUserIntentNodes, hasInterfaceNodes, hasReturnNodes, hasCallFlowNodes, hasSteps, userIntentNodes, interfaceNodes, returnNodes, callFlowNodes };
 }
 
 const nodeTypes = {
@@ -65,7 +63,6 @@ const nodeTypes = {
   userIntentNode: UserIntentNode,
   mockDataNode: MockDataNode,
   addUserIntentNode: AddUserIntentNode,
-  addStepNode: AddStepNode,
   returnValueNode: ReturnValueNode,
   callFlowNode: CallFlowNode,
 };
@@ -76,22 +73,31 @@ const edgeTypes = {
 
 /**
  * Visual diagram of nodes using React Flow
- * Displays user intent node followed by Interface, Return, or CallFlow nodes
+ * Displays UserIntent trigger nodes followed by Interface, Return, or CallFlow nodes
  */
 function FlowDiagramInner({
   flow,
   onNodeEdit,
   onNodeDelete,
-  onUserIntentEdit,
   onMockDataEdit,
-  onAddUserIntent,
   onAddStep,
   canDelete,
   onConnectionsChange,
   flowNameLookup = {},
 }: FlowDiagramProps) {
-  const flowState = getFlowState(flow);
+  // Memoize flow state to prevent recalculation on every render
+  const flowState = useMemo(() => getFlowState(flow), [flow.nodes]);
+
+  // Create a stable node lookup map (used by callbacks and edge generation)
+  const nodeMap = useMemo(() => {
+    const map = new Map<string, NodeInstance>();
+    (flow.nodes ?? []).forEach(n => map.set(n.id, n));
+    return map;
+  }, [flow.nodes]);
+
+  // Memoize connections array
   const connections = useMemo(() => flow.connections ?? [], [flow.connections]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const { fitView } = useReactFlow();
@@ -119,7 +125,7 @@ function FlowDiagramInner({
       fitView({ padding: 0.2 });
     }, 50);
     return () => clearTimeout(timer);
-  }, [flowState.hasUserIntent, nodeCount, fitView]);
+  }, [flowState.hasUserIntentNodes, nodeCount, fitView]);
 
   // Handle node click - check which button was clicked
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
@@ -127,7 +133,7 @@ function FlowDiagramInner({
     const button = target.closest('button');
     if (button) {
       const action = button.getAttribute('data-action');
-      const nodeInstance = flow.nodes?.find(n => n.id === node.id);
+      const nodeInstance = nodeMap.get(node.id);
       if (nodeInstance) {
         if (action === 'edit') {
           onNodeEdit(nodeInstance);
@@ -136,7 +142,7 @@ function FlowDiagramInner({
         }
       }
     }
-  }, [flow.nodes, onNodeEdit, onNodeDelete, canDelete]);
+  }, [nodeMap, onNodeEdit, onNodeDelete, canDelete]);
 
   // Check if adding a connection would create a cycle (client-side validation)
   const wouldCreateCycle = useCallback((sourceId: string, targetId: string): boolean => {
@@ -169,11 +175,16 @@ function FlowDiagramInner({
     // Prevent self-connections
     if (sourceId === targetId) return false;
 
+    // Prevent connections TO trigger nodes (UserIntent nodes)
+    // Use flowState.userIntentNodes for stable reference
+    const isTargetTrigger = flowState.userIntentNodes.some(n => n.id === targetId);
+    if (isTargetTrigger) return false;
+
     // Prevent circular connections
     if (wouldCreateCycle(sourceId, targetId)) return false;
 
     return true;
-  }, [wouldCreateCycle]);
+  }, [wouldCreateCycle, flowState.userIntentNodes]);
 
   // Handle new connection from any source handle to any target
   const onConnect = useCallback(async (connection: RFConnection) => {
@@ -206,12 +217,15 @@ function FlowDiagramInner({
     }
   }, [connections, onConnectionsChange]);
 
-  // Generate base nodes: User Intent node (or placeholder) + MockData nodes + Interface/Return/CallFlow nodes
+  // Generate base nodes: UserIntent nodes + MockData nodes + Interface/Return/CallFlow nodes + AddStep
   const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
-    // Show AddUserIntentNode placeholder if no user intent, otherwise show UserIntentNode
-    if (!flowState.hasUserIntent) {
+    // Track horizontal position for nodes without saved positions
+    let xPosition = 50;
+
+    // Show AddUserIntentNode placeholder if no UserIntent nodes exist
+    if (!flowState.hasUserIntentNodes) {
       // Centered placeholder for adding user intent
       const centerX = Math.max(200, (dimensions.width - 200) / 2);
       const centerY = Math.max(100, (dimensions.height - 100) / 2);
@@ -220,23 +234,27 @@ function FlowDiagramInner({
         type: 'addUserIntentNode',
         position: { x: centerX, y: centerY },
         data: {
-          onClick: onAddUserIntent || onUserIntentEdit,
+          onClick: onAddStep,
         },
       });
     } else {
-      // Add User Intent node at the beginning
-      nodeList.push({
-        id: 'user-intent',
-        type: 'userIntentNode',
-        position: { x: 50, y: 80 },
-        data: {
-          flow,
-          onEdit: onUserIntentEdit,
-        },
-      });
+      // Add UserIntent nodes (trigger nodes)
+      flowState.userIntentNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 80 };
+        nodeList.push({
+          id: node.id,
+          type: 'userIntentNode',
+          position: nodePos,
+          data: {
+            node,
+            canDelete,
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
+          },
+        });
 
-      // Track horizontal position for nodes without saved positions
-      let xPosition = 330;
+        xPosition = Math.max(xPosition, nodePos.x) + 280;
+      });
 
       // Add MockData nodes (above) and Interface nodes
       flowState.interfaceNodes.forEach((node) => {
@@ -312,22 +330,12 @@ function FlowDiagramInner({
 
         xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
-
-      // Always show AddStepNode when user intent exists - users can add unconnected nodes
-      if (onAddStep) {
-        nodeList.push({
-          id: 'add-step',
-          type: 'addStepNode',
-          position: { x: xPosition, y: 80 },
-          data: {
-            onClick: onAddStep,
-          },
-        });
-      }
     }
 
     return nodeList;
-  }, [flow, flowState, canDelete, dimensions, onNodeEdit, onNodeDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddStep, flowNameLookup]);
+  // Use specific dependencies instead of entire flow object to prevent unnecessary recalculations
+  // onAddStep is used for AddUserIntentNode placeholder when no triggers exist
+  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onMockDataEdit, onAddStep, flowNameLookup]);
 
   // State for draggable nodes - initialized from computedNodes and updated on drag
   const [nodes, setNodes] = useState<Node[]>(computedNodes);
@@ -364,35 +372,29 @@ function FlowDiagramInner({
   const edges = useMemo<Edge[]>(() => {
     const edgeList: Edge[] = [];
 
-    // Only show edges if we have user intent
-    if (!flowState.hasUserIntent) {
+    // Only show edges if we have UserIntent nodes
+    if (!flowState.hasUserIntentNodes) {
       return edgeList;
     }
 
     // Only show user-created connections from flow.connections
     connections.forEach((connection) => {
-      // Handle special case: connection from user-intent node
-      const isFromUserIntent = connection.sourceNodeId === 'user-intent';
+      // Verify source and target nodes exist using the stable nodeMap
+      const sourceNode = nodeMap.get(connection.sourceNodeId);
+      const targetNode = nodeMap.get(connection.targetNodeId);
 
-      // Verify source node exists (user-intent is a virtual node, always exists if hasUserIntent)
-      const sourceExists = isFromUserIntent || flow.nodes?.some(n => n.id === connection.sourceNodeId);
-      const targetExists = flow.nodes?.some(n => n.id === connection.targetNodeId);
-
-      if (!sourceExists || !targetExists) return;
+      if (!sourceNode || !targetNode) return;
 
       // Determine edge color based on source type
       let strokeColor = '#60a5fa'; // Default blue
-      if (isFromUserIntent) {
+      if (sourceNode.type === 'UserIntent') {
         strokeColor = '#60a5fa'; // Blue for user intent
-      } else {
-        const sourceNode = flow.nodes?.find(n => n.id === connection.sourceNodeId);
-        if (sourceNode?.type === 'Interface') {
-          strokeColor = '#60a5fa'; // Blue for interface
-        } else if (sourceNode?.type === 'Return') {
-          strokeColor = '#22c55e'; // Green for return
-        } else if (sourceNode?.type === 'CallFlow') {
-          strokeColor = '#a855f7'; // Purple for call flow
-        }
+      } else if (sourceNode.type === 'Interface') {
+        strokeColor = '#60a5fa'; // Blue for interface
+      } else if (sourceNode.type === 'Return') {
+        strokeColor = '#22c55e'; // Green for return
+      } else if (sourceNode.type === 'CallFlow') {
+        strokeColor = '#a855f7'; // Purple for call flow
       }
 
       edgeList.push({
@@ -417,7 +419,7 @@ function FlowDiagramInner({
     });
 
     return edgeList;
-  }, [flow.id, flow.nodes, flowState.hasUserIntent, connections, handleConnectionDelete]);
+  }, [flow.id, nodeMap, flowState.hasUserIntentNodes, connections, handleConnectionDelete]);
 
   return (
     <div ref={containerRef} className="w-full h-full bg-muted/30">

@@ -1,4 +1,4 @@
-import type { NodeInstance } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, NodeTypeCategory } from '@chatgpt-app-builder/shared';
 
 /**
  * Context provided to a node's execute function during flow execution.
@@ -48,6 +48,9 @@ export interface NodeTypeDefinition {
   /** Category tags for grouping in the node picker */
   group: string[];
 
+  /** Node type category for classification (trigger, interface, action, return) */
+  category: NodeTypeCategory;
+
   /** Description of what the node does */
   description: string;
 
@@ -77,6 +80,7 @@ export interface NodeTypeInfo {
   displayName: string;
   icon: string;
   group: string[];
+  category: NodeTypeCategory;
   description: string;
   inputs: string[];
   outputs: string[];

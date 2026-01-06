@@ -45,7 +45,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@chatgpt-app-builder/shared": "*"
+    "@chatgpt-app-builder/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

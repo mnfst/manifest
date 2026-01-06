@@ -68,7 +68,7 @@ export function ViewNode({ data, id }: NodeProps) {
           {/* Node info */}
           <div className="text-center w-full">
             <h3 className="font-medium text-gray-900 text-sm">
-              {node.name || 'Untitled Interface'}
+              {node.name || 'Agentic Interface'}
             </h3>
             <p className="text-xs text-gray-500 mt-1">{layoutTemplate}</p>
           </div>

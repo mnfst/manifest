@@ -13,6 +13,7 @@
     "db:init": "ts-node src/scripts/init-db.ts"
   },
   "dependencies": {
+    "@chatgpt-app-builder/nodes": "workspace:*",
     "@chatgpt-app-builder/shared": "workspace:*",
     "@langchain/core": "^0.3.26",
     "@langchain/openai": "^0.3.17",

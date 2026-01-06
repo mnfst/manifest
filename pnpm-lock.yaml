@@ -35,6 +35,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@chatgpt-app-builder/nodes':
+        specifier: workspace:*
+        version: link:../nodes
       '@chatgpt-app-builder/shared':
         specifier: workspace:*
         version: link:../shared
@@ -184,6 +187,16 @@ importers:
       vite:
         specifier: ^6.0.5
         version: 6.4.1(@types/node@22.19.3)(jiti@1.21.7)(terser@5.44.1)(tsx@4.21.0)
+
+  packages/nodes:
+    dependencies:
+      '@chatgpt-app-builder/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   packages/shared:
     devDependencies:

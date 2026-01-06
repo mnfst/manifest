@@ -27,8 +27,6 @@ export interface Flow {
   description?: string;
   toolName: string;
   toolDescription: string;
-  whenToUse?: string;
-  whenNotToUse?: string;
   isActive: boolean;
   parameters?: FlowParameter[];
   /** Node instances within this flow */
@@ -57,8 +55,6 @@ export interface UpdateFlowRequest {
   description?: string;
   toolName?: string;
   toolDescription?: string;
-  whenToUse?: string;
-  whenNotToUse?: string;
   isActive?: boolean;
   parameters?: FlowParameter[];
 }

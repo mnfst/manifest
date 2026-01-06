@@ -6,6 +6,7 @@ import type {
   InterfaceNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
+  UserIntentNodeParameters,
   LayoutTemplate,
   MockData,
 } from '@chatgpt-app-builder/shared';
@@ -13,7 +14,7 @@ import {
   DEFAULT_TABLE_MOCK_DATA,
   DEFAULT_POST_LIST_MOCK_DATA,
 } from '@chatgpt-app-builder/shared';
-import { X, Loader2, LayoutGrid, FileText, PhoneForwarded } from 'lucide-react';
+import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap } from 'lucide-react';
 
 interface NodeEditModalProps {
   isOpen: boolean;
@@ -69,6 +70,10 @@ export function NodeEditModal({
   // CallFlow node fields
   const [targetFlowId, setTargetFlowId] = useState<string | null>(null);
 
+  // UserIntent node fields
+  const [whenToUse, setWhenToUse] = useState('');
+  const [whenNotToUse, setWhenNotToUse] = useState('');
+
   // Initialize form when modal opens or node changes
   useEffect(() => {
     if (!isOpen) return;
@@ -87,6 +92,10 @@ export function NodeEditModal({
       } else if (node.type === 'CallFlow') {
         const params = node.parameters as unknown as CallFlowNodeParameters;
         setTargetFlowId(params?.targetFlowId || null);
+      } else if (node.type === 'UserIntent') {
+        const params = node.parameters as unknown as UserIntentNodeParameters;
+        setWhenToUse(params?.whenToUse || '');
+        setWhenNotToUse(params?.whenNotToUse || '');
       }
     } else {
       // Create mode - set defaults
@@ -95,6 +104,8 @@ export function NodeEditModal({
       setMockData(DEFAULT_TABLE_MOCK_DATA);
       setText('');
       setTargetFlowId(null);
+      setWhenToUse('');
+      setWhenNotToUse('');
     }
   }, [isOpen, node]);
 
@@ -115,6 +126,8 @@ export function NodeEditModal({
       parameters = { text };
     } else if (effectiveNodeType === 'CallFlow') {
       parameters = { targetFlowId };
+    } else if (effectiveNodeType === 'UserIntent') {
+      parameters = { whenToUse, whenNotToUse };
     }
 
     await onSave({ name, parameters });
@@ -148,6 +161,13 @@ export function NodeEditModal({
           title: isEditMode ? 'Edit Call Flow' : 'Create Call Flow',
           description: 'Invoke another flow in the app',
           color: 'purple',
+        };
+      case 'UserIntent':
+        return {
+          icon: <Zap className="w-5 h-5 text-blue-600" />,
+          title: isEditMode ? 'Edit User Intent' : 'Create User Intent',
+          description: 'Define when the AI should trigger this flow',
+          color: 'blue',
         };
     }
   };
@@ -288,6 +308,47 @@ export function NodeEditModal({
                   </p>
                 )}
               </div>
+            )}
+
+            {/* UserIntent-specific fields */}
+            {effectiveNodeType === 'UserIntent' && (
+              <>
+                <div>
+                  <label htmlFor="when-to-use" className="block text-sm font-medium text-gray-700 mb-1">
+                    When to Use
+                  </label>
+                  <textarea
+                    id="when-to-use"
+                    value={whenToUse}
+                    onChange={(e) => setWhenToUse(e.target.value)}
+                    placeholder="Describe scenarios when the AI should trigger this flow..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                    rows={3}
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Help the AI understand when this flow is the right choice.
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="when-not-to-use" className="block text-sm font-medium text-gray-700 mb-1">
+                    When Not to Use
+                  </label>
+                  <textarea
+                    id="when-not-to-use"
+                    value={whenNotToUse}
+                    onChange={(e) => setWhenNotToUse(e.target.value)}
+                    placeholder="Describe scenarios when the AI should NOT trigger this flow..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                    rows={3}
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Help the AI avoid triggering this flow inappropriately.
+                  </p>
+                </div>
+              </>
             )}
           </div>
 

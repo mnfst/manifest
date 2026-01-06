@@ -12,6 +12,7 @@ export const ReturnNode: NodeTypeDefinition = {
   displayName: 'Return Value',
   icon: 'corner-down-left',
   group: ['flow', 'output'],
+  category: 'return',
   description: 'Return a text value as the flow output. Terminates the current flow execution.',
 
   inputs: ['main'],
