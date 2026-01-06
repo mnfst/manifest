@@ -25,7 +25,7 @@ jobs:
           echo "Linking to pr-${{ github.event.pull_request.number }}..."
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
           echo "Deploying..."
-          railway up --ci --detach
+          railway up --service generator --ci --detach
 
   cleanup-preview:
     if: github.event.action == 'closed'
