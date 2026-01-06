@@ -7,6 +7,9 @@ import type {
   ReturnNodeParameters,
   CallFlowNodeParameters,
   UserIntentNodeParameters,
+  ApiCallNodeParameters,
+  HttpMethod,
+  HeaderEntry,
   LayoutTemplate,
   MockData,
 } from '@chatgpt-app-builder/shared';
@@ -14,7 +17,7 @@ import {
   DEFAULT_TABLE_MOCK_DATA,
   DEFAULT_POST_LIST_MOCK_DATA,
 } from '@chatgpt-app-builder/shared';
-import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap } from 'lucide-react';
+import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2 } from 'lucide-react';
 
 interface NodeEditModalProps {
   isOpen: boolean;
@@ -40,8 +43,16 @@ function getDefaultMockData(layout: LayoutTemplate): MockData {
   return DEFAULT_TABLE_MOCK_DATA;
 }
 
+const HTTP_METHODS: { value: HttpMethod; label: string }[] = [
+  { value: 'GET', label: 'GET' },
+  { value: 'POST', label: 'POST' },
+  { value: 'PUT', label: 'PUT' },
+  { value: 'DELETE', label: 'DELETE' },
+  { value: 'PATCH', label: 'PATCH' },
+];
+
 /**
- * Modal for creating and editing nodes (Interface, Return, CallFlow)
+ * Modal for creating and editing nodes (Interface, Return, CallFlow, UserIntent, ApiCall)
  */
 export function NodeEditModal({
   isOpen,
@@ -74,6 +85,12 @@ export function NodeEditModal({
   const [whenToUse, setWhenToUse] = useState('');
   const [whenNotToUse, setWhenNotToUse] = useState('');
 
+  // ApiCall node fields
+  const [apiMethod, setApiMethod] = useState<HttpMethod>('GET');
+  const [apiUrl, setApiUrl] = useState('');
+  const [apiHeaders, setApiHeaders] = useState<HeaderEntry[]>([]);
+  const [apiTimeout, setApiTimeout] = useState(30000);
+
   // Initialize form when modal opens or node changes
   useEffect(() => {
     if (!isOpen) return;
@@ -96,6 +113,12 @@ export function NodeEditModal({
         const params = node.parameters as unknown as UserIntentNodeParameters;
         setWhenToUse(params?.whenToUse || '');
         setWhenNotToUse(params?.whenNotToUse || '');
+      } else if (node.type === 'ApiCall') {
+        const params = node.parameters as unknown as ApiCallNodeParameters;
+        setApiMethod(params?.method || 'GET');
+        setApiUrl(params?.url || '');
+        setApiHeaders(params?.headers || []);
+        setApiTimeout(params?.timeout || 30000);
       }
     } else {
       // Create mode - set defaults
@@ -106,6 +129,10 @@ export function NodeEditModal({
       setTargetFlowId(null);
       setWhenToUse('');
       setWhenNotToUse('');
+      setApiMethod('GET');
+      setApiUrl('');
+      setApiHeaders([]);
+      setApiTimeout(30000);
     }
   }, [isOpen, node]);
 
@@ -128,9 +155,32 @@ export function NodeEditModal({
       parameters = { targetFlowId };
     } else if (effectiveNodeType === 'UserIntent') {
       parameters = { whenToUse, whenNotToUse };
+    } else if (effectiveNodeType === 'ApiCall') {
+      parameters = {
+        method: apiMethod,
+        url: apiUrl,
+        headers: apiHeaders,
+        timeout: apiTimeout,
+        inputMappings: [],
+      };
     }
 
     await onSave({ name, parameters });
+  };
+
+  // Header management for ApiCall
+  const addHeader = () => {
+    setApiHeaders([...apiHeaders, { key: '', value: '' }]);
+  };
+
+  const removeHeader = (index: number) => {
+    setApiHeaders(apiHeaders.filter((_, i) => i !== index));
+  };
+
+  const updateHeader = (index: number, field: 'key' | 'value', value: string) => {
+    const newHeaders = [...apiHeaders];
+    newHeaders[index] = { ...newHeaders[index], [field]: value };
+    setApiHeaders(newHeaders);
   };
 
   if (!isOpen || !effectiveNodeType) return null;
@@ -168,6 +218,13 @@ export function NodeEditModal({
           title: isEditMode ? 'Edit User Intent' : 'Create User Intent',
           description: 'Define when the AI should trigger this flow',
           color: 'blue',
+        };
+      case 'ApiCall':
+        return {
+          icon: <Globe className="w-5 h-5 text-orange-600" />,
+          title: isEditMode ? 'Edit API Call' : 'Create API Call',
+          description: 'Make HTTP requests to external APIs',
+          color: 'orange',
         };
     }
   };
@@ -346,6 +403,126 @@ export function NodeEditModal({
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Help the AI avoid triggering this flow inappropriately.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* ApiCall-specific fields */}
+            {effectiveNodeType === 'ApiCall' && (
+              <>
+                {/* Method dropdown */}
+                <div>
+                  <label htmlFor="api-method" className="block text-sm font-medium text-gray-700 mb-1">
+                    HTTP Method
+                  </label>
+                  <select
+                    id="api-method"
+                    value={apiMethod}
+                    onChange={(e) => setApiMethod(e.target.value as HttpMethod)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    disabled={isLoading}
+                  >
+                    {HTTP_METHODS.map((method) => (
+                      <option key={method.value} value={method.value}>
+                        {method.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* URL input */}
+                <div>
+                  <label htmlFor="api-url" className="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                  </label>
+                  <input
+                    id="api-url"
+                    type="text"
+                    value={apiUrl}
+                    onChange={(e) => setApiUrl(e.target.value)}
+                    placeholder="https://api.example.com/endpoint"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    required
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use {'{{nodeId.path}}'} syntax to reference upstream node outputs.
+                  </p>
+                </div>
+
+                {/* Headers editor */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Headers
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addHeader}
+                      disabled={isLoading}
+                      className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 disabled:opacity-50"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Header
+                    </button>
+                  </div>
+                  {apiHeaders.length === 0 ? (
+                    <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
+                      No headers configured. Click "Add Header" to add one.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {apiHeaders.map((header, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={header.key}
+                            onChange={(e) => updateHeader(index, 'key', e.target.value)}
+                            placeholder="Header name"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                            disabled={isLoading}
+                          />
+                          <input
+                            type="text"
+                            value={header.value}
+                            onChange={(e) => updateHeader(index, 'value', e.target.value)}
+                            placeholder="Header value"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                            disabled={isLoading}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeHeader(index)}
+                            disabled={isLoading}
+                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Timeout input */}
+                <div>
+                  <label htmlFor="api-timeout" className="block text-sm font-medium text-gray-700 mb-1">
+                    Timeout (ms)
+                  </label>
+                  <input
+                    id="api-timeout"
+                    type="number"
+                    value={apiTimeout}
+                    onChange={(e) => setApiTimeout(Math.max(1000, Math.min(300000, Number(e.target.value))))}
+                    min={1000}
+                    max={300000}
+                    step={1000}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Request timeout in milliseconds (1000-300000). Default: 30000 (30 seconds).
                   </p>
                 </div>
               </>
