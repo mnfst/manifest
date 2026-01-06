@@ -218,15 +218,6 @@ function FlowDetail() {
     }
   };
 
-  const handleMockDataEdit = useCallback((node: NodeInstance) => {
-    // Open the node edit modal for the Interface node
-    // Mock data is part of the Interface node's parameters
-    setNodeToEdit(node);
-    setNodeTypeToCreate(null);
-    setNodeEditError(null);
-    setShowNodeEditModal(true);
-  }, []);
-
   const handleConnectionsChange = useCallback((connections: Connection[]) => {
     // Use functional update to avoid depending on flow object (prevents callback instability)
     setFlow(prevFlow => prevFlow ? { ...prevFlow, connections } : null);
@@ -439,7 +430,6 @@ function FlowDetail() {
                   flow={flow}
                   onNodeEdit={handleNodeEdit}
                   onNodeDelete={handleNodeDelete}
-                  onMockDataEdit={handleMockDataEdit}
                   onAddStep={handleAddStep}
                   canDelete={canDeleteNodes}
                   onConnectionsChange={handleConnectionsChange}

@@ -19,12 +19,10 @@ import type {
   NodeInstance,
   Connection,
   CreateConnectionRequest,
-  InterfaceNodeParameters,
 } from '@chatgpt-app-builder/shared';
 import { api } from '../../lib/api';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
-import { MockDataNode } from './MockDataNode';
 import { AddUserIntentNode } from './AddUserIntentNode';
 import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
@@ -35,7 +33,6 @@ interface FlowDiagramProps {
   flow: Flow;
   onNodeEdit: (node: NodeInstance) => void;
   onNodeDelete: (node: NodeInstance) => void;
-  onMockDataEdit: (node: NodeInstance) => void;
   onAddStep?: () => void;
   canDelete: boolean;
   onConnectionsChange?: (connections: Connection[]) => void;
@@ -64,7 +61,6 @@ function getFlowState(flow: Flow) {
 const nodeTypes = {
   viewNode: ViewNode,
   userIntentNode: UserIntentNode,
-  mockDataNode: MockDataNode,
   addUserIntentNode: AddUserIntentNode,
   returnValueNode: ReturnValueNode,
   callFlowNode: CallFlowNode,
@@ -77,13 +73,12 @@ const edgeTypes = {
 
 /**
  * Visual diagram of nodes using React Flow
- * Displays UserIntent trigger nodes followed by Interface, Return, or CallFlow nodes
+ * Displays UserIntent trigger nodes followed by Interface, Return, CallFlow, or ApiCall nodes
  */
 function FlowDiagramInner({
   flow,
   onNodeEdit,
   onNodeDelete,
-  onMockDataEdit,
   onAddStep,
   canDelete,
   onConnectionsChange,
@@ -221,7 +216,7 @@ function FlowDiagramInner({
     }
   }, [connections, onConnectionsChange]);
 
-  // Generate base nodes: UserIntent nodes + MockData nodes + Interface/Return/CallFlow/ApiCall nodes + AddStep
+  // Generate base nodes: UserIntent nodes + Interface/Return/CallFlow/ApiCall nodes
   const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
@@ -260,25 +255,11 @@ function FlowDiagramInner({
         xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
 
-      // Add MockData nodes (above) and Interface nodes
+      // Add Interface nodes
       flowState.interfaceNodes.forEach((node) => {
-        const params = node.parameters as unknown as InterfaceNodeParameters;
         // Use saved position or calculate based on order
         const nodePos = node.position || { x: xPosition, y: 130 };
 
-        // MockData node (above interface)
-        nodeList.push({
-          id: `mockdata-${node.id}`,
-          type: 'mockDataNode',
-          position: { x: nodePos.x, y: nodePos.y - 110 },
-          data: {
-            mockData: params?.mockData,
-            layoutTemplate: params?.layoutTemplate || 'table',
-            onEdit: () => onMockDataEdit(node),
-          },
-        });
-
-        // Interface node
         nodeList.push({
           id: node.id,
           type: 'viewNode',
@@ -358,7 +339,7 @@ function FlowDiagramInner({
     return nodeList;
   // Use specific dependencies instead of entire flow object to prevent unnecessary recalculations
   // onAddStep is used for AddUserIntentNode placeholder when no triggers exist
-  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onMockDataEdit, onAddStep, flowNameLookup]);
+  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup]);
 
   // State for draggable nodes - initialized from computedNodes and updated on drag
   const [nodes, setNodes] = useState<Node[]>(computedNodes);
@@ -375,8 +356,8 @@ function FlowDiagramInner({
 
   // Persist node position when drag ends
   const onNodeDragStop = useCallback(async (_event: React.MouseEvent, node: Node) => {
-    // Skip virtual nodes (user-intent, add-step, mockdata-*)
-    if (node.id === 'user-intent' || node.id === 'add-step' || node.id.startsWith('mockdata-')) {
+    // Skip virtual nodes (user-intent, add-step)
+    if (node.id === 'user-intent' || node.id === 'add-step') {
       return;
     }
 

@@ -1,6 +1,6 @@
 import { DynamicStructuredTool } from '@langchain/core/tools';
 import { z } from 'zod';
-import type { LayoutTemplate, ThemeVariables, MockData } from '@chatgpt-app-builder/shared';
+import type { LayoutTemplate, ThemeVariables } from '@chatgpt-app-builder/shared';
 
 /**
  * Schema for config update input
@@ -23,11 +23,10 @@ interface ConfigUpdates {
   themeVariables?: ThemeVariables;
   toolName?: string;
   toolDescription?: string;
-  mockData?: MockData;
 }
 
 /**
- * Exported output type (includes mockData for layout changes)
+ * Exported output type
  */
 export interface ConfigUpdaterOutput {
   updates: ConfigUpdates;

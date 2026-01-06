@@ -72,12 +72,6 @@ export type {
   UpdateNodePositionRequest,
   BatchPositionUpdate,
   CreateConnectionRequest,
-  // Mock data types (moved from mock-data.ts)
-  MockData,
-  TableMockData,
-  PostListMockData,
-  TableColumn,
-  PostItem,
 } from './types/node.js';
 export {
   isInterfaceNode,
@@ -85,11 +79,6 @@ export {
   isCallFlowNode,
   isUserIntentNode,
   isApiCallNode,
-  // Mock data utilities
-  isTableMockData,
-  isPostListMockData,
-  DEFAULT_TABLE_MOCK_DATA,
-  DEFAULT_POST_LIST_MOCK_DATA,
 } from './types/node.js';
 
 // Execution types

@@ -12,6 +12,7 @@ import { AgentModule } from '../agent/agent.module';
 import { McpModule } from '../mcp/mcp.module';
 import { ConnectorModule } from '../connector/connector.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
+import { SeedModule } from '../seed/seed.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
     McpModule,
     ConnectorModule,
     FlowExecutionModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

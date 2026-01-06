@@ -11,7 +11,5 @@ export type { ToolGeneratorOutput } from './tool-generator';
 
 export { themeGeneratorTool } from './theme-generator';
 
-export { mockDataGeneratorTool } from './mock-data-generator';
-
 export { configUpdaterTool } from './config-updater';
 export type { ConfigUpdaterOutput } from './config-updater';

@@ -39,7 +39,7 @@ export function ViewNode({ data, id }: NodeProps) {
 
   return (
     <div className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
-      {/* Top handle for incoming connection from MockDataNode */}
+      {/* Top handle for incoming connection */}
       <Handle
         type="target"
         position={Position.Top}

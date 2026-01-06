@@ -1,5 +1,4 @@
 import type { App } from './app.js';
-import type { MockData } from './node.js';
 
 /**
  * MCP tool response following ChatGPT Apps SDK format
@@ -15,7 +14,7 @@ export interface McpToolResponse {
    * Structured data to pass to the UI component
    * Optional for return value flows and call flow flows that don't display UI
    */
-  structuredContent?: MockData | Record<string, unknown>;
+  structuredContent?: Record<string, unknown>;
 
   /**
    * Metadata for ChatGPT Apps SDK

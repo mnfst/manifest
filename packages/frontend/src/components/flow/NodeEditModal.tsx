@@ -11,11 +11,6 @@ import type {
   HttpMethod,
   HeaderEntry,
   LayoutTemplate,
-  MockData,
-} from '@chatgpt-app-builder/shared';
-import {
-  DEFAULT_TABLE_MOCK_DATA,
-  DEFAULT_POST_LIST_MOCK_DATA,
 } from '@chatgpt-app-builder/shared';
 import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2 } from 'lucide-react';
 
@@ -36,13 +31,6 @@ const LAYOUT_OPTIONS: { value: LayoutTemplate; label: string }[] = [
   { value: 'post-list', label: 'Post List' },
 ];
 
-function getDefaultMockData(layout: LayoutTemplate): MockData {
-  if (layout === 'post-list') {
-    return DEFAULT_POST_LIST_MOCK_DATA;
-  }
-  return DEFAULT_TABLE_MOCK_DATA;
-}
-
 const HTTP_METHODS: { value: HttpMethod; label: string }[] = [
   { value: 'GET', label: 'GET' },
   { value: 'POST', label: 'POST' },
@@ -50,6 +38,7 @@ const HTTP_METHODS: { value: HttpMethod; label: string }[] = [
   { value: 'DELETE', label: 'DELETE' },
   { value: 'PATCH', label: 'PATCH' },
 ];
+
 
 /**
  * Modal for creating and editing nodes (Interface, Return, CallFlow, UserIntent, ApiCall)
@@ -73,7 +62,6 @@ export function NodeEditModal({
 
   // Interface node fields
   const [layoutTemplate, setLayoutTemplate] = useState<LayoutTemplate>('table');
-  const [mockData, setMockData] = useState<MockData>(DEFAULT_TABLE_MOCK_DATA);
 
   // Return node fields
   const [text, setText] = useState('');
@@ -102,7 +90,6 @@ export function NodeEditModal({
       if (node.type === 'Interface') {
         const params = node.parameters as unknown as InterfaceNodeParameters;
         setLayoutTemplate(params?.layoutTemplate || 'table');
-        setMockData(params?.mockData || DEFAULT_TABLE_MOCK_DATA);
       } else if (node.type === 'Return') {
         const params = node.parameters as unknown as ReturnNodeParameters;
         setText(params?.text || '');
@@ -124,7 +111,6 @@ export function NodeEditModal({
       // Create mode - set defaults
       setName('');
       setLayoutTemplate('table');
-      setMockData(DEFAULT_TABLE_MOCK_DATA);
       setText('');
       setTargetFlowId(null);
       setWhenToUse('');
@@ -136,19 +122,13 @@ export function NodeEditModal({
     }
   }, [isOpen, node]);
 
-  const handleLayoutChange = (newLayout: LayoutTemplate) => {
-    setLayoutTemplate(newLayout);
-    // Update mock data to match the new layout
-    setMockData(getDefaultMockData(newLayout));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     let parameters: Record<string, unknown> = {};
 
     if (effectiveNodeType === 'Interface') {
-      parameters = { layoutTemplate, mockData };
+      parameters = { layoutTemplate };
     } else if (effectiveNodeType === 'Return') {
       parameters = { text };
     } else if (effectiveNodeType === 'CallFlow') {
@@ -289,33 +269,24 @@ export function NodeEditModal({
 
             {/* Interface-specific fields */}
             {effectiveNodeType === 'Interface' && (
-              <>
-                <div>
-                  <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
-                    Layout Template
-                  </label>
-                  <select
-                    id="layout-template"
-                    value={layoutTemplate}
-                    onChange={(e) => handleLayoutChange(e.target.value as LayoutTemplate)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                    disabled={isLoading}
-                  >
-                    {LAYOUT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-600">
-                    Mock data will be initialized with default values for the selected layout.
-                    You can edit the mock data after creating the node.
-                  </p>
-                </div>
-              </>
+              <div>
+                <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
+                  Layout Template
+                </label>
+                <select
+                  id="layout-template"
+                  value={layoutTemplate}
+                  onChange={(e) => setLayoutTemplate(e.target.value as LayoutTemplate)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  disabled={isLoading}
+                >
+                  {LAYOUT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
 
             {/* Return-specific fields */}
