@@ -11,7 +11,29 @@ env:
   HEALTH_CHECK_INTERVAL_SECONDS: 10
 
 jobs:
+  # Run Docker build check before deploying
+  docker-build:
+    if: github.event.action != 'closed'
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: chatgpt-app-builder:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy-preview:
+    needs: [docker-build]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
