@@ -1,0 +1,306 @@
+openapi: 3.0.3
+info:
+  title: Flow Execution Tracking API
+  description: REST API endpoints for flow execution history
+  version: 1.0.0
+
+paths:
+  /api/flows/{flowId}/executions:
+    get:
+      summary: List executions for a flow
+      description: Returns paginated list of executions for the specified flow, sorted by startedAt descending (most recent first)
+      operationId: listFlowExecutions
+      tags:
+        - Executions
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the flow
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number (1-indexed)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, fulfilled, error]
+          description: Filter by execution status
+      responses:
+        '200':
+          description: Paginated list of executions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionListResponse'
+        '404':
+          description: Flow not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/flows/{flowId}/executions/{executionId}:
+    get:
+      summary: Get execution details
+      description: Returns full details of a specific execution including node-by-node data
+      operationId: getFlowExecution
+      tags:
+        - Executions
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the flow
+        - name: executionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the execution
+      responses:
+        '200':
+          description: Execution details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowExecution'
+        '404':
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ExecutionStatus:
+      type: string
+      enum: [pending, fulfilled, error]
+      description: |
+        - pending: Execution is in progress
+        - fulfilled: Execution completed successfully
+        - error: Execution failed
+
+    NodeExecutionData:
+      type: object
+      required:
+        - nodeId
+        - nodeName
+        - nodeType
+        - executedAt
+        - inputData
+        - outputData
+        - status
+      properties:
+        nodeId:
+          type: string
+          format: uuid
+          description: UUID of the executed node
+        nodeName:
+          type: string
+          description: Human-readable node name
+        nodeType:
+          type: string
+          enum: [Interface, Return, CallFlow]
+          description: Type of the node
+        executedAt:
+          type: string
+          format: date-time
+          description: When the node executed
+        inputData:
+          type: object
+          additionalProperties: true
+          description: Data received by the node
+        outputData:
+          type: object
+          additionalProperties: true
+          description: Data produced by the node
+        status:
+          type: string
+          enum: [pending, completed, error]
+          description: Node execution status
+        error:
+          type: string
+          description: Error message if node failed
+
+    ExecutionErrorInfo:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+        nodeId:
+          type: string
+          format: uuid
+          description: UUID of node that caused failure
+        nodeName:
+          type: string
+          description: Name of node that caused failure
+
+    FlowExecution:
+      type: object
+      required:
+        - id
+        - flowName
+        - flowToolName
+        - status
+        - startedAt
+        - initialParams
+        - nodeExecutions
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique execution identifier
+        flowId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Reference to the flow (null if flow deleted)
+        flowName:
+          type: string
+          description: Name of the executed flow
+        flowToolName:
+          type: string
+          description: Tool name of the executed flow
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        startedAt:
+          type: string
+          format: date-time
+          description: When execution started
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When execution completed (null if pending)
+        duration:
+          type: integer
+          nullable: true
+          description: Execution duration in milliseconds (computed field)
+        initialParams:
+          type: object
+          additionalProperties: true
+          description: Parameters from MCP client request
+        nodeExecutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeExecutionData'
+          description: Ordered array of node execution snapshots
+        errorInfo:
+          $ref: '#/components/schemas/ExecutionErrorInfo'
+          nullable: true
+          description: Error details if status is error
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ExecutionListItem:
+      type: object
+      description: Compact execution representation for list view
+      required:
+        - id
+        - flowName
+        - status
+        - startedAt
+        - initialParams
+      properties:
+        id:
+          type: string
+          format: uuid
+        flowId:
+          type: string
+          format: uuid
+          nullable: true
+        flowName:
+          type: string
+        flowToolName:
+          type: string
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+        duration:
+          type: integer
+          nullable: true
+          description: Duration in milliseconds
+        initialParamsPreview:
+          type: string
+          description: Preview of first parameter (truncated)
+
+    ExecutionListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - limit
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionListItem'
+        total:
+          type: integer
+          description: Total number of executions
+        page:
+          type: integer
+          description: Current page number
+        limit:
+          type: integer
+          description: Items per page
+        totalPages:
+          type: integer
+          description: Total number of pages
+        hasPendingExecutions:
+          type: boolean
+          description: Whether any executions are currently pending (for polling hint)
+
+    Error:
+      type: object
+      required:
+        - statusCode
+        - message
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
