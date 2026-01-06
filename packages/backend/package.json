@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
+    "node-addon-api": "^8.3.1",
     "@swc/cli": "^0.7.9",
     "@swc/core": "^1.15.7",
     "@types/better-sqlite3": "^7.6.12",
