@@ -1,15 +1,15 @@
 # ============================================================================
 # ChatGPT App Builder - Multi-Stage Dockerfile
 # ============================================================================
-# Memory-optimized build for CI/CD environments (GitHub Actions, etc.)
+# Memory-optimized build for CI/CD environments (GitHub Actions, Railway, etc.)
 #
 # Build stages:
-#   1. deps      - Install npm dependencies with limited concurrency
+#   1. deps      - Install pnpm dependencies
 #   2. build     - Build all packages sequentially to reduce memory usage
 #   3. production - Minimal runtime image with only production artifacts
 #
 # Memory optimization strategies:
-#   - npm ci with --maxsockets=2 to limit parallel downloads
+#   - pnpm for efficient dependency management
 #   - NODE_OPTIONS=--max-old-space-size=1536 for TypeScript compilation
 #   - Sequential package builds instead of parallel
 #   - Alpine base image for minimal footprint
@@ -18,7 +18,7 @@
 
 # -----------------------------------------------------------------------------
 # Stage 1: Dependencies
-# Install all npm dependencies (cached layer for faster rebuilds)
+# Install all pnpm dependencies (cached layer for faster rebuilds)
 # -----------------------------------------------------------------------------
 FROM node:20-alpine AS deps
 
@@ -27,16 +27,17 @@ WORKDIR /app
 # Install build dependencies for native modules (better-sqlite3, sharp)
 RUN apk add --no-cache python3 make g++ vips-dev
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy package files for dependency installation
-COPY package.json package-lock.json turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 COPY packages/frontend/package.json ./packages/frontend/
 
-# Install dependencies with limited concurrency to reduce memory usage
-# --maxsockets=2: Limit parallel HTTP connections
-# --prefer-offline: Use cache when possible
-RUN npm ci --maxsockets=2 --prefer-offline
+# Install dependencies with frozen lockfile
+RUN pnpm install --frozen-lockfile
 
 # -----------------------------------------------------------------------------
 # Stage 2: Build
@@ -60,18 +61,18 @@ ENV NODE_OPTIONS="--max-old-space-size=1536"
 
 # 1. Build shared package first (dependency of backend and frontend)
 RUN echo "Building shared package..." && \
-    cd packages/shared && npm run build
+    cd packages/shared && pnpm run build
 
 # 2. Build backend (depends on shared)
 RUN echo "Building backend package..." && \
-    cd packages/backend && npm run build
+    cd packages/backend && pnpm run build
 
 # 3. Build frontend (depends on shared)
 # Note: For production builds in this image, VITE_API_URL is set to empty
 #       so the frontend uses relative URLs to a same-origin backend API.
 ENV VITE_API_URL=""
 RUN echo "Building frontend package..." && \
-    cd packages/frontend && npm run build
+    cd packages/frontend && pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 3: Production
@@ -88,19 +89,22 @@ RUN apk add --no-cache vips
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S appuser -u 1001 -G nodejs
 
+# Install pnpm in production stage
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy package files (for runtime metadata and tooling)
 # Note: frontend package.json is intentionally not copied here. The frontend is
 # built as static assets in /packages/frontend/dist and has no Node runtime
 # dependencies in the production image.
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/backend/package.json ./packages/backend/
 
-# Reuse dependencies from deps stage and prune devDependencies for production
-# This is faster than reinstalling since we already have all deps from the deps stage
+# Copy node_modules from deps stage and prune devDependencies for production
 COPY --from=deps /app/node_modules ./node_modules
-RUN npm prune --production && \
-    npm cache clean --force
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=deps /app/packages/backend/node_modules ./packages/backend/node_modules
+RUN pnpm prune --prod
 
 # Copy built artifacts from build stage
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
