@@ -22,8 +22,8 @@ jobs:
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
           echo "Available environments:"
           railway environment --json || railway environment
-          echo "Creating environment pr-${{ github.event.pull_request.number }} from production..."
-          railway environment new pr-${{ github.event.pull_request.number }} --duplicate production || echo "Environment may already exist, continuing..."
+          echo "Creating environment pr-${{ github.event.pull_request.number }} from staging..."
+          railway environment new pr-${{ github.event.pull_request.number }} --duplicate staging || echo "Environment may already exist, continuing..."
           echo "Linking to environment..."
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
           echo "Deploying..."
