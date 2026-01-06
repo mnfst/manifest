@@ -265,9 +265,10 @@ export class McpToolService {
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
         } else if (node.type === 'Interface') {
           result = this.executeInterfaceFlow(app, flow, node, input);
-          const params = node.parameters as InterfaceNodeParameters;
-          nodeOutputs.set(node.id, params.mockData);
-          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, params.mockData, 'completed'));
+          // Interface nodes output their structured content (populated from upstream data)
+          const structuredContent = result.structuredContent || {};
+          nodeOutputs.set(node.id, structuredContent);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
         }
       }
 
@@ -434,7 +435,7 @@ export class McpToolService {
     const responseText = this.generateResponseText(flow.name, params.layoutTemplate, input.message);
 
     return {
-      structuredContent: params.mockData,
+      structuredContent: {},
       content: [{ type: 'text', text: responseText }],
       _meta: {
         'openai/outputTemplate': `ui://widget/${app.slug}/${flow.toolName}.html`,

@@ -1,14 +1,11 @@
-import type { App, LayoutTemplate, MockData } from '@chatgpt-app-builder/shared';
-import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
+import type { App, LayoutTemplate } from '@chatgpt-app-builder/shared';
 import { ThemeProvider } from './ThemeProvider';
 import { LayoutRenderer } from './LayoutRenderer';
 
 interface VisualDisplayProps {
   app: App;
-  /** Layout template - passed separately in new architecture (from View) */
+  /** Layout template - passed separately in new architecture (from Interface node) */
   layoutTemplate?: LayoutTemplate;
-  /** Mock data - passed separately in new architecture (from View) */
-  mockData?: MockData;
   /** Tool name - passed separately in new architecture (from Flow) */
   toolName?: string;
   isDarkMode?: boolean;
@@ -16,13 +13,11 @@ interface VisualDisplayProps {
 
 /**
  * Visual display panel showing the current app/view configuration
- * Renders the selected layout with theme variables and mock data
- * @deprecated This component will be replaced by ViewDisplay in the new architecture
+ * Renders the selected layout with theme variables
  */
 export function VisualDisplay({
   app,
   layoutTemplate = 'table',
-  mockData = DEFAULT_TABLE_MOCK_DATA,
   toolName,
   isDarkMode = false
 }: VisualDisplayProps) {
@@ -62,7 +57,6 @@ export function VisualDisplay({
           <ThemeProvider themeVariables={app.themeVariables} isDarkMode={isDarkMode}>
             <LayoutRenderer
               layoutTemplate={layoutTemplate}
-              mockData={mockData}
               isDarkMode={isDarkMode}
             />
           </ThemeProvider>

@@ -1,5 +1,4 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
-import { DEFAULT_TABLE_MOCK_DATA } from '@chatgpt-app-builder/shared';
 
 /**
  * Interface Node (formerly View)
@@ -20,13 +19,11 @@ export const InterfaceNode: NodeTypeDefinition = {
 
   defaultParameters: {
     layoutTemplate: 'table',
-    mockData: DEFAULT_TABLE_MOCK_DATA,
   },
 
   async execute(context: ExecutionContext): Promise<ExecutionResult> {
     const { parameters } = context;
     const layoutTemplate = parameters.layoutTemplate as string;
-    const mockData = parameters.mockData;
 
     // Interface nodes render UI and wait for user interaction
     // The actual rendering is handled by the frontend
@@ -36,7 +33,6 @@ export const InterfaceNode: NodeTypeDefinition = {
       output: {
         type: 'interface',
         layoutTemplate,
-        data: mockData,
       },
     };
   },

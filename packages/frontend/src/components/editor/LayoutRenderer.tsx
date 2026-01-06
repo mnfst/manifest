@@ -1,42 +1,40 @@
-import type { LayoutTemplate, MockData } from '@chatgpt-app-builder/shared';
-import { isTableMockData, isPostListMockData } from '@chatgpt-app-builder/shared';
+import type { LayoutTemplate } from '@chatgpt-app-builder/shared';
 import { Table } from '../ui/table';
 import { BlogPostList } from '../ui/blog-post-list';
-import { mapTableMockDataToManifest, mapPostListMockDataToManifest } from '../../lib/manifest-mappers';
 
 interface LayoutRendererProps {
   layoutTemplate: LayoutTemplate;
-  mockData: MockData;
   isDarkMode?: boolean;
 }
 
 /**
- * Renders the appropriate layout component based on template
+ * Renders an empty/placeholder layout component based on template
  * Uses official Manifest UI components for table and post-list layouts
  */
-export function LayoutRenderer({ layoutTemplate, mockData, isDarkMode = false }: LayoutRendererProps) {
-  // Table layout using Manifest UI Table component
-  if (layoutTemplate === 'table' && isTableMockData(mockData)) {
-    const { columns, data } = mapTableMockDataToManifest(mockData);
+export function LayoutRenderer({ layoutTemplate, isDarkMode = false }: LayoutRendererProps) {
+  // Table layout using Manifest UI Table component with empty data
+  if (layoutTemplate === 'table') {
     return (
       <div className={isDarkMode ? 'dark' : ''}>
         <Table
-          columns={columns}
-          data={data}
+          columns={[
+            { accessor: 'name', header: 'Name' },
+            { accessor: 'value', header: 'Value' },
+          ]}
+          data={[]}
           selectable="none"
-          emptyMessage="No data available"
+          emptyMessage="No data available - connect a data source"
         />
       </div>
     );
   }
 
-  // Post-list layout using Manifest UI BlogPostList component
-  if (layoutTemplate === 'post-list' && isPostListMockData(mockData)) {
-    const { posts } = mapPostListMockDataToManifest(mockData);
+  // Post-list layout using Manifest UI BlogPostList component with empty data
+  if (layoutTemplate === 'post-list') {
     return (
       <div className={isDarkMode ? 'dark' : ''}>
         <BlogPostList
-          posts={posts}
+          posts={[]}
           variant="list"
           showAuthor={true}
           showCategory={true}
