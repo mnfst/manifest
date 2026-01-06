@@ -21,3 +21,4 @@ jobs:
           environment_variables: '{"MY_ENV_VAR": "value"}'
           branch_name: ${{ github.head_ref }}
           cleanup: 'true'
+          reuse_preview_environment: 'false'
