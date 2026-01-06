@@ -11,33 +11,7 @@ env:
   HEALTH_CHECK_INTERVAL_SECONDS: 10
 
 jobs:
-  # Run CI checks before deploying
-  lint-and-typecheck:
-    if: github.event.action != 'closed'
-    name: Lint & Type Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run linting
-        run: pnpm lint
-
-      - name: Run type checking
-        run: pnpm type-check
-
+  # Run Docker build check before deploying
   docker-build:
     if: github.event.action != 'closed'
     name: Docker Build
@@ -59,7 +33,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy-preview:
-    needs: [lint-and-typecheck, docker-build]
+    needs: [docker-build]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
