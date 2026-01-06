@@ -1,10 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
-import type { FlowParameter } from '@chatgpt-app-builder/shared';
+import type { FlowParameter, NodeInstance, Connection } from '@chatgpt-app-builder/shared';
 
 /**
- * Flow entity representing an MCP tool belonging to an app
- * Contains views for display
+ * Flow entity representing an MCP tool belonging to an app.
+ * Contains nodes and connections stored as JSON arrays.
  */
 @Entity('flows')
 export class FlowEntity {
@@ -38,6 +38,20 @@ export class FlowEntity {
   @Column({ type: 'simple-json', nullable: true })
   parameters?: FlowParameter[];
 
+  /**
+   * Node instances within this flow.
+   * Each node has: id, type, name, position, parameters.
+   */
+  @Column({ type: 'simple-json', default: '[]' })
+  nodes!: NodeInstance[];
+
+  /**
+   * Connections between nodes.
+   * Each connection has: id, sourceNodeId, sourceHandle, targetNodeId, targetHandle.
+   */
+  @Column({ type: 'simple-json', default: '[]' })
+  connections!: Connection[];
+
   @CreateDateColumn()
   createdAt!: Date;
 
@@ -48,16 +62,4 @@ export class FlowEntity {
   @ManyToOne(() => AppEntity, (app) => app.flows, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'appId' })
   app?: AppEntity;
-
-  // Relation to views
-  @OneToMany('ViewEntity', 'flow', { cascade: true })
-  views?: import('../view/view.entity').ViewEntity[];
-
-  // Relation to return values
-  @OneToMany('ReturnValueEntity', 'flow', { cascade: true })
-  returnValues?: import('../return-value/return-value.entity').ReturnValueEntity[];
-
-  // Relation to call flows
-  @OneToMany('CallFlowEntity', 'flow', { cascade: true })
-  callFlows?: import('../call-flow/call-flow.entity').CallFlowEntity[];
 }

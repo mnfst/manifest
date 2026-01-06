@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { App, View, LayoutTemplate, ThemeVariables, MockData, UpdateViewRequest } from '@chatgpt-app-builder/shared';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import type { App, LayoutTemplate, ThemeVariables, MockData, NodeInstance, InterfaceNodeParameters } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES, isTableMockData } from '@chatgpt-app-builder/shared';
 import { createLLM, getCurrentProvider } from './llm';
 import { z } from 'zod';
 import {
@@ -47,11 +47,12 @@ export interface ProcessChatResult {
 }
 
 /**
- * Result of view chat processing
+ * Result of interface node chat processing
+ * Updates are applied to the node's InterfaceNodeParameters
  */
-export interface ProcessViewChatResult {
+export interface ProcessInterfaceNodeChatResult {
   response: string;
-  updates: UpdateViewRequest;
+  updates: Partial<InterfaceNodeParameters>;
   changes: string[];
 }
 
@@ -258,12 +259,14 @@ Analyze the user's message and determine what configuration changes they want. I
   }
 
   /**
-   * Process a chat message for view customization
-   * Uses LLM to interpret the message and update view properties
+   * Process a chat message for Interface node customization
+   * Uses LLM to interpret the message and update node parameters
    */
-  async processViewChat(message: string, currentView: View): Promise<ProcessViewChatResult> {
+  async processInterfaceNodeChat(message: string, currentNode: NodeInstance): Promise<ProcessInterfaceNodeChatResult> {
+    const params = currentNode.parameters as InterfaceNodeParameters;
+
     // Define schema for structured LLM output
-    const viewUpdateSchema = z.object({
+    const nodeUpdateSchema = z.object({
       layoutTemplate: z.enum(['table', 'post-list']).optional().describe('New layout template if user wants to change it'),
       mockDataUpdate: z.object({
         action: z.enum(['replace', 'add_column', 'remove_column', 'add_row', 'update_rows']).optional(),
@@ -280,23 +283,23 @@ Analyze the user's message and determine what configuration changes they want. I
     });
 
     // Create structured output LLM
-    const structuredLLM = this.llm.withStructuredOutput(viewUpdateSchema);
+    const structuredLLM = this.llm.withStructuredOutput(nodeUpdateSchema);
 
-    // Build the prompt with current view context
+    // Build the prompt with current node context
     let mockDataSummary = 'No data';
-    if (currentView.mockData?.type === 'table' && currentView.mockData.columns) {
-      mockDataSummary = `Columns: ${currentView.mockData.columns.map(c => `${c.header} (${c.key})`).join(', ')}\nRows: ${currentView.mockData.rows?.length || 0} items`;
-    } else if (currentView.mockData?.posts) {
-      mockDataSummary = `Posts: ${currentView.mockData.posts.length} items`;
-    } else if (currentView.mockData) {
-      mockDataSummary = `Data: ${JSON.stringify(currentView.mockData).slice(0, 100)}...`;
+    if (params.mockData && isTableMockData(params.mockData)) {
+      mockDataSummary = `Columns: ${params.mockData.columns.map((c: { header: string; key: string }) => `${c.header} (${c.key})`).join(', ')}\nRows: ${params.mockData.rows?.length || 0} items`;
+    } else if (params.mockData && 'posts' in params.mockData) {
+      mockDataSummary = `Posts: ${params.mockData.posts.length} items`;
+    } else if (params.mockData) {
+      mockDataSummary = `Data: ${JSON.stringify(params.mockData).slice(0, 100)}...`;
     }
 
-    const systemPrompt = `You are an assistant helping users customize their view configuration.
+    const systemPrompt = `You are an assistant helping users customize their Interface node configuration.
 
-Current view configuration:
-- Name: ${currentView.name || 'Untitled'}
-- Layout: ${currentView.layoutTemplate}
+Current node configuration:
+- Name: ${currentNode.name || 'Untitled'}
+- Layout: ${params.layoutTemplate}
 - Mock Data:
   ${mockDataSummary}
 
@@ -304,11 +307,11 @@ Available layouts: "table" (for tabular data), "post-list" (for blog/article sty
 
 For table layout, columns can have types: text, number, date, badge, action
 
-Analyze the user's message and determine what changes they want to make to the view. You can:
+Analyze the user's message and determine what changes they want to make. You can:
 1. Change the layout template
 2. Add/remove/modify columns (for table layout)
 3. Add/modify sample data rows
-4. Update the view structure
+4. Update the data structure
 
 If you can't understand the request, set understood=false and provide a helpful response.`;
 
@@ -319,13 +322,13 @@ If you can't understand the request, set understood=false and provide a helpful 
       ]);
 
       // Debug logging
-      console.log('🤖 View LLM Response:', JSON.stringify(result, null, 2));
+      console.log('🤖 Interface Node LLM Response:', JSON.stringify(result, null, 2));
 
-      const updates: UpdateViewRequest = {};
+      const updates: Partial<InterfaceNodeParameters> = {};
       const changes: string[] = result.changes || [];
 
       // Apply layout change
-      if (result.layoutTemplate && result.layoutTemplate !== currentView.layoutTemplate) {
+      if (result.layoutTemplate && result.layoutTemplate !== params.layoutTemplate) {
         updates.layoutTemplate = result.layoutTemplate;
 
         // If layout changed, regenerate appropriate mock data
@@ -338,8 +341,8 @@ If you can't understand the request, set understood=false and provide a helpful 
       }
 
       // Apply mock data updates (if not already changed by layout switch)
-      if (!updates.mockData && result.mockDataUpdate && currentView.mockData.type === 'table') {
-        const currentMockData = { ...currentView.mockData };
+      if (!updates.mockData && result.mockDataUpdate && params.mockData && isTableMockData(params.mockData)) {
+        const currentMockData = { ...params.mockData };
 
         if (result.mockDataUpdate.action === 'replace' && result.mockDataUpdate.columns) {
           currentMockData.columns = result.mockDataUpdate.columns;
@@ -357,7 +360,7 @@ If you can't understand the request, set understood=false and provide a helpful 
       }
 
       // Debug: log final updates
-      console.log('📝 View updates to apply:', JSON.stringify(updates, null, 2));
+      console.log('📝 Interface node updates to apply:', JSON.stringify(updates, null, 2));
       console.log('📋 Changes:', changes);
 
       return {
@@ -366,7 +369,7 @@ If you can't understand the request, set understood=false and provide a helpful 
         changes,
       };
     } catch (error) {
-      console.error('View LLM chat error:', error);
+      console.error('Interface Node LLM chat error:', error);
       return {
         response: `I encountered an error processing your request. You can ask me to:
 • Change the layout (e.g., "switch to post-list layout")

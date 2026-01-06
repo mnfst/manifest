@@ -48,11 +48,12 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete }: ViewNodeDropdo
       {/* Three-dot menu button */}
       <button
         data-action="toggle-menu"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+        className="p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer nodrag"
         aria-label="View actions"
         type="button"
         title="Actions"
@@ -71,12 +72,13 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete }: ViewNodeDropdo
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[120px] z-50">
           <button
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
               onEdit();
             }}
-            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer nodrag"
             type="button"
           >
             <svg
@@ -90,6 +92,7 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete }: ViewNodeDropdo
             Edit
           </button>
           <button
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               if (canDelete) {
@@ -98,7 +101,7 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete }: ViewNodeDropdo
               }
             }}
             disabled={!canDelete}
-            className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 ${
+            className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 nodrag ${
               canDelete
                 ? 'text-red-600 hover:bg-red-50 cursor-pointer'
                 : 'text-gray-400 cursor-not-allowed'

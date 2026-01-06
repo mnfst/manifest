@@ -10,12 +10,8 @@ import {
   HttpStatus,
   NotFoundException,
   BadRequestException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { FlowService } from './flow.service';
-import { ViewService } from '../view/view.service';
-import { AgentService } from '../agent/agent.service';
 import {
   toSnakeCase,
   isValidToolName,
@@ -89,11 +85,7 @@ function validateParameters(parameters: FlowParameter[] | undefined): void {
 @Controller('api')
 export class FlowController {
   constructor(
-    private readonly flowService: FlowService,
-    @Inject(forwardRef(() => ViewService))
-    private readonly viewService: ViewService,
-    @Inject(forwardRef(() => AgentService))
-    private readonly agentService: AgentService
+    private readonly flowService: FlowService
   ) {}
 
   /**

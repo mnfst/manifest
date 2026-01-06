@@ -16,11 +16,12 @@ export function AddStepNode({ data }: NodeProps) {
 
   return (
     <div
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-primary shadow-sm hover:shadow-md transition-all w-[180px] cursor-pointer group nopan"
+      className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-primary shadow-sm hover:shadow-md transition-all w-[180px] cursor-pointer group nopan nodrag"
     >
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">

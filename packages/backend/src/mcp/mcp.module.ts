@@ -4,8 +4,6 @@ import { McpToolService } from './mcp.tool';
 import { UiController } from './ui.controller';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
-import { ViewEntity } from '../view/view.entity';
-import { ActionConnectionEntity } from '../action-connection/action-connection.entity';
 import { AppService } from '../app/app.service';
 
 /**
@@ -13,11 +11,12 @@ import { AppService } from '../app/app.service';
  * Exposes published apps as MCP tools that can be invoked by AI assistants
  * Each flow in an app becomes an MCP tool
  *
- * POC Note: Using simplified HTTP endpoints instead of full MCP-Nest integration
- * In production, would use @rekog/mcp-nest for full MCP protocol support
+ * Updated to use new unified node architecture:
+ * - Flow.nodes JSON column contains Interface, Return, and CallFlow nodes
+ * - Flow.connections JSON column contains node connections
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([AppEntity, FlowEntity, ViewEntity, ActionConnectionEntity])],
+  imports: [TypeOrmModule.forFeature([AppEntity, FlowEntity])],
   controllers: [UiController],
   providers: [McpToolService, AppService],
   exports: [McpToolService],

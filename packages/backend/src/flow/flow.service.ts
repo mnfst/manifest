@@ -20,6 +20,7 @@ export class FlowService {
 
   /**
    * Create a new flow for an app
+   * Initializes empty nodes and connections arrays
    */
   async create(appId: string, data: {
     name: string;
@@ -39,6 +40,8 @@ export class FlowService {
       whenToUse: data.whenToUse,
       whenNotToUse: data.whenNotToUse,
       parameters: data.parameters ?? [],
+      nodes: [],
+      connections: [],
     });
 
     const saved = await this.flowRepository.save(entity);
@@ -51,7 +54,6 @@ export class FlowService {
   async findById(id: string): Promise<Flow | null> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views', 'views.mockDataEntity', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
     });
     return entity ? this.entityToFlow(entity) : null;
   }
@@ -62,7 +64,6 @@ export class FlowService {
   async findByAppId(appId: string): Promise<Flow[]> {
     const entities = await this.flowRepository.find({
       where: { appId },
-      relations: ['views', 'views.mockDataEntity', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
       order: { createdAt: 'ASC' },
     });
     return entities.map((entity) => this.entityToFlow(entity));
@@ -74,7 +75,6 @@ export class FlowService {
   async update(id: string, updates: UpdateFlowRequest): Promise<Flow> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views', 'views.mockDataEntity', 'returnValues'],
     });
     if (!entity) {
       throw new NotFoundException(`Flow with id ${id} not found`);
@@ -107,10 +107,9 @@ export class FlowService {
 
     await this.flowRepository.save(entity);
 
-    // Refetch with all relations including callFlows
+    // Refetch to get updated entity
     const updated = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views', 'views.mockDataEntity', 'returnValues', 'callFlows', 'callFlows.targetFlow'],
     });
     return this.entityToFlow(updated!);
   }
@@ -157,14 +156,14 @@ export class FlowService {
   async delete(id: string): Promise<DeleteFlowResponse> {
     const entity = await this.flowRepository.findOne({
       where: { id },
-      relations: ['views', 'views.mockDataEntity', 'returnValues'],
     });
 
     if (!entity) {
       throw new NotFoundException(`Flow with id ${id} not found`);
     }
 
-    const deletedViewCount = entity.views?.length ?? 0;
+    // Count Interface nodes (formerly views) for backward compatibility in response
+    const deletedViewCount = (entity.nodes ?? []).filter((n) => n.type === 'Interface').length;
 
     await this.flowRepository.remove(entity);
 
@@ -189,44 +188,8 @@ export class FlowService {
       whenNotToUse: entity.whenNotToUse,
       isActive: entity.isActive ?? true,
       parameters: entity.parameters ?? [],
-      views: entity.views?.map((view) => ({
-        id: view.id,
-        flowId: view.flowId,
-        name: view.name,
-        layoutTemplate: view.layoutTemplate,
-        mockData: view.mockDataEntity ? {
-          id: view.mockDataEntity.id,
-          viewId: view.mockDataEntity.viewId,
-          data: view.mockDataEntity.data,
-          createdAt: view.mockDataEntity.createdAt?.toISOString(),
-          updatedAt: view.mockDataEntity.updatedAt?.toISOString(),
-        } : undefined,
-        order: view.order,
-        createdAt: view.createdAt?.toISOString(),
-        updatedAt: view.updatedAt?.toISOString(),
-      })),
-      returnValues: entity.returnValues?.map((rv) => ({
-        id: rv.id,
-        flowId: rv.flowId,
-        text: rv.text,
-        order: rv.order,
-        createdAt: rv.createdAt?.toISOString(),
-        updatedAt: rv.updatedAt?.toISOString(),
-      })),
-      callFlows: entity.callFlows?.map((cf) => ({
-        id: cf.id,
-        flowId: cf.flowId,
-        targetFlowId: cf.targetFlowId,
-        targetFlow: cf.targetFlow ? {
-          id: cf.targetFlow.id,
-          appId: cf.targetFlow.appId,
-          name: cf.targetFlow.name,
-          toolName: cf.targetFlow.toolName,
-        } : undefined,
-        order: cf.order,
-        createdAt: cf.createdAt?.toISOString(),
-        updatedAt: cf.updatedAt?.toISOString(),
-      })),
+      nodes: entity.nodes ?? [],
+      connections: entity.connections ?? [],
       createdAt: entity.createdAt?.toISOString(),
       updatedAt: entity.updatedAt?.toISOString(),
     };

@@ -1,24 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import type { App, Flow, View, UpdateFlowRequest, FlowDeletionCheck, ReturnValue, CallFlow, ActionConnection } from '@chatgpt-app-builder/shared';
-import { Hammer, Eye, BarChart3 } from 'lucide-react';
+import type {
+  App,
+  Flow,
+  UpdateFlowRequest,
+  FlowDeletionCheck,
+  NodeInstance,
+  Connection,
+  NodeType,
+} from '@chatgpt-app-builder/shared';
+import { Hammer, Eye, BarChart3, Plus, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
-import { FlowDiagram } from '../components/flow/FlowDiagram';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { UserIntentModal } from '../components/flow/UserIntentModal';
-import { MockDataModal } from '../components/flow/MockDataModal';
-import { StepTypeDrawer, type StepType } from '../components/flow/StepTypeDrawer';
-import { ReturnValueEditor } from '../components/flow/ReturnValueEditor';
-import { CallFlowEditor } from '../components/flow/CallFlowEditor';
+import { FlowDiagram } from '../components/flow/FlowDiagram';
+import { AddStepModal } from '../components/flow/AddStepModal';
+import { NodeEditModal } from '../components/flow/NodeEditModal';
 import { Tabs } from '../components/common/Tabs';
-import { FlowPreview } from '../components/preview/FlowPreview';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
- * Flow detail/editor page - Shows flow info and views list
- * Users can view and navigate to individual view editors
+ * Flow detail/editor page - Shows flow info and React Flow canvas
+ * Updated to use new unified node architecture
  */
 function FlowDetail() {
   const { appId, flowId } = useParams<{ appId: string; flowId: string }>();
@@ -27,12 +32,7 @@ function FlowDetail() {
   const [flow, setFlow] = useState<Flow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [, setIsCreatingView] = useState(false);
   const [toggleError, setToggleError] = useState<string | null>(null);
-
-  // Delete view state
-  const [viewToDelete, setViewToDelete] = useState<View | null>(null);
-  const [isDeletingView, setIsDeletingView] = useState(false);
 
   // Edit flow state
   const [isEditing, setIsEditing] = useState(false);
@@ -50,45 +50,28 @@ function FlowDetail() {
   const [isSavingUserIntent, setIsSavingUserIntent] = useState(false);
   const [userIntentError, setUserIntentError] = useState<string | null>(null);
 
-  // Mock data modal state
-  const [showMockDataModal, setShowMockDataModal] = useState(false);
-  const [mockDataView, setMockDataView] = useState<View | null>(null);
+  // Add step modal state
+  const [showAddStepModal, setShowAddStepModal] = useState(false);
 
-  // Step type drawer state
-  const [showStepTypeDrawer, setShowStepTypeDrawer] = useState(false);
+  // Node edit modal state
+  const [showNodeEditModal, setShowNodeEditModal] = useState(false);
+  const [nodeToEdit, setNodeToEdit] = useState<NodeInstance | null>(null);
+  const [nodeTypeToCreate, setNodeTypeToCreate] = useState<NodeType | null>(null);
+  const [isSavingNode, setIsSavingNode] = useState(false);
+  const [nodeEditError, setNodeEditError] = useState<string | null>(null);
 
-  // Return value state
-  const [showReturnValueEditor, setShowReturnValueEditor] = useState(false);
-  const [returnValueToEdit, setReturnValueToEdit] = useState<ReturnValue | null>(null);
-  const [returnValueToDelete, setReturnValueToDelete] = useState<ReturnValue | null>(null);
-  const [isSavingReturnValue, setIsSavingReturnValue] = useState(false);
-  const [returnValueError, setReturnValueError] = useState<string | null>(null);
-  const [isDeletingReturnValue, setIsDeletingReturnValue] = useState(false);
+  // Node delete state
+  const [nodeToDelete, setNodeToDelete] = useState<NodeInstance | null>(null);
+  const [isDeletingNode, setIsDeletingNode] = useState(false);
 
-  // Call flow state
-  const [showCallFlowEditor, setShowCallFlowEditor] = useState(false);
-  const [callFlowToEdit, setCallFlowToEdit] = useState<CallFlow | null>(null);
-  const [callFlowToDelete, setCallFlowToDelete] = useState<CallFlow | null>(null);
-  const [isSavingCallFlow, setIsSavingCallFlow] = useState(false);
-  const [callFlowError, setCallFlowError] = useState<string | null>(null);
-  const [isDeletingCallFlow, setIsDeletingCallFlow] = useState(false);
-  const [availableFlows, setAvailableFlows] = useState<Flow[]>([]);
-
-  // Action connections state
-  const [actionConnections, setActionConnections] = useState<ActionConnection[]>([]);
+  // All flows for CallFlow node selection
+  const [allFlows, setAllFlows] = useState<Flow[]>([]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
-  const [previewKey, setPreviewKey] = useState(0);
 
-  // Handle tab changes with animation restart
-  const handleTabChange = (tab: FlowDetailTab) => {
-    setActiveTab(tab);
-    if (tab === 'preview') {
-      // Increment key to restart animation when switching to preview
-      setPreviewKey(prev => prev + 1);
-    }
-  };
+  // Flow name lookup for CallFlow nodes
+  const [flowNameLookup, setFlowNameLookup] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadData() {
@@ -98,16 +81,21 @@ function FlowDetail() {
       setError(null);
 
       try {
-        const [loadedApp, loadedFlow, loadedFlows, loadedActionConnections] = await Promise.all([
+        const [loadedApp, loadedFlow] = await Promise.all([
           api.getApp(appId),
           api.getFlow(flowId),
-          api.listFlows(appId),
-          api.listActionConnectionsByFlow(flowId),
         ]);
         setApp(loadedApp);
         setFlow(loadedFlow);
-        setAvailableFlows(loadedFlows);
-        setActionConnections(loadedActionConnections);
+
+        // Load all flows for the app to build the flowNameLookup and for CallFlow selection
+        const flows = await api.listFlows(appId);
+        setAllFlows(flows);
+        const lookup: Record<string, string> = {};
+        flows.forEach((f: Flow) => {
+          lookup[f.id] = f.name;
+        });
+        setFlowNameLookup(lookup);
       } catch (err) {
         if (err instanceof ApiClientError) {
           setError(err.message);
@@ -122,58 +110,6 @@ function FlowDetail() {
     loadData();
   }, [appId, flowId]);
 
-  const handleViewClick = (view: View) => {
-    navigate(`/app/${appId}/flow/${flowId}/view/${view.id}`);
-  };
-
-  const handleViewDelete = (view: View) => {
-    setViewToDelete(view);
-  };
-
-  const handleCloseViewDeleteDialog = () => {
-    if (!isDeletingView) {
-      setViewToDelete(null);
-    }
-  };
-
-  const handleConfirmDeleteView = async () => {
-    if (!viewToDelete || !flowId) return;
-
-    setIsDeletingView(true);
-    try {
-      await api.deleteView(viewToDelete.id);
-      // Reload flow to get updated views list
-      const updatedFlow = await api.getFlow(flowId);
-      setFlow(updatedFlow);
-      setViewToDelete(null);
-    } catch (err) {
-      console.error('Failed to delete view:', err);
-    } finally {
-      setIsDeletingView(false);
-    }
-  };
-
-  const handleAddView = async () => {
-    if (!flowId) return;
-
-    setIsCreatingView(true);
-    try {
-      const newView = await api.createView(flowId, {
-        name: `View ${(flow?.views?.length ?? 0) + 1}`,
-        layoutTemplate: 'table',
-      });
-      // Reload flow to get updated views list
-      const updatedFlow = await api.getFlow(flowId);
-      setFlow(updatedFlow);
-      // Navigate to the new view editor
-      navigate(`/app/${appId}/flow/${flowId}/view/${newView.id}`);
-    } catch (err) {
-      console.error('Failed to create view:', err);
-    } finally {
-      setIsCreatingView(false);
-    }
-  };
-
   const handleToggleActive = async (flowId: string, isActive: boolean) => {
     setToggleError(null);
     try {
@@ -185,7 +121,7 @@ function FlowDetail() {
       } else {
         setToggleError('Failed to update flow status');
       }
-      throw err; // Re-throw so the toggle component knows it failed
+      throw err;
     }
   };
 
@@ -225,7 +161,6 @@ function FlowDetail() {
       setShowDeleteDialog(true);
     } catch (err) {
       console.error('Failed to check flow deletion:', err);
-      // Show dialog anyway without warning
       setDeletionCheck(null);
       setShowDeleteDialog(true);
     } finally {
@@ -246,7 +181,6 @@ function FlowDetail() {
     setIsDeleting(true);
     try {
       await api.deleteFlow(flowId);
-      // Navigate back to app detail
       navigate(`/app/${appId}`);
     } catch (err) {
       console.error('Failed to delete flow:', err);
@@ -279,10 +213,11 @@ function FlowDetail() {
     setUserIntentError(null);
 
     try {
-      // updateFlow returns the complete flow with views included
       const updatedFlow = await api.updateFlow(flowId, data);
-      setFlow(updatedFlow);
+      // Close modal first to prevent any race conditions with state updates
       setShowUserIntentModal(false);
+      // Then update the flow state
+      setFlow(updatedFlow);
     } catch (err) {
       if (err instanceof ApiClientError) {
         setUserIntentError(err.message);
@@ -294,200 +229,111 @@ function FlowDetail() {
     }
   };
 
-  const handleMockDataEdit = (view: View) => {
-    setMockDataView(view);
-    setShowMockDataModal(true);
-  };
+  // Node handlers
+  const handleNodeEdit = useCallback((node: NodeInstance) => {
+    setNodeToEdit(node);
+    setNodeTypeToCreate(null);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  }, []);
 
-  const handleCloseMockDataModal = () => {
-    setShowMockDataModal(false);
-    setMockDataView(null);
-  };
+  const handleNodeDelete = useCallback((node: NodeInstance) => {
+    setNodeToDelete(node);
+  }, []);
 
-  const handleMockDataUpdated = async () => {
-    // Reload flow to get updated mock data
-    if (flowId) {
-      try {
-        const updatedFlow = await api.getFlow(flowId);
-        setFlow(updatedFlow);
-      } catch (err) {
-        console.error('Failed to reload flow:', err);
-      }
-    }
-  };
+  const handleConfirmDeleteNode = async () => {
+    if (!nodeToDelete || !flowId) return;
 
-  // Step type drawer handlers
-  const handleAddStep = () => {
-    setShowStepTypeDrawer(true);
-  };
-
-  const handleCloseStepTypeDrawer = () => {
-    setShowStepTypeDrawer(false);
-  };
-
-  const handleStepTypeSelect = async (type: StepType) => {
-    if (type === 'view') {
-      await handleAddView();
-    } else if (type === 'returnValue') {
-      // Open return value editor for creating new
-      setReturnValueToEdit(null);
-      setReturnValueError(null);
-      setShowReturnValueEditor(true);
-    } else if (type === 'callFlow') {
-      // Open call flow editor for creating new
-      setCallFlowToEdit(null);
-      setCallFlowError(null);
-      setShowCallFlowEditor(true);
-    }
-  };
-
-  // Return value handlers
-  const handleReturnValueEdit = (returnValue: ReturnValue) => {
-    setReturnValueToEdit(returnValue);
-    setReturnValueError(null);
-    setShowReturnValueEditor(true);
-  };
-
-  const handleCloseReturnValueEditor = () => {
-    if (!isSavingReturnValue) {
-      setShowReturnValueEditor(false);
-      setReturnValueToEdit(null);
-      setReturnValueError(null);
-    }
-  };
-
-  const handleSaveReturnValue = async (text: string) => {
-    if (!flowId) return;
-
-    setIsSavingReturnValue(true);
-    setReturnValueError(null);
-
+    setIsDeletingNode(true);
     try {
-      if (returnValueToEdit) {
-        // Update existing
-        await api.updateReturnValue(returnValueToEdit.id, { text });
-      } else {
-        // Create new
-        await api.createReturnValue(flowId, { text });
-      }
-      // Reload flow to get updated return values
+      await api.deleteNode(flowId, nodeToDelete.id);
       const updatedFlow = await api.getFlow(flowId);
       setFlow(updatedFlow);
-      setShowReturnValueEditor(false);
-      setReturnValueToEdit(null);
+      setNodeToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete node:', err);
+    } finally {
+      setIsDeletingNode(false);
+    }
+  };
+
+  const handleMockDataEdit = useCallback((node: NodeInstance) => {
+    // Open the node edit modal for the Interface node
+    // Mock data is part of the Interface node's parameters
+    setNodeToEdit(node);
+    setNodeTypeToCreate(null);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  }, []);
+
+  const handleConnectionsChange = useCallback((connections: Connection[]) => {
+    if (!flow) return;
+    setFlow({ ...flow, connections });
+  }, [flow]);
+
+  const handleAddStep = useCallback(() => {
+    setShowAddStepModal(true);
+  }, []);
+
+  const handleAddStepSelect = (stepType: 'Interface' | 'Return' | 'CallFlow') => {
+    // Close the add step modal and open the node edit modal in create mode
+    setShowAddStepModal(false);
+    setNodeToEdit(null);
+    setNodeTypeToCreate(stepType);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  };
+
+  const handleCloseNodeEditModal = () => {
+    if (!isSavingNode) {
+      setShowNodeEditModal(false);
+      setNodeToEdit(null);
+      setNodeTypeToCreate(null);
+      setNodeEditError(null);
+    }
+  };
+
+  const handleSaveNode = async (data: { name: string; parameters: Record<string, unknown> }) => {
+    if (!flowId || !flow) return;
+
+    setIsSavingNode(true);
+    setNodeEditError(null);
+
+    try {
+      if (nodeToEdit) {
+        // Edit mode - update existing node
+        await api.updateNode(flowId, nodeToEdit.id, {
+          name: data.name,
+          parameters: data.parameters,
+        });
+      } else if (nodeTypeToCreate) {
+        // Create mode - create new node
+        const nodes = flow.nodes ?? [];
+        const xOffset = nodes.length * 280 + 330;
+
+        await api.createNode(flowId, {
+          type: nodeTypeToCreate,
+          name: data.name,
+          position: { x: xOffset, y: 100 },
+          parameters: data.parameters,
+        });
+      }
+
+      // Refresh flow data
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+      setShowNodeEditModal(false);
+      setNodeToEdit(null);
+      setNodeTypeToCreate(null);
     } catch (err) {
       if (err instanceof ApiClientError) {
-        setReturnValueError(err.message);
+        setNodeEditError(err.message);
       } else {
-        setReturnValueError('Failed to save return value');
+        setNodeEditError('Failed to save node');
       }
     } finally {
-      setIsSavingReturnValue(false);
+      setIsSavingNode(false);
     }
-  };
-
-  const handleReturnValueDelete = (returnValue: ReturnValue) => {
-    setReturnValueToDelete(returnValue);
-  };
-
-  const handleCloseReturnValueDeleteDialog = () => {
-    if (!isDeletingReturnValue) {
-      setReturnValueToDelete(null);
-    }
-  };
-
-  const handleConfirmDeleteReturnValue = async () => {
-    if (!returnValueToDelete || !flowId) return;
-
-    setIsDeletingReturnValue(true);
-    try {
-      await api.deleteReturnValue(returnValueToDelete.id);
-      // Reload flow to get updated return values
-      const updatedFlow = await api.getFlow(flowId);
-      setFlow(updatedFlow);
-      setReturnValueToDelete(null);
-    } catch (err) {
-      console.error('Failed to delete return value:', err);
-    } finally {
-      setIsDeletingReturnValue(false);
-    }
-  };
-
-  // Call flow handlers
-  const handleCallFlowEdit = (callFlow: CallFlow) => {
-    setCallFlowToEdit(callFlow);
-    setCallFlowError(null);
-    setShowCallFlowEditor(true);
-  };
-
-  const handleCloseCallFlowEditor = () => {
-    if (!isSavingCallFlow) {
-      setShowCallFlowEditor(false);
-      setCallFlowToEdit(null);
-      setCallFlowError(null);
-    }
-  };
-
-  const handleSaveCallFlow = async (targetFlowId: string) => {
-    if (!flowId) return;
-
-    setIsSavingCallFlow(true);
-    setCallFlowError(null);
-
-    try {
-      if (callFlowToEdit) {
-        // Update existing
-        await api.updateCallFlow(callFlowToEdit.id, { targetFlowId });
-      } else {
-        // Create new
-        await api.createCallFlow(flowId, { targetFlowId });
-      }
-      // Reload flow to get updated call flows
-      const updatedFlow = await api.getFlow(flowId);
-      setFlow(updatedFlow);
-      setShowCallFlowEditor(false);
-      setCallFlowToEdit(null);
-    } catch (err) {
-      if (err instanceof ApiClientError) {
-        setCallFlowError(err.message);
-      } else {
-        setCallFlowError('Failed to save call flow');
-      }
-    } finally {
-      setIsSavingCallFlow(false);
-    }
-  };
-
-  const handleCallFlowDelete = (callFlow: CallFlow) => {
-    setCallFlowToDelete(callFlow);
-  };
-
-  const handleCloseCallFlowDeleteDialog = () => {
-    if (!isDeletingCallFlow) {
-      setCallFlowToDelete(null);
-    }
-  };
-
-  const handleConfirmDeleteCallFlow = async () => {
-    if (!callFlowToDelete || !flowId) return;
-
-    setIsDeletingCallFlow(true);
-    try {
-      await api.deleteCallFlow(callFlowToDelete.id);
-      // Reload flow to get updated call flows
-      const updatedFlow = await api.getFlow(flowId);
-      setFlow(updatedFlow);
-      setCallFlowToDelete(null);
-    } catch (err) {
-      console.error('Failed to delete call flow:', err);
-    } finally {
-      setIsDeletingCallFlow(false);
-    }
-  };
-
-  // Action connection handlers
-  const handleActionConnectionChange = async (connections: ActionConnection[]) => {
-    setActionConnections(connections);
   };
 
   if (isLoading) {
@@ -524,30 +370,13 @@ function FlowDetail() {
     );
   }
 
-  const views = flow.views || [];
-  const returnValues = flow.returnValues || [];
-  const callFlows = flow.callFlows || [];
+  const nodes = flow.nodes ?? [];
+  const interfaceNodes = nodes.filter(n => n.type === 'Interface');
+  const canDeleteNodes = nodes.length > 0;
 
-  // Determine step counts for display
-  const stepCount = views.length + returnValues.length + callFlows.length;
-  const hasViews = views.length > 0;
-  const hasReturnValues = returnValues.length > 0;
-  const hasCallFlows = callFlows.length > 0;
-
-  // Views can now coexist with return values and call flows
-  // Only return values and call flows are mutually exclusive
-  const disabledStepTypes: StepType[] = [];
-  if (hasReturnValues) {
-    disabledStepTypes.push('callFlow');
-  }
-  if (hasCallFlows) {
-    disabledStepTypes.push('returnValue');
-  }
-
-  // Tab configuration with disabled state for Preview when no views
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
-    { id: 'preview', label: 'Preview', icon: Eye, disabled: !hasViews },
+    { id: 'preview', label: 'Preview', icon: Eye, disabled: interfaceNodes.length === 0 },
     { id: 'usage', label: 'Usage', icon: BarChart3 },
   ];
 
@@ -558,12 +387,13 @@ function FlowDetail() {
         <div className="px-6 py-4">
           {isEditing ? (
             <div className="max-w-4xl mx-auto">
-              <Link
-                to={`/app/${appId}`}
+              <button
+                type="button"
+                onClick={() => navigate(`/app/${appId}`)}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                &larr; Back to App
-              </Link>
+                ← Back to App
+              </button>
               <h1 className="text-2xl font-bold mt-1 mb-4">{flow.name}</h1>
               <EditFlowForm
                 flow={flow}
@@ -576,50 +406,29 @@ function FlowDetail() {
           ) : (
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
-                <Link
-                  to={`/app/${appId}`}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/app/${appId}`)}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  &larr; Back to App
-                </Link>
+                  ← Back to App
+                </button>
                 <h1 className="text-2xl font-bold mt-1">{flow.name}</h1>
-                {flow.description && (
-                  <p className="text-muted-foreground mt-1">{flow.description}</p>
-                )}
+                {flow.description && <p className="text-muted-foreground mt-1">{flow.description}</p>}
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Tool Name</p>
                   <code className="text-sm font-mono">{flow.toolName}</code>
                 </div>
-                <div className="text-right max-w-xs">
-                  <p className="text-xs text-muted-foreground">Tool Description</p>
-                  <p className="text-sm truncate">{flow.toolDescription}</p>
-                </div>
-                <FlowActiveToggle
-                  flowId={flow.id}
-                  isActive={flow.isActive}
-                  onToggle={handleToggleActive}
-                />
+                <FlowActiveToggle flowId={flow.id} isActive={flow.isActive} onToggle={handleToggleActive} />
                 <div className="flex items-center gap-2 border-l pl-4">
                   <button
                     onClick={() => setIsEditing(true)}
                     className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                     title="Edit flow"
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
+                    <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleDeleteClick}
@@ -627,26 +436,7 @@ function FlowDetail() {
                     className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50"
                     title="Delete flow"
                   >
-                    {isCheckingDeletion ? (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    )}
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -655,10 +445,7 @@ function FlowDetail() {
           {toggleError && (
             <div className="mt-4 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
               {toggleError}
-              <button
-                onClick={() => setToggleError(null)}
-                className="ml-2 underline hover:no-underline"
-              >
+              <button onClick={() => setToggleError(null)} className="ml-2 underline hover:no-underline">
                 Dismiss
               </button>
             </div>
@@ -666,59 +453,50 @@ function FlowDetail() {
         </div>
       </div>
 
-      {/* Tabs and Main Content - Full Width, fills remaining height */}
+      {/* Tabs and Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Tab bar - centered */}
         <div className="px-6 bg-background flex justify-center">
-          <Tabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            tabs={tabs}
-          />
+          <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
         </div>
 
-        {/* Tab Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Build Tab - Flow Diagram Editor */}
+          {/* Build Tab - React Flow Canvas */}
           {activeTab === 'build' && (
-            <>
-              {/* Full-width Flow Diagram - fills remaining viewport height */}
-              <div className="flex-1 overflow-hidden">
-                <FlowDiagram
-                  key={`flow-${flow.id}-${Boolean(flow.toolDescription?.trim())}`}
-                  flow={flow}
-                  views={views}
-                  returnValues={returnValues}
-                  callFlows={callFlows}
-                  actionConnections={actionConnections}
-                  onViewEdit={handleViewClick}
-                  onViewDelete={handleViewDelete}
-                  onReturnValueEdit={handleReturnValueEdit}
-                  onReturnValueDelete={handleReturnValueDelete}
-                  onCallFlowEdit={handleCallFlowEdit}
-                  onCallFlowDelete={handleCallFlowDelete}
-                  onUserIntentEdit={handleUserIntentEdit}
-                  onMockDataEdit={handleMockDataEdit}
-                  onAddUserIntent={handleUserIntentEdit}
-                  onAddStep={handleAddStep}
-                  canDelete={stepCount > 1}
-                  onActionConnectionsChange={handleActionConnectionChange}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Preview Tab - ChatGPT Conversation Simulation */}
-          {activeTab === 'preview' && hasViews && (
-            <div className="flex-1 overflow-hidden">
-              <FlowPreview key={previewKey} flow={flow} app={app} />
+            <div className="flex-1 relative">
+              <FlowDiagram
+                flow={flow}
+                onNodeEdit={handleNodeEdit}
+                onNodeDelete={handleNodeDelete}
+                onUserIntentEdit={handleUserIntentEdit}
+                onMockDataEdit={handleMockDataEdit}
+                onAddUserIntent={handleUserIntentEdit}
+                onAddStep={handleAddStep}
+                canDelete={canDeleteNodes}
+                onConnectionsChange={handleConnectionsChange}
+                flowNameLookup={flowNameLookup}
+              />
+              {/* Floating Add Button */}
+              <button
+                onClick={handleAddStep}
+                className="absolute bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 flex items-center justify-center transition-colors"
+                title="Add node"
+              >
+                <Plus className="w-6 h-6" />
+              </button>
             </div>
           )}
 
-          {/* Usage Tab - Coming Soon Placeholder */}
+          {/* Preview Tab */}
+          {activeTab === 'preview' && (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-muted-foreground">Preview coming soon...</p>
+            </div>
+          )}
+
+          {/* Usage Tab */}
           {activeTab === 'usage' && (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-muted-foreground text-lg">Coming Soon...</p>
+              <p className="text-muted-foreground">Usage analytics coming soon...</p>
             </div>
           )}
         </div>
@@ -735,14 +513,14 @@ function FlowDetail() {
         isLoading={isDeleting}
       />
 
-      {/* Delete View Confirmation */}
+      {/* Delete Node Confirmation */}
       <DeleteConfirmDialog
-        isOpen={!!viewToDelete}
-        onClose={handleCloseViewDeleteDialog}
-        onConfirm={handleConfirmDeleteView}
-        title="Delete View"
-        message={`Are you sure you want to delete "${viewToDelete?.name || 'this view'}"? This action cannot be undone.`}
-        isLoading={isDeletingView}
+        isOpen={!!nodeToDelete}
+        onClose={() => !isDeletingNode && setNodeToDelete(null)}
+        onConfirm={handleConfirmDeleteNode}
+        title="Delete Node"
+        message={`Are you sure you want to delete "${nodeToDelete?.name}"? This will also remove any connections to this node.`}
+        isLoading={isDeletingNode}
       />
 
       {/* User Intent Modal */}
@@ -755,62 +533,24 @@ function FlowDetail() {
         error={userIntentError}
       />
 
-      {/* Mock Data Modal */}
-      <MockDataModal
-        isOpen={showMockDataModal}
-        onClose={handleCloseMockDataModal}
-        view={mockDataView}
-        onMockDataUpdated={handleMockDataUpdated}
+      {/* Add Step Modal */}
+      <AddStepModal
+        isOpen={showAddStepModal}
+        onClose={() => setShowAddStepModal(false)}
+        onSelect={handleAddStepSelect}
       />
 
-      {/* Step Type Drawer */}
-      <StepTypeDrawer
-        isOpen={showStepTypeDrawer}
-        onClose={handleCloseStepTypeDrawer}
-        onSelect={handleStepTypeSelect}
-        disabledTypes={disabledStepTypes}
-      />
-
-      {/* Return Value Editor */}
-      <ReturnValueEditor
-        isOpen={showReturnValueEditor}
-        onClose={handleCloseReturnValueEditor}
-        onSave={handleSaveReturnValue}
-        returnValue={returnValueToEdit}
-        isLoading={isSavingReturnValue}
-        error={returnValueError}
-      />
-
-      {/* Delete Return Value Confirmation */}
-      <DeleteConfirmDialog
-        isOpen={!!returnValueToDelete}
-        onClose={handleCloseReturnValueDeleteDialog}
-        onConfirm={handleConfirmDeleteReturnValue}
-        title="Delete Return Value"
-        message="Are you sure you want to delete this return value? This action cannot be undone."
-        isLoading={isDeletingReturnValue}
-      />
-
-      {/* Call Flow Editor */}
-      <CallFlowEditor
-        isOpen={showCallFlowEditor}
-        onClose={handleCloseCallFlowEditor}
-        onSave={handleSaveCallFlow}
-        callFlow={callFlowToEdit}
+      {/* Node Edit Modal */}
+      <NodeEditModal
+        isOpen={showNodeEditModal}
+        onClose={handleCloseNodeEditModal}
+        onSave={handleSaveNode}
+        node={nodeToEdit}
+        nodeType={nodeTypeToCreate}
+        flows={allFlows}
         currentFlowId={flowId || ''}
-        availableFlows={availableFlows}
-        isLoading={isSavingCallFlow}
-        error={callFlowError}
-      />
-
-      {/* Delete Call Flow Confirmation */}
-      <DeleteConfirmDialog
-        isOpen={!!callFlowToDelete}
-        onClose={handleCloseCallFlowDeleteDialog}
-        onConfirm={handleConfirmDeleteCallFlow}
-        title="Delete Call Flow"
-        message="Are you sure you want to delete this call flow? This action cannot be undone."
-        isLoading={isDeletingCallFlow}
+        isLoading={isSavingNode}
+        error={nodeEditError}
       />
     </div>
   );

@@ -5,15 +5,22 @@ import {
   Background,
   BackgroundVariant,
   MarkerType,
+  useReactFlow,
   type Node,
   type Edge,
   type NodeMouseHandler,
-  type EdgeMouseHandler,
-  type Connection,
-  type IsValidConnection,
+  type NodeChange,
+  type Connection as RFConnection,
+  applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { View, Flow, ReturnValue, CallFlow, ActionConnection, CreateActionConnectionRequest } from '@chatgpt-app-builder/shared';
+import type {
+  Flow,
+  NodeInstance,
+  Connection,
+  CreateConnectionRequest,
+  InterfaceNodeParameters,
+} from '@chatgpt-app-builder/shared';
 import { api } from '../../lib/api';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
@@ -22,37 +29,35 @@ import { AddUserIntentNode } from './AddUserIntentNode';
 import { AddStepNode } from './AddStepNode';
 import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
+import { DeletableEdge } from './DeletableEdge';
 
 interface FlowDiagramProps {
   flow: Flow;
-  views: View[];
-  returnValues: ReturnValue[];
-  callFlows: CallFlow[];
-  actionConnections: ActionConnection[];
-  onViewEdit: (view: View) => void;
-  onViewDelete: (view: View) => void;
-  onReturnValueEdit: (returnValue: ReturnValue) => void;
-  onReturnValueDelete: (returnValue: ReturnValue) => void;
-  onCallFlowEdit: (callFlow: CallFlow) => void;
-  onCallFlowDelete: (callFlow: CallFlow) => void;
+  onNodeEdit: (node: NodeInstance) => void;
+  onNodeDelete: (node: NodeInstance) => void;
   onUserIntentEdit: () => void;
-  onMockDataEdit: (view: View) => void;
+  onMockDataEdit: (node: NodeInstance) => void;
   onAddUserIntent?: () => void;
   onAddStep?: () => void;
   canDelete: boolean;
-  onActionConnectionsChange?: (connections: ActionConnection[]) => void;
+  onConnectionsChange?: (connections: Connection[]) => void;
+  flowNameLookup?: Record<string, string>; // Maps flowId to flowName for CallFlow nodes
 }
 
 /**
  * Determines the current state of a flow based on its data
  */
-function getFlowState(flow: Flow, returnValues: ReturnValue[], callFlows: CallFlow[]) {
+function getFlowState(flow: Flow) {
   const hasUserIntent = Boolean(flow.toolDescription?.trim());
-  const hasViews = Boolean(flow.views?.length);
-  const hasReturnValues = returnValues.length > 0;
-  const hasCallFlows = callFlows.length > 0;
-  const hasSteps = hasViews || hasReturnValues || hasCallFlows;
-  return { hasUserIntent, hasViews, hasReturnValues, hasCallFlows, hasSteps };
+  const nodes = flow.nodes ?? [];
+  const interfaceNodes = nodes.filter(n => n.type === 'Interface');
+  const returnNodes = nodes.filter(n => n.type === 'Return');
+  const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
+  const hasInterfaceNodes = interfaceNodes.length > 0;
+  const hasReturnNodes = returnNodes.length > 0;
+  const hasCallFlowNodes = callFlowNodes.length > 0;
+  const hasSteps = hasInterfaceNodes || hasReturnNodes || hasCallFlowNodes;
+  return { hasUserIntent, hasInterfaceNodes, hasReturnNodes, hasCallFlowNodes, hasSteps, interfaceNodes, returnNodes, callFlowNodes };
 }
 
 const nodeTypes = {
@@ -65,32 +70,31 @@ const nodeTypes = {
   callFlowNode: CallFlowNode,
 };
 
+const edgeTypes = {
+  deletable: DeletableEdge,
+};
+
 /**
- * Visual diagram of views using React Flow
- * Displays user intent node followed by view or return value nodes in order
+ * Visual diagram of nodes using React Flow
+ * Displays user intent node followed by Interface, Return, or CallFlow nodes
  */
 function FlowDiagramInner({
   flow,
-  views,
-  returnValues,
-  callFlows,
-  actionConnections,
-  onViewEdit,
-  onViewDelete,
-  onReturnValueEdit,
-  onReturnValueDelete,
-  onCallFlowEdit,
-  onCallFlowDelete,
+  onNodeEdit,
+  onNodeDelete,
   onUserIntentEdit,
   onMockDataEdit,
   onAddUserIntent,
   onAddStep,
   canDelete,
-  onActionConnectionsChange,
+  onConnectionsChange,
+  flowNameLookup = {},
 }: FlowDiagramProps) {
-  const flowState = getFlowState(flow, returnValues, callFlows);
+  const flowState = getFlowState(flow);
+  const connections = useMemo(() => flow.connections ?? [], [flow.connections]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const { fitView } = useReactFlow();
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -107,109 +111,103 @@ function FlowDiagramInner({
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+  // Re-fit view when the flow state changes (e.g., user intent added/removed, nodes added)
+  const nodeCount = (flow.nodes ?? []).length;
+  useEffect(() => {
+    // Small delay to ensure nodes are rendered before fitting
+    const timer = setTimeout(() => {
+      fitView({ padding: 0.2 });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [flowState.hasUserIntent, nodeCount, fitView]);
+
   // Handle node click - check which button was clicked
-  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
-    const target = event.target as HTMLElement;
+  const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+    const target = _event.target as HTMLElement;
     const button = target.closest('button');
     if (button) {
       const action = button.getAttribute('data-action');
-      const view = views.find(v => v.id === node.id);
-      if (view) {
+      const nodeInstance = flow.nodes?.find(n => n.id === node.id);
+      if (nodeInstance) {
         if (action === 'edit') {
-          onViewEdit(view);
+          onNodeEdit(nodeInstance);
         } else if (action === 'delete' && canDelete) {
-          onViewDelete(view);
+          onNodeDelete(nodeInstance);
         }
       }
     }
-  }, [views, onViewEdit, onViewDelete, canDelete]);
+  }, [flow.nodes, onNodeEdit, onNodeDelete, canDelete]);
 
-  // Validate connection - only allow action handles to connect to return value or call flow nodes
-  const isValidConnection: IsValidConnection = useCallback((connection) => {
-    // Only validate connections from action handles
-    if (!connection.sourceHandle?.startsWith('action:')) {
-      return false; // Don't allow non-action connections (diagram is read-only for other edges)
+  // Check if adding a connection would create a cycle (client-side validation)
+  const wouldCreateCycle = useCallback((sourceId: string, targetId: string): boolean => {
+    const visited = new Set<string>();
+    const stack = [targetId];
+
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (current === sourceId) return true;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      for (const conn of connections) {
+        if (conn.sourceNodeId === current) {
+          stack.push(conn.targetNodeId);
+        }
+      }
     }
+    return false;
+  }, [connections]);
 
-    // Action handles can connect to return value nodes or call flow nodes
-    const targetNode = connection.target;
-    const isReturnValueTarget = returnValues.some(rv => rv.id === targetNode);
-    const isCallFlowTarget = callFlows.some(cf => cf.id === targetNode);
+  // Validate connection - allow connections between any nodes with proper handles
+  const isValidConnection = useCallback((connection: { source?: string | null; sourceHandle?: string | null; target?: string | null; targetHandle?: string | null }) => {
+    const sourceId = connection.source;
+    const targetId = connection.target;
 
-    return isReturnValueTarget || isCallFlowTarget;
-  }, [returnValues, callFlows]);
+    // Must have source and target
+    if (!sourceId || !targetId) return false;
 
-  // Handle new connection from action handle to target
-  const onConnect = useCallback(async (connection: Connection) => {
-    if (!connection.sourceHandle?.startsWith('action:')) return;
+    // Prevent self-connections
+    if (sourceId === targetId) return false;
+
+    // Prevent circular connections
+    if (wouldCreateCycle(sourceId, targetId)) return false;
+
+    return true;
+  }, [wouldCreateCycle]);
+
+  // Handle new connection from any source handle to any target
+  const onConnect = useCallback(async (connection: RFConnection) => {
     if (!connection.source || !connection.target) return;
 
-    const actionName = connection.sourceHandle.replace('action:', '');
-    const viewId = connection.source;
-    const targetNodeId = connection.target;
-
-    // Determine target type
-    const isReturnValueTarget = returnValues.some(rv => rv.id === targetNodeId);
-    const isCallFlowTarget = callFlows.some(cf => cf.id === targetNodeId);
-
-    if (!isReturnValueTarget && !isCallFlowTarget) return;
-
-    const request: CreateActionConnectionRequest = {
-      actionName,
-      targetType: isReturnValueTarget ? 'return-value' : 'call-flow',
-      targetReturnValueId: isReturnValueTarget ? targetNodeId : undefined,
-      targetCallFlowId: isCallFlowTarget ? targetNodeId : undefined,
+    const request: CreateConnectionRequest = {
+      sourceNodeId: connection.source,
+      sourceHandle: connection.sourceHandle || 'output',
+      targetNodeId: connection.target,
+      targetHandle: connection.targetHandle || 'input',
     };
 
     try {
-      const newConnection = await api.createActionConnection(viewId, request);
+      const newConnection = await api.createConnection(flow.id, request);
       // Notify parent of the change
-      if (onActionConnectionsChange) {
-        // Replace any existing connection for this action, or add new one
-        const updatedConnections = actionConnections.filter(
-          c => !(c.viewId === viewId && c.actionName === actionName)
-        );
-        updatedConnections.push(newConnection);
-        onActionConnectionsChange(updatedConnections);
+      if (onConnectionsChange) {
+        const updatedConnections = [...connections, newConnection];
+        onConnectionsChange(updatedConnections);
       }
     } catch (err) {
-      console.error('Failed to create action connection:', err);
+      console.error('Failed to create connection:', err);
     }
-  }, [returnValues, callFlows, actionConnections, onActionConnectionsChange]);
+  }, [flow.id, connections, onConnectionsChange]);
 
-  // Handle edge click for action connection deletion
-  const onEdgeClick: EdgeMouseHandler = useCallback(async (_event, edge) => {
-    // Only handle action connection edges (those starting with 'action-edge-')
-    if (!edge.id.startsWith('action-edge-')) {
-      return;
+  // Handle connection deletion (called from DeletableEdge)
+  const handleConnectionDelete = useCallback((connectionId: string) => {
+    if (onConnectionsChange) {
+      const updatedConnections = connections.filter(c => c.id !== connectionId);
+      onConnectionsChange(updatedConnections);
     }
+  }, [connections, onConnectionsChange]);
 
-    // Find the corresponding action connection
-    const connectionId = edge.id.replace('action-edge-', '');
-    const connection = actionConnections.find(c => c.id === connectionId);
-    if (!connection) {
-      return;
-    }
-
-    // Confirm deletion (simple confirm for POC)
-    if (!window.confirm('Delete this action connection?')) {
-      return;
-    }
-
-    try {
-      await api.deleteActionConnection(connection.viewId, connection.actionName);
-      // Notify parent of the change
-      if (onActionConnectionsChange) {
-        const updatedConnections = actionConnections.filter(c => c.id !== connectionId);
-        onActionConnectionsChange(updatedConnections);
-      }
-    } catch (err) {
-      console.error('Failed to delete action connection:', err);
-    }
-  }, [actionConnections, onActionConnectionsChange]);
-
-  // Generate nodes: User Intent node (or placeholder) + MockData nodes + View nodes
-  const nodes = useMemo<Node[]>(() => {
+  // Generate base nodes: User Intent node (or placeholder) + MockData nodes + Interface/Return/CallFlow nodes
+  const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
     // Show AddUserIntentNode placeholder if no user intent, otherwise show UserIntentNode
@@ -237,77 +235,86 @@ function FlowDiagramInner({
         },
       });
 
-      // Track horizontal position for all step types
+      // Track horizontal position for nodes without saved positions
       let xPosition = 330;
 
-      // Add MockData nodes (above) and View nodes (below) for each view
-      views.forEach((view) => {
-        // MockData node (above view)
+      // Add MockData nodes (above) and Interface nodes
+      flowState.interfaceNodes.forEach((node) => {
+        const params = node.parameters as unknown as InterfaceNodeParameters;
+        // Use saved position or calculate based on order
+        const nodePos = node.position || { x: xPosition, y: 130 };
+
+        // MockData node (above interface)
         nodeList.push({
-          id: `mockdata-${view.id}`,
+          id: `mockdata-${node.id}`,
           type: 'mockDataNode',
-          position: { x: xPosition, y: 20 },
+          position: { x: nodePos.x, y: nodePos.y - 110 },
           data: {
-            mockData: view.mockData,
-            layoutTemplate: view.layoutTemplate,
-            onEdit: () => onMockDataEdit(view),
+            mockData: params?.mockData,
+            layoutTemplate: params?.layoutTemplate || 'table',
+            onEdit: () => onMockDataEdit(node),
           },
         });
 
-        // View node (below mockdata)
+        // Interface node
         nodeList.push({
-          id: view.id,
+          id: node.id,
           type: 'viewNode',
-          position: { x: xPosition, y: 130 },
+          position: nodePos,
           data: {
-            view,
+            node,
             canDelete,
-            onEdit: () => onViewEdit(view),
-            onDelete: () => onViewDelete(view),
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
           },
         });
 
-        xPosition += 280;
+        // Update xPosition for next node without saved position
+        xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
 
-      // Add ReturnValue nodes
-      returnValues.forEach((returnValue) => {
+      // Add Return nodes
+      flowState.returnNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 80 };
         nodeList.push({
-          id: returnValue.id,
+          id: node.id,
           type: 'returnValueNode',
-          position: { x: xPosition, y: 80 },
+          position: nodePos,
           data: {
-            returnValue,
+            node,
             canDelete,
-            onEdit: () => onReturnValueEdit(returnValue),
-            onDelete: () => onReturnValueDelete(returnValue),
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
           },
         });
 
-        xPosition += 250;
+        xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
 
       // Add CallFlow nodes
-      callFlows.forEach((callFlow) => {
+      flowState.callFlowNodes.forEach((node) => {
+        const params = node.parameters as { targetFlowId?: string | null };
+        const targetFlowId = params?.targetFlowId;
+        const nodePos = node.position || { x: xPosition, y: 80 };
+
         nodeList.push({
-          id: callFlow.id,
+          id: node.id,
           type: 'callFlowNode',
-          position: { x: xPosition, y: 80 },
+          position: nodePos,
           data: {
-            callFlow,
+            node,
+            targetFlowName: targetFlowId ? flowNameLookup[targetFlowId] : undefined,
             canDelete,
-            onEdit: () => onCallFlowEdit(callFlow),
-            onDelete: () => onCallFlowDelete(callFlow),
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
           },
         });
 
-        xPosition += 250;
+        xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
 
-      // Show AddStepNode only if there are no end actions (return values or call flows)
-      // End actions are terminal - nothing comes after them
-      const hasEndActions = returnValues.length > 0 || callFlows.length > 0;
-      if (onAddStep && !hasEndActions) {
+      // Always show AddStepNode when user intent exists - users can add unconnected nodes
+      if (onAddStep) {
         nodeList.push({
           id: 'add-step',
           type: 'addStepNode',
@@ -320,9 +327,40 @@ function FlowDiagramInner({
     }
 
     return nodeList;
-  }, [flow, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, flowState.hasCallFlows, views, returnValues, callFlows, canDelete, dimensions, onViewEdit, onViewDelete, onReturnValueEdit, onReturnValueDelete, onCallFlowEdit, onCallFlowDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddStep]);
+  }, [flow, flowState, canDelete, dimensions, onNodeEdit, onNodeDelete, onUserIntentEdit, onMockDataEdit, onAddUserIntent, onAddStep, flowNameLookup]);
 
-  // Generate edges: User Intent → first step (View/ReturnValue or AddStep), MockData → View, then step → step
+  // State for draggable nodes - initialized from computedNodes and updated on drag
+  const [nodes, setNodes] = useState<Node[]>(computedNodes);
+
+  // Sync nodes state when computed nodes change (e.g., new node added, flow data changed)
+  useEffect(() => {
+    setNodes(computedNodes);
+  }, [computedNodes]);
+
+  // Handle node changes (position updates during drag)
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
+
+  // Persist node position when drag ends
+  const onNodeDragStop = useCallback(async (_event: React.MouseEvent, node: Node) => {
+    // Skip virtual nodes (user-intent, add-step, mockdata-*)
+    if (node.id === 'user-intent' || node.id === 'add-step' || node.id.startsWith('mockdata-')) {
+      return;
+    }
+
+    try {
+      await api.updateNodePosition(flow.id, node.id, {
+        x: node.position.x,
+        y: node.position.y,
+      });
+    } catch (err) {
+      console.error('Failed to save node position:', err);
+    }
+  }, [flow.id]);
+
+  // Generate edges: Only user-created connections from flow.connections
+  // No automatic edges - users manually connect nodes via handles
   const edges = useMemo<Edge[]>(() => {
     const edgeList: Edge[] = [];
 
@@ -331,127 +369,55 @@ function FlowDiagramInner({
       return edgeList;
     }
 
-    // Determine the first step to connect from User Intent
-    // Only show add-step if there are no end actions (return values or call flows)
-    const hasAnyEndActions = returnValues.length > 0 || callFlows.length > 0;
-    const firstStep = views.length > 0
-      ? { id: views[0].id, handle: 'left', color: '#60a5fa' }
-      : returnValues.length > 0
-        ? { id: returnValues[0].id, handle: 'left', color: '#22c55e' }
-        : callFlows.length > 0
-          ? { id: callFlows[0].id, handle: 'left', color: '#a855f7' }
-          : (onAddStep && !hasAnyEndActions)
-            ? { id: 'add-step', handle: undefined, color: '#d1d5db', dashed: true }
-            : null;
+    // Only show user-created connections from flow.connections
+    connections.forEach((connection) => {
+      // Handle special case: connection from user-intent node
+      const isFromUserIntent = connection.sourceNodeId === 'user-intent';
 
-    // Edge from User Intent to first step
-    if (firstStep) {
-      edgeList.push({
-        id: 'edge-user-intent-first-step',
-        source: 'user-intent',
-        target: firstStep.id,
-        targetHandle: firstStep.handle,
-        type: 'smoothstep',
-        animated: firstStep.dashed || false,
-        style: {
-          stroke: firstStep.color,
-          strokeWidth: 2,
-          ...(firstStep.dashed ? { strokeDasharray: '5,5' } : {}),
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: firstStep.color,
-        },
-      });
-    }
+      // Verify source node exists (user-intent is a virtual node, always exists if hasUserIntent)
+      const sourceExists = isFromUserIntent || flow.nodes?.some(n => n.id === connection.sourceNodeId);
+      const targetExists = flow.nodes?.some(n => n.id === connection.targetNodeId);
 
-    // Edges from MockData to View (vertical connection)
-    views.forEach((view) => {
+      if (!sourceExists || !targetExists) return;
+
+      // Determine edge color based on source type
+      let strokeColor = '#60a5fa'; // Default blue
+      if (isFromUserIntent) {
+        strokeColor = '#60a5fa'; // Blue for user intent
+      } else {
+        const sourceNode = flow.nodes?.find(n => n.id === connection.sourceNodeId);
+        if (sourceNode?.type === 'Interface') {
+          strokeColor = '#60a5fa'; // Blue for interface
+        } else if (sourceNode?.type === 'Return') {
+          strokeColor = '#22c55e'; // Green for return
+        } else if (sourceNode?.type === 'CallFlow') {
+          strokeColor = '#a855f7'; // Purple for call flow
+        }
+      }
+
       edgeList.push({
-        id: `edge-mockdata-${view.id}`,
-        source: `mockdata-${view.id}`,
-        target: view.id,
-        targetHandle: 'top',
-        type: 'smoothstep',
+        id: `connection-${connection.id}`,
+        source: connection.sourceNodeId,
+        sourceHandle: connection.sourceHandle,
+        target: connection.targetNodeId,
+        targetHandle: connection.targetHandle || 'input',
+        type: 'deletable',
         animated: false,
-        style: { stroke: '#f59e0b', strokeWidth: 2 },
+        style: { stroke: strokeColor, strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#f59e0b',
+          color: strokeColor,
         },
-      });
-    });
-
-    // Edges between consecutive Views
-    views.slice(0, -1).forEach((view, index) => {
-      edgeList.push({
-        id: `edge-${view.id}-${views[index + 1].id}`,
-        source: view.id,
-        target: views[index + 1].id,
-        targetHandle: 'left',
-        type: 'smoothstep',
-        animated: false,
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#9ca3af',
-        },
-      });
-    });
-
-    // Edge from last view to add-step button (only if no end actions exist)
-    const hasEndActions = returnValues.length > 0 || callFlows.length > 0;
-    if (views.length > 0 && onAddStep && !hasEndActions) {
-      edgeList.push({
-        id: 'edge-last-view-add-step',
-        source: views[views.length - 1].id,
-        target: 'add-step',
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#d1d5db', strokeWidth: 2, strokeDasharray: '5,5' },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#d1d5db',
-        },
-      });
-    }
-
-    // Add action connection edges (purple themed, from action handles to targets)
-    actionConnections.forEach((connection) => {
-      const targetId = connection.targetType === 'return-value'
-        ? connection.targetReturnValueId
-        : connection.targetCallFlowId;
-
-      if (!targetId) return;
-
-      // Verify the target still exists
-      const targetExists = connection.targetType === 'return-value'
-        ? returnValues.some(rv => rv.id === targetId)
-        : callFlows.some(cf => cf.id === targetId);
-
-      if (!targetExists) return;
-
-      edgeList.push({
-        id: `action-edge-${connection.id}`,
-        source: connection.viewId,
-        sourceHandle: `action:${connection.actionName}`,
-        target: targetId,
-        targetHandle: 'action-target',
-        type: 'smoothstep',
-        animated: false,
-        style: { stroke: '#a855f7', strokeWidth: 2 },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#a855f7',
+        data: {
+          flowId: flow.id,
+          connection,
+          onDelete: handleConnectionDelete,
         },
       });
     });
 
     return edgeList;
-  }, [views, returnValues, callFlows, actionConnections, flowState.hasUserIntent, flowState.hasViews, flowState.hasSteps, flowState.hasReturnValues, flowState.hasCallFlows, onAddStep]);
-
-  // Even with no views, we still show the User Intent node
-  // The empty state message is now shown inside the ReactFlow diagram
+  }, [flow.id, flow.nodes, flowState.hasUserIntent, connections, handleConnectionDelete]);
 
   return (
     <div ref={containerRef} className="w-full h-full bg-muted/30">
@@ -460,13 +426,15 @@ function FlowDiagramInner({
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodesChange={onNodesChange}
+          onNodeDragStop={onNodeDragStop}
           onNodeClick={onNodeClick}
-          onEdgeClick={onEdgeClick}
           onConnect={onConnect}
           isValidConnection={isValidConnection}
           fitView
           fitViewOptions={{ padding: 0.2 }}
-          nodesDraggable={false}
+          nodesDraggable={true}
           nodesConnectable={true}
           elementsSelectable={true}
           panOnScroll

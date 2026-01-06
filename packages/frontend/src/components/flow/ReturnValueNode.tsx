@@ -1,29 +1,33 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { ReturnValue } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, ReturnNodeParameters } from '@chatgpt-app-builder/shared';
 import { FileText, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 export interface ReturnValueNodeData extends Record<string, unknown> {
-  returnValue: ReturnValue;
+  node: NodeInstance;
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 /**
- * Custom React Flow node for displaying a return value
- * Green-themed card design to distinguish from views
+ * Custom React Flow node for displaying a Return node (formerly ReturnValue)
+ * Green-themed card design to distinguish from Interface nodes
  * No right-side handle as it's a terminal/end action
  */
 export function ReturnValueNode({ data }: NodeProps) {
-  const { returnValue, canDelete, onEdit, onDelete } = data as ReturnValueNodeData;
+  const { node, canDelete, onEdit, onDelete } = data as ReturnValueNodeData;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isEmpty = !returnValue.text?.trim();
-  const previewText = returnValue.text?.slice(0, 50) || '';
-  const hasMore = (returnValue.text?.length || 0) > 50;
+  // Get parameters with type safety
+  const params = node.parameters as unknown as ReturnNodeParameters;
+  const text = params?.text || '';
+
+  const isEmpty = !text.trim();
+  const previewText = text.slice(0, 50);
+  const hasMore = text.length > 50;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -45,16 +49,8 @@ export function ReturnValueNode({ data }: NodeProps) {
       <Handle
         type="target"
         position={Position.Left}
-        id="left"
-        className="!bg-green-400 !w-2 !h-2 !border-0"
-      />
-      {/* Action target handle - for incoming action connections (purple themed) */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="action-target"
-        className="!bg-purple-500 !w-2.5 !h-2.5 !border-2 !border-purple-300"
-        style={{ top: '70%' }}
+        id="input"
+        className="!bg-green-400 !w-3 !h-3 !border-2 !border-green-200"
       />
 
       <div className="p-4">
@@ -70,17 +66,17 @@ export function ReturnValueNode({ data }: NodeProps) {
             )}
           </div>
 
-          {/* Return value info */}
+          {/* Return node info */}
           <div className="text-center w-full">
             <h3 className="font-medium text-gray-900 text-sm">
-              Return Value
+              {node.name || 'Return Value'}
             </h3>
             {isEmpty ? (
               <p className="text-xs text-amber-600 mt-1">
                 Not configured
               </p>
             ) : (
-              <p className="text-xs text-gray-500 mt-1 truncate" title={returnValue.text}>
+              <p className="text-xs text-gray-500 mt-1 truncate" title={text}>
                 {previewText}{hasMore ? '...' : ''}
               </p>
             )}
@@ -89,11 +85,12 @@ export function ReturnValueNode({ data }: NodeProps) {
           {/* Action dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsDropdownOpen(!isDropdownOpen);
               }}
-              className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+              className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700 nodrag"
               aria-label="Actions"
             >
               <MoreHorizontal className="w-4 h-4" />
@@ -102,24 +99,26 @@ export function ReturnValueNode({ data }: NodeProps) {
             {isDropdownOpen && (
               <div className="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10">
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsDropdownOpen(false);
                     onEdit();
                   }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 nodrag"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   Edit
                 </button>
                 {canDelete && (
                   <button
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsDropdownOpen(false);
                       onDelete();
                     }}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 nodrag"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Delete

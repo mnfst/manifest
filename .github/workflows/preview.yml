@@ -2,22 +2,139 @@ name: Deploy Preview Environment
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   deploy-preview:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Railway Preview Deploy
-        uses: ayungavis/railway-preview-deploy@v1.0.2
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy Preview
+        id: deploy
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: |
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment staging
+          echo "Creating environment pr-${{ github.event.pull_request.number }} from staging..."
+          railway environment new pr-${{ github.event.pull_request.number }} --duplicate staging || echo "Environment may already exist, continuing..."
+          echo "Linking to pr-${{ github.event.pull_request.number }}..."
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
+          echo "Deploying..."
+          railway up --service generator --ci --detach
+
+          # Get the deployment URL from status
+          echo "Getting deployment URL..."
+          railway status --json > status.json 2>/dev/null || true
+
+          # Extract domain for pr-$PR_NUMBER environment
+          PR_NUM=${{ github.event.pull_request.number }}
+          DEPLOY_URL=$(jq -r --arg env "pr-$PR_NUM" '.environments.edges[] | select(.node.name == $env) | .node.serviceInstances.edges[0].node.domains.serviceDomains[0].domain // empty' status.json 2>/dev/null || echo "")
+
+          echo "Deployment URL: $DEPLOY_URL"
+          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
         with:
-          railway_api_token: ${{ secrets.RAILWAY_API_TOKEN }}
-          project_id: ${{ secrets.RAILWAY_PROJECT_ID }}
-          environment_name: 'staging'
-          preview_environment_name: 'pr-${{ github.event.pull_request.number }}'
-          environment_variables: '{"MY_ENV_VAR": "value"}'
-          branch_name: ${{ github.head_ref }}
-          cleanup: 'true'
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+            const prNumber = context.issue.number;
+
+            const body = `## 🚀 Preview Deployment Ready!
+
+            | Status | URL |
+            |--------|-----|
+            | ✅ Deployed | ${url ? `[${url}](https://${url})` : 'Deployment in progress...'} |
+
+            > This preview environment will be automatically deleted when the PR is closed.`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Preview Deployment')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Delete Preview Environment
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: |
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment staging
+          railway environment delete pr-${{ github.event.pull_request.number }} --yes || true
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+
+            const body = `## 🗑️ Preview Environment Deleted
+
+            The preview environment for this PR has been cleaned up.`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Preview Deployment')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }

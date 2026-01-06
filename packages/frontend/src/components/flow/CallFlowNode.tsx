@@ -1,28 +1,32 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { CallFlow } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, CallFlowNodeParameters } from '@chatgpt-app-builder/shared';
 import { PhoneForwarded, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 export interface CallFlowNodeData extends Record<string, unknown> {
-  callFlow: CallFlow;
+  node: NodeInstance;
+  targetFlowName?: string;
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 /**
- * Custom React Flow node for displaying a call flow end action
- * Purple-themed card design to distinguish from views and return values
+ * Custom React Flow node for displaying a CallFlow node
+ * Purple-themed card design to distinguish from Interface and Return nodes
  * No right-side handle as it's a terminal/end action
  */
 export function CallFlowNode({ data }: NodeProps) {
-  const { callFlow, canDelete, onEdit, onDelete } = data as CallFlowNodeData;
+  const { node, targetFlowName, canDelete, onEdit, onDelete } = data as CallFlowNodeData;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const hasTarget = callFlow.targetFlowId && callFlow.targetFlow;
-  const targetName = callFlow.targetFlow?.name || 'Unknown Flow';
+  // Get parameters with type safety
+  const params = node.parameters as unknown as CallFlowNodeParameters;
+  const targetFlowId = params?.targetFlowId;
+
+  const hasTarget = Boolean(targetFlowId && targetFlowName);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -44,16 +48,8 @@ export function CallFlowNode({ data }: NodeProps) {
       <Handle
         type="target"
         position={Position.Left}
-        id="left"
-        className="!bg-purple-400 !w-2 !h-2 !border-0"
-      />
-      {/* Action target handle - for incoming action connections */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="action-target"
-        className="!bg-purple-500 !w-2.5 !h-2.5 !border-2 !border-purple-300"
-        style={{ top: '70%' }}
+        id="input"
+        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-purple-200"
       />
 
       <div className="p-4">
@@ -72,15 +68,15 @@ export function CallFlowNode({ data }: NodeProps) {
           {/* Call flow info */}
           <div className="text-center w-full">
             <h3 className="font-medium text-gray-900 text-sm">
-              Call Flow
+              {node.name || 'Call Flow'}
             </h3>
             {hasTarget ? (
-              <p className="text-xs text-gray-500 mt-1 truncate" title={targetName}>
-                {targetName}
+              <p className="text-xs text-gray-500 mt-1 truncate" title={targetFlowName}>
+                {targetFlowName}
               </p>
             ) : (
               <p className="text-xs text-amber-600 mt-1">
-                {callFlow.targetFlowId ? 'Target deleted' : 'Not configured'}
+                {targetFlowId ? 'Target deleted' : 'Not configured'}
               </p>
             )}
           </div>
@@ -88,11 +84,12 @@ export function CallFlowNode({ data }: NodeProps) {
           {/* Action dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsDropdownOpen(!isDropdownOpen);
               }}
-              className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+              className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700 nodrag"
               aria-label="Actions"
             >
               <MoreHorizontal className="w-4 h-4" />
@@ -101,24 +98,26 @@ export function CallFlowNode({ data }: NodeProps) {
             {isDropdownOpen && (
               <div className="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10">
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsDropdownOpen(false);
                     onEdit();
                   }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 nodrag"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   Edit
                 </button>
                 {canDelete && (
                   <button
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsDropdownOpen(false);
                       onDelete();
                     }}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 nodrag"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Delete

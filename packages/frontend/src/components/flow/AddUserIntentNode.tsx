@@ -16,11 +16,12 @@ export function AddUserIntentNode({ data }: NodeProps) {
 
   return (
     <div
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-all w-[200px] cursor-pointer group nopan"
+      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-all w-[200px] cursor-pointer group nopan nodrag"
     >
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">
@@ -38,7 +39,7 @@ export function AddUserIntentNode({ data }: NodeProps) {
               Add user intent
             </h3>
             <p className="text-xs text-gray-400 mt-1">
-              Define how AI will use this tool
+              Define what user intent detection will trigger this flow
             </p>
           </div>
         </div>

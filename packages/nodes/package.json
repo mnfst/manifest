@@ -1,0 +1,53 @@
+{
+  "name": "@chatgpt-app-builder/nodes",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.js"
+    },
+    "./nodes": {
+      "types": "./dist/nodes/index.d.ts",
+      "import": "./dist/nodes/index.js",
+      "require": "./dist/nodes/index.js"
+    },
+    "./nodes/InterfaceNode": {
+      "types": "./dist/nodes/InterfaceNode.d.ts",
+      "import": "./dist/nodes/InterfaceNode.js",
+      "require": "./dist/nodes/InterfaceNode.js"
+    },
+    "./nodes/ReturnNode": {
+      "types": "./dist/nodes/ReturnNode.d.ts",
+      "import": "./dist/nodes/ReturnNode.js",
+      "require": "./dist/nodes/ReturnNode.js"
+    },
+    "./nodes/CallFlowNode": {
+      "types": "./dist/nodes/CallFlowNode.d.ts",
+      "import": "./dist/nodes/CallFlowNode.js",
+      "require": "./dist/nodes/CallFlowNode.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@chatgpt-app-builder/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
