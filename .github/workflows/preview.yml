@@ -19,12 +19,10 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
-          echo "Available environments:"
-          railway environment --json || railway environment
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment staging
           echo "Creating environment pr-${{ github.event.pull_request.number }} from staging..."
           railway environment new pr-${{ github.event.pull_request.number }} --duplicate staging || echo "Environment may already exist, continuing..."
-          echo "Linking to environment..."
+          echo "Linking to pr-${{ github.event.pull_request.number }}..."
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
           echo "Deploying..."
           railway up --ci --detach
@@ -40,5 +38,5 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
-          railway environment delete pr-${{ github.event.pull_request.number }} --yes 2>/dev/null || true
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment staging
+          railway environment delete pr-${{ github.event.pull_request.number }} --yes || true
