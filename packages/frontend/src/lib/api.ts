@@ -28,6 +28,10 @@ import type {
   UpdateNodePositionRequest,
   CreateConnectionRequest,
   NodeTypeCategory,
+  // Execution types
+  ExecutionStatus,
+  ExecutionListResponse,
+  FlowExecution,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -517,6 +521,36 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(config),
     });
+  },
+
+  // ============================================
+  // Execution Tracking APIs
+  // ============================================
+
+  /**
+   * List executions for a flow with pagination
+   * GET /api/flows/:flowId/executions
+   */
+  async getExecutions(
+    flowId: string,
+    options?: { page?: number; limit?: number; status?: ExecutionStatus }
+  ): Promise<ExecutionListResponse> {
+    const params = new URLSearchParams();
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.status) params.set('status', options.status);
+
+    const queryString = params.toString();
+    const endpoint = `/flows/${flowId}/executions${queryString ? `?${queryString}` : ''}`;
+    return fetchApi<ExecutionListResponse>(endpoint);
+  },
+
+  /**
+   * Get execution details by ID
+   * GET /api/flows/:flowId/executions/:executionId
+   */
+  async getExecution(flowId: string, executionId: string): Promise<FlowExecution> {
+    return fetchApi<FlowExecution>(`/flows/${flowId}/executions/${executionId}`);
   },
 
 };

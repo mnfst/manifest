@@ -18,6 +18,9 @@ import { FlowDiagram } from '../components/flow/FlowDiagram';
 import { AddStepModal } from '../components/flow/AddStepModal';
 import { NodeEditModal } from '../components/flow/NodeEditModal';
 import { Tabs } from '../components/common/Tabs';
+import { ExecutionList } from '../components/execution/ExecutionList';
+import { ExecutionDetail } from '../components/execution/ExecutionDetail';
+import { ExecutionDetailPlaceholder } from '../components/execution/ExecutionDetailPlaceholder';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
@@ -66,6 +69,9 @@ function FlowDetail() {
 
   // Flow name lookup for CallFlow nodes
   const [flowNameLookup, setFlowNameLookup] = useState<Record<string, string>>({});
+
+  // Execution tracking state
+  const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -446,10 +452,25 @@ function FlowDetail() {
             </div>
           )}
 
-          {/* Usage Tab */}
-          {activeTab === 'usage' && (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-muted-foreground">Usage analytics coming soon...</p>
+          {/* Usage Tab - Two column layout */}
+          {activeTab === 'usage' && flowId && (
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left panel - Execution list */}
+              <div className="w-1/3 border-r border-gray-200 flex flex-col overflow-hidden">
+                <ExecutionList
+                  flowId={flowId}
+                  selectedId={selectedExecutionId}
+                  onSelect={setSelectedExecutionId}
+                />
+              </div>
+              {/* Right panel - Execution details */}
+              <div className="flex-1 bg-white overflow-hidden">
+                {selectedExecutionId ? (
+                  <ExecutionDetail flowId={flowId} executionId={selectedExecutionId} />
+                ) : (
+                  <ExecutionDetailPlaceholder />
+                )}
+              </div>
             </div>
           )}
         </div>

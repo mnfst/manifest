@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, Connection } from '@chatgpt-app-builder/shared';
+import { FlowExecutionService } from '../flow-execution/flow-execution.service';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, Connection, NodeExecutionData } from '@chatgpt-app-builder/shared';
 
 /**
  * MCP protocol error for inactive tools
@@ -36,7 +37,8 @@ export class McpToolService {
     @InjectRepository(AppEntity)
     private readonly appRepository: Repository<AppEntity>,
     @InjectRepository(FlowEntity)
-    private readonly flowRepository: Repository<FlowEntity>
+    private readonly flowRepository: Repository<FlowEntity>,
+    private readonly flowExecutionService: FlowExecutionService
   ) {}
 
   /**
@@ -165,6 +167,8 @@ export class McpToolService {
    * - Interface nodes: return structuredContent + widget metadata
    * - Return nodes: return text content array for LLM processing
    * - CallFlow nodes: trigger target flow
+   *
+   * Tracks execution in FlowExecution entity for history and debugging
    */
   async executeTool(
     appSlug: string,
@@ -188,35 +192,102 @@ export class McpToolService {
       throw new McpInactiveToolError(toolName);
     }
 
-    const allNodes = flow.nodes ?? [];
-    const connections = flow.connections ?? [];
+    // Create execution record
+    const execution = await this.flowExecutionService.createExecution({
+      flowId: flow.id,
+      flowName: flow.name,
+      flowToolName: flow.toolName,
+      initialParams: input,
+    });
 
-    // Get only nodes connected to user-intent in execution order
-    const connectedNodes = this.getConnectedNodes(allNodes, connections);
+    const nodeExecutions: NodeExecutionData[] = [];
 
-    // If no nodes are connected, fall back to legacy behavior (all nodes)
-    // This maintains backward compatibility for flows without explicit connections
-    const nodes = connectedNodes.length > 0 ? connectedNodes : allNodes;
+    try {
+      const allNodes = flow.nodes ?? [];
+      const connections = flow.connections ?? [];
 
-    // Get nodes by type (from connected/executable nodes only)
-    const interfaceNodes = nodes.filter(n => n.type === 'Interface');
-    const returnNodes = nodes.filter(n => n.type === 'Return');
-    const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
+      // Get only nodes connected to user-intent in execution order
+      const connectedNodes = this.getConnectedNodes(allNodes, connections);
 
-    // Priority: Return nodes > CallFlow nodes > Interface nodes
-    if (returnNodes.length > 0) {
-      return this.executeReturnFlow(flow, returnNodes);
+      // If no nodes are connected, fall back to legacy behavior (all nodes)
+      // This maintains backward compatibility for flows without explicit connections
+      const nodes = connectedNodes.length > 0 ? connectedNodes : allNodes;
+
+      // Get nodes by type (from connected/executable nodes only)
+      const interfaceNodes = nodes.filter(n => n.type === 'Interface');
+      const returnNodes = nodes.filter(n => n.type === 'Return');
+      const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
+
+      let result: McpToolResponse;
+
+      // Priority: Return nodes > CallFlow nodes > Interface nodes
+      if (returnNodes.length > 0) {
+        // Track Return node executions
+        for (const node of returnNodes) {
+          nodeExecutions.push(this.createNodeExecution(node, input, 'completed'));
+        }
+        result = this.executeReturnFlow(flow, returnNodes);
+      } else if (callFlowNodes.length > 0) {
+        // Track CallFlow node execution
+        const node = callFlowNodes[0];
+        nodeExecutions.push(this.createNodeExecution(node, input, 'completed'));
+        result = await this.executeCallFlowNode(app, flow, node);
+      } else if (interfaceNodes.length > 0) {
+        // Track Interface node execution
+        const node = interfaceNodes[0];
+        nodeExecutions.push(this.createNodeExecution(node, input, 'completed'));
+        result = this.executeInterfaceFlow(app, flow, node, input);
+      } else {
+        throw new NotFoundException(`No connected nodes found for tool: ${toolName}`);
+      }
+
+      // Update execution as fulfilled
+      await this.flowExecutionService.updateExecution(execution.id, {
+        status: 'fulfilled',
+        endedAt: new Date(),
+        nodeExecutions,
+      });
+
+      return result;
+    } catch (error) {
+      // Update execution as error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const lastNode = nodeExecutions[nodeExecutions.length - 1];
+
+      await this.flowExecutionService.updateExecution(execution.id, {
+        status: 'error',
+        endedAt: new Date(),
+        nodeExecutions,
+        errorInfo: {
+          message: errorMessage,
+          nodeId: lastNode?.nodeId,
+          nodeName: lastNode?.nodeName,
+        },
+      });
+
+      throw error;
     }
+  }
 
-    if (callFlowNodes.length > 0) {
-      return this.executeCallFlowNode(app, flow, callFlowNodes[0]);
-    }
-
-    if (interfaceNodes.length > 0) {
-      return this.executeInterfaceFlow(app, flow, interfaceNodes[0], input);
-    }
-
-    throw new NotFoundException(`No connected nodes found for tool: ${toolName}`);
+  /**
+   * Create a node execution record
+   */
+  private createNodeExecution(
+    node: NodeInstance,
+    input: Record<string, unknown>,
+    status: 'pending' | 'completed' | 'error',
+    error?: string
+  ): NodeExecutionData {
+    return {
+      nodeId: node.id,
+      nodeName: node.name,
+      nodeType: node.type,
+      executedAt: new Date().toISOString(),
+      inputData: input,
+      outputData: node.parameters ?? {},
+      status,
+      error,
+    };
   }
 
   /**

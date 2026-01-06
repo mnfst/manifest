@@ -5,6 +5,7 @@ import { UiController } from './ui.controller';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { AppService } from '../app/app.service';
+import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 
 /**
  * MCP module for Model Context Protocol server functionality
@@ -16,7 +17,10 @@ import { AppService } from '../app/app.service';
  * - Flow.connections JSON column contains node connections
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([AppEntity, FlowEntity])],
+  imports: [
+    TypeOrmModule.forFeature([AppEntity, FlowEntity]),
+    FlowExecutionModule,
+  ],
   controllers: [UiController],
   providers: [McpToolService, AppService],
   exports: [McpToolService],

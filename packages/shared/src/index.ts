@@ -86,5 +86,17 @@ export {
   DEFAULT_POST_LIST_MOCK_DATA,
 } from './types/node.js';
 
+// Execution types
+export type {
+  ExecutionStatus,
+  NodeExecutionStatus,
+  NodeExecutionData,
+  ExecutionErrorInfo,
+  FlowExecution,
+  ExecutionListItem,
+  ExecutionListResponse,
+  ExecutionListQuery,
+} from './types/execution.js';
+
 // String utilities
 export { toSnakeCase, isValidToolName } from './utils/string.js';
