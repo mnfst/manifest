@@ -2,23 +2,36 @@ name: Deploy Preview Environment
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   deploy-preview:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Railway Preview Deploy
-        uses: ayungavis/railway-preview-deploy@v1.0.2
-        with:
-          railway_api_token: ${{ secrets.RAILWAY_API_TOKEN }}
-          project_id: ${{ secrets.RAILWAY_PROJECT_ID }}
-          environment_name: 'staging'
-          preview_environment_name: 'pr-${{ github.event.pull_request.number }}'
-          environment_variables: '{"MY_ENV_VAR": "value"}'
-          branch_name: ${{ github.head_ref }}
-          cleanup: 'true'
-          reuse_preview_environment: 'false'
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy Preview
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: |
+          railway environment create pr-${{ github.event.pull_request.number }} --project ${{ secrets.RAILWAY_PROJECT_ID }} 2>/dev/null || true
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
+          railway up
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Delete Preview Environment
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: |
+          railway environment delete pr-${{ github.event.pull_request.number }} --project ${{ secrets.RAILWAY_PROJECT_ID }} --yes 2>/dev/null || true
