@@ -19,7 +19,8 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
-          railway environment create pr-${{ github.event.pull_request.number }} --project ${{ secrets.RAILWAY_PROJECT_ID }} 2>/dev/null || true
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway environment new pr-${{ github.event.pull_request.number }} --duplicate staging 2>/dev/null || true
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
           railway up
 
@@ -34,4 +35,5 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
-          railway environment delete pr-${{ github.event.pull_request.number }} --project ${{ secrets.RAILWAY_PROJECT_ID }} --yes 2>/dev/null || true
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway environment delete pr-${{ github.event.pull_request.number }} --yes 2>/dev/null || true
