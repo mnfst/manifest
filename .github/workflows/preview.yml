@@ -17,7 +17,7 @@ jobs:
 
       - name: Deploy Preview
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
           railway environment create pr-${{ github.event.pull_request.number }} --project ${{ secrets.RAILWAY_PROJECT_ID }} 2>/dev/null || true
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment pr-${{ github.event.pull_request.number }}
@@ -32,6 +32,6 @@ jobs:
 
       - name: Delete Preview Environment
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
           railway environment delete pr-${{ github.event.pull_request.number }} --project ${{ secrets.RAILWAY_PROJECT_ID }} --yes 2>/dev/null || true
