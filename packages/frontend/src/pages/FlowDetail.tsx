@@ -9,14 +9,14 @@ import type {
   Connection,
   NodeType,
 } from '@chatgpt-app-builder/shared';
-import { Hammer, Eye, BarChart3, Plus, Edit, Trash2 } from 'lucide-react';
+import { Hammer, Eye, BarChart3, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
-import { AddStepModal } from '../components/flow/AddStepModal';
 import { NodeEditModal } from '../components/flow/NodeEditModal';
+import { NodeLibrary } from '../components/flow/NodeLibrary';
 import { Tabs } from '../components/common/Tabs';
 import { ExecutionList } from '../components/execution/ExecutionList';
 import { ExecutionDetail } from '../components/execution/ExecutionDetail';
@@ -47,8 +47,8 @@ function FlowDetail() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCheckingDeletion, setIsCheckingDeletion] = useState(false);
 
-  // Add step modal state
-  const [showAddStepModal, setShowAddStepModal] = useState(false);
+  // Node library state (replaces AddStepModal and floating button)
+  const [isNodeLibraryOpen, setIsNodeLibraryOpen] = useState(true);
 
   // Node edit modal state
   const [showNodeEditModal, setShowNodeEditModal] = useState(false);
@@ -233,17 +233,19 @@ function FlowDetail() {
   }, []);
 
   const handleAddStep = useCallback(() => {
-    setShowAddStepModal(true);
-  }, []);
+    // Open the node library if not already open
+    if (!isNodeLibraryOpen) {
+      setIsNodeLibraryOpen(true);
+    }
+  }, [isNodeLibraryOpen]);
 
-  const handleAddStepSelect = (stepType: NodeType) => {
-    // Close the add step modal and open the node edit modal in create mode
-    setShowAddStepModal(false);
+  const handleNodeLibrarySelect = useCallback((nodeType: NodeType) => {
+    // Open the node edit modal in create mode
     setNodeToEdit(null);
-    setNodeTypeToCreate(stepType);
+    setNodeTypeToCreate(nodeType);
     setNodeEditError(null);
     setShowNodeEditModal(true);
-  };
+  }, []);
 
   const handleCloseNodeEditModal = () => {
     if (!isSavingNode) {
@@ -416,32 +418,34 @@ function FlowDetail() {
 
       {/* Tabs and Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-6 bg-background flex justify-center">
+        <div className="px-6 bg-white flex justify-center border-b">
           <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Build Tab - React Flow Canvas */}
+          {/* Build Tab - React Flow Canvas with Node Library */}
           {activeTab === 'build' && (
-            <div className="flex-1 relative">
-              <FlowDiagram
-                flow={flow}
-                onNodeEdit={handleNodeEdit}
-                onNodeDelete={handleNodeDelete}
-                onMockDataEdit={handleMockDataEdit}
-                onAddStep={handleAddStep}
-                canDelete={canDeleteNodes}
-                onConnectionsChange={handleConnectionsChange}
-                flowNameLookup={flowNameLookup}
+            <div className="flex-1 flex relative">
+              {/* Node Library Sidedrawer */}
+              <NodeLibrary
+                isOpen={isNodeLibraryOpen}
+                onToggle={() => setIsNodeLibraryOpen(!isNodeLibraryOpen)}
+                onClose={() => setIsNodeLibraryOpen(false)}
+                onSelectNode={handleNodeLibrarySelect}
               />
-              {/* Floating Add Button */}
-              <button
-                onClick={handleAddStep}
-                className="absolute bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 flex items-center justify-center transition-colors"
-                title="Add node"
-              >
-                <Plus className="w-6 h-6" />
-              </button>
+              {/* Canvas */}
+              <div className="flex-1 relative">
+                <FlowDiagram
+                  flow={flow}
+                  onNodeEdit={handleNodeEdit}
+                  onNodeDelete={handleNodeDelete}
+                  onMockDataEdit={handleMockDataEdit}
+                  onAddStep={handleAddStep}
+                  canDelete={canDeleteNodes}
+                  onConnectionsChange={handleConnectionsChange}
+                  flowNameLookup={flowNameLookup}
+                />
+              </div>
             </div>
           )}
 
@@ -495,13 +499,6 @@ function FlowDetail() {
         title="Delete Node"
         message={`Are you sure you want to delete "${nodeToDelete?.name}"? This will also remove any connections to this node.`}
         isLoading={isDeletingNode}
-      />
-
-      {/* Add Step Modal */}
-      <AddStepModal
-        isOpen={showAddStepModal}
-        onClose={() => setShowAddStepModal(false)}
-        onSelect={handleAddStepSelect}
       />
 
       {/* Node Edit Modal */}
