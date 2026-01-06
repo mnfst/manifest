@@ -170,7 +170,7 @@ export const ApiCallNode: NodeTypeDefinition = {
 
         // Parse response headers
         const responseHeaders: Record<string, string> = {};
-        response.headers.forEach((value, key) => {
+        response.headers.forEach((value: string, key: string) => {
           responseHeaders[key] = value;
         });
 
