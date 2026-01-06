@@ -125,7 +125,7 @@ function FlowDiagramInner({
   }, [views, onViewEdit, onViewDelete, canDelete]);
 
   // Validate connection - only allow action handles to connect to return value or call flow nodes
-  const isValidConnection: IsValidConnection = useCallback((connection: Connection) => {
+  const isValidConnection: IsValidConnection = useCallback((connection) => {
     // Only validate connections from action handles
     if (!connection.sourceHandle?.startsWith('action:')) {
       return false; // Don't allow non-action connections (diagram is read-only for other edges)
@@ -178,7 +178,7 @@ function FlowDiagramInner({
   }, [returnValues, callFlows, actionConnections, onActionConnectionsChange]);
 
   // Handle edge click for action connection deletion
-  const onEdgeClick: EdgeMouseHandler = useCallback(async (event, edge) => {
+  const onEdgeClick: EdgeMouseHandler = useCallback(async (_event, edge) => {
     // Only handle action connection edges (those starting with 'action-edge-')
     if (!edge.id.startsWith('action-edge-')) {
       return;

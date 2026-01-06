@@ -10,7 +10,7 @@
 #
 # Memory optimization strategies:
 #   - pnpm for efficient dependency management
-#   - NODE_OPTIONS=--max-old-space-size=1536 for TypeScript compilation
+#   - NODE_OPTIONS=--max-old-space-size=4096 for TypeScript compilation
 #   - Sequential package builds instead of parallel
 #   - Alpine base image for minimal footprint
 #   - Multi-stage to exclude devDependencies from final image
@@ -54,7 +54,7 @@ COPY packages/frontend/ ./packages/frontend/
 COPY tsconfig.base.json ./
 
 # Set Node.js memory limit for TypeScript compilation
-ENV NODE_OPTIONS="--max-old-space-size=1536"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build packages sequentially (shared → backend → frontend)
 # This reduces peak memory compared to parallel turbo builds
