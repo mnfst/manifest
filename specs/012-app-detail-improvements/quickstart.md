@@ -6,7 +6,7 @@
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm >= 9.0.0
+- pnpm >= 9.0.0
 - Running backend and frontend dev servers
 
 ## Implementation Order
@@ -55,14 +55,14 @@
 
 ```bash
 # Start development servers
-cd packages/backend && npm run dev
-cd packages/frontend && npm run dev
+cd packages/backend && pnpm dev
+cd packages/frontend && pnpm dev
 
 # Check for TypeScript errors
-npm run type-check
+pnpm type-check
 
 # Lint code
-npm run lint
+pnpm lint
 ```
 
 ## Key Files to Modify

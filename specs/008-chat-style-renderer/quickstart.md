@@ -6,8 +6,8 @@
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm (for monorepo workspaces)
-- Project dependencies installed (`npm install` from root)
+- pnpm (for monorepo workspaces)
+- Project dependencies installed (`pnpm install` from root)
 
 ## Development Setup
 
@@ -16,7 +16,7 @@
 From the repository root:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 This starts:
@@ -120,7 +120,7 @@ Create PlatformStyle and ThemeMode types.
 If logoUrl column doesn't appear:
 1. Stop the backend
 2. Delete `packages/backend/data/app.db`
-3. Restart backend (`npm run dev`)
+3. Restart backend (`pnpm dev`)
 4. TypeORM will recreate schema with new column
 
 ### localStorage Not Persisting
@@ -140,14 +140,14 @@ Check that ThemeProvider is properly wrapping styled components.
 
 ```bash
 # Start development
-npm run dev
+pnpm dev
 
 # Type check all packages
-npm run type-check
+pnpm type-check
 
 # Lint all packages
-npm run lint
+pnpm lint
 
 # Build all packages
-npm run build
+pnpm build
 ```

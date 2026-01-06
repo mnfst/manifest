@@ -10,8 +10,8 @@ This feature adds a "Call Flow" end action that enables flows to trigger other f
 ## Prerequisites
 
 - Existing monorepo with backend, frontend, shared packages
-- Node.js 18+, npm
-- Running development environment (`npm run dev`)
+- Node.js 18+, pnpm
+- Running development environment (`pnpm dev`)
 
 ## Key Implementation Steps
 

@@ -6,7 +6,7 @@
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm >= 10.0.0
+- pnpm >= 9.0.0
 - Existing generator monorepo set up
 
 ## Setup Steps
@@ -18,10 +18,10 @@
 cd packages/frontend
 
 # Install lucide-react for icons
-npm install lucide-react
+pnpm add lucide-react
 
 # Install class utilities (if not present)
-npm install clsx tailwind-merge
+pnpm add clsx tailwind-merge
 ```
 
 ### 2. Add cn() Utility
@@ -191,7 +191,7 @@ export function LayoutRenderer({ layoutTemplate, mockData, isDarkMode = false }:
 
 ### Test Table Rendering
 
-1. Start dev server: `npm run dev`
+1. Start dev server: `pnpm dev`
 2. Create or open an app with a table view
 3. Verify:
    - Table renders with Manifest styling
