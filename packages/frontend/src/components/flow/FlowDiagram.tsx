@@ -28,6 +28,7 @@ import { MockDataNode } from './MockDataNode';
 import { AddUserIntentNode } from './AddUserIntentNode';
 import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
+import { ApiCallNode } from './ApiCallNode';
 import { DeletableEdge } from './DeletableEdge';
 
 interface FlowDiagramProps {
@@ -50,12 +51,14 @@ function getFlowState(flow: Flow) {
   const interfaceNodes = nodes.filter(n => n.type === 'Interface');
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
+  const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
   const hasUserIntentNodes = userIntentNodes.length > 0;
   const hasInterfaceNodes = interfaceNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
-  const hasSteps = hasInterfaceNodes || hasReturnNodes || hasCallFlowNodes;
-  return { hasUserIntentNodes, hasInterfaceNodes, hasReturnNodes, hasCallFlowNodes, hasSteps, userIntentNodes, interfaceNodes, returnNodes, callFlowNodes };
+  const hasApiCallNodes = apiCallNodes.length > 0;
+  const hasSteps = hasInterfaceNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes;
+  return { hasUserIntentNodes, hasInterfaceNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasSteps, userIntentNodes, interfaceNodes, returnNodes, callFlowNodes, apiCallNodes };
 }
 
 const nodeTypes = {
@@ -65,6 +68,7 @@ const nodeTypes = {
   addUserIntentNode: AddUserIntentNode,
   returnValueNode: ReturnValueNode,
   callFlowNode: CallFlowNode,
+  apiCallNode: ApiCallNode,
 };
 
 const edgeTypes = {
@@ -217,7 +221,7 @@ function FlowDiagramInner({
     }
   }, [connections, onConnectionsChange]);
 
-  // Generate base nodes: UserIntent nodes + MockData nodes + Interface/Return/CallFlow nodes + AddStep
+  // Generate base nodes: UserIntent nodes + MockData nodes + Interface/Return/CallFlow/ApiCall nodes + AddStep
   const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
@@ -330,6 +334,25 @@ function FlowDiagramInner({
 
         xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
+
+      // Add ApiCall nodes
+      flowState.apiCallNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 80 };
+
+        nodeList.push({
+          id: node.id,
+          type: 'apiCallNode',
+          position: nodePos,
+          data: {
+            node,
+            canDelete,
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
+          },
+        });
+
+        xPosition = Math.max(xPosition, nodePos.x) + 250;
+      });
     }
 
     return nodeList;
@@ -395,6 +418,8 @@ function FlowDiagramInner({
         strokeColor = '#22c55e'; // Green for return
       } else if (sourceNode.type === 'CallFlow') {
         strokeColor = '#a855f7'; // Purple for call flow
+      } else if (sourceNode.type === 'ApiCall') {
+        strokeColor = '#f97316'; // Orange for API call
       }
 
       edgeList.push({

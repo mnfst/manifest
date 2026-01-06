@@ -152,7 +152,57 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return';
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'Interface' | 'Return' | 'CallFlow' | 'UserIntent';
+export type NodeType = 'Interface' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall';
+
+// =============================================================================
+// API Call Node Types
+// =============================================================================
+
+/**
+ * HTTP methods supported by the ApiCall node.
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+/**
+ * A key-value pair representing an HTTP header.
+ */
+export interface HeaderEntry {
+  /** Header name (e.g., 'Content-Type', 'Authorization') */
+  key: string;
+  /** Header value */
+  value: string;
+}
+
+/**
+ * Input mapping configuration for dynamic API call parameters.
+ * Maps upstream node outputs to fields in the API Call configuration.
+ */
+export interface InputMapping {
+  /** ID of the source node to get data from */
+  sourceNodeId: string;
+  /** Path to extract from source output (e.g., 'data.id', 'result.userId') */
+  sourcePath: string;
+  /** Which field to set the value in */
+  targetField: 'url' | 'header' | 'body';
+  /** For headers/body: which key to set (optional for url) */
+  targetKey?: string;
+}
+
+/**
+ * Parameters for an ApiCall node.
+ */
+export interface ApiCallNodeParameters {
+  /** HTTP method for the request */
+  method: HttpMethod;
+  /** Target URL (may contain template variables like {{nodeId.path}}) */
+  url: string;
+  /** HTTP headers as key-value pairs */
+  headers: HeaderEntry[];
+  /** Request timeout in milliseconds (default: 30000) */
+  timeout: number;
+  /** Mappings from upstream node outputs (for dynamic values) */
+  inputMappings: InputMapping[];
+}
 
 // =============================================================================
 // Node Instance (stored in Flow.nodes JSON column)
@@ -345,4 +395,13 @@ export function isUserIntentNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: UserIntentNodeParameters } {
   return node.type === 'UserIntent';
+}
+
+/**
+ * Check if a node is an ApiCall node.
+ */
+export function isApiCallNode(
+  node: NodeInstance
+): node is NodeInstance & { parameters: ApiCallNodeParameters } {
+  return node.type === 'ApiCall';
 }

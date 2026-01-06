@@ -4,7 +4,8 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, Connection, NodeExecutionData } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData } from '@chatgpt-app-builder/shared';
+import { ApiCallNode } from '@chatgpt-app-builder/nodes';
 
 /**
  * MCP protocol error for inactive tools
@@ -83,13 +84,18 @@ export class McpToolService {
       }
     }
 
-    // Find nodes directly connected from user-intent (sourceNodeId === 'user-intent')
+    // Find UserIntent (trigger) node IDs
+    const triggerNodeIds = new Set(
+      nodes.filter(n => n.type === 'UserIntent').map(n => n.id)
+    );
+
+    // Find nodes directly connected from UserIntent trigger nodes
     const startNodeIds = connections
-      .filter(conn => conn.sourceNodeId === 'user-intent')
+      .filter(conn => triggerNodeIds.has(conn.sourceNodeId))
       .map(conn => conn.targetNodeId);
 
     if (startNodeIds.length === 0) {
-      // No connections from user-intent, return empty (nothing to execute)
+      // No connections from trigger nodes, return empty (nothing to execute)
       return [];
     }
 
@@ -213,31 +219,59 @@ export class McpToolService {
       // This maintains backward compatibility for flows without explicit connections
       const nodes = connectedNodes.length > 0 ? connectedNodes : allNodes;
 
-      // Get nodes by type (from connected/executable nodes only)
-      const interfaceNodes = nodes.filter(n => n.type === 'Interface');
-      const returnNodes = nodes.filter(n => n.type === 'Return');
-      const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
+      // Store outputs from executed nodes for chaining
+      const nodeOutputs = new Map<string, unknown>();
+      let result: McpToolResponse | null = null;
 
-      let result: McpToolResponse;
+      // Execute nodes in topological order (as returned by getConnectedNodes)
+      for (const node of nodes) {
+        // Build input data from upstream node outputs
+        const nodeInputData: Record<string, unknown> = { ...input };
 
-      // Priority: Return nodes > CallFlow nodes > Interface nodes
-      if (returnNodes.length > 0) {
-        // Track Return node executions
-        for (const node of returnNodes) {
-          nodeExecutions.push(this.createNodeExecution(node, input, 'completed'));
+        // Find connections where this node is the target to get upstream outputs
+        for (const conn of connections) {
+          if (conn.targetNodeId === node.id && nodeOutputs.has(conn.sourceNodeId)) {
+            nodeInputData[conn.sourceNodeId] = nodeOutputs.get(conn.sourceNodeId);
+          }
         }
-        result = this.executeReturnFlow(flow, returnNodes);
-      } else if (callFlowNodes.length > 0) {
-        // Track CallFlow node execution
-        const node = callFlowNodes[0];
-        nodeExecutions.push(this.createNodeExecution(node, input, 'completed'));
-        result = await this.executeCallFlowNode(app, flow, node);
-      } else if (interfaceNodes.length > 0) {
-        // Track Interface node execution
-        const node = interfaceNodes[0];
-        nodeExecutions.push(this.createNodeExecution(node, input, 'completed'));
-        result = this.executeInterfaceFlow(app, flow, node, input);
-      } else {
+
+        if (node.type === 'ApiCall') {
+          const apiResult = await this.executeApiCallNode(flow.id, node, nodeOutputs);
+          nodeOutputs.set(node.id, apiResult.output);
+          nodeExecutions.push(this.createNodeExecution(
+            node,
+            nodeInputData,
+            apiResult.output,
+            apiResult.success ? 'completed' : 'error',
+            apiResult.error
+          ));
+
+          // If this is the last node, use its output as result
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(apiResult.output, null, 2) }],
+            structuredContent: apiResult.output,
+          };
+        } else if (node.type === 'Return') {
+          const params = node.parameters as ReturnNodeParameters;
+          const returnOutput = { text: params.text };
+          nodeOutputs.set(node.id, returnOutput);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, returnOutput, 'completed'));
+          result = {
+            content: [{ type: 'text', text: params.text || '' }],
+          };
+        } else if (node.type === 'CallFlow') {
+          result = await this.executeCallFlowNode(app, flow, node);
+          nodeOutputs.set(node.id, result.structuredContent);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
+        } else if (node.type === 'Interface') {
+          result = this.executeInterfaceFlow(app, flow, node, input);
+          const params = node.parameters as InterfaceNodeParameters;
+          nodeOutputs.set(node.id, params.mockData);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, params.mockData, 'completed'));
+        }
+      }
+
+      if (!result) {
         throw new NotFoundException(`No connected nodes found for tool: ${toolName}`);
       }
 
@@ -275,6 +309,7 @@ export class McpToolService {
   private createNodeExecution(
     node: NodeInstance,
     input: Record<string, unknown>,
+    output: unknown,
     status: 'pending' | 'completed' | 'error',
     error?: string
   ): NodeExecutionData {
@@ -284,7 +319,7 @@ export class McpToolService {
       nodeType: node.type,
       executedAt: new Date().toISOString(),
       inputData: input,
-      outputData: node.parameters ?? {},
+      outputData: output ?? {},
       status,
       error,
     };
@@ -349,6 +384,41 @@ export class McpToolService {
         targetToolName: targetFlow.toolName,
       },
     };
+  }
+
+  /**
+   * Execute ApiCall node - make HTTP request to external API
+   */
+  private async executeApiCallNode(
+    flowId: string,
+    node: NodeInstance,
+    nodeOutputs: Map<string, unknown>
+  ): Promise<{ success: boolean; output?: unknown; error?: string }> {
+    const params = node.parameters as ApiCallNodeParameters;
+
+    // Create execution context for the ApiCall node
+    const context = {
+      flowId,
+      nodeId: node.id,
+      parameters: params,
+      getNodeValue: async (nodeId: string): Promise<unknown> => {
+        return nodeOutputs.get(nodeId);
+      },
+      callFlow: async (_targetFlowId: string, _params: Record<string, unknown>): Promise<unknown> => {
+        // Not used by ApiCall nodes, but required by interface
+        return null;
+      },
+    };
+
+    try {
+      const result = await ApiCallNode.execute(context);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   /**

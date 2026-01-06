@@ -62,6 +62,11 @@ export type {
   ReturnNodeParameters,
   CallFlowNodeParameters,
   UserIntentNodeParameters,
+  // ApiCall node types
+  HttpMethod,
+  HeaderEntry,
+  InputMapping,
+  ApiCallNodeParameters,
   CreateNodeRequest,
   UpdateNodeRequest,
   UpdateNodePositionRequest,
@@ -79,6 +84,7 @@ export {
   isReturnNode,
   isCallFlowNode,
   isUserIntentNode,
+  isApiCallNode,
   // Mock data utilities
   isTableMockData,
   isPostListMockData,

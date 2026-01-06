@@ -9,11 +9,13 @@ export { InterfaceNode } from './InterfaceNode.js';
 export { ReturnNode } from './ReturnNode.js';
 export { CallFlowNode } from './CallFlowNode.js';
 export { UserIntentNode } from './UserIntentNode.js';
+export { ApiCallNode } from './ApiCallNode.js';
 
 import { InterfaceNode } from './InterfaceNode.js';
 import { ReturnNode } from './ReturnNode.js';
 import { CallFlowNode } from './CallFlowNode.js';
 import { UserIntentNode } from './UserIntentNode.js';
+import { ApiCallNode } from './ApiCallNode.js';
 import type { NodeTypeDefinition } from '../types.js';
 
 /**
@@ -24,6 +26,7 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
   Interface: InterfaceNode,
   Return: ReturnNode,
   CallFlow: CallFlowNode,
+  ApiCall: ApiCallNode,
 };
 
 /**
@@ -34,4 +37,5 @@ export const builtInNodeList: NodeTypeDefinition[] = [
   InterfaceNode,
   ReturnNode,
   CallFlowNode,
+  ApiCallNode,
 ];
