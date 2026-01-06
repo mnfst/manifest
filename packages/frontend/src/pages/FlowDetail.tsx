@@ -392,7 +392,7 @@ function FlowDetail() {
                 onClick={() => navigate(`/app/${appId}`)}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                &larr; Back to App
+                ← Back to App
               </button>
               <h1 className="text-2xl font-bold mt-1 mb-4">{flow.name}</h1>
               <EditFlowForm
@@ -407,12 +407,12 @@ function FlowDetail() {
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <button
-                type="button"
-                onClick={() => navigate(`/app/${appId}`)}
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                &larr; Back to App
-              </button>
+                  type="button"
+                  onClick={() => navigate(`/app/${appId}`)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  ← Back to App
+                </button>
                 <h1 className="text-2xl font-bold mt-1">{flow.name}</h1>
                 {flow.description && <p className="text-muted-foreground mt-1">{flow.description}</p>}
               </div>

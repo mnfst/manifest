@@ -235,18 +235,20 @@ function FlowDiagramInner({
         },
       });
 
-      // Track horizontal position for all step types
+      // Track horizontal position for nodes without saved positions
       let xPosition = 330;
 
-      // Add MockData nodes (above) and Interface nodes (below) for each Interface node
+      // Add MockData nodes (above) and Interface nodes
       flowState.interfaceNodes.forEach((node) => {
         const params = node.parameters as unknown as InterfaceNodeParameters;
+        // Use saved position or calculate based on order
+        const nodePos = node.position || { x: xPosition, y: 130 };
 
         // MockData node (above interface)
         nodeList.push({
           id: `mockdata-${node.id}`,
           type: 'mockDataNode',
-          position: { x: xPosition, y: 20 },
+          position: { x: nodePos.x, y: nodePos.y - 110 },
           data: {
             mockData: params?.mockData,
             layoutTemplate: params?.layoutTemplate || 'table',
@@ -254,11 +256,11 @@ function FlowDiagramInner({
           },
         });
 
-        // Interface node (below mockdata)
+        // Interface node
         nodeList.push({
           id: node.id,
           type: 'viewNode',
-          position: { x: xPosition, y: 130 },
+          position: nodePos,
           data: {
             node,
             canDelete,
@@ -267,15 +269,17 @@ function FlowDiagramInner({
           },
         });
 
-        xPosition += 280;
+        // Update xPosition for next node without saved position
+        xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
 
       // Add Return nodes
       flowState.returnNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 80 };
         nodeList.push({
           id: node.id,
           type: 'returnValueNode',
-          position: { x: xPosition, y: 80 },
+          position: nodePos,
           data: {
             node,
             canDelete,
@@ -284,18 +288,19 @@ function FlowDiagramInner({
           },
         });
 
-        xPosition += 250;
+        xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
 
       // Add CallFlow nodes
       flowState.callFlowNodes.forEach((node) => {
         const params = node.parameters as { targetFlowId?: string | null };
         const targetFlowId = params?.targetFlowId;
+        const nodePos = node.position || { x: xPosition, y: 80 };
 
         nodeList.push({
           id: node.id,
           type: 'callFlowNode',
-          position: { x: xPosition, y: 80 },
+          position: nodePos,
           data: {
             node,
             targetFlowName: targetFlowId ? flowNameLookup[targetFlowId] : undefined,
@@ -305,7 +310,7 @@ function FlowDiagramInner({
           },
         });
 
-        xPosition += 250;
+        xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
 
       // Always show AddStepNode when user intent exists - users can add unconnected nodes
@@ -336,6 +341,23 @@ function FlowDiagramInner({
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
+
+  // Persist node position when drag ends
+  const onNodeDragStop = useCallback(async (_event: React.MouseEvent, node: Node) => {
+    // Skip virtual nodes (user-intent, add-step, mockdata-*)
+    if (node.id === 'user-intent' || node.id === 'add-step' || node.id.startsWith('mockdata-')) {
+      return;
+    }
+
+    try {
+      await api.updateNodePosition(flow.id, node.id, {
+        x: node.position.x,
+        y: node.position.y,
+      });
+    } catch (err) {
+      console.error('Failed to save node position:', err);
+    }
+  }, [flow.id]);
 
   // Generate edges: Only user-created connections from flow.connections
   // No automatic edges - users manually connect nodes via handles
@@ -406,6 +428,7 @@ function FlowDiagramInner({
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
+          onNodeDragStop={onNodeDragStop}
           onNodeClick={onNodeClick}
           onConnect={onConnect}
           isValidConnection={isValidConnection}
