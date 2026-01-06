@@ -195,7 +195,7 @@ importers:
         version: link:../shared
     devDependencies:
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22.10.0
         version: 22.19.3
       typescript:
         specifier: ^5.7.2

@@ -224,11 +224,13 @@ function FlowDetail() {
   }, []);
 
   const handleAddStep = useCallback(() => {
-    // Open the node library if not already open
-    if (!isNodeLibraryOpen) {
-      setIsNodeLibraryOpen(true);
-    }
-  }, [isNodeLibraryOpen]);
+    // Directly open the UserIntent node creation modal
+    // This is called when clicking the "Add user intent" placeholder on the canvas
+    setNodeToEdit(null);
+    setNodeTypeToCreate('UserIntent');
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  }, []);
 
   const handleNodeLibrarySelect = useCallback((nodeType: NodeType) => {
     // Open the node edit modal in create mode
