@@ -8,6 +8,8 @@ jobs:
   deploy-preview:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -16,6 +18,7 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy Preview
+        id: deploy
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
@@ -27,9 +30,61 @@ jobs:
           echo "Deploying..."
           railway up --service generator --ci --detach
 
+          # Get the deployment URL
+          DEPLOY_URL=$(railway domain --service generator --json 2>/dev/null | jq -r '.[0]' || echo "")
+          if [ -z "$DEPLOY_URL" ] || [ "$DEPLOY_URL" = "null" ]; then
+            DEPLOY_URL=$(railway domain --service generator 2>/dev/null | head -1 || echo "")
+          fi
+          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+            const prNumber = context.issue.number;
+
+            const body = `## 🚀 Preview Deployment Ready!
+
+            | Status | URL |
+            |--------|-----|
+            | ✅ Deployed | ${url ? `[${url}](https://${url})` : 'Deployment in progress...'} |
+
+            > This preview environment will be automatically deleted when the PR is closed.`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Preview Deployment')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
+
   cleanup-preview:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
@@ -40,3 +95,41 @@ jobs:
         run: |
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment staging
           railway environment delete pr-${{ github.event.pull_request.number }} --yes || true
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+
+            const body = `## 🗑️ Preview Environment Deleted
+
+            The preview environment for this PR has been cleaned up.`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Preview Deployment')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
