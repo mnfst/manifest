@@ -33,6 +33,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy package files for dependency installation
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/nodes/package.json ./packages/nodes/
 COPY packages/backend/package.json ./packages/backend/
 COPY packages/frontend/package.json ./packages/frontend/
 
@@ -49,6 +50,7 @@ WORKDIR /app
 
 # Copy source code
 COPY packages/shared/ ./packages/shared/
+COPY packages/nodes/ ./packages/nodes/
 COPY packages/backend/ ./packages/backend/
 COPY packages/frontend/ ./packages/frontend/
 COPY tsconfig.base.json ./
@@ -56,18 +58,22 @@ COPY tsconfig.base.json ./
 # Set Node.js memory limit for TypeScript compilation
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Build packages sequentially (shared → backend → frontend)
+# Build packages sequentially (shared → nodes → backend → frontend)
 # This reduces peak memory compared to parallel turbo builds
 
-# 1. Build shared package first (dependency of backend and frontend)
+# 1. Build shared package first (dependency of nodes, backend, and frontend)
 RUN echo "Building shared package..." && \
     cd packages/shared && pnpm run build
 
-# 2. Build backend (depends on shared)
+# 2. Build nodes package (depends on shared, required by backend)
+RUN echo "Building nodes package..." && \
+    cd packages/nodes && pnpm run build
+
+# 3. Build backend (depends on shared and nodes)
 RUN echo "Building backend package..." && \
     cd packages/backend && pnpm run build
 
-# 3. Build frontend (depends on shared)
+# 4. Build frontend (depends on shared)
 # Note: For production builds in this image, VITE_API_URL is set to empty
 #       so the frontend uses relative URLs to a same-origin backend API.
 ENV VITE_API_URL=""
@@ -98,21 +104,24 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # dependencies in the production image.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/nodes/package.json ./packages/nodes/
 COPY packages/backend/package.json ./packages/backend/
 
 # Copy node_modules from deps stage and prune devDependencies for production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=deps /app/packages/nodes/node_modules ./packages/nodes/node_modules
 COPY --from=deps /app/packages/backend/node_modules ./packages/backend/node_modules
 RUN pnpm prune --prod
 
 # Copy built artifacts from build stage
-COPY --from=build /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build /app/packages/backend/dist ./packages/backend/dist
-COPY --from=build /app/packages/frontend/dist ./packages/frontend/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/nodes/dist ./packages/nodes/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/backend/dist ./packages/backend/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/frontend/dist ./packages/frontend/dist
 
 # Copy backend templates (required for MCP functionality)
-COPY packages/backend/src/mcp/templates ./packages/backend/dist/mcp/templates
+COPY --chown=appuser:nodejs packages/backend/src/mcp/templates ./packages/backend/dist/mcp/templates
 
 # Create directories for runtime data
 RUN mkdir -p /app/data /app/packages/backend/uploads && \
