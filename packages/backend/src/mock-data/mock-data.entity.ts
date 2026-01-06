@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import type { MockData } from '@chatgpt-app-builder/shared';
-import { ViewEntity } from '../view/view.entity';
+import type { ViewEntity } from '../view/view.entity';
 
 /**
  * MockData entity for storing sample data separately from views
@@ -31,7 +31,7 @@ export class MockDataEntity {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToOne(() => ViewEntity, (view) => view.mockDataEntity, {
+  @OneToOne('ViewEntity', 'mockDataEntity', {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'viewId' })

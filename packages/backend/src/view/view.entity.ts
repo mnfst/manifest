@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
 import type { LayoutTemplate, MockData } from '@chatgpt-app-builder/shared';
 import { FlowEntity } from '../flow/flow.entity';
-import { MockDataEntity } from '../mock-data/mock-data.entity';
+import type { MockDataEntity } from '../mock-data/mock-data.entity';
 
 /**
  * View entity representing a display unit within a flow
@@ -43,7 +43,7 @@ export class ViewEntity {
   flow?: FlowEntity;
 
   // Relation to mock data entity (separate storage)
-  @OneToOne(() => MockDataEntity, (mockData) => mockData.view, {
+  @OneToOne('MockDataEntity', 'view', {
     cascade: true,
     eager: true,
   })
