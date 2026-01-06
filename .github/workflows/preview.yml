@@ -1,0 +1,23 @@
+name: Deploy Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Railway Preview Deploy
+        uses: ayungavis/railway-preview-deploy@v1.0.2
+        with:
+          railway_api_token: ${{ secrets.RAILWAY_API_TOKEN }}
+          project_id: ${{ secrets.RAILWAY_PROJECT_ID }}
+          environment_name: 'staging'
+          preview_environment_name: 'pr-${{ github.event.pull_request.number }}'
+          environment_variables: '{"MY_ENV_VAR": "value"}'
+          branch_name: ${{ github.head_ref }}
+          cleanup: 'true'

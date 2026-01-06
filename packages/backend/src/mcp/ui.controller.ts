@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Res, NotFoundException } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { McpToolService } from './mcp.tool';

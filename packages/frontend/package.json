@@ -12,7 +12,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@chatgpt-app-builder/shared": "*",
+    "@chatgpt-app-builder/shared": "workspace:*",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",

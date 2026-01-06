@@ -6,7 +6,7 @@
 ## Prerequisites
 
 - Node.js 18+
-- npm 10+
+- pnpm 9+
 - Git
 
 ## Setup
@@ -16,10 +16,10 @@
 git checkout 003-app-list-header
 
 # Install dependencies
-npm install
+pnpm install
 
 # Start development servers
-npm run dev
+pnpm dev
 ```
 
 This starts:
@@ -92,7 +92,7 @@ Ensure you're on a route that matches `/app/:appId/*`. Home page does not show h
 Delete the SQLite database and restart:
 ```bash
 rm packages/backend/data/app.db
-npm run dev
+pnpm dev
 ```
 
 ## Success Criteria Checklist

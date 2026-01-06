@@ -1,0 +1,50 @@
+# ============================================================================
+# ChatGPT App Builder - Docker Compose Configuration
+# ============================================================================
+# Usage:
+#   Development:  docker compose up --build
+#   Production:   docker compose -f docker-compose.yml up -d
+#   Stop:         docker compose down
+#   Logs:         docker compose logs -f app
+#
+# Future extensibility:
+#   - Add PostgreSQL/MySQL database service
+#   - Add Redis for caching
+#   - Add nginx reverse proxy for production
+# ============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chatgpt-app-builder:latest
+    container_name: chatgpt-app-builder
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      # OpenAI API key (required for AI functionality)
+      # Set via .env file or environment variable
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      # Database connector encryption key (optional)
+      - CONNECTOR_ENCRYPTION_KEY=${CONNECTOR_ENCRYPTION_KEY:-}
+    volumes:
+      # Persist SQLite database
+      - app-data:/app/data
+      # Persist uploaded files
+      - app-uploads:/app/packages/backend/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/api/apps', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));\""]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  app-data:
+    driver: local
+  app-uploads:
+    driver: local
