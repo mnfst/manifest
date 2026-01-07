@@ -1,5 +1,5 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
-import type { ApiCallNodeParameters, HeaderEntry } from '@chatgpt-app-builder/shared';
+import type { ApiCallNodeParameters, HeaderEntry, JSONSchema } from '@chatgpt-app-builder/shared';
 
 /**
  * Output structure produced by the ApiCallNode.
@@ -92,6 +92,10 @@ function headersToRecord(headers: HeaderEntry[]): Record<string, string> {
  * Supports GET, POST, PUT, DELETE, and PATCH methods with configurable
  * headers and timeout. Can use template variables to dynamically construct
  * requests from upstream node outputs.
+ *
+ * Input: Accepts any data structure (used for template resolution).
+ * Output: API response with status, headers, and body. Body schema is dynamic
+ * and depends on the API being called - full resolution requires making a sample request.
  */
 export const ApiCallNode: NodeTypeDefinition = {
   name: 'ApiCall',
@@ -111,6 +115,38 @@ export const ApiCallNode: NodeTypeDefinition = {
     timeout: 30000,
     inputMappings: [],
   } satisfies ApiCallNodeParameters,
+
+  // ApiCall accepts any input data (used for template variable resolution)
+  inputSchema: {
+    type: 'object',
+    additionalProperties: true,
+    description: 'Data available for template variable resolution in URL and headers',
+  } as JSONSchema,
+
+  // Output schema - the body structure is dynamic based on the API response
+  // This provides the known structure; body schema can be resolved via sample request
+  getOutputSchema(): JSONSchema {
+    return {
+      type: 'object',
+      properties: {
+        type: { type: 'string', const: 'apiCall' },
+        success: { type: 'boolean', description: 'Whether the request completed' },
+        status: { type: 'integer', description: 'HTTP status code' },
+        statusText: { type: 'string', description: 'HTTP status text' },
+        headers: {
+          type: 'object',
+          additionalProperties: { type: 'string' },
+          description: 'Response headers',
+        },
+        body: {
+          description: 'Response body (JSON parsed if Content-Type is application/json)',
+        },
+        error: { type: 'string', description: 'Error message if request failed' },
+        requestDuration: { type: 'number', description: 'Request duration in milliseconds' },
+      },
+      required: ['type', 'success', 'requestDuration'],
+    } as JSONSchema;
+  },
 
   /**
    * Executes the API call with the configured parameters.

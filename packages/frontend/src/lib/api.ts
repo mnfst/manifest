@@ -32,6 +32,15 @@ import type {
   ExecutionStatus,
   ExecutionListResponse,
   FlowExecution,
+  // Schema types
+  NodeSchemaInfo,
+  NodeTypeSchemaResponse,
+  ValidateConnectionRequest,
+  ValidateConnectionResponse,
+  ResolveSchemaRequest,
+  ResolveSchemaResponse,
+  FlowValidationResponse,
+  FlowSchemasResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -551,6 +560,71 @@ export const api = {
    */
   async getExecution(flowId: string, executionId: string): Promise<FlowExecution> {
     return fetchApi<FlowExecution>(`/flows/${flowId}/executions/${executionId}`);
+  },
+
+  // ============================================
+  // Schema Validation APIs
+  // ============================================
+
+  /**
+   * Get schema information for a specific node instance
+   * GET /api/flows/:flowId/nodes/:nodeId/schema
+   */
+  async getNodeSchema(flowId: string, nodeId: string): Promise<NodeSchemaInfo> {
+    return fetchApi<NodeSchemaInfo>(`/flows/${flowId}/nodes/${nodeId}/schema`);
+  },
+
+  /**
+   * Get default schema for a node type
+   * GET /api/node-types/:nodeType/schema
+   */
+  async getNodeTypeSchema(nodeType: string): Promise<NodeTypeSchemaResponse> {
+    return fetchApi<NodeTypeSchemaResponse>(`/node-types/${nodeType}/schema`);
+  },
+
+  /**
+   * Validate a connection between two nodes
+   * POST /api/flows/:flowId/connections/validate
+   */
+  async validateConnection(
+    flowId: string,
+    request: ValidateConnectionRequest
+  ): Promise<ValidateConnectionResponse> {
+    return fetchApi<ValidateConnectionResponse>(`/flows/${flowId}/connections/validate`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Resolve dynamic schema for a node
+   * POST /api/flows/:flowId/nodes/:nodeId/schema/resolve
+   */
+  async resolveNodeSchema(
+    flowId: string,
+    nodeId: string,
+    request: ResolveSchemaRequest
+  ): Promise<ResolveSchemaResponse> {
+    return fetchApi<ResolveSchemaResponse>(`/flows/${flowId}/nodes/${nodeId}/schema/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Validate all connections in a flow
+   * GET /api/flows/:flowId/connections/validate
+   */
+  async validateFlowConnections(flowId: string): Promise<FlowValidationResponse> {
+    return fetchApi<FlowValidationResponse>(`/flows/${flowId}/connections/validate`);
+  },
+
+  /**
+   * Get schema information for all nodes in a flow
+   * GET /api/flows/:flowId/schemas
+   */
+  async getFlowSchemas(flowId: string): Promise<FlowSchemasResponse> {
+    return fetchApi<FlowSchemasResponse>(`/flows/${flowId}/schemas`);
   },
 
 };

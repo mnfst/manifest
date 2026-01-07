@@ -1,3 +1,4 @@
+import type { JSONSchema } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
 
 /**
@@ -5,6 +6,9 @@ import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../t
  *
  * Invokes another flow by its ID and passes the result to downstream nodes.
  * Used for flow composition and reusability.
+ *
+ * Input: Accepts any data structure to pass to the called flow.
+ * Output: Dynamic based on the target flow's return value (unknown until configured).
  */
 export const CallFlowNode: NodeTypeDefinition = {
   name: 'CallFlow',
@@ -20,6 +24,38 @@ export const CallFlowNode: NodeTypeDefinition = {
   defaultParameters: {
     targetFlowId: null,
     inputMapping: {}, // Maps input parameters to the target flow
+  },
+
+  // CallFlow accepts any input data to pass to the target flow
+  inputSchema: {
+    type: 'object',
+    additionalProperties: true,
+    description: 'Data to pass to the target flow',
+  } as JSONSchema,
+
+  // Output schema depends on the target flow - dynamic resolution needed
+  // For now, return a base structure (full resolution requires target flow lookup)
+  getOutputSchema(parameters: Record<string, unknown>): JSONSchema | null {
+    const targetFlowId = parameters.targetFlowId as string | null;
+
+    if (!targetFlowId) {
+      // No target flow configured - output is unknown
+      return null;
+    }
+
+    // Base structure - the actual 'result' schema depends on target flow
+    // Full schema resolution happens at the service layer with flow context
+    return {
+      type: 'object',
+      properties: {
+        type: { type: 'string', const: 'callFlow' },
+        targetFlowId: { type: 'string' },
+        result: {
+          description: 'Result from the called flow (schema depends on target flow)',
+        },
+      },
+      required: ['type', 'targetFlowId'],
+    } as JSONSchema;
   },
 
   async execute(context: ExecutionContext): Promise<ExecutionResult> {

@@ -1,5 +1,6 @@
 import type { LayoutTemplate } from './app.js';
 import type { FlowParameter } from './flow.js';
+import type { JSONSchema } from './schema.js';
 
 // =============================================================================
 // Position
@@ -79,6 +80,8 @@ export interface ApiCallNodeParameters {
   timeout: number;
   /** Mappings from upstream node outputs (for dynamic values) */
   inputMappings: InputMapping[];
+  /** Resolved output schema (inferred from sample response) */
+  resolvedOutputSchema?: JSONSchema;
 }
 
 // =============================================================================
