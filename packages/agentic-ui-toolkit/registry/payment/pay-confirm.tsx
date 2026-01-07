@@ -39,7 +39,7 @@ export interface PayConfirmProps {
 }
 
 export function PayConfirm({ data, actions, appearance, control }: PayConfirmProps) {
-  const { amount = 0, cardLast4 = "4242", cardBrand = "Visa" } = data ?? {}
+  const { amount = 99.99, cardLast4 = "4242", cardBrand = "Visa" } = data ?? {}
   const { onConfirm, onCancel } = actions ?? {}
   const { currency = "USD" } = appearance ?? {}
   const { isLoading = false } = control ?? {}
