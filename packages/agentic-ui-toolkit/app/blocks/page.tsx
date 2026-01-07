@@ -94,31 +94,96 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PostCardDemo />,
-            usageCode: `<PostCard />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "1",
+      title: "Getting Started with React",
+      excerpt: "Learn the fundamentals of React development...",
+      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+      author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+      publishedAt: "2024-01-15",
+      readTime: "5 min read",
+      tags: ["Tutorial", "React"],
+      category: "Tutorial"
+    }
+  }}
+  actions={{ onReadMore: (post) => console.log("Read:", post.title) }}
+/>`
           },
           {
             id: 'no-image',
             name: 'Without Image',
             component: <PostCardDemo appearance={{ showImage: false }} />,
-            usageCode: `<PostCard appearance={{ showImage: false }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "1",
+      title: "Understanding TypeScript Generics",
+      excerpt: "A deep dive into TypeScript generics...",
+      author: { name: "Alex Rivera" },
+      publishedAt: "2024-01-12",
+      category: "Development"
+    }
+  }}
+  appearance={{ showImage: false }}
+/>`
           },
           {
             id: 'compact',
             name: 'Compact',
             component: <PostCardDemo appearance={{ variant: 'compact' }} />,
-            usageCode: `<PostCard appearance={{ variant: "compact" }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "1",
+      title: "10 Tips for Better Code Reviews",
+      excerpt: "Improve your code review process...",
+      author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+      publishedAt: "2024-01-10",
+      tags: ["Best Practices"]
+    }
+  }}
+  appearance={{ variant: "compact" }}
+/>`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
             component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
-            usageCode: `<PostCard appearance={{ variant: "horizontal" }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "1",
+      title: "Building Scalable APIs",
+      excerpt: "Best practices for API design...",
+      coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+      author: { name: "Morgan Lee" },
+      publishedAt: "2024-01-08",
+      readTime: "8 min read"
+    }
+  }}
+  appearance={{ variant: "horizontal" }}
+/>`
           },
           {
             id: 'covered',
             name: 'Covered',
             component: <PostCardDemo appearance={{ variant: 'covered' }} />,
-            usageCode: `<PostCard appearance={{ variant: "covered" }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "1",
+      title: "The Future of Web Development",
+      excerpt: "Exploring emerging trends and technologies...",
+      coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
+      author: { name: "Taylor Smith", avatar: "https://i.pravatar.cc/150?u=taylor" },
+      publishedAt: "2024-01-05",
+      category: "Trends"
+    }
+  }}
+  appearance={{ variant: "covered" }}
+/>`
           }
         ]
       },
@@ -133,19 +198,43 @@ const categories: Category[] = [
             id: 'list',
             name: 'List',
             component: <PostListDemo appearance={{ variant: 'list' }} />,
-            usageCode: `<PostList appearance={{ variant: "list" }} />`
+            usageCode: `<PostList
+  data={{
+    posts: [
+      {
+        id: "1",
+        title: "Getting Started with Agentic UI",
+        excerpt: "Learn how to build conversational interfaces...",
+        coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+        publishedAt: "2024-01-15",
+        readTime: "5 min read",
+        category: "Tutorial"
+      },
+      // ... more posts
+    ]
+  }}
+  appearance={{ variant: "list" }}
+  actions={{ onReadMore: (post) => console.log(post) }}
+/>`
           },
           {
             id: 'grid',
             name: 'Grid',
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
-            usageCode: `<PostList appearance={{ variant: "grid" }} />`
+            usageCode: `<PostList
+  data={{ posts: [...] }}
+  appearance={{ variant: "grid", columns: 2 }}
+/>`
           },
           {
             id: 'carousel',
             name: 'Carousel',
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
-            usageCode: `<PostList appearance={{ variant: "carousel" }} />`
+            usageCode: `<PostList
+  data={{ posts: [...] }}
+  appearance={{ variant: "carousel" }}
+/>`
           }
         ]
       }
@@ -166,25 +255,55 @@ const categories: Category[] = [
             id: 'list',
             name: 'List',
             component: <ProductList appearance={{ variant: 'list' }} />,
-            usageCode: `<ProductList appearance={{ variant: "list" }} />`
+            usageCode: `<ProductList
+  data={{
+    products: [
+      {
+        id: "1",
+        name: "Air Force 1 '07",
+        description: "Nike",
+        price: 119,
+        image: "/demo/shoe-1.png",
+        rating: 4.9,
+        badge: "New",
+        inStock: true
+      },
+      // ... more products
+    ]
+  }}
+  appearance={{ variant: "list", currency: "EUR" }}
+  actions={{ onSelectProduct: (product) => console.log(product) }}
+/>`
           },
           {
             id: 'grid',
             name: 'Grid',
             component: <ProductList appearance={{ variant: 'grid' }} />,
-            usageCode: `<ProductList appearance={{ variant: "grid" }} />`
+            usageCode: `<ProductList
+  data={{ products: [...] }}
+  appearance={{ variant: "grid", columns: 4, currency: "USD" }}
+  actions={{ onSelectProduct: (product) => console.log(product) }}
+/>`
           },
           {
             id: 'carousel',
             name: 'Carousel',
             component: <ProductList appearance={{ variant: 'carousel' }} />,
-            usageCode: `<ProductList appearance={{ variant: "carousel" }} />`
+            usageCode: `<ProductList
+  data={{ products: [...] }}
+  appearance={{ variant: "carousel" }}
+  actions={{ onSelectProduct: (product) => console.log(product) }}
+/>`
           },
           {
             id: 'picker',
             name: 'Picker',
             component: <ProductList appearance={{ variant: 'picker' }} />,
-            usageCode: `<ProductList appearance={{ variant: "picker" }} />`
+            usageCode: `<ProductList
+  data={{ products: [...] }}
+  appearance={{ variant: "picker", buttonLabel: "Add to cart" }}
+  actions={{ onAddToCart: (products) => console.log("Cart:", products) }}
+/>`
           }
         ]
       },
@@ -248,7 +367,21 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <OrderConfirm />,
-            usageCode: `<OrderConfirm />`
+            usageCode: `<OrderConfirm
+  data={{
+    productName: "MacBook Pro 14-inch",
+    productVariant: "Space Gray, M3 Pro",
+    productImage: "https://store.storeimages.cdn-apple.com/...",
+    quantity: 1,
+    price: 1999,
+    deliveryDate: "Wed. Jan 15",
+    deliveryAddress: "123 Main Street, San Francisco, CA 94102",
+    freeShipping: true
+  }}
+  appearance={{ currency: "USD" }}
+  actions={{ onConfirm: () => console.log("Order confirmed!") }}
+  control={{ isLoading: false }}
+/>`
           }
         ]
       },
@@ -263,7 +396,22 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PaymentMethods />,
-            usageCode: `<PaymentMethods />`
+            usageCode: `<PaymentMethods
+  data={{
+    methods: [
+      { id: "1", type: "card", brand: "visa", last4: "4242" },
+      { id: "2", type: "card", brand: "mastercard", last4: "8888", isDefault: true },
+      { id: "3", type: "apple_pay" }
+    ],
+    amount: 279.00
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{
+    onSelectMethod: (methodId) => console.log("Selected:", methodId),
+    onAddCard: () => console.log("Add card"),
+    onPay: (methodId) => console.log("Pay with:", methodId)
+  }}
+/>`
           }
         ]
       },
@@ -278,7 +426,13 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <BankCardForm />,
-            usageCode: `<BankCardForm />`
+            usageCode: `<BankCardForm
+  data={{ amount: 149.99 }}
+  appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
+  actions={{
+    onSubmit: (data) => console.log("Card:", data.cardNumber)
+  }}
+/>`
           }
         ]
       },
@@ -293,7 +447,21 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <AmountInput />,
-            usageCode: `<AmountInput />`
+            usageCode: `<AmountInput
+  data={{ presets: [20, 50, 100, 200] }}
+  appearance={{
+    min: 10,
+    max: 1000,
+    step: 10,
+    currency: "USD",
+    label: "Donation Amount"
+  }}
+  control={{ value: 50 }}
+  actions={{
+    onChange: (value) => console.log("Amount:", value),
+    onConfirm: (value) => console.log("Confirmed:", value)
+  }}
+/>`
           }
         ]
       },
@@ -308,7 +476,17 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PaymentSuccess />,
-            usageCode: `<PaymentSuccess />`
+            usageCode: `<PaymentSuccess
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productImage: "/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
           }
         ]
       },
@@ -323,7 +501,18 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PaymentConfirmed />,
-            usageCode: `<PaymentConfirmed />`
+            usageCode: `<PaymentConfirmed
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productDescription: "Nike - Size 42 - White",
+    productImage: "/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
           }
         ]
       }
@@ -363,7 +552,21 @@ const categories: Category[] = [
                 />
               </div>
             ),
-            usageCode: `<MessageBubble data={{ content: "Hello!", avatar: "S", time: "10:30 AM" }} />`
+            usageCode: `<MessageBubble
+  data={{
+    content: "Hey! How are you doing today?",
+    avatar: "S",
+    author: "Sarah",
+    time: "10:30 AM"
+  }}
+/>
+
+// Own message with status
+<MessageBubble
+  data={{ content: "I'm doing great!", avatar: "Y", time: "10:31 AM" }}
+  appearance={{ isOwn: true }}
+  control={{ status: "read" }}
+/>`
           },
           {
             id: 'image',
@@ -390,7 +593,22 @@ const categories: Category[] = [
                 />
               </div>
             ),
-            usageCode: `<ImageMessageBubble data={{ image: "...", caption: "Check out this view!", avatar: "A" }} />`
+            usageCode: `<ImageMessageBubble
+  data={{
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba",
+    caption: "Check out this view!",
+    avatar: "A",
+    author: "Alex",
+    time: "2:45 PM"
+  }}
+/>
+
+// Own image message
+<ImageMessageBubble
+  data={{ image: "...", time: "2:46 PM" }}
+  appearance={{ isOwn: true }}
+  control={{ status: "delivered" }}
+/>`
           },
           {
             id: 'reactions',
@@ -409,7 +627,19 @@ const categories: Category[] = [
                 }}
               />
             ),
-            usageCode: `<MessageWithReactions data={{ content: "...", reactions: [{ emoji: '🎉', count: 5 }] }} />`
+            usageCode: `<MessageWithReactions
+  data={{
+    content: "We just hit 10,000 users!",
+    avatar: "T",
+    author: "Team",
+    time: "4:20 PM",
+    reactions: [
+      { emoji: "🎉", count: 5 },
+      { emoji: "❤️", count: 3 },
+      { emoji: "👏", count: 2 }
+    ]
+  }}
+/>`
           },
           {
             id: 'voice',
@@ -434,7 +664,21 @@ const categories: Category[] = [
                 />
               </div>
             ),
-            usageCode: `<VoiceMessageBubble data={{ duration: "0:42", avatar: "M" }} />`
+            usageCode: `<VoiceMessageBubble
+  data={{
+    duration: "0:42",
+    avatar: "M",
+    author: "Mike",
+    time: "3:15 PM"
+  }}
+/>
+
+// Own voice message
+<VoiceMessageBubble
+  data={{ duration: "1:23", avatar: "Y", time: "3:17 PM" }}
+  appearance={{ isOwn: true }}
+  control={{ status: "read" }}
+/>`
           }
         ]
       },
@@ -449,7 +693,42 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <ChatConversation />,
-            usageCode: `<ChatConversation />`
+            usageCode: `<ChatConversation
+  data={{
+    messages: [
+      {
+        id: "1",
+        type: "text",
+        content: "Hey! Check out this new feature!",
+        author: "Sarah",
+        avatar: "S",
+        time: "10:30 AM",
+        isOwn: false
+      },
+      {
+        id: "2",
+        type: "text",
+        content: "That looks amazing!",
+        author: "You",
+        avatar: "Y",
+        time: "10:31 AM",
+        isOwn: true,
+        status: "read"
+      },
+      {
+        id: "3",
+        type: "image",
+        content: "",
+        image: "https://images.unsplash.com/...",
+        caption: "Here's a preview",
+        author: "Sarah",
+        avatar: "S",
+        time: "10:32 AM",
+        isOwn: false
+      }
+    ]
+  }}
+/>`
           }
         ]
       }
@@ -471,7 +750,28 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <MapCarousel />,
-            usageCode: `<MapCarousel />`
+            usageCode: `<MapCarousel
+  data={{
+    locations: [
+      {
+        id: "1",
+        name: "Hotel Nikko San Francisco",
+        subtitle: "Union Square",
+        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200",
+        price: 299,
+        priceLabel: "$299 total Jan 29 - Feb 1",
+        priceSubtext: "USD - Includes taxes and fees",
+        rating: 9.0,
+        coordinates: [37.7856, -122.4104]
+      },
+      // ... more locations
+    ],
+    center: [37.7899, -122.4034],
+    zoom: 14
+  }}
+  appearance={{ mapHeight: "504px" }}
+  actions={{ onSelectLocation: (loc) => console.log(loc) }}
+/>`
           }
         ]
       },
@@ -486,7 +786,20 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <XPost />,
-            usageCode: `<XPost />`
+            usageCode: `<XPost
+  data={{
+    author: "Manifest",
+    username: "manifest",
+    avatar: "M",
+    content: "Just shipped a new feature! Build stunning agentic UIs that work seamlessly inside ChatGPT and Claude.",
+    time: "2h",
+    likes: "1.2K",
+    retweets: "234",
+    replies: "56",
+    views: "45.2K",
+    verified: true
+  }}
+/>`
           }
         ]
       },
@@ -501,7 +814,17 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <InstagramPost />,
-            usageCode: `<InstagramPost />`
+            usageCode: `<InstagramPost
+  data={{
+    author: "manifest.ai",
+    avatar: "M",
+    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600",
+    likes: "2,847",
+    caption: "Building the future of agentic UIs. What component would you love to see next?",
+    time: "2 hours ago",
+    verified: true
+  }}
+/>`
           }
         ]
       },
@@ -516,7 +839,18 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <LinkedInPost />,
-            usageCode: `<LinkedInPost />`
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Agentic UI Toolkit | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.\\n\\n#AI #AgenticUI #Developer",
+    likes: "1,234",
+    comments: "89",
+    reposts: "45",
+    time: "2h"
+  }}
+/>`
           }
         ]
       },
@@ -531,7 +865,19 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <YouTubePost />,
-            usageCode: `<YouTubePost />`
+            usageCode: `<YouTubePost
+  data={{
+    channel: "NetworkChuck",
+    avatar: "N",
+    title: "you need to learn MCP RIGHT NOW!!",
+    views: "1M views",
+    time: "2 weeks ago",
+    duration: "18:42",
+    thumbnail: "https://img.youtube.com/vi/GuTcle5edjk/maxresdefault.jpg",
+    verified: true,
+    videoId: "GuTcle5edjk"
+  }}
+/>`
           }
         ]
       },
@@ -570,7 +916,16 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <ProgressSteps />,
-            usageCode: `<ProgressSteps />`
+            usageCode: `<ProgressSteps
+  data={{
+    steps: [
+      { id: "1", label: "Order received", status: "completed" },
+      { id: "2", label: "Processing", status: "completed" },
+      { id: "3", label: "Shipping", status: "current" },
+      { id: "4", label: "Delivery", status: "pending" }
+    ]
+  }}
+/>`
           }
         ]
       },
@@ -585,7 +940,15 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <Stats />,
-            usageCode: `<Stats />`
+            usageCode: `<Stats
+  data={{
+    stats: [
+      { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
+      { label: "Orders", value: "342", change: -3.2, trend: "down" },
+      { label: "Customers", value: "1,205", change: 0, trend: "neutral" }
+    ]
+  }}
+/>`
           }
         ]
       },
@@ -605,7 +968,14 @@ const categories: Category[] = [
                 <SkeletonStats />
               </div>
             ),
-            usageCode: `<Skeleton appearance={{ className: "h-4 w-32" }} />`
+            usageCode: `// Basic skeleton
+<Skeleton appearance={{ className: "h-4 w-32" }} />
+
+// Product card skeleton
+<SkeletonProductCard />
+
+// Stats skeleton
+<SkeletonStats />`
           }
         ]
       },
@@ -620,7 +990,19 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <QuickReply />,
-            usageCode: `<QuickReply />`
+            usageCode: `<QuickReply
+  data={{
+    replies: [
+      { id: "1", label: "Yes, confirm" },
+      { id: "2", label: "No thanks" },
+      { id: "3", label: "I have a question" },
+      { id: "4", label: "View details" }
+    ]
+  }}
+  actions={{
+    onSelectReply: (reply) => console.log("Selected:", reply.label)
+  }}
+/>`
           }
         ]
       },
@@ -635,7 +1017,19 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <OptionList />,
-            usageCode: `<OptionList />`
+            usageCode: `<OptionList
+  data={{
+    options: [
+      { id: "1", label: "Standard shipping", description: "3-5 business days" },
+      { id: "2", label: "Express shipping", description: "1-2 business days" },
+      { id: "3", label: "Store pickup", description: "Available in 2h" }
+    ]
+  }}
+  appearance={{ multiple: false }}
+  actions={{
+    onSelectOption: (option) => console.log("Selected:", option.label)
+  }}
+/>`
           }
         ]
       },
@@ -650,7 +1044,28 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <TagSelect />,
-            usageCode: `<TagSelect />`
+            usageCode: `<TagSelect
+  data={{
+    tags: [
+      { id: "1", label: "Electronics" },
+      { id: "2", label: "Audio" },
+      { id: "3", label: "Wireless" },
+      { id: "4", label: "Apple" },
+      { id: "5", label: "Premium" },
+      { id: "6", label: "Sale" }
+    ]
+  }}
+  appearance={{
+    mode: "multiple",
+    showClear: true,
+    showValidate: true,
+    validateLabel: "Apply filters"
+  }}
+  actions={{
+    onSelectTags: (tagIds) => console.log("Tags:", tagIds),
+    onValidate: (tagIds) => console.log("Validated:", tagIds)
+  }}
+/>`
           }
         ]
       }
