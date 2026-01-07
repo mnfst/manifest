@@ -82,6 +82,13 @@ function FlowDetail() {
   // Track recently saved node for schema re-validation
   const [savedNodeId, setSavedNodeId] = useState<string | null>(null);
 
+  // Pending connection state - tracks when a node should be connected after creation
+  const [pendingConnection, setPendingConnection] = useState<{
+    sourceNodeId: string;
+    sourceHandle: string;
+    sourcePosition: { x: number; y: number };
+  } | null>(null);
+
   useEffect(() => {
     async function loadData() {
       if (!appId || !flowId) return;
@@ -249,12 +256,51 @@ function FlowDetail() {
     setShowNodeEditModal(true);
   }, []);
 
+  // Handler for "+" button click on nodes - opens node library with pending connection
+  const handleAddFromNode = useCallback((sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
+    setPendingConnection({ sourceNodeId, sourceHandle, sourcePosition });
+    setIsNodeLibraryOpen(true);
+  }, []);
+
+  // Handler for node type selection (from "+" button click + library selection)
+  const handleNodeLibrarySelectWithConnection = useCallback((nodeType: NodeType) => {
+    setNodeToEdit(null);
+    setNodeTypeToCreate(nodeType);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+    // pendingConnection is kept - it will be used during save
+  }, []);
+
+  // Handler for dropping node on a "+" button - creates node with connection
+  const handleDropOnNode = useCallback((nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
+    setPendingConnection({ sourceNodeId, sourceHandle, sourcePosition });
+    setNodeToEdit(null);
+    setNodeTypeToCreate(nodeType);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  }, []);
+
+  // Handler for dropping node on canvas (no connection)
+  // Position is used to place the node at the drop location
+  const [dropPosition, setDropPosition] = useState<{ x: number; y: number } | null>(null);
+
+  const handleDropOnCanvas = useCallback((nodeType: NodeType, position: { x: number; y: number }) => {
+    setPendingConnection(null); // No connection for canvas drops
+    setDropPosition(position); // Store drop position for node creation
+    setNodeToEdit(null);
+    setNodeTypeToCreate(nodeType);
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  }, []);
+
   const handleCloseNodeEditModal = () => {
     if (!isSavingNode) {
       setShowNodeEditModal(false);
       setNodeToEdit(null);
       setNodeTypeToCreate(null);
       setNodeEditError(null);
+      setPendingConnection(null); // Clear pending connection on close
+      setDropPosition(null); // Clear drop position on close
     }
   };
 
@@ -276,16 +322,48 @@ function FlowDetail() {
         savedId = nodeToEdit.id;
       } else if (nodeTypeToCreate) {
         // Create mode - create new node
-        const nodes = flow.nodes ?? [];
-        const xOffset = nodes.length * 280 + 330;
+        // Calculate position based on pending connection, drop position, or default
+        let position = { x: 100, y: 100 };
+        if (pendingConnection) {
+          // Position to the right of the source node
+          position = {
+            x: pendingConnection.sourcePosition.x + 280,
+            y: pendingConnection.sourcePosition.y,
+          };
+        } else if (dropPosition) {
+          // Use the drop position from drag-and-drop
+          position = dropPosition;
+        } else {
+          // Default positioning
+          const nodes = flow.nodes ?? [];
+          position = {
+            x: nodes.length * 280 + 330,
+            y: 100,
+          };
+        }
 
         const newNode = await api.createNode(flowId, {
           type: nodeTypeToCreate,
           name: data.name,
-          position: { x: xOffset, y: 100 },
+          position,
           parameters: data.parameters,
         });
         savedId = newNode.id;
+
+        // If there's a pending connection, create it
+        if (pendingConnection) {
+          try {
+            await api.createConnection(flowId, {
+              sourceNodeId: pendingConnection.sourceNodeId,
+              sourceHandle: pendingConnection.sourceHandle,
+              targetNodeId: newNode.id,
+              targetHandle: 'input',
+            });
+          } catch (connErr) {
+            console.error('Failed to create connection:', connErr);
+            // Node was created, connection failed - not blocking
+          }
+        }
       }
 
       // Refresh flow data
@@ -294,6 +372,8 @@ function FlowDetail() {
       setShowNodeEditModal(false);
       setNodeToEdit(null);
       setNodeTypeToCreate(null);
+      setPendingConnection(null); // Clear pending connection after save
+      setDropPosition(null); // Clear drop position after save
 
       // Trigger re-validation for the saved node
       if (savedId) {
@@ -469,8 +549,11 @@ function FlowDetail() {
               <NodeLibrary
                 isOpen={isNodeLibraryOpen}
                 onToggle={() => setIsNodeLibraryOpen(!isNodeLibraryOpen)}
-                onClose={() => setIsNodeLibraryOpen(false)}
-                onSelectNode={handleNodeLibrarySelect}
+                onClose={() => {
+                  setIsNodeLibraryOpen(false);
+                  setPendingConnection(null); // Clear pending connection when library closes
+                }}
+                onSelectNode={pendingConnection ? handleNodeLibrarySelectWithConnection : handleNodeLibrarySelect}
               />
               {/* Canvas */}
               <div className="flex-1 relative">
@@ -483,6 +566,9 @@ function FlowDetail() {
                   onConnectionsChange={handleConnectionsChange}
                   flowNameLookup={flowNameLookup}
                   savedNodeId={savedNodeId}
+                  onAddFromNode={handleAddFromNode}
+                  onDropOnNode={handleDropOnNode}
+                  onDropOnCanvas={handleDropOnCanvas}
                 />
                 {/* Flow Validation Summary - positioned at bottom-right of canvas */}
                 {flowId && (

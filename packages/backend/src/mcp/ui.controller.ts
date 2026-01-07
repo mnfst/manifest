@@ -155,7 +155,7 @@ export class UiController {
         }
 
         case 'tools/call': {
-          const toolParams = params as { name: string; arguments?: { message?: string } };
+          const toolParams = params as { name: string; arguments?: Record<string, unknown> };
           if (!toolParams?.name) {
             return res.json({
               jsonrpc: '2.0',
@@ -166,7 +166,7 @@ export class UiController {
           const toolResult = await this.mcpToolService.executeTool(
             slug,
             toolParams.name,
-            { message: toolParams.arguments?.message || '' }
+            toolParams.arguments ?? {}
           );
           result = toolResult;
           break;

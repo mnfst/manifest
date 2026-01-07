@@ -4,7 +4,7 @@ import { api } from '../../lib/api';
 import { ExecutionStatusBadge } from './ExecutionStatusBadge';
 import { ExecutionDataViewer } from './ExecutionDataViewer';
 import { NodeExecutionCard } from './NodeExecutionCard';
-import { Loader2, Clock, AlertTriangle } from 'lucide-react';
+import { Loader2, Clock, AlertTriangle, Copy, Check } from 'lucide-react';
 
 interface ExecutionDetailProps {
   flowId: string;
@@ -35,6 +35,18 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
   const [execution, setExecution] = useState<FlowExecution | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyJson = async () => {
+    if (!execution) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(execution, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   useEffect(() => {
     async function fetchExecution() {
@@ -82,11 +94,30 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
     <div className="h-full overflow-y-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <ExecutionStatusBadge status={execution.status} showLabel />
-          <span className="text-sm text-gray-500">
-            {execution.flowName} ({execution.flowToolName})
-          </span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <ExecutionStatusBadge status={execution.status} showLabel />
+            <span className="text-sm text-gray-500">
+              {execution.flowName} ({execution.flowToolName})
+            </span>
+          </div>
+          <button
+            onClick={handleCopyJson}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            title="Copy execution log as JSON"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-green-600" />
+                <span className="text-green-600">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>Copy JSON</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Timestamps */}

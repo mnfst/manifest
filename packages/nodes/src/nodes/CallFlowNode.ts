@@ -45,13 +45,15 @@ export const CallFlowNode: NodeTypeDefinition = {
 
     // Base structure - the actual 'result' schema depends on target flow
     // Full schema resolution happens at the service layer with flow context
+    // Static fields are marked with x-field-source: 'static', result is dynamic
     return {
       type: 'object',
       properties: {
-        type: { type: 'string', const: 'callFlow' },
-        targetFlowId: { type: 'string' },
+        type: { type: 'string', const: 'callFlow', 'x-field-source': 'static' },
+        targetFlowId: { type: 'string', 'x-field-source': 'static' },
         result: {
           description: 'Result from the called flow (schema depends on target flow)',
+          'x-field-source': 'dynamic',
         },
       },
       required: ['type', 'targetFlowId'],

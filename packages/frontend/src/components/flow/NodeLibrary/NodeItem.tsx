@@ -1,6 +1,7 @@
+import { useCallback } from 'react';
 import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
 import type { NodeTypeInfo } from '../../../lib/api';
-import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe } from 'lucide-react';
+import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical } from 'lucide-react';
 
 // Map icon names from API to Lucide React components
 const iconMap: Record<string, React.ElementType> = {
@@ -27,6 +28,7 @@ interface NodeItemProps {
 
 /**
  * NodeItem component - displays a single node type in the library
+ * Supports drag-and-drop to canvas or "+" buttons
  */
 export function NodeItem({ node, onClick, disabled = false }: NodeItemProps) {
   const handleClick = () => {
@@ -35,27 +37,42 @@ export function NodeItem({ node, onClick, disabled = false }: NodeItemProps) {
     }
   };
 
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    if (disabled) {
+      e.preventDefault();
+      return;
+    }
+    // Set the node type as drag data
+    e.dataTransfer.setData('application/x-node-type', node.name);
+    e.dataTransfer.effectAllowed = 'copy';
+  }, [disabled, node.name]);
+
   const Icon = iconMap[node.icon] || HelpCircle;
   const styles = categoryStyles[node.category];
 
   return (
-    <button
+    <div
+      draggable={!disabled}
+      onDragStart={handleDragStart}
       onClick={handleClick}
-      disabled={disabled}
       className={`
         w-full p-4 border rounded-lg text-left transition-all group
         ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-muted'
-            : 'hover:border-primary hover:bg-primary/5 cursor-pointer'
+            : 'hover:border-primary hover:bg-primary/5 cursor-grab active:cursor-grabbing'
         }
       `}
     >
       <div className="flex items-start gap-3">
+        {/* Drag handle indicator */}
+        <div className={`flex-shrink-0 ${disabled ? 'text-gray-300' : 'text-gray-400'}`}>
+          <GripVertical className="w-4 h-4" />
+        </div>
         <div
           className={`
             w-10 h-10 rounded-lg flex items-center justify-center
-            transition-colors
+            transition-colors flex-shrink-0
             ${disabled ? 'bg-gray-100' : `${styles?.bgColor || 'bg-gray-50'} group-hover:bg-gray-100`}
           `}
         >
@@ -72,6 +89,6 @@ export function NodeItem({ node, onClick, disabled = false }: NodeItemProps) {
           <p className="text-sm text-muted-foreground mt-1">{node.description}</p>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

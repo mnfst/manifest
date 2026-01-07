@@ -131,8 +131,11 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
         </div>
 
         {isTriggerNode ? (
-          <div className="text-sm text-gray-400 italic py-2 pl-6">
-            Trigger node - no input (this node starts the flow)
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 ml-6">
+            <p className="text-sm text-blue-700 font-medium">No input - triggers start the flow</p>
+            <p className="text-xs text-blue-600 mt-1">
+              Trigger nodes initiate flow execution. They receive no input from other nodes.
+            </p>
           </div>
         ) : (
           <div className="pl-6">
