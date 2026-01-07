@@ -57,17 +57,17 @@ interface FlowDiagramProps {
 function getFlowState(flow: Flow) {
   const nodes = flow.nodes ?? [];
   const userIntentNodes = nodes.filter(n => n.type === 'UserIntent');
-  const interfaceNodes = nodes.filter(n => n.type === 'Interface');
+  const statCardNodes = nodes.filter(n => n.type === 'StatCard');
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
   const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
   const hasUserIntentNodes = userIntentNodes.length > 0;
-  const hasInterfaceNodes = interfaceNodes.length > 0;
+  const hasStatCardNodes = statCardNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasApiCallNodes = apiCallNodes.length > 0;
-  const hasSteps = hasInterfaceNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes;
-  return { hasUserIntentNodes, hasInterfaceNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasSteps, userIntentNodes, interfaceNodes, returnNodes, callFlowNodes, apiCallNodes };
+  const hasSteps = hasStatCardNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes;
+  return { hasUserIntentNodes, hasStatCardNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasSteps, userIntentNodes, statCardNodes, returnNodes, callFlowNodes, apiCallNodes };
 }
 
 const nodeTypes = {
@@ -85,7 +85,7 @@ const edgeTypes = {
 
 /**
  * Visual diagram of nodes using React Flow
- * Displays UserIntent trigger nodes followed by Interface, Return, CallFlow, or ApiCall nodes
+ * Displays UserIntent trigger nodes followed by StatCard, Return, CallFlow, or ApiCall nodes
  */
 function FlowDiagramInner({
   flow,
@@ -322,7 +322,7 @@ function FlowDiagramInner({
     }
   }, [connections, onConnectionsChange]);
 
-  // Generate base nodes: UserIntent nodes + Interface/Return/CallFlow/ApiCall nodes
+  // Generate base nodes: UserIntent nodes + StatCard/Return/CallFlow/ApiCall nodes
   const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
@@ -364,8 +364,8 @@ function FlowDiagramInner({
         xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
 
-      // Add Interface nodes
-      flowState.interfaceNodes.forEach((node) => {
+      // Add StatCard nodes
+      flowState.statCardNodes.forEach((node) => {
         // Use saved position or calculate based on order
         const nodePos = node.position || { x: xPosition, y: 130 };
         const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
@@ -516,7 +516,7 @@ function FlowDiagramInner({
         strokeColor = '#60a5fa'; // Default blue
         if (sourceNode.type === 'UserIntent') {
           strokeColor = '#60a5fa'; // Blue for user intent
-        } else if (sourceNode.type === 'Interface') {
+        } else if (sourceNode.type === 'StatCard') {
           strokeColor = '#60a5fa'; // Blue for interface
         } else if (sourceNode.type === 'Return') {
           strokeColor = '#22c55e'; // Green for return

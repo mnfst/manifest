@@ -8,7 +8,7 @@ import type { LayoutTemplate, ThemeVariables } from '@chatgpt-app-builder/shared
 const configUpdaterSchema = z.object({
   message: z.string().describe('The user message requesting changes'),
   currentConfig: z.object({
-    layoutTemplate: z.enum(['table', 'post-list']),
+    layoutTemplate: z.enum(['stat-card']),
     themeVariables: z.record(z.string()),
     toolName: z.string().optional(),
     toolDescription: z.string().optional(),
@@ -73,16 +73,13 @@ Analyzes the user's message and determines what configuration changes to apply.`
     let understood = true;
 
     // Check for layout change requests
-    if (messageLower.includes('table') && currentConfig.layoutTemplate !== 'table') {
-      updates.layoutTemplate = 'table';
-      changes.push('Changed layout to table');
-    } else if (
-      (messageLower.includes('post') || messageLower.includes('blog') || messageLower.includes('list')) &&
-      messageLower.includes('layout') &&
-      currentConfig.layoutTemplate !== 'post-list'
-    ) {
-      updates.layoutTemplate = 'post-list';
-      changes.push('Changed layout to post-list');
+    // Currently only stat-card layout is available
+    if (messageLower.includes('stat') || messageLower.includes('metric') || messageLower.includes('kpi')) {
+      // Already using stat-card, no change needed
+      if (currentConfig.layoutTemplate !== 'stat-card') {
+        updates.layoutTemplate = 'stat-card';
+        changes.push('Changed layout to stat-card');
+      }
     }
 
     // Check for color change requests
@@ -154,7 +151,6 @@ Analyzes the user's message and determines what configuration changes to apply.`
     } else {
       understood = false;
       response = `I couldn't identify specific changes from your request. You can ask me to:
-• Change the layout (e.g., "switch to table layout")
 • Update colors (e.g., "change primary color to blue")
 • Modify the tool name (e.g., "rename tool to search_products")
 • Update the tool description`;

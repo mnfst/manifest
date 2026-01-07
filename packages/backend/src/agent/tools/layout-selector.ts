@@ -14,49 +14,25 @@ const layoutSelectorSchema = z.object({
  * Output type for layout selection
  */
 export interface LayoutSelectorOutput {
-  layout: 'table' | 'post-list';
+  layout: 'stat-card';
   reason: string;
 }
 
 /**
  * Tool for selecting the most appropriate layout template based on user prompt
- * POC: Chooses between 'table' and 'post-list' layouts
+ * Currently only supports stat-card layout for KPIs and metrics display
  */
 export const layoutSelectorTool = new DynamicStructuredTool({
   name: 'select_layout',
   description: `Select the most appropriate layout template for a ChatGPT app based on the user's description.
 Available layouts:
-- table: Best for tabular data, lists, order history, product catalogs, structured data
-- post-list: Best for content feeds, articles, blog posts, news, updates, announcements`,
+- stat-card: Best for KPIs, dashboard stats, metrics overview, performance indicators`,
   schema: layoutSelectorSchema,
-  func: async ({ prompt }): Promise<string> => {
-    // This tool will be called by the LLM to make a decision
-    // The actual selection logic happens via the LLM's reasoning
-    // We return a formatted response that the LLM can parse
-
-    const promptLower = prompt.toLowerCase();
-
-    // Simple heuristic for POC - LLM will make more nuanced decisions
-    let selectedLayout: LayoutTemplate = 'table';
-    let reason = '';
-
-    // Keywords suggesting post-list layout
-    const postKeywords = ['blog', 'article', 'post', 'news', 'feed', 'content', 'story', 'update', 'announcement'];
-    const tableKeywords = ['table', 'order', 'list', 'inventory', 'catalog', 'product', 'track', 'data', 'record', 'history'];
-
-    const hasPostKeywords = postKeywords.some(k => promptLower.includes(k));
-    const hasTableKeywords = tableKeywords.some(k => promptLower.includes(k));
-
-    if (hasPostKeywords && !hasTableKeywords) {
-      selectedLayout = 'post-list';
-      reason = 'The prompt mentions content or article-related features';
-    } else if (hasTableKeywords) {
-      selectedLayout = 'table';
-      reason = 'The prompt mentions structured data or list-related features';
-    } else {
-      selectedLayout = 'table';
-      reason = 'Default layout for general-purpose applications';
-    }
+  func: async ({ prompt: _prompt }): Promise<string> => {
+    // Currently only stat-card layout is available
+    // This tool is kept for future expansion when more layouts are added
+    const selectedLayout: LayoutTemplate = 'stat-card';
+    const reason = 'Stat card layout selected for displaying metrics and KPIs';
 
     const result: LayoutSelectorOutput = {
       layout: selectedLayout,

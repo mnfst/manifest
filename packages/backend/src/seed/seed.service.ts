@@ -179,30 +179,30 @@ export class SeedService implements OnModuleInit {
           whenToUse: 'Use this flow to test the application',
           whenNotToUse: 'Do not use in production',
           toolName: 'test_flow',
-          toolDescription: 'A test flow that displays sample data in a table format',
+          toolDescription: 'A test flow that displays sample statistics',
           parameters: [],
           isActive: true,
         },
       };
 
-      // Create Interface node
-      const interfaceId = uuidv4();
-      const interfaceNode: NodeInstance = {
-        id: interfaceId,
-        type: 'Interface',
-        name: 'Test Interface',
+      // Create StatCard node
+      const statCardId = uuidv4();
+      const statCardNode: NodeInstance = {
+        id: statCardId,
+        type: 'StatCard',
+        name: 'Test StatCard',
         position: { x: 330, y: 100 },
         parameters: {
-          layoutTemplate: 'table',
+          layoutTemplate: 'stat-card',
         },
       };
 
-      // Create connection from trigger to interface
+      // Create connection from trigger to StatCard
       const connection: Connection = {
         id: uuidv4(),
         sourceNodeId: triggerId,
         sourceHandle: 'main',
-        targetNodeId: interfaceId,
+        targetNodeId: statCardId,
         targetHandle: 'main',
       };
 
@@ -212,7 +212,7 @@ export class SeedService implements OnModuleInit {
         name: 'Test Flow',
         description: 'Default test flow for PR testing',
         isActive: true,
-        nodes: [triggerNode, interfaceNode],
+        nodes: [triggerNode, statCardNode],
         connections: [connection],
       });
 

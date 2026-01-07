@@ -1,5 +1,5 @@
 import type { JSONSchema } from '@chatgpt-app-builder/shared';
-import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
+import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 
 /**
  * Return Node (formerly ReturnValue)

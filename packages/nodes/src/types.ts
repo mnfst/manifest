@@ -36,10 +36,10 @@ export interface ExecutionResult {
  * and execution engine.
  */
 export interface NodeTypeDefinition {
-  /** Internal type name (e.g., 'Interface', 'Return', 'CallFlow') */
+  /** Internal type name (e.g., 'StatCard', 'Return', 'CallFlow') */
   name: string;
 
-  /** Human-readable display name (e.g., 'Display Interface') */
+  /** Human-readable display name (e.g., 'Stat Card') */
   displayName: string;
 
   /** Lucide icon name for the node (e.g., 'layout-template') */

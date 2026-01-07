@@ -3,19 +3,25 @@
  *
  * This module exports all built-in node types that can be used in flows.
  * Each node type defines its metadata, parameters, and execution logic.
+ *
+ * Nodes are organized by category:
+ * - trigger/: Entry point nodes (UserIntent)
+ * - action/: Action nodes (ApiCall)
+ * - interface/: UI display nodes (StatCard)
+ * - return/: Flow termination nodes (Return, CallFlow)
  */
 
-export { InterfaceNode } from './InterfaceNode.js';
-export { ReturnNode } from './ReturnNode.js';
-export { CallFlowNode } from './CallFlowNode.js';
-export { UserIntentNode } from './UserIntentNode.js';
-export { ApiCallNode } from './ApiCallNode.js';
+// Re-export from category subfolders
+export { UserIntentNode } from './trigger/index.js';
+export { ApiCallNode } from './action/index.js';
+export { StatCardNode } from './interface/index.js';
+export { ReturnNode, CallFlowNode } from './return/index.js';
 
-import { InterfaceNode } from './InterfaceNode.js';
-import { ReturnNode } from './ReturnNode.js';
-import { CallFlowNode } from './CallFlowNode.js';
-import { UserIntentNode } from './UserIntentNode.js';
-import { ApiCallNode } from './ApiCallNode.js';
+// Import for registry
+import { UserIntentNode } from './trigger/index.js';
+import { ApiCallNode } from './action/index.js';
+import { StatCardNode } from './interface/index.js';
+import { ReturnNode, CallFlowNode } from './return/index.js';
 import type { NodeTypeDefinition } from '../types.js';
 
 /**
@@ -23,7 +29,7 @@ import type { NodeTypeDefinition } from '../types.js';
  */
 export const builtInNodes: Record<string, NodeTypeDefinition> = {
   UserIntent: UserIntentNode,
-  Interface: InterfaceNode,
+  StatCard: StatCardNode,
   Return: ReturnNode,
   CallFlow: CallFlowNode,
   ApiCall: ApiCallNode,
@@ -34,7 +40,7 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
  */
 export const builtInNodeList: NodeTypeDefinition[] = [
   UserIntentNode,
-  InterfaceNode,
+  StatCardNode,
   ReturnNode,
   CallFlowNode,
   ApiCallNode,

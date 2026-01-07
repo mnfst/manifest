@@ -1,4 +1,4 @@
-import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
+import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 import type { ApiCallNodeParameters, HeaderEntry, JSONSchema } from '@chatgpt-app-builder/shared';
 
 /**

@@ -21,20 +21,10 @@
       "import": "./dist/nodes/index.js",
       "require": "./dist/nodes/index.js"
     },
-    "./nodes/InterfaceNode": {
-      "types": "./dist/nodes/InterfaceNode.d.ts",
-      "import": "./dist/nodes/InterfaceNode.js",
-      "require": "./dist/nodes/InterfaceNode.js"
-    },
-    "./nodes/ReturnNode": {
-      "types": "./dist/nodes/ReturnNode.d.ts",
-      "import": "./dist/nodes/ReturnNode.js",
-      "require": "./dist/nodes/ReturnNode.js"
-    },
-    "./nodes/CallFlowNode": {
-      "types": "./dist/nodes/CallFlowNode.d.ts",
-      "import": "./dist/nodes/CallFlowNode.js",
-      "require": "./dist/nodes/CallFlowNode.js"
+    "./nodes/*": {
+      "types": "./dist/nodes/*/index.d.ts",
+      "import": "./dist/nodes/*/index.js",
+      "require": "./dist/nodes/*/index.js"
     }
   },
   "scripts": {

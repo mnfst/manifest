@@ -6,9 +6,9 @@ import type { ThemeVariables } from './theme.js';
 export type AppStatus = 'draft' | 'published';
 
 /**
- * Layout template types (POC: 2 options)
+ * Layout template types
  */
-export type LayoutTemplate = 'table' | 'post-list';
+export type LayoutTemplate = 'stat-card';
 
 /**
  * Defines an action that can be triggered by a UI component
@@ -33,23 +33,11 @@ export interface LayoutTemplateConfig {
  * Layout registry with Manifest UI block information
  */
 export const LAYOUT_REGISTRY: Record<LayoutTemplate, LayoutTemplateConfig> = {
-  table: {
-    manifestBlock: '@manifest/table',
-    installCommand: 'npx shadcn@latest add @manifest/table',
-    useCase: 'Tabular data, lists, order history',
-    actions: [],
-  },
-  'post-list': {
-    manifestBlock: '@manifest/blog-post-list',
-    installCommand: 'npx shadcn@latest add @manifest/blog-post-list',
-    useCase: 'Content feeds, articles, blog posts',
-    actions: [
-      {
-        name: 'onReadMore',
-        label: 'Read More',
-        description: 'Triggered when user clicks Read More button',
-      },
-    ],
+  'stat-card': {
+    manifestBlock: '@manifest/stats',
+    installCommand: 'npx shadcn@latest add @manifest/stats',
+    useCase: 'KPIs, dashboard stats, metrics overview',
+    actions: [], // Read-only, no actions
   },
 };
 

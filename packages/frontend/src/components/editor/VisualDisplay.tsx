@@ -17,7 +17,7 @@ interface VisualDisplayProps {
  */
 export function VisualDisplay({
   app,
-  layoutTemplate = 'table',
+  layoutTemplate = 'stat-card',
   toolName,
   isDarkMode = false
 }: VisualDisplayProps) {

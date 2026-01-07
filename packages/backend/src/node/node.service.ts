@@ -58,7 +58,7 @@ export class NodeService {
 
     const categories: CategoryInfo[] = [
       { id: 'trigger', displayName: 'Triggers', order: 1 },
-      { id: 'interface', displayName: 'Agentic Interfaces', order: 2 },
+      { id: 'interface', displayName: 'UI Components', order: 2 },
       { id: 'action', displayName: 'Actions', order: 3 },
       { id: 'return', displayName: 'Return Values', order: 4 },
     ];
