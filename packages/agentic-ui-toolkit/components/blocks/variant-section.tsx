@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
+import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useEffect, useState } from 'react'
 
@@ -17,7 +18,13 @@ interface VariantSectionProps {
   usageCode?: string
 }
 
-function CodeViewer({ registryName }: { registryName: string }) {
+interface SourceCodeState {
+  code: string | null
+  loading: boolean
+  error: string | null
+}
+
+function useSourceCode(registryName: string): SourceCodeState {
   const [code, setCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,6 +53,12 @@ function CodeViewer({ registryName }: { registryName: string }) {
     }
     fetchCode()
   }, [registryName])
+
+  return { code, loading, error }
+}
+
+function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
+  const { code, loading, error } = sourceCode
 
   if (loading) {
     return (
@@ -78,6 +91,8 @@ export function VariantSection({
   registryName,
   usageCode
 }: VariantSectionProps) {
+  const sourceCode = useSourceCode(registryName)
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-bold">{name}</h3>
@@ -85,12 +100,19 @@ export function VariantSection({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="configuration">Configuration</TabsTrigger>
             <TabsTrigger value="code">Code</TabsTrigger>
           </TabsList>
           <InstallCommandInline componentName={registryName} />
         </div>
         <TabsContent value="preview" className="mt-0">
           {component}
+        </TabsContent>
+        <TabsContent value="configuration" className="mt-0">
+          <ConfigurationViewer
+            sourceCode={sourceCode.code}
+            loading={sourceCode.loading}
+          />
         </TabsContent>
         <TabsContent value="code" className="mt-0">
           {usageCode && (
@@ -101,7 +123,7 @@ export function VariantSection({
           )}
           <div>
             <p className="text-xs text-muted-foreground mb-2">Source:</p>
-            <CodeViewer registryName={registryName} />
+            <CodeViewer sourceCode={sourceCode} />
           </div>
         </TabsContent>
       </Tabs>
