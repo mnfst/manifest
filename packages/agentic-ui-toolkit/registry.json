@@ -20,7 +20,7 @@
     },
     {
       "name": "pay-confirm",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "registry:component",
       "title": "Pay Confirm",
       "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
