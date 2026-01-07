@@ -32,6 +32,11 @@ import type {
   ExecutionStatus,
   ExecutionListResponse,
   FlowExecution,
+  // Chat preview types
+  ValidateKeyResponse,
+  ModelListResponse,
+  PreviewChatRequest,
+  ChatStreamEvent,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -533,12 +538,13 @@ export const api = {
    */
   async getExecutions(
     flowId: string,
-    options?: { page?: number; limit?: number; status?: ExecutionStatus }
+    options?: { page?: number; limit?: number; status?: ExecutionStatus; isPreview?: boolean }
   ): Promise<ExecutionListResponse> {
     const params = new URLSearchParams();
     if (options?.page) params.set('page', String(options.page));
     if (options?.limit) params.set('limit', String(options.limit));
     if (options?.status) params.set('status', options.status);
+    if (options?.isPreview !== undefined) params.set('isPreview', String(options.isPreview));
 
     const queryString = params.toString();
     const endpoint = `/flows/${flowId}/executions${queryString ? `?${queryString}` : ''}`;
@@ -551,6 +557,95 @@ export const api = {
    */
   async getExecution(flowId: string, executionId: string): Promise<FlowExecution> {
     return fetchApi<FlowExecution>(`/flows/${flowId}/executions/${executionId}`);
+  },
+
+  // ============================================
+  // Chat Preview APIs
+  // ============================================
+
+  /**
+   * Validate an OpenAI API key
+   * POST /api/chat/validate-key
+   */
+  async validateApiKey(apiKey: string): Promise<ValidateKeyResponse> {
+    return fetchApi<ValidateKeyResponse>('/chat/validate-key', {
+      method: 'POST',
+      body: JSON.stringify({ apiKey }),
+    });
+  },
+
+  /**
+   * Get available LLM models
+   * GET /api/chat/models
+   */
+  async getModels(): Promise<ModelListResponse> {
+    return fetchApi<ModelListResponse>('/chat/models');
+  },
+
+  /**
+   * Stream a chat response with tool calling
+   * POST /api/chat/stream (SSE)
+   * Returns an async generator that yields ChatStreamEvents
+   */
+  async *streamChat(
+    request: PreviewChatRequest,
+    apiKey: string,
+  ): AsyncGenerator<ChatStreamEvent, void, unknown> {
+    const url = `${API_BASE}/chat/stream`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      let errorData: ApiError = { message: 'An error occurred' };
+      try {
+        errorData = await response.json();
+      } catch {
+        // Use default error message
+      }
+      throw new ApiClientError(errorData.message, errorData.code, response.status);
+    }
+
+    if (!response.body) {
+      throw new ApiClientError('No response body');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data) {
+              try {
+                const event: ChatStreamEvent = JSON.parse(data);
+                yield event;
+              } catch {
+                // Ignore invalid JSON
+              }
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
   },
 
 };

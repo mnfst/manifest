@@ -47,9 +47,16 @@ export function ExecutionListItem({
         <ExecutionStatusBadge status={execution.status} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium text-gray-900">
-              {formatTime(execution.startedAt)}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900">
+                {formatTime(execution.startedAt)}
+              </span>
+              {execution.isPreview && (
+                <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                  Preview
+                </span>
+              )}
+            </div>
             <span className="text-xs text-gray-500">
               {formatDuration(execution.duration)}
             </span>

@@ -13,6 +13,7 @@ import { McpModule } from '../mcp/mcp.module';
 import { ConnectorModule } from '../connector/connector.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { SeedModule } from '../seed/seed.module';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SeedModule } from '../seed/seed.module';
     ConnectorModule,
     FlowExecutionModule,
     SeedModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

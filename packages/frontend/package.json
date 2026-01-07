@@ -12,12 +12,14 @@
     "lint": "eslint src/"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.11.53",
     "@chatgpt-app-builder/shared": "workspace:*",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.1.1",
     "tailwind-merge": "^3.4.0"
   },

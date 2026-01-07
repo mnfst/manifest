@@ -96,3 +96,18 @@ export type {
 
 // String utilities
 export { toSnakeCase, isValidToolName } from './utils/string.js';
+
+// Chat types (Preview LLM Chat feature)
+export type {
+  ToolCall,
+  ToolResult,
+  ChatMessageRole,
+  ChatMessage,
+  ModelOption,
+  PreviewChatRequest,
+  ChatStreamEvent,
+  ModelListResponse,
+  ValidateKeyRequest,
+  ValidateKeyResponse,
+  StoredApiKey,
+} from './types/chat.js';
