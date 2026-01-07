@@ -131,6 +131,8 @@ export type {
   NodeTypeSchemaResponse,
   ResolveSchemaRequest,
   ResolveSchemaResponse,
+  FieldSource,
+  FlattenedSchemaField,
 } from './types/schema.js';
 
 // Schema validation utilities
@@ -143,3 +145,22 @@ export {
   getAjv,
   getAjvAsync,
 } from './utils/schemaValidator.js';
+
+// Slug utilities (for human-readable node references)
+export {
+  toSlug,
+  isValidSlug,
+  generateUniqueSlug,
+  getBaseSlug,
+  RESERVED_SLUGS,
+} from './utils/slug.js';
+
+// Template parser utilities (for extracting variable references)
+export type { TemplateReference } from './utils/templateParser.js';
+export {
+  parseTemplateReferences,
+  groupReferencesByNode,
+  getReferencedNodeSlugs,
+  extractAllReferences,
+  validateNodeReferences,
+} from './utils/templateParser.js';

@@ -7,10 +7,43 @@ interface NodeExecutionCardProps {
   index: number;
 }
 
-const nodeTypeIcons: Record<string, typeof Box> = {
-  Interface: Box,
-  Return: Box,
-  CallFlow: Box,
+// Category configuration with colors matching the flow diagram
+const nodeCategoryConfig: Record<string, {
+  category: string;
+  bgColor: string;
+  textColor: string;
+}> = {
+  UserIntent: {
+    category: 'Trigger',
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-700',
+  },
+  ApiCall: {
+    category: 'Action',
+    bgColor: 'bg-orange-100',
+    textColor: 'text-orange-700',
+  },
+  Return: {
+    category: 'Output',
+    bgColor: 'bg-green-100',
+    textColor: 'text-green-700',
+  },
+  CallFlow: {
+    category: 'Call Flow',
+    bgColor: 'bg-purple-100',
+    textColor: 'text-purple-700',
+  },
+  Interface: {
+    category: 'Interface',
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-700',
+  },
+};
+
+const defaultCategoryConfig = {
+  category: 'Node',
+  bgColor: 'bg-gray-100',
+  textColor: 'text-gray-700',
 };
 
 function formatTime(isoString: string): string {
@@ -23,7 +56,7 @@ function formatTime(isoString: string): string {
 }
 
 export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardProps) {
-  const Icon = nodeTypeIcons[nodeExecution.nodeType] || Box;
+  const config = nodeCategoryConfig[nodeExecution.nodeType] || defaultCategoryConfig;
 
   const statusIcon =
     nodeExecution.status === 'completed' ? (
@@ -39,12 +72,12 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
         <span className="text-sm text-gray-400 font-mono">#{index + 1}</span>
-        <Icon className="w-4 h-4 text-gray-500" />
+        <Box className="w-4 h-4 text-gray-500" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900">{nodeExecution.nodeName}</span>
-            <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
-              {nodeExecution.nodeType}
+            <span className={`text-xs px-2 py-0.5 rounded font-medium ${config.bgColor} ${config.textColor}`}>
+              {config.category}
             </span>
           </div>
           <div className="text-xs text-gray-500 mt-0.5">

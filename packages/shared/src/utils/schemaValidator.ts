@@ -295,6 +295,7 @@ function parameterTypeToSchemaType(
 /**
  * Convert an array of FlowParameter to JSONSchema properties.
  * Used for dynamic schema generation from UserIntent parameters.
+ * Adds x-field-source: 'dynamic' to indicate these are user-defined parameters.
  */
 export function flowParametersToSchema(
   parameters: FlowParameter[]
@@ -306,7 +307,8 @@ export function flowParametersToSchema(
     properties[param.name] = {
       type: parameterTypeToSchemaType(param.type),
       description: param.description,
-    };
+      'x-field-source': 'dynamic',
+    } as JSONSchema;
 
     if (!param.optional) {
       required.push(param.name);
@@ -322,17 +324,18 @@ export function flowParametersToSchema(
 
 /**
  * Create a complete UserIntent output schema including static fields and dynamic parameters.
+ * Static fields have x-field-source: 'static', dynamic fields have x-field-source: 'dynamic'.
  */
 export function createUserIntentOutputSchema(
   parameters: FlowParameter[] = []
 ): JSONSchema {
   const paramSchema = flowParametersToSchema(parameters);
 
-  // Merge with static trigger fields
+  // Merge with static trigger fields (all marked as static)
   const staticProperties: Record<string, JSONSchema> = {
-    type: { type: 'string', const: 'trigger' },
-    triggered: { type: 'boolean' },
-    toolName: { type: 'string' },
+    type: { type: 'string', const: 'trigger', 'x-field-source': 'static' } as JSONSchema,
+    triggered: { type: 'boolean', 'x-field-source': 'static' } as JSONSchema,
+    toolName: { type: 'string', 'x-field-source': 'static' } as JSONSchema,
   };
 
   const staticRequired = ['type', 'triggered', 'toolName'];

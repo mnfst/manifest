@@ -1,14 +1,19 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { NodeInstance, ApiCallNodeParameters } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, ApiCallNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
 import { Globe } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
+import { AddNodeButton } from './AddNodeButton';
 
 export interface ApiCallNodeData extends Record<string, unknown> {
   node: NodeInstance;
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  /** Handler for "+" button click */
+  onAddFromNode?: () => void;
+  /** Handler for dropping a node type on the "+" button */
+  onDropOnNode?: (nodeType: NodeType) => void;
 }
 
 /**
@@ -17,7 +22,7 @@ export interface ApiCallNodeData extends Record<string, unknown> {
  * Displays the HTTP method and URL in a compact format.
  */
 export function ApiCallNode({ data }: NodeProps) {
-  const { node, canDelete, onEdit, onDelete } = data as ApiCallNodeData;
+  const { node, canDelete, onEdit, onDelete, onAddFromNode, onDropOnNode } = data as ApiCallNodeData;
 
   // Get parameters with type safety
   const params = node.parameters as unknown as ApiCallNodeParameters;
@@ -27,8 +32,14 @@ export function ApiCallNode({ data }: NodeProps) {
   // Truncate URL for display
   const displayUrl = url.length > 30 ? url.substring(0, 30) + '...' : url || 'No URL configured';
 
+  // Get slug for tooltip display (T034)
+  const slug = node.slug || node.id;
+
   return (
-    <div className="bg-white rounded-lg border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
+    <div
+      className="bg-white rounded-lg border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan"
+      title={`Slug: ${slug}\nUse {{ ${slug}.fieldName }} to reference outputs`}
+    >
       {/* Left handle for incoming connections */}
       <Handle
         type="target"
@@ -71,6 +82,15 @@ export function ApiCallNode({ data }: NodeProps) {
         id="output"
         className="!bg-orange-400 !w-3 !h-3 !border-2 !border-orange-200"
       />
+
+      {/* "+" button for adding connected nodes */}
+      {onAddFromNode && (
+        <AddNodeButton
+          onClick={onAddFromNode}
+          onDrop={onDropOnNode}
+          color="orange"
+        />
+      )}
     </div>
   );
 }

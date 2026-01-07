@@ -33,6 +33,7 @@ export const InterfaceNode: NodeTypeDefinition = {
   } as JSONSchema,
 
   // Output schema is dynamic based on the action that occurs
+  // Static fields marked with x-field-source: 'static', action data is dynamic
   getOutputSchema(parameters: Record<string, unknown>): JSONSchema | null {
     const layoutTemplate = (parameters.layoutTemplate as string) ?? 'table';
 
@@ -40,17 +41,19 @@ export const InterfaceNode: NodeTypeDefinition = {
     return {
       type: 'object',
       properties: {
-        type: { type: 'string', const: 'interface' },
+        type: { type: 'string', const: 'interface', 'x-field-source': 'static' },
         action: {
           type: 'string',
           enum: ['submit', 'click', 'select'],
           description: 'The action that triggered this output',
+          'x-field-source': 'static',
         },
-        layoutTemplate: { type: 'string', const: layoutTemplate },
+        layoutTemplate: { type: 'string', const: layoutTemplate, 'x-field-source': 'static' },
         data: {
           type: 'object',
           additionalProperties: true,
           description: 'Action-specific data (form values, selected item, etc.)',
+          'x-field-source': 'dynamic',
         },
       },
       required: ['type', 'action', 'layoutTemplate'],

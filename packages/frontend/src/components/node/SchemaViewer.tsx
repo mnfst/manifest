@@ -64,6 +64,20 @@ function FieldRow({ field, depth = 0 }: FieldRowProps) {
           <span className="text-xs text-gray-500">({field.format})</span>
         )}
 
+        {/* Static/Dynamic source badge (T027, T028) */}
+        {field.source && (
+          <span
+            className={`px-1.5 py-0.5 text-xs rounded font-medium ${
+              field.source === 'static'
+                ? 'bg-gray-100 text-gray-600'  // T027: muted gray for static
+                : 'bg-blue-100 text-blue-700'  // T028: highlighted blue for dynamic
+            }`}
+            title={field.source === 'static' ? 'Static field (always present)' : 'Dynamic field (from parameters)'}
+          >
+            {field.source === 'static' ? 'Static' : 'From Parameters'}
+          </span>
+        )}
+
         {field.truncated && (
           <span className="text-xs text-gray-400 italic" title="Depth limit reached">
             (nested)

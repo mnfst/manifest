@@ -262,3 +262,35 @@ export interface ResolveSchemaResponse {
   outputSchema: JSONSchema | null;
   error?: string;
 }
+
+// =============================================================================
+// Flattened Schema Types (for UI display)
+// =============================================================================
+
+/**
+ * Source indicator for schema fields.
+ * - 'static': Always present on the node type regardless of configuration
+ * - 'dynamic': Generated from user configuration (e.g., parameters on trigger nodes)
+ */
+export type FieldSource = 'static' | 'dynamic';
+
+/**
+ * A flattened schema field for UI display (e.g., in "Use Previous Outputs" dropdown).
+ * Converts nested JSON Schema properties into a flat list with dot-notation paths.
+ */
+export interface FlattenedSchemaField {
+  /** Dot notation path to the field (e.g., "response.data.items") */
+  path: string;
+
+  /** JSON Schema type (e.g., "string", "number", "object", "array") */
+  type: string;
+
+  /** Human-readable description (from JSON Schema description) */
+  description?: string;
+
+  /** Source of the field - static (always present) or dynamic (from user config) */
+  source?: FieldSource;
+
+  /** Whether the field is required in the schema */
+  required: boolean;
+}
