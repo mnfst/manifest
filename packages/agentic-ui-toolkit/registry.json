@@ -32,6 +32,20 @@
       ]
     },
     {
+      "name": "issue-report-form",
+      "type": "registry:component",
+      "title": "Issue Report Form",
+      "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "input", "label", "select"],
+      "files": [
+        {
+          "path": "registry/form/issue-report-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "card-form",
       "type": "registry:component",
       "title": "Card Form",

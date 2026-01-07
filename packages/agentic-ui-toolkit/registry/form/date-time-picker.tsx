@@ -235,7 +235,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
         <h2 className="text-xl font-semibold text-foreground mb-6">{title}</h2>
       )}
 
-      <div className="flex">
+      <div className="flex justify-center">
         {/* Calendar Section - Fixed width */}
         <div className="w-[304px] flex-shrink-0">
           {/* Month Navigation */}

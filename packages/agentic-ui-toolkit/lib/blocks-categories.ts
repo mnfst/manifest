@@ -12,7 +12,8 @@ export const blockCategories: BlockCategory[] = [
     name: 'Forms',
     blocks: [
       { id: 'contact-form', name: 'Contact Form' },
-      { id: 'date-time-picker', name: 'Date & Time Picker' }
+      { id: 'date-time-picker', name: 'Date & Time Picker' },
+      { id: 'issue-report-form', name: 'Issue Report Form' }
     ]
   },
   {

@@ -9,6 +9,7 @@ import { Suspense, useState } from 'react'
 // Form components
 import { ContactForm } from '@/registry/form/contact-form'
 import { DateTimePicker } from '@/registry/form/date-time-picker'
+import { IssueReportForm } from '@/registry/form/issue-report-form'
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo'
@@ -113,6 +114,21 @@ const categories: Category[] = [
             name: 'Default',
             component: <DateTimePicker />,
             usageCode: `<DateTimePicker />`
+          }
+        ]
+      },
+      {
+        id: 'issue-report-form',
+        name: 'Issue Report Form',
+        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
+        registryName: 'issue-report-form',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <IssueReportForm />,
+            usageCode: `<IssueReportForm />`
           }
         ]
       }
