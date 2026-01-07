@@ -4,6 +4,34 @@
   "homepage": "https://manifest.build",
   "items": [
     {
+      "name": "contact-form",
+      "type": "registry:component",
+      "title": "Contact Form",
+      "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "input", "label", "select"],
+      "files": [
+        {
+          "path": "registry/form/contact-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "date-time-picker",
+      "type": "registry:component",
+      "title": "Date & Time Picker",
+      "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/form/date-time-picker.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "card-form",
       "type": "registry:component",
       "title": "Card Form",

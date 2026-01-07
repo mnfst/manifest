@@ -6,6 +6,10 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 
+// Form components
+import { ContactForm } from '@/registry/form/contact-form'
+import { DateTimePicker } from '@/registry/form/date-time-picker'
+
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo'
 import { PostListDemo } from '@/components/blocks/post-list-demo'
@@ -78,6 +82,42 @@ interface Category {
 }
 
 const categories: Category[] = [
+  {
+    id: 'form',
+    name: 'Forms',
+    blocks: [
+      {
+        id: 'contact-form',
+        name: 'Contact Form',
+        description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
+        registryName: 'contact-form',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <ContactForm />,
+            usageCode: `<ContactForm />`
+          }
+        ]
+      },
+      {
+        id: 'date-time-picker',
+        name: 'Date & Time Picker',
+        description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
+        registryName: 'date-time-picker',
+        layouts: ['inline'],
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <DateTimePicker />,
+            usageCode: `<DateTimePicker />`
+          }
+        ]
+      }
+    ]
+  },
   {
     id: 'blog',
     name: 'Blogging',
