@@ -54,8 +54,69 @@ Uses shadcn style with:
 
 1. Create component files in `registry/misc/<component-name>/`
 2. Add entry to `registry.json` with proper file paths and dependencies
-3. Run `pnpm run registry:build` to generate the distributable JSON
-4. Import in `app/page.tsx` to preview
+3. Set initial `version` to `"1.0.0"` for new components
+4. Run `pnpm run registry:build` to generate the distributable JSON
+5. Import in `app/page.tsx` to preview
+
+## Component Versioning (Semver)
+
+**CRITICAL**: Every component in `registry.json` MUST have a `version` field following [Semantic Versioning](https://semver.org/) conventions.
+
+### Version Format
+
+```
+MAJOR.MINOR.PATCH (e.g., "1.2.3")
+```
+
+### When to Update Versions
+
+When modifying a component, you MUST update its version according to the type of change:
+
+| Change Type | Version Bump | Examples |
+|-------------|--------------|----------|
+| **MAJOR** (Breaking) | `1.0.0` → `2.0.0` | Removing props, changing prop types, renaming props, changing component behavior in incompatible ways |
+| **MINOR** (Feature) | `1.0.0` → `1.1.0` | Adding new optional props, adding new variants, adding new features without breaking existing usage |
+| **PATCH** (Fix) | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, performance improvements, documentation updates, refactoring without API changes |
+
+### Versioning Rules
+
+1. **Always bump the version** when modifying a component's source files
+2. **Reset lower numbers** when bumping higher ones: `1.2.3` → `2.0.0` (not `2.2.3`)
+3. **New components** start at version `1.0.0`
+4. **Multiple changes** in one PR: use the highest applicable bump
+5. **Dependencies**: If a component depends on another component that had a breaking change, consider if it needs a version bump too
+
+### Examples
+
+```json
+// Before: bug fix in card-form.tsx
+{ "name": "card-form", "version": "1.0.0", ... }
+
+// After: bump PATCH
+{ "name": "card-form", "version": "1.0.1", ... }
+```
+
+```json
+// Before: adding new 'size' prop to button
+{ "name": "card-form", "version": "1.0.1", ... }
+
+// After: bump MINOR
+{ "name": "card-form", "version": "1.1.0", ... }
+```
+
+```json
+// Before: renaming 'onSubmit' to 'onComplete' (breaking)
+{ "name": "card-form", "version": "1.1.0", ... }
+
+// After: bump MAJOR
+{ "name": "card-form", "version": "2.0.0", ... }
+```
+
+### Testing Requirement
+
+Run `pnpm test` to verify version changes are valid. Tests will fail if:
+- A component file was modified but version wasn't bumped
+- Version format is invalid (must be `X.Y.Z` where X, Y, Z are non-negative integers)
 
 ## Analytics Tracking (Vercel)
 
