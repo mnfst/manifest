@@ -373,10 +373,37 @@ function FlowDetail() {
                 {flow.description && <p className="text-muted-foreground mt-1">{flow.description}</p>}
               </div>
               <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Tool Name</p>
-                  <code className="text-sm font-mono">{flow.toolName}</code>
-                </div>
+                {(() => {
+                  const triggerNodes = (flow.nodes ?? []).filter(n => n.type === 'UserIntent');
+                  const hasTriggers = triggerNodes.length > 0;
+                  // Extract tool names from trigger nodes
+                  const toolNames = triggerNodes
+                    .map(n => {
+                      const params = n.parameters as unknown as { toolName?: string; isActive?: boolean } | undefined;
+                      return params?.isActive !== false ? params?.toolName : null;
+                    })
+                    .filter((name): name is string => !!name);
+
+                  return hasTriggers ? (
+                    <div className="text-right max-w-[200px]">
+                      <p className="text-xs text-muted-foreground">MCP Tools</p>
+                      {toolNames.length > 0 ? (
+                        <code className="text-xs font-mono text-gray-600 truncate block" title={toolNames.join(', ')}>
+                          {toolNames.length <= 2 ? toolNames.join(', ') : `${toolNames.slice(0, 2).join(', ')}...`}
+                        </code>
+                      ) : (
+                        <span className="text-sm font-medium">{triggerNodes.length} trigger{triggerNodes.length !== 1 ? 's' : ''}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-right flex items-center gap-2 text-amber-600" title="No triggers configured - this flow won't be exposed as MCP tools">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                        <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-sm">No triggers</span>
+                    </div>
+                  );
+                })()}
                 <FlowActiveToggle flowId={flow.id} isActive={flow.isActive} onToggle={handleToggleActive} />
                 <div className="flex items-center gap-2 border-l pl-4">
                   <button

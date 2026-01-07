@@ -17,28 +17,47 @@ export interface UserIntentNodeData extends Record<string, unknown> {
  */
 export function UserIntentNode({ data }: NodeProps) {
   const { node, canDelete, onEdit, onDelete } = data as UserIntentNodeData;
-  const params = node.parameters as UserIntentNodeParameters | undefined;
+  const params = node.parameters as unknown as UserIntentNodeParameters | undefined;
 
-  // Show whenToUse if available, otherwise show a default message
-  const displayDescription = params?.whenToUse
-    ? params.whenToUse.length > 60
-      ? params.whenToUse.substring(0, 60) + '...'
-      : params.whenToUse
-    : 'Click to configure trigger';
+  // Show toolName if available
+  const toolName = params?.toolName;
+  const isActive = params?.isActive !== false;
+
+  // Show toolDescription or whenToUse if available
+  const displayDescription = params?.toolDescription
+    ? params.toolDescription.length > 60
+      ? params.toolDescription.substring(0, 60) + '...'
+      : params.toolDescription
+    : params?.whenToUse
+      ? params.whenToUse.length > 60
+        ? params.whenToUse.substring(0, 60) + '...'
+        : params.whenToUse
+      : 'Click to configure trigger';
 
   return (
-    <div className="bg-white rounded-lg border-2 border-blue-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
+    <div className={`bg-white rounded-lg border-2 ${isActive ? 'border-blue-200 hover:border-blue-400' : 'border-gray-300 hover:border-gray-400 opacity-75'} shadow-sm hover:shadow-md transition-all w-[200px] nopan`}>
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">
           {/* Icon container */}
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-blue-500" />
+          <div className={`w-12 h-12 rounded-full ${isActive ? 'bg-blue-50' : 'bg-gray-100'} flex items-center justify-center`}>
+            <Zap className={`w-6 h-6 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
           </div>
 
           {/* Node info */}
           <div className="text-center w-full">
             <h3 className="font-medium text-gray-900 text-sm">{node.name || 'User Intent'}</h3>
+            {/* Tool name badge */}
+            {toolName && (
+              <code className={`inline-block mt-1 px-2 py-0.5 text-xs font-mono rounded ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                {toolName}
+              </code>
+            )}
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayDescription}</p>
+            {!isActive && (
+              <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded">
+                Inactive
+              </span>
+            )}
           </div>
 
           {/* Action buttons */}
