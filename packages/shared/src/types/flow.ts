@@ -17,7 +17,8 @@ export interface FlowParameter {
 }
 
 /**
- * Flow entity representing an MCP tool belonging to an app.
+ * Flow entity representing a workflow belonging to an app.
+ * MCP tools are now derived from UserIntent trigger nodes within the flow.
  * Contains nodes and connections stored as JSON arrays.
  */
 export interface Flow {
@@ -25,10 +26,7 @@ export interface Flow {
   appId: string;
   name: string;
   description?: string;
-  toolName: string;
-  toolDescription: string;
   isActive: boolean;
-  parameters?: FlowParameter[];
   /** Node instances within this flow */
   nodes: NodeInstance[];
   /** Connections between nodes */
@@ -38,25 +36,33 @@ export interface Flow {
 }
 
 /**
- * Request to create a flow with name and description
- * Tool name is auto-generated from name using snake_case conversion
+ * Flow with computed metadata properties.
+ * Used for UI display to show tool information derived from trigger nodes.
+ */
+export interface FlowWithMeta extends Flow {
+  /** Computed: tool names from active UserIntent nodes */
+  exposedTools: string[];
+  /** Computed: whether flow has any trigger nodes */
+  hasTriggers: boolean;
+}
+
+/**
+ * Request to create a flow with name and description.
+ * Tool properties are now set on individual UserIntent trigger nodes.
  */
 export interface CreateFlowRequest {
   name: string;
   description?: string;
-  parameters?: FlowParameter[];
 }
 
 /**
- * Request to update a flow
+ * Request to update a flow.
+ * Tool properties are now set on individual UserIntent trigger nodes.
  */
 export interface UpdateFlowRequest {
   name?: string;
   description?: string;
-  toolName?: string;
-  toolDescription?: string;
   isActive?: boolean;
-  parameters?: FlowParameter[];
 }
 
 /**

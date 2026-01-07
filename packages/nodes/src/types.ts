@@ -1,4 +1,4 @@
-import type { NodeInstance, NodeTypeCategory } from '@chatgpt-app-builder/shared';
+import type { NodeTypeCategory } from '@chatgpt-app-builder/shared';
 
 /**
  * Context provided to a node's execute function during flow execution.
@@ -91,6 +91,7 @@ export interface NodeTypeInfo {
  * Convert a NodeTypeDefinition to NodeTypeInfo (strip execute function).
  */
 export function toNodeTypeInfo(definition: NodeTypeDefinition): NodeTypeInfo {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { execute, ...info } = definition;
   return info;
 }

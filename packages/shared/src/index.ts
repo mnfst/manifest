@@ -21,6 +21,7 @@ export { LAYOUT_REGISTRY } from './types/app.js';
 export type {
   Flow,
   FlowWithApp,
+  FlowWithMeta,
   FlowParameter,
   ParameterType,
   CreateFlowRequest,

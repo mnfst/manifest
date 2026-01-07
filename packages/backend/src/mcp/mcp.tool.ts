@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
 import { ApiCallNode } from '@chatgpt-app-builder/nodes';
 
 /**
@@ -53,26 +53,57 @@ export class McpToolService {
   }
 
   /**
-   * Get nodes connected to user-intent in topological order.
-   * Only nodes reachable from user-intent (via connections) will be executed.
+   * Find a trigger node by its toolName across all flows in an app.
+   * Returns the trigger node and its parent flow.
+   *
+   * @param appId - The app ID to search in
+   * @param toolName - The toolName to find
+   * @returns The trigger node and its flow, or null if not found
+   */
+  private async findTriggerByToolName(
+    appId: string,
+    toolName: string
+  ): Promise<{ trigger: NodeInstance; flow: FlowEntity } | null> {
+    const flows = await this.flowRepository.find({
+      where: { appId, isActive: true },
+    });
+
+    for (const flow of flows) {
+      const nodes = flow.nodes ?? [];
+      for (const node of nodes) {
+        if (node.type === 'UserIntent') {
+          const params = node.parameters as UserIntentNodeParameters;
+          if (params.toolName === toolName) {
+            return { trigger: node, flow };
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get nodes reachable from a specific trigger node in topological order.
+   * Only nodes reachable from the specified trigger (via connections) will be executed.
    * Uses BFS to traverse the connection graph and returns nodes in execution order.
    *
    * @param nodes - All nodes in the flow
    * @param connections - All connections in the flow
-   * @returns Nodes connected to user-intent in topological (execution) order
+   * @param triggerNodeId - The specific trigger node ID to start from
+   * @returns Nodes connected to the trigger in topological (execution) order
    */
-  private getConnectedNodes(
+  private getNodesReachableFrom(
     nodes: NodeInstance[],
-    connections: Connection[]
+    connections: Connection[],
+    triggerNodeId: string
   ): NodeInstance[] {
     // Build adjacency list from connections
     const adjacencyList = new Map<string, string[]>();
-    const inDegree = new Map<string, number>();
 
     // Initialize all nodes
     for (const node of nodes) {
       adjacencyList.set(node.id, []);
-      inDegree.set(node.id, 0);
     }
 
     // Build graph from connections
@@ -80,26 +111,20 @@ export class McpToolService {
       const targets = adjacencyList.get(conn.sourceNodeId);
       if (targets) {
         targets.push(conn.targetNodeId);
-        inDegree.set(conn.targetNodeId, (inDegree.get(conn.targetNodeId) ?? 0) + 1);
       }
     }
 
-    // Find UserIntent (trigger) node IDs
-    const triggerNodeIds = new Set(
-      nodes.filter(n => n.type === 'UserIntent').map(n => n.id)
-    );
-
-    // Find nodes directly connected from UserIntent trigger nodes
+    // Find nodes directly connected from the specific trigger node
     const startNodeIds = connections
-      .filter(conn => triggerNodeIds.has(conn.sourceNodeId))
+      .filter(conn => conn.sourceNodeId === triggerNodeId)
       .map(conn => conn.targetNodeId);
 
     if (startNodeIds.length === 0) {
-      // No connections from trigger nodes, return empty (nothing to execute)
+      // No connections from this trigger node, return empty (nothing to execute)
       return [];
     }
 
-    // BFS to find all reachable nodes from user-intent connections
+    // BFS to find all reachable nodes from this trigger
     const reachable = new Set<string>(startNodeIds);
     const queue = [...startNodeIds];
 
@@ -131,7 +156,7 @@ export class McpToolService {
       }
     }
 
-    // Nodes directly from user-intent have effective in-degree 0 in our traversal
+    // Nodes directly from trigger have effective in-degree 0 in our traversal
     const sortQueue: string[] = [];
     for (const nodeId of reachable) {
       if (reachableInDegree.get(nodeId) === 0) {
@@ -167,8 +192,8 @@ export class McpToolService {
    * Execute an MCP tool call for a published app's flow
    * Returns ChatGPT Apps SDK formatted response
    *
-   * Uses flow.nodes and flow.connections to determine execution path:
-   * - Only nodes connected to user-intent are executed
+   * Finds the trigger node by toolName and executes nodes reachable from it:
+   * - Only nodes connected to the specific trigger are executed
    * - Execution follows topological order based on connections
    * - Interface nodes: return structuredContent + widget metadata
    * - Return nodes: return text content array for LLM processing
@@ -179,31 +204,37 @@ export class McpToolService {
   async executeTool(
     appSlug: string,
     toolName: string,
-    input: { message: string }
+    input: Record<string, unknown>
   ): Promise<McpToolResponse> {
     const app = await this.getAppBySlug(appSlug);
     if (!app) {
       throw new NotFoundException(`No published app found for slug: ${appSlug}`);
     }
 
-    const flow = await this.flowRepository.findOne({
-      where: { appId: app.id, toolName },
-    });
+    // Find the trigger node by toolName
+    const triggerResult = await this.findTriggerByToolName(app.id, toolName);
 
-    if (!flow) {
+    if (!triggerResult) {
       throw new NotFoundException(`No tool found with name: ${toolName}`);
     }
 
-    if (!flow.isActive) {
+    const { trigger, flow } = triggerResult;
+    const triggerParams = trigger.parameters as UserIntentNodeParameters;
+
+    // Check if trigger is active
+    if (triggerParams.isActive === false) {
       throw new McpInactiveToolError(toolName);
     }
+
+    // Validate input against trigger's parameter schema
+    const validatedInput = this.validateTriggerInput(triggerParams, input);
 
     // Create execution record
     const execution = await this.flowExecutionService.createExecution({
       flowId: flow.id,
       flowName: flow.name,
-      flowToolName: flow.toolName,
-      initialParams: input,
+      flowToolName: toolName, // Use trigger's toolName
+      initialParams: validatedInput,
     });
 
     const nodeExecutions: NodeExecutionData[] = [];
@@ -212,21 +243,30 @@ export class McpToolService {
       const allNodes = flow.nodes ?? [];
       const connections = flow.connections ?? [];
 
-      // Get only nodes connected to user-intent in execution order
-      const connectedNodes = this.getConnectedNodes(allNodes, connections);
+      // Get only nodes reachable from this specific trigger
+      const nodes = this.getNodesReachableFrom(allNodes, connections, trigger.id);
 
-      // If no nodes are connected, fall back to legacy behavior (all nodes)
-      // This maintains backward compatibility for flows without explicit connections
-      const nodes = connectedNodes.length > 0 ? connectedNodes : allNodes;
+      // If no nodes are connected to this trigger, return a message indicating so
+      if (nodes.length === 0) {
+        await this.flowExecutionService.updateExecution(execution.id, {
+          status: 'fulfilled',
+          endedAt: new Date(),
+          nodeExecutions: [],
+        });
+
+        return {
+          content: [{ type: 'text', text: `Trigger "${trigger.name}" is not connected to any nodes.` }],
+        };
+      }
 
       // Store outputs from executed nodes for chaining
       const nodeOutputs = new Map<string, unknown>();
       let result: McpToolResponse | null = null;
 
-      // Execute nodes in topological order (as returned by getConnectedNodes)
+      // Execute nodes in topological order (as returned by getNodesReachableFrom)
       for (const node of nodes) {
-        // Build input data from upstream node outputs
-        const nodeInputData: Record<string, unknown> = { ...input };
+        // Build input data from upstream node outputs, starting with validated trigger input
+        const nodeInputData: Record<string, unknown> = { ...validatedInput };
 
         // Find connections where this node is the target to get upstream outputs
         for (const conn of connections) {
@@ -260,11 +300,11 @@ export class McpToolService {
             content: [{ type: 'text', text: params.text || '' }],
           };
         } else if (node.type === 'CallFlow') {
-          result = await this.executeCallFlowNode(app, flow, node);
+          result = await this.executeCallFlowNode(app, toolName, trigger.name, node);
           nodeOutputs.set(node.id, result.structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
         } else if (node.type === 'Interface') {
-          result = this.executeInterfaceFlow(app, flow, node, input);
+          result = this.executeInterfaceFlow(app, toolName, trigger.name, node, validatedInput);
           // Interface nodes output their structured content (populated from upstream data)
           const structuredContent = result.structuredContent || {};
           nodeOutputs.set(node.id, structuredContent);
@@ -349,7 +389,8 @@ export class McpToolService {
    */
   private async executeCallFlowNode(
     app: AppEntity,
-    flow: FlowEntity,
+    triggerToolName: string,
+    triggerName: string,
     callFlowNode: NodeInstance
   ): Promise<McpToolResponse> {
     const params = callFlowNode.parameters as CallFlowNodeParameters;
@@ -370,19 +411,35 @@ export class McpToolService {
       };
     }
 
+    // Get the first active trigger's toolName from target flow
+    const targetNodes = targetFlow.nodes ?? [];
+    const targetTrigger = targetNodes.find(n => {
+      if (n.type === 'UserIntent') {
+        const tp = n.parameters as UserIntentNodeParameters;
+        return tp.isActive !== false;
+      }
+      return false;
+    });
+
+    let targetToolName = 'target_tool';
+    if (targetTrigger) {
+      const targetParams = targetTrigger.parameters as UserIntentNodeParameters;
+      targetToolName = targetParams.toolName;
+    }
+
     return {
       structuredContent: {
         action: 'callFlow',
-        targetToolName: targetFlow.toolName,
+        targetToolName,
         targetFlowName: targetFlow.name,
       },
       content: [{ type: 'text', text: `Triggering ${targetFlow.name}...` }],
       _meta: {
-        'openai/outputTemplate': `ui://widget/${app.slug}/${flow.toolName}-callflow.html`,
+        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}-callflow.html`,
         'openai/widgetPrefersBorder': false,
-        flowName: flow.name,
-        toolName: flow.toolName,
-        targetToolName: targetFlow.toolName,
+        flowName: triggerName,
+        toolName: triggerToolName,
+        targetToolName,
       },
     };
   }
@@ -427,27 +484,31 @@ export class McpToolService {
    */
   private executeInterfaceFlow(
     app: AppEntity,
-    flow: FlowEntity,
+    triggerToolName: string,
+    triggerName: string,
     interfaceNode: NodeInstance,
-    input: { message: string }
+    input: Record<string, unknown>
   ): McpToolResponse {
     const params = interfaceNode.parameters as InterfaceNodeParameters;
-    const responseText = this.generateResponseText(flow.name, params.layoutTemplate, input.message);
+    const message = typeof input.message === 'string' ? input.message : '';
+    const responseText = this.generateResponseText(triggerName, params.layoutTemplate, message);
 
     return {
       structuredContent: {},
       content: [{ type: 'text', text: responseText }],
       _meta: {
-        'openai/outputTemplate': `ui://widget/${app.slug}/${flow.toolName}.html`,
+        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}.html`,
         'openai/widgetPrefersBorder': true,
-        flowName: flow.name,
-        toolName: flow.toolName,
+        flowName: triggerName,
+        toolName: triggerToolName,
       },
     };
   }
 
   /**
-   * List all tools available for an MCP server
+   * List all tools available for an MCP server.
+   * Each active UserIntent trigger node becomes an MCP tool.
+   * Tools are derived from trigger nodes, not flows.
    */
   async listTools(appSlug: string): Promise<{
     name: string;
@@ -461,45 +522,133 @@ export class McpToolService {
       where: { appId: app.id, isActive: true },
     });
 
-    return flows.map((flow) => {
-      const parts = [flow.toolDescription || `Execute the ${flow.name} flow`];
-      if (flow.whenToUse) parts.push(`\nWHEN TO USE:\n${flow.whenToUse}`);
-      if (flow.whenNotToUse) parts.push(`\nWHEN NOT TO USE:\n${flow.whenNotToUse}`);
+    const tools: { name: string; description: string; inputSchema: object; _meta?: object }[] = [];
 
+    for (const flow of flows) {
       const nodes = flow.nodes ?? [];
+      const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
       const hasInterface = nodes.some(n => n.type === 'Interface');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
 
-      const toolDef: { name: string; description: string; inputSchema: object; _meta?: object } = {
-        name: flow.toolName,
-        description: parts.join(''),
-        inputSchema: {
-          type: 'object',
-          properties: { message: { type: 'string', description: 'User query or request' } },
-          required: ['message'],
-        },
-      };
+      for (const triggerNode of triggerNodes) {
+        const params = triggerNode.parameters as UserIntentNodeParameters;
 
-      if (hasInterface) {
-        toolDef._meta = {
-          'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}.html`,
-          'openai/toolInvocation/invoking': `Loading ${flow.name}...`,
-          'openai/toolInvocation/invoked': `Loaded ${flow.name}`,
+        // Skip inactive triggers
+        if (params.isActive === false) {
+          continue;
+        }
+
+        // Build description from trigger node parameters
+        const parts = [params.toolDescription || `Execute the ${triggerNode.name} trigger`];
+        if (params.whenToUse) parts.push(`\nWHEN TO USE:\n${params.whenToUse}`);
+        if (params.whenNotToUse) parts.push(`\nWHEN NOT TO USE:\n${params.whenNotToUse}`);
+
+        // Build input schema from trigger parameters
+        const inputSchema = this.buildInputSchema(params);
+
+        const toolDef: { name: string; description: string; inputSchema: object; _meta?: object } = {
+          name: params.toolName,
+          description: parts.join(''),
+          inputSchema,
         };
-      } else if (hasCallFlow) {
-        toolDef._meta = {
-          'openai/outputTemplate': `ui://widget/${appSlug}/${flow.toolName}-callflow.html`,
-          'openai/toolInvocation/invoking': `Triggering ${flow.name}...`,
-          'openai/toolInvocation/invoked': `Triggered ${flow.name}`,
-        };
+
+        if (hasInterface) {
+          toolDef._meta = {
+            'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}.html`,
+            'openai/toolInvocation/invoking': `Loading ${triggerNode.name}...`,
+            'openai/toolInvocation/invoked': `Loaded ${triggerNode.name}`,
+          };
+        } else if (hasCallFlow) {
+          toolDef._meta = {
+            'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}-callflow.html`,
+            'openai/toolInvocation/invoking': `Triggering ${triggerNode.name}...`,
+            'openai/toolInvocation/invoked': `Triggered ${triggerNode.name}`,
+          };
+        }
+
+        tools.push(toolDef);
       }
+    }
 
-      return toolDef;
-    });
+    return tools;
   }
 
   /**
-   * List all UI resources for an app
+   * Build JSON Schema for tool input from trigger parameters.
+   * If trigger has no parameters defined, defaults to simple message input.
+   */
+  private buildInputSchema(params: UserIntentNodeParameters): object {
+    const triggerParams = params.parameters ?? [];
+
+    if (triggerParams.length === 0) {
+      // Default schema with just message
+      return {
+        type: 'object',
+        properties: { message: { type: 'string', description: 'User query or request' } },
+        required: ['message'],
+      };
+    }
+
+    // Build schema from trigger parameters
+    const properties: Record<string, object> = {};
+    const required: string[] = [];
+
+    for (const param of triggerParams) {
+      properties[param.name] = {
+        type: param.type,
+        description: param.description || '',
+      };
+      if (param.required) {
+        required.push(param.name);
+      }
+    }
+
+    return {
+      type: 'object',
+      properties,
+      required,
+    };
+  }
+
+  /**
+   * Validate input against trigger's parameter schema.
+   * Checks that required parameters are present and returns validated input.
+   * If trigger has no parameters, defaults to expecting a 'message' field.
+   */
+  private validateTriggerInput(
+    triggerParams: UserIntentNodeParameters,
+    input: Record<string, unknown>
+  ): Record<string, unknown> {
+    const params = triggerParams.parameters ?? [];
+
+    if (params.length === 0) {
+      // Default behavior: require 'message' field
+      if (!input.message && typeof input.message !== 'string') {
+        // Allow empty message, just validate presence
+      }
+      return input;
+    }
+
+    // Validate required parameters
+    const missingRequired: string[] = [];
+    for (const param of params) {
+      if (param.required && (input[param.name] === undefined || input[param.name] === null)) {
+        missingRequired.push(param.name);
+      }
+    }
+
+    if (missingRequired.length > 0) {
+      throw new BadRequestException(
+        `Missing required parameters: ${missingRequired.join(', ')}`
+      );
+    }
+
+    return input;
+  }
+
+  /**
+   * List all UI resources for an app.
+   * Resources are now derived from trigger nodes (each trigger = one tool with potential widget).
    */
   async listResources(appSlug: string): Promise<{
     uri: string;
@@ -518,23 +667,35 @@ export class McpToolService {
 
     for (const flow of flows) {
       const nodes = flow.nodes ?? [];
+      const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
       const hasInterface = nodes.some(n => n.type === 'Interface');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
 
-      if (hasInterface) {
-        resources.push({
-          uri: `ui://widget/${appSlug}/${flow.toolName}.html`,
-          name: `${flow.name} Widget`,
-          description: `UI widget for ${flow.toolName}`,
-          mimeType: 'text/html+skybridge',
-        });
-      } else if (hasCallFlow) {
-        resources.push({
-          uri: `ui://widget/${appSlug}/${flow.toolName}-callflow.html`,
-          name: `${flow.name} Call Flow Widget`,
-          description: `Call flow trigger widget for ${flow.toolName}`,
-          mimeType: 'text/html+skybridge',
-        });
+      for (const triggerNode of triggerNodes) {
+        const params = triggerNode.parameters as UserIntentNodeParameters;
+
+        // Skip inactive triggers
+        if (params.isActive === false) {
+          continue;
+        }
+
+        const toolName = params.toolName;
+
+        if (hasInterface) {
+          resources.push({
+            uri: `ui://widget/${appSlug}/${toolName}.html`,
+            name: `${triggerNode.name} Widget`,
+            description: `UI widget for ${toolName}`,
+            mimeType: 'text/html+skybridge',
+          });
+        } else if (hasCallFlow) {
+          resources.push({
+            uri: `ui://widget/${appSlug}/${toolName}-callflow.html`,
+            name: `${triggerNode.name} Call Flow Widget`,
+            description: `Call flow trigger widget for ${toolName}`,
+            mimeType: 'text/html+skybridge',
+          });
+        }
       }
     }
 
@@ -542,7 +703,8 @@ export class McpToolService {
   }
 
   /**
-   * Read a UI resource and return its HTML content
+   * Read a UI resource and return its HTML content.
+   * Finds the trigger by toolName and generates appropriate widget HTML.
    */
   async readResource(appSlug: string, uri: string): Promise<{
     uri: string;
@@ -559,12 +721,14 @@ export class McpToolService {
 
     if (callFlowMatch && callFlowMatch[1] === appSlug) {
       const toolName = callFlowMatch[2];
-      const flow = await this.flowRepository.findOne({
-        where: { appId: app.id, toolName, isActive: true },
-      });
 
-      if (!flow) throw new NotFoundException(`No active flow found for tool: ${toolName}`);
+      // Find trigger by toolName
+      const triggerResult = await this.findTriggerByToolName(app.id, toolName);
+      if (!triggerResult) {
+        throw new NotFoundException(`No active trigger found for tool: ${toolName}`);
+      }
 
+      const { trigger, flow } = triggerResult;
       const nodes = flow.nodes ?? [];
       const callFlowNode = nodes.find(n => n.type === 'CallFlow');
 
@@ -578,27 +742,41 @@ export class McpToolService {
         const targetFlow = await this.flowRepository.findOne({ where: { id: params.targetFlowId } });
         if (targetFlow) {
           targetFlowName = targetFlow.name;
-          targetToolName = targetFlow.toolName;
+          // Get the first active trigger's toolName from target flow
+          const targetNodes = targetFlow.nodes ?? [];
+          const targetTrigger = targetNodes.find(n => {
+            if (n.type === 'UserIntent') {
+              const tp = n.parameters as UserIntentNodeParameters;
+              return tp.isActive !== false;
+            }
+            return false;
+          });
+          if (targetTrigger) {
+            const targetParams = targetTrigger.parameters as UserIntentNodeParameters;
+            targetToolName = targetParams.toolName;
+          }
         }
       }
 
-      const widgetHtml = this.generateCallFlowWidgetHtml(flow.name, targetToolName, targetFlowName);
+      const widgetHtml = this.generateCallFlowWidgetHtml(trigger.name, targetToolName, targetFlowName);
       return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
     } else if (viewMatch && viewMatch[1] === appSlug) {
       const toolName = viewMatch[2];
-      const flow = await this.flowRepository.findOne({
-        where: { appId: app.id, toolName, isActive: true },
-      });
 
-      if (!flow) throw new NotFoundException(`No active flow found for tool: ${toolName}`);
+      // Find trigger by toolName
+      const triggerResult = await this.findTriggerByToolName(app.id, toolName);
+      if (!triggerResult) {
+        throw new NotFoundException(`No active trigger found for tool: ${toolName}`);
+      }
 
+      const { trigger, flow } = triggerResult;
       const nodes = flow.nodes ?? [];
       const interfaceNode = nodes.find(n => n.type === 'Interface');
 
       if (!interfaceNode) throw new NotFoundException(`No interface node found for tool: ${toolName}`);
 
       const params = interfaceNode.parameters as InterfaceNodeParameters;
-      const widgetHtml = this.generateWidgetHtml(flow.name, params.layoutTemplate, app.themeVariables);
+      const widgetHtml = this.generateWidgetHtml(trigger.name, params.layoutTemplate, app.themeVariables);
 
       return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
     }

@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { Flow, UpdateFlowRequest, FlowParameter } from '@chatgpt-app-builder/shared';
-import { ParameterEditor, areParametersValid } from './ParameterEditor';
+import type { Flow, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
 
 interface EditFlowFormProps {
   flow: Flow;
@@ -12,7 +11,9 @@ interface EditFlowFormProps {
 
 /**
  * Form for editing flow details
- * Edits name, description, toolName, and toolDescription
+ * Edits name and description only.
+ * Tool properties (toolName, toolDescription, parameters) are now
+ * configured on individual trigger nodes via NodeEditModal.
  */
 export function EditFlowForm({
   flow,
@@ -23,9 +24,6 @@ export function EditFlowForm({
 }: EditFlowFormProps) {
   const [name, setName] = useState(flow.name);
   const [description, setDescription] = useState(flow.description || '');
-  const [toolName, setToolName] = useState(flow.toolName);
-  const [toolDescription, setToolDescription] = useState(flow.toolDescription);
-  const [parameters, setParameters] = useState<FlowParameter[]>(flow.parameters ?? []);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -33,8 +31,6 @@ export function EditFlowForm({
     setValidationError(null);
 
     const trimmedName = name.trim();
-    const trimmedToolName = toolName.trim();
-    const trimmedToolDescription = toolDescription.trim();
 
     if (!trimmedName) {
       setValidationError('Flow name is required');
@@ -46,90 +42,32 @@ export function EditFlowForm({
       return;
     }
 
-    if (!trimmedToolName) {
-      setValidationError('Tool name is required');
-      return;
-    }
-
-    if (trimmedToolName.length > 50) {
-      setValidationError('Tool name must be 50 characters or less');
-      return;
-    }
-
-    if (!/^[a-z][a-z0-9_]*$/.test(trimmedToolName)) {
-      setValidationError('Tool name must start with a letter and contain only lowercase letters, numbers, and underscores');
-      return;
-    }
-
-    if (!trimmedToolDescription) {
-      setValidationError('Tool description is required');
-      return;
-    }
-
-    if (trimmedToolDescription.length > 500) {
-      setValidationError('Tool description must be 500 characters or less');
-      return;
-    }
-
-    if (!areParametersValid(parameters)) {
-      setValidationError('Please fix parameter errors before saving');
-      return;
-    }
-
     await onSave({
       name: trimmedName,
       description: description.trim() || undefined,
-      toolName: trimmedToolName,
-      toolDescription: trimmedToolDescription,
-      parameters,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="flow-name"
-            className="block text-sm font-medium mb-1"
-          >
-            Flow Name
-          </label>
-          <input
-            id="flow-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="My Flow"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-            disabled={isLoading}
-            maxLength={300}
-            required
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="tool-name"
-            className="block text-sm font-medium mb-1"
-          >
-            Tool Name
-          </label>
-          <input
-            id="tool-name"
-            type="text"
-            value={toolName}
-            onChange={(e) => setToolName(e.target.value)}
-            placeholder="my_tool_name"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background font-mono text-sm"
-            disabled={isLoading}
-            maxLength={50}
-            required
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Lowercase letters, numbers, and underscores only
-          </p>
-        </div>
+      <div>
+        <label
+          htmlFor="flow-name"
+          className="block text-sm font-medium mb-1"
+        >
+          Flow Name
+        </label>
+        <input
+          id="flow-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="My Flow"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+          disabled={isLoading}
+          maxLength={300}
+          required
+        />
       </div>
 
       <div>
@@ -150,36 +88,9 @@ export function EditFlowForm({
         />
       </div>
 
-      <div>
-        <label
-          htmlFor="tool-description"
-          className="block text-sm font-medium mb-1"
-        >
-          Tool Description
-        </label>
-        <textarea
-          id="tool-description"
-          value={toolDescription}
-          onChange={(e) => setToolDescription(e.target.value)}
-          placeholder="What this tool does when invoked by ChatGPT..."
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background min-h-[80px] resize-y"
-          disabled={isLoading}
-          maxLength={500}
-          required
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          This description helps ChatGPT understand when to use this tool
-        </p>
-      </div>
-
-      {/* Parameters */}
-      <div className="border-t pt-4">
-        <ParameterEditor
-          parameters={parameters}
-          onChange={setParameters}
-          disabled={isLoading}
-        />
-      </div>
+      <p className="text-xs text-muted-foreground">
+        To configure MCP tool properties (tool name, description, parameters), edit the trigger node on the canvas.
+      </p>
 
       {(error || validationError) && (
         <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
@@ -198,7 +109,7 @@ export function EditFlowForm({
         </button>
         <button
           type="submit"
-          disabled={isLoading || !name.trim() || !toolName.trim() || !toolDescription.trim()}
+          disabled={isLoading || !name.trim()}
           className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2"
         >
           {isLoading && (

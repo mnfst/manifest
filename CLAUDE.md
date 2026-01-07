@@ -25,6 +25,7 @@ TypeScript 5.7.2: Follow standard conventions
 
 ## Recent Changes
 - 001-io-schemas: Added TypeScript 5.7.2
+- 029-multiple-triggers: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM)
 - 088-dynamic-node-library: Added TypeScript 5.7.2
 
 - 001-trigger-node-refactor: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM)

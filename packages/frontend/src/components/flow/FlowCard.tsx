@@ -1,4 +1,4 @@
-import type { Flow } from '@chatgpt-app-builder/shared';
+import type { Flow, UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
 
 interface FlowCardProps {
   flow: Flow;
@@ -9,7 +9,7 @@ interface FlowCardProps {
 
 /**
  * Individual flow item card for display in FlowList
- * Shows flow name, description, tool info, and actions
+ * Shows flow name, description, trigger count, and actions
  */
 export function FlowCard({
   flow,
@@ -17,7 +17,13 @@ export function FlowCard({
   onDelete,
   isDeleting,
 }: FlowCardProps) {
-  const paramCount = flow.parameters?.length ?? 0;
+  // Count active triggers (UserIntent nodes with isActive !== false)
+  const triggerNodes = (flow.nodes ?? []).filter(n => n.type === 'UserIntent');
+  const activeTriggerCount = triggerNodes.filter(n => {
+    const params = n.parameters as unknown as UserIntentNodeParameters | undefined;
+    return params?.isActive !== false;
+  }).length;
+  const hasTriggers = triggerNodes.length > 0;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
@@ -37,15 +43,21 @@ export function FlowCard({
               </p>
             )}
             <div className="flex items-center gap-3 mt-2">
-              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm.75 4.25a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5h-7.5z" clipRule="evenodd" />
-                </svg>
-                {paramCount} param{paramCount !== 1 ? 's' : ''}
-              </span>
-              <code className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">
-                {flow.toolName}
-              </code>
+              {hasTriggers ? (
+                <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M11.983 1.907a.75.75 0 00-1.292-.657l-8.5 9.5A.75.75 0 002.75 12h6.572l-1.305 6.093a.75.75 0 001.292.657l8.5-9.5A.75.75 0 0017.25 8h-6.572l1.305-6.093z" />
+                  </svg>
+                  {activeTriggerCount} trigger{activeTriggerCount !== 1 ? 's' : ''}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs text-amber-600" title="No triggers configured - this flow won't be exposed as MCP tools">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  No triggers
+                </span>
+              )}
             </div>
           </div>
 
