@@ -8,6 +8,7 @@ import type {
   NodeInstance,
   Connection,
   NodeType,
+  ChatMessage,
 } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BarChart3, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
@@ -22,6 +23,7 @@ import { Tabs } from '../components/common/Tabs';
 import { ExecutionList } from '../components/execution/ExecutionList';
 import { ExecutionDetail } from '../components/execution/ExecutionDetail';
 import { ExecutionDetailPlaceholder } from '../components/execution/ExecutionDetailPlaceholder';
+import { PreviewChat } from '../components/chat/PreviewChat';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
@@ -73,6 +75,9 @@ function FlowDetail() {
 
   // Execution tracking state
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null);
+
+  // Chat preview state (persists across tab switches)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   // Track recently saved node for schema re-validation
   const [savedNodeId, setSavedNodeId] = useState<string | null>(null);
@@ -342,12 +347,11 @@ function FlowDetail() {
   }
 
   const nodes = flow.nodes ?? [];
-  const interfaceNodes = nodes.filter(n => n.type === 'Interface');
   const canDeleteNodes = nodes.length > 0;
 
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
-    { id: 'preview', label: 'Preview', icon: Eye, disabled: interfaceNodes.length === 0 },
+    { id: 'preview', label: 'Preview', icon: Eye },
     { id: 'usage', label: 'Usage', icon: BarChart3 },
   ];
 
@@ -493,10 +497,14 @@ function FlowDetail() {
             </div>
           )}
 
-          {/* Preview Tab */}
-          {activeTab === 'preview' && (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-muted-foreground">Preview coming soon...</p>
+          {/* Preview Tab - Chat with LLM */}
+          {activeTab === 'preview' && flowId && (
+            <div className="flex-1 overflow-hidden">
+              <PreviewChat
+                flowId={flowId}
+                messages={chatMessages}
+                onMessagesChange={setChatMessages}
+              />
             </div>
           )}
 

@@ -26,7 +26,8 @@ export class FlowExecutionController {
     @Param('flowId', ParseUUIDPipe) flowId: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('status') status?: ExecutionStatus
+    @Query('status') status?: ExecutionStatus,
+    @Query('isPreview') isPreview?: string
   ): Promise<ExecutionListResponse> {
     // Mark timed-out executions before querying
     await this.executionService.markTimedOutExecutions();
@@ -35,6 +36,7 @@ export class FlowExecutionController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       status,
+      isPreview: isPreview === undefined ? undefined : isPreview === 'true',
     });
   }
 

@@ -53,6 +53,10 @@ export class FlowExecutionEntity {
   @Column({ type: 'simple-json', nullable: true })
   errorInfo?: ExecutionErrorInfo;
 
+  /** Whether this execution was triggered from preview chat (vs MCP) */
+  @Column({ type: 'boolean', default: false })
+  isPreview!: boolean;
+
   @CreateDateColumn()
   createdAt!: Date;
 
