@@ -1,8 +1,14 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { Database, Palette, Zap, Settings2 } from 'lucide-react'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger
+} from '@/components/ui/hover-card'
+import { codeToHtml } from 'shiki'
 
 interface ConfigProperty {
   name: string
@@ -14,6 +20,170 @@ interface ConfigCategory {
   properties: ConfigProperty[]
   description: string
   icon: React.ReactNode
+}
+
+interface TypeDefinition {
+  name: string
+  definition: string
+}
+
+// Primitive types that don't need tooltips
+const PRIMITIVE_TYPES = new Set([
+  'string',
+  'number',
+  'boolean',
+  'null',
+  'undefined',
+  'void',
+  'any',
+  'unknown',
+  'never',
+  'object',
+  'symbol',
+  'bigint'
+])
+
+/**
+ * Checks if a type name is a custom type (not a primitive)
+ */
+function isCustomType(typeName: string): boolean {
+  // Remove array notation and get the base type
+  const baseType = typeName.replace(/\[\]$/, '').trim()
+
+  // Check if it's a primitive
+  if (PRIMITIVE_TYPES.has(baseType.toLowerCase())) {
+    return false
+  }
+
+  // Check if it's a common built-in type
+  const builtInTypes = [
+    'Array',
+    'Object',
+    'Function',
+    'Date',
+    'RegExp',
+    'Promise',
+    'Map',
+    'Set',
+    'React',
+    'ReactNode',
+    'JSX'
+  ]
+  if (builtInTypes.some((t) => baseType.startsWith(t))) {
+    return false
+  }
+
+  // Must start with uppercase letter to be a custom type
+  return /^[A-Z]/.test(baseType)
+}
+
+/**
+ * Extracts a type name from a type expression (handles arrays, generics, etc.)
+ */
+function extractTypeName(type: string): string | null {
+  // Handle array types like "ChatMessage[]"
+  const arrayMatch = type.match(/^(\w+)\[\]$/)
+  if (arrayMatch) {
+    return arrayMatch[1]
+  }
+
+  // Handle simple types like "ChatMessage"
+  const simpleMatch = type.match(/^(\w+)$/)
+  if (simpleMatch && isCustomType(simpleMatch[1])) {
+    return simpleMatch[1]
+  }
+
+  // Handle nested object types like "{ emoji: string; count: number }[]"
+  // These are inline types, not custom types
+  if (type.includes('{')) {
+    return null
+  }
+
+  return null
+}
+
+/**
+ * Extracts all interface and type definitions from source code
+ */
+function extractTypeDefinitions(sourceCode: string): Map<string, TypeDefinition> {
+  const definitions = new Map<string, TypeDefinition>()
+
+  // Match interface definitions
+  const interfaceRegex = /export\s+interface\s+(\w+)(?:<[^{]*>)?\s*\{/g
+  let match
+
+  while ((match = interfaceRegex.exec(sourceCode)) !== null) {
+    const name = match[1]
+    // Skip Props interfaces
+    if (name.endsWith('Props')) continue
+
+    const startIndex = match.index
+    const bodyStartIndex = match.index + match[0].length
+    let braceCount = 1
+    let endIndex = bodyStartIndex
+
+    while (braceCount > 0 && endIndex < sourceCode.length) {
+      const char = sourceCode[endIndex]
+      if (char === '{') braceCount++
+      if (char === '}') braceCount--
+      endIndex++
+    }
+
+    const fullDefinition = sourceCode.slice(startIndex, endIndex)
+    definitions.set(name, {
+      name,
+      definition: fullDefinition
+    })
+  }
+
+  // Match type definitions
+  const typeRegex = /export\s+type\s+(\w+)(?:<[^=]*>)?\s*=\s*/g
+  while ((match = typeRegex.exec(sourceCode)) !== null) {
+    const name = match[1]
+    const startIndex = match.index
+    let endIndex = match.index + match[0].length
+
+    // Find the end of the type definition (handles multiline)
+    let depth = 0
+    let inString = false
+    let stringChar = ''
+
+    while (endIndex < sourceCode.length) {
+      const char = sourceCode[endIndex]
+      const prevChar = sourceCode[endIndex - 1]
+
+      // Handle string literals
+      if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\') {
+        if (!inString) {
+          inString = true
+          stringChar = char
+        } else if (char === stringChar) {
+          inString = false
+        }
+      }
+
+      if (!inString) {
+        if (char === '{' || char === '(' || char === '<') depth++
+        if (char === '}' || char === ')' || char === '>') depth--
+
+        // End of type definition
+        if (depth === 0 && (char === '\n' || char === ';')) {
+          if (char === ';') endIndex++
+          break
+        }
+      }
+
+      endIndex++
+    }
+
+    const fullDefinition = sourceCode.slice(startIndex, endIndex).trim()
+    definitions.set(name, {
+      name,
+      definition: fullDefinition
+    })
+  }
+
+  return definitions
 }
 
 /**
@@ -164,9 +334,100 @@ function cleanType(type: string): string {
 }
 
 /**
+ * Component for rendering a custom type with hover tooltip
+ */
+function CustomTypeWithTooltip({
+  type,
+  typeName,
+  definition
+}: {
+  type: string
+  typeName: string
+  definition: string
+}) {
+  const [html, setHtml] = useState<string | null>(null)
+  const [isDark, setIsDark] = useState(false)
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkDarkMode()
+
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    async function highlight() {
+      const highlighted = await codeToHtml(definition, {
+        lang: 'typescript',
+        theme: isDark ? 'github-dark' : 'github-light'
+      })
+      setHtml(highlighted)
+    }
+    highlight()
+  }, [definition, isDark])
+
+  return (
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono cursor-help border-b border-dashed border-primary/50 hover:border-primary hover:bg-muted/80 transition-colors">
+          {type}
+        </code>
+      </HoverCardTrigger>
+      <HoverCardContent
+        className="w-auto max-w-[500px] p-0"
+        side="top"
+        align="start"
+      >
+        <div className="px-3 py-2 border-b bg-muted/50">
+          <p className="text-xs font-medium text-muted-foreground">
+            Type definition for <span className="font-mono text-foreground">{typeName}</span>
+          </p>
+        </div>
+        <div className="overflow-auto max-h-[300px]">
+          {html ? (
+            <div
+              className="text-xs [&_pre]:p-3 [&_pre]:m-0 [&_pre]:!bg-transparent [&_.shiki]:!bg-transparent [&_pre]:overflow-x-auto"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          ) : (
+            <pre className="p-3 text-xs font-mono overflow-x-auto">
+              <code>{definition}</code>
+            </pre>
+          )}
+        </div>
+      </HoverCardContent>
+    </HoverCard>
+  )
+}
+
+/**
  * Formats a type string for better readability
  */
-function formatType(type: string): React.ReactNode {
+function formatType(
+  type: string,
+  typeDefinitions: Map<string, TypeDefinition>
+): React.ReactNode {
+  // Check if this type references a custom type
+  const typeName = extractTypeName(type)
+  if (typeName && typeDefinitions.has(typeName)) {
+    const definition = typeDefinitions.get(typeName)!
+    return (
+      <CustomTypeWithTooltip
+        type={type}
+        typeName={typeName}
+        definition={definition.definition}
+      />
+    )
+  }
+
   // Handle union types with string literals
   if (type.includes("'") && type.includes('|')) {
     const parts = type.split('|').map((t) => t.trim())
@@ -210,9 +471,12 @@ export function ConfigurationViewer({
   sourceCode,
   loading
 }: ConfigurationViewerProps) {
-  const categories = useMemo(() => {
-    if (!sourceCode) return []
-    return parseComponentConfiguration(sourceCode)
+  const { categories, typeDefinitions } = useMemo(() => {
+    if (!sourceCode) return { categories: [], typeDefinitions: new Map() }
+    return {
+      categories: parseComponentConfiguration(sourceCode),
+      typeDefinitions: extractTypeDefinitions(sourceCode)
+    }
   }, [sourceCode])
 
   if (loading) {
@@ -258,10 +522,7 @@ export function ConfigurationViewer({
 
       <div className="grid gap-4">
         {categories.map((category) => (
-          <div
-            key={category.name}
-            className="rounded-lg border bg-card p-4"
-          >
+          <div key={category.name} className="rounded-lg border bg-card p-4">
             {/* Category header */}
             <div className="flex items-center gap-3 mb-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -302,7 +563,9 @@ export function ConfigurationViewer({
                           {prop.name}
                         </code>
                       </td>
-                      <td className="px-3 py-2">{formatType(prop.type)}</td>
+                      <td className="px-3 py-2">
+                        {formatType(prop.type, typeDefinitions)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
