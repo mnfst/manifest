@@ -96,6 +96,9 @@ export interface NodeInstance {
   /** Unique identifier within the flow (UUID) */
   id: string;
 
+  /** Human-readable unique identifier for template references (e.g., "weather_trigger", "api_call_1") */
+  slug: string;
+
   /** Node type name (must be a registered node type) */
   type: NodeType;
 

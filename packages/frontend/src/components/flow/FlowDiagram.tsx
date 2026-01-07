@@ -19,6 +19,7 @@ import type {
   NodeInstance,
   Connection,
   CreateConnectionRequest,
+  NodeType,
 } from '@chatgpt-app-builder/shared';
 import { api } from '../../lib/api';
 import { ViewNode } from './ViewNode';
@@ -42,6 +43,12 @@ interface FlowDiagramProps {
   flowNameLookup?: Record<string, string>; // Maps flowId to flowName for CallFlow nodes
   /** ID of a node that was recently saved (triggers re-validation of its connections) */
   savedNodeId?: string | null;
+  /** Handler for "+" button click on nodes - opens node library with pending connection */
+  onAddFromNode?: (sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => void;
+  /** Handler for dropping node type on a "+" button */
+  onDropOnNode?: (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => void;
+  /** Handler for dropping node type on canvas */
+  onDropOnCanvas?: (nodeType: NodeType, position: { x: number; y: number }) => void;
 }
 
 /**
@@ -89,6 +96,9 @@ function FlowDiagramInner({
   onConnectionsChange,
   flowNameLookup = {},
   savedNodeId,
+  onAddFromNode,
+  onDropOnNode,
+  onDropOnCanvas,
 }: FlowDiagramProps) {
   // Memoize flow state to prevent recalculation on every render
   const flowState = useMemo(() => getFlowState(flow), [flow.nodes]);
@@ -102,6 +112,15 @@ function FlowDiagramInner({
 
   // Memoize connections array
   const connections = useMemo(() => flow.connections ?? [], [flow.connections]);
+
+  // Track which nodes have outgoing connections (for hiding "+" button)
+  const nodesWithOutgoingConnections = useMemo(() => {
+    const nodeIds = new Set<string>();
+    connections.forEach(conn => {
+      nodeIds.add(conn.sourceNodeId);
+    });
+    return nodeIds;
+  }, [connections]);
 
   // Schema validation hook for connection validation status
   const { validateConnection, validateConnections, getValidationByConnection, invalidateNode } = useSchemaValidation(flow.id);
@@ -156,7 +175,31 @@ function FlowDiagramInner({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const { fitView } = useReactFlow();
+  const { fitView, screenToFlowPosition } = useReactFlow();
+
+  // Handle drag over for canvas drops
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const hasNodeType = e.dataTransfer.types.includes('application/x-node-type');
+    if (hasNodeType) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  }, []);
+
+  // Handle drop on canvas
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const nodeType = e.dataTransfer.getData('application/x-node-type') as NodeType;
+    if (!nodeType || !onDropOnCanvas) return;
+
+    // Convert screen coordinates to flow coordinates
+    const position = screenToFlowPosition({
+      x: e.clientX,
+      y: e.clientY,
+    });
+
+    onDropOnCanvas(nodeType, position);
+  }, [onDropOnCanvas, screenToFlowPosition]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -303,6 +346,7 @@ function FlowDiagramInner({
       // Add UserIntent nodes (trigger nodes)
       flowState.userIntentNodes.forEach((node) => {
         const nodePos = node.position || { x: xPosition, y: 80 };
+        const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
         nodeList.push({
           id: node.id,
           type: 'userIntentNode',
@@ -312,6 +356,8 @@ function FlowDiagramInner({
             canDelete,
             onEdit: () => onNodeEdit(node),
             onDelete: () => onNodeDelete(node),
+            onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'main', nodePos) : undefined,
+            onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'main', nodePos) : undefined,
           },
         });
 
@@ -322,6 +368,7 @@ function FlowDiagramInner({
       flowState.statCardNodes.forEach((node) => {
         // Use saved position or calculate based on order
         const nodePos = node.position || { x: xPosition, y: 130 };
+        const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
 
         nodeList.push({
           id: node.id,
@@ -332,6 +379,8 @@ function FlowDiagramInner({
             canDelete,
             onEdit: () => onNodeEdit(node),
             onDelete: () => onNodeDelete(node),
+            onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'output', nodePos) : undefined,
+            onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'output', nodePos) : undefined,
           },
         });
 
@@ -382,6 +431,7 @@ function FlowDiagramInner({
       // Add ApiCall nodes
       flowState.apiCallNodes.forEach((node) => {
         const nodePos = node.position || { x: xPosition, y: 80 };
+        const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
 
         nodeList.push({
           id: node.id,
@@ -392,6 +442,8 @@ function FlowDiagramInner({
             canDelete,
             onEdit: () => onNodeEdit(node),
             onDelete: () => onNodeDelete(node),
+            onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'output', nodePos) : undefined,
+            onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'output', nodePos) : undefined,
           },
         });
 
@@ -402,7 +454,7 @@ function FlowDiagramInner({
     return nodeList;
   // Use specific dependencies instead of entire flow object to prevent unnecessary recalculations
   // onAddStep is used for AddUserIntentNode placeholder when no triggers exist
-  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup]);
+  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup, onAddFromNode, onDropOnNode, nodesWithOutgoingConnections]);
 
   // State for draggable nodes - initialized from computedNodes and updated on drag
   const [nodes, setNodes] = useState<Node[]>(computedNodes);
@@ -503,7 +555,12 @@ function FlowDiagramInner({
 
   return (
     <>
-    <div ref={containerRef} className="w-full h-full bg-muted/30">
+    <div
+      ref={containerRef}
+      className="w-full h-full bg-muted/30"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {dimensions.width > 0 && dimensions.height > 0 && (
         <ReactFlow
           nodes={nodes}

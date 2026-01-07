@@ -8,6 +8,65 @@ import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParamet
 import { ApiCallNode } from '@chatgpt-app-builder/nodes';
 
 /**
+ * Resolves template variables in a string using upstream node outputs.
+ * Template syntax: {{ nodeSlug.path }} where path can be dot-notation like 'data.userId'
+ * Supports both slug-based and ID-based lookups.
+ *
+ * @param template - String containing template variables
+ * @param nodeOutputs - Map of nodeId to output data
+ * @param allNodes - All nodes in the flow (for slug-to-id resolution)
+ * @returns Resolved string with actual values
+ */
+function resolveTemplateVariables(
+  template: string,
+  nodeOutputs: Map<string, unknown>,
+  allNodes: NodeInstance[]
+): string {
+  if (!template) return template;
+
+  // Build slug-to-id map
+  const slugToId = new Map<string, string>();
+  for (const node of allNodes) {
+    if (node.slug) {
+      slugToId.set(node.slug, node.id);
+    }
+  }
+
+  const templatePattern = /\{\{\s*([^}]+)\s*\}\}/g;
+
+  return template.replace(templatePattern, (_fullMatch, pathStr) => {
+    const path = pathStr.trim();
+    const parts = path.split('.');
+    const slugOrId = parts[0];
+    const pathParts = parts.slice(1);
+
+    // Try slug first, then ID
+    const nodeId = slugToId.get(slugOrId) || slugOrId;
+    let value = nodeOutputs.get(nodeId);
+
+    // Navigate nested path
+    for (const part of pathParts) {
+      if (value && typeof value === 'object' && part in value) {
+        value = (value as Record<string, unknown>)[part];
+      } else {
+        value = undefined;
+        break;
+      }
+    }
+
+    // Return the resolved value, or empty string if not found
+    if (value === undefined || value === null) {
+      return '';
+    }
+    // If it's an object or array, stringify it
+    if (typeof value === 'object') {
+      return JSON.stringify(value);
+    }
+    return String(value);
+  });
+}
+
+/**
  * MCP protocol error for inactive tools
  * Error code -32602 is "Invalid params" per JSON-RPC 2.0 specification
  */
@@ -239,6 +298,14 @@ export class McpToolService {
 
     const nodeExecutions: NodeExecutionData[] = [];
 
+    // Add the trigger node as the first execution entry
+    nodeExecutions.push(this.createNodeExecution(
+      trigger,
+      {}, // Trigger has no input from other nodes
+      validatedInput, // Output is the validated input parameters
+      'completed'
+    ));
+
     try {
       const allNodes = flow.nodes ?? [];
       const connections = flow.connections ?? [];
@@ -251,7 +318,7 @@ export class McpToolService {
         await this.flowExecutionService.updateExecution(execution.id, {
           status: 'fulfilled',
           endedAt: new Date(),
-          nodeExecutions: [],
+          nodeExecutions,
         });
 
         return {
@@ -261,6 +328,11 @@ export class McpToolService {
 
       // Store outputs from executed nodes for chaining
       const nodeOutputs = new Map<string, unknown>();
+
+      // Store the trigger node's output (validated input parameters)
+      // This allows downstream nodes to reference trigger params like {{ trigger.pokemonName }}
+      nodeOutputs.set(trigger.id, validatedInput);
+
       let result: McpToolResponse | null = null;
 
       // Execute nodes in topological order (as returned by getNodesReachableFrom)
@@ -276,7 +348,7 @@ export class McpToolService {
         }
 
         if (node.type === 'ApiCall') {
-          const apiResult = await this.executeApiCallNode(flow.id, node, nodeOutputs);
+          const apiResult = await this.executeApiCallNode(flow.id, node, nodeOutputs, allNodes);
           nodeOutputs.set(node.id, apiResult.output);
           nodeExecutions.push(this.createNodeExecution(
             node,
@@ -293,11 +365,13 @@ export class McpToolService {
           };
         } else if (node.type === 'Return') {
           const params = node.parameters as ReturnNodeParameters;
-          const returnOutput = { text: params.text };
+          // Resolve template variables in the return text
+          const resolvedText = resolveTemplateVariables(params.text || '', nodeOutputs, allNodes);
+          const returnOutput = { text: resolvedText };
           nodeOutputs.set(node.id, returnOutput);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, returnOutput, 'completed'));
           result = {
-            content: [{ type: 'text', text: params.text || '' }],
+            content: [{ type: 'text', text: resolvedText }],
           };
         } else if (node.type === 'CallFlow') {
           result = await this.executeCallFlowNode(app, toolName, trigger.name, node);
@@ -446,21 +520,37 @@ export class McpToolService {
 
   /**
    * Execute ApiCall node - make HTTP request to external API
+   * Supports both slug-based and UUID-based template variable resolution.
    */
   private async executeApiCallNode(
     flowId: string,
     node: NodeInstance,
-    nodeOutputs: Map<string, unknown>
+    nodeOutputs: Map<string, unknown>,
+    allNodes: NodeInstance[]
   ): Promise<{ success: boolean; output?: unknown; error?: string }> {
     const params = node.parameters as ApiCallNodeParameters;
+
+    // Build slug-to-id map for template resolution
+    const slugToId = new Map<string, string>();
+    for (const n of allNodes) {
+      if (n.slug) {
+        slugToId.set(n.slug, n.id);
+      }
+    }
 
     // Create execution context for the ApiCall node
     const context = {
       flowId,
       nodeId: node.id,
       parameters: params,
-      getNodeValue: async (nodeId: string): Promise<unknown> => {
-        return nodeOutputs.get(nodeId);
+      getNodeValue: async (slugOrId: string): Promise<unknown> => {
+        // Try slug first (new behavior)
+        const nodeIdFromSlug = slugToId.get(slugOrId);
+        if (nodeIdFromSlug) {
+          return nodeOutputs.get(nodeIdFromSlug);
+        }
+        // Fall back to ID lookup (backward compatibility)
+        return nodeOutputs.get(slugOrId);
       },
       callFlow: async (_targetFlowId: string, _params: Record<string, unknown>): Promise<unknown> => {
         // Not used by ApiCall nodes, but required by interface
@@ -598,7 +688,8 @@ export class McpToolService {
         type: param.type,
         description: param.description || '',
       };
-      if (param.required) {
+      // FlowParameter uses 'optional: boolean', so !optional means required
+      if (!param.optional) {
         required.push(param.name);
       }
     }
@@ -629,10 +720,10 @@ export class McpToolService {
       return input;
     }
 
-    // Validate required parameters
+    // Validate required parameters (optional: false means required)
     const missingRequired: string[] = [];
     for (const param of params) {
-      if (param.required && (input[param.name] === undefined || input[param.name] === null)) {
+      if (!param.optional && (input[param.name] === undefined || input[param.name] === null)) {
         missingRequired.push(param.name);
       }
     }

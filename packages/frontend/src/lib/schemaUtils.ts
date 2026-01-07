@@ -1,4 +1,4 @@
-import type { JSONSchema, JSONSchemaType } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, JSONSchemaType, FlattenedSchemaField, FieldSource } from '@chatgpt-app-builder/shared';
 
 /**
  * Schema field display information for UI rendering.
@@ -14,6 +14,8 @@ export interface SchemaFieldInfo {
   arrayItemType?: string;
   /** True if nested children were truncated due to depth limit */
   truncated?: boolean;
+  /** Source of the field: 'static' for known fields, 'dynamic' for user-defined parameters */
+  source?: FieldSource;
 }
 
 /**
@@ -64,6 +66,9 @@ export function extractFieldInfo(
   depth = 0,
   maxDepth = 5
 ): SchemaFieldInfo {
+  // Extract x-field-source metadata
+  const source = (schema as JSONSchema & { 'x-field-source'?: FieldSource })['x-field-source'];
+
   const result: SchemaFieldInfo = {
     name,
     type: formatType(schema.type),
@@ -73,6 +78,7 @@ export function extractFieldInfo(
     isArray: schema.type === 'array',
     nested: undefined,
     truncated: false,
+    source,
   };
 
   // Handle array items
@@ -206,4 +212,102 @@ export function getSchemaStateColor(state: 'defined' | 'unknown' | 'pending' | n
     default:
       return 'bg-gray-100 text-gray-600';
   }
+}
+
+/**
+ * Flatten a JSON Schema into a flat list of fields with dot-notation paths.
+ * Used for the "Use Previous Outputs" dropdown to show selectable output fields.
+ *
+ * @param schema - The JSON Schema to flatten
+ * @param maxDepth - Maximum depth to traverse (default: 5)
+ * @returns Array of flattened schema fields with paths like "data.userId"
+ */
+export function flattenSchemaProperties(
+  schema: JSONSchema | null | undefined,
+  maxDepth = 5
+): FlattenedSchemaField[] {
+  if (!schema) return [];
+
+  const results: FlattenedSchemaField[] = [];
+
+  function traverse(
+    currentSchema: JSONSchema,
+    path: string,
+    required: boolean,
+    depth: number
+  ): void {
+    if (depth > maxDepth) return;
+
+    // Get the x-field-source if present
+    const source = (currentSchema as JSONSchema & { 'x-field-source'?: FieldSource })['x-field-source'];
+
+    // For primitive types, add the field directly
+    if (currentSchema.type && currentSchema.type !== 'object' && currentSchema.type !== 'array') {
+      results.push({
+        path,
+        type: formatType(currentSchema.type),
+        description: currentSchema.description,
+        source,
+        required,
+      });
+      return;
+    }
+
+    // For objects, traverse properties
+    if (currentSchema.type === 'object' && currentSchema.properties) {
+      const requiredFields = currentSchema.required ?? [];
+
+      for (const [propName, propSchema] of Object.entries(currentSchema.properties)) {
+        const propPath = path ? `${path}.${propName}` : propName;
+        const propRequired = requiredFields.includes(propName);
+        const typedPropSchema = propSchema as JSONSchema;
+
+        // Add the property itself if it's a leaf or a nested object we want to reference
+        const propSource = (typedPropSchema as JSONSchema & { 'x-field-source'?: FieldSource })['x-field-source'];
+
+        if (typedPropSchema.type === 'object') {
+          // Add the object field itself
+          results.push({
+            path: propPath,
+            type: 'object',
+            description: typedPropSchema.description,
+            source: propSource,
+            required: propRequired,
+          });
+          // Also traverse into nested properties
+          traverse(typedPropSchema, propPath, propRequired, depth + 1);
+        } else if (typedPropSchema.type === 'array') {
+          // Add array fields
+          results.push({
+            path: propPath,
+            type: 'array',
+            description: typedPropSchema.description,
+            source: propSource,
+            required: propRequired,
+          });
+          // For arrays with object items, could traverse items[0] pattern
+          // but for simplicity we just show the array path
+        } else {
+          // Primitive type
+          results.push({
+            path: propPath,
+            type: formatType(typedPropSchema.type),
+            description: typedPropSchema.description,
+            source: propSource,
+            required: propRequired,
+          });
+        }
+      }
+    }
+
+    // For arrays with defined items, we could add item paths
+    // But for now, we just reference the array itself
+  }
+
+  // If top-level is an object, start traversal
+  if (schema.type === 'object') {
+    traverse(schema, '', false, 0);
+  }
+
+  return results;
 }

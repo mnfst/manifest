@@ -1,4 +1,4 @@
-import type { CompatibilityStatus, SchemaCompatibilityResult } from '@chatgpt-app-builder/shared';
+import type { CompatibilityStatus, SchemaCompatibilityResult, JSONSchema, FlattenedSchemaField } from '@chatgpt-app-builder/shared';
 
 /**
  * Validation state for a connection edge (frontend only).
@@ -47,4 +47,28 @@ export function getStatusLabel(status: CompatibilityStatus): string {
     default:
       return 'Unknown';
   }
+}
+
+/**
+ * Information about an upstream node for the "Use Previous Outputs" component.
+ * Used to populate dropdowns with available nodes and their output fields.
+ */
+export interface UpstreamNodeInfo {
+  /** Unique node ID */
+  id: string;
+
+  /** Human-readable slug for template references */
+  slug: string;
+
+  /** Display name of the node */
+  name: string;
+
+  /** Node type (e.g., "UserIntent", "ApiCall") */
+  type: string;
+
+  /** Output schema of the node (null if unknown) */
+  outputSchema: JSONSchema | null;
+
+  /** Flattened output fields for dropdown display */
+  fields: FlattenedSchemaField[];
 }

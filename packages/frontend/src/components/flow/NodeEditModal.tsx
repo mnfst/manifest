@@ -3,6 +3,7 @@ import type {
   NodeInstance,
   NodeType,
   Flow,
+  Connection,
   StatCardNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
@@ -16,6 +17,9 @@ import type {
 } from '@chatgpt-app-builder/shared';
 import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code } from 'lucide-react';
 import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
+import { UsePreviousOutputs } from '../common/UsePreviousOutputs';
+import { TemplateReferencesDisplay } from '../common/TemplateReferencesDisplay';
+import { useUpstreamNodes } from '../../hooks/useUpstreamNodes';
 
 interface NodeEditModalProps {
   isOpen: boolean;
@@ -25,6 +29,10 @@ interface NodeEditModalProps {
   nodeType: NodeType | null; // Required for create mode, derived from node for edit mode
   flows: Flow[]; // Available flows for CallFlow node
   currentFlowId: string; // Current flow ID (to exclude from CallFlow targets)
+  /** All nodes in the flow (for upstream node reference) */
+  nodes?: NodeInstance[];
+  /** All connections in the flow (for upstream node reference) */
+  connections?: Connection[];
   isLoading?: boolean;
   error?: string | null;
 }
@@ -62,11 +70,21 @@ export function NodeEditModal({
   nodeType,
   flows,
   currentFlowId,
+  nodes,
+  connections,
   isLoading = false,
   error = null,
 }: NodeEditModalProps) {
   const isEditMode = node !== null;
   const effectiveNodeType = node?.type ?? nodeType;
+
+  // Get upstream nodes for "Use Previous Outputs" component
+  const { upstreamNodes, isLoading: upstreamLoading, error: upstreamError, refresh: refreshUpstream } = useUpstreamNodes({
+    flowId: currentFlowId,
+    nodeId: node?.id ?? '',
+    nodes,
+    connections,
+  });
 
   // Tab state - only show schema tab in edit mode
   const [activeTab, setActiveTab] = useState<TabType>('config');
@@ -286,7 +304,18 @@ export function NodeEditModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">{nodeInfo.title}</h2>
-              <p className="text-sm text-gray-500">{nodeInfo.description}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">{nodeInfo.description}</p>
+                {/* Show slug in edit mode (T035) */}
+                {isEditMode && node?.slug && (
+                  <code
+                    className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded font-mono"
+                    title={`Node slug - use {{ ${node.slug}.fieldName }} to reference outputs`}
+                  >
+                    {node.slug}
+                  </code>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -367,45 +396,79 @@ export function NodeEditModal({
 
             {/* StatCard-specific fields */}
             {effectiveNodeType === 'StatCard' && (
-              <div>
-                <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
-                  Layout Template
-                </label>
-                <select
-                  id="layout-template"
-                  value={layoutTemplate}
-                  onChange={(e) => setLayoutTemplate(e.target.value as LayoutTemplate)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  disabled={isLoading}
-                >
-                  {LAYOUT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <>
+                {/* Use Previous Outputs component - only show in edit mode when we have a node ID */}
+                {isEditMode && node && (
+                  <UsePreviousOutputs
+                    upstreamNodes={upstreamNodes}
+                    isLoading={upstreamLoading}
+                    error={upstreamError}
+                    onRefresh={refreshUpstream}
+                  />
+                )}
+
+                <div>
+                  <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
+                    Layout Template
+                  </label>
+                  <select
+                    id="layout-template"
+                    value={layoutTemplate}
+                    onChange={(e) => setLayoutTemplate(e.target.value as LayoutTemplate)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    disabled={isLoading}
+                  >
+                    {LAYOUT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    The stat card receives data from upstream nodes to display.
+                  </p>
+                </div>
+              </>
             )}
 
             {/* Return-specific fields */}
             {effectiveNodeType === 'Return' && (
-              <div>
-                <label htmlFor="return-text" className="block text-sm font-medium text-gray-700 mb-1">
-                  Return Text
-                </label>
-                <textarea
-                  id="return-text"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Enter the text to return to the user..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
-                  rows={4}
-                  disabled={isLoading}
+              <>
+                {/* Use Previous Outputs component - only show in edit mode when we have a node ID */}
+                {isEditMode && node && (
+                  <UsePreviousOutputs
+                    upstreamNodes={upstreamNodes}
+                    isLoading={upstreamLoading}
+                    error={upstreamError}
+                    onRefresh={refreshUpstream}
+                  />
+                )}
+
+                <div>
+                  <label htmlFor="return-text" className="block text-sm font-medium text-gray-700 mb-1">
+                    Return Text
+                  </label>
+                  <textarea
+                    id="return-text"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Enter the text to return to the user... Use {{ nodeSlug.field }} for dynamic values"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                    rows={4}
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use {'{{ nodeSlug.path }}'} syntax to reference upstream node outputs.
+                  </p>
+                </div>
+
+                {/* Template References Display - shows input requirements from {{ }} variables */}
+                <TemplateReferencesDisplay
+                  values={[text]}
+                  upstreamNodes={upstreamNodes}
+                  isConnected={upstreamNodes.length > 0}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  This text will be returned as the response when this flow completes.
-                </p>
-              </div>
+              </>
             )}
 
             {/* CallFlow-specific fields */}
@@ -477,27 +540,47 @@ export function NodeEditModal({
                     />
                   </div>
 
-                  {/* Is Active Toggle */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <input
+                  {/* Active Toggle Switch (T030-T033) */}
+                  <div className="flex items-center justify-between mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex flex-col">
+                      <label htmlFor="tool-active" className="text-sm font-medium text-gray-700">
+                        Active
+                      </label>
+                      <span className="text-xs text-gray-500" title="Active triggers are exposed as MCP tools and can be invoked by AI assistants">
+                        Active triggers are exposed as MCP tools
+                      </span>
+                    </div>
+                    <button
                       id="tool-active"
-                      type="checkbox"
-                      checked={isToolActive}
-                      onChange={(e) => setIsToolActive(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      type="button"
+                      role="switch"
+                      aria-checked={isToolActive}
+                      onClick={() => setIsToolActive(!isToolActive)}
                       disabled={isLoading}
-                    />
-                    <label htmlFor="tool-active" className="text-sm text-gray-700">
-                      Expose as MCP tool
-                    </label>
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isToolActive ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isToolActive ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
                   </div>
 
                   {/* Tool Parameters */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Tool Parameters
-                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Tool Parameters
+                        </label>
+                        <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded" title="Parameters you define here become dynamic output fields that downstream nodes can reference">
+                          become outputs
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={addToolParameter}
@@ -617,6 +700,16 @@ export function NodeEditModal({
             {/* ApiCall-specific fields */}
             {effectiveNodeType === 'ApiCall' && (
               <>
+                {/* Use Previous Outputs component - only show in edit mode when we have a node ID */}
+                {isEditMode && node && (
+                  <UsePreviousOutputs
+                    upstreamNodes={upstreamNodes}
+                    isLoading={upstreamLoading}
+                    error={upstreamError}
+                    onRefresh={refreshUpstream}
+                  />
+                )}
+
                 {/* Method dropdown */}
                 <div>
                   <label htmlFor="api-method" className="block text-sm font-medium text-gray-700 mb-1">
@@ -653,7 +746,7 @@ export function NodeEditModal({
                     disabled={isLoading}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Use {'{{nodeId.path}}'} syntax to reference upstream node outputs.
+                    Use {'{{ nodeSlug.path }}'} syntax to reference upstream node outputs.
                   </p>
                 </div>
 
@@ -731,6 +824,13 @@ export function NodeEditModal({
                     Request timeout in milliseconds (1000-300000). Default: 30000 (30 seconds).
                   </p>
                 </div>
+
+                {/* Template References Display - shows input requirements from {{ }} variables */}
+                <TemplateReferencesDisplay
+                  values={[apiUrl, ...apiHeaders.map(h => h.value)]}
+                  upstreamNodes={upstreamNodes}
+                  isConnected={upstreamNodes.length > 0}
+                />
               </>
             )}
           </div>

@@ -16,6 +16,8 @@ export interface CreateExecutionParams {
   flowName: string;
   flowToolName: string;
   initialParams: Record<string, unknown>;
+  /** Whether this execution was triggered from preview chat (vs MCP) */
+  isPreview?: boolean;
 }
 
 export interface UpdateExecutionParams {
@@ -29,6 +31,8 @@ export interface FindByFlowOptions {
   page?: number;
   limit?: number;
   status?: ExecutionStatus;
+  /** Filter by preview executions (true = only preview, false = only non-preview, undefined = all) */
+  isPreview?: boolean;
 }
 
 @Injectable()
@@ -49,6 +53,7 @@ export class FlowExecutionService {
       initialParams: params.initialParams,
       status: 'pending',
       nodeExecutions: [],
+      isPreview: params.isPreview ?? false,
     });
 
     return this.executionRepository.save(execution);
@@ -90,12 +95,15 @@ export class FlowExecutionService {
     flowId: string,
     options: FindByFlowOptions = {}
   ): Promise<ExecutionListResponse> {
-    const { page = 1, limit = 20, status } = options;
+    const { page = 1, limit = 20, status, isPreview } = options;
     const skip = (page - 1) * limit;
 
     const whereClause: Record<string, unknown> = { flowId };
     if (status) {
       whereClause.status = status;
+    }
+    if (isPreview !== undefined) {
+      whereClause.isPreview = isPreview;
     }
 
     const [executions, total] = await this.executionRepository.findAndCount({
@@ -201,6 +209,7 @@ export class FlowExecutionService {
       endedAt: entity.endedAt?.toISOString(),
       duration,
       initialParamsPreview,
+      isPreview: entity.isPreview,
     };
   }
 
@@ -219,6 +228,7 @@ export class FlowExecutionService {
       initialParams: entity.initialParams,
       nodeExecutions: entity.nodeExecutions,
       errorInfo: entity.errorInfo,
+      isPreview: entity.isPreview,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
     };

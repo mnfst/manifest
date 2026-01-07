@@ -18,32 +18,42 @@ export function ExecutionList({ flowId, selectedId, onSelect }: ExecutionListPro
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [includePreview, setIncludePreview] = useState(true);
 
   // Initial fetch with loading state
   const fetchExecutions = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await api.getExecutions(flowId, { page, limit: 20 });
+      // When includePreview is false, filter out preview executions
+      const response = await api.getExecutions(flowId, {
+        page,
+        limit: 20,
+        isPreview: includePreview ? undefined : false,
+      });
       setData(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load executions');
     } finally {
       setIsLoading(false);
     }
-  }, [flowId, page]);
+  }, [flowId, page, includePreview]);
 
   // Background refresh without loading state (for polling)
   const refreshExecutions = useCallback(async () => {
     try {
-      const response = await api.getExecutions(flowId, { page, limit: 20 });
+      const response = await api.getExecutions(flowId, {
+        page,
+        limit: 20,
+        isPreview: includePreview ? undefined : false,
+      });
       setData(response);
       setError(null);
     } catch (err) {
       // Don't set error on background refresh failure
       console.error('Background refresh failed:', err);
     }
-  }, [flowId, page]);
+  }, [flowId, page, includePreview]);
 
   // Initial fetch
   useEffect(() => {
@@ -85,12 +95,36 @@ export function ExecutionList({ flowId, selectedId, onSelect }: ExecutionListPro
     );
   }
 
+  // Filter controls component (always visible)
+  const filterControls = (
+    <div className="px-4 py-2 border-b flex items-center gap-3">
+      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={includePreview}
+          onChange={(e) => {
+            setIncludePreview(e.target.checked);
+            setPage(1); // Reset to first page when filter changes
+          }}
+          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        Include preview calls
+      </label>
+    </div>
+  );
+
   if (!data || data.items.length === 0) {
-    return <ExecutionEmptyState />;
+    return (
+      <div className="flex flex-col h-full">
+        {filterControls}
+        <ExecutionEmptyState />
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col h-full">
+      {filterControls}
       {/* Header with polling indicator */}
       {data.hasPendingExecutions && (
         <div className="px-4 py-2 bg-orange-50 border-b border-orange-200 flex items-center gap-2 text-sm text-orange-700">

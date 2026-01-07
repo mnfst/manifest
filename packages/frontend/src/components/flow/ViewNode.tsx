@@ -1,15 +1,20 @@
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { useEffect, useMemo } from 'react';
-import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters } from '@chatgpt-app-builder/shared';
+import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters, type NodeType } from '@chatgpt-app-builder/shared';
 import { LayoutGrid } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
+import { AddNodeButton } from './AddNodeButton';
 
 export interface ViewNodeData extends Record<string, unknown> {
   node: NodeInstance;
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  /** Handler for "+" button click */
+  onAddFromNode?: () => void;
+  /** Handler for dropping a node type on the "+" button */
+  onDropOnNode?: (nodeType: NodeType) => void;
 }
 
 /**
@@ -18,7 +23,7 @@ export interface ViewNodeData extends Record<string, unknown> {
  * Displays action handles on the right side for nodes with actions
  */
 export function ViewNode({ data, id }: NodeProps) {
-  const { node, canDelete, onEdit, onDelete } = data as ViewNodeData;
+  const { node, canDelete, onEdit, onDelete, onAddFromNode, onDropOnNode } = data as ViewNodeData;
   const updateNodeInternals = useUpdateNodeInternals();
 
   // Get parameters with type safety
@@ -66,6 +71,15 @@ export function ViewNode({ data, id }: NodeProps) {
           <ViewNodeDropdown canDelete={canDelete} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
+
+      {/* "+" button for adding connected nodes - StatCard has no output handle */}
+      {onAddFromNode && (
+        <AddNodeButton
+          onClick={onAddFromNode}
+          onDrop={onDropOnNode}
+          color="gray"
+        />
+      )}
 
       {/* Action handles on the right side (purple themed) - labels outside node */}
       {actions.map((action, index) => (

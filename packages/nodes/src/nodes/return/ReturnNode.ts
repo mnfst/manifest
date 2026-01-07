@@ -34,6 +34,8 @@ export const ReturnNode: NodeTypeDefinition = {
   } as JSONSchema,
 
   // Return nodes have no outputs - they terminate the flow
+  // Note: The execute output { type: 'return', value } has static structure
+  // but no downstream schema since flow terminates here
   outputSchema: null,
 
   async execute(context: ExecutionContext): Promise<ExecutionResult> {

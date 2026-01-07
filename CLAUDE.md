@@ -4,6 +4,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-06
 
 ## Active Technologies
 - SQLite (better-sqlite3 11.7.0) (088-dynamic-node-library)
+- SQLite (better-sqlite3), localStorage (API keys on frontend) (030-preview-llm-chat)
 - SQLite (better-sqlite3 11.7.0) via TypeORM (001-io-schemas)
 - TypeScript 5.7.2 + NestJS 10.x (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), pnpm 9.15.4 (monorepo) (001-ui-selection)
 - SQLite via better-sqlite3 (existing) (001-ui-selection)
@@ -27,8 +28,9 @@ TypeScript 5.7.2: Follow standard conventions
 
 ## Recent Changes
 - 001-ui-selection: Added TypeScript 5.7.2 + NestJS 10.x (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), pnpm 9.15.4 (monorepo)
+- 001-output-reference: Added TypeScript 5.7.2
+- 030-preview-llm-chat: Added TypeScript 5.7.2
 - 001-io-schemas: Added TypeScript 5.7.2
-- 029-multiple-triggers: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM)
 
 
 <!-- MANUAL ADDITIONS START -->

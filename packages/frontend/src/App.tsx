@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { ConnectorsPage } from './pages/ConnectorsPage';
 import AppDetail from './pages/AppDetail';
 import FlowDetail from './pages/FlowDetail';
+import { SettingsPage } from './pages/SettingsPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { api } from './lib/api';
 import type { App } from '@chatgpt-app-builder/shared';
@@ -72,6 +73,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route path="/connectors" element={<ConnectorsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/app/:appId" element={<AppDetail />} />
             <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
             <Route path="*" element={<Navigate to="/" replace />} />

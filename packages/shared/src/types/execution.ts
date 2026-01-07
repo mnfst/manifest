@@ -54,6 +54,8 @@ export interface FlowExecution {
   initialParams: Record<string, unknown>;
   nodeExecutions: NodeExecutionData[];
   errorInfo?: ExecutionErrorInfo;
+  /** Whether this execution was triggered from preview chat (vs MCP) */
+  isPreview?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,6 +73,8 @@ export interface ExecutionListItem {
   endedAt?: string;
   duration?: number; // milliseconds
   initialParamsPreview: string;
+  /** Whether this execution was triggered from preview chat (vs MCP) */
+  isPreview?: boolean;
 }
 
 /**
@@ -92,4 +96,6 @@ export interface ExecutionListQuery {
   page?: number;
   limit?: number;
   status?: ExecutionStatus;
+  /** Filter by preview executions (true = only preview, false = only non-preview, undefined = all) */
+  isPreview?: boolean;
 }

@@ -12,6 +12,7 @@ import type {
   NodeTypeCategory,
   UserIntentNodeParameters,
 } from '@chatgpt-app-builder/shared';
+import { generateUniqueSlug } from '@chatgpt-app-builder/shared';
 import { v4 as uuidv4 } from 'uuid';
 import { builtInNodeList, toNodeTypeInfo, type NodeTypeInfo } from '@chatgpt-app-builder/nodes';
 import { generateUniqueToolName } from '../utils/tool-name';
@@ -71,15 +72,82 @@ export class NodeService {
 
   /**
    * T030: Get all nodes in a flow
+   * Automatically migrates nodes without slugs.
    */
   async getNodes(flowId: string): Promise<NodeInstance[]> {
     const flow = await this.findFlow(flowId);
+    const nodes = flow.nodes ?? [];
+
+    // Migrate nodes without slugs
+    const needsMigration = nodes.some((n) => !n.slug);
+    if (needsMigration) {
+      await this.migrateNodeSlugs(flow);
+    }
+
     return flow.nodes ?? [];
+  }
+
+  /**
+   * T008: Migrate existing nodes to add slugs where missing.
+   * Also migrates UUID-based template references to slug-based references.
+   */
+  private async migrateNodeSlugs(flow: FlowEntity): Promise<void> {
+    const nodes = flow.nodes ?? [];
+    const existingSlugs = new Set<string>();
+    const idToSlug = new Map<string, string>();
+
+    // First pass: generate slugs for all nodes
+    for (const node of nodes) {
+      if (!node.slug) {
+        node.slug = generateUniqueSlug(node.name, existingSlugs);
+      }
+      existingSlugs.add(node.slug);
+      idToSlug.set(node.id, node.slug);
+    }
+
+    // Second pass: migrate UUID references to slug references in template variables
+    for (const node of nodes) {
+      if (node.type === 'ApiCall' && node.parameters) {
+        // Migrate URL
+        if (typeof node.parameters.url === 'string') {
+          node.parameters.url = this.migrateTemplateReferences(node.parameters.url, idToSlug);
+        }
+        // Migrate header values
+        const headers = node.parameters.headers as { key: string; value: string }[] | undefined;
+        if (Array.isArray(headers)) {
+          for (const header of headers) {
+            if (typeof header.value === 'string') {
+              header.value = this.migrateTemplateReferences(header.value, idToSlug);
+            }
+          }
+        }
+      }
+    }
+
+    flow.nodes = nodes;
+    await this.flowRepository.save(flow);
+  }
+
+  /**
+   * Migrate template variable references from UUIDs to slugs.
+   * Replaces {{ uuid.path }} with {{ slug.path }} where uuid matches a known node ID.
+   */
+  private migrateTemplateReferences(template: string, idToSlug: Map<string, string>): string {
+    const templatePattern = /\{\{\s*([a-f0-9-]{36})\.([^}]+)\s*\}\}/gi;
+
+    return template.replace(templatePattern, (match, nodeId, path) => {
+      const slug = idToSlug.get(nodeId);
+      if (slug) {
+        return `{{ ${slug}.${path.trim()} }}`;
+      }
+      return match; // Keep original if no slug found
+    });
   }
 
   /**
    * T026: Add a new node to a flow.
    * Validates unique name within the flow.
+   * Generates a unique slug for the node.
    * For UserIntent nodes, auto-generates a unique toolName.
    */
   async addNode(flowId: string, request: CreateNodeRequest): Promise<NodeInstance> {
@@ -91,8 +159,13 @@ export class NodeService {
       throw new BadRequestException(`Node with name "${request.name}" already exists in this flow`);
     }
 
+    // Generate unique slug for the node
+    const existingSlugs = new Set(nodes.map((n) => n.slug).filter(Boolean));
+    const slug = generateUniqueSlug(request.name, existingSlugs);
+
     const newNode: NodeInstance = {
       id: uuidv4(),
+      slug,
       type: request.type,
       name: request.name,
       position: request.position,
@@ -123,6 +196,7 @@ export class NodeService {
   /**
    * T027: Update a node (name, parameters).
    * Finds by id and merges updates.
+   * Regenerates slug when name changes.
    * For UserIntent nodes, regenerates toolName when name changes.
    */
   async updateNode(flowId: string, nodeId: string, request: UpdateNodeRequest): Promise<NodeInstance> {
@@ -136,6 +210,7 @@ export class NodeService {
 
     const node = nodes[nodeIndex];
     let nameChanged = false;
+    const oldSlug = node.slug;
 
     // Validate unique name if changing
     if (request.name !== undefined && request.name !== node.name) {
@@ -144,6 +219,12 @@ export class NodeService {
       }
       node.name = request.name;
       nameChanged = true;
+
+      // Regenerate slug when name changes
+      const existingSlugs = new Set(
+        nodes.filter((n) => n.id !== nodeId).map((n) => n.slug).filter(Boolean)
+      );
+      node.slug = generateUniqueSlug(request.name, existingSlugs);
     }
 
     // Update position if provided
@@ -167,11 +248,44 @@ export class NodeService {
       (node.parameters as UserIntentNodeParameters).toolName = toolName;
     }
 
+    // Update references in downstream nodes if slug changed
+    if (nameChanged && oldSlug && node.slug !== oldSlug) {
+      this.updateSlugReferences(nodes, oldSlug, node.slug);
+    }
+
     nodes[nodeIndex] = node;
     flow.nodes = nodes;
     await this.flowRepository.save(flow);
 
     return node;
+  }
+
+  /**
+   * Updates template variable references from old slug to new slug in all nodes.
+   * Finds patterns like {{ oldSlug.path }} and replaces with {{ newSlug.path }}.
+   */
+  private updateSlugReferences(nodes: NodeInstance[], oldSlug: string, newSlug: string): void {
+    const pattern = new RegExp(`\\{\\{\\s*${oldSlug}\\.`, 'g');
+    const replacement = `{{ ${newSlug}.`;
+
+    for (const node of nodes) {
+      if (node.type === 'ApiCall' && node.parameters) {
+        // Update URL
+        if (typeof node.parameters.url === 'string') {
+          node.parameters.url = node.parameters.url.replace(pattern, replacement);
+        }
+        // Update header values
+        const headers = node.parameters.headers as { key: string; value: string }[] | undefined;
+        if (Array.isArray(headers)) {
+          for (const header of headers) {
+            if (typeof header.value === 'string') {
+              header.value = header.value.replace(pattern, replacement);
+            }
+          }
+        }
+      }
+      // Add more node types here if they support template variables
+    }
   }
 
   /**

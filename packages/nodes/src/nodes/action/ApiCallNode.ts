@@ -125,24 +125,27 @@ export const ApiCallNode: NodeTypeDefinition = {
 
   // Output schema - the body structure is dynamic based on the API response
   // This provides the known structure; body schema can be resolved via sample request
+  // Static fields are marked with x-field-source: 'static', body is dynamic
   getOutputSchema(): JSONSchema {
     return {
       type: 'object',
       properties: {
-        type: { type: 'string', const: 'apiCall' },
-        success: { type: 'boolean', description: 'Whether the request completed' },
-        status: { type: 'integer', description: 'HTTP status code' },
-        statusText: { type: 'string', description: 'HTTP status text' },
+        type: { type: 'string', const: 'apiCall', 'x-field-source': 'static' },
+        success: { type: 'boolean', description: 'Whether the request completed', 'x-field-source': 'static' },
+        status: { type: 'integer', description: 'HTTP status code', 'x-field-source': 'static' },
+        statusText: { type: 'string', description: 'HTTP status text', 'x-field-source': 'static' },
         headers: {
           type: 'object',
           additionalProperties: { type: 'string' },
           description: 'Response headers',
+          'x-field-source': 'static',
         },
         body: {
           description: 'Response body (JSON parsed if Content-Type is application/json)',
+          'x-field-source': 'dynamic',
         },
-        error: { type: 'string', description: 'Error message if request failed' },
-        requestDuration: { type: 'number', description: 'Request duration in milliseconds' },
+        error: { type: 'string', description: 'Error message if request failed', 'x-field-source': 'static' },
+        requestDuration: { type: 'number', description: 'Request duration in milliseconds', 'x-field-source': 'static' },
       },
       required: ['type', 'success', 'requestDuration'],
     } as JSONSchema;
