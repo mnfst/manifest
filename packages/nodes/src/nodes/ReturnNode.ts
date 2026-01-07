@@ -1,3 +1,4 @@
+import type { JSONSchema } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
 
 /**
@@ -6,6 +7,9 @@ import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../t
  * Returns a text value as the output of a flow execution.
  * This is typically the final node in a flow that terminates execution
  * and provides the result back to the caller.
+ *
+ * Input: Accepts any data structure (passes through to output).
+ * Output: null (Return nodes terminate the flow, no downstream connections).
  */
 export const ReturnNode: NodeTypeDefinition = {
   name: 'Return',
@@ -21,6 +25,16 @@ export const ReturnNode: NodeTypeDefinition = {
   defaultParameters: {
     text: '',
   },
+
+  // Return nodes accept any input data structure
+  inputSchema: {
+    type: 'object',
+    additionalProperties: true,
+    description: 'Any data structure from upstream nodes',
+  } as JSONSchema,
+
+  // Return nodes have no outputs - they terminate the flow
+  outputSchema: null,
 
   async execute(context: ExecutionContext): Promise<ExecutionResult> {
     const { parameters } = context;

@@ -1,4 +1,6 @@
+import type { JSONSchema, FlowParameter } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
+import { createUserIntentOutputSchema } from '@chatgpt-app-builder/shared';
 
 /**
  * UserIntent Node (Trigger)
@@ -12,6 +14,8 @@ import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../t
  * - toolDescription: Description shown in MCP
  * - parameters: Input parameters for the tool
  * - isActive: Whether this trigger is exposed as MCP tool
+ *
+ * Output schema is dynamically generated from the parameters array.
  */
 export const UserIntentNode: NodeTypeDefinition = {
   name: 'UserIntent',
@@ -31,6 +35,15 @@ export const UserIntentNode: NodeTypeDefinition = {
     toolDescription: '',
     parameters: [],
     isActive: true,
+  },
+
+  // Trigger nodes have no inputs
+  inputSchema: null,
+
+  // Output schema is dynamic based on parameters
+  getOutputSchema(parameters: Record<string, unknown>): JSONSchema | null {
+    const flowParams = (parameters.parameters ?? []) as FlowParameter[];
+    return createUserIntentOutputSchema(flowParams);
   },
 
   async execute(context: ExecutionContext): Promise<ExecutionResult> {

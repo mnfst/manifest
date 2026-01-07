@@ -111,3 +111,35 @@ export type {
   ValidateKeyResponse,
   StoredApiKey,
 } from './types/chat.js';
+
+// Schema types (for I/O schema validation)
+export type {
+  JSONSchema,
+  JSONSchemaType,
+  CompatibilityStatus,
+  CompatibilityIssueType,
+  CompatibilityIssue,
+  SchemaCompatibilityResult,
+  SchemaState,
+  NodeSchemaInfo,
+  NodeSchemaResponse,
+  FlowSchemasResponse,
+  ValidateConnectionRequest,
+  ValidateConnectionResponse,
+  FlowValidationResponse,
+  ConnectionValidationResult,
+  NodeTypeSchemaResponse,
+  ResolveSchemaRequest,
+  ResolveSchemaResponse,
+} from './types/schema.js';
+
+// Schema validation utilities
+export {
+  checkSchemaCompatibility,
+  flowParametersToSchema,
+  createUserIntentOutputSchema,
+  validateDataAgainstSchema,
+  inferSchemaFromSample,
+  getAjv,
+  getAjvAsync,
+} from './utils/schemaValidator.js';

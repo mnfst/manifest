@@ -28,6 +28,9 @@ import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
 import { ApiCallNode } from './ApiCallNode';
 import { DeletableEdge } from './DeletableEdge';
+import { CompatibilityDetailModal } from './CompatibilityDetailModal';
+import { useSchemaValidation } from '../../hooks/useSchemaValidation';
+import { STATUS_COLORS, type ConnectionValidationState } from '../../types/schema';
 
 interface FlowDiagramProps {
   flow: Flow;
@@ -37,6 +40,8 @@ interface FlowDiagramProps {
   canDelete: boolean;
   onConnectionsChange?: (connections: Connection[]) => void;
   flowNameLookup?: Record<string, string>; // Maps flowId to flowName for CallFlow nodes
+  /** ID of a node that was recently saved (triggers re-validation of its connections) */
+  savedNodeId?: string | null;
 }
 
 /**
@@ -83,6 +88,7 @@ function FlowDiagramInner({
   canDelete,
   onConnectionsChange,
   flowNameLookup = {},
+  savedNodeId,
 }: FlowDiagramProps) {
   // Memoize flow state to prevent recalculation on every render
   const flowState = useMemo(() => getFlowState(flow), [flow.nodes]);
@@ -96,6 +102,57 @@ function FlowDiagramInner({
 
   // Memoize connections array
   const connections = useMemo(() => flow.connections ?? [], [flow.connections]);
+
+  // Schema validation hook for connection validation status
+  const { validateConnection, validateConnections, getValidationByConnection, invalidateNode } = useSchemaValidation(flow.id);
+
+  // Validate all connections when they change
+  useEffect(() => {
+    if (connections.length > 0) {
+      validateConnections(connections).catch(err => {
+        console.error('Failed to validate connections:', err);
+      });
+    }
+  }, [connections, validateConnections]);
+
+  // Re-validate connections when a node is saved (parameters may have changed)
+  useEffect(() => {
+    if (savedNodeId) {
+      // Invalidate cache for this node
+      invalidateNode(savedNodeId);
+
+      // Find and re-validate connections involving this node
+      const affectedConnections = connections.filter(
+        c => c.sourceNodeId === savedNodeId || c.targetNodeId === savedNodeId
+      );
+
+      if (affectedConnections.length > 0) {
+        validateConnections(affectedConnections).catch(err => {
+          console.error('Failed to re-validate connections after node save:', err);
+        });
+      }
+    }
+  }, [savedNodeId, connections, invalidateNode, validateConnections]);
+
+  // State for compatibility detail modal
+  const [selectedConnection, setSelectedConnection] = useState<{
+    connection: Connection;
+    validation: ConnectionValidationState;
+    sourceName?: string;
+    targetName?: string;
+  } | null>(null);
+
+  // Handler for showing connection details
+  const handleShowConnectionDetails = useCallback((connection: Connection, validation: ConnectionValidationState) => {
+    const sourceNode = nodeMap.get(connection.sourceNodeId);
+    const targetNode = nodeMap.get(connection.targetNodeId);
+    setSelectedConnection({
+      connection,
+      validation,
+      sourceName: sourceNode?.name,
+      targetName: targetNode?.name,
+    });
+  }, [nodeMap]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -198,6 +255,12 @@ function FlowDiagramInner({
 
     try {
       const newConnection = await api.createConnection(flow.id, request);
+
+      // Validate the new connection for schema compatibility
+      validateConnection(connection.source, connection.target).catch(err => {
+        console.error('Failed to validate connection:', err);
+      });
+
       // Notify parent of the change
       if (onConnectionsChange) {
         const updatedConnections = [...connections, newConnection];
@@ -206,7 +269,7 @@ function FlowDiagramInner({
     } catch (err) {
       console.error('Failed to create connection:', err);
     }
-  }, [flow.id, connections, onConnectionsChange]);
+  }, [flow.id, connections, onConnectionsChange, validateConnection]);
 
   // Handle connection deletion (called from DeletableEdge)
   const handleConnectionDelete = useCallback((connectionId: string) => {
@@ -389,18 +452,27 @@ function FlowDiagramInner({
 
       if (!sourceNode || !targetNode) return;
 
-      // Determine edge color based on source type
-      let strokeColor = '#60a5fa'; // Default blue
-      if (sourceNode.type === 'UserIntent') {
-        strokeColor = '#60a5fa'; // Blue for user intent
-      } else if (sourceNode.type === 'Interface') {
-        strokeColor = '#60a5fa'; // Blue for interface
-      } else if (sourceNode.type === 'Return') {
-        strokeColor = '#22c55e'; // Green for return
-      } else if (sourceNode.type === 'CallFlow') {
-        strokeColor = '#a855f7'; // Purple for call flow
-      } else if (sourceNode.type === 'ApiCall') {
-        strokeColor = '#f97316'; // Orange for API call
+      // Get validation status for this connection
+      const validation = getValidationByConnection(connection);
+
+      // Determine edge color based on validation status (if available) or source type
+      let strokeColor: string;
+      if (validation) {
+        strokeColor = STATUS_COLORS[validation.status];
+      } else {
+        // Fallback to source type coloring when validation not available
+        strokeColor = '#60a5fa'; // Default blue
+        if (sourceNode.type === 'UserIntent') {
+          strokeColor = '#60a5fa'; // Blue for user intent
+        } else if (sourceNode.type === 'Interface') {
+          strokeColor = '#60a5fa'; // Blue for interface
+        } else if (sourceNode.type === 'Return') {
+          strokeColor = '#22c55e'; // Green for return
+        } else if (sourceNode.type === 'CallFlow') {
+          strokeColor = '#a855f7'; // Purple for call flow
+        } else if (sourceNode.type === 'ApiCall') {
+          strokeColor = '#f97316'; // Orange for API call
+        }
       }
 
       edgeList.push({
@@ -420,14 +492,17 @@ function FlowDiagramInner({
           flowId: flow.id,
           connection,
           onDelete: handleConnectionDelete,
+          validation,
+          onShowDetails: handleShowConnectionDetails,
         },
       });
     });
 
     return edgeList;
-  }, [flow.id, nodeMap, flowState.hasUserIntentNodes, connections, handleConnectionDelete]);
+  }, [flow.id, nodeMap, flowState.hasUserIntentNodes, connections, handleConnectionDelete, getValidationByConnection, handleShowConnectionDetails]);
 
   return (
+    <>
     <div ref={containerRef} className="w-full h-full bg-muted/30">
       {dimensions.width > 0 && dimensions.height > 0 && (
         <ReactFlow
@@ -455,6 +530,19 @@ function FlowDiagramInner({
         </ReactFlow>
       )}
     </div>
+
+    {/* Compatibility Detail Modal */}
+    {selectedConnection && (
+      <CompatibilityDetailModal
+        isOpen={true}
+        onClose={() => setSelectedConnection(null)}
+        connection={selectedConnection.connection}
+        validation={selectedConnection.validation}
+        sourceName={selectedConnection.sourceName}
+        targetName={selectedConnection.targetName}
+      />
+    )}
+    </>
   );
 }
 

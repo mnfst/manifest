@@ -18,6 +18,7 @@ import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { FlowDiagram } from '../components/flow/FlowDiagram';
 import { NodeEditModal } from '../components/flow/NodeEditModal';
 import { NodeLibrary } from '../components/flow/NodeLibrary';
+import { FlowValidationSummary } from '../components/flow/FlowValidationSummary';
 import { Tabs } from '../components/common/Tabs';
 import { ExecutionList } from '../components/execution/ExecutionList';
 import { ExecutionDetail } from '../components/execution/ExecutionDetail';
@@ -77,6 +78,9 @@ function FlowDetail() {
 
   // Chat preview state (persists across tab switches)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+
+  // Track recently saved node for schema re-validation
+  const [savedNodeId, setSavedNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -261,23 +265,27 @@ function FlowDetail() {
     setNodeEditError(null);
 
     try {
+      let savedId: string | null = null;
+
       if (nodeToEdit) {
         // Edit mode - update existing node
         await api.updateNode(flowId, nodeToEdit.id, {
           name: data.name,
           parameters: data.parameters,
         });
+        savedId = nodeToEdit.id;
       } else if (nodeTypeToCreate) {
         // Create mode - create new node
         const nodes = flow.nodes ?? [];
         const xOffset = nodes.length * 280 + 330;
 
-        await api.createNode(flowId, {
+        const newNode = await api.createNode(flowId, {
           type: nodeTypeToCreate,
           name: data.name,
           position: { x: xOffset, y: 100 },
           parameters: data.parameters,
         });
+        savedId = newNode.id;
       }
 
       // Refresh flow data
@@ -286,6 +294,13 @@ function FlowDetail() {
       setShowNodeEditModal(false);
       setNodeToEdit(null);
       setNodeTypeToCreate(null);
+
+      // Trigger re-validation for the saved node
+      if (savedId) {
+        setSavedNodeId(savedId);
+        // Clear after a short delay to allow effect to run
+        setTimeout(() => setSavedNodeId(null), 100);
+      }
     } catch (err) {
       if (err instanceof ApiClientError) {
         setNodeEditError(err.message);
@@ -467,7 +482,17 @@ function FlowDetail() {
                   canDelete={canDeleteNodes}
                   onConnectionsChange={handleConnectionsChange}
                   flowNameLookup={flowNameLookup}
+                  savedNodeId={savedNodeId}
                 />
+                {/* Flow Validation Summary - positioned at bottom-right of canvas */}
+                {flowId && (
+                  <div className="absolute bottom-4 right-4 w-80 z-10">
+                    <FlowValidationSummary
+                      flowId={flowId}
+                      nodeNames={new Map(nodes.map(n => [n.id, n.name]))}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

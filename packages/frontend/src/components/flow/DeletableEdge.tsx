@@ -5,20 +5,58 @@ import {
   getBezierPath,
   type EdgeProps,
 } from '@xyflow/react';
-import { Trash2 } from 'lucide-react';
-import type { Connection } from '@chatgpt-app-builder/shared';
+import { Trash2, AlertTriangle, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import type { Connection, CompatibilityStatus } from '@chatgpt-app-builder/shared';
 import { api } from '../../lib/api';
+import { STATUS_COLORS, getStatusLabel, type ConnectionValidationState } from '../../types/schema';
 
 export interface DeletableEdgeData {
   flowId: string;
   connection: Connection;
   onDelete: (connectionId: string) => void;
+  validation?: ConnectionValidationState;
+  onShowDetails?: (connection: Connection, validation: ConnectionValidationState) => void;
+}
+
+/**
+ * Get the status icon component for a validation status.
+ */
+function getStatusIcon(status: CompatibilityStatus) {
+  switch (status) {
+    case 'compatible':
+      return <CheckCircle className="w-3 h-3" />;
+    case 'warning':
+      return <AlertTriangle className="w-3 h-3" />;
+    case 'error':
+      return <AlertCircle className="w-3 h-3" />;
+    case 'unknown':
+    default:
+      return <HelpCircle className="w-3 h-3" />;
+  }
+}
+
+/**
+ * Get the background color class for validation status badge.
+ */
+function getStatusBgClass(status: CompatibilityStatus): string {
+  switch (status) {
+    case 'compatible':
+      return 'bg-green-500';
+    case 'warning':
+      return 'bg-yellow-500';
+    case 'error':
+      return 'bg-red-500';
+    case 'unknown':
+    default:
+      return 'bg-gray-500';
+  }
 }
 
 /**
  * Custom edge component with trash icon on hover for deleting connections.
  * Shows the trash icon at the midpoint of the edge when hovered.
  * Clicking the icon immediately deletes the connection without confirmation.
+ * Also displays validation status with colored edges and tooltip.
  */
 export function DeletableEdge({
   id,
@@ -36,6 +74,12 @@ export function DeletableEdge({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const edgeData = data as DeletableEdgeData | undefined;
+  const validation = edgeData?.validation;
+
+  // Determine edge color based on validation status
+  const edgeColor = validation
+    ? STATUS_COLORS[validation.status]
+    : (style?.stroke as string) || '#60a5fa'; // Default to original style or blue
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -61,6 +105,11 @@ export function DeletableEdge({
     }
   }, [edgeData, isDeleting]);
 
+  // Build tooltip text
+  const tooltipText = validation
+    ? `${getStatusLabel(validation.status)}${validation.summary ? `: ${validation.summary}` : ''}`
+    : 'Schema not validated';
+
   return (
     <>
       {/* Invisible wider path for easier hover detection */}
@@ -74,18 +123,20 @@ export function DeletableEdge({
         style={{ cursor: 'pointer' }}
       />
 
-      {/* Visible edge */}
+      {/* Visible edge with validation-based color */}
       <BaseEdge
         id={id}
         path={edgePath}
         style={{
           ...style,
+          stroke: edgeColor,
+          strokeWidth: validation ? 2.5 : (style?.strokeWidth as number) || 2,
           opacity: isDeleting ? 0.5 : 1,
         }}
         markerEnd={markerEnd}
       />
 
-      {/* Delete button that appears on hover */}
+      {/* Controls that appear on hover */}
       <EdgeLabelRenderer>
         <div
           style={{
@@ -95,10 +146,28 @@ export function DeletableEdge({
             opacity: isHovered ? 1 : 0,
             transition: 'opacity 0.15s ease-in-out',
           }}
-          className="nodrag nopan"
+          className="nodrag nopan flex items-center gap-1"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
+          {/* Validation status badge - clickable to show details */}
+          {validation && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (edgeData?.onShowDetails && edgeData.connection) {
+                  edgeData.onShowDetails(edgeData.connection, validation);
+                }
+              }}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-white text-xs shadow-md hover:opacity-90 transition-opacity ${getStatusBgClass(validation.status)}`}
+              title={`${tooltipText}${edgeData?.onShowDetails ? ' (Click for details)' : ''}`}
+            >
+              {getStatusIcon(validation.status)}
+              <span>{getStatusLabel(validation.status)}</span>
+            </button>
+          )}
+
+          {/* Delete button */}
           <button
             onClick={handleDelete}
             disabled={isDeleting}
