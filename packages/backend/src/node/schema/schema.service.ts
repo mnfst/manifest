@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from '../../flow/flow.entity';
@@ -9,13 +9,19 @@ import {
 import {
   checkSchemaCompatibility,
   createUserIntentOutputSchema,
+  inferSchemaFromSample,
   type JSONSchema,
   type NodeSchemaInfo,
   type SchemaState,
   type ValidateConnectionRequest,
   type ValidateConnectionResponse,
+  type ResolveSchemaRequest,
+  type ResolveSchemaResponse,
+  type FlowValidationResponse,
+  type ConnectionValidationResult,
   type NodeInstance,
   type UserIntentNodeParameters,
+  type ApiCallNodeParameters,
   type FlowParameter,
 } from '@chatgpt-app-builder/shared';
 
@@ -89,8 +95,202 @@ export class SchemaService {
   }
 
   // ==========================================================================
+  // Dynamic Schema Resolution
+  // ==========================================================================
+
+  /**
+   * Resolve dynamic schema for a node by inferring from sample data.
+   * For ApiCall nodes: infers output schema from a sample API response.
+   * For UserIntent nodes: computes output schema from parameters (already handled in resolveNodeSchema).
+   */
+  async resolveSchema(
+    flowId: string,
+    nodeId: string,
+    request: ResolveSchemaRequest
+  ): Promise<ResolveSchemaResponse> {
+    const flow = await this.findFlow(flowId);
+    const nodes = flow.nodes ?? [];
+    const nodeIndex = nodes.findIndex((n) => n.id === nodeId);
+
+    if (nodeIndex === -1) {
+      throw new NotFoundException(
+        `Node with id ${nodeId} not found in flow ${flowId}`
+      );
+    }
+
+    const node = nodes[nodeIndex];
+
+    // Handle ApiCall nodes - infer schema from sample response
+    if (node.type === 'ApiCall') {
+      if (!request.sampleResponse) {
+        throw new BadRequestException(
+          'sampleResponse is required for ApiCall schema resolution'
+        );
+      }
+
+      try {
+        // Parse sample response if it's a string
+        let sampleData: unknown;
+        if (typeof request.sampleResponse === 'string') {
+          try {
+            sampleData = JSON.parse(request.sampleResponse);
+          } catch {
+            throw new BadRequestException(
+              'sampleResponse must be valid JSON'
+            );
+          }
+        } else {
+          sampleData = request.sampleResponse;
+        }
+
+        // Infer schema from sample
+        const outputSchema = inferSchemaFromSample(sampleData);
+
+        // Store resolved schema in node parameters
+        const params = (node.parameters ?? {}) as ApiCallNodeParameters;
+        params.resolvedOutputSchema = outputSchema;
+        node.parameters = params;
+
+        // Save updated flow
+        flow.nodes = nodes;
+        await this.flowRepository.save(flow);
+
+        return {
+          nodeId,
+          resolved: true,
+          outputSchema,
+        };
+      } catch (error) {
+        if (error instanceof BadRequestException) {
+          throw error;
+        }
+        return {
+          nodeId,
+          resolved: false,
+          outputSchema: null,
+          error: error instanceof Error ? error.message : 'Failed to resolve schema',
+        };
+      }
+    }
+
+    // Handle UserIntent nodes - compute from parameters
+    if (node.type === 'UserIntent') {
+      const params = node.parameters as UserIntentNodeParameters;
+      const flowParams = (params.parameters ?? []) as FlowParameter[];
+      const outputSchema = createUserIntentOutputSchema(flowParams);
+
+      return {
+        nodeId,
+        resolved: true,
+        outputSchema,
+      };
+    }
+
+    // For other node types, return the static schema
+    const schemaInfo = this.resolveNodeSchema(node);
+    return {
+      nodeId,
+      resolved: schemaInfo.outputState === 'defined',
+      outputSchema: schemaInfo.outputSchema,
+    };
+  }
+
+  // ==========================================================================
   // Connection Validation
   // ==========================================================================
+
+  /**
+   * Validate all connections in a flow.
+   * Returns summary and individual connection results.
+   */
+  async validateFlowConnections(flowId: string): Promise<FlowValidationResponse> {
+    const flow = await this.findFlow(flowId);
+    const nodes = flow.nodes ?? [];
+    const connections = flow.connections ?? [];
+
+    // Build node map for efficient lookup
+    const nodeMap = new Map<string, NodeInstance>();
+    nodes.forEach((node) => nodeMap.set(node.id, node));
+
+    // Build schema map for all nodes
+    const schemaMap = new Map<string, NodeSchemaInfo>();
+    nodes.forEach((node) => {
+      schemaMap.set(node.id, this.resolveNodeSchema(node));
+    });
+
+    // Validate each connection
+    const results: ConnectionValidationResult[] = [];
+    let compatibleCount = 0;
+    let warningsCount = 0;
+    let errorsCount = 0;
+    let unknownCount = 0;
+
+    for (const connection of connections) {
+      const sourceSchema = schemaMap.get(connection.sourceNodeId);
+      const targetSchema = schemaMap.get(connection.targetNodeId);
+
+      if (!sourceSchema || !targetSchema) {
+        results.push({
+          connectionId: connection.id,
+          sourceNodeId: connection.sourceNodeId,
+          targetNodeId: connection.targetNodeId,
+          status: 'unknown',
+          issues: [],
+        });
+        unknownCount++;
+        continue;
+      }
+
+      const result = checkSchemaCompatibility(
+        sourceSchema.outputSchema,
+        targetSchema.inputSchema
+      );
+
+      results.push({
+        connectionId: connection.id,
+        sourceNodeId: connection.sourceNodeId,
+        targetNodeId: connection.targetNodeId,
+        status: result.status,
+        issues: result.issues,
+      });
+
+      switch (result.status) {
+        case 'compatible':
+          compatibleCount++;
+          break;
+        case 'warning':
+          warningsCount++;
+          break;
+        case 'error':
+          errorsCount++;
+          break;
+        case 'unknown':
+          unknownCount++;
+          break;
+      }
+    }
+
+    // Determine overall status
+    let overallStatus: 'valid' | 'warnings' | 'errors' = 'valid';
+    if (errorsCount > 0) {
+      overallStatus = 'errors';
+    } else if (warningsCount > 0) {
+      overallStatus = 'warnings';
+    }
+
+    return {
+      flowId,
+      status: overallStatus,
+      summary: {
+        total: connections.length,
+        compatible: compatibleCount,
+        warnings: warningsCount,
+        errors: errorsCount,
+        unknown: unknownCount,
+      },
+      connections: results,
+    };
+  }
 
   /**
    * Validate a connection between two nodes.
@@ -184,6 +384,18 @@ export class SchemaService {
       const flowParams = (params.parameters ?? []) as FlowParameter[];
       outputSchema = createUserIntentOutputSchema(flowParams);
       outputState = 'defined';
+    }
+
+    // Special handling for ApiCall nodes with resolved schema
+    if (node.type === 'ApiCall') {
+      const params = node.parameters as ApiCallNodeParameters;
+      if (params.resolvedOutputSchema) {
+        outputSchema = params.resolvedOutputSchema;
+        outputState = 'defined';
+      } else {
+        // No resolved schema yet - mark as pending (can be discovered)
+        outputState = 'pending';
+      }
     }
 
     return {

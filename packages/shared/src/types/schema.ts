@@ -243,11 +243,14 @@ export interface NodeTypeSchemaResponse {
  * Request to resolve dynamic schema.
  */
 export interface ResolveSchemaRequest {
+  /** Sample request configuration (for making the actual API call) */
   sampleRequest?: {
     url?: string;
     method?: string;
     headers?: Record<string, string>;
   };
+  /** Sample response data to infer schema from (JSON string or object) */
+  sampleResponse?: unknown;
 }
 
 /**

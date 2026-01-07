@@ -14,7 +14,8 @@ import type {
   FlowParameter,
   ParameterType,
 } from '@chatgpt-app-builder/shared';
-import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench } from 'lucide-react';
+import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code } from 'lucide-react';
+import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
 
 interface NodeEditModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ interface NodeEditModalProps {
   isLoading?: boolean;
   error?: string | null;
 }
+
+type TabType = 'config' | 'schema';
 
 const LAYOUT_OPTIONS: { value: LayoutTemplate; label: string }[] = [
   { value: 'table', label: 'Table' },
@@ -66,6 +69,9 @@ export function NodeEditModal({
   const isEditMode = node !== null;
   const effectiveNodeType = node?.type ?? nodeType;
 
+  // Tab state - only show schema tab in edit mode
+  const [activeTab, setActiveTab] = useState<TabType>('config');
+
   // Common fields
   const [name, setName] = useState('');
 
@@ -95,6 +101,9 @@ export function NodeEditModal({
   // Initialize form when modal opens or node changes
   useEffect(() => {
     if (!isOpen) return;
+
+    // Reset to config tab when modal opens
+    setActiveTab('config');
 
     if (node) {
       // Edit mode - populate from existing node
@@ -290,8 +299,48 @@ export function NodeEditModal({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+        {/* Tab Navigation (only show in edit mode) */}
+        {isEditMode && (
+          <div className="flex border-b px-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab('config')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'config'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Configuration
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('schema')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+                activeTab === 'schema'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Code className="w-4 h-4" />
+              Schema
+            </button>
+          </div>
+        )}
+
+        {/* Schema Tab Content */}
+        {isEditMode && activeTab === 'schema' && node && (
+          <div className="flex-1 overflow-y-auto p-6">
+            <NodeSchemaPanel
+              flowId={currentFlowId}
+              nodeId={node.id}
+              nodeType={node.type}
+            />
+          </div>
+        )}
+
+        {/* Form (Config Tab) */}
+        <form onSubmit={handleSubmit} className={`flex-1 overflow-y-auto ${isEditMode && activeTab !== 'config' ? 'hidden' : ''}`}>
           <div className="p-6 space-y-4">
             {/* Error message */}
             {error && (

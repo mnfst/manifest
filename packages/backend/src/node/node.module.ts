@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NodeController } from './node.controller';
 import { NodeTypesController } from './node-types.controller';
+import { SchemaController } from './schema/schema.controller';
 import { NodeService } from './node.service';
 import { SchemaService } from './schema/schema.service';
 import { FlowEntity } from '../flow/flow.entity';
@@ -13,7 +14,7 @@ import { FlowEntity } from '../flow/flow.entity';
  */
 @Module({
   imports: [TypeOrmModule.forFeature([FlowEntity])],
-  controllers: [NodeController, NodeTypesController],
+  controllers: [NodeController, NodeTypesController, SchemaController],
   providers: [NodeService, SchemaService],
   exports: [NodeService, SchemaService],
 })

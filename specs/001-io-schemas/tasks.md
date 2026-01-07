@@ -72,16 +72,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T022 [US1] Create SchemaController with GET /flows/:flowId/nodes/:nodeId/schema endpoint in packages/backend/src/node/schema/schema.controller.ts
-- [ ] T023 [US1] Implement GET /node-types/:nodeType/schema endpoint in packages/backend/src/node/schema/schema.controller.ts
-- [ ] T024 [US1] Register SchemaController in NodeModule in packages/backend/src/node/node.module.ts
-- [ ] T025 [P] [US1] Create SchemaViewer component (tree view of JSON Schema) in packages/frontend/src/components/node/SchemaViewer.tsx
-- [ ] T026 [P] [US1] Create schema utility functions (formatSchemaForDisplay, getFieldSummary) in packages/frontend/src/lib/schemaUtils.ts
-- [ ] T027 [US1] Create NodeSchemaPanel component (displays input/output schemas) in packages/frontend/src/components/node/NodeSchemaPanel.tsx
-- [ ] T028 [US1] Add API client method for fetching node schema in packages/frontend/src/lib/api.ts
-- [ ] T029 [US1] Integrate NodeSchemaPanel into node details/configuration panel in packages/frontend/src/components/flow/ (existing node config component)
-- [ ] T030 [US1] Handle null schemas for trigger nodes (no input) and return nodes (no output) in NodeSchemaPanel
-- [ ] T031 [US1] Display dynamic parameter fields from UserIntent nodes in schema view in NodeSchemaPanel
+- [x] T022 [US1] Create SchemaController with GET /flows/:flowId/nodes/:nodeId/schema endpoint in packages/backend/src/node/schema/schema.controller.ts
+- [x] T023 [US1] Implement GET /node-types/:nodeType/schema endpoint in packages/backend/src/node/schema/schema.controller.ts
+- [x] T024 [US1] Register SchemaController in NodeModule in packages/backend/src/node/node.module.ts
+- [x] T025 [P] [US1] Create SchemaViewer component (tree view of JSON Schema) in packages/frontend/src/components/node/SchemaViewer.tsx
+- [x] T026 [P] [US1] Create schema utility functions (formatSchemaForDisplay, getFieldSummary) in packages/frontend/src/lib/schemaUtils.ts
+- [x] T027 [US1] Create NodeSchemaPanel component (displays input/output schemas) in packages/frontend/src/components/node/NodeSchemaPanel.tsx
+- [x] T028 [US1] Add API client method for fetching node schema in packages/frontend/src/lib/api.ts
+- [x] T029 [US1] Integrate NodeSchemaPanel into node details/configuration panel in packages/frontend/src/components/flow/ (existing node config component)
+- [x] T030 [US1] Handle null schemas for trigger nodes (no input) and return nodes (no output) in NodeSchemaPanel
+- [x] T031 [US1] Display dynamic parameter fields from UserIntent nodes in schema view in NodeSchemaPanel
 
 **Checkpoint**: User Story 1 complete - users can view schemas for any node including dynamic UserIntent parameters
 
@@ -95,14 +95,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Create ConnectionValidationState type in packages/frontend/src/types/schema.ts
-- [ ] T033 [US2] Create CustomEdge component with color based on validation status in packages/frontend/src/components/flow/CustomEdge.tsx
-- [ ] T034 [US2] Define status colors (green=compatible, yellow=warning, red=error, gray=unknown) in packages/frontend/src/components/flow/CustomEdge.tsx
-- [ ] T035 [US2] Create useSchemaValidation hook for caching validation results in packages/frontend/src/hooks/useSchemaValidation.ts
-- [ ] T036 [US2] Add API client method for single connection validation (POST /flows/:flowId/connections/validate) in packages/frontend/src/lib/api.ts
-- [ ] T037 [US2] Register CustomEdge in edgeTypes prop of ReactFlow in packages/frontend/src/components/flow/FlowCanvas.tsx
-- [ ] T038 [US2] Update edge data with validation status on connection create in packages/frontend/src/components/flow/FlowCanvas.tsx
-- [ ] T039 [US2] Add tooltip on edge hover showing compatibility summary in packages/frontend/src/components/flow/CustomEdge.tsx
+- [x] T032 [US2] Create ConnectionValidationState type in packages/frontend/src/types/schema.ts
+- [x] T033 [US2] Create CustomEdge component with color based on validation status in packages/frontend/src/components/flow/CustomEdge.tsx
+- [x] T034 [US2] Define status colors (green=compatible, yellow=warning, red=error, gray=unknown) in packages/frontend/src/components/flow/CustomEdge.tsx
+- [x] T035 [US2] Create useSchemaValidation hook for caching validation results in packages/frontend/src/hooks/useSchemaValidation.ts
+- [x] T036 [US2] Add API client method for single connection validation (POST /flows/:flowId/connections/validate) in packages/frontend/src/lib/api.ts
+- [x] T037 [US2] Register CustomEdge in edgeTypes prop of ReactFlow in packages/frontend/src/components/flow/FlowCanvas.tsx
+- [x] T038 [US2] Update edge data with validation status on connection create in packages/frontend/src/components/flow/FlowCanvas.tsx
+- [x] T039 [US2] Add tooltip on edge hover showing compatibility summary in packages/frontend/src/components/flow/CustomEdge.tsx
 
 **Checkpoint**: User Story 2 complete - connection lines show visual compatibility feedback
 
@@ -116,14 +116,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T040 [US3] Implement POST /flows/:flowId/connections/validate endpoint in packages/backend/src/node/schema/schema.controller.ts
-- [ ] T041 [US3] Extend POST /flows/:flowId/connections response with validation result in packages/backend/src/node/node.controller.ts
-- [ ] T042 [US3] Update NodeService.createConnection to include validation in packages/backend/src/node/node.service.ts
-- [ ] T043 [US3] Create ConnectionValidator component (shows error/warning panel) in packages/frontend/src/components/flow/ConnectionValidator.tsx
-- [ ] T044 [US3] Integrate validation check in onConnect callback in packages/frontend/src/components/flow/FlowCanvas.tsx
-- [ ] T045 [US3] Show validation feedback before creating connection in packages/frontend/src/components/flow/FlowCanvas.tsx
-- [ ] T046 [US3] Display error messages with field-level details in ConnectionValidator in packages/frontend/src/components/flow/ConnectionValidator.tsx
-- [ ] T047 [US3] Handle warning state (allow connection but show warning indicator) in packages/frontend/src/components/flow/FlowCanvas.tsx
+- [x] T040 [US3] Implement POST /flows/:flowId/connections/validate endpoint in packages/backend/src/node/schema/schema.controller.ts
+- [x] T041 [US3] Extend POST /flows/:flowId/connections response with validation result in packages/backend/src/node/node.controller.ts
+- [x] T042 [US3] Update NodeService.createConnection to include validation in packages/backend/src/node/node.service.ts
+- [x] T043 [US3] Create ConnectionValidator component (shows error/warning panel) in packages/frontend/src/components/flow/ConnectionValidator.tsx
+- [x] T044 [US3] Integrate validation check in onConnect callback in packages/frontend/src/components/flow/FlowCanvas.tsx
+- [x] T045 [US3] Show validation feedback before creating connection in packages/frontend/src/components/flow/FlowCanvas.tsx
+- [x] T046 [US3] Display error messages with field-level details in ConnectionValidator in packages/frontend/src/components/flow/ConnectionValidator.tsx
+- [x] T047 [US3] Handle warning state (allow connection but show warning indicator) in packages/frontend/src/components/flow/FlowCanvas.tsx
 
 **Checkpoint**: User Story 3 complete - users get immediate validation feedback when connecting nodes
 
@@ -137,12 +137,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T048 [US4] Extend ConnectionValidator to show field-by-field comparison in packages/frontend/src/components/flow/ConnectionValidator.tsx
-- [ ] T049 [US4] Display source schema and target schema side-by-side in ConnectionValidator
-- [ ] T050 [US4] Highlight compatible, warning, and error fields with colors in ConnectionValidator
-- [ ] T051 [US4] Show detailed issue messages (type mismatch explanations, missing field info) in ConnectionValidator
-- [ ] T052 [US4] Add click handler on edge to open detailed compatibility panel in packages/frontend/src/components/flow/FlowCanvas.tsx
-- [ ] T053 [US4] Create CompatibilityDetailModal component for full-screen comparison in packages/frontend/src/components/flow/CompatibilityDetailModal.tsx
+- [x] T048 [US4] Extend ConnectionValidator to show field-by-field comparison in packages/frontend/src/components/flow/ConnectionValidator.tsx
+- [x] T049 [US4] Display source schema and target schema side-by-side in ConnectionValidator
+- [x] T050 [US4] Highlight compatible, warning, and error fields with colors in ConnectionValidator
+- [x] T051 [US4] Show detailed issue messages (type mismatch explanations, missing field info) in ConnectionValidator
+- [x] T052 [US4] Add click handler on edge to open detailed compatibility panel in packages/frontend/src/components/flow/FlowCanvas.tsx
+- [x] T053 [US4] Create CompatibilityDetailModal component for full-screen comparison in packages/frontend/src/components/flow/CompatibilityDetailModal.tsx
 
 **Checkpoint**: User Story 4 complete - users can inspect detailed compatibility information
 
@@ -156,16 +156,16 @@
 
 ### Implementation for User Story 5
 
-- [ ] T054 [US5] Implement POST /flows/:flowId/nodes/:nodeId/schema/resolve endpoint in packages/backend/src/node/schema/schema.controller.ts
-- [ ] T055 [US5] Create resolveSchema method in SchemaService for dynamic schema resolution in packages/backend/src/node/schema/schema.service.ts
-- [ ] T056 [US5] Implement schema inference from API response sample for ApiCallNode in packages/backend/src/node/schema/schema.service.ts
-- [ ] T057 [US5] Implement schema computation from FlowParameter[] for UserIntentNode in packages/backend/src/node/schema/schema.service.ts
-- [ ] T058 [US5] Add "Discover Schema" button to API Call node configuration in packages/frontend/src/components/node/ (ApiCall config component)
-- [ ] T059 [US5] Add API client method for schema resolution in packages/frontend/src/lib/api.ts
-- [ ] T060 [US5] Update node schema display after resolution completes in packages/frontend/src/components/node/NodeSchemaPanel.tsx
-- [ ] T061 [US5] Handle pending state while schema resolution is in progress in NodeSchemaPanel
-- [ ] T062 [US5] Re-validate affected connections when UserIntent parameters change in packages/frontend/src/hooks/useSchemaValidation.ts
-- [ ] T063 [US5] Re-validate affected connections after API schema resolution in packages/frontend/src/hooks/useSchemaValidation.ts
+- [x] T054 [US5] Implement POST /flows/:flowId/nodes/:nodeId/schema/resolve endpoint in packages/backend/src/node/schema/schema.controller.ts
+- [x] T055 [US5] Create resolveSchema method in SchemaService for dynamic schema resolution in packages/backend/src/node/schema/schema.service.ts
+- [x] T056 [US5] Implement schema inference from API response sample for ApiCallNode in packages/backend/src/node/schema/schema.service.ts
+- [x] T057 [US5] Implement schema computation from FlowParameter[] for UserIntentNode in packages/backend/src/node/schema/schema.service.ts
+- [x] T058 [US5] Add "Discover Schema" button to API Call node configuration in packages/frontend/src/components/node/ (ApiCall config component)
+- [x] T059 [US5] Add API client method for schema resolution in packages/frontend/src/lib/api.ts
+- [x] T060 [US5] Update node schema display after resolution completes in packages/frontend/src/components/node/NodeSchemaPanel.tsx
+- [x] T061 [US5] Handle pending state while schema resolution is in progress in NodeSchemaPanel
+- [x] T062 [US5] Re-validate affected connections when UserIntent parameters change in packages/frontend/src/hooks/useSchemaValidation.ts
+- [x] T063 [US5] Re-validate affected connections after API schema resolution in packages/frontend/src/hooks/useSchemaValidation.ts
 
 **Checkpoint**: User Story 5 complete - dynamic schemas (UserIntent parameters, API responses) can be resolved
 
@@ -179,14 +179,14 @@
 
 ### Implementation for User Story 6
 
-- [ ] T064 [US6] Implement GET /flows/:flowId/connections/validate endpoint in packages/backend/src/node/schema/schema.controller.ts
-- [ ] T065 [US6] Implement GET /flows/:flowId/schemas endpoint in packages/backend/src/node/schema/schema.controller.ts
-- [ ] T066 [US6] Add API client method for flow-level validation in packages/frontend/src/lib/api.ts
-- [ ] T067 [US6] Create FlowValidationSummary component (shows overall status) in packages/frontend/src/components/flow/FlowValidationSummary.tsx
-- [ ] T068 [US6] Display validation counts (compatible, warnings, errors, unknown) in FlowValidationSummary
-- [ ] T069 [US6] Add navigation to each connection with issues from summary in FlowValidationSummary
-- [ ] T070 [US6] Integrate FlowValidationSummary into flow editor header or sidebar in packages/frontend/src/pages/ (flow editor page)
-- [ ] T071 [US6] Add refresh button to re-validate all connections in FlowValidationSummary
+- [x] T064 [US6] Implement GET /flows/:flowId/connections/validate endpoint in packages/backend/src/node/schema/schema.controller.ts
+- [x] T065 [US6] Implement GET /flows/:flowId/schemas endpoint in packages/backend/src/node/schema/schema.controller.ts
+- [x] T066 [US6] Add API client method for flow-level validation in packages/frontend/src/lib/api.ts
+- [x] T067 [US6] Create FlowValidationSummary component (shows overall status) in packages/frontend/src/components/flow/FlowValidationSummary.tsx
+- [x] T068 [US6] Display validation counts (compatible, warnings, errors, unknown) in FlowValidationSummary
+- [x] T069 [US6] Add navigation to each connection with issues from summary in FlowValidationSummary
+- [x] T070 [US6] Integrate FlowValidationSummary into flow editor header or sidebar in packages/frontend/src/pages/ (flow editor page)
+- [x] T071 [US6] Add refresh button to re-validate all connections in FlowValidationSummary
 
 **Checkpoint**: User Story 6 complete - users can see flow-level validation status
 
@@ -196,13 +196,13 @@
 
 **Purpose**: Edge cases, re-validation, and cross-cutting improvements
 
-- [ ] T072 Implement re-validation when node parameters change in packages/frontend/src/hooks/useSchemaValidation.ts
-- [ ] T073 Handle unknown schema state gracefully (gray color, "Unknown" label) in all components
-- [ ] T074 Add error boundaries for schema parsing failures in SchemaViewer and NodeSchemaPanel
-- [ ] T075 Implement schema caching to avoid redundant API calls in useSchemaValidation
-- [ ] T076 Handle circular $ref in JSON Schema display (depth limit) in SchemaViewer
-- [ ] T077 Add loading states for all async schema operations in NodeSchemaPanel and ConnectionValidator
-- [ ] T078 Run quickstart.md validation to verify end-to-end flow
+- [x] T072 Implement re-validation when node parameters change in packages/frontend/src/hooks/useSchemaValidation.ts
+- [x] T073 Handle unknown schema state gracefully (gray color, "Unknown" label) in all components
+- [x] T074 Add error boundaries for schema parsing failures in SchemaViewer and NodeSchemaPanel
+- [x] T075 Implement schema caching to avoid redundant API calls in useSchemaValidation
+- [x] T076 Handle circular $ref in JSON Schema display (depth limit) in SchemaViewer
+- [x] T077 Add loading states for all async schema operations in NodeSchemaPanel and ConnectionValidator
+- [x] T078 Run quickstart.md validation to verify end-to-end flow
 
 ---
 

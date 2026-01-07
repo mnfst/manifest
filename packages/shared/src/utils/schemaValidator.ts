@@ -378,6 +378,137 @@ export async function validateDataAgainstSchema(
 }
 
 // =============================================================================
+// Schema Inference from Sample Data
+// =============================================================================
+
+/**
+ * Infer a JSON Schema from a sample JSON value.
+ * Used for dynamic schema discovery from API responses.
+ *
+ * @param sample - The sample JSON value to infer schema from
+ * @param maxDepth - Maximum depth to traverse (default: 5)
+ */
+export function inferSchemaFromSample(
+  sample: unknown,
+  maxDepth = 5
+): JSONSchema {
+  return inferSchemaRecursive(sample, 0, maxDepth);
+}
+
+/**
+ * Recursive helper for schema inference.
+ */
+function inferSchemaRecursive(
+  value: unknown,
+  depth: number,
+  maxDepth: number
+): JSONSchema {
+  if (depth >= maxDepth) {
+    return {}; // Any type at max depth
+  }
+
+  if (value === null) {
+    return { type: 'null' };
+  }
+
+  if (value === undefined) {
+    return {};
+  }
+
+  const valueType = typeof value;
+
+  switch (valueType) {
+    case 'string':
+      return inferStringSchema(value as string);
+
+    case 'number':
+      return Number.isInteger(value) ? { type: 'integer' } : { type: 'number' };
+
+    case 'boolean':
+      return { type: 'boolean' };
+
+    case 'object':
+      if (Array.isArray(value)) {
+        return inferArraySchema(value, depth, maxDepth);
+      }
+      return inferObjectSchema(value as Record<string, unknown>, depth, maxDepth);
+
+    default:
+      return {};
+  }
+}
+
+/**
+ * Infer schema for a string value, detecting common formats.
+ */
+function inferStringSchema(value: string): JSONSchema {
+  const schema: JSONSchema = { type: 'string' };
+
+  // Check for common formats
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+    schema.format = 'date-time';
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    schema.format = 'date';
+  } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    schema.format = 'email';
+  } else if (/^https?:\/\//.test(value)) {
+    schema.format = 'uri';
+  } else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+    schema.format = 'uuid';
+  }
+
+  return schema;
+}
+
+/**
+ * Infer schema for an array value.
+ */
+function inferArraySchema(
+  value: unknown[],
+  depth: number,
+  maxDepth: number
+): JSONSchema {
+  if (value.length === 0) {
+    return { type: 'array' };
+  }
+
+  // Infer item schema from first element
+  const itemSchema = inferSchemaRecursive(value[0], depth + 1, maxDepth);
+
+  return {
+    type: 'array',
+    items: itemSchema,
+  };
+}
+
+/**
+ * Infer schema for an object value.
+ */
+function inferObjectSchema(
+  value: Record<string, unknown>,
+  depth: number,
+  maxDepth: number
+): JSONSchema {
+  const properties: Record<string, JSONSchema> = {};
+  const required: string[] = [];
+
+  for (const [key, propValue] of Object.entries(value)) {
+    properties[key] = inferSchemaRecursive(propValue, depth + 1, maxDepth);
+
+    // All fields present in sample are considered required
+    if (propValue !== null && propValue !== undefined) {
+      required.push(key);
+    }
+  }
+
+  return {
+    type: 'object',
+    properties,
+    required: required.length > 0 ? required : undefined,
+  };
+}
+
+// =============================================================================
 // Exports
 // =============================================================================
 
