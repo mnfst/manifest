@@ -1,4 +1,5 @@
 import type { LayoutTemplate } from './app.js';
+import type { FlowParameter } from './flow.js';
 
 // =============================================================================
 // Position
@@ -160,6 +161,7 @@ export interface CallFlowNodeParameters {
 
 /**
  * Parameters for a UserIntent trigger node.
+ * Each UserIntent node represents an MCP tool entry point.
  */
 export interface UserIntentNodeParameters {
   /** Scenarios when AI should use this flow (max 500 chars) */
@@ -167,6 +169,18 @@ export interface UserIntentNodeParameters {
 
   /** Scenarios when AI should NOT use this flow (max 500 chars) */
   whenNotToUse?: string;
+
+  /** MCP tool identifier (auto-generated from node name in snake_case) */
+  toolName: string;
+
+  /** Tool description shown in MCP (max 500 chars) */
+  toolDescription: string;
+
+  /** Input parameters for the MCP tool */
+  parameters?: FlowParameter[];
+
+  /** Whether this trigger is exposed as an MCP tool (default: true) */
+  isActive?: boolean;
 }
 
 // =============================================================================

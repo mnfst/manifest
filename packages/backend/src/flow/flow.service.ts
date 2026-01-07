@@ -2,12 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from './flow.entity';
-import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest, FlowParameter } from '@chatgpt-app-builder/shared';
+import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
 import { AppEntity } from '../app/app.entity';
 
 /**
- * Service for Flow CRUD operations
- * Flows represent MCP tools within an app
+ * Service for Flow CRUD operations.
+ * MCP tools are now derived from UserIntent trigger nodes within flows.
  */
 @Injectable()
 export class FlowService {
@@ -19,23 +19,18 @@ export class FlowService {
   ) {}
 
   /**
-   * Create a new flow for an app
-   * Initializes empty nodes and connections arrays
+   * Create a new flow for an app.
+   * Initializes empty nodes and connections arrays.
+   * Tool properties are now set on individual UserIntent trigger nodes.
    */
   async create(appId: string, data: {
     name: string;
     description?: string;
-    toolName: string;
-    toolDescription: string;
-    parameters?: FlowParameter[];
   }): Promise<Flow> {
     const entity = this.flowRepository.create({
       appId,
       name: data.name,
       description: data.description,
-      toolName: data.toolName,
-      toolDescription: data.toolDescription,
-      parameters: data.parameters ?? [],
       nodes: [],
       connections: [],
     });
@@ -66,7 +61,8 @@ export class FlowService {
   }
 
   /**
-   * Update a flow
+   * Update a flow.
+   * Tool properties are now set on individual UserIntent trigger nodes.
    */
   async update(id: string, updates: UpdateFlowRequest): Promise<Flow> {
     const entity = await this.flowRepository.findOne({
@@ -82,17 +78,8 @@ export class FlowService {
     if (updates.description !== undefined) {
       entity.description = updates.description;
     }
-    if (updates.toolName !== undefined) {
-      entity.toolName = updates.toolName;
-    }
-    if (updates.toolDescription !== undefined) {
-      entity.toolDescription = updates.toolDescription;
-    }
     if (updates.isActive !== undefined) {
       entity.isActive = updates.isActive;
-    }
-    if (updates.parameters !== undefined) {
-      entity.parameters = updates.parameters;
     }
 
     await this.flowRepository.save(entity);
@@ -164,7 +151,8 @@ export class FlowService {
   }
 
   /**
-   * Convert entity to Flow interface
+   * Convert entity to Flow interface.
+   * Tool properties are now on UserIntent trigger nodes, not the flow.
    */
   private entityToFlow(entity: FlowEntity): Flow {
     return {
@@ -172,10 +160,7 @@ export class FlowService {
       appId: entity.appId,
       name: entity.name,
       description: entity.description,
-      toolName: entity.toolName,
-      toolDescription: entity.toolDescription,
       isActive: entity.isActive ?? true,
-      parameters: entity.parameters ?? [],
       nodes: entity.nodes ?? [],
       connections: entity.connections ?? [],
       createdAt: entity.createdAt?.toISOString(),

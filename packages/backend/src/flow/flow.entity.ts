@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
-import type { FlowParameter, NodeInstance, Connection } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, Connection } from '@chatgpt-app-builder/shared';
 
 /**
- * Flow entity representing an MCP tool belonging to an app.
+ * Flow entity representing a workflow belonging to an app.
+ * MCP tools are now derived from UserIntent trigger nodes within the flow.
  * Contains nodes and connections stored as JSON arrays.
  */
 @Entity('flows')
@@ -20,17 +21,10 @@ export class FlowEntity {
   @Column({ type: 'varchar', length: 500, nullable: true })
   description?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  toolName!: string;
-
-  @Column({ type: 'varchar', length: 500 })
-  toolDescription!: string;
-
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ type: 'simple-json', nullable: true })
-  parameters?: FlowParameter[];
+  // Note: toolName, toolDescription, and parameters have been moved to UserIntent node parameters
 
   /**
    * Node instances within this flow.

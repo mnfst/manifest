@@ -10,9 +10,11 @@ import type {
   UpdateNodePositionRequest,
   CreateConnectionRequest,
   NodeTypeCategory,
+  UserIntentNodeParameters,
 } from '@chatgpt-app-builder/shared';
 import { v4 as uuidv4 } from 'uuid';
 import { builtInNodeList, toNodeTypeInfo, type NodeTypeInfo } from '@chatgpt-app-builder/nodes';
+import { generateUniqueToolName } from '../utils/tool-name';
 
 /**
  * Category info for grouping nodes in the UI
@@ -78,6 +80,7 @@ export class NodeService {
   /**
    * T026: Add a new node to a flow.
    * Validates unique name within the flow.
+   * For UserIntent nodes, auto-generates a unique toolName.
    */
   async addNode(flowId: string, request: CreateNodeRequest): Promise<NodeInstance> {
     const flow = await this.findFlow(flowId);
@@ -96,6 +99,20 @@ export class NodeService {
       parameters: request.parameters ?? {},
     };
 
+    // For UserIntent nodes, auto-generate a unique toolName
+    if (request.type === 'UserIntent') {
+      const toolName = await generateUniqueToolName(
+        flow.appId,
+        request.name,
+        this.flowRepository
+      );
+      const params = newNode.parameters as UserIntentNodeParameters;
+      params.toolName = toolName;
+      params.isActive = params.isActive ?? true;
+      params.toolDescription = params.toolDescription ?? '';
+      params.parameters = params.parameters ?? [];
+    }
+
     nodes.push(newNode);
     flow.nodes = nodes;
     await this.flowRepository.save(flow);
@@ -106,6 +123,7 @@ export class NodeService {
   /**
    * T027: Update a node (name, parameters).
    * Finds by id and merges updates.
+   * For UserIntent nodes, regenerates toolName when name changes.
    */
   async updateNode(flowId: string, nodeId: string, request: UpdateNodeRequest): Promise<NodeInstance> {
     const flow = await this.findFlow(flowId);
@@ -117,6 +135,7 @@ export class NodeService {
     }
 
     const node = nodes[nodeIndex];
+    let nameChanged = false;
 
     // Validate unique name if changing
     if (request.name !== undefined && request.name !== node.name) {
@@ -124,6 +143,7 @@ export class NodeService {
         throw new BadRequestException(`Node with name "${request.name}" already exists in this flow`);
       }
       node.name = request.name;
+      nameChanged = true;
     }
 
     // Update position if provided
@@ -134,6 +154,17 @@ export class NodeService {
     // Merge parameters if provided
     if (request.parameters !== undefined) {
       node.parameters = { ...node.parameters, ...request.parameters };
+    }
+
+    // For UserIntent nodes, regenerate toolName when name changes
+    if (node.type === 'UserIntent' && nameChanged) {
+      const toolName = await generateUniqueToolName(
+        flow.appId,
+        node.name,
+        this.flowRepository,
+        node.id // Exclude this node from uniqueness check
+      );
+      (node.parameters as UserIntentNodeParameters).toolName = toolName;
     }
 
     nodes[nodeIndex] = node;
