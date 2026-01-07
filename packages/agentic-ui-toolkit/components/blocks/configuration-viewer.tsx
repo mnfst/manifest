@@ -7,8 +7,6 @@ import { Database, Palette, Zap, Settings2 } from 'lucide-react'
 interface ConfigProperty {
   name: string
   type: string
-  optional: boolean
-  description?: string
 }
 
 interface ConfigCategory {
@@ -19,73 +17,93 @@ interface ConfigCategory {
 }
 
 /**
+ * Extracts the body of a Props interface, handling nested braces properly
+ */
+function extractPropsInterfaceBody(sourceCode: string): string | null {
+  // Find the start of the Props interface
+  const interfaceMatch = sourceCode.match(
+    /export\s+interface\s+\w+Props(?:<[^{]*>)?\s*\{/
+  )
+  if (!interfaceMatch) return null
+
+  const startIndex = interfaceMatch.index! + interfaceMatch[0].length
+  let braceCount = 1
+  let endIndex = startIndex
+
+  while (braceCount > 0 && endIndex < sourceCode.length) {
+    const char = sourceCode[endIndex]
+    if (char === '{') braceCount++
+    if (char === '}') braceCount--
+    endIndex++
+  }
+
+  return sourceCode.slice(startIndex, endIndex - 1)
+}
+
+/**
+ * Extracts a category block (data, actions, appearance, control) from the interface body
+ */
+function extractCategoryBlock(
+  propsBody: string,
+  categoryName: string
+): string | null {
+  // Find where the category starts
+  const categoryRegex = new RegExp(`${categoryName}\\??\\s*:\\s*\\{`)
+  const match = propsBody.match(categoryRegex)
+  if (!match) return null
+
+  const startIndex = match.index! + match[0].length
+  let braceCount = 1
+  let endIndex = startIndex
+
+  while (braceCount > 0 && endIndex < propsBody.length) {
+    const char = propsBody[endIndex]
+    if (char === '{') braceCount++
+    if (char === '}') braceCount--
+    endIndex++
+  }
+
+  return propsBody.slice(startIndex, endIndex - 1)
+}
+
+/**
  * Parses TypeScript source code to extract the component's configuration schema.
  * Looks for interfaces with data, actions, appearance, and control properties.
  */
 function parseComponentConfiguration(sourceCode: string): ConfigCategory[] {
   const categories: ConfigCategory[] = []
 
-  // Find the main Props interface (e.g., AmountInputProps, TableProps, etc.)
-  const propsInterfaceMatch = sourceCode.match(
-    /export\s+interface\s+(\w+Props)(?:<[^>]*>)?\s*\{([\s\S]*?)\n\}/
-  )
+  const propsBody = extractPropsInterfaceBody(sourceCode)
+  if (!propsBody) return categories
 
-  if (!propsInterfaceMatch) {
-    return categories
-  }
-
-  const propsBody = propsInterfaceMatch[2]
-
-  // Extract each category (data, actions, appearance, control)
   const categoryConfig: Record<
     string,
     { description: string; icon: React.ReactNode }
   > = {
     data: {
-      description: 'Content to display (arrays, objects, values)',
+      description: 'Dynamic content to inject in the block',
       icon: <Database className="h-4 w-4" />
     },
     actions: {
-      description: 'User-triggerable callbacks and event handlers',
+      description: 'User-triggerable actions and callbacks',
       icon: <Zap className="h-4 w-4" />
     },
     appearance: {
-      description: 'Visual configuration (variants, sizes, labels)',
+      description: 'Edit the look and feel of the component',
       icon: <Palette className="h-4 w-4" />
     },
     control: {
-      description: 'State management (loading, selection, disabled)',
+      description:
+        'State management configuration (loading, selections, disabled elements...)',
       icon: <Settings2 className="h-4 w-4" />
     }
   }
 
   for (const categoryName of ['data', 'actions', 'appearance', 'control']) {
-    // Match the category property and its type definition
-    // Handles both inline types and referenced types
-    const categoryRegex = new RegExp(
-      `${categoryName}\\??\\s*:\\s*(?:\\{([\\s\\S]*?)\\n\\s*\\}|([\\w<>\\[\\]|\\s,]+))`
-    )
-    const match = propsBody.match(categoryRegex)
+    const categoryBlock = extractCategoryBlock(propsBody, categoryName)
 
-    if (match) {
-      const inlineType = match[1]
-      const referencedType = match[2]
-
-      let properties: ConfigProperty[] = []
-
-      if (inlineType) {
-        // Parse inline type properties
-        properties = parseProperties(inlineType)
-      } else if (referencedType) {
-        // Try to find the referenced interface in the source code
-        const refInterface = findInterfaceDefinition(
-          sourceCode,
-          referencedType.trim()
-        )
-        if (refInterface) {
-          properties = parseProperties(refInterface)
-        }
-      }
+    if (categoryBlock) {
+      const properties = parseProperties(categoryBlock)
 
       if (properties.length > 0) {
         categories.push({
@@ -105,55 +123,33 @@ function parseComponentConfiguration(sourceCode: string): ConfigCategory[] {
  */
 function parseProperties(interfaceBody: string): ConfigProperty[] {
   const properties: ConfigProperty[] = []
-
-  // Split by lines and parse each property
   const lines = interfaceBody.split('\n')
-  let currentProperty = ''
 
   for (const line of lines) {
     const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*')) {
+
+    // Skip empty lines, comments, and JSDoc
+    if (
+      !trimmed ||
+      trimmed.startsWith('//') ||
+      trimmed.startsWith('/*') ||
+      trimmed.startsWith('*')
+    ) {
       continue
     }
 
-    currentProperty += ' ' + trimmed
-
-    // Check if the property definition is complete (ends with type)
-    if (
-      currentProperty.includes(':') &&
-      (currentProperty.match(/:\s*[^:]+$/) || currentProperty.endsWith('}'))
-    ) {
-      const propMatch = currentProperty.match(
-        /(\w+)(\?)?:\s*(.+?)(?:$|(?=\s*\/\/))/
-      )
-
-      if (propMatch) {
-        const [, name, optional, type] = propMatch
-        properties.push({
-          name,
-          type: cleanType(type),
-          optional: !!optional
-        })
-      }
-      currentProperty = ''
+    // Match property: name?: type
+    const propMatch = trimmed.match(/^(\w+)\??:\s*(.+?);?\s*$/)
+    if (propMatch) {
+      const [, name, type] = propMatch
+      properties.push({
+        name,
+        type: cleanType(type)
+      })
     }
   }
 
   return properties
-}
-
-/**
- * Finds an interface definition in the source code by name
- */
-function findInterfaceDefinition(
-  sourceCode: string,
-  typeName: string
-): string | null {
-  const regex = new RegExp(
-    `interface\\s+${typeName}(?:<[^>]*>)?\\s*\\{([\\s\\S]*?)\\n\\}`
-  )
-  const match = sourceCode.match(regex)
-  return match ? match[1] : null
 }
 
 /**
@@ -168,65 +164,17 @@ function cleanType(type: string): string {
 }
 
 /**
- * Returns the appropriate color class for a category
- */
-function getCategoryColor(name: string): {
-  bg: string
-  text: string
-  border: string
-  iconBg: string
-} {
-  switch (name) {
-    case 'data':
-      return {
-        bg: 'bg-blue-50 dark:bg-blue-950/30',
-        text: 'text-blue-700 dark:text-blue-300',
-        border: 'border-blue-200 dark:border-blue-800',
-        iconBg: 'bg-blue-100 dark:bg-blue-900/50'
-      }
-    case 'actions':
-      return {
-        bg: 'bg-amber-50 dark:bg-amber-950/30',
-        text: 'text-amber-700 dark:text-amber-300',
-        border: 'border-amber-200 dark:border-amber-800',
-        iconBg: 'bg-amber-100 dark:bg-amber-900/50'
-      }
-    case 'appearance':
-      return {
-        bg: 'bg-purple-50 dark:bg-purple-950/30',
-        text: 'text-purple-700 dark:text-purple-300',
-        border: 'border-purple-200 dark:border-purple-800',
-        iconBg: 'bg-purple-100 dark:bg-purple-900/50'
-      }
-    case 'control':
-      return {
-        bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-        text: 'text-emerald-700 dark:text-emerald-300',
-        border: 'border-emerald-200 dark:border-emerald-800',
-        iconBg: 'bg-emerald-100 dark:bg-emerald-900/50'
-      }
-    default:
-      return {
-        bg: 'bg-muted',
-        text: 'text-foreground',
-        border: 'border-border',
-        iconBg: 'bg-muted'
-      }
-  }
-}
-
-/**
  * Formats a type string for better readability
  */
 function formatType(type: string): React.ReactNode {
-  // Handle union types
-  if (type.includes('|')) {
+  // Handle union types with string literals
+  if (type.includes("'") && type.includes('|')) {
     const parts = type.split('|').map((t) => t.trim())
     return (
       <span className="inline-flex flex-wrap items-center gap-1">
         {parts.map((part, i) => (
           <span key={i} className="inline-flex items-center">
-            {i > 0 && <span className="text-muted-foreground mx-1">|</span>}
+            {i > 0 && <span className="text-muted-foreground mx-0.5">|</span>}
             <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono">
               {part}
             </code>
@@ -238,15 +186,6 @@ function formatType(type: string): React.ReactNode {
 
   // Handle function types
   if (type.includes('=>')) {
-    return (
-      <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono text-amber-600 dark:text-amber-400">
-        {type}
-      </code>
-    )
-  }
-
-  // Handle array types
-  if (type.endsWith('[]')) {
     return (
       <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono">
         {type}
@@ -314,94 +253,63 @@ export function ConfigurationViewer({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        This component follows the semantic prop structure with{' '}
-        {categories.length} configuration{' '}
-        {categories.length === 1 ? 'category' : 'categories'}:
+        Available parameters to personalize your block
       </p>
 
       <div className="grid gap-4">
-        {categories.map((category) => {
-          const colors = getCategoryColor(category.name)
-          return (
-            <div
-              key={category.name}
-              className={cn(
-                'rounded-lg border p-4',
-                colors.bg,
-                colors.border
-              )}
-            >
-              {/* Category header */}
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-md',
-                    colors.iconBg,
-                    colors.text
-                  )}
-                >
-                  {category.icon}
-                </div>
-                <div>
-                  <h4 className={cn('font-semibold capitalize', colors.text)}>
-                    {category.name}
-                  </h4>
-                  <p className="text-xs text-muted-foreground">
-                    {category.description}
-                  </p>
-                </div>
+        {categories.map((category) => (
+          <div
+            key={category.name}
+            className="rounded-lg border bg-card p-4"
+          >
+            {/* Category header */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                {category.icon}
               </div>
-
-              {/* Properties table */}
-              <div className="rounded-md border bg-background/80 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                        Property
-                      </th>
-                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                        Type
-                      </th>
-                      <th className="px-3 py-2 text-center font-medium text-muted-foreground w-20">
-                        Required
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {category.properties.map((prop, i) => (
-                      <tr
-                        key={prop.name}
-                        className={cn(
-                          'border-b last:border-0',
-                          i % 2 === 0 ? 'bg-transparent' : 'bg-muted/30'
-                        )}
-                      >
-                        <td className="px-3 py-2">
-                          <code className="font-mono text-sm font-medium">
-                            {prop.name}
-                          </code>
-                        </td>
-                        <td className="px-3 py-2">{formatType(prop.type)}</td>
-                        <td className="px-3 py-2 text-center">
-                          {prop.optional ? (
-                            <span className="text-muted-foreground text-xs">
-                              optional
-                            </span>
-                          ) : (
-                            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                              required
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div>
+                <h4 className="font-semibold capitalize">{category.name}</h4>
+                <p className="text-xs text-muted-foreground">
+                  {category.description}
+                </p>
               </div>
             </div>
-          )
-        })}
+
+            {/* Properties table */}
+            <div className="rounded-md border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Property
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Type
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {category.properties.map((prop, i) => (
+                    <tr
+                      key={prop.name}
+                      className={cn(
+                        'border-b last:border-0',
+                        i % 2 === 0 ? 'bg-transparent' : 'bg-muted/30'
+                      )}
+                    >
+                      <td className="px-3 py-2">
+                        <code className="font-mono text-sm font-medium">
+                          {prop.name}
+                        </code>
+                      </td>
+                      <td className="px-3 py-2">{formatType(prop.type)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
