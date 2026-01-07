@@ -7,6 +7,8 @@
     "build": "pnpm run registry:build && next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "registry:build": "shadcn build"
   },
   "dependencies": {
@@ -50,7 +52,8 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.14.0"
+    "typescript-eslint": "^8.14.0",
+    "vitest": "^4.0.16"
   },
   "overrides": {
     "@types/react": "19.1.2",
