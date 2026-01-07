@@ -139,8 +139,8 @@ export class FlowService {
       throw new NotFoundException(`Flow with id ${id} not found`);
     }
 
-    // Count Interface nodes (formerly views) for backward compatibility in response
-    const deletedViewCount = (entity.nodes ?? []).filter((n) => n.type === 'Interface').length;
+    // Count StatCard nodes (UI components) for backward compatibility in response
+    const deletedViewCount = (entity.nodes ?? []).filter((n) => n.type === 'StatCard').length;
 
     await this.flowRepository.remove(entity);
 

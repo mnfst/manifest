@@ -1,6 +1,5 @@
 import type { LayoutTemplate } from '@chatgpt-app-builder/shared';
-import { Table } from '../ui/table';
-import { BlogPostList } from '../ui/blog-post-list';
+import { Stats } from '../ui/stats';
 
 interface LayoutRendererProps {
   layoutTemplate: LayoutTemplate;
@@ -9,35 +8,21 @@ interface LayoutRendererProps {
 
 /**
  * Renders an empty/placeholder layout component based on template
- * Uses official Manifest UI components for table and post-list layouts
+ * Currently supports stat-card layout for displaying metrics
  */
 export function LayoutRenderer({ layoutTemplate, isDarkMode = false }: LayoutRendererProps) {
-  // Table layout using Manifest UI Table component with empty data
-  if (layoutTemplate === 'table') {
+  // Stat card layout using Stats component with sample data
+  if (layoutTemplate === 'stat-card') {
     return (
       <div className={isDarkMode ? 'dark' : ''}>
-        <Table
-          columns={[
-            { accessor: 'name', header: 'Name' },
-            { accessor: 'value', header: 'Value' },
-          ]}
-          data={[]}
-          selectable="none"
-          emptyMessage="No data available - connect a data source"
-        />
-      </div>
-    );
-  }
-
-  // Post-list layout using Manifest UI BlogPostList component with empty data
-  if (layoutTemplate === 'post-list') {
-    return (
-      <div className={isDarkMode ? 'dark' : ''}>
-        <BlogPostList
-          posts={[]}
-          variant="list"
-          showAuthor={true}
-          showCategory={true}
+        <Stats
+          data={{
+            stats: [
+              { label: 'Metric 1', value: '--', trend: 'neutral' },
+              { label: 'Metric 2', value: '--', trend: 'neutral' },
+              { label: 'Metric 3', value: '--', trend: 'neutral' },
+            ],
+          }}
         />
       </div>
     );

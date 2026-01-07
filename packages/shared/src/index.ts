@@ -59,7 +59,7 @@ export type {
   NodeTypeCategory,
   NodeInstance,
   Connection,
-  InterfaceNodeParameters,
+  StatCardNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
   UserIntentNodeParameters,
@@ -75,7 +75,7 @@ export type {
   CreateConnectionRequest,
 } from './types/node.js';
 export {
-  isInterfaceNode,
+  isStatCardNode,
   isReturnNode,
   isCallFlowNode,
   isUserIntentNode,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { App, LayoutTemplate, ThemeVariables, NodeInstance, InterfaceNodeParameters } from '@chatgpt-app-builder/shared';
+import type { App, LayoutTemplate, ThemeVariables, NodeInstance, StatCardNodeParameters } from '@chatgpt-app-builder/shared';
 import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
 import { createLLM, getCurrentProvider } from './llm';
 import { z } from 'zod';
@@ -44,12 +44,12 @@ export interface ProcessChatResult {
 }
 
 /**
- * Result of interface node chat processing
- * Updates are applied to the node's InterfaceNodeParameters
+ * Result of StatCard node chat processing
+ * Updates are applied to the node's StatCardNodeParameters
  */
-export interface ProcessInterfaceNodeChatResult {
+export interface ProcessStatCardNodeChatResult {
   response: string;
-  updates: Partial<InterfaceNodeParameters>;
+  updates: Partial<StatCardNodeParameters>;
   changes: string[];
 }
 
@@ -114,7 +114,7 @@ export class AgentService {
   async processChat(message: string, currentApp: App): Promise<ProcessChatResult> {
     // Define schema for structured LLM output
     const configUpdateSchema = z.object({
-      layoutTemplate: z.enum(['table', 'post-list']).optional().describe('New layout template if user wants to change it'),
+      layoutTemplate: z.enum(['stat-card']).optional().describe('New layout template if user wants to change it'),
       primaryColor: z.string().optional().describe('New primary color in HSL format (e.g., "221 83% 53%" for blue) if user wants to change colors'),
       backgroundColor: z.enum(['dark', 'light']).optional().describe('Background theme if user wants dark or light mode'),
       toolName: z.string().optional().describe('New tool name if user wants to rename it (snake_case)'),
@@ -136,7 +136,7 @@ Current app configuration:
 - Tool description: ${currentApp.toolDescription}
 - Primary color: ${currentApp.themeVariables['--primary'] || 'default blue'}
 
-Available layouts: "table" (for tabular data), "post-list" (for blog/article style content)
+Available layouts: "stat-card" (for displaying statistics and metrics)
 
 Available colors (use HSL format):
 - blue: "221 83% 53%"
@@ -221,7 +221,6 @@ Analyze the user's message and determine what configuration changes they want. I
       console.error('LLM chat error:', error);
       return {
         response: `I encountered an error processing your request. You can ask me to:
-• Change the layout (e.g., "switch to table layout")
 • Update colors (e.g., "change primary color to blue")
 • Modify the tool name (e.g., "rename tool to search_products")
 • Update the tool description`,
@@ -232,15 +231,15 @@ Analyze the user's message and determine what configuration changes they want. I
   }
 
   /**
-   * Process a chat message for Interface node customization
+   * Process a chat message for StatCard node customization
    * Uses LLM to interpret the message and update node parameters
    */
-  async processInterfaceNodeChat(message: string, currentNode: NodeInstance): Promise<ProcessInterfaceNodeChatResult> {
-    const params = currentNode.parameters as InterfaceNodeParameters;
+  async processStatCardNodeChat(message: string, currentNode: NodeInstance): Promise<ProcessStatCardNodeChatResult> {
+    const params = currentNode.parameters as StatCardNodeParameters;
 
     // Define schema for structured LLM output
     const nodeUpdateSchema = z.object({
-      layoutTemplate: z.enum(['table', 'post-list']).optional().describe('New layout template if user wants to change it'),
+      layoutTemplate: z.enum(['stat-card']).optional().describe('New layout template if user wants to change it'),
       changes: z.array(z.string()).describe('List of changes being made'),
       response: z.string().describe('Friendly response to the user explaining what was changed'),
       understood: z.boolean().describe('Whether the request was understood and actionable'),
@@ -249,13 +248,13 @@ Analyze the user's message and determine what configuration changes they want. I
     // Create structured output LLM
     const structuredLLM = this.llm.withStructuredOutput(nodeUpdateSchema);
 
-    const systemPrompt = `You are an assistant helping users customize their Interface node configuration.
+    const systemPrompt = `You are an assistant helping users customize their StatCard node configuration.
 
 Current node configuration:
 - Name: ${currentNode.name || 'Untitled'}
 - Layout: ${params.layoutTemplate}
 
-Available layouts: "table" (for tabular data), "post-list" (for blog/article style content)
+Available layouts: "stat-card" (for displaying statistics and metrics)
 
 Analyze the user's message and determine what changes they want to make. You can:
 1. Change the layout template
@@ -269,9 +268,9 @@ If you can't understand the request, set understood=false and provide a helpful 
       ]);
 
       // Debug logging
-      console.log('Interface Node LLM Response:', JSON.stringify(result, null, 2));
+      console.log('StatCard Node LLM Response:', JSON.stringify(result, null, 2));
 
-      const updates: Partial<InterfaceNodeParameters> = {};
+      const updates: Partial<StatCardNodeParameters> = {};
       const changes: string[] = result.changes || [];
 
       // Apply layout change
@@ -280,7 +279,7 @@ If you can't understand the request, set understood=false and provide a helpful 
       }
 
       // Debug: log final updates
-      console.log('Interface node updates to apply:', JSON.stringify(updates, null, 2));
+      console.log('StatCard node updates to apply:', JSON.stringify(updates, null, 2));
       console.log('Changes:', changes);
 
       return {
@@ -289,10 +288,10 @@ If you can't understand the request, set understood=false and provide a helpful 
         changes,
       };
     } catch (error) {
-      console.error('Interface Node LLM chat error:', error);
+      console.error('StatCard Node LLM chat error:', error);
       return {
         response: `I encountered an error processing your request. You can ask me to:
-• Change the layout (e.g., "switch to post-list layout")`,
+• Change the layout settings`,
         updates: {},
         changes: [],
       };

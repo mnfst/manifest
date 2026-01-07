@@ -28,7 +28,7 @@ const categoryStyles: Record<NodeTypeCategory, { color: string; bgColor: string;
 
 /**
  * Modal for selecting a node type to add to the flow
- * Nodes are grouped by category: Triggers, Agentic Interfaces, Actions, Return Values
+ * Nodes are grouped by category: Triggers, UI Components, Actions, Return Values
  * Fetches available node types from the /api/node-types endpoint.
  */
 export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {

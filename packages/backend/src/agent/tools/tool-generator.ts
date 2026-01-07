@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 const toolGeneratorSchema = z.object({
   prompt: z.string().describe('The user prompt describing their desired app'),
-  layoutTemplate: z.enum(['table', 'post-list']).describe('The selected layout template'),
+  layoutTemplate: z.enum(['stat-card']).describe('The selected layout template'),
 });
 
 /**
@@ -31,7 +31,7 @@ export const toolGeneratorTool = new DynamicStructuredTool({
 The tool name should be in snake_case and describe the action (e.g., search_products, get_order_status).
 The description should explain what the tool does, when to use it, and what information it needs.`,
   schema: toolGeneratorSchema,
-  func: async ({ prompt, layoutTemplate }): Promise<string> => {
+  func: async ({ prompt, layoutTemplate: _layoutTemplate }): Promise<string> => {
     const promptLower = prompt.toLowerCase();
 
     // Extract key concepts from the prompt
@@ -83,9 +83,7 @@ The description should explain what the tool does, when to use it, and what info
       .trim() || 'My ChatGPT App';
 
     // Generate descriptions based on layout and domain
-    const layoutContext = layoutTemplate === 'table'
-      ? 'Returns structured data in a table format'
-      : 'Returns content in a list/feed format';
+    const layoutContext = 'Returns statistics and metrics in a card format';
 
     const toolDescription = `${capitalize(action)} ${domain}s based on user queries. ${layoutContext}. ` +
       `Provide relevant search terms or identifiers for best results.`;

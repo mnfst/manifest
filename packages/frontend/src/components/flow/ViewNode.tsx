@@ -1,8 +1,8 @@
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { useEffect, useMemo } from 'react';
-import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type InterfaceNodeParameters } from '@chatgpt-app-builder/shared';
-import { LayoutGrid, FileText } from 'lucide-react';
+import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters } from '@chatgpt-app-builder/shared';
+import { LayoutGrid } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 
 export interface ViewNodeData extends Record<string, unknown> {
@@ -13,7 +13,7 @@ export interface ViewNodeData extends Record<string, unknown> {
 }
 
 /**
- * Custom React Flow node for displaying an Interface node (formerly View)
+ * Custom React Flow node for displaying a StatCard node
  * Square card design matching placeholder nodes
  * Displays action handles on the right side for nodes with actions
  */
@@ -22,8 +22,8 @@ export function ViewNode({ data, id }: NodeProps) {
   const updateNodeInternals = useUpdateNodeInternals();
 
   // Get parameters with type safety
-  const params = node.parameters as unknown as InterfaceNodeParameters;
-  const layoutTemplate = params?.layoutTemplate || 'table';
+  const params = node.parameters as unknown as StatCardNodeParameters;
+  const layoutTemplate = params?.layoutTemplate || 'stat-card';
 
   // Look up actions for this node's layout template
   const actions = useMemo(() => {
@@ -39,13 +39,6 @@ export function ViewNode({ data, id }: NodeProps) {
 
   return (
     <div className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
-      {/* Top handle for incoming connection */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top"
-        className="!bg-amber-400 !w-2 !h-2 !border-0"
-      />
       {/* Left handle for incoming connections from UserIntent/other nodes */}
       <Handle
         type="target"
@@ -56,19 +49,15 @@ export function ViewNode({ data, id }: NodeProps) {
 
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">
-          {/* Icon container */}
+          {/* Icon container - stat-card uses LayoutGrid icon */}
           <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-            {layoutTemplate === 'table' ? (
-              <LayoutGrid className="w-6 h-6 text-gray-500" />
-            ) : (
-              <FileText className="w-6 h-6 text-gray-500" />
-            )}
+            <LayoutGrid className="w-6 h-6 text-gray-500" />
           </div>
 
           {/* Node info */}
           <div className="text-center w-full">
             <h3 className="font-medium text-gray-900 text-sm">
-              {node.name || 'Agentic Interface'}
+              {node.name || 'Stat Card'}
             </h3>
             <p className="text-xs text-gray-500 mt-1">{layoutTemplate}</p>
           </div>
@@ -77,14 +66,6 @@ export function ViewNode({ data, id }: NodeProps) {
           <ViewNodeDropdown canDelete={canDelete} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
-
-      {/* Right handle for outgoing connections (default) */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="output"
-        className="!bg-blue-400 !w-3 !h-3 !border-2 !border-blue-200"
-      />
 
       {/* Action handles on the right side (purple themed) - labels outside node */}
       {actions.map((action, index) => (

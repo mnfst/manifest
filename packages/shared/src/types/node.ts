@@ -30,7 +30,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return';
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'Interface' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall';
+export type NodeType = 'StatCard' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall';
 
 // =============================================================================
 // API Call Node Types
@@ -139,9 +139,9 @@ export interface Connection {
 // =============================================================================
 
 /**
- * Parameters for an Interface node (formerly View).
+ * Parameters for a StatCard node.
  */
-export interface InterfaceNodeParameters {
+export interface StatCardNodeParameters {
   /** Layout template type */
   layoutTemplate: LayoutTemplate;
 }
@@ -252,12 +252,12 @@ export interface CreateConnectionRequest {
 // =============================================================================
 
 /**
- * Check if a node is an Interface node.
+ * Check if a node is a StatCard node.
  */
-export function isInterfaceNode(
+export function isStatCardNode(
   node: NodeInstance
-): node is NodeInstance & { parameters: InterfaceNodeParameters } {
-  return node.type === 'Interface';
+): node is NodeInstance & { parameters: StatCardNodeParameters } {
+  return node.type === 'StatCard';
 }
 
 /**

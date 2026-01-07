@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, InterfaceNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
 import { ApiCallNode } from '@chatgpt-app-builder/nodes';
 
 /**
@@ -28,7 +28,7 @@ export class McpInactiveToolError extends BadRequestException {
  * Each flow in an app becomes an MCP tool
  *
  * Updated to use new unified node architecture:
- * - Interface nodes (formerly Views) contain UI layouts
+ * - StatCard nodes contain UI layouts for displaying statistics
  * - Return nodes contain text content for LLM
  * - CallFlow nodes trigger other flows
  */
@@ -303,9 +303,9 @@ export class McpToolService {
           result = await this.executeCallFlowNode(app, toolName, trigger.name, node);
           nodeOutputs.set(node.id, result.structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
-        } else if (node.type === 'Interface') {
-          result = this.executeInterfaceFlow(app, toolName, trigger.name, node, validatedInput);
-          // Interface nodes output their structured content (populated from upstream data)
+        } else if (node.type === 'StatCard') {
+          result = this.executeStatCardFlow(app, toolName, trigger.name, node, validatedInput);
+          // StatCard nodes output their structured content (populated from upstream data)
           const structuredContent = result.structuredContent || {};
           nodeOutputs.set(node.id, structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
@@ -480,16 +480,16 @@ export class McpToolService {
   }
 
   /**
-   * Execute Interface node - return widget with structured content
+   * Execute StatCard node - return widget with structured content
    */
-  private executeInterfaceFlow(
+  private executeStatCardFlow(
     app: AppEntity,
     triggerToolName: string,
     triggerName: string,
-    interfaceNode: NodeInstance,
+    statCardNode: NodeInstance,
     input: Record<string, unknown>
   ): McpToolResponse {
-    const params = interfaceNode.parameters as InterfaceNodeParameters;
+    const params = statCardNode.parameters as StatCardNodeParameters;
     const message = typeof input.message === 'string' ? input.message : '';
     const responseText = this.generateResponseText(triggerName, params.layoutTemplate, message);
 
@@ -527,7 +527,7 @@ export class McpToolService {
     for (const flow of flows) {
       const nodes = flow.nodes ?? [];
       const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
-      const hasInterface = nodes.some(n => n.type === 'Interface');
+      const hasStatCard = nodes.some(n => n.type === 'StatCard');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
 
       for (const triggerNode of triggerNodes) {
@@ -552,7 +552,7 @@ export class McpToolService {
           inputSchema,
         };
 
-        if (hasInterface) {
+        if (hasStatCard) {
           toolDef._meta = {
             'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}.html`,
             'openai/toolInvocation/invoking': `Loading ${triggerNode.name}...`,
@@ -668,7 +668,7 @@ export class McpToolService {
     for (const flow of flows) {
       const nodes = flow.nodes ?? [];
       const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
-      const hasInterface = nodes.some(n => n.type === 'Interface');
+      const hasStatCard = nodes.some(n => n.type === 'StatCard');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
 
       for (const triggerNode of triggerNodes) {
@@ -681,7 +681,7 @@ export class McpToolService {
 
         const toolName = params.toolName;
 
-        if (hasInterface) {
+        if (hasStatCard) {
           resources.push({
             uri: `ui://widget/${appSlug}/${toolName}.html`,
             name: `${triggerNode.name} Widget`,
@@ -771,11 +771,11 @@ export class McpToolService {
 
       const { trigger, flow } = triggerResult;
       const nodes = flow.nodes ?? [];
-      const interfaceNode = nodes.find(n => n.type === 'Interface');
+      const statCardNode = nodes.find(n => n.type === 'StatCard');
 
-      if (!interfaceNode) throw new NotFoundException(`No interface node found for tool: ${toolName}`);
+      if (!statCardNode) throw new NotFoundException(`No StatCard node found for tool: ${toolName}`);
 
-      const params = interfaceNode.parameters as InterfaceNodeParameters;
+      const params = statCardNode.parameters as StatCardNodeParameters;
       const widgetHtml = this.generateWidgetHtml(trigger.name, params.layoutTemplate, app.themeVariables);
 
       return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
@@ -786,10 +786,11 @@ export class McpToolService {
 
   /**
    * Generate widget HTML with ChatGPT Apps SDK bridge
+   * Currently only supports stat-card layout
    */
   private generateWidgetHtml(
     flowName: string,
-    layoutTemplate: LayoutTemplate,
+    _layoutTemplate: LayoutTemplate,
     themeVariables: Record<string, string>
   ): string {
     const cssVariables = Object.entries(themeVariables)
@@ -797,94 +798,76 @@ export class McpToolService {
       .map(([key, value]) => `${key}: ${value};`)
       .join('\n      ');
 
-    if (layoutTemplate === 'table') {
-      return this.generateTableWidgetHtml(flowName, cssVariables);
-    } else {
-      return this.generatePostListWidgetHtml(flowName, cssVariables);
+    // All layouts currently use stat-card
+    return this.generateStatsWidgetHtml(flowName, cssVariables);
+  }
+
+  private generateStatsWidgetHtml(flowName: string, cssVariables: string): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${flowName}</title>
+  <style>
+    :root {
+      ${cssVariables}
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+      --success: 142.1 76.2% 36.3%;
+      --destructive: 0 84.2% 60.2%;
     }
-  }
-
-  private generateTableWidgetHtml(flowName: string, cssVariables: string): string {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${flowName}</title>
-  <style>
-    :root { ${cssVariables} }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; color: var(--text-color, #1a1a2e); padding: 12px; }
-    .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e5e5; }
-    table { width: 100%; border-collapse: collapse; }
-    th { background: #f5f5f5; font-weight: 500; text-align: left; padding: 12px 16px; font-size: 14px; }
-    td { padding: 12px 16px; font-size: 14px; border-top: 1px solid #e5e5e5; }
-    .loading { text-align: center; padding: 40px; color: #666; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: hsl(var(--background)); color: hsl(var(--foreground)); padding: 16px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    .stat-card { padding: 16px; border-radius: 8px; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); }
+    .stat-label { font-size: 12px; font-weight: 500; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 600; color: hsl(var(--card-foreground)); margin-bottom: 4px; }
+    @media (min-width: 768px) { .stat-value { font-size: 28px; } }
+    .stat-change { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
+    .stat-change.up { color: hsl(var(--success)); }
+    .stat-change.down { color: hsl(var(--destructive)); }
+    .stat-change.neutral { color: hsl(var(--muted-foreground)); }
+    .trend-icon { width: 16px; height: 16px; }
+    .change-label { font-size: 11px; color: hsl(var(--muted-foreground)); margin-left: 4px; }
+    .empty-message { padding: 32px; text-align: center; color: hsl(var(--muted-foreground)); }
   </style>
 </head>
 <body>
-  <div id="root">
-    <div id="loading" class="loading">Loading...</div>
-    <div class="table-container" id="table-container" style="display: none;">
-      <table id="data-table"><thead><tr id="header-row"></tr></thead><tbody id="body-rows"></tbody></table>
-    </div>
-  </div>
+  <div class="stats-grid" id="stats-grid"></div>
+  <div class="empty-message" id="empty-message" style="display: none;">No statistics available</div>
   <script>
     (function() {
+      var icons = {
+        up: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
+        down: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>',
+        neutral: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
+      };
       function getToolData() { return window.openai && window.openai.toolOutput ? window.openai.toolOutput : null; }
-      function initWidget() { var data = getToolData(); if (data) renderTable(data); }
-      window.addEventListener('openai:set_globals', function(e) { if (e.detail && e.detail.toolOutput) renderTable(e.detail.toolOutput); });
-      window.addEventListener('message', function(e) { if (e.data) renderTable(e.data.structuredContent || e.data); });
-      function renderTable(data) {
-        if (!data || !data.columns || !data.rows) return;
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('table-container').style.display = 'block';
-        document.getElementById('header-row').innerHTML = data.columns.map(function(c) { return '<th>' + c.header + '</th>'; }).join('');
-        document.getElementById('body-rows').innerHTML = data.rows.map(function(r) { return '<tr>' + data.columns.map(function(c) { return '<td>' + (r[c.key] || '') + '</td>'; }).join('') + '</tr>'; }).join('');
+      function initWidget() { var data = getToolData(); if (data) renderStats(data); }
+      window.addEventListener('openai:set_globals', function(e) { if (e.detail && e.detail.toolOutput) renderStats(e.detail.toolOutput); });
+      window.addEventListener('message', function(e) { if (e.data) renderStats(e.data.structuredContent || e.data); });
+      function renderStats(data) {
+        var grid = document.getElementById('stats-grid');
+        var empty = document.getElementById('empty-message');
+        var stats = (data && data.stats) || [];
+        if (stats.length === 0) { grid.style.display = 'none'; empty.style.display = 'block'; return; }
+        grid.style.display = 'grid'; empty.style.display = 'none';
+        grid.innerHTML = stats.map(function(s) {
+          var trend = s.trend || determineTrend(s.change);
+          var changeVal = formatChange(s.change);
+          var changeLabel = s.changeLabel || '';
+          return '<div class="stat-card"><div class="stat-label">' + escapeHtml(s.label) + '</div><div class="stat-value">' + escapeHtml(String(s.value)) + '</div>' + (changeVal ? '<div class="stat-change ' + trend + '">' + icons[trend] + '<span>' + changeVal + '</span>' + (changeLabel ? '<span class="change-label">' + escapeHtml(changeLabel) + '</span>' : '') + '</div>' : '') + '</div>';
+        }).join('');
       }
-      if (document.readyState === 'complete') initWidget(); else window.addEventListener('DOMContentLoaded', initWidget);
-    })();
-  </script>
-</body>
-</html>`;
-  }
-
-  private generatePostListWidgetHtml(flowName: string, cssVariables: string): string {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${flowName}</title>
-  <style>
-    :root { ${cssVariables} }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; padding: 12px; }
-    .posts-container { display: flex; flex-direction: column; gap: 16px; }
-    .post-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; }
-    .post-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-    .post-excerpt { font-size: 12px; color: #666; }
-    .loading { text-align: center; padding: 40px; color: #666; }
-  </style>
-</head>
-<body>
-  <div id="root">
-    <div id="loading" class="loading">Loading...</div>
-    <div id="posts-container" class="posts-container" style="display: none;"></div>
-  </div>
-  <script>
-    (function() {
-      function getToolData() { return window.openai && window.openai.toolOutput ? window.openai.toolOutput : null; }
-      function initWidget() { var data = getToolData(); if (data) renderPosts(data); }
-      window.addEventListener('openai:set_globals', function(e) { if (e.detail && e.detail.toolOutput) renderPosts(e.detail.toolOutput); });
-      window.addEventListener('message', function(e) { if (e.data) renderPosts(e.data.structuredContent || e.data); });
-      function renderPosts(data) {
-        var posts = data.posts || [];
-        if (posts.length === 0) { document.getElementById('loading').textContent = 'No posts'; return; }
-        document.getElementById('loading').style.display = 'none';
-        var c = document.getElementById('posts-container'); c.style.display = 'flex';
-        c.innerHTML = posts.map(function(p) { return '<div class="post-card"><div class="post-title">' + (p.title || '') + '</div><div class="post-excerpt">' + (p.excerpt || '') + '</div></div>'; }).join('');
-      }
+      function determineTrend(c) { if (c === undefined || c === null || c === 0) return 'neutral'; return c > 0 ? 'up' : 'down'; }
+      function formatChange(c) { if (c === undefined || c === null) return ''; var sign = c > 0 ? '+' : ''; return sign + c.toFixed(1) + '%'; }
+      function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
       if (document.readyState === 'complete') initWidget(); else window.addEventListener('DOMContentLoaded', initWidget);
     })();
   </script>
@@ -925,7 +908,7 @@ export class McpToolService {
 </html>`;
   }
 
-  private generateResponseText(flowName: string, layoutTemplate: LayoutTemplate, _message: string): string {
-    return layoutTemplate === 'table' ? `Here are the results from ${flowName}:` : `Here's the content from ${flowName}:`;
+  private generateResponseText(flowName: string, _layoutTemplate: LayoutTemplate, _message: string): string {
+    return `Here are the statistics from ${flowName}:`;
   }
 }

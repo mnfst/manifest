@@ -342,12 +342,12 @@ function FlowDetail() {
   }
 
   const nodes = flow.nodes ?? [];
-  const interfaceNodes = nodes.filter(n => n.type === 'Interface');
+  const statCardNodes = nodes.filter(n => n.type === 'StatCard');
   const canDeleteNodes = nodes.length > 0;
 
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
-    { id: 'preview', label: 'Preview', icon: Eye, disabled: interfaceNodes.length === 0 },
+    { id: 'preview', label: 'Preview', icon: Eye, disabled: statCardNodes.length === 0 },
     { id: 'usage', label: 'Usage', icon: BarChart3 },
   ];
 

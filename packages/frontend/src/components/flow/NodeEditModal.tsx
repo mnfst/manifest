@@ -3,7 +3,7 @@ import type {
   NodeInstance,
   NodeType,
   Flow,
-  InterfaceNodeParameters,
+  StatCardNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
   UserIntentNodeParameters,
@@ -32,8 +32,7 @@ interface NodeEditModalProps {
 type TabType = 'config' | 'schema';
 
 const LAYOUT_OPTIONS: { value: LayoutTemplate; label: string }[] = [
-  { value: 'table', label: 'Table' },
-  { value: 'post-list', label: 'Post List' },
+  { value: 'stat-card', label: 'Stat Card' },
 ];
 
 const HTTP_METHODS: { value: HttpMethod; label: string }[] = [
@@ -53,7 +52,7 @@ const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
 
 
 /**
- * Modal for creating and editing nodes (Interface, Return, CallFlow, UserIntent, ApiCall)
+ * Modal for creating and editing nodes (StatCard, Return, CallFlow, UserIntent, ApiCall)
  */
 export function NodeEditModal({
   isOpen,
@@ -75,8 +74,8 @@ export function NodeEditModal({
   // Common fields
   const [name, setName] = useState('');
 
-  // Interface node fields
-  const [layoutTemplate, setLayoutTemplate] = useState<LayoutTemplate>('table');
+  // StatCard node fields
+  const [layoutTemplate, setLayoutTemplate] = useState<LayoutTemplate>('stat-card');
 
   // Return node fields
   const [text, setText] = useState('');
@@ -109,9 +108,9 @@ export function NodeEditModal({
       // Edit mode - populate from existing node
       setName(node.name);
 
-      if (node.type === 'Interface') {
-        const params = node.parameters as unknown as InterfaceNodeParameters;
-        setLayoutTemplate(params?.layoutTemplate || 'table');
+      if (node.type === 'StatCard') {
+        const params = node.parameters as unknown as StatCardNodeParameters;
+        setLayoutTemplate(params?.layoutTemplate || 'stat-card');
       } else if (node.type === 'Return') {
         const params = node.parameters as unknown as ReturnNodeParameters;
         setText(params?.text || '');
@@ -136,7 +135,7 @@ export function NodeEditModal({
     } else {
       // Create mode - set defaults
       setName('');
-      setLayoutTemplate('table');
+      setLayoutTemplate('stat-card');
       setText('');
       setTargetFlowId(null);
       setWhenToUse('');
@@ -157,7 +156,7 @@ export function NodeEditModal({
 
     let parameters: Record<string, unknown> = {};
 
-    if (effectiveNodeType === 'Interface') {
+    if (effectiveNodeType === 'StatCard') {
       parameters = { layoutTemplate };
     } else if (effectiveNodeType === 'Return') {
       parameters = { text };
@@ -230,11 +229,11 @@ export function NodeEditModal({
   // Get icon and title based on node type
   const getNodeTypeInfo = () => {
     switch (effectiveNodeType) {
-      case 'Interface':
+      case 'StatCard':
         return {
           icon: <LayoutGrid className="w-5 h-5 text-gray-600" />,
-          title: isEditMode ? 'Edit Interface' : 'Create Interface',
-          description: 'Display data with a layout template',
+          title: isEditMode ? 'Edit Stat Card' : 'Create Stat Card',
+          description: 'Display statistics and metrics',
           color: 'gray',
         };
       case 'Return':
@@ -366,8 +365,8 @@ export function NodeEditModal({
               />
             </div>
 
-            {/* Interface-specific fields */}
-            {effectiveNodeType === 'Interface' && (
+            {/* StatCard-specific fields */}
+            {effectiveNodeType === 'StatCard' && (
               <div>
                 <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
                   Layout Template
