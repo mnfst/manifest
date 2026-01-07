@@ -1,4 +1,4 @@
-import type { NodeTypeCategory } from '@chatgpt-app-builder/shared';
+import type { NodeTypeCategory, JSONSchema } from '@chatgpt-app-builder/shared';
 
 /**
  * Context provided to a node's execute function during flow execution.
@@ -70,6 +70,42 @@ export interface NodeTypeDefinition {
    * @returns A promise resolving to the execution result
    */
   execute: (context: ExecutionContext) => Promise<ExecutionResult>;
+
+  // ==========================================================================
+  // I/O Schema Declarations (for design-time validation)
+  // ==========================================================================
+
+  /**
+   * JSON Schema describing the expected input data structure.
+   * If undefined, input schema is considered "unknown".
+   * For trigger nodes (no inputs), should be null.
+   */
+  inputSchema?: JSONSchema | null;
+
+  /**
+   * JSON Schema describing the guaranteed output data structure.
+   * If undefined, output schema is considered "unknown".
+   * For Return nodes (no outputs), should be null.
+   */
+  outputSchema?: JSONSchema | null;
+
+  /**
+   * For dynamic input schemas: function to compute schema from node parameters.
+   * Takes precedence over static inputSchema when present.
+   *
+   * @param parameters - The node's configured parameters
+   * @returns The computed input schema, or null if unknown
+   */
+  getInputSchema?: (parameters: Record<string, unknown>) => JSONSchema | null;
+
+  /**
+   * For dynamic output schemas: function to compute schema from node parameters.
+   * Takes precedence over static outputSchema when present.
+   *
+   * @param parameters - The node's configured parameters
+   * @returns The computed output schema, or null if unknown
+   */
+  getOutputSchema?: (parameters: Record<string, unknown>) => JSONSchema | null;
 }
 
 /**
@@ -85,13 +121,35 @@ export interface NodeTypeInfo {
   inputs: string[];
   outputs: string[];
   defaultParameters: Record<string, unknown>;
+
+  // Schema info
+  inputSchema?: JSONSchema | null;
+  outputSchema?: JSONSchema | null;
+  hasDynamicInputSchema: boolean;
+  hasDynamicOutputSchema: boolean;
 }
 
 /**
- * Convert a NodeTypeDefinition to NodeTypeInfo (strip execute function).
+ * Convert a NodeTypeDefinition to NodeTypeInfo (strip execute function and schema getters).
  */
 export function toNodeTypeInfo(definition: NodeTypeDefinition): NodeTypeInfo {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { execute, ...info } = definition;
-  return info;
+  const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    execute,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getInputSchema,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getOutputSchema,
+    inputSchema,
+    outputSchema,
+    ...rest
+  } = definition;
+
+  return {
+    ...rest,
+    inputSchema,
+    outputSchema,
+    hasDynamicInputSchema: !!definition.getInputSchema,
+    hasDynamicOutputSchema: !!definition.getOutputSchema,
+  };
 }

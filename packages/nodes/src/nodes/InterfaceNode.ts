@@ -1,3 +1,4 @@
+import type { JSONSchema } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../types.js';
 
 /**
@@ -5,6 +6,9 @@ import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../t
  *
  * Displays a UI interface to the user with data rendered in a layout template.
  * Supports action handles for user interactions (e.g., button clicks, form submissions).
+ *
+ * Input: Accepts any data structure to render in the layout.
+ * Output: Dynamic based on layout actions - each action output includes action metadata.
  */
 export const InterfaceNode: NodeTypeDefinition = {
   name: 'Interface',
@@ -19,6 +23,38 @@ export const InterfaceNode: NodeTypeDefinition = {
 
   defaultParameters: {
     layoutTemplate: 'table',
+  },
+
+  // Interface nodes accept any input data to render
+  inputSchema: {
+    type: 'object',
+    additionalProperties: true,
+    description: 'Data to display in the interface layout',
+  } as JSONSchema,
+
+  // Output schema is dynamic based on the action that occurs
+  getOutputSchema(parameters: Record<string, unknown>): JSONSchema | null {
+    const layoutTemplate = (parameters.layoutTemplate as string) ?? 'table';
+
+    // Base output structure for all actions
+    return {
+      type: 'object',
+      properties: {
+        type: { type: 'string', const: 'interface' },
+        action: {
+          type: 'string',
+          enum: ['submit', 'click', 'select'],
+          description: 'The action that triggered this output',
+        },
+        layoutTemplate: { type: 'string', const: layoutTemplate },
+        data: {
+          type: 'object',
+          additionalProperties: true,
+          description: 'Action-specific data (form values, selected item, etc.)',
+        },
+      },
+      required: ['type', 'action', 'layoutTemplate'],
+    } as JSONSchema;
   },
 
   async execute(context: ExecutionContext): Promise<ExecutionResult> {

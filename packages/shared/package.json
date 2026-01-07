@@ -19,6 +19,10 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src/"
   },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
   "devDependencies": {
     "typescript": "^5.7.2"
   }
