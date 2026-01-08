@@ -28,6 +28,7 @@ import { AddUserIntentNode } from './AddUserIntentNode';
 import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
 import { ApiCallNode } from './ApiCallNode';
+import { TransformNode } from './TransformNode';
 import { DeletableEdge } from './DeletableEdge';
 import { CompatibilityDetailModal } from './CompatibilityDetailModal';
 import { useSchemaValidation } from '../../hooks/useSchemaValidation';
@@ -63,13 +64,15 @@ function getFlowState(flow: Flow) {
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
   const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
+  const transformNodes = nodes.filter(n => n.type === 'JavaScriptCodeTransform');
   const hasUserIntentNodes = userIntentNodes.length > 0;
   const hasStatCardNodes = statCardNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasApiCallNodes = apiCallNodes.length > 0;
-  const hasSteps = hasStatCardNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes;
-  return { hasUserIntentNodes, hasStatCardNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasSteps, userIntentNodes, statCardNodes, returnNodes, callFlowNodes, apiCallNodes };
+  const hasTransformNodes = transformNodes.length > 0;
+  const hasSteps = hasStatCardNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes;
+  return { hasUserIntentNodes, hasStatCardNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasSteps, userIntentNodes, statCardNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes };
 }
 
 const nodeTypes = {
@@ -79,6 +82,7 @@ const nodeTypes = {
   returnValueNode: ReturnValueNode,
   callFlowNode: CallFlowNode,
   apiCallNode: ApiCallNode,
+  transformNode: TransformNode,
 };
 
 const edgeTypes = {
@@ -123,6 +127,13 @@ function FlowDiagramInner({
       nodeIds.add(conn.sourceNodeId);
     });
     return nodeIds;
+  }, [connections]);
+
+  // Track which nodes have incoming connections (for transform node validation)
+  const nodesWithIncomingConnections = useMemo(() => {
+    const set = new Set<string>();
+    connections.forEach(c => set.add(c.targetNodeId));
+    return set;
   }, [connections]);
 
   // Schema validation hook for connection validation status
@@ -453,12 +464,36 @@ function FlowDiagramInner({
 
         xPosition = Math.max(xPosition, nodePos.x) + 250;
       });
+
+      // Add Transform nodes (JavaScriptCodeTransform)
+      flowState.transformNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 80 };
+        // Check if transform node has an input connection
+        const hasInputConnection = nodesWithIncomingConnections.has(node.id);
+        const validationError = hasInputConnection ? undefined : 'Transform node requires an input connection';
+
+        nodeList.push({
+          id: node.id,
+          type: 'transformNode',
+          position: nodePos,
+          data: {
+            node,
+            canDelete,
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
+            validationError,
+          },
+        });
+
+        xPosition = Math.max(xPosition, nodePos.x) + 150; // Smaller spacing for transform nodes
+      });
     }
 
     return nodeList;
   // Use specific dependencies instead of entire flow object to prevent unnecessary recalculations
   // onAddStep is used for AddUserIntentNode placeholder when no triggers exist
-  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup, onAddFromNode, onDropOnNode, nodesWithOutgoingConnections, onNodeEditCode]);
+  // nodesWithIncomingConnections is used for transform node validation
+  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup, onAddFromNode, onDropOnNode, nodesWithOutgoingConnections, nodesWithIncomingConnections, onNodeEditCode]);
 
   // State for draggable nodes - initialized from computedNodes and updated on drag
   const [nodes, setNodes] = useState<Node[]>(computedNodes);
@@ -528,6 +563,8 @@ function FlowDiagramInner({
           strokeColor = '#a855f7'; // Purple for call flow
         } else if (sourceNode.type === 'ApiCall') {
           strokeColor = '#f97316'; // Orange for API call
+        } else if (sourceNode.type === 'JavaScriptCodeTransform') {
+          strokeColor = '#14b8a6'; // Teal for transform
         }
       }
 
@@ -601,6 +638,12 @@ function FlowDiagramInner({
         validation={selectedConnection.validation}
         sourceName={selectedConnection.sourceName}
         targetName={selectedConnection.targetName}
+        flowId={flow.id}
+        onTransformerInserted={() => {
+          // Close the modal and trigger a refresh of the flow data
+          setSelectedConnection(null);
+          // The parent component should handle refreshing the flow data
+        }}
       />
     )}
     </>

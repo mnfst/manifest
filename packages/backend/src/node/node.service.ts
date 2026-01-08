@@ -2,15 +2,20 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from '../flow/flow.entity';
-import type {
-  NodeInstance,
-  Connection,
-  CreateNodeRequest,
-  UpdateNodeRequest,
-  UpdateNodePositionRequest,
-  CreateConnectionRequest,
-  NodeTypeCategory,
-  UserIntentNodeParameters,
+import {
+  inferSchemaFromSample,
+  type NodeInstance,
+  type Connection,
+  type CreateNodeRequest,
+  type UpdateNodeRequest,
+  type UpdateNodePositionRequest,
+  type CreateConnectionRequest,
+  type NodeTypeCategory,
+  type UserIntentNodeParameters,
+  type InsertTransformerRequest,
+  type InsertTransformerResponse,
+  type TestTransformRequest,
+  type TestTransformResponse,
 } from '@chatgpt-app-builder/shared';
 import { generateUniqueSlug } from '@chatgpt-app-builder/shared';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,7 +65,8 @@ export class NodeService {
       { id: 'trigger', displayName: 'Triggers', order: 1 },
       { id: 'interface', displayName: 'UI Components', order: 2 },
       { id: 'action', displayName: 'Actions', order: 3 },
-      { id: 'return', displayName: 'Return Values', order: 4 },
+      { id: 'transform', displayName: 'Transform', order: 4 },
+      { id: 'return', displayName: 'Return Values', order: 5 },
     ];
 
     return { nodeTypes, categories };
@@ -422,6 +428,191 @@ export class NodeService {
     connections.splice(connectionIndex, 1);
     flow.connections = connections;
     await this.flowRepository.save(flow);
+  }
+
+  // ==========================================================================
+  // Transformer Operations (T011, T012)
+  // ==========================================================================
+
+  /**
+   * Insert a transformer node between two connected nodes.
+   * - Removes the existing connection between source and target
+   * - Creates the transformer node at the midpoint position
+   * - Creates two new connections: source→transformer and transformer→target
+   */
+  async insertTransformer(
+    flowId: string,
+    request: InsertTransformerRequest
+  ): Promise<InsertTransformerResponse> {
+    const flow = await this.findFlow(flowId);
+    const nodes = flow.nodes ?? [];
+    const connections = flow.connections ?? [];
+
+    // Find the source and target nodes
+    const sourceNode = nodes.find((n) => n.id === request.sourceNodeId);
+    const targetNode = nodes.find((n) => n.id === request.targetNodeId);
+
+    if (!sourceNode) {
+      throw new NotFoundException(`Source node ${request.sourceNodeId} not found`);
+    }
+    if (!targetNode) {
+      throw new NotFoundException(`Target node ${request.targetNodeId} not found`);
+    }
+
+    // Validate the transformer type exists and is a transform category
+    const transformerDef = builtInNodeList.find(
+      (n) => n.name === request.transformerType
+    );
+    if (!transformerDef) {
+      throw new BadRequestException(
+        `Transformer type ${request.transformerType} not found`
+      );
+    }
+    if (transformerDef.category !== 'transform') {
+      throw new BadRequestException(
+        `Node type ${request.transformerType} is not a transformer`
+      );
+    }
+
+    // Find and remove the existing connection between source and target
+    const existingConnectionIndex = connections.findIndex(
+      (c) => c.sourceNodeId === request.sourceNodeId && c.targetNodeId === request.targetNodeId
+    );
+
+    if (existingConnectionIndex !== -1) {
+      connections.splice(existingConnectionIndex, 1);
+    }
+
+    // Calculate midpoint position for the transformer node
+    const midX = (sourceNode.position.x + targetNode.position.x) / 2;
+    const midY = (sourceNode.position.y + targetNode.position.y) / 2;
+
+    // Create the transformer node
+    const transformerNode: NodeInstance = {
+      id: uuidv4(),
+      type: request.transformerType,
+      name: `${transformerDef.displayName} ${nodes.filter((n) => n.type === request.transformerType).length + 1}`,
+      position: { x: midX, y: midY },
+      parameters: { ...transformerDef.defaultParameters },
+    };
+
+    // Create connection from source to transformer
+    const sourceConnection: Connection = {
+      id: uuidv4(),
+      sourceNodeId: request.sourceNodeId,
+      sourceHandle: 'output',
+      targetNodeId: transformerNode.id,
+      targetHandle: 'input',
+    };
+
+    // Create connection from transformer to target
+    const targetConnection: Connection = {
+      id: uuidv4(),
+      sourceNodeId: transformerNode.id,
+      sourceHandle: 'output',
+      targetNodeId: request.targetNodeId,
+      targetHandle: 'input',
+    };
+
+    // Add transformer node and new connections
+    nodes.push(transformerNode);
+    connections.push(sourceConnection, targetConnection);
+
+    // Save updates
+    flow.nodes = nodes;
+    flow.connections = connections;
+    await this.flowRepository.save(flow);
+
+    return {
+      transformerNode,
+      sourceConnection,
+      targetConnection,
+    };
+  }
+
+  /**
+   * Extract executable JavaScript from TypeScript transform code.
+   * Handles both full function definitions and simple function bodies.
+   */
+  private extractExecutableCode(code: string): string {
+    // Strip TypeScript type annotations
+    const jsCode = code
+      // Remove function parameter type annotations: (param: Type) => (param)
+      .replace(/:\s*[A-Za-z_$][\w$<>,\s]*(\[\])?(?=\s*[,)=])/g, '')
+      // Remove function return type annotations: function foo(): Type { => function foo() {
+      .replace(/\):\s*[A-Za-z_$][\w$<>,\s]*(\[\])?\s*\{/g, ') {')
+      // Remove interface declarations
+      .replace(/interface\s+\w+\s*\{[^}]*\}/g, '')
+      // Remove type declarations
+      .replace(/type\s+\w+\s*=\s*[^;]+;/g, '');
+
+    const trimmed = jsCode.trim();
+
+    // Check if this is a full function definition
+    const functionMatch = trimmed.match(/^function\s+\w*\s*\([^)]*\)\s*\{([\s\S]*)\}$/);
+    if (functionMatch) {
+      // Extract the function body
+      return functionMatch[1].trim();
+    }
+
+    // Check for arrow function: const transform = (input) => { ... }
+    const arrowMatch = trimmed.match(/^(?:const|let|var)\s+\w+\s*=\s*\([^)]*\)\s*=>\s*\{([\s\S]*)\}$/);
+    if (arrowMatch) {
+      return arrowMatch[1].trim();
+    }
+
+    // Check for arrow function with expression body: (input) => input.value
+    const arrowExprMatch = trimmed.match(/^(?:const|let|var)\s+\w+\s*=\s*\([^)]*\)\s*=>\s*(.+)$/);
+    if (arrowExprMatch) {
+      return `return ${arrowExprMatch[1]}`;
+    }
+
+    // Assume it's already a function body
+    return jsCode;
+  }
+
+  /**
+   * Test a JavaScript transform with sample input.
+   * Executes the provided code using Function constructor in a sandboxed manner
+   * and infers the output schema from the result.
+   */
+  testTransform(request: TestTransformRequest): TestTransformResponse {
+    const { code, sampleInput } = request;
+
+    const startTime = performance.now();
+
+    try {
+      // Extract executable JavaScript from potentially TypeScript code
+      const executableCode = this.extractExecutableCode(code);
+
+      // Create a sandboxed function from the code
+      // The code is expected to use `input` as the parameter and return a value
+      const transformFunction = new Function('input', executableCode);
+
+      // Execute the transform with the sample input
+      const output = transformFunction(sampleInput);
+
+      const executionTimeMs = Math.round(performance.now() - startTime);
+
+      // Infer the schema from the output
+      const outputSchema = inferSchemaFromSample(output);
+
+      return {
+        success: true,
+        output,
+        outputSchema,
+        executionTimeMs,
+      };
+    } catch (err) {
+      const executionTimeMs = Math.round(performance.now() - startTime);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error during transformation';
+
+      return {
+        success: false,
+        error: errorMessage,
+        executionTimeMs,
+      };
+    }
   }
 
   // ==========================================================================

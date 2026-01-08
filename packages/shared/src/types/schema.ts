@@ -199,6 +199,19 @@ export interface ValidateConnectionResponse {
   issues: CompatibilityIssue[];
   sourceSchema: JSONSchema | null;
   targetSchema: JSONSchema | null;
+
+  /** Suggested transformers that could resolve incompatibility issues */
+  suggestedTransformers?: SuggestedTransformer[];
+}
+
+/**
+ * Node-level validation error.
+ */
+export interface NodeValidationError {
+  nodeId: string;
+  nodeType: string;
+  errorCode: 'TRANSFORM_NO_INPUT' | 'TRANSFORM_NO_OUTPUT' | 'INVALID_PARAMETERS';
+  message: string;
 }
 
 /**
@@ -215,6 +228,25 @@ export interface FlowValidationResponse {
     unknown: number;
   };
   connections: ConnectionValidationResult[];
+  /** Node-level validation errors (e.g., disconnected transformers) */
+  nodeErrors?: NodeValidationError[];
+}
+
+/**
+ * Suggested transformer for resolving schema incompatibility.
+ */
+export interface SuggestedTransformer {
+  /** Node type identifier */
+  nodeType: string;
+
+  /** Human-readable name */
+  displayName: string;
+
+  /** Description of what this transformer does */
+  description: string;
+
+  /** Confidence level that this transformer can resolve the incompatibility */
+  confidence: 'high' | 'medium' | 'low';
 }
 
 /**
@@ -226,6 +258,9 @@ export interface ConnectionValidationResult {
   targetNodeId: string;
   status: CompatibilityStatus;
   issues: CompatibilityIssue[];
+
+  /** Suggested transformers that could resolve incompatibility issues */
+  suggestedTransformers?: SuggestedTransformer[];
 }
 
 /**

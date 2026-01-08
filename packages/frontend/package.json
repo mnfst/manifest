@@ -22,6 +22,7 @@
     "@lezer/highlight": "^1.2.3",
     "@uiw/react-codemirror": "^4.25.4",
     "@xyflow/react": "^12.10.0",
+    "acorn": "^8.15.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "react": "^18.3.1",

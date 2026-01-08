@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Loader2, Globe } from 'lucide-react';
+import { X, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Loader2, Globe, Shuffle } from 'lucide-react';
 import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
 import { api, type NodeTypeInfo, type CategoryInfo } from '../../lib/api';
 
@@ -16,6 +16,7 @@ const iconMap: Record<string, React.ElementType> = {
   'git-branch': GitBranch,
   'corner-down-left': CornerDownLeft,
   'globe': Globe,
+  'shuffle': Shuffle,
 };
 
 // Category-based styling
@@ -24,6 +25,7 @@ const categoryStyles: Record<NodeTypeCategory, { color: string; bgColor: string;
   'interface': { color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200 hover:border-gray-400' },
   'action': { color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200 hover:border-orange-400' },
   'return': { color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200 hover:border-green-400' },
+  'transform': { color: 'text-teal-600', bgColor: 'bg-teal-50', borderColor: 'border-teal-200 hover:border-teal-400' },
 };
 
 /**

@@ -132,11 +132,38 @@ export function DeletableEdge({
           stroke: edgeColor,
           strokeWidth: validation ? 2.5 : (style?.strokeWidth as number) || 2,
           opacity: isDeleting ? 0.5 : 1,
+          // Add dashed animation for error connections
+          ...(validation?.status === 'error' && {
+            strokeDasharray: '8 4',
+          }),
         }}
         markerEnd={markerEnd}
       />
 
-      {/* Controls that appear on hover */}
+      {/* Persistent incompatibility indicator for error status */}
+      {validation && (validation.status === 'error' || validation.status === 'warning') && !isHovered && (
+        <EdgeLabelRenderer>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (edgeData?.onShowDetails && edgeData.connection) {
+                edgeData.onShowDetails(edgeData.connection, validation);
+              }
+            }}
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: 'all',
+            }}
+            className={`nodrag nopan flex items-center justify-center w-5 h-5 rounded-full text-white shadow-md hover:scale-110 transition-transform ${getStatusBgClass(validation.status)}`}
+            title={`${tooltipText}${edgeData?.onShowDetails ? ' (Click for details)' : ''}`}
+          >
+            {getStatusIcon(validation.status)}
+          </button>
+        </EdgeLabelRenderer>
+      )}
+
+      {/* Full controls that appear on hover */}
       <EdgeLabelRenderer>
         <div
           style={{

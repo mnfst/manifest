@@ -17,6 +17,10 @@ import type {
   UpdateNodeRequest,
   UpdateNodePositionRequest,
   CreateConnectionRequest,
+  InsertTransformerRequest,
+  InsertTransformerResponse,
+  TestTransformRequest,
+  TestTransformResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -127,5 +131,38 @@ export class NodeController {
     @Param('connectionId') connectionId: string
   ): Promise<void> {
     return this.nodeService.deleteConnection(flowId, connectionId);
+  }
+
+  // ==========================================================================
+  // Transformer Endpoints (T011)
+  // ==========================================================================
+
+  /**
+   * T011: POST /flows/:flowId/transformers/insert
+   * Insert a transformer node between two connected nodes.
+   * - Removes the existing connection between source and target
+   * - Creates transformer node at midpoint position
+   * - Creates two new connections (source→transformer, transformer→target)
+   */
+  @Post('transformers/insert')
+  async insertTransformer(
+    @Param('flowId') flowId: string,
+    @Body() request: InsertTransformerRequest
+  ): Promise<InsertTransformerResponse> {
+    return this.nodeService.insertTransformer(flowId, request);
+  }
+
+  /**
+   * T020: POST /flows/:flowId/transformers/test
+   * Test a JavaScript transform with sample input.
+   * - Executes code using Function constructor
+   * - Returns output and inferred schema
+   * - Handles errors gracefully
+   */
+  @Post('transformers/test')
+  testTransform(
+    @Body() request: TestTransformRequest
+  ): TestTransformResponse {
+    return this.nodeService.testTransform(request);
   }
 }

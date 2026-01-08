@@ -68,11 +68,17 @@ export type {
   HeaderEntry,
   InputMapping,
   ApiCallNodeParameters,
+  // Transform node types
+  JavaScriptCodeTransformParameters,
   CreateNodeRequest,
   UpdateNodeRequest,
   UpdateNodePositionRequest,
   BatchPositionUpdate,
   CreateConnectionRequest,
+  InsertTransformerRequest,
+  InsertTransformerResponse,
+  TestTransformRequest,
+  TestTransformResponse,
 } from './types/node.js';
 export {
   isStatCardNode,
@@ -80,6 +86,7 @@ export {
   isCallFlowNode,
   isUserIntentNode,
   isApiCallNode,
+  isJavaScriptCodeTransformNode,
 } from './types/node.js';
 
 // Execution types
@@ -128,11 +135,13 @@ export type {
   ValidateConnectionResponse,
   FlowValidationResponse,
   ConnectionValidationResult,
+  NodeValidationError,
   NodeTypeSchemaResponse,
   ResolveSchemaRequest,
   ResolveSchemaResponse,
   FieldSource,
   FlattenedSchemaField,
+  SuggestedTransformer,
 } from './types/schema.js';
 
 // Schema validation utilities

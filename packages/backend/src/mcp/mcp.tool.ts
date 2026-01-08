@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
-import { ApiCallNode } from '@chatgpt-app-builder/nodes';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters } from '@chatgpt-app-builder/shared';
+import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
 
 /**
  * Resolves template variables in a string using upstream node outputs.
@@ -383,6 +383,30 @@ export class McpToolService {
           const structuredContent = result.structuredContent || {};
           nodeOutputs.set(node.id, structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
+        } else if (node.type === 'JavaScriptCodeTransform') {
+          // Execute JavaScript transform node
+          const transformResult = await this.executeTransformNode(flow.id, node, nodeOutputs, allNodes, connections);
+          nodeOutputs.set(node.id, transformResult.output);
+          nodeExecutions.push(this.createNodeExecution(
+            node,
+            nodeInputData,
+            transformResult.output,
+            transformResult.success ? 'completed' : 'error',
+            transformResult.error
+          ));
+
+          // If transform failed, we still continue to allow downstream handling
+          if (!transformResult.success) {
+            result = {
+              content: [{ type: 'text', text: `Transform error: ${transformResult.error}` }],
+            };
+          } else {
+            // Transform nodes pass through - result will be set by downstream terminal node
+            result = {
+              content: [{ type: 'text', text: JSON.stringify(transformResult.output, null, 2) }],
+              structuredContent: transformResult.output,
+            };
+          }
         }
       }
 
@@ -561,6 +585,75 @@ export class McpToolService {
     try {
       const result = await ApiCallNode.execute(context);
       return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Execute JavaScriptCodeTransform node - transform data using user-defined JS code
+   */
+  private async executeTransformNode(
+    flowId: string,
+    node: NodeInstance,
+    nodeOutputs: Map<string, unknown>,
+    allNodes: NodeInstance[],
+    connections: Connection[]
+  ): Promise<{ success: boolean; output?: unknown; error?: string }> {
+    const params = node.parameters as JavaScriptCodeTransformParameters;
+
+    // Build slug-to-id map for value resolution
+    const slugToId = new Map<string, string>();
+    for (const n of allNodes) {
+      if (n.slug) {
+        slugToId.set(n.slug, n.id);
+      }
+    }
+
+    // Find the upstream node connected to this transform node
+    const incomingConnection = connections.find(c => c.targetNodeId === node.id);
+    let upstreamOutput: unknown = {};
+
+    if (incomingConnection) {
+      upstreamOutput = nodeOutputs.get(incomingConnection.sourceNodeId) || {};
+    }
+
+    // Create execution context for the Transform node
+    const context = {
+      flowId,
+      nodeId: node.id,
+      parameters: params,
+      getNodeValue: async (slugOrId: string): Promise<unknown> => {
+        // Special case: 'main' or 'input' returns the upstream connected node's output
+        if (slugOrId === 'main' || slugOrId === 'input') {
+          return upstreamOutput;
+        }
+        // Try slug first (new behavior)
+        const nodeIdFromSlug = slugToId.get(slugOrId);
+        if (nodeIdFromSlug) {
+          return nodeOutputs.get(nodeIdFromSlug);
+        }
+        // Fall back to ID lookup (backward compatibility)
+        return nodeOutputs.get(slugOrId);
+      },
+      callFlow: async (_targetFlowId: string, _params: Record<string, unknown>): Promise<unknown> => {
+        // Not used by Transform nodes, but required by interface
+        return null;
+      },
+    };
+
+    try {
+      const result = await JavaScriptCodeTransform.execute(context);
+      // The transform node wraps output in { type: 'transform', success: boolean, data: ... }
+      const transformOutput = result.output as { type: string; success: boolean; data?: unknown; error?: string };
+      if (transformOutput && transformOutput.success) {
+        return { success: true, output: transformOutput.data };
+      } else {
+        return { success: false, output: undefined, error: transformOutput?.error || result.error };
+      }
     } catch (error) {
       return {
         success: false,

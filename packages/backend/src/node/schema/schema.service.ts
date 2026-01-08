@@ -19,10 +19,13 @@ import {
   type ResolveSchemaResponse,
   type FlowValidationResponse,
   type ConnectionValidationResult,
+  type NodeValidationError,
   type NodeInstance,
   type UserIntentNodeParameters,
   type ApiCallNodeParameters,
   type FlowParameter,
+  type SuggestedTransformer,
+  type CompatibilityStatus,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -225,6 +228,12 @@ export class SchemaService {
     let errorsCount = 0;
     let unknownCount = 0;
 
+    // Build set of nodes that have incoming connections
+    const nodesWithIncomingConnections = new Set<string>();
+    for (const connection of connections) {
+      nodesWithIncomingConnections.add(connection.targetNodeId);
+    }
+
     for (const connection of connections) {
       const sourceSchema = schemaMap.get(connection.sourceNodeId);
       const targetSchema = schemaMap.get(connection.targetNodeId);
@@ -270,9 +279,23 @@ export class SchemaService {
       }
     }
 
+    // Validate transform nodes have input connections
+    const nodeErrors: NodeValidationError[] = [];
+    for (const node of nodes) {
+      const nodeDef = this.nodeTypeMap.get(node.type);
+      if (nodeDef?.category === 'transform' && !nodesWithIncomingConnections.has(node.id)) {
+        nodeErrors.push({
+          nodeId: node.id,
+          nodeType: node.type,
+          errorCode: 'TRANSFORM_NO_INPUT',
+          message: `Transform node "${nodeDef.displayName}" requires an input connection`,
+        });
+      }
+    }
+
     // Determine overall status
     let overallStatus: 'valid' | 'warnings' | 'errors' = 'valid';
-    if (errorsCount > 0) {
+    if (errorsCount > 0 || nodeErrors.length > 0) {
       overallStatus = 'errors';
     } else if (warningsCount > 0) {
       overallStatus = 'warnings';
@@ -289,6 +312,7 @@ export class SchemaService {
         unknown: unknownCount,
       },
       connections: results,
+      nodeErrors: nodeErrors.length > 0 ? nodeErrors : undefined,
     };
   }
 
@@ -324,12 +348,46 @@ export class SchemaService {
       targetSchemaInfo.inputSchema
     );
 
+    // Get suggested transformers if there are compatibility issues
+    const suggestedTransformers = this.getSuggestedTransformers(result.status);
+
     return {
       status: result.status,
       issues: result.issues,
       sourceSchema: result.sourceSchema,
       targetSchema: result.targetSchema,
+      suggestedTransformers,
     };
+  }
+
+  /**
+   * Get suggested transformers based on compatibility status.
+   * Returns transform nodes that could potentially resolve incompatibility issues.
+   */
+  private getSuggestedTransformers(
+    status: CompatibilityStatus
+  ): SuggestedTransformer[] | undefined {
+    // Only suggest transformers for error or warning status
+    if (status !== 'error' && status !== 'warning') {
+      return undefined;
+    }
+
+    // Find all transform category nodes
+    const transformers: SuggestedTransformer[] = [];
+
+    for (const nodeDef of builtInNodeList) {
+      if (nodeDef.category === 'transform') {
+        transformers.push({
+          nodeType: nodeDef.name,
+          displayName: nodeDef.displayName,
+          description: nodeDef.description,
+          // JavaScript Code Transform is highly flexible and can handle most transformations
+          confidence: nodeDef.name === 'JavaScriptCodeTransform' ? 'high' : 'medium',
+        });
+      }
+    }
+
+    return transformers.length > 0 ? transformers : undefined;
   }
 
   // ==========================================================================

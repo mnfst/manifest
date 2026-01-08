@@ -50,6 +50,7 @@ function toValidationState(response: ValidateConnectionResponse): ConnectionVali
       targetSchema: response.targetSchema,
       validatedAt: new Date().toISOString(),
     },
+    suggestedTransformers: response.suggestedTransformers,
   };
 }
 

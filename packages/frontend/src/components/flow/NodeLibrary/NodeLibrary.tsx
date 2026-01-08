@@ -37,6 +37,10 @@ const CATEGORY_CONFIG: Record<NodeTypeCategory, {
     displayName: 'Output',
     color: { bg: 'bg-green-100', bgHover: 'bg-green-200', text: 'text-green-600' },
   },
+  transform: {
+    displayName: 'Transform',
+    color: { bg: 'bg-teal-100', bgHover: 'bg-teal-200', text: 'text-teal-600' },
+  },
 };
 
 /**

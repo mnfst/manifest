@@ -28,6 +28,8 @@ export interface NodeExecutionData {
   outputData: Record<string, unknown>;
   status: NodeExecutionStatus;
   error?: string;
+  /** Execution time in milliseconds (primarily useful for transform nodes) */
+  executionTimeMs?: number;
 }
 
 /**
