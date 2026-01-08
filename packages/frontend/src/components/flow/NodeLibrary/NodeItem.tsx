@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import type { NodeType, NodeTypeCategory, LayoutTemplate as LayoutTemplateType } from '@chatgpt-app-builder/shared';
 import { LAYOUT_REGISTRY } from '@chatgpt-app-builder/shared';
 import type { NodeTypeInfo } from '../../../lib/api';
-import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle, LayoutList } from 'lucide-react';
+import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle, LayoutList, ExternalLink } from 'lucide-react';
 
 // Map icon names from API to Lucide React components
 const iconMap: Record<string, React.ElementType> = {
@@ -13,6 +13,7 @@ const iconMap: Record<string, React.ElementType> = {
   'corner-down-left': CornerDownLeft,
   'globe': Globe,
   'shuffle': Shuffle,
+  'external-link': ExternalLink,
 };
 
 /**

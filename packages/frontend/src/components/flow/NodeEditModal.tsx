@@ -10,6 +10,7 @@ import type {
   UserIntentNodeParameters,
   ApiCallNodeParameters,
   JavaScriptCodeTransformParameters,
+  LinkNodeParameters,
   HttpMethod,
   HeaderEntry,
   LayoutTemplate,
@@ -17,7 +18,7 @@ import type {
   ParameterType,
   JSONSchema,
 } from '@chatgpt-app-builder/shared';
-import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
 import { UsePreviousOutputs } from '../common/UsePreviousOutputs';
 import { TemplateReferencesDisplay } from '../common/TemplateReferencesDisplay';
@@ -132,6 +133,9 @@ export function NodeEditModal({
   const [resolvedOutputSchema, setResolvedOutputSchema] = useState<JSONSchema | null>(null);
   const [testInput, setTestInput] = useState('{}');
 
+  // Link node fields
+  const [linkHref, setLinkHref] = useState('');
+
   // Code validation for JavaScriptCodeTransform
   const { isValid: isCodeValid, error: codeValidationError } = useCodeValidation(transformCode);
 
@@ -235,6 +239,9 @@ export function NodeEditModal({
         setResolvedOutputSchema(params?.resolvedOutputSchema || null);
         setTestInput('{}');
         resetTest();
+      } else if (node.type === 'Link') {
+        const params = node.parameters as unknown as LinkNodeParameters;
+        setLinkHref(params?.href || '');
       }
     } else {
       // Create mode - set defaults
@@ -256,6 +263,7 @@ export function NodeEditModal({
       setResolvedOutputSchema(null);
       setTestInput('{}');
       resetTest();
+      setLinkHref('');
     }
   }, [isOpen, node, resetTest]);
 
@@ -294,6 +302,8 @@ export function NodeEditModal({
         code: transformCode,
         resolvedOutputSchema: finalOutputSchema,
       };
+    } else if (effectiveNodeType === 'Link') {
+      parameters = { href: linkHref };
     }
 
     await onSave({ name, parameters });
@@ -403,6 +413,13 @@ export function NodeEditModal({
           title: isEditMode ? 'Edit Post List' : 'Create Post List',
           description: 'Display a list of posts with actions',
           color: 'gray',
+        };
+      case 'Link':
+        return {
+          icon: <ExternalLink className="w-5 h-5 text-green-600" />,
+          title: isEditMode ? 'Edit Link' : 'Create Link',
+          description: 'Open an external URL in the user\'s browser',
+          color: 'green',
         };
     }
   };
@@ -1123,6 +1140,48 @@ export function NodeEditModal({
                     Run "Test Transform" to infer the output schema from your code.
                   </p>
                 </div>
+              </>
+            )}
+
+            {/* Link-specific fields */}
+            {effectiveNodeType === 'Link' && (
+              <>
+                {/* Use Previous Outputs component - only show in edit mode when we have a node ID */}
+                {isEditMode && node && (
+                  <UsePreviousOutputs
+                    upstreamNodes={upstreamNodes}
+                    isLoading={upstreamLoading}
+                    error={upstreamError}
+                    onRefresh={refreshUpstream}
+                  />
+                )}
+
+                <div>
+                  <label htmlFor="link-href" className="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                  </label>
+                  <input
+                    type="text"
+                    id="link-href"
+                    value={linkHref}
+                    onChange={(e) => setLinkHref(e.target.value)}
+                    placeholder="https://example.com or {{ nodeSlug.field }}"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter a static URL or use {'{{ nodeSlug.path }}'} syntax to reference upstream node outputs.
+                  </p>
+                </div>
+
+                {/* Template References Display - shows input requirements from {{ }} variables */}
+                {isEditMode && (
+                  <TemplateReferencesDisplay
+                    values={[linkHref]}
+                    upstreamNodes={upstreamNodes}
+                    isConnected={upstreamNodes.length > 0}
+                  />
+                )}
               </>
             )}
           </div>

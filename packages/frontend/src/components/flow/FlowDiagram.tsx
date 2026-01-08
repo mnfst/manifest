@@ -11,6 +11,7 @@ import {
   type NodeMouseHandler,
   type NodeChange,
   type Connection as RFConnection,
+  type OnConnectEnd,
   applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -21,6 +22,7 @@ import type {
   CreateConnectionRequest,
   NodeType,
 } from '@chatgpt-app-builder/shared';
+import { X, AlertTriangle } from 'lucide-react';
 import { api } from '../../lib/api';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
@@ -29,6 +31,7 @@ import { ReturnValueNode } from './ReturnValueNode';
 import { CallFlowNode } from './CallFlowNode';
 import { ApiCallNode } from './ApiCallNode';
 import { TransformNode } from './TransformNode';
+import { LinkNode } from './LinkNode';
 import { DeletableEdge } from './DeletableEdge';
 import { CompatibilityDetailModal } from './CompatibilityDetailModal';
 import { useSchemaValidation } from '../../hooks/useSchemaValidation';
@@ -66,6 +69,7 @@ function getFlowState(flow: Flow) {
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
   const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
   const transformNodes = nodes.filter(n => n.type === 'JavaScriptCodeTransform');
+  const linkNodes = nodes.filter(n => n.type === 'Link');
   const hasUserIntentNodes = userIntentNodes.length > 0;
   const hasStatCardNodes = statCardNodes.length > 0;
   const hasPostListNodes = postListNodes.length > 0;
@@ -73,8 +77,9 @@ function getFlowState(flow: Flow) {
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasApiCallNodes = apiCallNodes.length > 0;
   const hasTransformNodes = transformNodes.length > 0;
-  const hasSteps = hasStatCardNodes || hasPostListNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes;
-  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes };
+  const hasLinkNodes = linkNodes.length > 0;
+  const hasSteps = hasStatCardNodes || hasPostListNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
+  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
 }
 
 const nodeTypes = {
@@ -85,6 +90,7 @@ const nodeTypes = {
   callFlowNode: CallFlowNode,
   apiCallNode: ApiCallNode,
   transformNode: TransformNode,
+  linkNode: LinkNode,
 };
 
 const edgeTypes = {
@@ -176,6 +182,11 @@ function FlowDiagramInner({
     sourceName?: string;
     targetName?: string;
   } | null>(null);
+
+  // State for Link node connection error dialog
+  const [showLinkConnectionError, setShowLinkConnectionError] = useState(false);
+  // Ref to track if last rejected connection was due to Link node constraint
+  const linkConnectionRejectedRef = useRef(false);
 
   // Handler for showing connection details
   const handleShowConnectionDetails = useCallback((connection: Connection, validation: ConnectionValidationState) => {
@@ -279,8 +290,14 @@ function FlowDiagramInner({
     return false;
   }, [connections]);
 
+  // Node types that belong to the 'interface' category (UI nodes)
+  const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList'];
+
   // Validate connection - allow connections between any nodes with proper handles
   const isValidConnection = useCallback((connection: { source?: string | null; sourceHandle?: string | null; target?: string | null; targetHandle?: string | null }) => {
+    // Reset the Link rejection ref at the start of each validation
+    linkConnectionRejectedRef.current = false;
+
     const sourceId = connection.source;
     const targetId = connection.target;
 
@@ -295,11 +312,22 @@ function FlowDiagramInner({
     const isTargetTrigger = flowState.userIntentNodes.some(n => n.id === targetId);
     if (isTargetTrigger) return false;
 
+    // Link nodes can only receive connections from interface (UI) nodes
+    const targetNode = nodeMap.get(targetId);
+    const sourceNode = nodeMap.get(sourceId);
+    if (targetNode?.type === 'Link') {
+      if (!sourceNode || !INTERFACE_NODE_TYPES.includes(sourceNode.type)) {
+        // Mark that this rejection was due to Link node constraint
+        linkConnectionRejectedRef.current = true;
+        return false;
+      }
+    }
+
     // Prevent circular connections
     if (wouldCreateCycle(sourceId, targetId)) return false;
 
     return true;
-  }, [wouldCreateCycle, flowState.userIntentNodes]);
+  }, [wouldCreateCycle, flowState.userIntentNodes, nodeMap]);
 
   // Handle new connection from any source handle to any target
   const onConnect = useCallback(async (connection: RFConnection) => {
@@ -337,6 +365,14 @@ function FlowDiagramInner({
       onConnectionsChange(updatedConnections);
     }
   }, [connections, onConnectionsChange]);
+
+  // Handle connection end - show dialog if Link node connection was rejected
+  const onConnectEnd: OnConnectEnd = useCallback(() => {
+    if (linkConnectionRejectedRef.current) {
+      setShowLinkConnectionError(true);
+      linkConnectionRejectedRef.current = false;
+    }
+  }, []);
 
   // Generate base nodes: UserIntent nodes + StatCard/Return/CallFlow/ApiCall nodes
   const computedNodes = useMemo<Node[]>(() => {
@@ -508,6 +544,24 @@ function FlowDiagramInner({
 
         xPosition = Math.max(xPosition, nodePos.x) + 150; // Smaller spacing for transform nodes
       });
+
+      // Add Link nodes
+      flowState.linkNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 80 };
+        nodeList.push({
+          id: node.id,
+          type: 'linkNode',
+          position: nodePos,
+          data: {
+            node,
+            canDelete,
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
+          },
+        });
+
+        xPosition = Math.max(xPosition, nodePos.x) + 250;
+      });
     }
 
     return nodeList;
@@ -633,6 +687,7 @@ function FlowDiagramInner({
           onNodeDragStop={onNodeDragStop}
           onNodeClick={onNodeClick}
           onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
           isValidConnection={isValidConnection}
           fitView
           fitViewOptions={{ padding: 0.2 }}
@@ -666,6 +721,45 @@ function FlowDiagramInner({
           // The parent component should handle refreshing the flow data
         }}
       />
+    )}
+
+    {/* Link Node Connection Error Dialog */}
+    {showLinkConnectionError && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/50" onClick={() => setShowLinkConnectionError(false)} />
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Connection Not Allowed</h2>
+            </div>
+            <button
+              onClick={() => setShowLinkConnectionError(false)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6">
+            <p className="text-gray-700 mb-4">
+              The <strong>Link</strong> node can only be connected after <strong>UI nodes</strong> (like StatCard).
+            </p>
+            <p className="text-sm text-gray-500">
+              Link nodes open external URLs and are designed to work with user interface components that display information before redirecting the user.
+            </p>
+          </div>
+          <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+            <button
+              onClick={() => setShowLinkConnectionError(false)}
+              className="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
     )}
     </>
   );

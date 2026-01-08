@@ -29,6 +29,7 @@ TypeScript 5.7.2: Follow standard conventions
 
 ## Recent Changes
 - 090-ui-node-actions: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20
+- 001-link-node: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas)
 - 001-edit-uis: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, CodeMirror 6 (to add), Vite 6.0.5
 - 089-transform-nodes: Added TypeScript 5.7.2
 
