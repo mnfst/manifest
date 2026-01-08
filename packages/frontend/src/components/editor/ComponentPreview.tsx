@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from 'react';
 import React from 'react';
 import { transform } from 'sucrase';
 import { PreviewErrorBoundary } from './PreviewErrorBoundary';
-import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus, Copy, Check } from 'lucide-react';
 
 export interface ComponentPreviewProps {
   /** TSX code string to render */
@@ -89,6 +89,7 @@ export function ComponentPreview({
 }: ComponentPreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [resetKey, setResetKey] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   // Compile the component when code changes
   const { Component, error } = useMemo(() => {
@@ -107,6 +108,17 @@ export function ComponentPreview({
   // Handle error boundary reset
   const handleReset = () => {
     setResetKey((prev) => prev + 1);
+  };
+
+  // Copy sample data to clipboard
+  const handleCopySampleData = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(sampleData, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      console.warn('Clipboard API not available');
+    }
   };
 
   if (isLoading) {
@@ -168,9 +180,22 @@ export function ComponentPreview({
             <summary className="text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-700">
               View sample data
             </summary>
-            <pre className="mt-2 p-3 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 overflow-auto max-h-48">
-              {JSON.stringify(sampleData, null, 2)}
-            </pre>
+            <div className="relative mt-2">
+              <button
+                onClick={handleCopySampleData}
+                className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                title={copied ? 'Copied!' : 'Copy sample data'}
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+              <pre className="p-3 pr-10 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 overflow-auto max-h-48">
+                {JSON.stringify(sampleData, null, 2)}
+              </pre>
+            </div>
           </details>
         </div>
       </div>

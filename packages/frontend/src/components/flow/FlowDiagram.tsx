@@ -55,6 +55,8 @@ interface FlowDiagramProps {
   onDropOnCanvas?: (nodeType: NodeType, position: { x: number; y: number }) => void;
   /** Callback when user wants to edit Interface node code */
   onNodeEditCode?: (node: NodeInstance) => void;
+  /** Callback when flow data needs to be refreshed (e.g., after transformer insertion) */
+  onFlowUpdate?: () => void;
 }
 
 /**
@@ -114,6 +116,7 @@ function FlowDiagramInner({
   onDropOnNode,
   onDropOnCanvas,
   onNodeEditCode,
+  onFlowUpdate,
 }: FlowDiagramProps) {
   // Memoize flow state to prevent recalculation on every render
   const flowState = useMemo(() => getFlowState(flow), [flow.nodes]);
@@ -718,7 +721,8 @@ function FlowDiagramInner({
         onTransformerInserted={() => {
           // Close the modal and trigger a refresh of the flow data
           setSelectedConnection(null);
-          // The parent component should handle refreshing the flow data
+          // Notify parent to refresh flow data so transformer appears immediately
+          onFlowUpdate?.();
         }}
       />
     )}
