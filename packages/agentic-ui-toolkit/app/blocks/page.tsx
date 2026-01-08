@@ -1200,30 +1200,12 @@ function BlocksContent() {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
-                <div className="flex gap-1.5">
-                  {selectedBlock.layouts.map((layout) => (
-                    <span
-                      key={layout}
-                      className={cn(
-                        'px-2 py-0.5 text-xs font-medium rounded-full',
-                        layout === 'inline' &&
-                          'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                        layout === 'fullscreen' &&
-                          'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-                        layout === 'pip' &&
-                          'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                      )}
-                    >
-                      {layout}
-                    </span>
-                  ))}
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
-                    <Zap className="w-3 h-3" />
-                    {selectedBlock.actionCount > 0
-                      ? `${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`
-                      : 'read only'}
-                  </span>
-                </div>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  {selectedBlock.actionCount > 0
+                    ? `${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`
+                    : 'read only'}
+                </span>
               </div>
               <p className="text-muted-foreground">
                 {selectedBlock.description}
