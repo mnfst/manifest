@@ -33,11 +33,15 @@ export interface Location {
   link?: string
 }
 
+export type MapStyle = 'positron' | 'dark-matter' | 'voyager' | 'jawg-lagoon' | 'jawg-dark' | 'jawg-streets'
+
 export interface MapCarouselProps {
   data?: {
     locations?: Location[]
     center?: [number, number]
     zoom?: number
+    mapStyle?: MapStyle
+    jawgAccessToken?: string
   }
   actions?: {
     onSelectLocation?: (location: Location) => void
@@ -59,7 +63,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.6,
     coordinates: [37.7879, -122.4137],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '2',
@@ -71,7 +75,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 9.0,
     coordinates: [37.7856, -122.4104],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '3',
@@ -83,7 +87,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 9.4,
     coordinates: [37.7919, -122.4081],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '4',
@@ -95,7 +99,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.9,
     coordinates: [37.7923, -122.4102],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '5',
@@ -107,7 +111,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.4,
     coordinates: [37.7935, -122.3930],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '6',
@@ -119,7 +123,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.7,
     coordinates: [37.7870, -122.4010],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '7',
@@ -131,7 +135,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.2,
     coordinates: [37.7942, -122.4028],
-    link: 'https://manifest.build/'
+    link: ''
   },
   {
     id: '8',
@@ -143,7 +147,7 @@ const defaultLocations: Location[] = [
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 7.8,
     coordinates: [37.7875, -122.4089],
-    link: 'https://manifest.build/'
+    link: ''
   }
 ]
 
@@ -292,12 +296,46 @@ function MapWithMarkers({
   )
 }
 
+const getTileConfig = (style: MapStyle, jawgToken?: string) => {
+  const configs = {
+    'positron': {
+      url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    'dark-matter': {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    'voyager': {
+      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    'jawg-lagoon': {
+      url: `https://tile.jawg.io/jawg-lagoon/{z}/{x}/{y}{r}.png?access-token=${jawgToken}`,
+      attribution: '<a href="https://jawg.io" target="_blank">&copy; Jawg</a> | <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
+    },
+    'jawg-dark': {
+      url: `https://tile.jawg.io/jawg-dark/{z}/{x}/{y}{r}.png?access-token=${jawgToken}`,
+      attribution: '<a href="https://jawg.io" target="_blank">&copy; Jawg</a> | <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
+    },
+    'jawg-streets': {
+      url: `https://tile.jawg.io/jawg-streets/{z}/{x}/{y}{r}.png?access-token=${jawgToken}`,
+      attribution: '<a href="https://jawg.io" target="_blank">&copy; Jawg</a> | <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
+    }
+  }
+  return configs[style]
+}
+
 export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const {
     locations = defaultLocations,
     center = [37.7899, -122.4034], // San Francisco
-    zoom = 14
+    zoom = 14,
+    mapStyle = 'positron',
+    jawgAccessToken
   } = data ?? {}
+
+  const tileConfig = getTileConfig(mapStyle, jawgAccessToken)
   const { onSelectLocation } = actions ?? {}
   const { mapHeight = '504px' } = appearance ?? {}
 
@@ -419,8 +457,8 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution={tileConfig.attribution}
+            url={tileConfig.url}
           />
           <MapWithMarkers
             locations={locations}
