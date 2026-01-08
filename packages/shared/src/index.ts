@@ -59,6 +59,7 @@ export type {
   NodeTypeCategory,
   NodeInstance,
   Connection,
+  UINodeParameters,
   StatCardNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
@@ -91,6 +92,19 @@ export {
   isJavaScriptCodeTransformNode,
   isLinkNode,
 } from './types/node.js';
+
+// Appearance types (for UI component visual configuration)
+export type {
+  AppearanceValue,
+  AppearanceConfig,
+  AppearanceOptionSchema,
+  ComponentAppearanceSchema,
+} from './types/appearance.js';
+export {
+  COMPONENT_APPEARANCE_REGISTRY,
+  getAppearanceSchema,
+  getDefaultAppearanceConfig,
+} from './types/appearance.js';
 
 // Execution types
 export type {

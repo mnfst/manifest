@@ -15,6 +15,8 @@ export interface ComponentPreviewProps {
   sampleData: unknown;
   /** Key to force re-render when code changes */
   renderKey?: number;
+  /** Appearance configuration for visual options */
+  appearanceConfig?: Record<string, string | number | boolean>;
 }
 
 // Available imports for user components
@@ -25,8 +27,9 @@ const availableImports: Record<string, unknown> = {
 
 /**
  * Compile and evaluate user's TSX code to create a React component.
+ * The component receives { data, appearance } props.
  */
-function compileComponent(code: string): { Component: React.ComponentType<{ data: unknown }> | null; error: string | null } {
+function compileComponent(code: string): { Component: React.ComponentType<{ data: unknown; appearance?: Record<string, string | number | boolean> }> | null; error: string | null } {
   try {
     if (!code || code.trim().length === 0) {
       return { Component: null, error: 'No code to preview' };
@@ -86,6 +89,7 @@ export function ComponentPreview({
   code,
   sampleData,
   renderKey = 0,
+  appearanceConfig,
 }: ComponentPreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [resetKey, setResetKey] = useState(0);
@@ -157,9 +161,9 @@ export function ComponentPreview({
           </p>
         </div>
 
-        {/* Render the user's component with sample data */}
+        {/* Render the user's component with sample data and appearance config */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <Component data={sampleData} />
+          <Component data={sampleData} appearance={appearanceConfig} />
         </div>
 
         {/* Sample data reference */}

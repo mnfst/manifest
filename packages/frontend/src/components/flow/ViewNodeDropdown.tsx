@@ -72,12 +72,18 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
       {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[120px] z-50">
+          {/* For UI nodes (StatCard), onEditCode opens the unified editor. For other nodes, onEdit opens the modal. */}
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
-              onEdit();
+              // Use onEditCode (unified editor) if available, otherwise fallback to onEdit (modal)
+              if (onEditCode) {
+                onEditCode();
+              } else {
+                onEdit();
+              }
             }}
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer nodrag"
             type="button"
@@ -92,28 +98,6 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
             </svg>
             Edit
           </button>
-          {onEditCode && (
-            <button
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpen(false);
-                onEditCode();
-              }}
-              className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer nodrag"
-              type="button"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-4 h-4 text-teal-600"
-              >
-                <path fillRule="evenodd" d="M6.28 5.22a.75.75 0 010 1.06L2.56 10l3.72 3.72a.75.75 0 01-1.06 1.06L.97 10.53a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 0zm7.44 0a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L17.44 10l-3.72-3.72a.75.75 0 010-1.06zM11.377 2.011a.75.75 0 01.612.867l-2.5 14.5a.75.75 0 01-1.478-.255l2.5-14.5a.75.75 0 01.866-.612z" clipRule="evenodd" />
-              </svg>
-              Edit Code
-            </button>
-          )}
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {

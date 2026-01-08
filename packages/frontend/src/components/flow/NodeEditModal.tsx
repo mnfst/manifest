@@ -4,7 +4,6 @@ import type {
   NodeType,
   Flow,
   Connection,
-  StatCardNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
   UserIntentNodeParameters,
@@ -13,7 +12,6 @@ import type {
   LinkNodeParameters,
   HttpMethod,
   HeaderEntry,
-  LayoutTemplate,
   FlowParameter,
   ParameterType,
   JSONSchema,
@@ -45,11 +43,6 @@ interface NodeEditModalProps {
 }
 
 type TabType = 'config' | 'schema';
-
-const LAYOUT_OPTIONS: { value: LayoutTemplate; label: string }[] = [
-  { value: 'stat-card', label: 'Stat Card' },
-  { value: 'post-list', label: 'Post List' },
-];
 
 const HTTP_METHODS: { value: HttpMethod; label: string }[] = [
   { value: 'GET', label: 'GET' },
@@ -104,9 +97,6 @@ export function NodeEditModal({
 
   // Common fields
   const [name, setName] = useState('');
-
-  // StatCard node fields
-  const [layoutTemplate, setLayoutTemplate] = useState<LayoutTemplate>('stat-card');
 
   // Return node fields
   const [text, setText] = useState('');
@@ -207,12 +197,8 @@ export function NodeEditModal({
       // Edit mode - populate from existing node
       setName(node.name);
 
-      if (node.type === 'StatCard') {
-        const params = node.parameters as unknown as StatCardNodeParameters;
-        setLayoutTemplate(params?.layoutTemplate || 'stat-card');
-      } else if (node.type === 'PostList') {
-        const params = node.parameters as unknown as StatCardNodeParameters;
-        setLayoutTemplate(params?.layoutTemplate || 'post-list');
+      if (node.type === 'StatCard' || node.type === 'PostList') {
+        // UI nodes (StatCard, PostList) use unified InterfaceEditor, no parameters to set here
       } else if (node.type === 'Return') {
         const params = node.parameters as unknown as ReturnNodeParameters;
         setText(params?.text || '');
@@ -246,7 +232,7 @@ export function NodeEditModal({
     } else {
       // Create mode - set defaults
       setName('');
-      setLayoutTemplate('stat-card');
+      // Note: StatCard uses unified InterfaceEditor, no layout template state needed
       setText('');
       setTargetFlowId(null);
       setWhenToUse('');
@@ -273,7 +259,9 @@ export function NodeEditModal({
     let parameters: Record<string, unknown> = {};
 
     if (effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList') {
-      parameters = { layoutTemplate };
+      // UI nodes (StatCard, PostList) use the unified InterfaceEditor, not this modal
+      // No parameters needed here as creation is handled separately
+      parameters = {};
     } else if (effectiveNodeType === 'Return') {
       parameters = { text };
     } else if (effectiveNodeType === 'CallFlow') {
@@ -535,33 +523,13 @@ export function NodeEditModal({
               />
             </div>
 
-            {/* StatCard and PostList specific fields */}
+            {/* UI nodes (StatCard, PostList) use unified InterfaceEditor, not this modal */}
             {(effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList') && (
-              <>
-                <div>
-                  <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
-                    Layout Template
-                  </label>
-                  <select
-                    id="layout-template"
-                    value={layoutTemplate}
-                    onChange={(e) => setLayoutTemplate(e.target.value as LayoutTemplate)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                    disabled={isLoading}
-                  >
-                    {LAYOUT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {effectiveNodeType === 'StatCard'
-                      ? 'The stat card receives data from upstream nodes to display.'
-                      : 'The post list displays posts with interactive actions.'}
-                  </p>
-                </div>
-              </>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-700">
+                  UI nodes are configured through the unified editor. Click the Edit button on the node to customize appearance and code.
+                </p>
+              </div>
             )}
 
             {/* Return-specific fields */}

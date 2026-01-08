@@ -1,6 +1,7 @@
-import type { LayoutTemplate } from './app.js';
 import type { FlowParameter } from './flow.js';
 import type { JSONSchema } from './schema.js';
+import type { AppearanceConfig } from './appearance.js';
+import type { LayoutTemplate } from './app.js';
 
 // =============================================================================
 // Position
@@ -142,14 +143,30 @@ export interface Connection {
 // =============================================================================
 
 /**
+ * Parameters for UI nodes (StatCard and similar interface components).
+ * New unified type replacing StatCardNodeParameters.
+ */
+export interface UINodeParameters {
+  /** Custom component code (TSX). If present, overrides the default template rendering */
+  customCode?: string;
+
+  /** Appearance configuration for visual options (variant, columns, showAuthor, etc.) */
+  appearanceConfig?: AppearanceConfig;
+}
+
+/**
  * Parameters for a StatCard node.
+ * @deprecated Use UINodeParameters instead. This type is kept for backward compatibility.
  */
 export interface StatCardNodeParameters {
-  /** Layout template type */
-  layoutTemplate: LayoutTemplate;
+  /** @deprecated Layout template is no longer used. Field is ignored. */
+  layoutTemplate?: string;
 
   /** Custom component code (TSX). If present, overrides the default template rendering */
   customCode?: string;
+
+  /** Appearance configuration for visual options */
+  appearanceConfig?: AppearanceConfig;
 }
 
 /**
