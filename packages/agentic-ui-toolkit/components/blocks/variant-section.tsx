@@ -28,12 +28,14 @@ interface VariantSectionProps {
 
 interface SourceCodeState {
   code: string | null
+  version: string | null
   loading: boolean
   error: string | null
 }
 
 function useSourceCode(registryName: string): SourceCodeState {
   const [code, setCode] = useState<string | null>(null)
+  const [version, setVersion] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -50,6 +52,7 @@ function useSourceCode(registryName: string): SourceCodeState {
         const content = data.files?.[0]?.content
         if (content) {
           setCode(content)
+          setVersion(data.version || null)
         } else {
           setError('No source code available')
         }
@@ -62,7 +65,7 @@ function useSourceCode(registryName: string): SourceCodeState {
     fetchCode()
   }, [registryName])
 
-  return { code, loading, error }
+  return { code, version, loading, error }
 }
 
 function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
@@ -202,7 +205,7 @@ export function VariantSection({
           </button>
         </div>
 
-        <InstallCommandInline componentName={registryName} />
+        <InstallCommandInline componentName={registryName} version={sourceCode.version} />
       </div>
 
       {/* Content based on view mode */}

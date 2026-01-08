@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "registry:build": "shadcn build"
+    "registry:build": "shadcn build && node scripts/inject-versions.mjs"
   },
   "dependencies": {
     "@openai/apps-sdk-ui": "^0.2.1",
