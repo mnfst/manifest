@@ -644,7 +644,7 @@ export function ConfigurationViewer({
 
       <div className="grid gap-4">
         {categories.map((category) => (
-          <div key={category.name} className="rounded-lg border bg-card p-4">
+          <div key={category.name} id={`config-${category.name}`} className="rounded-lg border bg-card p-4">
             {/* Category header */}
             <div className="flex items-center gap-3 mb-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
