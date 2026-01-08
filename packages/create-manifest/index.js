@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cpSync, readFileSync, writeFileSync } from 'node:fs'
+import { cpSync, readFileSync, writeFileSync, renameSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
@@ -22,6 +22,12 @@ console.log(`\nCreating a new Manifest project in ${targetDir}...\n`)
 
 // Copy starter folder to target directory
 cpSync(starterDir, targetDir, { recursive: true })
+
+// Rename gitignore to .gitignore (npm ignores .gitignore files)
+const gitignorePath = join(targetDir, 'gitignore')
+if (existsSync(gitignorePath)) {
+  renameSync(gitignorePath, join(targetDir, '.gitignore'))
+}
 
 // Update package.json with the project name
 const packageJsonPath = join(targetDir, 'package.json')

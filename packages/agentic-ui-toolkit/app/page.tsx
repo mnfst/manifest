@@ -352,13 +352,21 @@ export default function Home() {
               A collection of beautifully designed components for building
               ChatGPT custom apps. Open source, ready-to-use and customizable.
             </p>
-            <div className="pt-4">
+            <div className="pt-4 flex flex-wrap justify-center gap-4">
               <Link
                 href="/blocks"
                 className="inline-flex items-center justify-center rounded-full bg-foreground text-background px-8 py-3 text-base font-medium hover:bg-foreground/90 transition-colors"
               >
                 Browse blocks
               </Link>
+              <a
+                href="https://github.com/mnfst/manifest/discussions/new?category=feature-request"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-full border border-foreground text-foreground px-8 py-3 text-base font-medium hover:bg-foreground/10 transition-colors"
+              >
+                Suggest a block
+              </a>
             </div>
           </div>
         </div>
