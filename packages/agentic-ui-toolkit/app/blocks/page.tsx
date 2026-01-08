@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
@@ -68,6 +68,7 @@ interface BlockGroup {
   description: string
   registryName: string
   layouts: LayoutMode[]
+  actionCount: number
   variants: BlockVariant[]
 }
 
@@ -89,6 +90,7 @@ const categories: Category[] = [
           'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
         registryName: 'post-card',
         layouts: ['inline', 'fullscreen'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -193,6 +195,7 @@ const categories: Category[] = [
         description: 'Display multiple posts in various layouts',
         registryName: 'post-list',
         layouts: ['inline', 'fullscreen'],
+        actionCount: 1,
         variants: [
           {
             id: 'list',
@@ -250,6 +253,7 @@ const categories: Category[] = [
         description: 'Display products in various layouts',
         registryName: 'product-list',
         layouts: ['inline'],
+        actionCount: 2,
         variants: [
           {
             id: 'list',
@@ -314,6 +318,7 @@ const categories: Category[] = [
           'Data table with header, footer, expand to fullscreen, and optional selection',
         registryName: 'table',
         layouts: ['inline', 'fullscreen'],
+        actionCount: 6,
         variants: [
           {
             id: 'default',
@@ -362,6 +367,7 @@ const categories: Category[] = [
         description: 'Display order summary before payment',
         registryName: 'order-confirm',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -391,6 +397,7 @@ const categories: Category[] = [
         description: 'Select payment method',
         registryName: 'payment-methods',
         layouts: ['inline'],
+        actionCount: 3,
         variants: [
           {
             id: 'default',
@@ -421,6 +428,7 @@ const categories: Category[] = [
         description: 'Credit card input form',
         registryName: 'bank-card-form',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -442,6 +450,7 @@ const categories: Category[] = [
         description: 'Input for monetary amounts',
         registryName: 'amount-input',
         layouts: ['inline'],
+        actionCount: 2,
         variants: [
           {
             id: 'default',
@@ -471,6 +480,7 @@ const categories: Category[] = [
         description: 'Success confirmation after payment',
         registryName: 'payment-success',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -496,6 +506,7 @@ const categories: Category[] = [
         description: 'Detailed payment confirmation',
         registryName: 'payment-confirmed',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -528,6 +539,7 @@ const categories: Category[] = [
         description: 'Chat message bubbles',
         registryName: 'chat-conversation',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -688,6 +700,7 @@ const categories: Category[] = [
         description: 'Full chat conversation view',
         registryName: 'chat-conversation',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -745,6 +758,7 @@ const categories: Category[] = [
           'Interactive map with location markers and a draggable carousel of cards',
         registryName: 'map-carousel',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -781,6 +795,7 @@ const categories: Category[] = [
         description: 'X (Twitter) post card',
         registryName: 'x-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -809,6 +824,7 @@ const categories: Category[] = [
         description: 'Instagram post card',
         registryName: 'instagram-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -834,6 +850,7 @@ const categories: Category[] = [
         description: 'LinkedIn post card',
         registryName: 'linkedin-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -860,6 +877,7 @@ const categories: Category[] = [
         description: 'YouTube video card',
         registryName: 'youtube-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -887,6 +905,7 @@ const categories: Category[] = [
         description: 'Various status indicators',
         registryName: 'status-badge',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -911,6 +930,7 @@ const categories: Category[] = [
         description: 'Step-by-step progress indicator',
         registryName: 'progress-steps',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -935,6 +955,7 @@ const categories: Category[] = [
         description: 'Display statistics and metrics',
         registryName: 'stats',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -958,6 +979,7 @@ const categories: Category[] = [
         description: 'Loading placeholder components',
         registryName: 'skeleton',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -985,6 +1007,7 @@ const categories: Category[] = [
         description: 'Quick reply buttons for chat',
         registryName: 'quick-reply',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -1012,6 +1035,7 @@ const categories: Category[] = [
         description: 'Tag-style option selector',
         registryName: 'option-list',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -1039,6 +1063,7 @@ const categories: Category[] = [
         description: 'Colored tag selector',
         registryName: 'tag-select',
         layouts: ['inline'],
+        actionCount: 2,
         variants: [
           {
             id: 'default',
@@ -1172,6 +1197,12 @@ function BlocksContent() {
                       {layout}
                     </span>
                   ))}
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                    <Zap className="w-3 h-3" />
+                    {selectedBlock.actionCount > 0
+                      ? `${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`
+                      : 'read only'}
+                  </span>
                 </div>
               </div>
               <p className="text-muted-foreground">
