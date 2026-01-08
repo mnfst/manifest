@@ -409,13 +409,42 @@ function CustomTypeWithTooltip({
 }
 
 /**
- * Formats a type string for better readability
+ * Renders a type with tooltip if it's a custom type that has a definition
+ */
+function renderTypeWithTooltip(
+  typeName: string,
+  displayText: string,
+  typeDefinitions: Map<string, TypeDefinition>
+): React.ReactNode {
+  // Check for array types and extract base type
+  const baseType = typeName.replace(/\[\]$/, '').trim()
+
+  if (typeDefinitions.has(baseType)) {
+    const definition = typeDefinitions.get(baseType)!
+    return (
+      <CustomTypeWithTooltip
+        type={displayText}
+        typeName={baseType}
+        definition={definition.definition}
+      />
+    )
+  }
+
+  return (
+    <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono">
+      {displayText}
+    </code>
+  )
+}
+
+/**
+ * Formats a type string for better readability with hoverable custom types
  */
 function formatType(
   type: string,
   typeDefinitions: Map<string, TypeDefinition>
 ): React.ReactNode {
-  // Check if this type references a custom type
+  // Check if this type references a custom type (simple or array)
   const typeName = extractTypeName(type)
   if (typeName && typeDefinitions.has(typeName)) {
     const definition = typeDefinitions.get(typeName)!
@@ -445,8 +474,85 @@ function formatType(
     )
   }
 
-  // Handle function types
+  // Handle function types with custom parameter types like "(post: Post) => void"
   if (type.includes('=>')) {
+    // Match function signature: (params) => returnType
+    const funcMatch = type.match(/^\(([^)]*)\)\s*=>\s*(.+)$/)
+    if (funcMatch) {
+      const paramsStr = funcMatch[1]
+      const returnType = funcMatch[2].trim()
+
+      // Parse parameters and find custom types
+      const parts: React.ReactNode[] = []
+      parts.push(<span key="open" className="text-xs font-mono">(</span>)
+
+      if (paramsStr.trim()) {
+        // Split parameters by comma (but not inside nested structures)
+        const params = paramsStr.split(',').map(p => p.trim())
+
+        params.forEach((param, idx) => {
+          // Match "name: Type" or "name?: Type"
+          const paramMatch = param.match(/^(\w+\??)\s*:\s*(.+)$/)
+          if (paramMatch) {
+            const paramName = paramMatch[1]
+            const paramType = paramMatch[2].trim()
+            const baseParamType = paramType.replace(/\[\]$/, '').trim()
+
+            if (idx > 0) {
+              parts.push(<span key={`comma-${idx}`} className="text-xs font-mono">, </span>)
+            }
+
+            parts.push(
+              <span key={`param-${idx}`} className="text-xs font-mono">
+                {paramName}:{' '}
+              </span>
+            )
+
+            // Check if parameter type has a definition
+            if (isCustomType(baseParamType) && typeDefinitions.has(baseParamType)) {
+              parts.push(
+                <span key={`type-${idx}`}>
+                  {renderTypeWithTooltip(paramType, paramType, typeDefinitions)}
+                </span>
+              )
+            } else {
+              parts.push(
+                <span key={`type-${idx}`} className="text-xs font-mono">
+                  {paramType}
+                </span>
+              )
+            }
+          } else {
+            if (idx > 0) {
+              parts.push(<span key={`comma-${idx}`} className="text-xs font-mono">, </span>)
+            }
+            parts.push(<span key={`param-${idx}`} className="text-xs font-mono">{param}</span>)
+          }
+        })
+      }
+
+      parts.push(<span key="arrow" className="text-xs font-mono">) =&gt; </span>)
+
+      // Handle return type
+      const baseReturnType = returnType.replace(/\[\]$/, '').trim()
+      if (isCustomType(baseReturnType) && typeDefinitions.has(baseReturnType)) {
+        parts.push(
+          <span key="return">
+            {renderTypeWithTooltip(returnType, returnType, typeDefinitions)}
+          </span>
+        )
+      } else {
+        parts.push(<span key="return" className="text-xs font-mono">{returnType}</span>)
+      }
+
+      return (
+        <span className="inline-flex flex-wrap items-center px-1.5 py-0.5 rounded bg-muted">
+          {parts}
+        </span>
+      )
+    }
+
+    // Fallback for complex function types
     return (
       <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono">
         {type}
@@ -464,20 +570,36 @@ function formatType(
 
 interface ConfigurationViewerProps {
   sourceCode: string | null
+  relatedSourceFiles?: string[]
   loading?: boolean
 }
 
 export function ConfigurationViewer({
   sourceCode,
+  relatedSourceFiles = [],
   loading
 }: ConfigurationViewerProps) {
   const { categories, typeDefinitions } = useMemo(() => {
     if (!sourceCode) return { categories: [], typeDefinitions: new Map() }
+
+    // Extract type definitions from main source file
+    const mainDefinitions = extractTypeDefinitions(sourceCode)
+
+    // Extract type definitions from all related files (for imported types)
+    for (const relatedSource of relatedSourceFiles) {
+      const relatedDefinitions = extractTypeDefinitions(relatedSource)
+      for (const [name, definition] of relatedDefinitions) {
+        if (!mainDefinitions.has(name)) {
+          mainDefinitions.set(name, definition)
+        }
+      }
+    }
+
     return {
       categories: parseComponentConfiguration(sourceCode),
-      typeDefinitions: extractTypeDefinitions(sourceCode)
+      typeDefinitions: mainDefinitions
     }
-  }, [sourceCode])
+  }, [sourceCode, relatedSourceFiles])
 
   if (loading) {
     return (

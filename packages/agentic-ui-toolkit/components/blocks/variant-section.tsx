@@ -20,12 +20,14 @@ interface VariantSectionProps {
 
 interface SourceCodeState {
   code: string | null
+  relatedFiles: string[]
   loading: boolean
   error: string | null
 }
 
 function useSourceCode(registryName: string): SourceCodeState {
   const [code, setCode] = useState<string | null>(null)
+  const [relatedFiles, setRelatedFiles] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,9 +41,16 @@ function useSourceCode(registryName: string): SourceCodeState {
           throw new Error('Failed to fetch component')
         }
         const data = await response.json()
-        const content = data.files?.[0]?.content
-        if (content) {
-          setCode(content)
+        const files = data.files || []
+        const mainContent = files[0]?.content
+        if (mainContent) {
+          setCode(mainContent)
+          // Collect all other file contents for type definition extraction
+          const otherFiles = files
+            .slice(1)
+            .map((f: { content?: string }) => f.content)
+            .filter(Boolean) as string[]
+          setRelatedFiles(otherFiles)
         } else {
           setError('No source code available')
         }
@@ -54,7 +63,7 @@ function useSourceCode(registryName: string): SourceCodeState {
     fetchCode()
   }, [registryName])
 
-  return { code, loading, error }
+  return { code, relatedFiles, loading, error }
 }
 
 function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
@@ -111,6 +120,7 @@ export function VariantSection({
         <TabsContent value="configuration" className="mt-0">
           <ConfigurationViewer
             sourceCode={sourceCode.code}
+            relatedSourceFiles={sourceCode.relatedFiles}
             loading={sourceCode.loading}
           />
         </TabsContent>
