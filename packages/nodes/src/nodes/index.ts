@@ -16,14 +16,14 @@
 export { UserIntentNode } from './trigger/index.js';
 export { ApiCallNode } from './action/index.js';
 export { StatCardNode } from './interface/index.js';
-export { ReturnNode, CallFlowNode } from './return/index.js';
+export { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 export { JavaScriptCodeTransform } from './transform/index.js';
 
 // Import for registry
 import { UserIntentNode } from './trigger/index.js';
 import { ApiCallNode } from './action/index.js';
 import { StatCardNode } from './interface/index.js';
-import { ReturnNode, CallFlowNode } from './return/index.js';
+import { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 import { JavaScriptCodeTransform } from './transform/index.js';
 import type { NodeTypeDefinition } from '../types.js';
 
@@ -37,6 +37,7 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
   CallFlow: CallFlowNode,
   ApiCall: ApiCallNode,
   JavaScriptCodeTransform: JavaScriptCodeTransform,
+  Link: LinkNode,
 };
 
 /**
@@ -49,4 +50,5 @@ export const builtInNodeList: NodeTypeDefinition[] = [
   CallFlowNode,
   ApiCallNode,
   JavaScriptCodeTransform,
+  LinkNode,
 ];

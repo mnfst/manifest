@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
 import type { NodeTypeInfo } from '../../../lib/api';
-import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle } from 'lucide-react';
+import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle, ExternalLink } from 'lucide-react';
 
 // Map icon names from API to Lucide React components
 const iconMap: Record<string, React.ElementType> = {
@@ -11,6 +11,7 @@ const iconMap: Record<string, React.ElementType> = {
   'corner-down-left': CornerDownLeft,
   'globe': Globe,
   'shuffle': Shuffle,
+  'external-link': ExternalLink,
 };
 
 // Category-based styling
