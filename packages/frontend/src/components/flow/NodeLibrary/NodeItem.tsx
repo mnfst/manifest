@@ -1,18 +1,46 @@
-import { useCallback } from 'react';
-import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
+import { useCallback, useMemo } from 'react';
+import type { NodeType, NodeTypeCategory, LayoutTemplate as LayoutTemplateType } from '@chatgpt-app-builder/shared';
+import { LAYOUT_REGISTRY } from '@chatgpt-app-builder/shared';
 import type { NodeTypeInfo } from '../../../lib/api';
-import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle, ExternalLink } from 'lucide-react';
+import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle, LayoutList, ExternalLink } from 'lucide-react';
 
 // Map icon names from API to Lucide React components
 const iconMap: Record<string, React.ElementType> = {
   'zap': Zap,
   'layout-template': LayoutTemplate,
+  'layout-list': LayoutList,
   'git-branch': GitBranch,
   'corner-down-left': CornerDownLeft,
   'globe': Globe,
   'shuffle': Shuffle,
   'external-link': ExternalLink,
 };
+
+/**
+ * Get the action label for a UI node based on its layout template.
+ * Returns "1 action", "2 actions", or "read only" for interface nodes.
+ * Returns null for non-interface nodes.
+ */
+function getActionLabel(node: NodeTypeInfo): string | null {
+  if (node.category !== 'interface') {
+    return null;
+  }
+
+  // Get the layout template from default parameters
+  const layoutTemplate = node.defaultParameters?.layoutTemplate as LayoutTemplateType | undefined;
+  if (!layoutTemplate) {
+    return 'read only';
+  }
+
+  const config = LAYOUT_REGISTRY[layoutTemplate];
+  const actionCount = config?.actions?.length ?? 0;
+
+  if (actionCount === 0) {
+    return 'read only';
+  }
+
+  return actionCount === 1 ? '1 action' : `${actionCount} actions`;
+}
 
 // Category-based styling
 const categoryStyles: Record<NodeTypeCategory, { color: string; bgColor: string }> = {
@@ -53,6 +81,9 @@ export function NodeItem({ node, onClick, disabled = false }: NodeItemProps) {
   const Icon = iconMap[node.icon] || HelpCircle;
   const styles = categoryStyles[node.category];
 
+  // Get action label for UI nodes
+  const actionLabel = useMemo(() => getActionLabel(node), [node]);
+
   return (
     <div
       draggable={!disabled}
@@ -88,11 +119,27 @@ export function NodeItem({ node, onClick, disabled = false }: NodeItemProps) {
           />
         </div>
         <div className="flex-1 min-w-0">
-          <h3
-            className={`font-medium ${disabled ? 'text-muted-foreground' : 'text-foreground'}`}
-          >
-            {node.displayName}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3
+              className={`font-medium ${disabled ? 'text-muted-foreground' : 'text-foreground'}`}
+            >
+              {node.displayName}
+            </h3>
+            {/* Action label badge for UI nodes */}
+            {actionLabel && (
+              <span
+                className={`
+                  text-[10px] font-medium px-1.5 py-0.5 rounded-full
+                  ${actionLabel === 'read only'
+                    ? 'bg-gray-100 text-gray-500'
+                    : 'bg-purple-100 text-purple-600'
+                  }
+                `}
+              >
+                {actionLabel}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{node.description}</p>
         </div>
       </div>

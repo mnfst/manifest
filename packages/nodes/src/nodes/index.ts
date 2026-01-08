@@ -15,14 +15,14 @@
 // Re-export from category subfolders
 export { UserIntentNode } from './trigger/index.js';
 export { ApiCallNode } from './action/index.js';
-export { StatCardNode } from './interface/index.js';
+export { StatCardNode, PostListNode } from './interface/index.js';
 export { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 export { JavaScriptCodeTransform } from './transform/index.js';
 
 // Import for registry
 import { UserIntentNode } from './trigger/index.js';
 import { ApiCallNode } from './action/index.js';
-import { StatCardNode } from './interface/index.js';
+import { StatCardNode, PostListNode } from './interface/index.js';
 import { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 import { JavaScriptCodeTransform } from './transform/index.js';
 import type { NodeTypeDefinition } from '../types.js';
@@ -33,6 +33,7 @@ import type { NodeTypeDefinition } from '../types.js';
 export const builtInNodes: Record<string, NodeTypeDefinition> = {
   UserIntent: UserIntentNode,
   StatCard: StatCardNode,
+  PostList: PostListNode,
   Return: ReturnNode,
   CallFlow: CallFlowNode,
   ApiCall: ApiCallNode,
@@ -46,6 +47,7 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
 export const builtInNodeList: NodeTypeDefinition[] = [
   UserIntentNode,
   StatCardNode,
+  PostListNode,
   ReturnNode,
   CallFlowNode,
   ApiCallNode,

@@ -254,26 +254,28 @@ function FlowDetail() {
   }, []);
 
   const handleNodeLibrarySelect = useCallback(async (nodeType: NodeType) => {
-    // For StatCard, skip the modal and create directly with defaults
-    if (nodeType === 'StatCard' && flowId && flow) {
+    // For StatCard and PostList, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId && flow) {
       const nodes = flow.nodes ?? [];
       const position = {
         x: nodes.length * 280 + 330,
         y: 100,
       };
+      const layoutTemplate = nodeType === 'StatCard' ? 'stat-card' : 'post-list';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
       try {
         const newNode = await api.createNode(flowId, {
-          type: 'StatCard',
-          name: 'Stat Card',
+          type: nodeType,
+          name: displayName,
           position,
-          parameters: { layoutTemplate: 'stat-card' },
+          parameters: { layoutTemplate },
         });
         const updatedFlow = await api.getFlow(flowId);
         setFlow(updatedFlow);
         // Open code editor for the new node
         setEditingCodeNodeId(newNode.id);
       } catch (err) {
-        console.error('Failed to create StatCard:', err);
+        console.error(`Failed to create ${nodeType}:`, err);
       }
       return;
     }
@@ -292,18 +294,20 @@ function FlowDetail() {
 
   // Handler for node type selection (from "+" button click + library selection)
   const handleNodeLibrarySelectWithConnection = useCallback(async (nodeType: NodeType) => {
-    // For StatCard, skip the modal and create directly with defaults
-    if (nodeType === 'StatCard' && flowId && pendingConnection) {
+    // For StatCard and PostList, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId && pendingConnection) {
       const position = {
         x: pendingConnection.sourcePosition.x + 280,
         y: pendingConnection.sourcePosition.y,
       };
+      const layoutTemplate = nodeType === 'StatCard' ? 'stat-card' : 'post-list';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
       try {
         const newNode = await api.createNode(flowId, {
-          type: 'StatCard',
-          name: 'Stat Card',
+          type: nodeType,
+          name: displayName,
           position,
-          parameters: { layoutTemplate: 'stat-card' },
+          parameters: { layoutTemplate },
         });
         // Create the connection
         await api.createConnection(flowId, {
@@ -318,7 +322,7 @@ function FlowDetail() {
         // Open code editor for the new node
         setEditingCodeNodeId(newNode.id);
       } catch (err) {
-        console.error('Failed to create StatCard:', err);
+        console.error(`Failed to create ${nodeType}:`, err);
       }
       return;
     }
@@ -331,18 +335,20 @@ function FlowDetail() {
 
   // Handler for dropping node on a "+" button - creates node with connection
   const handleDropOnNode = useCallback(async (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
-    // For StatCard, skip the modal and create directly with defaults
-    if (nodeType === 'StatCard' && flowId) {
+    // For StatCard and PostList, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId) {
       const position = {
         x: sourcePosition.x + 280,
         y: sourcePosition.y,
       };
+      const layoutTemplate = nodeType === 'StatCard' ? 'stat-card' : 'post-list';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
       try {
         const newNode = await api.createNode(flowId, {
-          type: 'StatCard',
-          name: 'Stat Card',
+          type: nodeType,
+          name: displayName,
           position,
-          parameters: { layoutTemplate: 'stat-card' },
+          parameters: { layoutTemplate },
         });
         // Create the connection
         await api.createConnection(flowId, {
@@ -356,7 +362,7 @@ function FlowDetail() {
         // Open code editor for the new node
         setEditingCodeNodeId(newNode.id);
       } catch (err) {
-        console.error('Failed to create StatCard:', err);
+        console.error(`Failed to create ${nodeType}:`, err);
       }
       return;
     }
@@ -372,21 +378,23 @@ function FlowDetail() {
   const [dropPosition, setDropPosition] = useState<{ x: number; y: number } | null>(null);
 
   const handleDropOnCanvas = useCallback(async (nodeType: NodeType, position: { x: number; y: number }) => {
-    // For StatCard, skip the modal and create directly with defaults
-    if (nodeType === 'StatCard' && flowId) {
+    // For StatCard and PostList, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId) {
+      const layoutTemplate = nodeType === 'StatCard' ? 'stat-card' : 'post-list';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
       try {
         const newNode = await api.createNode(flowId, {
-          type: 'StatCard',
-          name: 'Stat Card',
+          type: nodeType,
+          name: displayName,
           position,
-          parameters: { layoutTemplate: 'stat-card' },
+          parameters: { layoutTemplate },
         });
         const updatedFlow = await api.getFlow(flowId);
         setFlow(updatedFlow);
         // Open code editor for the new node
         setEditingCodeNodeId(newNode.id);
       } catch (err) {
-        console.error('Failed to create StatCard:', err);
+        console.error(`Failed to create ${nodeType}:`, err);
       }
       return;
     }
@@ -497,9 +505,9 @@ function FlowDetail() {
     }
   };
 
-  // StatCard code editor handlers
+  // Interface node code editor handlers (StatCard and PostList)
   const handleNodeEditCode = useCallback((node: NodeInstance) => {
-    if (node.type === 'StatCard') {
+    if (node.type === 'StatCard' || node.type === 'PostList') {
       setEditingCodeNodeId(node.id);
     }
   }, []);
@@ -566,12 +574,12 @@ function FlowDetail() {
   }
 
   const nodes = flow.nodes ?? [];
-  const statCardNodes = nodes.filter(n => n.type === 'StatCard');
+  const interfaceNodes = nodes.filter(n => n.type === 'StatCard' || n.type === 'PostList');
   const canDeleteNodes = nodes.length > 0;
 
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
-    { id: 'preview', label: 'Preview', icon: Eye, disabled: statCardNodes.length === 0 },
+    { id: 'preview', label: 'Preview', icon: Eye, disabled: interfaceNodes.length === 0 },
     { id: 'usage', label: 'Usage', icon: BarChart3 },
   ];
 

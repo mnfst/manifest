@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
 
 /**
@@ -157,7 +157,9 @@ export class McpToolService {
     connections: Connection[],
     triggerNodeId: string
   ): NodeInstance[] {
-    // Build adjacency list from connections
+    // Build adjacency list from connections, EXCLUDING action handles
+    // Action handles (sourceHandle starting with 'action:') create conditional paths
+    // that only execute when the action is triggered, not during initial execution
     const adjacencyList = new Map<string, string[]>();
 
     // Initialize all nodes
@@ -165,17 +167,21 @@ export class McpToolService {
       adjacencyList.set(node.id, []);
     }
 
-    // Build graph from connections
+    // Build graph from connections, excluding action handles
     for (const conn of connections) {
+      // Skip connections from action handles - these are conditional paths
+      if (conn.sourceHandle.startsWith('action:')) {
+        continue;
+      }
       const targets = adjacencyList.get(conn.sourceNodeId);
       if (targets) {
         targets.push(conn.targetNodeId);
       }
     }
 
-    // Find nodes directly connected from the specific trigger node
+    // Find nodes directly connected from the specific trigger node (non-action connections only)
     const startNodeIds = connections
-      .filter(conn => conn.sourceNodeId === triggerNodeId)
+      .filter(conn => conn.sourceNodeId === triggerNodeId && !conn.sourceHandle.startsWith('action:'))
       .map(conn => conn.targetNodeId);
 
     if (startNodeIds.length === 0) {
@@ -201,12 +207,17 @@ export class McpToolService {
 
     // Topological sort (Kahn's algorithm) on reachable nodes only
     // Start with nodes that have no incoming edges from reachable set
+    // Exclude action handle connections from in-degree calculation
     const reachableInDegree = new Map<string, number>();
     for (const nodeId of reachable) {
       reachableInDegree.set(nodeId, 0);
     }
 
     for (const conn of connections) {
+      // Skip action handle connections in topological sort
+      if (conn.sourceHandle.startsWith('action:')) {
+        continue;
+      }
       if (reachable.has(conn.sourceNodeId) && reachable.has(conn.targetNodeId)) {
         reachableInDegree.set(
           conn.targetNodeId,
@@ -380,6 +391,12 @@ export class McpToolService {
         } else if (node.type === 'StatCard') {
           result = this.executeStatCardFlow(app, toolName, trigger.name, node, validatedInput);
           // StatCard nodes output their structured content (populated from upstream data)
+          const structuredContent = result.structuredContent || {};
+          nodeOutputs.set(node.id, structuredContent);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
+        } else if (node.type === 'PostList') {
+          result = this.executePostListFlow(app, toolName, trigger.name, node, nodeInputData);
+          // PostList nodes output their structured content with action metadata
           const structuredContent = result.structuredContent || {};
           nodeOutputs.set(node.id, structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
@@ -686,6 +703,293 @@ export class McpToolService {
         toolName: triggerToolName,
       },
     };
+  }
+
+  /**
+   * Execute PostList node - return widget with structured content and action metadata
+   */
+  private executePostListFlow(
+    app: AppEntity,
+    triggerToolName: string,
+    triggerName: string,
+    postListNode: NodeInstance,
+    input: Record<string, unknown>
+  ): McpToolResponse {
+    // PostList uses post-list layout template
+    const responseText = `Here are the posts from ${triggerName}:`;
+
+    return {
+      structuredContent: {
+        posts: input.posts || [],
+        nodeId: postListNode.id,
+        actions: ['onReadMore'],
+      },
+      content: [{ type: 'text', text: responseText }],
+      _meta: {
+        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}.html`,
+        'openai/widgetPrefersBorder': true,
+        flowName: triggerName,
+        toolName: triggerToolName,
+        nodeId: postListNode.id,
+        availableActions: ['onReadMore'],
+      },
+    };
+  }
+
+  /**
+   * Get nodes connected to a specific action handle of a source node.
+   * Action handles are identified by sourceHandle starting with 'action:'.
+   *
+   * @param nodes - All nodes in the flow
+   * @param connections - All connections in the flow
+   * @param sourceNodeId - The node ID that has the action handle
+   * @param actionName - The action name (e.g., 'onReadMore')
+   * @returns Nodes connected to the action handle in topological order
+   */
+  private getNodesFromActionHandle(
+    nodes: NodeInstance[],
+    connections: Connection[],
+    sourceNodeId: string,
+    actionName: string
+  ): NodeInstance[] {
+    const actionHandle = `action:${actionName}`;
+
+    // Find nodes directly connected from the action handle
+    const startNodeIds = connections
+      .filter(conn => conn.sourceNodeId === sourceNodeId && conn.sourceHandle === actionHandle)
+      .map(conn => conn.targetNodeId);
+
+    if (startNodeIds.length === 0) {
+      return [];
+    }
+
+    // Build adjacency list from connections (excluding action handles for traversal)
+    const adjacencyList = new Map<string, string[]>();
+    for (const node of nodes) {
+      adjacencyList.set(node.id, []);
+    }
+
+    for (const conn of connections) {
+      // Include all non-action connections for graph traversal
+      if (!conn.sourceHandle.startsWith('action:')) {
+        const targets = adjacencyList.get(conn.sourceNodeId);
+        if (targets) {
+          targets.push(conn.targetNodeId);
+        }
+      }
+    }
+
+    // BFS to find all reachable nodes from action handle targets
+    const reachable = new Set<string>(startNodeIds);
+    const queue = [...startNodeIds];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const neighbors = adjacencyList.get(current) ?? [];
+
+      for (const neighbor of neighbors) {
+        if (!reachable.has(neighbor)) {
+          reachable.add(neighbor);
+          queue.push(neighbor);
+        }
+      }
+    }
+
+    // Topological sort on reachable nodes
+    const reachableInDegree = new Map<string, number>();
+    for (const nodeId of reachable) {
+      reachableInDegree.set(nodeId, 0);
+    }
+
+    for (const conn of connections) {
+      if (reachable.has(conn.sourceNodeId) && reachable.has(conn.targetNodeId)) {
+        if (!conn.sourceHandle.startsWith('action:')) {
+          reachableInDegree.set(
+            conn.targetNodeId,
+            (reachableInDegree.get(conn.targetNodeId) ?? 0) + 1
+          );
+        }
+      }
+    }
+
+    // Nodes directly from action handle have in-degree 0
+    const sortQueue: string[] = [];
+    for (const nodeId of reachable) {
+      if (reachableInDegree.get(nodeId) === 0) {
+        sortQueue.push(nodeId);
+      }
+    }
+
+    const sortedIds: string[] = [];
+    while (sortQueue.length > 0) {
+      const current = sortQueue.shift()!;
+      sortedIds.push(current);
+
+      const neighbors = adjacencyList.get(current) ?? [];
+      for (const neighbor of neighbors) {
+        if (reachable.has(neighbor)) {
+          const newDegree = (reachableInDegree.get(neighbor) ?? 1) - 1;
+          reachableInDegree.set(neighbor, newDegree);
+          if (newDegree === 0) {
+            sortQueue.push(neighbor);
+          }
+        }
+      }
+    }
+
+    // Map sorted IDs back to node instances
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    return sortedIds
+      .map(id => nodeMap.get(id))
+      .filter((n): n is NodeInstance => n !== undefined);
+  }
+
+  /**
+   * Execute a UI node action callback.
+   * Called when a user interacts with a UI component action (e.g., clicks "Read More" on a post).
+   * Finds downstream nodes connected to the action handle and executes them with the action data.
+   */
+  async executeAction(
+    appSlug: string,
+    request: ExecuteActionRequest
+  ): Promise<McpToolResponse> {
+    const app = await this.getAppBySlug(appSlug);
+    if (!app) {
+      throw new NotFoundException(`No published app found for slug: ${appSlug}`);
+    }
+
+    const { toolName, nodeId, action, data } = request;
+
+    // Find the trigger and flow
+    const triggerResult = await this.findTriggerByToolName(app.id, toolName);
+    if (!triggerResult) {
+      throw new NotFoundException(`No tool found with name: ${toolName}`);
+    }
+
+    const { flow } = triggerResult;
+    const allNodes = flow.nodes ?? [];
+    const connections = flow.connections ?? [];
+
+    // Verify the node exists and is a UI node with actions
+    const sourceNode = allNodes.find(n => n.id === nodeId);
+    if (!sourceNode) {
+      throw new NotFoundException(`Node not found: ${nodeId}`);
+    }
+
+    // Get nodes connected to the action handle
+    const actionNodes = this.getNodesFromActionHandle(allNodes, connections, nodeId, action);
+
+    if (actionNodes.length === 0) {
+      return {
+        content: [{ type: 'text', text: `Action "${action}" has no connected nodes.` }],
+      };
+    }
+
+    // Create execution record
+    const execution = await this.flowExecutionService.createExecution({
+      flowId: flow.id,
+      flowName: flow.name,
+      flowToolName: `${toolName}:${action}`,
+      initialParams: data,
+    });
+
+    const nodeExecutions: NodeExecutionData[] = [];
+
+    // Store the action data as the source node's output
+    const nodeOutputs = new Map<string, unknown>();
+    nodeOutputs.set(nodeId, data);
+
+    let result: McpToolResponse | null = null;
+
+    try {
+      // Execute nodes connected to the action handle
+      for (const node of actionNodes) {
+        const nodeInputData: Record<string, unknown> = { ...data };
+
+        // Get upstream outputs for this node
+        for (const conn of connections) {
+          if (conn.targetNodeId === node.id && nodeOutputs.has(conn.sourceNodeId)) {
+            nodeInputData[conn.sourceNodeId] = nodeOutputs.get(conn.sourceNodeId);
+          }
+        }
+
+        if (node.type === 'Return') {
+          const params = node.parameters as ReturnNodeParameters;
+          const resolvedText = resolveTemplateVariables(params.text || '', nodeOutputs, allNodes);
+          const returnOutput = { text: resolvedText };
+          nodeOutputs.set(node.id, returnOutput);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, returnOutput, 'completed'));
+          result = {
+            content: [{ type: 'text', text: resolvedText }],
+          };
+        } else if (node.type === 'ApiCall') {
+          const apiResult = await this.executeApiCallNode(flow.id, node, nodeOutputs, allNodes);
+          nodeOutputs.set(node.id, apiResult.output);
+          nodeExecutions.push(this.createNodeExecution(
+            node,
+            nodeInputData,
+            apiResult.output,
+            apiResult.success ? 'completed' : 'error',
+            apiResult.error
+          ));
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(apiResult.output, null, 2) }],
+            structuredContent: apiResult.output,
+          };
+        } else if (node.type === 'JavaScriptCodeTransform') {
+          const transformResult = await this.executeTransformNode(flow.id, node, nodeOutputs, allNodes, connections);
+          nodeOutputs.set(node.id, transformResult.output);
+          nodeExecutions.push(this.createNodeExecution(
+            node,
+            nodeInputData,
+            transformResult.output,
+            transformResult.success ? 'completed' : 'error',
+            transformResult.error
+          ));
+          if (!transformResult.success) {
+            result = {
+              content: [{ type: 'text', text: `Transform error: ${transformResult.error}` }],
+            };
+          } else {
+            result = {
+              content: [{ type: 'text', text: JSON.stringify(transformResult.output, null, 2) }],
+              structuredContent: transformResult.output,
+            };
+          }
+        }
+      }
+
+      if (!result) {
+        result = {
+          content: [{ type: 'text', text: 'Action executed but no output produced.' }],
+        };
+      }
+
+      // Update execution as fulfilled
+      await this.flowExecutionService.updateExecution(execution.id, {
+        status: 'fulfilled',
+        endedAt: new Date(),
+        nodeExecutions,
+      });
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const lastNode = nodeExecutions[nodeExecutions.length - 1];
+
+      await this.flowExecutionService.updateExecution(execution.id, {
+        status: 'error',
+        endedAt: new Date(),
+        nodeExecutions,
+        errorInfo: {
+          message: errorMessage,
+          nodeId: lastNode?.nodeId,
+          nodeName: lastNode?.nodeName,
+        },
+      });
+
+      throw error;
+    }
   }
 
   /**

@@ -105,12 +105,91 @@ export default function CustomStatCard({ data }) {
 }`;
 
 /**
+ * Sample data for the post-list template.
+ * Matches the Post List component expected format.
+ */
+export const POST_LIST_SAMPLE_DATA_NEW = {
+  posts: [
+    {
+      id: '1',
+      title: 'Getting Started with TypeScript',
+      excerpt: 'Learn the basics of TypeScript and how to set up your first project with type-safe code.',
+      author: { name: 'Jane Developer', avatar: '' },
+      publishedAt: '2026-01-08',
+      readTime: '5 min read',
+      tags: ['TypeScript', 'Tutorial'],
+      category: 'Development',
+    },
+    {
+      id: '2',
+      title: 'Building Modern UIs with React',
+      excerpt: 'Discover best practices for building responsive and accessible user interfaces with React.',
+      author: { name: 'John Designer' },
+      publishedAt: '2026-01-07',
+      readTime: '8 min read',
+      tags: ['React', 'UI/UX'],
+      category: 'Frontend',
+    },
+  ],
+};
+
+/**
+ * Default code for the post-list layout template.
+ * Displays a list of posts with "Read More" action buttons.
+ */
+export const POST_LIST_DEFAULT_CODE_NEW = `// Customize this component to change how your posts are displayed
+export default function CustomPostList({ data, onAction }) {
+  const posts = data?.posts ?? []
+
+  if (posts.length === 0) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        No posts available
+      </div>
+    )
+  }
+
+  const handleReadMore = (post) => {
+    // Trigger the onReadMore action with the post data
+    if (onAction) {
+      onAction('onReadMore', post)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {posts.map((post) => (
+        <div key={post.id} className="p-4 border rounded-lg">
+          <h3 className="font-semibold text-lg">{post.title}</h3>
+          <p className="text-gray-600 mt-1">{post.excerpt}</p>
+          <div className="flex items-center justify-between mt-3">
+            <div className="text-sm text-gray-500">
+              By {post.author?.name} • {post.publishedAt}
+            </div>
+            <button
+              onClick={() => handleReadMore(post)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Read More →
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}`;
+
+/**
  * Registry of template definitions with default code and sample data.
  */
 export const TEMPLATE_DEFINITIONS: Record<LayoutTemplate, TemplateDefinition> = {
   'stat-card': {
     defaultCode: STAT_CARD_DEFAULT_CODE,
     sampleData: STAT_CARD_SAMPLE_DATA,
+  },
+  'post-list': {
+    defaultCode: POST_LIST_DEFAULT_CODE_NEW,
+    sampleData: POST_LIST_SAMPLE_DATA_NEW,
   },
 };
 
