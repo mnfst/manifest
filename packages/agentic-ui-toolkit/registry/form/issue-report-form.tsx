@@ -253,8 +253,8 @@ export function IssueReportForm({
           </div>
         </div>
 
-        {/* Team, Location, Category, Subcategory - All in one line */}
-        <div className="grid grid-cols-4 gap-2">
+        {/* Team, Location, Category, Subcategory - 2 cols on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <div className="min-w-0">
             <Label className="text-xs text-muted-foreground mb-1 block">
               Team
@@ -382,10 +382,10 @@ export function IssueReportForm({
           <div
             className={cn(
               'overflow-hidden transition-all duration-200',
-              expandedSection === 'details' ? 'max-h-[400px] p-3' : 'max-h-0'
+              expandedSection === 'details' ? 'max-h-[500px] p-3' : 'max-h-0'
             )}
           >
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="min-w-0">
                 <Label className="text-xs text-muted-foreground mb-1 block">
                   Impact
@@ -581,17 +581,21 @@ export function IssueReportForm({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="h-9"
+            className="h-9 w-full sm:w-auto"
           >
             <Paperclip className="h-4 w-4 mr-1.5" />
-            Attach
+            Attach a file
           </Button>
-          <Button onClick={handleSubmit} size="sm" className="h-9">
+          <Button
+            onClick={handleSubmit}
+            size="sm"
+            className="h-9 w-full sm:w-auto"
+          >
             <Send className="h-4 w-4 mr-1.5" />
             Submit
           </Button>

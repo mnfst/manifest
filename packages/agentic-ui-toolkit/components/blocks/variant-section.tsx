@@ -119,60 +119,60 @@ export function VariantSection({
     <div className="space-y-4">
       <h3 className="text-lg font-bold">{name}</h3>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        {/* 4 Mode buttons: Icons on mobile, text on desktop */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+        {/* 4 Mode buttons: Icons on mobile/tablet, text on desktop */}
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setViewMode('inline')}
             className={cn(
-              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'inline'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground'
             )}
           >
-            <MessageSquare className="h-3.5 w-3.5 sm:hidden" />
-            <span className="hidden sm:inline">Inline</span>
+            <MessageSquare className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">Inline</span>
           </button>
           <button
             disabled={!hasPip}
             onClick={() => hasPip && setViewMode('pip')}
             className={cn(
-              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'pip'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground',
               !hasPip && 'opacity-40 cursor-not-allowed'
             )}
           >
-            <PictureInPicture2 className="h-3.5 w-3.5 sm:hidden" />
-            <span className="hidden sm:inline">PiP</span>
+            <PictureInPicture2 className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">PiP</span>
           </button>
           <button
             disabled={!hasFullwidth}
             onClick={() => hasFullwidth && setViewMode('fullwidth')}
             className={cn(
-              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'fullwidth'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground',
               !hasFullwidth && 'opacity-40 cursor-not-allowed'
             )}
           >
-            <Maximize2 className="h-3.5 w-3.5 sm:hidden" />
-            <span className="hidden sm:inline">Fullwidth</span>
+            <Maximize2 className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">Fullwidth</span>
           </button>
           <button
             onClick={() => setViewMode('code')}
             className={cn(
-              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'code'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground'
             )}
           >
-            <span className="hidden sm:inline">Code</span>
-            <span className="sm:hidden">&lt;/&gt;</span>
+            <span className="hidden lg:inline">Code</span>
+            <span className="lg:hidden">&lt;/&gt;</span>
           </button>
         </div>
 

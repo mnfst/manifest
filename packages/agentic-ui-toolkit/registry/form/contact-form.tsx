@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,8 +8,9 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { Paperclip, Send, X, ChevronDown, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ChevronDown, Paperclip, Search, Send, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface ContactFormData {
   firstName: string
@@ -153,10 +153,15 @@ const countries = [
   { id: 'zw', code: '+263', name: 'Zimbabwe', flag: '🇿🇼' }
 ]
 
-export function ContactForm({ data, actions, appearance, control }: ContactFormProps) {
+export function ContactForm({
+  data,
+  actions,
+  appearance,
+  control
+}: ContactFormProps) {
   const {
     title = 'Contact Us',
-    subtitle = 'Fill out the form below and we\'ll get back to you as soon as possible.',
+    subtitle = "Fill out the form below and we'll get back to you as soon as possible.",
     submitLabel = 'Send Message'
   } = data ?? {}
   const { onSubmit } = actions ?? {}
@@ -178,11 +183,12 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
   const [countrySearch, setCountrySearch] = useState('')
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false)
 
-  const selectedCountry = countries.find(c => c.id === formData.countryId)
+  const selectedCountry = countries.find((c) => c.id === formData.countryId)
 
-  const filteredCountries = countries.filter(country =>
-    country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
-    country.code.includes(countrySearch)
+  const filteredCountries = countries.filter(
+    (country) =>
+      country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+      country.code.includes(countrySearch)
   )
 
   useEffect(() => {
@@ -191,8 +197,8 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
     }
   }, [countryDropdownOpen])
 
-  const handleCountrySelect = (country: typeof countries[0]) => {
-    setFormData(prev => ({
+  const handleCountrySelect = (country: (typeof countries)[0]) => {
+    setFormData((prev) => ({
       ...prev,
       countryId: country.id,
       countryCode: country.code
@@ -201,8 +207,11 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
     setCountrySearch('')
   }
 
-  const handleChange = (field: keyof ContactFormData, value: string | File | null) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const handleChange = (
+    field: keyof ContactFormData,
+    value: string | File | null
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -261,7 +270,10 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <div className="flex gap-2">
-              <Popover open={countryDropdownOpen} onOpenChange={setCountryDropdownOpen}>
+              <Popover
+                open={countryDropdownOpen}
+                onOpenChange={setCountryDropdownOpen}
+              >
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -295,7 +307,9 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
                   </div>
                   <div className="max-h-[240px] overflow-y-auto p-1">
                     {filteredCountries.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">No country found</p>
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No country found
+                      </p>
                     ) : (
                       filteredCountries.map((country) => (
                         <button
@@ -310,7 +324,9 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
                         >
                           <span>{country.flag}</span>
                           <span className="flex-1">{country.name}</span>
-                          <span className="text-muted-foreground">{country.code}</span>
+                          <span className="text-muted-foreground">
+                            {country.code}
+                          </span>
                         </button>
                       ))
                     )}
@@ -359,7 +375,7 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -369,7 +385,7 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
           />
 
           {formData.attachment ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-muted rounded-lg w-full sm:w-auto">
               <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm text-foreground truncate max-w-[150px]">
                 {formData.attachment.name}
@@ -386,7 +402,9 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => fileInputRef.current?.click()}
+              className="w-full sm:w-auto"
             >
               <Paperclip className="h-4 w-4 mr-2" />
               Attach a file
@@ -395,7 +413,9 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
 
           <Button
             type="submit"
+            size="sm"
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             {isLoading ? (
               'Sending...'
