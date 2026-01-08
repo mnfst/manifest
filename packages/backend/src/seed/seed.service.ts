@@ -161,7 +161,7 @@ export class SeedService implements OnModuleInit {
         description: 'Default test application for PR testing',
         slug: 'test-app',
         themeVariables: DEFAULT_THEME_VARIABLES,
-        status: 'draft',
+        status: 'published',
         logoUrl: '/icons/icon-blue.png',
       });
 
