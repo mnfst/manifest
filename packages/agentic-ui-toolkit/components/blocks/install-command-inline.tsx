@@ -35,12 +35,10 @@ const packageManagers: {
 
 interface InstallCommandInlineProps {
   componentName: string
-  version?: string | null
 }
 
 export function InstallCommandInline({
-  componentName,
-  version
+  componentName
 }: InstallCommandInlineProps) {
   const [selectedPm, setSelectedPm] = useState<PackageManager>('npx')
   const [copied, setCopied] = useState(false)
@@ -59,13 +57,6 @@ export function InstallCommandInline({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Version badge */}
-      {version && (
-        <span className="px-2 py-1 text-xs font-mono bg-muted text-muted-foreground rounded-md">
-          v{version}
-        </span>
-      )}
-
       {/* Package manager select */}
       <div className="relative">
         <select

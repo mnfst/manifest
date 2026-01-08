@@ -142,79 +142,88 @@ export function VariantSection({
   const hasPip = layouts.includes('pip')
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-bold">{name}</h3>
-
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
-        {/* 4 Mode buttons: Icons on mobile/tablet, text on desktop */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setViewMode('inline')}
-            className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
-              viewMode === 'inline'
-                ? 'bg-foreground text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <MessageSquare className="h-3.5 w-3.5 lg:hidden" />
-            <span className="hidden lg:inline">Inline</span>
-          </button>
-          <button
-            disabled={!hasPip}
-            onClick={() => hasPip && setViewMode('pip')}
-            className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
-              viewMode === 'pip'
-                ? 'bg-foreground text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground',
-              hasPip ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
-            )}
-          >
-            <PictureInPicture2 className="h-3.5 w-3.5 lg:hidden" />
-            <span className="hidden lg:inline">PiP</span>
-          </button>
-          <button
-            disabled={!hasFullwidth}
-            onClick={() => hasFullwidth && setViewMode('fullwidth')}
-            className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
-              viewMode === 'fullwidth'
-                ? 'bg-foreground text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground',
-              hasFullwidth ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
-            )}
-          >
-            <Maximize2 className="h-3.5 w-3.5 lg:hidden" />
-            <span className="hidden lg:inline">Fullwidth</span>
-          </button>
-          <button
-            onClick={() => setViewMode('config')}
-            className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
-              viewMode === 'config'
-                ? 'bg-foreground text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Settings2 className="h-3.5 w-3.5 lg:hidden" />
-            <span className="hidden lg:inline">Config</span>
-          </button>
-          <button
-            onClick={() => setViewMode('code')}
-            className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
-              viewMode === 'code'
-                ? 'bg-foreground text-background'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <span className="hidden lg:inline">Code</span>
-            <span className="lg:hidden">&lt;/&gt;</span>
-          </button>
+    <div className="space-y-3">
+      {/* Row 1: Title + Version (mobile) / Title + Version + Install command (desktop) */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-bold">{name}</h3>
+          {sourceCode.version && (
+            <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
+          )}
         </div>
+        <InstallCommandInline componentName={registryName} />
+      </div>
 
-        <InstallCommandInline componentName={registryName} version={sourceCode.version} />
+      {/* Row 2 (desktop) / Row 3 (mobile): Mode buttons */}
+      <div className="flex items-center gap-1.5">
+        {/* Preview buttons: icon-only on all screen sizes */}
+        <button
+          onClick={() => setViewMode('inline')}
+          className={cn(
+            'p-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+            viewMode === 'inline'
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
+          )}
+          title="Inline"
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+        </button>
+        <button
+          disabled={!hasPip}
+          onClick={() => hasPip && setViewMode('pip')}
+          className={cn(
+            'p-1.5 text-xs font-medium rounded-full transition-colors',
+            viewMode === 'pip'
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:text-foreground',
+            hasPip ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
+          )}
+          title="Picture in Picture"
+        >
+          <PictureInPicture2 className="h-3.5 w-3.5" />
+        </button>
+        <button
+          disabled={!hasFullwidth}
+          onClick={() => hasFullwidth && setViewMode('fullwidth')}
+          className={cn(
+            'p-1.5 text-xs font-medium rounded-full transition-colors',
+            viewMode === 'fullwidth'
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:text-foreground',
+            hasFullwidth ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
+          )}
+          title="Fullwidth"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
+
+        {/* Config button: icon on mobile, word on desktop */}
+        <button
+          onClick={() => setViewMode('config')}
+          className={cn(
+            'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+            viewMode === 'config'
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Settings2 className="h-3.5 w-3.5 lg:hidden" />
+          <span className="hidden lg:inline">Config</span>
+        </button>
+
+        {/* Code button: word on all screen sizes */}
+        <button
+          onClick={() => setViewMode('code')}
+          className={cn(
+            'px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+            viewMode === 'code'
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
+          )}
+        >
+          Code
+        </button>
       </div>
 
       {/* Content based on view mode */}
