@@ -5,6 +5,7 @@
   "items": [
     {
       "name": "contact-form",
+      "version": "1.0.0",
       "type": "registry:component",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
@@ -19,6 +20,7 @@
     },
     {
       "name": "date-time-picker",
+      "version": "1.0.0",
       "type": "registry:component",
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
@@ -33,6 +35,7 @@
     },
     {
       "name": "issue-report-form",
+      "version": "1.0.0",
       "type": "registry:component",
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
