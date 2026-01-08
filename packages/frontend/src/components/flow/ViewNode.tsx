@@ -67,7 +67,7 @@ export function ViewNode({ data, id }: NodeProps) {
               {node.name || 'Stat Card'}
             </h3>
             <div className="flex items-center justify-center gap-1 mt-1">
-              <p className="text-xs text-gray-500">{layoutTemplate}</p>
+              <p className="text-xs text-gray-500">UI Component</p>
               {hasCustomCode && (
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700"

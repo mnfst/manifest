@@ -1,0 +1,212 @@
+# Node API Contract - UI Node Edit Modal Consolidation
+# This documents the API changes for UI node parameters
+
+openapi: 3.0.3
+info:
+  title: Node API - UI Node Parameters
+  version: 2.0.0
+  description: |
+    API contract changes for UI node parameters after removing layoutTemplate
+    and adding appearanceConfig support.
+
+paths:
+  /api/flows/{flowId}/nodes:
+    post:
+      summary: Create a new node
+      description: |
+        Creates a node in the specified flow. For UI nodes (StatCard type),
+        parameters no longer include layoutTemplate.
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNodeRequest'
+            examples:
+              uiNode:
+                summary: Create UI node (new format)
+                value:
+                  type: StatCard
+                  name: Post List Widget
+                  position:
+                    x: 100
+                    y: 200
+                  parameters:
+                    appearanceConfig:
+                      variant: grid
+                      columns: 3
+                      showAuthor: true
+                    customCode: null
+              uiNodeMinimal:
+                summary: Create UI node (minimal)
+                value:
+                  type: StatCard
+                  name: Stats Widget
+                  position:
+                    x: 100
+                    y: 200
+                  parameters: {}
+      responses:
+        '201':
+          description: Node created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInstance'
+
+  /api/flows/{flowId}/nodes/{nodeId}:
+    patch:
+      summary: Update a node
+      description: |
+        Updates node properties. For UI nodes, supports updating name,
+        appearanceConfig, and customCode. layoutTemplate is no longer accepted.
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: nodeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNodeRequest'
+            examples:
+              updateAppearance:
+                summary: Update appearance config
+                value:
+                  parameters:
+                    appearanceConfig:
+                      variant: carousel
+                      showAuthor: false
+              updateName:
+                summary: Update node name
+                value:
+                  name: My Custom Widget
+              updateCode:
+                summary: Update custom code
+                value:
+                  parameters:
+                    customCode: |
+                      <PostList variant="grid" columns={3} />
+      responses:
+        '200':
+          description: Node updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInstance'
+
+components:
+  schemas:
+    CreateNodeRequest:
+      type: object
+      required:
+        - type
+        - name
+        - position
+      properties:
+        type:
+          type: string
+          enum: [StatCard, Return, UserIntent, Tool, Webhook, HTTP, Trigger]
+        name:
+          type: string
+          maxLength: 100
+        position:
+          $ref: '#/components/schemas/Position'
+        parameters:
+          $ref: '#/components/schemas/UINodeParameters'
+
+    UpdateNodeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        position:
+          $ref: '#/components/schemas/Position'
+        parameters:
+          $ref: '#/components/schemas/UINodeParameters'
+
+    NodeInstance:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        position:
+          $ref: '#/components/schemas/Position'
+        parameters:
+          $ref: '#/components/schemas/UINodeParameters'
+
+    UINodeParameters:
+      type: object
+      description: |
+        Parameters for UI nodes. Note: layoutTemplate is deprecated and ignored.
+      properties:
+        customCode:
+          type: string
+          nullable: true
+          description: Custom TSX code for the component
+        appearanceConfig:
+          $ref: '#/components/schemas/AppearanceConfig'
+        layoutTemplate:
+          type: string
+          deprecated: true
+          description: |
+            DEPRECATED - This field is ignored. Included for backward
+            compatibility with existing data.
+
+    AppearanceConfig:
+      type: object
+      additionalProperties:
+        oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+      description: |
+        Key-value pairs for component appearance options.
+        Keys and valid values depend on the component type.
+      example:
+        variant: grid
+        columns: 3
+        showAuthor: true
+        showCategory: false
+
+    Position:
+      type: object
+      required:
+        - x
+        - y
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+
+  # Deprecation notice
+  x-deprecated-fields:
+    - field: UINodeParameters.layoutTemplate
+      reason: Only had single value 'stat-card', provided no real configuration
+      migration: Field is ignored on read/write. No action required.
