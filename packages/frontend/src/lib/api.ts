@@ -85,15 +85,14 @@ export interface NodeTypesResponse {
 }
 
 /**
- * API base URL - uses Vite proxy in development
+ * Backend server URL - direct connection (no proxy)
  */
-const API_BASE = '/api';
+export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3847';
 
 /**
- * Backend server URL for MCP endpoints (not proxied)
- * In production, this would come from environment variables
+ * API base URL - calls backend directly
  */
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = `${BACKEND_URL}/api`;
 
 /**
  * Resolve icon URL - prepends backend URL for uploaded icons

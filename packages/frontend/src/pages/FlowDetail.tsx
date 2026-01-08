@@ -9,6 +9,7 @@ import type {
   Connection,
   NodeType,
   ChatMessage,
+  StatCardNodeParameters,
 } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BarChart3, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
@@ -24,6 +25,7 @@ import { ExecutionList } from '../components/execution/ExecutionList';
 import { ExecutionDetail } from '../components/execution/ExecutionDetail';
 import { ExecutionDetailPlaceholder } from '../components/execution/ExecutionDetailPlaceholder';
 import { PreviewChat } from '../components/chat/PreviewChat';
+import { InterfaceEditor } from '../components/editor/InterfaceEditor';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
@@ -88,6 +90,9 @@ function FlowDetail() {
     sourceHandle: string;
     sourcePosition: { x: number; y: number };
   } | null>(null);
+
+  // Interface code editor state
+  const [editingCodeNodeId, setEditingCodeNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -248,13 +253,36 @@ function FlowDetail() {
     setShowNodeEditModal(true);
   }, []);
 
-  const handleNodeLibrarySelect = useCallback((nodeType: NodeType) => {
-    // Open the node edit modal in create mode
+  const handleNodeLibrarySelect = useCallback(async (nodeType: NodeType) => {
+    // For StatCard, skip the modal and create directly with defaults
+    if (nodeType === 'StatCard' && flowId && flow) {
+      const nodes = flow.nodes ?? [];
+      const position = {
+        x: nodes.length * 280 + 330,
+        y: 100,
+      };
+      try {
+        const newNode = await api.createNode(flowId, {
+          type: 'StatCard',
+          name: 'Stat Card',
+          position,
+          parameters: { layoutTemplate: 'stat-card' },
+        });
+        const updatedFlow = await api.getFlow(flowId);
+        setFlow(updatedFlow);
+        // Open code editor for the new node
+        setEditingCodeNodeId(newNode.id);
+      } catch (err) {
+        console.error('Failed to create StatCard:', err);
+      }
+      return;
+    }
+    // Open the node edit modal in create mode for other node types
     setNodeToEdit(null);
     setNodeTypeToCreate(nodeType);
     setNodeEditError(null);
     setShowNodeEditModal(true);
-  }, []);
+  }, [flowId, flow]);
 
   // Handler for "+" button click on nodes - opens node library with pending connection
   const handleAddFromNode = useCallback((sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
@@ -263,35 +291,112 @@ function FlowDetail() {
   }, []);
 
   // Handler for node type selection (from "+" button click + library selection)
-  const handleNodeLibrarySelectWithConnection = useCallback((nodeType: NodeType) => {
+  const handleNodeLibrarySelectWithConnection = useCallback(async (nodeType: NodeType) => {
+    // For StatCard, skip the modal and create directly with defaults
+    if (nodeType === 'StatCard' && flowId && pendingConnection) {
+      const position = {
+        x: pendingConnection.sourcePosition.x + 280,
+        y: pendingConnection.sourcePosition.y,
+      };
+      try {
+        const newNode = await api.createNode(flowId, {
+          type: 'StatCard',
+          name: 'Stat Card',
+          position,
+          parameters: { layoutTemplate: 'stat-card' },
+        });
+        // Create the connection
+        await api.createConnection(flowId, {
+          sourceNodeId: pendingConnection.sourceNodeId,
+          sourceHandle: pendingConnection.sourceHandle,
+          targetNodeId: newNode.id,
+          targetHandle: 'input',
+        });
+        const updatedFlow = await api.getFlow(flowId);
+        setFlow(updatedFlow);
+        setPendingConnection(null);
+        // Open code editor for the new node
+        setEditingCodeNodeId(newNode.id);
+      } catch (err) {
+        console.error('Failed to create StatCard:', err);
+      }
+      return;
+    }
     setNodeToEdit(null);
     setNodeTypeToCreate(nodeType);
     setNodeEditError(null);
     setShowNodeEditModal(true);
     // pendingConnection is kept - it will be used during save
-  }, []);
+  }, [flowId, pendingConnection]);
 
   // Handler for dropping node on a "+" button - creates node with connection
-  const handleDropOnNode = useCallback((nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
+  const handleDropOnNode = useCallback(async (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
+    // For StatCard, skip the modal and create directly with defaults
+    if (nodeType === 'StatCard' && flowId) {
+      const position = {
+        x: sourcePosition.x + 280,
+        y: sourcePosition.y,
+      };
+      try {
+        const newNode = await api.createNode(flowId, {
+          type: 'StatCard',
+          name: 'Stat Card',
+          position,
+          parameters: { layoutTemplate: 'stat-card' },
+        });
+        // Create the connection
+        await api.createConnection(flowId, {
+          sourceNodeId,
+          sourceHandle,
+          targetNodeId: newNode.id,
+          targetHandle: 'input',
+        });
+        const updatedFlow = await api.getFlow(flowId);
+        setFlow(updatedFlow);
+        // Open code editor for the new node
+        setEditingCodeNodeId(newNode.id);
+      } catch (err) {
+        console.error('Failed to create StatCard:', err);
+      }
+      return;
+    }
     setPendingConnection({ sourceNodeId, sourceHandle, sourcePosition });
     setNodeToEdit(null);
     setNodeTypeToCreate(nodeType);
     setNodeEditError(null);
     setShowNodeEditModal(true);
-  }, []);
+  }, [flowId]);
 
   // Handler for dropping node on canvas (no connection)
   // Position is used to place the node at the drop location
   const [dropPosition, setDropPosition] = useState<{ x: number; y: number } | null>(null);
 
-  const handleDropOnCanvas = useCallback((nodeType: NodeType, position: { x: number; y: number }) => {
+  const handleDropOnCanvas = useCallback(async (nodeType: NodeType, position: { x: number; y: number }) => {
+    // For StatCard, skip the modal and create directly with defaults
+    if (nodeType === 'StatCard' && flowId) {
+      try {
+        const newNode = await api.createNode(flowId, {
+          type: 'StatCard',
+          name: 'Stat Card',
+          position,
+          parameters: { layoutTemplate: 'stat-card' },
+        });
+        const updatedFlow = await api.getFlow(flowId);
+        setFlow(updatedFlow);
+        // Open code editor for the new node
+        setEditingCodeNodeId(newNode.id);
+      } catch (err) {
+        console.error('Failed to create StatCard:', err);
+      }
+      return;
+    }
     setPendingConnection(null); // No connection for canvas drops
     setDropPosition(position); // Store drop position for node creation
     setNodeToEdit(null);
     setNodeTypeToCreate(nodeType);
     setNodeEditError(null);
     setShowNodeEditModal(true);
-  }, []);
+  }, [flowId]);
 
   const handleCloseNodeEditModal = () => {
     if (!isSavingNode) {
@@ -391,6 +496,40 @@ function FlowDetail() {
       setIsSavingNode(false);
     }
   };
+
+  // StatCard code editor handlers
+  const handleNodeEditCode = useCallback((node: NodeInstance) => {
+    if (node.type === 'StatCard') {
+      setEditingCodeNodeId(node.id);
+    }
+  }, []);
+
+  const handleCloseCodeEditor = useCallback(() => {
+    setEditingCodeNodeId(null);
+  }, []);
+
+  const handleSaveCode = useCallback(async (code: string) => {
+    if (!flowId || !editingCodeNodeId) return;
+
+    const nodeToUpdate = (flow?.nodes ?? []).find(n => n.id === editingCodeNodeId);
+    if (!nodeToUpdate) return;
+
+    await api.updateNode(flowId, editingCodeNodeId, {
+      parameters: {
+        ...nodeToUpdate.parameters,
+        customCode: code,
+      },
+    });
+
+    // Refresh flow data
+    const updatedFlow = await api.getFlow(flowId);
+    setFlow(updatedFlow);
+  }, [flowId, editingCodeNodeId, flow?.nodes]);
+
+  // Get the node being edited for code (if any)
+  const editingCodeNode = editingCodeNodeId
+    ? (flow?.nodes ?? []).find(n => n.id === editingCodeNodeId)
+    : null;
 
   if (isLoading) {
     return (
@@ -570,6 +709,7 @@ function FlowDetail() {
                   onAddFromNode={handleAddFromNode}
                   onDropOnNode={handleDropOnNode}
                   onDropOnCanvas={handleDropOnCanvas}
+                  onNodeEditCode={handleNodeEditCode}
                 />
                 {/* Flow Validation Summary - positioned at bottom-right of canvas */}
                 {flowId && (
@@ -581,6 +721,22 @@ function FlowDetail() {
                   </div>
                 )}
               </div>
+
+              {/* StatCard Code Editor - covers canvas and node library */}
+              {editingCodeNode && flowId && (() => {
+                const params = editingCodeNode.parameters as unknown as StatCardNodeParameters;
+                return (
+                  <InterfaceEditor
+                    flowId={flowId}
+                    nodeId={editingCodeNode.id}
+                    nodeName={editingCodeNode.name}
+                    layoutTemplate={params.layoutTemplate}
+                    initialCode={params.customCode}
+                    onClose={handleCloseCodeEditor}
+                    onSave={handleSaveCode}
+                  />
+                );
+              })()}
             </div>
           )}
 

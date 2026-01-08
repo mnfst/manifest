@@ -27,6 +27,10 @@ export interface LayoutTemplateConfig {
   installCommand: string;
   useCase: string;
   actions: LayoutAction[];
+  /** Default component code (TSX) for this template */
+  defaultCode?: string;
+  /** Sample data for preview rendering */
+  sampleData?: unknown;
 }
 
 /**

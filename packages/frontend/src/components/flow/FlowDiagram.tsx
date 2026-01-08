@@ -50,6 +50,8 @@ interface FlowDiagramProps {
   onDropOnNode?: (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => void;
   /** Handler for dropping node type on canvas */
   onDropOnCanvas?: (nodeType: NodeType, position: { x: number; y: number }) => void;
+  /** Callback when user wants to edit Interface node code */
+  onNodeEditCode?: (node: NodeInstance) => void;
 }
 
 /**
@@ -103,6 +105,7 @@ function FlowDiagramInner({
   onAddFromNode,
   onDropOnNode,
   onDropOnCanvas,
+  onNodeEditCode,
 }: FlowDiagramProps) {
   // Memoize flow state to prevent recalculation on every render
   const flowState = useMemo(() => getFlowState(flow), [flow.nodes]);
@@ -390,6 +393,7 @@ function FlowDiagramInner({
             canDelete,
             onEdit: () => onNodeEdit(node),
             onDelete: () => onNodeDelete(node),
+            onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
             onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'output', nodePos) : undefined,
             onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'output', nodePos) : undefined,
           },
@@ -489,7 +493,7 @@ function FlowDiagramInner({
   // Use specific dependencies instead of entire flow object to prevent unnecessary recalculations
   // onAddStep is used for AddUserIntentNode placeholder when no triggers exist
   // nodesWithIncomingConnections is used for transform node validation
-  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup, onAddFromNode, onDropOnNode, nodesWithOutgoingConnections, nodesWithIncomingConnections]);
+  }, [flowState, canDelete, dimensions.width, dimensions.height, onNodeEdit, onNodeDelete, onAddStep, flowNameLookup, onAddFromNode, onDropOnNode, nodesWithOutgoingConnections, nodesWithIncomingConnections, onNodeEditCode]);
 
   // State for draggable nodes - initialized from computedNodes and updated on drag
   const [nodes, setNodes] = useState<Node[]>(computedNodes);

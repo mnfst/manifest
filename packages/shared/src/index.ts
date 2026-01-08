@@ -173,3 +173,18 @@ export {
   extractAllReferences,
   validateNodeReferences,
 } from './utils/templateParser.js';
+
+// Validation types (for code editor)
+export type { ValidationError, ValidationResult } from './types/validation.js';
+
+// Template types (for Interface node code editor)
+export type { TemplateDefinition } from './types/templates.js';
+export {
+  TEMPLATE_DEFINITIONS,
+  TABLE_SAMPLE_DATA,
+  POST_LIST_SAMPLE_DATA,
+  TABLE_DEFAULT_CODE,
+  POST_LIST_DEFAULT_CODE,
+  getTemplateDefaultCode,
+  getTemplateSampleData,
+} from './types/templates.js';
