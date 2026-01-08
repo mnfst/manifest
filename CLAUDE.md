@@ -66,3 +66,70 @@ Connect using: `https://xxxx.ngrok-free.app/mcp`
 - `/packages/starter/server/src/index.ts` - Main MCP server entry point
 - `/packages/agentic-ui-toolkit/registry.json` - Component registry definitions
 - `/turbo.json` - Turborepo configuration
+
+## Pull Request Guidelines
+
+**CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/pull_request_template.md`.
+
+### Required PR Body Format
+
+Always structure PR bodies exactly like this:
+
+```markdown
+## Description
+
+[Your description of changes goes here - explain WHAT changed and WHY]
+
+## Related Issues
+
+[Link related issues using #123 format, or write "None" if no related issues]
+
+## How can it be tested?
+
+[Step-by-step instructions for testing the changes]
+
+## Check list before submitting
+
+- [x] This PR is wrote in a clear language and correctly labeled
+- [x] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)
+- [ ] I wrote the relative tests
+- [ ] I created a PR for the [documentation](https://github.com/mnfst/docs) if necessary and attached the link to this PR
+```
+
+### Rules
+
+1. **NEVER** put description text before the `## Description` heading
+2. **ALWAYS** fill in content UNDER each section heading
+3. **ALWAYS** include all four sections even if some are "None" or "N/A"
+4. **CHECK** the boxes that apply (change `[ ]` to `[x]`)
+5. Use the HEREDOC format when calling `gh pr create`:
+
+```bash
+gh pr create --title "feat: your title" --body "$(cat <<'EOF'
+## Description
+
+Your description here.
+
+## Related Issues
+
+#123 or None
+
+## How can it be tested?
+
+1. Step one
+2. Step two
+
+## Check list before submitting
+
+- [x] This PR is wrote in a clear language and correctly labeled
+- [x] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)
+- [ ] I wrote the relative tests
+- [ ] I created a PR for the [documentation](https://github.com/mnfst/docs) if necessary and attached the link to this PR
+EOF
+)"
+```
+
+## Package-Specific Guidance
+
+See individual package `CLAUDE.md` files for package-specific guidance:
+- `packages/agentic-ui-toolkit/CLAUDE.md` - UI toolkit development guidelines
