@@ -45,10 +45,6 @@ import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
 import { MapCarousel } from '@/registry/miscellaneous/map-carousel'
 import { OptionList } from '@/registry/miscellaneous/option-list'
 import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
-import {
-  SkeletonProductCard,
-  SkeletonStats
-} from '@/registry/miscellaneous/skeleton'
 import { Stats } from '@/registry/miscellaneous/stat-card'
 import { StatusBadge } from '@/registry/miscellaneous/status-badge'
 import { TagSelect } from '@/registry/miscellaneous/tag-select'
@@ -87,166 +83,6 @@ interface Category {
 }
 
 const categories: Category[] = [
-  {
-    id: 'form',
-    name: 'Forms',
-    blocks: [
-      {
-        id: 'contact-form',
-        name: 'Contact Form',
-        description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
-        registryName: 'contact-form',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <ContactForm />,
-            usageCode: `<ContactForm
-  data={{
-    title: "Contact Us",
-    subtitle: "Fill out the form below and we'll get back to you as soon as possible.",
-    submitLabel: "Send Message"
-  }}
-  appearance={{
-    showTitle: true
-  }}
-  actions={{
-    onSubmit: (data) => console.log("Form submitted:", {
-      name: data.firstName + " " + data.lastName,
-      email: data.email,
-      phone: data.countryCode + " " + data.phoneNumber,
-      message: data.message,
-      attachment: data.attachment?.name
-    })
-  }}
-  control={{
-    isLoading: false
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'date-time-picker',
-        name: 'Date & Time Picker',
-        description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
-        registryName: 'date-time-picker',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <DateTimePicker />,
-            usageCode: `<DateTimePicker
-  data={{
-    title: "Select a Date & Time",
-    availableDates: [
-      new Date(2025, 0, 7),  // Specific available dates
-      new Date(2025, 0, 8),
-      new Date(2025, 0, 14),
-      new Date(2025, 0, 15),
-      new Date(2025, 0, 21),
-      new Date(2025, 0, 22)
-    ],
-    availableTimeSlots: [
-      "9:00am",
-      "10:00am",
-      "11:00am",
-      "2:00pm",
-      "3:00pm",
-      "4:00pm"
-    ],
-    timezone: "Eastern Time - US & Canada"
-  }}
-  appearance={{
-    showTitle: true,
-    showTimezone: true
-  }}
-  actions={{
-    onSelect: (date, time) => console.log("Selected:", { date, time }),
-    onNext: (date, time) => console.log("Confirmed booking:", {
-      date: date.toLocaleDateString(),
-      time: time
-    })
-  }}
-  control={{
-    selectedDate: null,
-    selectedTime: null
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'issue-report-form',
-        name: 'Issue Report Form',
-        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
-        registryName: 'issue-report-form',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <IssueReportForm />,
-            usageCode: `<IssueReportForm
-  data={{
-    title: "Report an Issue",
-    teams: ["Engineering", "Product", "Design", "Support", "Operations"],
-    locations: ["New York - HQ", "San Francisco - Office", "Remote"],
-    categories: {
-      Software: ["Business App", "Email", "Browser", "VPN"],
-      Hardware: ["Computer", "Monitor", "Keyboard/Mouse", "Phone"],
-      Network: ["Internet Connection", "WiFi", "Server Access"],
-      Access: ["User Account", "Permissions", "Badge Access"]
-    },
-    impacts: [
-      { value: "critical", label: "Critical - Complete Blocker" },
-      { value: "high", label: "High - Severely Degraded" },
-      { value: "medium", label: "Medium - Partially Impacted" },
-      { value: "low", label: "Low - Minor Inconvenience" }
-    ],
-    urgencies: [
-      { value: "immediate", label: "Immediate" },
-      { value: "today", label: "Today" },
-      { value: "week", label: "This Week" }
-    ],
-    frequencies: [
-      { value: "permanent", label: "Permanent" },
-      { value: "frequent", label: "Frequent (multiple times/day)" },
-      { value: "occasional", label: "Occasional (few times/week)" }
-    ],
-    attemptedActions: [
-      "Restarted computer",
-      "Restarted application",
-      "Cleared cache",
-      "Asked a colleague"
-    ]
-  }}
-  appearance={{
-    showTitle: true,
-    compactMode: true
-  }}
-  actions={{
-    onSubmit: (formData) => console.log("Issue reported:", {
-      reporter: formData.declarantName,
-      email: formData.email,
-      team: formData.team,
-      category: formData.category + " > " + formData.subcategory,
-      title: formData.issueTitle,
-      impact: formData.impact,
-      urgency: formData.urgency
-    })
-  }}
-/>`
-          }
-        ]
-      }
-    ]
-  },
   {
     id: 'blog',
     name: 'Blogging',
@@ -585,6 +421,166 @@ const categories: Category[] = [
     ]
   },
   {
+    id: 'form',
+    name: 'Forms',
+    blocks: [
+      {
+        id: 'contact-form',
+        name: 'Contact Form',
+        description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
+        registryName: 'contact-form',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <ContactForm />,
+            usageCode: `<ContactForm
+  data={{
+    title: "Contact Us",
+    subtitle: "Fill out the form below and we'll get back to you as soon as possible.",
+    submitLabel: "Send Message"
+  }}
+  appearance={{
+    showTitle: true
+  }}
+  actions={{
+    onSubmit: (data) => console.log("Form submitted:", {
+      name: data.firstName + " " + data.lastName,
+      email: data.email,
+      phone: data.countryCode + " " + data.phoneNumber,
+      message: data.message,
+      attachment: data.attachment?.name
+    })
+  }}
+  control={{
+    isLoading: false
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'date-time-picker',
+        name: 'Date & Time Picker',
+        description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
+        registryName: 'date-time-picker',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <DateTimePicker />,
+            usageCode: `<DateTimePicker
+  data={{
+    title: "Select a Date & Time",
+    availableDates: [
+      new Date(2025, 0, 7),  // Specific available dates
+      new Date(2025, 0, 8),
+      new Date(2025, 0, 14),
+      new Date(2025, 0, 15),
+      new Date(2025, 0, 21),
+      new Date(2025, 0, 22)
+    ],
+    availableTimeSlots: [
+      "9:00am",
+      "10:00am",
+      "11:00am",
+      "2:00pm",
+      "3:00pm",
+      "4:00pm"
+    ],
+    timezone: "Eastern Time - US & Canada"
+  }}
+  appearance={{
+    showTitle: true,
+    showTimezone: true
+  }}
+  actions={{
+    onSelect: (date, time) => console.log("Selected:", { date, time }),
+    onNext: (date, time) => console.log("Confirmed booking:", {
+      date: date.toLocaleDateString(),
+      time: time
+    })
+  }}
+  control={{
+    selectedDate: null,
+    selectedTime: null
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'issue-report-form',
+        name: 'Issue Report Form',
+        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
+        registryName: 'issue-report-form',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <IssueReportForm />,
+            usageCode: `<IssueReportForm
+  data={{
+    title: "Report an Issue",
+    teams: ["Engineering", "Product", "Design", "Support", "Operations"],
+    locations: ["New York - HQ", "San Francisco - Office", "Remote"],
+    categories: {
+      Software: ["Business App", "Email", "Browser", "VPN"],
+      Hardware: ["Computer", "Monitor", "Keyboard/Mouse", "Phone"],
+      Network: ["Internet Connection", "WiFi", "Server Access"],
+      Access: ["User Account", "Permissions", "Badge Access"]
+    },
+    impacts: [
+      { value: "critical", label: "Critical - Complete Blocker" },
+      { value: "high", label: "High - Severely Degraded" },
+      { value: "medium", label: "Medium - Partially Impacted" },
+      { value: "low", label: "Low - Minor Inconvenience" }
+    ],
+    urgencies: [
+      { value: "immediate", label: "Immediate" },
+      { value: "today", label: "Today" },
+      { value: "week", label: "This Week" }
+    ],
+    frequencies: [
+      { value: "permanent", label: "Permanent" },
+      { value: "frequent", label: "Frequent (multiple times/day)" },
+      { value: "occasional", label: "Occasional (few times/week)" }
+    ],
+    attemptedActions: [
+      "Restarted computer",
+      "Restarted application",
+      "Cleared cache",
+      "Asked a colleague"
+    ]
+  }}
+  appearance={{
+    showTitle: true,
+    compactMode: true
+  }}
+  actions={{
+    onSubmit: (formData) => console.log("Issue reported:", {
+      reporter: formData.declarantName,
+      email: formData.email,
+      team: formData.team,
+      category: formData.category + " > " + formData.subcategory,
+      title: formData.issueTitle,
+      impact: formData.impact,
+      urgency: formData.urgency
+    })
+  }}
+/>`
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: 'data',
     name: 'List',
     blocks: [
@@ -795,171 +791,64 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'payment',
-    name: 'Payment',
+    id: 'map',
+    name: 'Map',
     blocks: [
       {
-        id: 'order-confirm',
-        name: 'Order Confirmation',
-        description: 'Display order summary before payment',
-        registryName: 'order-confirm',
+        id: 'map-carousel',
+        name: 'Map Carousel',
+        description:
+          'Interactive map with location markers and a draggable carousel of cards',
+        registryName: 'map-carousel',
         layouts: ['inline'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <OrderConfirm />,
-            usageCode: `<OrderConfirm
+            component: <MapCarousel data={{ mapStyle: 'jawg-lagoon', jawgAccessToken: '22bVROs6auuCAJ3QALhiCdA2wbAj4w0KPtPmNr5Eq5Hbpi2ug7foYlemD85sIi9Q' }} />,
+            usageCode: `<MapCarousel
   data={{
-    productName: "MacBook Pro 14-inch",
-    productVariant: "Space Gray, M3 Pro",
-    productImage: "https://store.storeimages.cdn-apple.com/...",
-    quantity: 1,
-    price: 1999,
-    deliveryDate: "Wed. Jan 15",
-    deliveryAddress: "123 Main Street, San Francisco, CA 94102",
-    freeShipping: true
-  }}
-  appearance={{ currency: "USD" }}
-  actions={{ onConfirm: () => console.log("Order confirmed!") }}
-  control={{ isLoading: false }}
-/>`
-          }
-        ]
+    locations: [
+      {
+        id: "1",
+        name: "FOUND Hotel Carlton, Nob Hill",
+        subtitle: "Downtown San Francisco",
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop",
+        price: 284,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 8.6,
+        coordinates: [37.7879, -122.4137]
       },
       {
-        id: 'payment-methods',
-        name: 'Payment Methods',
-        description: 'Select payment method',
-        registryName: 'payment-methods',
-        layouts: ['inline'],
-        actionCount: 3,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <PaymentMethods />,
-            usageCode: `<PaymentMethods
-  data={{
-    methods: [
-      { id: "1", type: "card", brand: "visa", last4: "4242" },
-      { id: "2", type: "card", brand: "mastercard", last4: "8888", isDefault: true },
-      { id: "3", type: "apple_pay" }
+        id: "2",
+        name: "Hotel Nikko San Francisco",
+        subtitle: "Union Square",
+        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop",
+        price: 299,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 9.0,
+        coordinates: [37.7856, -122.4104]
+      },
+      {
+        id: "3",
+        name: "The Ritz-Carlton",
+        subtitle: "Nob Hill",
+        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop",
+        price: 527,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 9.4,
+        coordinates: [37.7919, -122.4081]
+      }
     ],
-    amount: 279.00
+    center: [37.7899, -122.4034],
+    zoom: 14,
+    mapStyle: "positron" // "positron" | "dark-matter" | "voyager"
   }}
-  appearance={{ currency: "EUR" }}
+  appearance={{ mapHeight: "504px" }}
   actions={{
-    onSelectMethod: (methodId) => console.log("Selected:", methodId),
-    onAddCard: () => console.log("Add card"),
-    onPay: (methodId) => console.log("Pay with:", methodId)
+    onSelectLocation: (location) => console.log("Selected:", location.name)
   }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'card-form',
-        name: 'Bank Card Form',
-        description: 'Credit card input form',
-        registryName: 'bank-card-form',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <BankCardForm />,
-            usageCode: `<BankCardForm
-  data={{ amount: 149.99 }}
-  appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
-  actions={{
-    onSubmit: (data) => console.log("Card:", data.cardNumber)
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'amount-input',
-        name: 'Amount Input',
-        description: 'Input for monetary amounts',
-        registryName: 'amount-input',
-        layouts: ['inline'],
-        actionCount: 2,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <AmountInput />,
-            usageCode: `<AmountInput
-  data={{ presets: [20, 50, 100, 200] }}
-  appearance={{
-    min: 10,
-    max: 1000,
-    step: 10,
-    currency: "USD",
-    label: "Donation Amount"
-  }}
-  control={{ value: 50 }}
-  actions={{
-    onChange: (value) => console.log("Amount:", value),
-    onConfirm: (value) => console.log("Confirmed:", value)
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'payment-success',
-        name: 'Payment Success',
-        description: 'Success confirmation after payment',
-        registryName: 'payment-success',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <PaymentSuccess />,
-            usageCode: `<PaymentSuccess
-  data={{
-    orderId: "ORD-2024-7842",
-    productName: "Air Force 1 '07",
-    productImage: "/demo/shoe-1.png",
-    price: 119,
-    deliveryDate: "Tue. Dec 10"
-  }}
-  appearance={{ currency: "EUR" }}
-  actions={{ onTrackOrder: () => console.log("Track order") }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'payment-confirmed',
-        name: 'Payment Confirmation',
-        description: 'Detailed payment confirmation',
-        registryName: 'payment-confirmed',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <PaymentConfirmed />,
-            usageCode: `<PaymentConfirmed
-  data={{
-    orderId: "ORD-2024-7842",
-    productName: "Air Force 1 '07",
-    productDescription: "Nike - Size 42 - White",
-    productImage: "/demo/shoe-1.png",
-    price: 119,
-    deliveryDate: "Tue. Dec 10"
-  }}
-  appearance={{ currency: "EUR" }}
-  actions={{ onTrackOrder: () => console.log("Track order") }}
 />`
           }
         ]
@@ -1189,169 +1078,105 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
-        id: 'map-carousel',
-        name: 'Map Carousel',
-        description:
-          'Interactive map with location markers and a draggable carousel of cards',
-        registryName: 'map-carousel',
+        id: 'option-list',
+        name: 'Option List',
+        description: 'Tag-style option selector',
+        registryName: 'option-list',
         layouts: ['inline'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <MapCarousel data={{ mapStyle: 'jawg-lagoon', jawgAccessToken: '22bVROs6auuCAJ3QALhiCdA2wbAj4w0KPtPmNr5Eq5Hbpi2ug7foYlemD85sIi9Q' }} />,
-            usageCode: `<MapCarousel
+            component: <OptionList />,
+            usageCode: `<OptionList
   data={{
-    locations: [
-      {
-        id: "1",
-        name: "FOUND Hotel Carlton, Nob Hill",
-        subtitle: "Downtown San Francisco",
-        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop",
-        price: 284,
-        priceSubtext: "USD • Includes taxes and fees",
-        rating: 8.6,
-        coordinates: [37.7879, -122.4137]
-      },
-      {
-        id: "2",
-        name: "Hotel Nikko San Francisco",
-        subtitle: "Union Square",
-        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop",
-        price: 299,
-        priceSubtext: "USD • Includes taxes and fees",
-        rating: 9.0,
-        coordinates: [37.7856, -122.4104]
-      },
-      {
-        id: "3",
-        name: "The Ritz-Carlton",
-        subtitle: "Nob Hill",
-        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop",
-        price: 527,
-        priceSubtext: "USD • Includes taxes and fees",
-        rating: 9.4,
-        coordinates: [37.7919, -122.4081]
-      }
-    ],
-    center: [37.7899, -122.4034],
-    zoom: 14,
-    mapStyle: "positron" // "positron" | "dark-matter" | "voyager"
+    options: [
+      { id: "1", label: "Standard shipping", description: "3-5 business days" },
+      { id: "2", label: "Express shipping", description: "1-2 business days" },
+      { id: "3", label: "Store pickup", description: "Available in 2h" }
+    ]
   }}
-  appearance={{ mapHeight: "504px" }}
+  appearance={{ multiple: false }}
   actions={{
-    onSelectLocation: (location) => console.log("Selected:", location.name)
+    onSelectOption: (option) => console.log("Selected:", option.label)
   }}
 />`
           }
         ]
       },
       {
-        id: 'x-post',
-        name: 'X Post',
-        description: 'X (Twitter) post card',
-        registryName: 'x-post',
+        id: 'progress-steps',
+        name: 'Progress Steps',
+        description: 'Step-by-step progress indicator',
+        registryName: 'progress-steps',
         layouts: ['inline'],
         actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <XPost />,
-            usageCode: `<XPost
+            component: <ProgressSteps />,
+            usageCode: `<ProgressSteps
   data={{
-    author: "Manifest",
-    username: "manifest",
-    avatar: "M",
-    content: "Just shipped a new feature! Build stunning agentic UIs that work seamlessly inside ChatGPT and Claude.",
-    time: "2h",
-    likes: "1.2K",
-    retweets: "234",
-    replies: "56",
-    views: "45.2K",
-    verified: true
+    steps: [
+      { id: "1", label: "Order received", status: "completed" },
+      { id: "2", label: "Processing", status: "completed" },
+      { id: "3", label: "Shipping", status: "current" },
+      { id: "4", label: "Delivery", status: "pending" }
+    ]
   }}
 />`
           }
         ]
       },
       {
-        id: 'instagram-post',
-        name: 'Instagram Post',
-        description: 'Instagram post card',
-        registryName: 'instagram-post',
+        id: 'quick-reply',
+        name: 'Quick Reply',
+        description: 'Quick reply buttons for chat',
+        registryName: 'quick-reply',
         layouts: ['inline'],
-        actionCount: 0,
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <InstagramPost />,
-            usageCode: `<InstagramPost
+            component: <QuickReply />,
+            usageCode: `<QuickReply
   data={{
-    author: "manifest.ai",
-    avatar: "M",
-    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600",
-    likes: "2,847",
-    caption: "Building the future of agentic UIs. What component would you love to see next?",
-    time: "2 hours ago",
-    verified: true
+    replies: [
+      { id: "1", label: "Yes, confirm" },
+      { id: "2", label: "No thanks" },
+      { id: "3", label: "I have a question" },
+      { id: "4", label: "View details" }
+    ]
+  }}
+  actions={{
+    onSelectReply: (reply) => console.log("Selected:", reply.label)
   }}
 />`
           }
         ]
       },
       {
-        id: 'linkedin-post',
-        name: 'LinkedIn Post',
-        description: 'LinkedIn post card',
-        registryName: 'linkedin-post',
+        id: 'stats-cards',
+        name: 'Stats Cards',
+        description: 'Display statistics and metrics',
+        registryName: 'stats',
         layouts: ['inline'],
         actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <LinkedInPost />,
-            usageCode: `<LinkedInPost
+            component: <Stats />,
+            usageCode: `<Stats
   data={{
-    author: "Manifest",
-    headline: "Agentic UI Toolkit | 10K+ Developers",
-    avatar: "M",
-    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.\\n\\n#AI #AgenticUI #Developer",
-    likes: "1,234",
-    comments: "89",
-    reposts: "45",
-    time: "2h"
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'youtube-post',
-        name: 'YouTube Post',
-        description: 'YouTube video card',
-        registryName: 'youtube-post',
-        layouts: ['inline'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <YouTubePost />,
-            usageCode: `<YouTubePost
-  data={{
-    channel: "NetworkChuck",
-    avatar: "N",
-    title: "you need to learn MCP RIGHT NOW!!",
-    views: "1M views",
-    time: "2 weeks ago",
-    duration: "18:42",
-    thumbnail: "https://img.youtube.com/vi/GuTcle5edjk/maxresdefault.jpg",
-    verified: true,
-    videoId: "GuTcle5edjk"
+    stats: [
+      { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
+      { label: "Orders", value: "342", change: -3.2, trend: "down" },
+      { label: "Customers", value: "1,205", change: 0, trend: "neutral" }
+    ]
   }}
 />`
           }
@@ -1415,183 +1240,6 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'progress-steps',
-        name: 'Progress Steps',
-        description: 'Step-by-step progress indicator',
-        registryName: 'progress-steps',
-        layouts: ['inline'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <ProgressSteps />,
-            usageCode: `<ProgressSteps
-  data={{
-    steps: [
-      { id: "1", label: "Order received", status: "completed" },
-      { id: "2", label: "Processing", status: "completed" },
-      { id: "3", label: "Shipping", status: "current" },
-      { id: "4", label: "Delivery", status: "pending" }
-    ]
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'stats-cards',
-        name: 'Stats Cards',
-        description: 'Display statistics and metrics',
-        registryName: 'stats',
-        layouts: ['inline'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <Stats />,
-            usageCode: `<Stats
-  data={{
-    stats: [
-      { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
-      { label: "Orders", value: "342", change: -3.2, trend: "down" },
-      { label: "Customers", value: "1,205", change: 0, trend: "neutral" }
-    ]
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'skeleton',
-        name: 'Skeleton',
-        description: 'Loading placeholder components',
-        registryName: 'skeleton',
-        layouts: ['inline'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: (
-              <div className="space-y-4">
-                <SkeletonProductCard />
-                <SkeletonStats />
-              </div>
-            ),
-            usageCode: `// Basic Skeleton - customizable with className
-<Skeleton appearance={{ className: "h-4 w-32" }} />
-<Skeleton appearance={{ className: "h-8 w-full rounded-lg" }} />
-<Skeleton appearance={{ className: "h-12 w-12 rounded-full" }} />
-
-// Pre-built skeleton components for common UI patterns:
-
-// Product & E-commerce
-<SkeletonProductCard />           // Single product card
-<SkeletonProductGrid appearance={{ columns: 4 }} />  // Product grid (3 or 4 cols)
-<SkeletonProductCarousel />       // Horizontal product carousel
-<SkeletonOrderConfirm />          // Order confirmation
-
-// Statistics & Data
-<SkeletonStats />                 // Stats cards row
-<SkeletonStatCard />              // Single stat card
-<SkeletonTable />                 // Data table
-
-// Forms
-<SkeletonContactForm />           // Contact form
-<SkeletonDateTimePicker />        // Date/time picker
-<SkeletonIssueReportForm />       // Issue report form
-
-// Blogging
-<SkeletonPostCard />              // Blog post card
-<SkeletonPostCardHorizontal />    // Horizontal blog card
-<SkeletonPostList />              // List of blog posts
-
-// Messaging
-<SkeletonMessageBubble />         // Chat message (received)
-<SkeletonMessageBubbleOwn />      // Chat message (sent)
-<SkeletonChatConversation />      // Full chat conversation
-
-// Social Media
-<SkeletonXPost />                 // X (Twitter) post
-<SkeletonInstagramPost />         // Instagram post
-<SkeletonLinkedInPost />          // LinkedIn post
-<SkeletonYouTubePost />           // YouTube video card
-
-// Payment
-<SkeletonPaymentMethods />        // Payment method selector
-<SkeletonBankCardForm />          // Bank card form
-<SkeletonPaymentSuccess />        // Payment success message
-<SkeletonPaymentConfirmed />      // Payment confirmation
-
-// Miscellaneous
-<SkeletonMapCarousel />           // Map with location cards
-<SkeletonProgressSteps />         // Step progress indicator
-<SkeletonStatusBadge />           // Status badge
-<SkeletonOptionList />            // Option list
-<SkeletonTagSelect />             // Tag selector
-<SkeletonQuickReply />            // Quick reply buttons`
-          }
-        ]
-      },
-      {
-        id: 'quick-reply',
-        name: 'Quick Reply',
-        description: 'Quick reply buttons for chat',
-        registryName: 'quick-reply',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <QuickReply />,
-            usageCode: `<QuickReply
-  data={{
-    replies: [
-      { id: "1", label: "Yes, confirm" },
-      { id: "2", label: "No thanks" },
-      { id: "3", label: "I have a question" },
-      { id: "4", label: "View details" }
-    ]
-  }}
-  actions={{
-    onSelectReply: (reply) => console.log("Selected:", reply.label)
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'option-list',
-        name: 'Option List',
-        description: 'Tag-style option selector',
-        registryName: 'option-list',
-        layouts: ['inline'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <OptionList />,
-            usageCode: `<OptionList
-  data={{
-    options: [
-      { id: "1", label: "Standard shipping", description: "3-5 business days" },
-      { id: "2", label: "Express shipping", description: "1-2 business days" },
-      { id: "3", label: "Store pickup", description: "Available in 2h" }
-    ]
-  }}
-  appearance={{ multiple: false }}
-  actions={{
-    onSelectOption: (option) => console.log("Selected:", option.label)
-  }}
-/>`
-          }
-        ]
-      },
-      {
         id: 'tag-select',
         name: 'Tag Select',
         description: 'Colored tag selector',
@@ -1623,6 +1271,294 @@ const categories: Category[] = [
   actions={{
     onSelectTags: (tagIds) => console.log("Tags:", tagIds),
     onValidate: (tagIds) => console.log("Validated:", tagIds)
+  }}
+/>`
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'payment',
+    name: 'Payment',
+    blocks: [
+      {
+        id: 'order-confirm',
+        name: 'Order Confirmation',
+        description: 'Display order summary before payment',
+        registryName: 'order-confirm',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <OrderConfirm />,
+            usageCode: `<OrderConfirm
+  data={{
+    productName: "MacBook Pro 14-inch",
+    productVariant: "Space Gray, M3 Pro",
+    productImage: "https://store.storeimages.cdn-apple.com/...",
+    quantity: 1,
+    price: 1999,
+    deliveryDate: "Wed. Jan 15",
+    deliveryAddress: "123 Main Street, San Francisco, CA 94102",
+    freeShipping: true
+  }}
+  appearance={{ currency: "USD" }}
+  actions={{ onConfirm: () => console.log("Order confirmed!") }}
+  control={{ isLoading: false }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'payment-methods',
+        name: 'Payment Methods',
+        description: 'Select payment method',
+        registryName: 'payment-methods',
+        layouts: ['inline'],
+        actionCount: 3,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <PaymentMethods />,
+            usageCode: `<PaymentMethods
+  data={{
+    methods: [
+      { id: "1", type: "card", brand: "visa", last4: "4242" },
+      { id: "2", type: "card", brand: "mastercard", last4: "8888", isDefault: true },
+      { id: "3", type: "apple_pay" }
+    ],
+    amount: 279.00
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{
+    onSelectMethod: (methodId) => console.log("Selected:", methodId),
+    onAddCard: () => console.log("Add card"),
+    onPay: (methodId) => console.log("Pay with:", methodId)
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'card-form',
+        name: 'Bank Card Form',
+        description: 'Credit card input form',
+        registryName: 'bank-card-form',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <BankCardForm />,
+            usageCode: `<BankCardForm
+  data={{ amount: 149.99 }}
+  appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
+  actions={{
+    onSubmit: (data) => console.log("Card:", data.cardNumber)
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'amount-input',
+        name: 'Amount Input',
+        description: 'Input for monetary amounts',
+        registryName: 'amount-input',
+        layouts: ['inline'],
+        actionCount: 2,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <AmountInput />,
+            usageCode: `<AmountInput
+  data={{ presets: [20, 50, 100, 200] }}
+  appearance={{
+    min: 10,
+    max: 1000,
+    step: 10,
+    currency: "USD",
+    label: "Donation Amount"
+  }}
+  control={{ value: 50 }}
+  actions={{
+    onChange: (value) => console.log("Amount:", value),
+    onConfirm: (value) => console.log("Confirmed:", value)
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'payment-success',
+        name: 'Payment Success',
+        description: 'Success confirmation after payment',
+        registryName: 'payment-success',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <PaymentSuccess />,
+            usageCode: `<PaymentSuccess
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productImage: "/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'payment-confirmed',
+        name: 'Payment Confirmation',
+        description: 'Detailed payment confirmation',
+        registryName: 'payment-confirmed',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <PaymentConfirmed />,
+            usageCode: `<PaymentConfirmed
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productDescription: "Nike - Size 42 - White",
+    productImage: "/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'social',
+    name: 'Social',
+    blocks: [
+      {
+        id: 'instagram-post',
+        name: 'Instagram Post',
+        description: 'Instagram post card',
+        registryName: 'instagram-post',
+        layouts: ['inline'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <InstagramPost />,
+            usageCode: `<InstagramPost
+  data={{
+    author: "manifest.ai",
+    avatar: "M",
+    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600",
+    likes: "2,847",
+    caption: "Building the future of agentic UIs. What component would you love to see next?",
+    time: "2 hours ago",
+    verified: true
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'linkedin-post',
+        name: 'LinkedIn Post',
+        description: 'LinkedIn post card',
+        registryName: 'linkedin-post',
+        layouts: ['inline'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <LinkedInPost />,
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Agentic UI Toolkit | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.\\n\\n#AI #AgenticUI #Developer",
+    likes: "1,234",
+    comments: "89",
+    reposts: "45",
+    time: "2h"
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'x-post',
+        name: 'X Post',
+        description: 'X (Twitter) post card',
+        registryName: 'x-post',
+        layouts: ['inline'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <XPost />,
+            usageCode: `<XPost
+  data={{
+    author: "Manifest",
+    username: "manifest",
+    avatar: "M",
+    content: "Just shipped a new feature! Build stunning agentic UIs that work seamlessly inside ChatGPT and Claude.",
+    time: "2h",
+    likes: "1.2K",
+    retweets: "234",
+    replies: "56",
+    views: "45.2K",
+    verified: true
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'youtube-post',
+        name: 'YouTube Post',
+        description: 'YouTube video card',
+        registryName: 'youtube-post',
+        layouts: ['inline'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <YouTubePost />,
+            usageCode: `<YouTubePost
+  data={{
+    channel: "NetworkChuck",
+    avatar: "N",
+    title: "you need to learn MCP RIGHT NOW!!",
+    views: "1M views",
+    time: "2 weeks ago",
+    duration: "18:42",
+    thumbnail: "https://img.youtube.com/vi/GuTcle5edjk/maxresdefault.jpg",
+    verified: true,
+    videoId: "GuTcle5edjk"
   }}
 />`
           }

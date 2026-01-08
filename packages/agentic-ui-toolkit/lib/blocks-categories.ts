@@ -8,6 +8,15 @@ export interface BlockCategory {
 
 export const blockCategories: BlockCategory[] = [
   {
+    id: 'blog',
+    name: 'Blogging',
+    blocks: [
+      { id: 'post-card', name: 'Post Card' },
+      { id: 'post-detail', name: 'Post Detail' },
+      { id: 'post-list', name: 'Post List' }
+    ]
+  },
+  {
     id: 'form',
     name: 'Forms',
     blocks: [
@@ -17,32 +26,49 @@ export const blockCategories: BlockCategory[] = [
     ]
   },
   {
-    id: 'blog',
-    name: 'Blogging',
+    id: 'data',
+    name: 'Lists & Tables',
+    blocks: [{ id: 'table', name: 'Table' }]
+  },
+  {
+    id: 'map',
+    name: 'Map',
+    blocks: [{ id: 'map-carousel', name: 'Map Carousel' }]
+  },
+  {
+    id: 'messaging',
+    name: 'Messaging',
     blocks: [
-      { id: 'post-card', name: 'Post Card' },
-      { id: 'post-list', name: 'Post List' },
-      { id: 'post-detail', name: 'Post Detail' }
+      { id: 'chat-conversation', name: 'Chat Conversation' },
+      { id: 'message-bubble', name: 'Message Bubble' }
+    ]
+  },
+  {
+    id: 'misc',
+    name: 'Miscellaneous',
+    blocks: [
+      { id: 'stats-cards', name: 'Stats Cards' },
+      { id: 'weather-widget', name: 'Weather Widget' }
     ]
   },
   {
     id: 'payment',
     name: 'Payment',
     blocks: [
-      { id: 'order-confirm', name: 'Order Confirmation' },
-      { id: 'payment-methods', name: 'Payment Methods' },
-      { id: 'card-form', name: 'Card Form' },
       { id: 'amount-input', name: 'Amount Input' },
-      { id: 'payment-success', name: 'Payment Success' },
-      { id: 'payment-confirmed', name: 'Payment Confirmed' }
+      { id: 'card-form', name: 'Card Form' },
+      { id: 'order-confirm', name: 'Order Confirmation' },
+      { id: 'payment-confirmed', name: 'Payment Confirmed' },
+      { id: 'payment-methods', name: 'Payment Methods' },
+      { id: 'payment-success', name: 'Payment Success' }
     ]
   },
   {
     id: 'products',
     name: 'Products',
     blocks: [
-      { id: 'product-grid', name: 'Product Grid' },
       { id: 'product-carousel', name: 'Product Carousel' },
+      { id: 'product-grid', name: 'Product Grid' },
       { id: 'product-horizontal', name: 'Product Horizontal' },
       { id: 'product-picker', name: 'Product Picker' }
     ]
@@ -51,10 +77,20 @@ export const blockCategories: BlockCategory[] = [
     id: 'selection',
     name: 'Selection',
     blocks: [
-      { id: 'option-list', name: 'Option List' },
       { id: 'card-selection', name: 'Card Selection' },
-      { id: 'tag-selection', name: 'Tag Selection' },
-      { id: 'quick-reply', name: 'Quick Reply' }
+      { id: 'option-list', name: 'Option List' },
+      { id: 'quick-reply', name: 'Quick Reply' },
+      { id: 'tag-selection', name: 'Tag Selection' }
+    ]
+  },
+  {
+    id: 'social',
+    name: 'Social',
+    blocks: [
+      { id: 'instagram-post', name: 'Instagram Post' },
+      { id: 'linkedin-post', name: 'LinkedIn Post' },
+      { id: 'x-post', name: 'X Post' },
+      { id: 'youtube-post', name: 'YouTube Post' }
     ]
   },
   {
@@ -63,32 +99,6 @@ export const blockCategories: BlockCategory[] = [
     blocks: [
       { id: 'progress-steps', name: 'Progress Steps' },
       { id: 'status-badges', name: 'Status Badges' }
-    ]
-  },
-  {
-    id: 'data',
-    name: 'Lists & Tables',
-    blocks: [{ id: 'table', name: 'Table' }]
-  },
-  {
-    id: 'messaging',
-    name: 'Messaging',
-    blocks: [
-      { id: 'message-bubble', name: 'Message Bubble' },
-      { id: 'chat-conversation', name: 'Chat Conversation' }
-    ]
-  },
-  {
-    id: 'social',
-    name: 'Social Posts',
-    blocks: [{ id: 'social-posts', name: 'Social Posts' }]
-  },
-  {
-    id: 'misc',
-    name: 'Miscellaneous',
-    blocks: [
-      { id: 'stats-cards', name: 'Stats Cards' },
-      { id: 'weather-widget', name: 'Weather Widget' }
     ]
   }
 ]
