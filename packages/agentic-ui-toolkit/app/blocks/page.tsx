@@ -103,7 +103,28 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <ContactForm />,
-            usageCode: `<ContactForm />`
+            usageCode: `<ContactForm
+  data={{
+    title: "Contact Us",
+    subtitle: "Fill out the form below and we'll get back to you as soon as possible.",
+    submitLabel: "Send Message"
+  }}
+  appearance={{
+    showTitle: true
+  }}
+  actions={{
+    onSubmit: (data) => console.log("Form submitted:", {
+      name: data.firstName + " " + data.lastName,
+      email: data.email,
+      phone: data.countryCode + " " + data.phoneNumber,
+      message: data.message,
+      attachment: data.attachment?.name
+    })
+  }}
+  control={{
+    isLoading: false
+  }}
+/>`
           }
         ]
       },
@@ -119,7 +140,43 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <DateTimePicker />,
-            usageCode: `<DateTimePicker />`
+            usageCode: `<DateTimePicker
+  data={{
+    title: "Select a Date & Time",
+    availableDates: [
+      new Date(2025, 0, 7),  // Specific available dates
+      new Date(2025, 0, 8),
+      new Date(2025, 0, 14),
+      new Date(2025, 0, 15),
+      new Date(2025, 0, 21),
+      new Date(2025, 0, 22)
+    ],
+    availableTimeSlots: [
+      "9:00am",
+      "10:00am",
+      "11:00am",
+      "2:00pm",
+      "3:00pm",
+      "4:00pm"
+    ],
+    timezone: "Eastern Time - US & Canada"
+  }}
+  appearance={{
+    showTitle: true,
+    showTimezone: true
+  }}
+  actions={{
+    onSelect: (date, time) => console.log("Selected:", { date, time }),
+    onNext: (date, time) => console.log("Confirmed booking:", {
+      date: date.toLocaleDateString(),
+      time: time
+    })
+  }}
+  control={{
+    selectedDate: null,
+    selectedTime: null
+  }}
+/>`
           }
         ]
       },
@@ -135,7 +192,56 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <IssueReportForm />,
-            usageCode: `<IssueReportForm />`
+            usageCode: `<IssueReportForm
+  data={{
+    title: "Report an Issue",
+    teams: ["Engineering", "Product", "Design", "Support", "Operations"],
+    locations: ["New York - HQ", "San Francisco - Office", "Remote"],
+    categories: {
+      Software: ["Business App", "Email", "Browser", "VPN"],
+      Hardware: ["Computer", "Monitor", "Keyboard/Mouse", "Phone"],
+      Network: ["Internet Connection", "WiFi", "Server Access"],
+      Access: ["User Account", "Permissions", "Badge Access"]
+    },
+    impacts: [
+      { value: "critical", label: "Critical - Complete Blocker" },
+      { value: "high", label: "High - Severely Degraded" },
+      { value: "medium", label: "Medium - Partially Impacted" },
+      { value: "low", label: "Low - Minor Inconvenience" }
+    ],
+    urgencies: [
+      { value: "immediate", label: "Immediate" },
+      { value: "today", label: "Today" },
+      { value: "week", label: "This Week" }
+    ],
+    frequencies: [
+      { value: "permanent", label: "Permanent" },
+      { value: "frequent", label: "Frequent (multiple times/day)" },
+      { value: "occasional", label: "Occasional (few times/week)" }
+    ],
+    attemptedActions: [
+      "Restarted computer",
+      "Restarted application",
+      "Cleared cache",
+      "Asked a colleague"
+    ]
+  }}
+  appearance={{
+    showTitle: true,
+    compactMode: true
+  }}
+  actions={{
+    onSubmit: (formData) => console.log("Issue reported:", {
+      reporter: formData.declarantName,
+      email: formData.email,
+      team: formData.team,
+      category: formData.category + " > " + formData.subcategory,
+      title: formData.issueTitle,
+      impact: formData.impact,
+      urgency: formData.urgency
+    })
+  }}
+/>`
           }
         ]
       }
@@ -159,35 +265,148 @@ const categories: Category[] = [
             name: 'Default',
             component: <PostCardDemo />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostCard />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "1",
+      title: "Getting Started with Agentic UI Components",
+      excerpt: "Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.",
+      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+      author: {
+        name: "Sarah Chen",
+        avatar: "https://i.pravatar.cc/150?u=sarah"
+      },
+      publishedAt: "2024-01-15",
+      readTime: "5 min read",
+      tags: ["Tutorial", "Components"],
+      category: "Tutorial"
+    }
+  }}
+  appearance={{
+    variant: "default",
+    showImage: true,
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           },
           {
             id: 'no-image',
             name: 'Without Image',
             component: <PostCardDemo appearance={{ showImage: false }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostCard appearance={{ showImage: false }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "2",
+      title: "Designing for Conversational Interfaces",
+      excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
+      author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+      publishedAt: "2024-01-12",
+      readTime: "8 min read",
+      tags: ["Design", "UX"],
+      category: "Design"
+    }
+  }}
+  appearance={{
+    showImage: false,
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           },
           {
             id: 'compact',
             name: 'Compact',
             component: <PostCardDemo appearance={{ variant: 'compact' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostCard appearance={{ variant: "compact" }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "3",
+      title: "MCP Integration Patterns",
+      excerpt: "How to leverage Model Context Protocol for seamless backend communication.",
+      author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+      publishedAt: "2024-01-10",
+      readTime: "12 min read",
+      tags: ["MCP", "Backend"],
+      category: "Development"
+    }
+  }}
+  appearance={{
+    variant: "compact",
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
             component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostCard appearance={{ variant: "horizontal" }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "4",
+      title: "Building Payment Flows in Chat",
+      excerpt: "A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.",
+      coverImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800",
+      author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
+      publishedAt: "2024-01-08",
+      readTime: "10 min read",
+      tags: ["Payments", "Security"],
+      category: "Tutorial"
+    }
+  }}
+  appearance={{
+    variant: "horizontal",
+    showImage: true,
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           },
           {
             id: 'covered',
             name: 'Covered',
             component: <PostCardDemo appearance={{ variant: 'covered' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostCard appearance={{ variant: "covered" }} />`
+            usageCode: `<PostCard
+  data={{
+    post: {
+      id: "5",
+      title: "The Future of AI-Powered Interfaces",
+      excerpt: "Exploring how agentic UIs are transforming the way users interact with AI applications.",
+      coverImage: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800",
+      author: { name: "Taylor Swift", avatar: "https://i.pravatar.cc/150?u=taylor" },
+      publishedAt: "2024-01-05",
+      readTime: "7 min read",
+      tags: ["AI", "Future"],
+      category: "Insights"
+    }
+  }}
+  appearance={{
+    variant: "covered",
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           }
         ]
       },
@@ -204,21 +423,162 @@ const categories: Category[] = [
             name: 'List',
             component: <PostListDemo appearance={{ variant: 'list' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostList appearance={{ variant: "list" }} />`
+            usageCode: `<PostList
+  data={{
+    posts: [
+      {
+        id: "1",
+        title: "Getting Started with Agentic UI Components",
+        excerpt: "Learn how to build conversational interfaces with our comprehensive component library.",
+        coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+        publishedAt: "2024-01-15",
+        readTime: "5 min read",
+        tags: ["Tutorial", "Components"],
+        category: "Tutorial"
+      },
+      {
+        id: "2",
+        title: "Designing for Conversational Interfaces",
+        excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
+        coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        readTime: "8 min read",
+        tags: ["Design", "UX"],
+        category: "Design"
+      },
+      {
+        id: "3",
+        title: "MCP Integration Patterns",
+        excerpt: "How to leverage Model Context Protocol for seamless backend communication.",
+        coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        readTime: "12 min read",
+        tags: ["MCP", "Backend"],
+        category: "Development"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "list",
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           },
           {
             id: 'grid',
             name: 'Grid',
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostList appearance={{ variant: "grid" }} />`
+            usageCode: `<PostList
+  data={{
+    posts: [
+      {
+        id: "1",
+        title: "Getting Started with Agentic UI Components",
+        excerpt: "Learn how to build conversational interfaces.",
+        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+        publishedAt: "2024-01-15",
+        readTime: "5 min",
+        category: "Tutorial"
+      },
+      {
+        id: "2",
+        title: "Designing for Conversational Interfaces",
+        excerpt: "Best practices for creating intuitive UI components.",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        readTime: "8 min",
+        category: "Design"
+      },
+      {
+        id: "3",
+        title: "MCP Integration Patterns",
+        excerpt: "Seamless backend communication with MCP.",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        readTime: "12 min",
+        category: "Development"
+      },
+      {
+        id: "4",
+        title: "Building Payment Flows in Chat",
+        excerpt: "Implementing secure payment experiences.",
+        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
+        publishedAt: "2024-01-08",
+        readTime: "10 min",
+        category: "Tutorial"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "grid",
+    columns: 2,
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           },
           {
             id: 'carousel',
             name: 'Carousel',
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostList appearance={{ variant: "carousel" }} />`
+            usageCode: `<PostList
+  data={{
+    posts: [
+      {
+        id: "1",
+        title: "Getting Started with Agentic UI",
+        excerpt: "Build conversational interfaces with our component library.",
+        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+        publishedAt: "2024-01-15",
+        category: "Tutorial"
+      },
+      {
+        id: "2",
+        title: "Designing for Chat",
+        excerpt: "Best practices for chat UI components.",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        category: "Design"
+      },
+      {
+        id: "3",
+        title: "MCP Integration",
+        excerpt: "Backend communication with MCP.",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        category: "Development"
+      },
+      {
+        id: "4",
+        title: "Payment Flows",
+        excerpt: "Secure payments in chat.",
+        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
+        publishedAt: "2024-01-08",
+        category: "Tutorial"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "carousel",
+    showAuthor: true,
+    showCategory: true
+  }}
+  actions={{
+    onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
           }
         ]
       }
@@ -306,7 +666,34 @@ const categories: Category[] = [
             name: 'Default',
             component: <TableDemo data={{ title: 'API Usage' }} />,
             fullscreenComponent: <Table data={{ title: 'API Usage' }} appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<Table data={{ title: "API Usage" }} />`
+            usageCode: `<Table
+  data={{
+    title: "API Usage",
+    columns: [
+      { header: "Model", accessor: "model", sortable: true },
+      { header: "Input (w/ Cache)", accessor: "inputCache", sortable: true, align: "right" },
+      { header: "Output", accessor: "output", sortable: true, align: "right" },
+      { header: "Total Tokens", accessor: "totalTokens", sortable: true, align: "right" },
+      { header: "API Cost", accessor: "apiCost", sortable: true, align: "right", render: (value) => "$" + value.toFixed(2) }
+    ],
+    rows: [
+      { model: "gpt-5", inputCache: 0, output: 103271, totalTokens: 2267482, apiCost: 0.0 },
+      { model: "claude-3.5-sonnet", inputCache: 176177, output: 8326, totalTokens: 647528, apiCost: 1.0 },
+      { model: "gemini-2.0-flash-exp", inputCache: 176100, output: 8326, totalTokens: 647528, apiCost: 0.0 }
+    ],
+    lastUpdated: new Date()
+  }}
+  appearance={{
+    showHeader: true,
+    showFooter: true,
+    maxRows: 5,
+    compact: false
+  }}
+  actions={{
+    onRefresh: () => console.log("Refreshing data..."),
+    onExpand: () => console.log("Expanding to fullscreen")
+  }}
+/>`
           },
           {
             id: 'single-select',
@@ -325,7 +712,31 @@ const categories: Category[] = [
                 actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
               />
             ),
-            usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} actions={{ onCopy: (rows) => ... }} />`
+            usageCode: `<Table
+  data={{
+    title: "Models",
+    columns: [
+      { header: "Model", accessor: "model", sortable: true },
+      { header: "Input (w/ Cache)", accessor: "inputCache", sortable: true, align: "right" },
+      { header: "Output", accessor: "output", sortable: true, align: "right" },
+      { header: "Total Tokens", accessor: "totalTokens", sortable: true, align: "right" }
+    ],
+    rows: [
+      { model: "gpt-5", inputCache: 0, output: 103271, totalTokens: 2267482 },
+      { model: "claude-3.5-sonnet", inputCache: 176177, output: 8326, totalTokens: 647528 },
+      { model: "gemini-2.0-flash-exp", inputCache: 176100, output: 8326, totalTokens: 647528 }
+    ]
+  }}
+  appearance={{
+    selectable: "single",
+    showHeader: true,
+    showFooter: true
+  }}
+  actions={{
+    onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows),
+    onCopy: (rows) => console.log("Copy to clipboard:", rows)
+  }}
+/>`
           },
           {
             id: 'multi-select',
@@ -350,7 +761,34 @@ const categories: Category[] = [
                 }}
               />
             ),
-            usageCode: `<Table data={{ title: "Export Data" }} appearance={{ selectable: "multi" }} actions={{ onDownload, onShare }} />`
+            usageCode: `<Table
+  data={{
+    title: "Export Data",
+    columns: [
+      { header: "Model", accessor: "model", sortable: true },
+      { header: "Input (w/ Cache)", accessor: "inputCache", sortable: true, align: "right" },
+      { header: "Output", accessor: "output", sortable: true, align: "right" },
+      { header: "API Cost", accessor: "apiCost", sortable: true, align: "right" }
+    ],
+    rows: [
+      { model: "gpt-5", inputCache: 0, output: 103271, apiCost: 0.0 },
+      { model: "claude-3.5-sonnet", inputCache: 176177, output: 8326, apiCost: 1.0 },
+      { model: "gemini-2.0-flash-exp", inputCache: 176100, output: 8326, apiCost: 0.0 }
+    ],
+    totalRows: 25
+  }}
+  appearance={{
+    selectable: "multi",
+    showHeader: true,
+    showFooter: true,
+    maxRows: 5
+  }}
+  actions={{
+    onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows.length, "rows"),
+    onDownload: (rows) => console.log("Downloading", rows.length, "rows..."),
+    onShare: (rows) => console.log("Sharing", rows.length, "rows...")
+  }}
+/>`
           }
         ]
       }
@@ -940,7 +1378,39 @@ const categories: Category[] = [
                 <StatusBadge data={{ status: 'error' }} />
               </div>
             ),
-            usageCode: `<StatusBadge data={{ status: "success" }} />`
+            usageCode: `// Available status types: success, pending, processing, warning, error, shipped, delivered, cancelled
+
+// Basic status badge
+<StatusBadge data={{ status: "success" }} />
+
+// With custom label
+<StatusBadge
+  data={{ status: "processing" }}
+  appearance={{
+    label: "In Progress",
+    showIcon: true,
+    size: "md"
+  }}
+/>
+
+// Different sizes
+<StatusBadge data={{ status: "pending" }} appearance={{ size: "sm" }} />
+<StatusBadge data={{ status: "pending" }} appearance={{ size: "md" }} />
+<StatusBadge data={{ status: "pending" }} appearance={{ size: "lg" }} />
+
+// Hide icon
+<StatusBadge
+  data={{ status: "delivered" }}
+  appearance={{ showIcon: false }}
+/>
+
+// Order status examples
+<StatusBadge data={{ status: "pending" }} />     // Pending
+<StatusBadge data={{ status: "processing" }} />  // Processing (animated)
+<StatusBadge data={{ status: "shipped" }} />     // Shipped
+<StatusBadge data={{ status: "delivered" }} />   // Delivered
+<StatusBadge data={{ status: "cancelled" }} />   // Cancelled
+<StatusBadge data={{ status: "error" }} />       // Error`
           }
         ]
       },
@@ -1010,14 +1480,58 @@ const categories: Category[] = [
                 <SkeletonStats />
               </div>
             ),
-            usageCode: `// Basic skeleton
+            usageCode: `// Basic Skeleton - customizable with className
 <Skeleton appearance={{ className: "h-4 w-32" }} />
+<Skeleton appearance={{ className: "h-8 w-full rounded-lg" }} />
+<Skeleton appearance={{ className: "h-12 w-12 rounded-full" }} />
 
-// Product card skeleton
-<SkeletonProductCard />
+// Pre-built skeleton components for common UI patterns:
 
-// Stats skeleton
-<SkeletonStats />`
+// Product & E-commerce
+<SkeletonProductCard />           // Single product card
+<SkeletonProductGrid appearance={{ columns: 4 }} />  // Product grid (3 or 4 cols)
+<SkeletonProductCarousel />       // Horizontal product carousel
+<SkeletonOrderConfirm />          // Order confirmation
+
+// Statistics & Data
+<SkeletonStats />                 // Stats cards row
+<SkeletonStatCard />              // Single stat card
+<SkeletonTable />                 // Data table
+
+// Forms
+<SkeletonContactForm />           // Contact form
+<SkeletonDateTimePicker />        // Date/time picker
+<SkeletonIssueReportForm />       // Issue report form
+
+// Blogging
+<SkeletonPostCard />              // Blog post card
+<SkeletonPostCardHorizontal />    // Horizontal blog card
+<SkeletonPostList />              // List of blog posts
+
+// Messaging
+<SkeletonMessageBubble />         // Chat message (received)
+<SkeletonMessageBubbleOwn />      // Chat message (sent)
+<SkeletonChatConversation />      // Full chat conversation
+
+// Social Media
+<SkeletonXPost />                 // X (Twitter) post
+<SkeletonInstagramPost />         // Instagram post
+<SkeletonLinkedInPost />          // LinkedIn post
+<SkeletonYouTubePost />           // YouTube video card
+
+// Payment
+<SkeletonPaymentMethods />        // Payment method selector
+<SkeletonBankCardForm />          // Bank card form
+<SkeletonPaymentSuccess />        // Payment success message
+<SkeletonPaymentConfirmed />      // Payment confirmation
+
+// Miscellaneous
+<SkeletonMapCarousel />           // Map with location cards
+<SkeletonProgressSteps />         // Step progress indicator
+<SkeletonStatusBadge />           // Status badge
+<SkeletonOptionList />            // Option list
+<SkeletonTagSelect />             // Tag selector
+<SkeletonQuickReply />            // Quick reply buttons`
           }
         ]
       },
