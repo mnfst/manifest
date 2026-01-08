@@ -389,7 +389,7 @@ export class McpToolService {
           nodeOutputs.set(node.id, result.structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
         } else if (node.type === 'StatCard') {
-          result = this.executeStatCardFlow(app, toolName, trigger.name, node, validatedInput);
+          result = this.executeStatCardFlow(app, toolName, trigger.name, node, nodeInputData);
           // StatCard nodes output their structured content (populated from upstream data)
           const structuredContent = result.structuredContent || {};
           nodeOutputs.set(node.id, structuredContent);
@@ -693,8 +693,23 @@ export class McpToolService {
     const message = typeof input.message === 'string' ? input.message : '';
     const responseText = this.generateResponseText(triggerName, params.layoutTemplate, message);
 
+    // Extract stats from upstream node outputs (nested under source node ID)
+    // or from top-level if directly provided
+    let stats: unknown[] = [];
+    if (Array.isArray(input.stats)) {
+      stats = input.stats;
+    } else {
+      for (const key of Object.keys(input)) {
+        const value = input[key];
+        if (value && typeof value === 'object' && 'stats' in value) {
+          stats = (value as { stats: unknown[] }).stats;
+          break;
+        }
+      }
+    }
+
     return {
-      structuredContent: {},
+      structuredContent: { stats },
       content: [{ type: 'text', text: responseText }],
       _meta: {
         'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}.html`,
