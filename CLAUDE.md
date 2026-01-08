@@ -73,4 +73,26 @@ const API_BASE = `${BACKEND_URL}/api`;  // e.g., http://localhost:3847/api
 
 Proxy creates caching issues and stale responses. The backend has CORS enabled, so direct calls work fine.
 
+### Production vs Development API URL
+
+The `VITE_API_URL` environment variable controls the backend URL:
+
+| Environment | VITE_API_URL | Result |
+|-------------|--------------|--------|
+| Production (Docker) | `""` (empty string) | Same-origin relative URLs (`/api/...`) |
+| Development | undefined (not set) | Falls back to `http://localhost:3847` |
+| Custom deployment | `"https://api.example.com"` | Uses explicit URL |
+
+**CRITICAL: Use `??` not `||` for fallback logic!**
+
+```typescript
+// CORRECT - Nullish coalescing: only falls back for undefined/null
+export const BACKEND_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3847';
+
+// WRONG - Logical or: falls back for empty string too (breaks production!)
+export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3847';
+```
+
+The Docker build sets `VITE_API_URL=""` so the frontend uses relative URLs. Using `||` would incorrectly fall back to localhost in production.
+
 <!-- MANUAL ADDITIONS END -->

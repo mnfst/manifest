@@ -86,8 +86,18 @@ export interface NodeTypesResponse {
 
 /**
  * Backend server URL - direct connection (no proxy)
+ *
+ * In production (Docker build), VITE_API_URL is set to empty string so the
+ * frontend uses same-origin relative URLs (e.g., "/api/apps").
+ * In development, VITE_API_URL is undefined, falling back to localhost.
+ *
+ * IMPORTANT: Use ?? (nullish coalescing) not || (logical or) because we need
+ * to distinguish between:
+ *   - undefined: not set → use localhost for local dev
+ *   - "": empty string → use same-origin relative URLs for production
+ *   - "https://...": explicit URL → use that URL
  */
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3847';
+export const BACKEND_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3847';
 
 /**
  * API base URL - calls backend directly
