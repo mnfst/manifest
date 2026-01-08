@@ -5,7 +5,7 @@ import { InstallCommandInline } from '@/components/blocks/install-command-inline
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Code, Maximize2, MessageSquare, PictureInPicture2 } from 'lucide-react'
+import { Maximize2, MessageSquare, PictureInPicture2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
@@ -106,6 +106,12 @@ export function VariantSection({
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
 
+  // Reset view mode to inline when navigating to a different component
+  useEffect(() => {
+    setViewMode('inline')
+    setIsFullscreenOpen(false)
+  }, [registryName])
+
   const hasFullwidth = layouts.includes('fullscreen')
   const hasPip = layouts.includes('pip')
 
@@ -114,59 +120,59 @@ export function VariantSection({
       <h3 className="text-lg font-bold">{name}</h3>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        {/* 4 Mode buttons: Inline, PiP, Fullwidth, Code */}
-        <div className="flex items-center gap-1 rounded-lg border bg-muted/50 p-1">
+        {/* 4 Mode buttons: Icons on mobile, text on desktop */}
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setViewMode('inline')}
             className={cn(
-              'px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'inline'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
             )}
           >
-            <MessageSquare className="h-4 w-4 sm:hidden" />
+            <MessageSquare className="h-3.5 w-3.5 sm:hidden" />
             <span className="hidden sm:inline">Inline</span>
           </button>
           <button
             disabled={!hasPip}
             onClick={() => hasPip && setViewMode('pip')}
             className={cn(
-              'px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'pip'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground',
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground',
               !hasPip && 'opacity-40 cursor-not-allowed'
             )}
           >
-            <PictureInPicture2 className="h-4 w-4 sm:hidden" />
+            <PictureInPicture2 className="h-3.5 w-3.5 sm:hidden" />
             <span className="hidden sm:inline">PiP</span>
           </button>
           <button
             disabled={!hasFullwidth}
             onClick={() => hasFullwidth && setViewMode('fullwidth')}
             className={cn(
-              'px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'fullwidth'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground',
               !hasFullwidth && 'opacity-40 cursor-not-allowed'
             )}
           >
-            <Maximize2 className="h-4 w-4 sm:hidden" />
+            <Maximize2 className="h-3.5 w-3.5 sm:hidden" />
             <span className="hidden sm:inline">Fullwidth</span>
           </button>
           <button
             onClick={() => setViewMode('code')}
             className={cn(
-              'px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+              'p-1.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-full transition-colors',
               viewMode === 'code'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
             )}
           >
-            <Code className="h-4 w-4 sm:hidden" />
             <span className="hidden sm:inline">Code</span>
+            <span className="sm:hidden">&lt;/&gt;</span>
           </button>
         </div>
 
