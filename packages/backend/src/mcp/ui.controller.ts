@@ -7,7 +7,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { AppService } from '../app/app.service';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
 
 /**
  * Controller for serving UI components for ChatGPT Apps SDK
@@ -276,6 +276,23 @@ export class UiController {
 
     res.setHeader('Content-Type', 'text/html');
     res.send(html);
+  }
+
+  /**
+   * POST /servers/:slug/actions
+   * Execute a UI node action callback (e.g., when user clicks "Read More" on a post)
+   */
+  @Post(':slug/actions')
+  async executeAction(
+    @Param('slug') slug: string,
+    @Body() request: ExecuteActionRequest
+  ) {
+    const app = await this.mcpToolService.getAppBySlug(slug);
+    if (!app) {
+      throw new NotFoundException(`No published app found for slug: ${slug}`);
+    }
+
+    return this.mcpToolService.executeAction(slug, request);
   }
 
   /**

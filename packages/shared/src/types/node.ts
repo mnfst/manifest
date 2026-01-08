@@ -30,7 +30,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | '
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'StatCard' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform';
+export type NodeType = 'StatCard' | 'PostList' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform';
 
 // =============================================================================
 // API Call Node Types
@@ -380,4 +380,50 @@ export function isJavaScriptCodeTransformNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: JavaScriptCodeTransformParameters } {
   return node.type === 'JavaScriptCodeTransform';
+}
+
+/**
+ * Check if a node is a PostList node.
+ */
+export function isPostListNode(
+  node: NodeInstance
+): node is NodeInstance & { parameters: PostListNodeParameters } {
+  return node.type === 'PostList';
+}
+
+// =============================================================================
+// PostList Node Types
+// =============================================================================
+
+/**
+ * Parameters for a PostList node.
+ */
+export interface PostListNodeParameters {
+  /** Layout template type */
+  layoutTemplate: LayoutTemplate;
+
+  /** Custom component code (TSX). If present, overrides the default template rendering */
+  customCode?: string;
+}
+
+// =============================================================================
+// Action Execution Types
+// =============================================================================
+
+/**
+ * Request to execute a UI node action callback.
+ * Called when a user interacts with a UI component action (e.g., clicks "Read More" on a post).
+ */
+export interface ExecuteActionRequest {
+  /** The trigger's tool name that initiated the flow */
+  toolName: string;
+
+  /** The ID of the UI node that emitted the action */
+  nodeId: string;
+
+  /** The action name (must match a defined action on the node) */
+  action: string;
+
+  /** The data passed by the action (e.g., the Post object) */
+  data: Record<string, unknown>;
 }

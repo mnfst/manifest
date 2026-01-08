@@ -61,18 +61,20 @@ function getFlowState(flow: Flow) {
   const nodes = flow.nodes ?? [];
   const userIntentNodes = nodes.filter(n => n.type === 'UserIntent');
   const statCardNodes = nodes.filter(n => n.type === 'StatCard');
+  const postListNodes = nodes.filter(n => n.type === 'PostList');
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
   const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
   const transformNodes = nodes.filter(n => n.type === 'JavaScriptCodeTransform');
   const hasUserIntentNodes = userIntentNodes.length > 0;
   const hasStatCardNodes = statCardNodes.length > 0;
+  const hasPostListNodes = postListNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasApiCallNodes = apiCallNodes.length > 0;
   const hasTransformNodes = transformNodes.length > 0;
-  const hasSteps = hasStatCardNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes;
-  return { hasUserIntentNodes, hasStatCardNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasSteps, userIntentNodes, statCardNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes };
+  const hasSteps = hasStatCardNodes || hasPostListNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes;
+  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes };
 }
 
 const nodeTypes = {
@@ -378,11 +380,10 @@ function FlowDiagramInner({
         xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
 
-      // Add StatCard nodes
+      // Add StatCard nodes (no "+" button - UI nodes only have action handles)
       flowState.statCardNodes.forEach((node) => {
         // Use saved position or calculate based on order
         const nodePos = node.position || { x: xPosition, y: 130 };
-        const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
 
         nodeList.push({
           id: node.id,
@@ -394,12 +395,32 @@ function FlowDiagramInner({
             onEdit: () => onNodeEdit(node),
             onDelete: () => onNodeDelete(node),
             onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
-            onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'output', nodePos) : undefined,
-            onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'output', nodePos) : undefined,
+            // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
           },
         });
 
         // Update xPosition for next node without saved position
+        xPosition = Math.max(xPosition, nodePos.x) + 280;
+      });
+
+      // Add PostList nodes (no "+" button - UI nodes only have action handles)
+      flowState.postListNodes.forEach((node) => {
+        const nodePos = node.position || { x: xPosition, y: 130 };
+
+        nodeList.push({
+          id: node.id,
+          type: 'viewNode',
+          position: nodePos,
+          data: {
+            node,
+            canDelete,
+            onEdit: () => onNodeEdit(node),
+            onDelete: () => onNodeDelete(node),
+            onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
+            // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
+          },
+        });
+
         xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
 
@@ -555,7 +576,7 @@ function FlowDiagramInner({
         strokeColor = '#60a5fa'; // Default blue
         if (sourceNode.type === 'UserIntent') {
           strokeColor = '#60a5fa'; // Blue for user intent
-        } else if (sourceNode.type === 'StatCard') {
+        } else if (sourceNode.type === 'StatCard' || sourceNode.type === 'PostList') {
           strokeColor = '#60a5fa'; // Blue for interface
         } else if (sourceNode.type === 'Return') {
           strokeColor = '#22c55e'; // Green for return

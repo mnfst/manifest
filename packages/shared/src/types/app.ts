@@ -8,7 +8,7 @@ export type AppStatus = 'draft' | 'published';
 /**
  * Layout template types
  */
-export type LayoutTemplate = 'stat-card';
+export type LayoutTemplate = 'stat-card' | 'post-list';
 
 /**
  * Defines an action that can be triggered by a UI component
@@ -42,6 +42,29 @@ export const LAYOUT_REGISTRY: Record<LayoutTemplate, LayoutTemplateConfig> = {
     installCommand: 'npx shadcn@latest add @manifest/stats',
     useCase: 'KPIs, dashboard stats, metrics overview',
     actions: [], // Read-only, no actions
+  },
+  'post-list': {
+    manifestBlock: '@manifest/post-list',
+    installCommand: 'npx shadcn@latest add @manifest/post-list',
+    useCase: 'Blog posts, article lists, content feeds',
+    actions: [
+      {
+        name: 'onReadMore',
+        label: 'Read More',
+        description: 'Triggered when user clicks Read More on a post',
+      },
+    ],
+    sampleData: {
+      posts: [
+        {
+          id: '1',
+          title: 'Sample Post',
+          excerpt: 'This is a sample post excerpt',
+          author: { name: 'Author Name' },
+          publishedAt: '2026-01-08',
+        },
+      ],
+    },
   },
 };
 

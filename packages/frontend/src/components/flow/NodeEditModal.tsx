@@ -47,6 +47,7 @@ type TabType = 'config' | 'schema';
 
 const LAYOUT_OPTIONS: { value: LayoutTemplate; label: string }[] = [
   { value: 'stat-card', label: 'Stat Card' },
+  { value: 'post-list', label: 'Post List' },
 ];
 
 const HTTP_METHODS: { value: HttpMethod; label: string }[] = [
@@ -205,6 +206,9 @@ export function NodeEditModal({
       if (node.type === 'StatCard') {
         const params = node.parameters as unknown as StatCardNodeParameters;
         setLayoutTemplate(params?.layoutTemplate || 'stat-card');
+      } else if (node.type === 'PostList') {
+        const params = node.parameters as unknown as StatCardNodeParameters;
+        setLayoutTemplate(params?.layoutTemplate || 'post-list');
       } else if (node.type === 'Return') {
         const params = node.parameters as unknown as ReturnNodeParameters;
         setText(params?.text || '');
@@ -260,7 +264,7 @@ export function NodeEditModal({
 
     let parameters: Record<string, unknown> = {};
 
-    if (effectiveNodeType === 'StatCard') {
+    if (effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList') {
       parameters = { layoutTemplate };
     } else if (effectiveNodeType === 'Return') {
       parameters = { text };
@@ -393,6 +397,13 @@ export function NodeEditModal({
           description: 'Transform data using custom JavaScript code',
           color: 'teal',
         };
+      case 'PostList':
+        return {
+          icon: <LayoutGrid className="w-5 h-5 text-gray-600" />,
+          title: isEditMode ? 'Edit Post List' : 'Create Post List',
+          description: 'Display a list of posts with actions',
+          color: 'gray',
+        };
     }
   };
 
@@ -507,8 +518,8 @@ export function NodeEditModal({
               />
             </div>
 
-            {/* StatCard-specific fields */}
-            {effectiveNodeType === 'StatCard' && (
+            {/* StatCard and PostList specific fields */}
+            {(effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList') && (
               <>
                 <div>
                   <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
@@ -528,7 +539,9 @@ export function NodeEditModal({
                     ))}
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    The stat card receives data from upstream nodes to display.
+                    {effectiveNodeType === 'StatCard'
+                      ? 'The stat card receives data from upstream nodes to display.'
+                      : 'The post list displays posts with interactive actions.'}
                   </p>
                 </div>
               </>
