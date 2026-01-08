@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Send, Trash2, AlertCircle, Loader2, Wrench, ChevronDown, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../lib/api';
@@ -175,14 +176,20 @@ export function PreviewChat({ flowId, messages, onMessagesChange }: PreviewChatP
     setError(null);
   };
 
-  // If no API key, show disabled state
+  // If no API key, show disabled state with link to settings
   if (!hasApiKey) {
     return (
       <div className="flex flex-col h-full items-center justify-center p-8 text-center">
         <AlertCircle className="w-12 h-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium mb-2">API Key Required</h3>
         <p className="text-muted-foreground text-sm max-w-md">
-          To use the chat preview, please configure your OpenAI API key in Settings &gt; API Keys.
+          To use the chat preview, please configure your OpenAI API key in{' '}
+          <Link
+            to="/settings"
+            className="text-primary hover:underline font-medium"
+          >
+            Settings
+          </Link>.
         </p>
       </div>
     );

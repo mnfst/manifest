@@ -244,6 +244,17 @@ function FlowDetail() {
     setFlow(prevFlow => prevFlow ? { ...prevFlow, connections } : null);
   }, []);
 
+  // Handler to refresh flow data (e.g., after transformer insertion)
+  const handleFlowUpdate = useCallback(async () => {
+    if (!flowId) return;
+    try {
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+    } catch (err) {
+      console.error('Failed to refresh flow:', err);
+    }
+  }, [flowId]);
+
   const handleAddStep = useCallback(() => {
     // Directly open the UserIntent node creation modal
     // This is called when clicking the "Add user intent" placeholder on the canvas
@@ -274,6 +285,7 @@ function FlowDetail() {
         // Node is added to canvas without opening editor (US3: non-disruptive add)
       } catch (err) {
         console.error(`Failed to create ${nodeType}:`, err);
+        setError(`Failed to create ${displayName} node. Please try again.`);
       }
       return;
     }
@@ -319,6 +331,7 @@ function FlowDetail() {
         // Node is added to canvas without opening editor (US3: non-disruptive add)
       } catch (err) {
         console.error(`Failed to create ${nodeType}:`, err);
+        setError(`Failed to create ${displayName} node. Please try again.`);
       }
       return;
     }
@@ -357,6 +370,7 @@ function FlowDetail() {
         // Node is added to canvas without opening editor (US3: non-disruptive add)
       } catch (err) {
         console.error(`Failed to create ${nodeType}:`, err);
+        setError(`Failed to create ${displayName} node. Please try again.`);
       }
       return;
     }
@@ -568,12 +582,11 @@ function FlowDetail() {
   }
 
   const nodes = flow.nodes ?? [];
-  const interfaceNodes = nodes.filter(n => n.type === 'StatCard' || n.type === 'PostList');
   const canDeleteNodes = nodes.length > 0;
 
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
-    { id: 'preview', label: 'Preview', icon: Eye, disabled: interfaceNodes.length === 0 },
+    { id: 'preview', label: 'Preview', icon: Eye, disabled: nodes.length === 0 },
     { id: 'usage', label: 'Usage', icon: BarChart3 },
   ];
 
@@ -712,6 +725,7 @@ function FlowDetail() {
                   onDropOnNode={handleDropOnNode}
                   onDropOnCanvas={handleDropOnCanvas}
                   onNodeEditCode={handleNodeEditCode}
+                  onFlowUpdate={handleFlowUpdate}
                 />
                 {/* Flow Validation Summary - positioned at bottom-right of canvas */}
                 {flowId && (

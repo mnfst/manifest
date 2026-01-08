@@ -8,6 +8,19 @@ interface ShareModalProps {
 }
 
 /**
+ * Creates an absolute URL for sharing, using window.location.origin when BACKEND_URL is empty or relative.
+ * This ensures share URLs work when copied and shared externally.
+ */
+function getAbsoluteUrl(path: string): string {
+  // If BACKEND_URL is empty or relative (starts with /), use the current origin
+  if (!BACKEND_URL || BACKEND_URL.startsWith('/')) {
+    return `${window.location.origin}${path}`;
+  }
+  // If BACKEND_URL is already absolute (starts with http), use it directly
+  return `${BACKEND_URL}${path}`;
+}
+
+/**
  * Modal for sharing app URLs (landing page and MCP endpoint)
  * Only shown when app is published
  */
@@ -15,8 +28,8 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [copiedMcp, setCopiedMcp] = useState(false);
 
-  const landingPageUrl = `${BACKEND_URL}/servers/${appSlug}`;
-  const mcpEndpointUrl = `${BACKEND_URL}/servers/${appSlug}/mcp`;
+  const landingPageUrl = getAbsoluteUrl(`/servers/${appSlug}`);
+  const mcpEndpointUrl = getAbsoluteUrl(`/servers/${appSlug}/mcp`);
 
   // Handle escape key
   useEffect(() => {
