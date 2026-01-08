@@ -227,9 +227,10 @@ export class UiController {
       throw new NotFoundException(`No app found for slug: ${slug}`);
     }
 
-    // Return 404 for draft apps (T021)
+    // Return generic 404 for draft apps (T021)
+    // Note: Use same message as "not found" to avoid leaking existence of unpublished apps
     if (app.status !== 'published') {
-      throw new NotFoundException(`App is not published: ${slug}`);
+      throw new NotFoundException(`No app found for slug: ${slug}`);
     }
 
     // Get active tools for this app (T020)
