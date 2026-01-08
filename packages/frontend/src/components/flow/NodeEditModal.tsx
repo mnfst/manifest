@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type {
   NodeInstance,
   NodeType,
@@ -9,17 +9,23 @@ import type {
   CallFlowNodeParameters,
   UserIntentNodeParameters,
   ApiCallNodeParameters,
+  JavaScriptCodeTransformParameters,
   HttpMethod,
   HeaderEntry,
   LayoutTemplate,
   FlowParameter,
   ParameterType,
+  JSONSchema,
 } from '@chatgpt-app-builder/shared';
-import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code } from 'lucide-react';
+import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle } from 'lucide-react';
 import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
 import { UsePreviousOutputs } from '../common/UsePreviousOutputs';
 import { TemplateReferencesDisplay } from '../common/TemplateReferencesDisplay';
 import { useUpstreamNodes } from '../../hooks/useUpstreamNodes';
+import { CodeEditor } from '../common/CodeEditor';
+import { SchemaPreview } from '../common/SchemaPreview';
+import { useCodeValidation } from '../../hooks/useCodeValidation';
+import { useTestTransform } from '../../hooks/useTestTransform';
 
 interface NodeEditModalProps {
   isOpen: boolean;
@@ -57,6 +63,11 @@ const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
   { value: 'integer', label: 'Integer' },
   { value: 'boolean', label: 'Boolean' },
 ];
+
+// Default transform code for JavaScriptCodeTransform nodes
+const DEFAULT_TRANSFORM_CODE = `function transform(input: Input) {
+  return input;
+}`;
 
 
 /**
@@ -115,6 +126,71 @@ export function NodeEditModal({
   const [apiHeaders, setApiHeaders] = useState<HeaderEntry[]>([]);
   const [apiTimeout, setApiTimeout] = useState(30000);
 
+  // JavaScriptCodeTransform node fields
+  const [transformCode, setTransformCode] = useState(DEFAULT_TRANSFORM_CODE);
+  const [resolvedOutputSchema, setResolvedOutputSchema] = useState<JSONSchema | null>(null);
+  const [testInput, setTestInput] = useState('{}');
+
+  // Code validation for JavaScriptCodeTransform
+  const { isValid: isCodeValid, error: codeValidationError } = useCodeValidation(transformCode);
+
+  // Test transform hook
+  const {
+    testTransform,
+    isLoading: isTestLoading,
+    result: testResult,
+    outputSchema: testedOutputSchema,
+    reset: resetTest,
+  } = useTestTransform(currentFlowId);
+
+  /**
+   * Generate sample input data from upstream node fields.
+   * Creates example values based on field types.
+   */
+  const generateSampleInput = useCallback((nodes: typeof upstreamNodes): string => {
+    if (nodes.length === 0) return '{}';
+
+    const sampleData: Record<string, unknown> = {};
+
+    for (const node of nodes) {
+      for (const field of node.fields) {
+        // Use field path (e.g., "monsterName") as key
+        // Generate sample value based on type
+        let sampleValue: unknown;
+        switch (field.type) {
+          case 'string':
+            sampleValue = `example_${field.path}`;
+            break;
+          case 'number':
+          case 'integer':
+            sampleValue = 42;
+            break;
+          case 'boolean':
+            sampleValue = true;
+            break;
+          case 'array':
+            sampleValue = [];
+            break;
+          case 'object':
+            sampleValue = {};
+            break;
+          default:
+            sampleValue = `example_${field.path}`;
+        }
+        sampleData[field.path] = sampleValue;
+      }
+    }
+
+    return JSON.stringify(sampleData, null, 2);
+  }, []);
+
+  // Auto-populate test input when upstream nodes are loaded for transform nodes
+  useEffect(() => {
+    if (isOpen && effectiveNodeType === 'JavaScriptCodeTransform' && upstreamNodes.length > 0) {
+      setTestInput(generateSampleInput(upstreamNodes));
+    }
+  }, [isOpen, effectiveNodeType, upstreamNodes, generateSampleInput]);
+
   // Initialize form when modal opens or node changes
   useEffect(() => {
     if (!isOpen) return;
@@ -149,6 +225,12 @@ export function NodeEditModal({
         setApiUrl(params?.url || '');
         setApiHeaders(params?.headers || []);
         setApiTimeout(params?.timeout || 30000);
+      } else if (node.type === 'JavaScriptCodeTransform') {
+        const params = node.parameters as unknown as JavaScriptCodeTransformParameters;
+        setTransformCode(params?.code || DEFAULT_TRANSFORM_CODE);
+        setResolvedOutputSchema(params?.resolvedOutputSchema || null);
+        setTestInput('{}');
+        resetTest();
       }
     } else {
       // Create mode - set defaults
@@ -166,8 +248,12 @@ export function NodeEditModal({
       setApiUrl('');
       setApiHeaders([]);
       setApiTimeout(30000);
+      setTransformCode(DEFAULT_TRANSFORM_CODE);
+      setResolvedOutputSchema(null);
+      setTestInput('{}');
+      resetTest();
     }
-  }, [isOpen, node]);
+  }, [isOpen, node, resetTest]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,6 +282,13 @@ export function NodeEditModal({
         headers: apiHeaders,
         timeout: apiTimeout,
         inputMappings: [],
+      };
+    } else if (effectiveNodeType === 'JavaScriptCodeTransform') {
+      // Use tested output schema if available, otherwise use resolved schema from node
+      const finalOutputSchema = testedOutputSchema || resolvedOutputSchema;
+      parameters = {
+        code: transformCode,
+        resolvedOutputSchema: finalOutputSchema,
       };
     }
 
@@ -237,6 +330,17 @@ export function NodeEditModal({
     const newParams = [...toolParameters];
     newParams[index] = { ...newParams[index], [field]: value };
     setToolParameters(newParams);
+  };
+
+  // Test transform handler for JavaScriptCodeTransform
+  const handleTestTransform = async () => {
+    try {
+      const parsedInput = JSON.parse(testInput);
+      await testTransform(transformCode, parsedInput);
+    } catch (err) {
+      // JSON parse error will be shown inline
+      console.error('Invalid test input JSON:', err);
+    }
   };
 
   if (!isOpen || !effectiveNodeType) return null;
@@ -282,20 +386,29 @@ export function NodeEditModal({
           description: 'Make HTTP requests to external APIs',
           color: 'orange',
         };
+      case 'JavaScriptCodeTransform':
+        return {
+          icon: <Shuffle className="w-5 h-5 text-teal-600" />,
+          title: isEditMode ? 'Edit JavaScript Transform' : 'Create JavaScript Transform',
+          description: 'Transform data using custom JavaScript code',
+          color: 'teal',
+        };
     }
   };
 
   const nodeInfo = getNodeTypeInfo();
 
-  if (!isOpen) return null;
+  if (!isOpen || !nodeInfo) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+      {/* Modal - wider for transform nodes */}
+      <div className={`relative bg-white rounded-lg shadow-xl w-full max-h-[85vh] overflow-hidden flex flex-col ${
+        effectiveNodeType === 'JavaScriptCodeTransform' ? 'max-w-3xl' : 'max-w-lg'
+      }`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-3">
@@ -831,6 +944,182 @@ export function NodeEditModal({
                   upstreamNodes={upstreamNodes}
                   isConnected={upstreamNodes.length > 0}
                 />
+              </>
+            )}
+
+            {/* JavaScriptCodeTransform-specific fields */}
+            {effectiveNodeType === 'JavaScriptCodeTransform' && (
+              <>
+                {/* Available Input Data - show fields with click-to-copy JS paths */}
+                {isEditMode && node && (
+                  <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Code className="w-4 h-4 text-teal-600" />
+                        <span className="text-sm font-medium text-teal-800">Available Input Data</span>
+                      </div>
+                      {upstreamLoading && (
+                        <span className="text-xs text-teal-600">Loading...</span>
+                      )}
+                    </div>
+
+                    {upstreamError && (
+                      <p className="text-sm text-red-600 mb-2">{upstreamError}</p>
+                    )}
+
+                    {!upstreamLoading && upstreamNodes.length === 0 && (
+                      <p className="text-sm text-teal-700">
+                        Connect this node to an upstream node to see available data fields.
+                      </p>
+                    )}
+
+                    {upstreamNodes.length > 0 && (
+                      <div className="space-y-3">
+                        {upstreamNodes.map(node => (
+                          <div key={node.id}>
+                            <p className="text-xs font-medium text-teal-700 mb-1">
+                              From: {node.name} ({node.type})
+                            </p>
+                            {node.fields.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {node.fields.map(field => (
+                                  <button
+                                    key={field.path}
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`input.${field.path}`);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-teal-300 rounded text-xs font-mono text-teal-800 hover:bg-teal-100 hover:border-teal-400 transition-colors"
+                                    title={`Click to copy: input.${field.path}${field.description ? `\n${field.description}` : ''}`}
+                                  >
+                                    <span>input.{field.path}</span>
+                                    <span className="text-teal-500">: {field.type}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-teal-600 italic">No typed fields available</p>
+                            )}
+                          </div>
+                        ))}
+                        <p className="text-xs text-teal-600 mt-2">
+                          Click a field to copy the JavaScript path to clipboard.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Code editor */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Transform Function
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Write a TypeScript function that transforms the input data. The function receives <code className="bg-gray-100 px-1 rounded">input</code> and should return the transformed result.
+                  </p>
+                  <CodeEditor
+                    value={transformCode}
+                    onChange={setTransformCode}
+                    placeholder={`function transform(input: Input) {
+  // Transform the input data
+  return input;
+}`}
+                    height="250px"
+                    disabled={isLoading}
+                    error={codeValidationError?.message}
+                    language="typescript"
+                  />
+                  {isCodeValid && transformCode.trim() && (
+                    <div className="mt-2 flex items-center gap-1 text-green-600 text-xs">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>Valid syntax</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Test section */}
+                <div className="border border-teal-200 bg-teal-50 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Shuffle className="w-4 h-4 text-teal-600" />
+                    <span className="text-sm font-medium text-teal-800">Test Transform</span>
+                  </div>
+
+                  {/* Test input */}
+                  <div>
+                    <label htmlFor="test-input" className="block text-sm font-medium text-gray-700 mb-1">
+                      Sample Input (JSON)
+                    </label>
+                    <textarea
+                      id="test-input"
+                      value={testInput}
+                      onChange={(e) => setTestInput(e.target.value)}
+                      placeholder='{"example": "data"}'
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono text-sm resize-none"
+                      rows={3}
+                      disabled={isLoading || isTestLoading}
+                    />
+                  </div>
+
+                  {/* Test button */}
+                  <button
+                    type="button"
+                    onClick={handleTestTransform}
+                    disabled={isLoading || isTestLoading || !isCodeValid}
+                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isTestLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" />
+                        Test Transform
+                      </>
+                    )}
+                  </button>
+
+                  {/* Test result */}
+                  {testResult && (
+                    <div className={`p-3 rounded-lg ${testResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {testResult.success ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-800">
+                              Success ({testResult.executionTimeMs}ms)
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-800">Error</span>
+                          </>
+                        )}
+                      </div>
+                      {testResult.success ? (
+                        <pre className="text-xs text-gray-700 bg-white p-2 rounded border overflow-x-auto">
+                          {JSON.stringify(testResult.output, null, 2)}
+                        </pre>
+                      ) : (
+                        <p className="text-sm text-red-700">{testResult.error}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Output schema preview */}
+                <div>
+                  <SchemaPreview
+                    schema={testedOutputSchema || resolvedOutputSchema}
+                    title="Inferred Output Schema"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Run "Test Transform" to infer the output schema from your code.
+                  </p>
+                </div>
               </>
             )}
           </div>

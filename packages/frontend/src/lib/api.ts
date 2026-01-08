@@ -28,6 +28,10 @@ import type {
   UpdateNodePositionRequest,
   CreateConnectionRequest,
   NodeTypeCategory,
+  InsertTransformerRequest,
+  InsertTransformerResponse,
+  TestTransformRequest,
+  TestTransformResponse,
   // Execution types
   ExecutionStatus,
   ExecutionListResponse,
@@ -720,6 +724,38 @@ export const api = {
    */
   async getFlowSchemas(flowId: string): Promise<FlowSchemasResponse> {
     return fetchApi<FlowSchemasResponse>(`/flows/${flowId}/schemas`);
+  },
+
+  // ============================================
+  // Transformer APIs
+  // ============================================
+
+  /**
+   * Insert a transformer node between two connected nodes
+   * POST /api/flows/:flowId/transformers/insert
+   */
+  async insertTransformer(
+    flowId: string,
+    request: InsertTransformerRequest
+  ): Promise<InsertTransformerResponse> {
+    return fetchApi<InsertTransformerResponse>(`/flows/${flowId}/transformers/insert`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Test a JavaScript transform with sample input
+   * POST /api/flows/:flowId/transformers/test
+   */
+  async testTransform(
+    flowId: string,
+    request: TestTransformRequest
+  ): Promise<TestTransformResponse> {
+    return fetchApi<TestTransformResponse>(`/flows/${flowId}/transformers/test`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   },
 
 };

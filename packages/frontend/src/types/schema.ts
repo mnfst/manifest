@@ -1,4 +1,4 @@
-import type { CompatibilityStatus, SchemaCompatibilityResult, JSONSchema, FlattenedSchemaField } from '@chatgpt-app-builder/shared';
+import type { CompatibilityStatus, SchemaCompatibilityResult, JSONSchema, FlattenedSchemaField, SuggestedTransformer } from '@chatgpt-app-builder/shared';
 
 /**
  * Validation state for a connection edge (frontend only).
@@ -19,6 +19,9 @@ export interface ConnectionValidationState {
 
   /** Full compatibility result (for detail panel) */
   details?: SchemaCompatibilityResult;
+
+  /** Suggested transformers that could resolve incompatibility issues */
+  suggestedTransformers?: SuggestedTransformer[];
 }
 
 /**

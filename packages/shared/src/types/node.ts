@@ -21,7 +21,7 @@ export interface Position {
 /**
  * Classification for node types determining their role in flow execution.
  */
-export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return';
+export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | 'transform';
 
 // =============================================================================
 // Node Types
@@ -30,7 +30,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return';
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'StatCard' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall';
+export type NodeType = 'StatCard' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform';
 
 // =============================================================================
 // API Call Node Types
@@ -189,6 +189,18 @@ export interface UserIntentNodeParameters {
   isActive?: boolean;
 }
 
+/**
+ * Parameters for a JavaScriptCodeTransform node.
+ * Allows users to transform data using custom JavaScript code.
+ */
+export interface JavaScriptCodeTransformParameters {
+  /** User-written JavaScript transformation code */
+  code: string;
+
+  /** Inferred output schema from code execution (set when user tests transform) */
+  resolvedOutputSchema?: JSONSchema | null;
+}
+
 // =============================================================================
 // API Request/Response Types
 // =============================================================================
@@ -250,6 +262,65 @@ export interface CreateConnectionRequest {
   targetHandle: string;
 }
 
+/**
+ * Request to insert a transformer node between two connected nodes.
+ */
+export interface InsertTransformerRequest {
+  /** ID of the source node in the original connection */
+  sourceNodeId: string;
+
+  /** ID of the target node in the original connection */
+  targetNodeId: string;
+
+  /** Type of transformer to insert (e.g., 'JavaScriptCodeTransform') */
+  transformerType: NodeType;
+}
+
+/**
+ * Response from inserting a transformer node.
+ */
+export interface InsertTransformerResponse {
+  /** The newly created transformer node */
+  transformerNode: NodeInstance;
+
+  /** Connection from original source to transformer */
+  sourceConnection: Connection;
+
+  /** Connection from transformer to original target */
+  targetConnection: Connection;
+}
+
+/**
+ * Request to test a JavaScript transform with sample input.
+ */
+export interface TestTransformRequest {
+  /** The JavaScript code to execute */
+  code: string;
+
+  /** Sample input data to transform */
+  sampleInput: unknown;
+}
+
+/**
+ * Response from testing a transform.
+ */
+export interface TestTransformResponse {
+  /** Whether the execution was successful */
+  success: boolean;
+
+  /** The transformed output (if successful) */
+  output?: unknown;
+
+  /** Inferred JSON Schema from the output */
+  outputSchema?: JSONSchema;
+
+  /** Error message (if failed) */
+  error?: string;
+
+  /** Execution time in milliseconds */
+  executionTimeMs?: number;
+}
+
 // =============================================================================
 // Type Guards
 // =============================================================================
@@ -297,4 +368,13 @@ export function isApiCallNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: ApiCallNodeParameters } {
   return node.type === 'ApiCall';
+}
+
+/**
+ * Check if a node is a JavaScriptCodeTransform node.
+ */
+export function isJavaScriptCodeTransformNode(
+  node: NodeInstance
+): node is NodeInstance & { parameters: JavaScriptCodeTransformParameters } {
+  return node.type === 'JavaScriptCodeTransform';
 }
