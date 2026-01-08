@@ -14,9 +14,11 @@ import { IssueReportForm } from '@/registry/form/issue-report-form'
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo'
 import { PostListDemo } from '@/components/blocks/post-list-demo'
+import { PostDetail } from '@/registry/blogging/post-detail'
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo'
+import { Table } from '@/registry/list/table'
 import { ProductList } from '@/registry/list/product-list'
 
 // Payment components
@@ -62,6 +64,7 @@ interface BlockVariant {
   id: string
   name: string
   component: React.ReactNode
+  fullscreenComponent?: React.ReactNode
   usageCode?: string
 }
 
@@ -150,30 +153,35 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PostCardDemo />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard />`
           },
           {
             id: 'no-image',
             name: 'Without Image',
             component: <PostCardDemo appearance={{ showImage: false }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard appearance={{ showImage: false }} />`
           },
           {
             id: 'compact',
             name: 'Compact',
             component: <PostCardDemo appearance={{ variant: 'compact' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard appearance={{ variant: "compact" }} />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
             component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard appearance={{ variant: "horizontal" }} />`
           },
           {
             id: 'covered',
             name: 'Covered',
             component: <PostCardDemo appearance={{ variant: 'covered' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard appearance={{ variant: "covered" }} />`
           }
         ]
@@ -189,18 +197,21 @@ const categories: Category[] = [
             id: 'list',
             name: 'List',
             component: <PostListDemo appearance={{ variant: 'list' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostList appearance={{ variant: "list" }} />`
           },
           {
             id: 'grid',
             name: 'Grid',
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostList appearance={{ variant: "grid" }} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostList appearance={{ variant: "carousel" }} />`
           }
         ]
@@ -256,6 +267,7 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <TableDemo data={{ title: 'API Usage' }} />,
+            fullscreenComponent: <Table data={{ title: 'API Usage' }} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<Table data={{ title: "API Usage" }} />`
           },
           {
@@ -268,6 +280,13 @@ const categories: Category[] = [
                 actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
               />
             ),
+            fullscreenComponent: (
+              <Table
+                data={{ title: 'Models' }}
+                appearance={{ selectable: 'single', displayMode: 'fullscreen' }}
+                actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
+              />
+            ),
             usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} actions={{ onCopy: (rows) => ... }} />`
           },
           {
@@ -277,6 +296,16 @@ const categories: Category[] = [
               <TableDemo
                 data={{ title: 'Export Data' }}
                 appearance={{ selectable: 'multi' }}
+                actions={{
+                  onDownload: (rows) => console.log('Download:', rows),
+                  onShare: (rows) => console.log('Share:', rows)
+                }}
+              />
+            ),
+            fullscreenComponent: (
+              <Table
+                data={{ title: 'Export Data' }}
+                appearance={{ selectable: 'multi', displayMode: 'fullscreen' }}
                 actions={{
                   onDownload: (rows) => console.log('Download:', rows),
                   onShare: (rows) => console.log('Share:', rows)
@@ -826,8 +855,10 @@ function BlocksContent() {
                 key={variant.id}
                 name={variant.name}
                 component={variant.component}
+                fullscreenComponent={variant.fullscreenComponent}
                 registryName={selectedBlock.registryName}
                 usageCode={variant.usageCode}
+                layouts={selectedBlock.layouts}
               />
             ))}
           </div>

@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { ChevronLeft, ChevronRight, Globe, Search } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Globe, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const timezones = [
@@ -135,6 +135,8 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
   const [timezoneSearch, setTimezoneSearch] = useState('')
   const [timezoneDropdownOpen, setTimezoneDropdownOpen] = useState(false)
   const timezoneSearchRef = useRef<HTMLInputElement>(null)
+  // Mobile view mode: 'calendar' or 'time'
+  const [mobileView, setMobileView] = useState<'calendar' | 'time'>('calendar')
 
   const filteredTimezones = timezones.filter(tz =>
     tz.name.toLowerCase().includes(timezoneSearch.toLowerCase())
@@ -209,6 +211,12 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
     setSelectedDate(date)
     setSelectedTime(null)
     onSelect?.(date, '')
+    // On mobile, switch to time view when date is selected
+    setMobileView('time')
+  }
+
+  const handleBackToCalendar = () => {
+    setMobileView('calendar')
   }
 
   const handleTimeSelect = (time: string) => {
@@ -236,8 +244,11 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
       )}
 
       <div className="flex justify-center">
-        {/* Calendar Section - Fixed width */}
-        <div className="w-[304px] flex-shrink-0">
+        {/* Calendar Section - Hidden on mobile when viewing time slots */}
+        <div className={cn(
+          "w-[304px] flex-shrink-0",
+          mobileView === 'time' ? 'hidden md:block' : 'block'
+        )}>
           {/* Month Navigation */}
           <div className="flex items-center justify-center gap-4 mb-4">
             <button
@@ -351,14 +362,26 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
           )}
         </div>
 
-        {/* Time Slots Section - Animated */}
+        {/* Time Slots Section - Visible on mobile when viewing times, animated on desktop */}
         <div
           className={cn(
             'overflow-hidden transition-all duration-300 ease-out',
-            selectedDate ? 'w-[200px] opacity-100 ml-8' : 'w-0 opacity-0 ml-0'
+            // Mobile: show/hide based on mobileView, full width
+            mobileView === 'time' ? 'block w-full md:w-[200px]' : 'hidden md:block',
+            // Desktop: animate width based on selectedDate
+            selectedDate ? 'md:w-[200px] md:opacity-100 md:ml-8' : 'md:w-0 md:opacity-0 md:ml-0'
           )}
         >
-          <div className="w-[200px]">
+          <div className="w-full md:w-[200px]">
+            {/* Back button - Mobile only */}
+            <button
+              onClick={handleBackToCalendar}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 md:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to calendar</span>
+            </button>
+
             <p className="text-base font-medium text-foreground mb-4 whitespace-nowrap">
               {selectedDate ? formatDateHeader(selectedDate) : ''}
             </p>
