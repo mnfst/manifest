@@ -763,7 +763,49 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <MapCarousel data={{ mapStyle: 'jawg-lagoon', jawgAccessToken: '22bVROs6auuCAJ3QALhiCdA2wbAj4w0KPtPmNr5Eq5Hbpi2ug7foYlemD85sIi9Q' }} />,
-            usageCode: `<MapCarousel />`
+            usageCode: `<MapCarousel
+  data={{
+    locations: [
+      {
+        id: "1",
+        name: "FOUND Hotel Carlton, Nob Hill",
+        subtitle: "Downtown San Francisco",
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop",
+        price: 284,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 8.6,
+        coordinates: [37.7879, -122.4137]
+      },
+      {
+        id: "2",
+        name: "Hotel Nikko San Francisco",
+        subtitle: "Union Square",
+        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop",
+        price: 299,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 9.0,
+        coordinates: [37.7856, -122.4104]
+      },
+      {
+        id: "3",
+        name: "The Ritz-Carlton",
+        subtitle: "Nob Hill",
+        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop",
+        price: 527,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 9.4,
+        coordinates: [37.7919, -122.4081]
+      }
+    ],
+    center: [37.7899, -122.4034],
+    zoom: 14,
+    mapStyle: "positron" // "positron" | "dark-matter" | "voyager"
+  }}
+  appearance={{ mapHeight: "504px" }}
+  actions={{
+    onSelectLocation: (location) => console.log("Selected:", location.name)
+  }}
+/>`
           }
         ]
       },
