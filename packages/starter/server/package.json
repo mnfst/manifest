@@ -16,7 +16,7 @@
     "inspector": "mcp-inspector http://localhost:3000/mcp"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@t3-oss/env-core": "^0.13.8",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
