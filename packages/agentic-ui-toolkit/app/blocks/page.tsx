@@ -97,6 +97,7 @@ const categories: Category[] = [
         description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
         registryName: 'contact-form',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -112,6 +113,7 @@ const categories: Category[] = [
         description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
         registryName: 'date-time-picker',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -127,6 +129,7 @@ const categories: Category[] = [
         description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
         registryName: 'issue-report-form',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
