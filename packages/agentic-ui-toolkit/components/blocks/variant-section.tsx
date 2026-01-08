@@ -2,10 +2,11 @@
 
 import dynamic from 'next/dynamic'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
+import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Maximize2, MessageSquare, PictureInPicture2 } from 'lucide-react'
+import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
@@ -13,7 +14,7 @@ const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
 })
 
-type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'code'
+type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'config' | 'code'
 type LayoutMode = 'inline' | 'fullscreen' | 'pip'
 
 interface VariantSectionProps {
@@ -64,8 +65,8 @@ function useSourceCode(registryName: string): SourceCodeState {
   return { code, loading, error }
 }
 
-function CodeViewer({ registryName }: { registryName: string }) {
-  const { code, loading, error } = useSourceCode(registryName)
+function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
+  const { code, loading, error } = sourceCode
 
   if (loading) {
     return (
@@ -117,6 +118,7 @@ export function VariantSection({
 }: VariantSectionProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const sourceCode = useSourceCode(registryName)
 
   // Reset view mode to inline when navigating to a different component
   useEffect(() => {
@@ -175,6 +177,18 @@ export function VariantSection({
             <span className="hidden lg:inline">Fullwidth</span>
           </button>
           <button
+            onClick={() => setViewMode('config')}
+            className={cn(
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+              viewMode === 'config'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Settings2 className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">Config</span>
+          </button>
+          <button
             onClick={() => setViewMode('code')}
             className={cn(
               'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
@@ -205,6 +219,13 @@ export function VariantSection({
           </div>
         )}
 
+        {viewMode === 'config' && (
+          <ConfigurationViewer
+            sourceCode={sourceCode.code}
+            loading={sourceCode.loading}
+          />
+        )}
+
         {viewMode === 'code' && (
           <div className="space-y-4">
             {usageCode && (
@@ -215,7 +236,7 @@ export function VariantSection({
             )}
             <div>
               <p className="text-xs text-muted-foreground mb-2">Source:</p>
-              <CodeViewer registryName={registryName} />
+              <CodeViewer sourceCode={sourceCode} />
             </div>
           </div>
         )}
