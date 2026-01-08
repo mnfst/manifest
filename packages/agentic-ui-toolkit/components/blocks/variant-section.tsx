@@ -2,8 +2,10 @@
 
 import dynamic from 'next/dynamic'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
-import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { FullscreenModal } from '@/components/layout/fullscreen-modal'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Maximize2, MessageSquare, PictureInPicture2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
@@ -11,11 +13,16 @@ const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
 })
 
+type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'code'
+type LayoutMode = 'inline' | 'fullscreen' | 'pip'
+
 interface VariantSectionProps {
   name: string
   component: React.ReactNode
+  fullscreenComponent?: React.ReactNode
   registryName: string
   usageCode?: string
+  layouts?: LayoutMode[]
 }
 
 interface SourceCodeState {
@@ -66,8 +73,8 @@ function useSourceCode(registryName: string): SourceCodeState {
   return { code, relatedFiles, loading, error }
 }
 
-function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
-  const { code, loading, error } = sourceCode
+function CodeViewer({ registryName }: { registryName: string }) {
+  const { code, loading, error } = useSourceCode(registryName)
 
   if (loading) {
     return (
@@ -94,49 +101,144 @@ function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
   )
 }
 
+function FullwidthPlaceholder({ onOpen }: { onOpen: () => void }) {
+  return (
+    <div className="flex items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border border-dashed">
+      <Button
+        variant="outline"
+        size="lg"
+        onClick={onOpen}
+        className="px-8"
+      >
+        Open
+      </Button>
+    </div>
+  )
+}
+
 export function VariantSection({
   name,
   component,
+  fullscreenComponent,
   registryName,
-  usageCode
+  usageCode,
+  layouts = ['inline']
 }: VariantSectionProps) {
-  const sourceCode = useSourceCode(registryName)
+  const [viewMode, setViewMode] = useState<ViewMode>('inline')
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+
+  // Reset view mode to inline when navigating to a different component
+  useEffect(() => {
+    setViewMode('inline')
+    setIsFullscreenOpen(false)
+  }, [registryName])
+
+  const hasFullwidth = layouts.includes('fullscreen')
+  const hasPip = layouts.includes('pip')
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-bold">{name}</h3>
-      <Tabs defaultValue="preview" className="w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <TabsList>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="configuration">Configuration</TabsTrigger>
-            <TabsTrigger value="code">Code</TabsTrigger>
-          </TabsList>
-          <InstallCommandInline componentName={registryName} />
+
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+        {/* 4 Mode buttons: Icons on mobile/tablet, text on desktop */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setViewMode('inline')}
+            className={cn(
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+              viewMode === 'inline'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <MessageSquare className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">Inline</span>
+          </button>
+          <button
+            disabled={!hasPip}
+            onClick={() => hasPip && setViewMode('pip')}
+            className={cn(
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
+              viewMode === 'pip'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground',
+              hasPip ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
+            )}
+          >
+            <PictureInPicture2 className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">PiP</span>
+          </button>
+          <button
+            disabled={!hasFullwidth}
+            onClick={() => hasFullwidth && setViewMode('fullwidth')}
+            className={cn(
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
+              viewMode === 'fullwidth'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground',
+              hasFullwidth ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
+            )}
+          >
+            <Maximize2 className="h-3.5 w-3.5 lg:hidden" />
+            <span className="hidden lg:inline">Fullwidth</span>
+          </button>
+          <button
+            onClick={() => setViewMode('code')}
+            className={cn(
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+              viewMode === 'code'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <span className="hidden lg:inline">Code</span>
+            <span className="lg:hidden">&lt;/&gt;</span>
+          </button>
         </div>
-        <TabsContent value="preview" className="mt-0">
-          {component}
-        </TabsContent>
-        <TabsContent value="configuration" className="mt-0">
-          <ConfigurationViewer
-            sourceCode={sourceCode.code}
-            relatedSourceFiles={sourceCode.relatedFiles}
-            loading={sourceCode.loading}
-          />
-        </TabsContent>
-        <TabsContent value="code" className="mt-0">
-          {usageCode && (
-            <div className="mb-4">
-              <p className="text-xs text-muted-foreground mb-2">Usage:</p>
-              <CodeBlock code={usageCode} language="tsx" />
-            </div>
-          )}
-          <div>
-            <p className="text-xs text-muted-foreground mb-2">Source:</p>
-            <CodeViewer sourceCode={sourceCode} />
+
+        <InstallCommandInline componentName={registryName} />
+      </div>
+
+      {/* Content based on view mode */}
+      <div>
+        {viewMode === 'inline' && component}
+
+        {viewMode === 'fullwidth' && (
+          <FullwidthPlaceholder onOpen={() => setIsFullscreenOpen(true)} />
+        )}
+
+        {viewMode === 'pip' && (
+          <div className="flex items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border border-dashed">
+            <p className="text-muted-foreground text-sm">PiP mode coming soon</p>
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+
+        {viewMode === 'code' && (
+          <div className="space-y-4">
+            {usageCode && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Usage:</p>
+                <CodeBlock code={usageCode} language="tsx" />
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Source:</p>
+              <CodeViewer registryName={registryName} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Fullscreen Modal */}
+      {isFullscreenOpen && (
+        <FullscreenModal
+          appName={name}
+          onClose={() => setIsFullscreenOpen(false)}
+        >
+          {fullscreenComponent || component}
+        </FullscreenModal>
+      )}
     </div>
   )
 }

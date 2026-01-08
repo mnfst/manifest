@@ -63,13 +63,11 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
     showCategory = true
   } = appearance ?? {}
 
-  // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
+  // Handle "Read more" click - only call callback if provided, otherwise do nothing
+  // This lets users decide to use an external link or open fullscreen mode
   const handleReadMore = () => {
     if (onReadMore) {
       onReadMore(post)
-    } else if (typeof window !== 'undefined' && window.openai) {
-      // Request fullscreen mode from ChatGPT host
-      window.openai.requestDisplayMode({ mode: 'fullscreen' })
     }
   }
 

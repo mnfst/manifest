@@ -22,16 +22,28 @@ The starter template includes:
 - MCP server setup with Express
 - TypeScript configuration
 - Hot reload with Nodemon
-- Vite for building web components
+- Vite for React widget development with HMR
+- Prettier for code formatting
 
 ## Requirements
 
 - Node.js 22+
 - pnpm
+- [ngrok](https://ngrok.com/) (for ChatGPT integration)
 
 ## After Creation
 
 Your project will be running at `http://localhost:3000`.
+
+The MCP endpoint is available at `http://localhost:3000/mcp`.
+
+To connect to ChatGPT, expose your server with ngrok:
+
+```bash
+ngrok http 3000
+```
+
+Then use the ngrok URL with `/mcp` path in ChatGPT's connector settings.
 
 To restart the dev server later:
 
@@ -44,14 +56,15 @@ pnpm run dev
 
 Inside the created project, you can run:
 
-- `pnpm run dev` - Start development server with hot reload
-- `pnpm run build` - Build for production
+- `pnpm dev` - Start development server with hot reload
+- `pnpm build` - Build for production
 - `pnpm start` - Run production build
+- `pnpm lint` - Check code formatting
+- `pnpm format` - Format code with Prettier
 
 ## Learn More
 
-- [Manifest Documentation](https://manifest.build)
-- [MCP Protocol](https://modelcontextprotocol.io)
+- [Model Context Protocol](https://modelcontextprotocol.io)
 
 ## License
 

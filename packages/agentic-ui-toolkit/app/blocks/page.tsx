@@ -6,12 +6,19 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 
+// Form components
+import { ContactForm } from '@/registry/form/contact-form'
+import { DateTimePicker } from '@/registry/form/date-time-picker'
+import { IssueReportForm } from '@/registry/form/issue-report-form'
+
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo'
 import { PostListDemo } from '@/components/blocks/post-list-demo'
+import { PostDetail } from '@/registry/blogging/post-detail'
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo'
+import { Table } from '@/registry/list/table'
 import { ProductList } from '@/registry/list/product-list'
 
 // Payment components
@@ -57,6 +64,7 @@ interface BlockVariant {
   id: string
   name: string
   component: React.ReactNode
+  fullscreenComponent?: React.ReactNode
   usageCode?: string
 }
 
@@ -80,6 +88,60 @@ interface Category {
 
 const categories: Category[] = [
   {
+    id: 'form',
+    name: 'Forms',
+    blocks: [
+      {
+        id: 'contact-form',
+        name: 'Contact Form',
+        description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
+        registryName: 'contact-form',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <ContactForm />,
+            usageCode: `<ContactForm />`
+          }
+        ]
+      },
+      {
+        id: 'date-time-picker',
+        name: 'Date & Time Picker',
+        description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
+        registryName: 'date-time-picker',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <DateTimePicker />,
+            usageCode: `<DateTimePicker />`
+          }
+        ]
+      },
+      {
+        id: 'issue-report-form',
+        name: 'Issue Report Form',
+        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
+        registryName: 'issue-report-form',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <IssueReportForm />,
+            usageCode: `<IssueReportForm />`
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: 'blog',
     name: 'Blogging',
     blocks: [
@@ -96,96 +158,36 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PostCardDemo />,
-            usageCode: `<PostCard
-  data={{
-    post: {
-      id: "1",
-      title: "Getting Started with React",
-      excerpt: "Learn the fundamentals of React development...",
-      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
-      author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
-      publishedAt: "2024-01-15",
-      readTime: "5 min read",
-      tags: ["Tutorial", "React"],
-      category: "Tutorial"
-    }
-  }}
-  actions={{ onReadMore: (post) => console.log("Read:", post.title) }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostCard />`
           },
           {
             id: 'no-image',
             name: 'Without Image',
             component: <PostCardDemo appearance={{ showImage: false }} />,
-            usageCode: `<PostCard
-  data={{
-    post: {
-      id: "1",
-      title: "Understanding TypeScript Generics",
-      excerpt: "A deep dive into TypeScript generics...",
-      author: { name: "Alex Rivera" },
-      publishedAt: "2024-01-12",
-      category: "Development"
-    }
-  }}
-  appearance={{ showImage: false }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostCard appearance={{ showImage: false }} />`
           },
           {
             id: 'compact',
             name: 'Compact',
             component: <PostCardDemo appearance={{ variant: 'compact' }} />,
-            usageCode: `<PostCard
-  data={{
-    post: {
-      id: "1",
-      title: "10 Tips for Better Code Reviews",
-      excerpt: "Improve your code review process...",
-      author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
-      publishedAt: "2024-01-10",
-      tags: ["Best Practices"]
-    }
-  }}
-  appearance={{ variant: "compact" }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostCard appearance={{ variant: "compact" }} />`
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
             component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
-            usageCode: `<PostCard
-  data={{
-    post: {
-      id: "1",
-      title: "Building Scalable APIs",
-      excerpt: "Best practices for API design...",
-      coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
-      author: { name: "Morgan Lee" },
-      publishedAt: "2024-01-08",
-      readTime: "8 min read"
-    }
-  }}
-  appearance={{ variant: "horizontal" }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostCard appearance={{ variant: "horizontal" }} />`
           },
           {
             id: 'covered',
             name: 'Covered',
             component: <PostCardDemo appearance={{ variant: 'covered' }} />,
-            usageCode: `<PostCard
-  data={{
-    post: {
-      id: "1",
-      title: "The Future of Web Development",
-      excerpt: "Exploring emerging trends and technologies...",
-      coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
-      author: { name: "Taylor Smith", avatar: "https://i.pravatar.cc/150?u=taylor" },
-      publishedAt: "2024-01-05",
-      category: "Trends"
-    }
-  }}
-  appearance={{ variant: "covered" }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostCard appearance={{ variant: "covered" }} />`
           }
         ]
       },
@@ -201,43 +203,22 @@ const categories: Category[] = [
             id: 'list',
             name: 'List',
             component: <PostListDemo appearance={{ variant: 'list' }} />,
-            usageCode: `<PostList
-  data={{
-    posts: [
-      {
-        id: "1",
-        title: "Getting Started with Agentic UI",
-        excerpt: "Learn how to build conversational interfaces...",
-        coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
-        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
-        publishedAt: "2024-01-15",
-        readTime: "5 min read",
-        category: "Tutorial"
-      },
-      // ... more posts
-    ]
-  }}
-  appearance={{ variant: "list" }}
-  actions={{ onReadMore: (post) => console.log(post) }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostList appearance={{ variant: "list" }} />`
           },
           {
             id: 'grid',
             name: 'Grid',
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
-            usageCode: `<PostList
-  data={{ posts: [...] }}
-  appearance={{ variant: "grid", columns: 2 }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostList appearance={{ variant: "grid" }} />`
           },
           {
             id: 'carousel',
             name: 'Carousel',
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
-            usageCode: `<PostList
-  data={{ posts: [...] }}
-  appearance={{ variant: "carousel" }}
-/>`
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            usageCode: `<PostList appearance={{ variant: "carousel" }} />`
           }
         ]
       }
@@ -324,6 +305,7 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <TableDemo data={{ title: 'API Usage' }} />,
+            fullscreenComponent: <Table data={{ title: 'API Usage' }} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<Table data={{ title: "API Usage" }} />`
           },
           {
@@ -336,6 +318,13 @@ const categories: Category[] = [
                 actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
               />
             ),
+            fullscreenComponent: (
+              <Table
+                data={{ title: 'Models' }}
+                appearance={{ selectable: 'single', displayMode: 'fullscreen' }}
+                actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
+              />
+            ),
             usageCode: `<Table data={{ title: "Models" }} appearance={{ selectable: "single" }} actions={{ onCopy: (rows) => ... }} />`
           },
           {
@@ -345,6 +334,16 @@ const categories: Category[] = [
               <TableDemo
                 data={{ title: 'Export Data' }}
                 appearance={{ selectable: 'multi' }}
+                actions={{
+                  onDownload: (rows) => console.log('Download:', rows),
+                  onShare: (rows) => console.log('Share:', rows)
+                }}
+              />
+            ),
+            fullscreenComponent: (
+              <Table
+                data={{ title: 'Export Data' }}
+                appearance={{ selectable: 'multi', displayMode: 'fullscreen' }}
                 actions={{
                   onDownload: (rows) => console.log('Download:', rows),
                   onShare: (rows) => console.log('Share:', rows)
@@ -763,28 +762,49 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <MapCarousel />,
+            component: <MapCarousel data={{ mapStyle: 'jawg-lagoon', jawgAccessToken: '22bVROs6auuCAJ3QALhiCdA2wbAj4w0KPtPmNr5Eq5Hbpi2ug7foYlemD85sIi9Q' }} />,
             usageCode: `<MapCarousel
   data={{
     locations: [
       {
         id: "1",
+        name: "FOUND Hotel Carlton, Nob Hill",
+        subtitle: "Downtown San Francisco",
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop",
+        price: 284,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 8.6,
+        coordinates: [37.7879, -122.4137]
+      },
+      {
+        id: "2",
         name: "Hotel Nikko San Francisco",
         subtitle: "Union Square",
-        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200",
+        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop",
         price: 299,
-        priceLabel: "$299 total Jan 29 - Feb 1",
-        priceSubtext: "USD - Includes taxes and fees",
+        priceSubtext: "USD • Includes taxes and fees",
         rating: 9.0,
         coordinates: [37.7856, -122.4104]
       },
-      // ... more locations
+      {
+        id: "3",
+        name: "The Ritz-Carlton",
+        subtitle: "Nob Hill",
+        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop",
+        price: 527,
+        priceSubtext: "USD • Includes taxes and fees",
+        rating: 9.4,
+        coordinates: [37.7919, -122.4081]
+      }
     ],
     center: [37.7899, -122.4034],
-    zoom: 14
+    zoom: 14,
+    mapStyle: "positron" // "positron" | "dark-matter" | "voyager"
   }}
   appearance={{ mapHeight: "504px" }}
-  actions={{ onSelectLocation: (loc) => console.log(loc) }}
+  actions={{
+    onSelectLocation: (location) => console.log("Selected:", location.name)
+  }}
 />`
           }
         ]
@@ -1216,8 +1236,10 @@ function BlocksContent() {
                 key={variant.id}
                 name={variant.name}
                 component={variant.component}
+                fullscreenComponent={variant.fullscreenComponent}
                 registryName={selectedBlock.registryName}
                 usageCode={variant.usageCode}
+                layouts={selectedBlock.layouts}
               />
             ))}
           </div>

@@ -1,0 +1,4 @@
+{
+  "$schema": "https://assets.alpic.ai/alpic.json",
+  "buildOutputDir": "server/dist"
+}

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm run registry:build && next dev --webpack",
+    "dev": "pnpm run registry:build && next dev --turbopack -p 3001",
     "build": "pnpm run registry:build && next build",
     "start": "next start",
     "lint": "eslint .",
@@ -43,6 +43,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.1.11",
+    "@types/jest": "^29.5.14",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.19.9",
     "@types/react": "19.1.2",
@@ -51,7 +52,9 @@
     "eslint-config-next": "16.0.7",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "jest": "^29.7.0",
     "tailwindcss": "^4.1.11",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.14.0",
     "vitest": "^4.0.16"

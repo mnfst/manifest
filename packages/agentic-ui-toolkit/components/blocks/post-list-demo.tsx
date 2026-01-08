@@ -41,10 +41,6 @@ export function PostListDemo({
         <PostList
           data={data}
           appearance={appearance}
-          actions={{ onReadMore: (post) => {
-            setSelectedPost(post)
-            setDisplayMode('fullscreen')
-          }}}
         />
       )}
 

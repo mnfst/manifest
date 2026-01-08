@@ -33,11 +33,15 @@ export interface Location {
   link?: string
 }
 
+export type MapStyle = 'positron' | 'dark-matter' | 'voyager' | 'jawg-lagoon' | 'jawg-dark' | 'jawg-streets'
+
 export interface MapCarouselProps {
   data?: {
     locations?: Location[]
     center?: [number, number]
     zoom?: number
+    mapStyle?: MapStyle
+    jawgAccessToken?: string
   }
   actions?: {
     onSelectLocation?: (location: Location) => void
@@ -308,12 +312,46 @@ function MapWithMarkers({
   )
 }
 
+const getTileConfig = (style: MapStyle, jawgToken?: string) => {
+  const configs = {
+    'positron': {
+      url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    'dark-matter': {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    'voyager': {
+      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    'jawg-lagoon': {
+      url: `https://tile.jawg.io/jawg-lagoon/{z}/{x}/{y}{r}.png?access-token=${jawgToken}`,
+      attribution: '<a href="https://jawg.io" target="_blank">&copy; Jawg</a> | <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
+    },
+    'jawg-dark': {
+      url: `https://tile.jawg.io/jawg-dark/{z}/{x}/{y}{r}.png?access-token=${jawgToken}`,
+      attribution: '<a href="https://jawg.io" target="_blank">&copy; Jawg</a> | <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
+    },
+    'jawg-streets': {
+      url: `https://tile.jawg.io/jawg-streets/{z}/{x}/{y}{r}.png?access-token=${jawgToken}`,
+      attribution: '<a href="https://jawg.io" target="_blank">&copy; Jawg</a> | <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
+    }
+  }
+  return configs[style]
+}
+
 export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const {
     locations = defaultLocations,
     center = [37.7899, -122.4034], // San Francisco
-    zoom = 14
+    zoom = 14,
+    mapStyle = 'positron',
+    jawgAccessToken
   } = data ?? {}
+
+  const tileConfig = getTileConfig(mapStyle, jawgAccessToken)
   const { onSelectLocation } = actions ?? {}
   const { mapHeight = '504px' } = appearance ?? {}
 
@@ -438,8 +476,8 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution={tileConfig.attribution}
+            url={tileConfig.url}
           />
           <MapWithMarkers
             locations={locations}

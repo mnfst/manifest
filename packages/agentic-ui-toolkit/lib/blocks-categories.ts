@@ -8,6 +8,15 @@ export interface BlockCategory {
 
 export const blockCategories: BlockCategory[] = [
   {
+    id: 'form',
+    name: 'Forms',
+    blocks: [
+      { id: 'contact-form', name: 'Contact Form' },
+      { id: 'date-time-picker', name: 'Date & Time Picker' },
+      { id: 'issue-report-form', name: 'Issue Report Form' }
+    ]
+  },
+  {
     id: 'blog',
     name: 'Blogging',
     blocks: [
