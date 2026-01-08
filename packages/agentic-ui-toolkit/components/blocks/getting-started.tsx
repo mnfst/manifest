@@ -1,8 +1,8 @@
 'use client'
 
 import { ArrowRight, FolderPlus, Rocket } from 'lucide-react'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 
 const CodeBlock = dynamic(
   () => import('./code-block').then((m) => m.CodeBlock),
@@ -27,9 +27,9 @@ export function GettingStarted() {
       <div>
         <h1 className="text-2xl font-bold">Getting Started</h1>
         <p className="text-muted-foreground mt-2">
-          Manifest UI is a shadcn/ui component library for building ChatGPT
-          Apps. You can either start a new project with Manifest UI
-          pre-installed or add Manifest UI to your existing app:
+          Manifest UI is a shadcn/ui library for building ChatGPT Apps. You can
+          either start a new project with Manifest UI pre-installed or add
+          Manifest UI to your existing app:
         </p>
       </div>
 
@@ -78,13 +78,13 @@ export function GettingStarted() {
         </div>
 
         <p className="text-muted-foreground">
-          If you want to start creating a ChatGPT app using Manifest UI
-          components but don&apos;t know where to start, this is for you!
+          If you want to start creating a ChatGPT app using Manifest UI blocks
+          but don&apos;t know where to start, this is for you!
         </p>
 
         <p className="text-muted-foreground">
           Manifest starter app is a starter template that serves a ChatGPT App
-          with Manifest UI components using TypeScript and the{' '}
+          with Manifest UI blocks using TypeScript and the{' '}
           <a
             href="https://www.skybridge.tech/"
             target="_blank"

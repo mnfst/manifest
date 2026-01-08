@@ -1,4 +1,7 @@
+import { IssueReportForm } from '../components/issue-report-form'
+import React from 'react'
 import { mountWidget } from 'skybridge/web'
+import '../index.css'
 
 // Import components from the registry:
 // npx shadcn@latest add @manifest-dev/x-post
@@ -7,8 +10,7 @@ import { mountWidget } from 'skybridge/web'
 const MyWidget: React.FC = () => {
   return (
     <div>
-      <h1>Hello world</h1>
-      {/* Add your components here */}
+      <IssueReportForm />
     </div>
   )
 }

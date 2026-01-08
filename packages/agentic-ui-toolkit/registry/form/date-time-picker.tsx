@@ -233,9 +233,6 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
   }
 
   const now = new Date()
-  const currentHour = now.getHours()
-  const currentMinutes = now.getMinutes()
-  const formattedCurrentTime = `${currentHour % 12 || 12}:${currentMinutes.toString().padStart(2, '0')}${currentHour >= 12 ? 'pm' : 'am'}`
 
   return (
     <div className="w-full bg-card rounded-xl p-6">

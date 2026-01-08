@@ -22,7 +22,7 @@ packages/
 1. Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/mnfst-ai/manifest.git
+git clone https://github.com/mnfst/manifest.git
 cd manifest
 pnpm install
 ```

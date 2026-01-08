@@ -15,7 +15,7 @@
 ---
 
 <p align='center'>
-<strong>Shadcn/ui components library for building ChatGPT Apps
+<strong>Production-ready UI blocks for ChatGPT apps, built on top of shadcn/ui
 </strong>
 <br><br>  
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm download" src="https://img.shields.io/npm/dt/manifest.svg"></a>
