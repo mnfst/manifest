@@ -806,7 +806,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <MapCarousel data={{ mapStyle: 'jawg-lagoon', jawgAccessToken: '22bVROs6auuCAJ3QALhiCdA2wbAj4w0KPtPmNr5Eq5Hbpi2ug7foYlemD85sIi9Q' }} />,
+            component: <MapCarousel />,
             usageCode: `<MapCarousel
   data={{
     locations: [
@@ -843,7 +843,13 @@ const categories: Category[] = [
     ],
     center: [37.7899, -122.4034],
     zoom: 14,
-    mapStyle: "positron" // "positron" | "dark-matter" | "voyager"
+    // Available styles (no API key required):
+    // "voyager" - Colorful, detailed, Apple Maps-like (default)
+    // "voyager-smooth" - Same as voyager with labels under roads
+    // "positron" - Light, minimal, clean
+    // "dark-matter" - Dark theme
+    // "openstreetmap" - Standard OSM
+    mapStyle: "voyager"
   }}
   appearance={{ mapHeight: "504px" }}
   actions={{
