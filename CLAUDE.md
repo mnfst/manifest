@@ -129,6 +129,129 @@ EOF
 )"
 ```
 
+## Block Development Guidelines
+
+**CRITICAL**: When adding or editing a block, you MUST include a comprehensive usage example.
+
+### Required Files to Update
+
+When creating or modifying a block, update these files:
+
+1. **Component file**: `packages/agentic-ui-toolkit/registry/<category>/<block-name>.tsx`
+2. **Registry definition**: `packages/agentic-ui-toolkit/registry.json`
+3. **Block demo with usage example**: `packages/agentic-ui-toolkit/app/blocks/page.tsx`
+4. **Category navigation** (if new): `packages/agentic-ui-toolkit/lib/blocks-categories.ts`
+
+### Usage Example Requirements
+
+Every block variant in `app/blocks/page.tsx` MUST have a `usageCode` field with a comprehensive example that demonstrates:
+
+1. **All common props** - Show the typical props a developer would use
+2. **Realistic demo data** - Use meaningful placeholder data, not just "test" or "foo"
+3. **Action handlers** - Include `console.log` examples for all actions
+4. **Proper prop categories** - Use the standard `data`, `actions`, `appearance`, `control` structure
+
+### Props Structure Pattern
+
+All blocks follow this consistent props pattern:
+
+```typescript
+export interface BlockProps {
+  data?: {
+    // Content/configuration - titles, items, amounts, etc.
+  }
+  actions?: {
+    // Event handlers - onSubmit, onClick, onSelect, etc.
+  }
+  appearance?: {
+    // Visual/styling - variant, currency, columns, theme, etc.
+  }
+  control?: {
+    // State/loading - isLoading, value, disabled, etc.
+  }
+}
+```
+
+### Complete Usage Example Template
+
+When adding a block to `app/blocks/page.tsx`, follow this pattern:
+
+```typescript
+{
+  id: "my-block",
+  name: "My Block",
+  description: "A brief description of what this block does",
+  registryName: "my-block",
+  layouts: ["inline", "fullscreen"],
+  actionCount: 2,
+  variants: [
+    {
+      id: "default",
+      name: "Default",
+      component: <MyBlock {...defaultProps} />,
+      usageCode: `<MyBlock
+  data={{
+    title: "Welcome to My Block",
+    items: [
+      {
+        id: "1",
+        name: "First Item",
+        description: "Description of first item",
+        price: 29.99,
+        image: "/demo/item-1.png"
+      },
+      {
+        id: "2",
+        name: "Second Item",
+        description: "Description of second item",
+        price: 49.99,
+        image: "/demo/item-2.png"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "default",
+    currency: "USD",
+    columns: 2
+  }}
+  actions={{
+    onItemSelect: (item) => console.log("Selected:", item),
+    onSubmit: (data) => console.log("Submitted:", data)
+  }}
+  control={{
+    isLoading: false
+  }}
+/>`
+    },
+    {
+      id: "compact",
+      name: "Compact",
+      component: <MyBlock {...compactProps} />,
+      usageCode: `<MyBlock
+  data={{
+    title: "Compact View",
+    items: [{ id: "1", name: "Item", price: 19.99 }]
+  }}
+  appearance={{ variant: "compact" }}
+  actions={{ onItemSelect: (item) => console.log(item) }}
+/>`
+    }
+  ]
+}
+```
+
+### Checklist for Block Changes
+
+Before submitting a PR with block changes:
+
+- [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
+- [ ] Block is registered in `registry.json` with correct dependencies
+- [ ] Block demo added to `app/blocks/page.tsx` with ALL variants
+- [ ] EVERY variant has a `usageCode` field with comprehensive example
+- [ ] Usage example shows realistic data (not placeholder text like "test" or "foo")
+- [ ] All action handlers are demonstrated with `console.log` examples
+- [ ] New category added to `blocks-categories.ts` if needed
+
 ## Package-Specific Guidance
 
 See individual package `CLAUDE.md` files for package-specific guidance:
