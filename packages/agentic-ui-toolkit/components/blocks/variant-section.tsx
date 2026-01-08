@@ -7,7 +7,7 @@ import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   ssr: false,
@@ -24,6 +24,10 @@ interface VariantSectionProps {
   registryName: string
   usageCode?: string
   layouts?: LayoutMode[]
+}
+
+export interface VariantSectionHandle {
+  showActionsConfig: () => void
 }
 
 interface SourceCodeState {
@@ -120,17 +124,31 @@ function FullwidthPlaceholder({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-export function VariantSection({
+export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionProps>(function VariantSection({
   name,
   component,
   fullscreenComponent,
   registryName,
   usageCode,
   layouts = ['inline']
-}: VariantSectionProps) {
+}, ref) {
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const sourceCode = useSourceCode(registryName)
+
+  // Expose imperative methods to parent components
+  useImperativeHandle(ref, () => ({
+    showActionsConfig: () => {
+      setViewMode('config')
+      // Wait for the config view to render, then scroll to actions
+      setTimeout(() => {
+        const actionsElement = document.getElementById('config-actions')
+        if (actionsElement) {
+          actionsElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
+    }
+  }), [])
 
   // Reset view mode to inline when navigating to a different component
   useEffect(() => {
@@ -275,4 +293,4 @@ export function VariantSection({
       )}
     </div>
   )
-}
+})

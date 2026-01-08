@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 
 // Form components
 import { ContactForm } from '@/registry/form/contact-form'
@@ -53,7 +53,7 @@ import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 
 // UI components
 import { GettingStarted } from '@/components/blocks/getting-started'
-import { VariantSection } from '@/components/blocks/variant-section'
+import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section'
 
 // Types for the new structure
 interface BlockVariant {
@@ -1589,6 +1589,9 @@ function BlocksContent() {
     ? categories.flatMap((c) => c.blocks).find((b) => b.id === blockId)
     : null
 
+  // Ref for the first variant section to enable scrolling to actions config
+  const firstVariantRef = useRef<VariantSectionHandle>(null)
+
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] bg-card">
       {/* Sidebar */}
@@ -1650,12 +1653,20 @@ function BlocksContent() {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
-                  <Zap className="w-3 h-3" />
-                  {selectedBlock.actionCount > 0
-                    ? `${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`
-                    : 'read only'}
-                </span>
+                {selectedBlock.actionCount > 0 ? (
+                  <button
+                    onClick={() => firstVariantRef.current?.showActionsConfig()}
+                    className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  >
+                    <Zap className="w-3 h-3" />
+                    {`${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`}
+                  </button>
+                ) : (
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                    <Zap className="w-3 h-3" />
+                    read only
+                  </span>
+                )}
               </div>
               <p className="text-muted-foreground">
                 {selectedBlock.description}
@@ -1663,9 +1674,10 @@ function BlocksContent() {
             </div>
 
             {/* All Variants */}
-            {selectedBlock.variants.map((variant) => (
+            {selectedBlock.variants.map((variant, index) => (
               <VariantSection
                 key={variant.id}
+                ref={index === 0 ? firstVariantRef : undefined}
                 name={variant.name}
                 component={variant.component}
                 fullscreenComponent={variant.fullscreenComponent}
