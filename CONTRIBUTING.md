@@ -27,7 +27,15 @@ cd manifest
 pnpm install
 ```
 
-2. Start the development servers:
+2. Install dependencies for the starter package (nested workspace):
+
+```bash
+cd packages/starter
+pnpm install
+cd ../..
+```
+
+3. Start the development servers:
 
 ```bash
 pnpm run dev
@@ -38,7 +46,7 @@ This runs both packages in parallel via Turborepo:
 - **Registry** at `http://localhost:3001` - Component documentation
 - **Starter** at `http://localhost:3000` - Example MCP server
 
-3. Install components from the registry using the shadcn CLI with the `@manifest-dev` namespace:
+4. Install components from the registry using the shadcn CLI with the `@manifest-dev` namespace:
 
 ```bash
 cd packages/starter/web
