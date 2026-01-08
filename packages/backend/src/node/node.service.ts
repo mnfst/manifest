@@ -376,6 +376,15 @@ export class NodeService {
       throw new BadRequestException('Cannot create connection to trigger node. Trigger nodes do not accept incoming connections.');
     }
 
+    // Link nodes can only receive connections from interface (UI) nodes
+    if (targetNode.type === 'Link') {
+      const sourceNode = nodes.find((n) => n.id === request.sourceNodeId);
+      const INTERFACE_NODE_TYPES = ['StatCard'];
+      if (!sourceNode || !INTERFACE_NODE_TYPES.includes(sourceNode.type)) {
+        throw new BadRequestException('Link nodes can only be connected after UI nodes (like StatCard).');
+      }
+    }
+
     // Prevent self-connections
     if (request.sourceNodeId === request.targetNodeId) {
       throw new BadRequestException('Cannot connect a node to itself');

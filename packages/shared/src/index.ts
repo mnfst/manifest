@@ -70,6 +70,8 @@ export type {
   ApiCallNodeParameters,
   // Transform node types
   JavaScriptCodeTransformParameters,
+  // Link node types
+  LinkNodeParameters,
   CreateNodeRequest,
   UpdateNodeRequest,
   UpdateNodePositionRequest,
@@ -87,6 +89,7 @@ export {
   isUserIntentNode,
   isApiCallNode,
   isJavaScriptCodeTransformNode,
+  isLinkNode,
 } from './types/node.js';
 
 // Execution types

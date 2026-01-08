@@ -255,15 +255,42 @@ export class SchemaService {
         targetSchema.inputSchema
       );
 
-      results.push({
-        connectionId: connection.id,
-        sourceNodeId: connection.sourceNodeId,
-        targetNodeId: connection.targetNodeId,
-        status: result.status,
-        issues: result.issues,
-      });
+      // Check Link node source constraint: Link nodes can only follow interface category nodes
+      const targetNode = nodeMap.get(connection.targetNodeId);
+      const sourceNode = nodeMap.get(connection.sourceNodeId);
+      let linkConstraintError = false;
 
-      switch (result.status) {
+      if (targetNode?.type === 'Link') {
+        const sourceNodeDef = this.nodeTypeMap.get(sourceNode?.type ?? '');
+        if (sourceNodeDef && sourceNodeDef.category !== 'interface') {
+          results.push({
+            connectionId: connection.id,
+            sourceNodeId: connection.sourceNodeId,
+            targetNodeId: connection.targetNodeId,
+            status: 'error',
+            issues: [{
+              type: 'type-mismatch',
+              message: `Link nodes can only be connected after UI nodes (interface category). "${sourceNodeDef.displayName}" is a ${sourceNodeDef.category} node.`,
+              sourcePath: '',
+              targetPath: '',
+            }],
+          });
+          errorsCount++;
+          linkConstraintError = true;
+        }
+      }
+
+      if (!linkConstraintError) {
+        results.push({
+          connectionId: connection.id,
+          sourceNodeId: connection.sourceNodeId,
+          targetNodeId: connection.targetNodeId,
+          status: result.status,
+          issues: result.issues,
+        });
+      }
+
+      switch (linkConstraintError ? 'error' : result.status) {
         case 'compatible':
           compatibleCount++;
           break;

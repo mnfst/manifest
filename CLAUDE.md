@@ -27,10 +27,9 @@ pnpm test && pnpm lint
 TypeScript 5.7.2: Follow standard conventions
 
 ## Recent Changes
+- 001-link-node: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas)
 - 001-edit-uis: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, CodeMirror 6 (to add), Vite 6.0.5
 - 089-transform-nodes: Added TypeScript 5.7.2
-- 001-io-schemas: Added TypeScript 5.7.2
-- 029-multiple-triggers: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM)
 
 
 <!-- MANUAL ADDITIONS START -->

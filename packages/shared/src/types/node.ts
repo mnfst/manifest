@@ -30,7 +30,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | '
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'StatCard' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform';
+export type NodeType = 'StatCard' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link';
 
 // =============================================================================
 // API Call Node Types
@@ -202,6 +202,15 @@ export interface JavaScriptCodeTransformParameters {
 
   /** Inferred output schema from code execution (set when user tests transform) */
   resolvedOutputSchema?: JSONSchema | null;
+}
+
+/**
+ * Parameters for a Link node.
+ * Opens an external URL using ChatGPT's openExternal API.
+ */
+export interface LinkNodeParameters {
+  /** URL to open. Supports template variables like {{nodeSlug.path}} for dynamic URLs */
+  href: string;
 }
 
 // =============================================================================
@@ -380,4 +389,13 @@ export function isJavaScriptCodeTransformNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: JavaScriptCodeTransformParameters } {
   return node.type === 'JavaScriptCodeTransform';
+}
+
+/**
+ * Check if a node is a Link node.
+ */
+export function isLinkNode(
+  node: NodeInstance
+): node is NodeInstance & { parameters: LinkNodeParameters } {
+  return node.type === 'Link';
 }
