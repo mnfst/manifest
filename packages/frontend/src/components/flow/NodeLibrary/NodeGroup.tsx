@@ -1,4 +1,4 @@
-import { ChevronRight, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle } from 'lucide-react';
+import { ChevronRight, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Shuffle } from 'lucide-react';
 import type { CategoryInfo } from '../../../lib/api';
 import type { NodeTypeCategory } from '@chatgpt-app-builder/shared';
 
@@ -8,6 +8,7 @@ const categoryIconMap: Record<NodeTypeCategory, React.ElementType> = {
   interface: LayoutTemplate,
   action: GitBranch,
   return: CornerDownLeft,
+  transform: Shuffle,
 };
 
 interface NodeColor {

@@ -1,49 +1,41 @@
 import type { NodeExecutionData } from '@chatgpt-app-builder/shared';
 import { ExecutionDataViewer } from './ExecutionDataViewer';
-import { CheckCircle, XCircle, Clock, Box } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Box, Shuffle, Globe, GitBranch, CornerDownLeft, LayoutTemplate, Zap } from 'lucide-react';
 
 interface NodeExecutionCardProps {
   nodeExecution: NodeExecutionData;
   index: number;
 }
 
-// Category configuration with colors matching the flow diagram
-const nodeCategoryConfig: Record<string, {
-  category: string;
-  bgColor: string;
-  textColor: string;
-}> = {
-  UserIntent: {
-    category: 'Trigger',
-    bgColor: 'bg-blue-100',
-    textColor: 'text-blue-700',
-  },
-  ApiCall: {
-    category: 'Action',
-    bgColor: 'bg-orange-100',
-    textColor: 'text-orange-700',
-  },
-  Return: {
-    category: 'Output',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-700',
-  },
-  CallFlow: {
-    category: 'Call Flow',
-    bgColor: 'bg-purple-100',
-    textColor: 'text-purple-700',
-  },
-  Interface: {
-    category: 'Interface',
-    bgColor: 'bg-blue-100',
-    textColor: 'text-blue-700',
-  },
+// Map node types to their icons
+const nodeTypeIcons: Record<string, typeof Box> = {
+  UserIntent: Zap,
+  StatCard: LayoutTemplate,
+  Return: CornerDownLeft,
+  CallFlow: GitBranch,
+  ApiCall: Globe,
+  JavaScriptCodeTransform: Shuffle,
 };
 
-const defaultCategoryConfig = {
-  category: 'Node',
-  bgColor: 'bg-gray-100',
-  textColor: 'text-gray-700',
+// Node type category styles
+type NodeCategory = 'trigger' | 'interface' | 'action' | 'return' | 'transform' | 'default';
+
+const nodeTypeCategories: Record<string, NodeCategory> = {
+  UserIntent: 'trigger',
+  StatCard: 'interface',
+  Return: 'return',
+  CallFlow: 'action',
+  ApiCall: 'action',
+  JavaScriptCodeTransform: 'transform',
+};
+
+const categoryStyles: Record<NodeCategory, { border: string; bg: string; badge: string; icon: string }> = {
+  trigger: { border: 'border-blue-200', bg: 'bg-blue-50', badge: 'bg-blue-200 text-blue-700', icon: 'text-blue-500' },
+  interface: { border: 'border-gray-200', bg: 'bg-gray-50', badge: 'bg-gray-200 text-gray-700', icon: 'text-gray-500' },
+  action: { border: 'border-purple-200', bg: 'bg-purple-50', badge: 'bg-purple-200 text-purple-700', icon: 'text-purple-500' },
+  return: { border: 'border-green-200', bg: 'bg-green-50', badge: 'bg-green-200 text-green-700', icon: 'text-green-500' },
+  transform: { border: 'border-teal-200', bg: 'bg-teal-50', badge: 'bg-teal-200 text-teal-700', icon: 'text-teal-500' },
+  default: { border: 'border-gray-200', bg: 'bg-gray-50', badge: 'bg-gray-200 text-gray-700', icon: 'text-gray-500' },
 };
 
 function formatTime(isoString: string): string {
@@ -56,7 +48,9 @@ function formatTime(isoString: string): string {
 }
 
 export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardProps) {
-  const config = nodeCategoryConfig[nodeExecution.nodeType] || defaultCategoryConfig;
+  const Icon = nodeTypeIcons[nodeExecution.nodeType] || Box;
+  const category = nodeTypeCategories[nodeExecution.nodeType] || 'default';
+  const styles = categoryStyles[category];
 
   const statusIcon =
     nodeExecution.status === 'completed' ? (
@@ -67,21 +61,37 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
       <Clock className="w-4 h-4 text-orange-500" />
     );
 
+  // Format execution time if available
+  const formatExecutionTime = (ms?: number): string | null => {
+    if (ms === undefined || ms === null) return null;
+    if (ms < 1) return '<1ms';
+    if (ms < 1000) return `${Math.round(ms)}ms`;
+    return `${(ms / 1000).toFixed(2)}s`;
+  };
+
+  const executionTimeDisplay = formatExecutionTime(nodeExecution.executionTimeMs);
+
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className={`border ${styles.border} rounded-lg overflow-hidden`}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
+      <div className={`flex items-center gap-3 px-4 py-3 ${styles.bg} border-b ${styles.border}`}>
         <span className="text-sm text-gray-400 font-mono">#{index + 1}</span>
-        <Box className="w-4 h-4 text-gray-500" />
+        <Icon className={`w-4 h-4 ${styles.icon}`} />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900">{nodeExecution.nodeName}</span>
-            <span className={`text-xs px-2 py-0.5 rounded font-medium ${config.bgColor} ${config.textColor}`}>
-              {config.category}
+            <span className={`text-xs px-2 py-0.5 rounded ${styles.badge}`}>
+              {nodeExecution.nodeType}
             </span>
           </div>
-          <div className="text-xs text-gray-500 mt-0.5">
-            {formatTime(nodeExecution.executedAt)}
+          <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+            <span>{formatTime(nodeExecution.executedAt)}</span>
+            {executionTimeDisplay && (
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {executionTimeDisplay}
+              </span>
+            )}
           </div>
         </div>
         {statusIcon}

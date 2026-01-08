@@ -9,6 +9,7 @@
  * - action/: Action nodes (ApiCall)
  * - interface/: UI display nodes (StatCard)
  * - return/: Flow termination nodes (Return, CallFlow)
+ * - transform/: Data transformation nodes (JavaScriptCodeTransform)
  */
 
 // Re-export from category subfolders
@@ -16,12 +17,14 @@ export { UserIntentNode } from './trigger/index.js';
 export { ApiCallNode } from './action/index.js';
 export { StatCardNode } from './interface/index.js';
 export { ReturnNode, CallFlowNode } from './return/index.js';
+export { JavaScriptCodeTransform } from './transform/index.js';
 
 // Import for registry
 import { UserIntentNode } from './trigger/index.js';
 import { ApiCallNode } from './action/index.js';
 import { StatCardNode } from './interface/index.js';
 import { ReturnNode, CallFlowNode } from './return/index.js';
+import { JavaScriptCodeTransform } from './transform/index.js';
 import type { NodeTypeDefinition } from '../types.js';
 
 /**
@@ -33,6 +36,7 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
   Return: ReturnNode,
   CallFlow: CallFlowNode,
   ApiCall: ApiCallNode,
+  JavaScriptCodeTransform: JavaScriptCodeTransform,
 };
 
 /**
@@ -44,4 +48,5 @@ export const builtInNodeList: NodeTypeDefinition[] = [
   ReturnNode,
   CallFlowNode,
   ApiCallNode,
+  JavaScriptCodeTransform,
 ];
