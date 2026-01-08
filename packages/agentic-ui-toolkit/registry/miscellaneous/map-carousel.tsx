@@ -57,7 +57,8 @@ const defaultLocations: Location[] = [
     id: '1',
     name: 'FOUND Hotel Carlton, Nob Hill',
     subtitle: 'Downtown San Francisco',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop',
     price: 284,
     priceLabel: '$284 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -69,7 +70,8 @@ const defaultLocations: Location[] = [
     id: '2',
     name: 'Hotel Nikko San Francisco',
     subtitle: 'Union Square',
-    image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop',
     price: 299,
     priceLabel: '$299 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -81,7 +83,8 @@ const defaultLocations: Location[] = [
     id: '3',
     name: 'The Ritz-Carlton',
     subtitle: 'Nob Hill',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop',
     price: 527,
     priceLabel: '$527 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -93,7 +96,8 @@ const defaultLocations: Location[] = [
     id: '4',
     name: 'Fairmont San Francisco',
     subtitle: 'Nob Hill',
-    image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=200&h=200&fit=crop',
     price: 438,
     priceLabel: '$438 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -105,31 +109,34 @@ const defaultLocations: Location[] = [
     id: '5',
     name: 'Hotel Vitale',
     subtitle: 'Embarcadero',
-    image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=200&h=200&fit=crop',
     price: 358,
     priceLabel: '$358 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.4,
-    coordinates: [37.7935, -122.3930],
+    coordinates: [37.7935, -122.393],
     link: ''
   },
   {
     id: '6',
     name: 'Palace Hotel',
     subtitle: 'SoMa',
-    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=200&fit=crop',
     price: 308,
     priceLabel: '$308 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
     rating: 8.7,
-    coordinates: [37.7870, -122.4010],
+    coordinates: [37.787, -122.401],
     link: ''
   },
   {
     id: '7',
     name: 'Omni San Francisco',
     subtitle: 'Financial District',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=200&h=200&fit=crop',
     price: 227,
     priceLabel: '$227 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -141,7 +148,8 @@ const defaultLocations: Location[] = [
     id: '8',
     name: 'The Marker San Francisco',
     subtitle: 'Union Square',
-    image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=200&h=200&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=200&h=200&fit=crop',
     price: 166,
     priceLabel: '$166 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -190,9 +198,13 @@ function HotelCard({
 
       {/* Content */}
       <div className="flex flex-col justify-center min-w-0 flex-1 pointer-events-none">
-        <h3 className="font-medium text-sm leading-tight truncate pr-8">{location.name}</h3>
+        <h3 className="font-medium text-sm leading-tight truncate pr-8">
+          {location.name}
+        </h3>
         {location.subtitle && (
-          <p className="text-xs text-muted-foreground truncate">{location.subtitle}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {location.subtitle}
+          </p>
         )}
         <div className="mt-1.5">
           <p className="text-sm">
@@ -200,7 +212,9 @@ function HotelCard({
             <span className="text-muted-foreground"> Jan 29 - Feb 1</span>
           </p>
           {location.priceSubtext && (
-            <p className="text-[10px] text-muted-foreground">{location.priceSubtext}</p>
+            <p className="text-[10px] text-muted-foreground">
+              {location.priceSubtext}
+            </p>
           )}
         </div>
       </div>
@@ -272,9 +286,11 @@ function MapWithMarkers({
             white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
             z-index: ${isSelected ? '1000' : '1'};
-            ${isSelected
-              ? 'background-color: #18181b; color: white;'
-              : 'background-color: white; color: #18181b;'}
+            ${
+              isSelected
+                ? 'background-color: #18181b; color: white;'
+                : 'background-color: white; color: #18181b;'
+            }
           ">$${location.price}</div>`,
           iconSize: [60, 24],
           iconAnchor: [30, 12]
@@ -446,7 +462,10 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   )
 
   return (
-    <div className="relative w-full rounded-xl border bg-card overflow-hidden" style={{ height: mapHeight }}>
+    <div
+      className="relative w-full rounded-xl border bg-card overflow-hidden"
+      style={{ height: mapHeight }}
+    >
       {/* Map Section - Full size */}
       {isMounted ? (
         <MapContainer
@@ -496,7 +515,11 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
             <div
               key={location.id}
               ref={(el) => {
-                if (el) cardRefs.current.set(location.id, el as unknown as HTMLButtonElement)
+                if (el)
+                  cardRefs.current.set(
+                    location.id,
+                    el as unknown as HTMLButtonElement
+                  )
               }}
             >
               <HotelCard

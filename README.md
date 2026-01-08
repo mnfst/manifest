@@ -29,6 +29,12 @@
   <a href="https://www.jsdelivr.com/package/npm/manifest" target="_blank"><img alt="jsdelivr" src="https://data.jsdelivr.com/v1/package/npm/manifest/badge"></a>
 <br>
 
+<p align="center">
+  <a href="https://ui.manifest.build/">
+    <img src="./assets/ui-homepage-screenshot.png" alt="Manifest UI Homepage" width="800">
+  </a>
+</p>
+
 ## Why Manifest?
 
 Manifest helps developers create their agentic applications like ChatGPT or MCP Apps by giving them a set of components made for this format.

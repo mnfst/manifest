@@ -90,6 +90,20 @@ The shadcn registry is the single source of truth for component distribution. Co
 - Dependencies MUST be explicitly listed (npm + registryDependencies)
 - Components MUST be independently installable
 
+### VI. Component Versioning (Semver)
+
+Every component MUST have a `version` field in `registry.json` following [Semantic Versioning](https://semver.org/) conventions. Version format: `MAJOR.MINOR.PATCH` (e.g., `"1.2.3"`).
+
+**Non-negotiables:**
+
+- New components MUST start at version `1.0.0`
+- Version MUST be bumped when modifying component source files
+- MAJOR bump for breaking changes (removing/renaming props, changing behavior incompatibly)
+- MINOR bump for new features (new optional props, new variants)
+- PATCH bump for bug fixes (styling fixes, performance improvements, refactoring)
+- Lower version numbers MUST reset when bumping higher ones (`1.2.3` → `2.0.0`)
+- Tests MUST pass before merging (validates version format and change detection)
+
 ## Website Structure
 
 ### Homepage

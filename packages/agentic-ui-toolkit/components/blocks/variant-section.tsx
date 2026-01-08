@@ -25,7 +25,13 @@ interface VariantSectionProps {
   layouts?: LayoutMode[]
 }
 
-function CodeViewer({ registryName }: { registryName: string }) {
+interface SourceCodeState {
+  code: string | null
+  loading: boolean
+  error: string | null
+}
+
+function useSourceCode(registryName: string): SourceCodeState {
   const [code, setCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -54,6 +60,12 @@ function CodeViewer({ registryName }: { registryName: string }) {
     }
     fetchCode()
   }, [registryName])
+
+  return { code, loading, error }
+}
+
+function CodeViewer({ registryName }: { registryName: string }) {
+  const { code, loading, error } = useSourceCode(registryName)
 
   if (loading) {
     return (

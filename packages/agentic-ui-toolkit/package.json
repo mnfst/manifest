@@ -7,13 +7,14 @@
     "build": "pnpm run registry:build && next build",
     "start": "next start",
     "lint": "eslint .",
-    "registry:build": "shadcn build",
-    "test": "jest",
-    "test:props": "jest --testPathPattern=props-schema"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "registry:build": "shadcn build"
   },
   "dependencies": {
     "@openai/apps-sdk-ui": "^0.2.1",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-hover-card": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6",
@@ -55,7 +56,8 @@
     "tailwindcss": "^4.1.11",
     "ts-jest": "^29.2.5",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.14.0"
+    "typescript-eslint": "^8.14.0",
+    "vitest": "^4.0.16"
   },
   "overrides": {
     "@types/react": "19.1.2",

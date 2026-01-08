@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
@@ -76,6 +76,7 @@ interface BlockGroup {
   description: string
   registryName: string
   layouts: LayoutMode[]
+  actionCount: number
   variants: BlockVariant[]
 }
 
@@ -148,6 +149,7 @@ const categories: Category[] = [
           'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
         registryName: 'post-card',
         layouts: ['inline', 'fullscreen'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -192,6 +194,7 @@ const categories: Category[] = [
         description: 'Display multiple posts in various layouts',
         registryName: 'post-list',
         layouts: ['inline', 'fullscreen'],
+        actionCount: 1,
         variants: [
           {
             id: 'list',
@@ -228,30 +231,61 @@ const categories: Category[] = [
         description: 'Display products in various layouts',
         registryName: 'product-list',
         layouts: ['inline'],
+        actionCount: 2,
         variants: [
           {
             id: 'list',
             name: 'List',
             component: <ProductList appearance={{ variant: 'list' }} />,
-            usageCode: `<ProductList appearance={{ variant: "list" }} />`
+            usageCode: `<ProductList
+  data={{
+    products: [
+      {
+        id: "1",
+        name: "Air Force 1 '07",
+        description: "Nike",
+        price: 119,
+        image: "/demo/shoe-1.png",
+        rating: 4.9,
+        badge: "New",
+        inStock: true
+      },
+      // ... more products
+    ]
+  }}
+  appearance={{ variant: "list", currency: "EUR" }}
+  actions={{ onSelectProduct: (product) => console.log(product) }}
+/>`
           },
           {
             id: 'grid',
             name: 'Grid',
             component: <ProductList appearance={{ variant: 'grid' }} />,
-            usageCode: `<ProductList appearance={{ variant: "grid" }} />`
+            usageCode: `<ProductList
+  data={{ products: [...] }}
+  appearance={{ variant: "grid", columns: 4, currency: "USD" }}
+  actions={{ onSelectProduct: (product) => console.log(product) }}
+/>`
           },
           {
             id: 'carousel',
             name: 'Carousel',
             component: <ProductList appearance={{ variant: 'carousel' }} />,
-            usageCode: `<ProductList appearance={{ variant: "carousel" }} />`
+            usageCode: `<ProductList
+  data={{ products: [...] }}
+  appearance={{ variant: "carousel" }}
+  actions={{ onSelectProduct: (product) => console.log(product) }}
+/>`
           },
           {
             id: 'picker',
             name: 'Picker',
             component: <ProductList appearance={{ variant: 'picker' }} />,
-            usageCode: `<ProductList appearance={{ variant: "picker" }} />`
+            usageCode: `<ProductList
+  data={{ products: [...] }}
+  appearance={{ variant: "picker", buttonLabel: "Add to cart" }}
+  actions={{ onAddToCart: (products) => console.log("Cart:", products) }}
+/>`
           }
         ]
       },
@@ -262,6 +296,7 @@ const categories: Category[] = [
           'Data table with header, footer, expand to fullscreen, and optional selection',
         registryName: 'table',
         layouts: ['inline', 'fullscreen'],
+        actionCount: 6,
         variants: [
           {
             id: 'default',
@@ -328,12 +363,27 @@ const categories: Category[] = [
         description: 'Display order summary before payment',
         registryName: 'order-confirm',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <OrderConfirm />,
-            usageCode: `<OrderConfirm />`
+            usageCode: `<OrderConfirm
+  data={{
+    productName: "MacBook Pro 14-inch",
+    productVariant: "Space Gray, M3 Pro",
+    productImage: "https://store.storeimages.cdn-apple.com/...",
+    quantity: 1,
+    price: 1999,
+    deliveryDate: "Wed. Jan 15",
+    deliveryAddress: "123 Main Street, San Francisco, CA 94102",
+    freeShipping: true
+  }}
+  appearance={{ currency: "USD" }}
+  actions={{ onConfirm: () => console.log("Order confirmed!") }}
+  control={{ isLoading: false }}
+/>`
           }
         ]
       },
@@ -343,12 +393,28 @@ const categories: Category[] = [
         description: 'Select payment method',
         registryName: 'payment-methods',
         layouts: ['inline'],
+        actionCount: 3,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <PaymentMethods />,
-            usageCode: `<PaymentMethods />`
+            usageCode: `<PaymentMethods
+  data={{
+    methods: [
+      { id: "1", type: "card", brand: "visa", last4: "4242" },
+      { id: "2", type: "card", brand: "mastercard", last4: "8888", isDefault: true },
+      { id: "3", type: "apple_pay" }
+    ],
+    amount: 279.00
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{
+    onSelectMethod: (methodId) => console.log("Selected:", methodId),
+    onAddCard: () => console.log("Add card"),
+    onPay: (methodId) => console.log("Pay with:", methodId)
+  }}
+/>`
           }
         ]
       },
@@ -358,12 +424,19 @@ const categories: Category[] = [
         description: 'Credit card input form',
         registryName: 'bank-card-form',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <BankCardForm />,
-            usageCode: `<BankCardForm />`
+            usageCode: `<BankCardForm
+  data={{ amount: 149.99 }}
+  appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
+  actions={{
+    onSubmit: (data) => console.log("Card:", data.cardNumber)
+  }}
+/>`
           }
         ]
       },
@@ -373,12 +446,27 @@ const categories: Category[] = [
         description: 'Input for monetary amounts',
         registryName: 'amount-input',
         layouts: ['inline'],
+        actionCount: 2,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <AmountInput />,
-            usageCode: `<AmountInput />`
+            usageCode: `<AmountInput
+  data={{ presets: [20, 50, 100, 200] }}
+  appearance={{
+    min: 10,
+    max: 1000,
+    step: 10,
+    currency: "USD",
+    label: "Donation Amount"
+  }}
+  control={{ value: 50 }}
+  actions={{
+    onChange: (value) => console.log("Amount:", value),
+    onConfirm: (value) => console.log("Confirmed:", value)
+  }}
+/>`
           }
         ]
       },
@@ -388,12 +476,23 @@ const categories: Category[] = [
         description: 'Success confirmation after payment',
         registryName: 'payment-success',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <PaymentSuccess />,
-            usageCode: `<PaymentSuccess />`
+            usageCode: `<PaymentSuccess
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productImage: "/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
           }
         ]
       },
@@ -403,12 +502,24 @@ const categories: Category[] = [
         description: 'Detailed payment confirmation',
         registryName: 'payment-confirmed',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <PaymentConfirmed />,
-            usageCode: `<PaymentConfirmed />`
+            usageCode: `<PaymentConfirmed
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productDescription: "Nike - Size 42 - White",
+    productImage: "/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
           }
         ]
       }
@@ -424,6 +535,7 @@ const categories: Category[] = [
         description: 'Chat message bubbles',
         registryName: 'chat-conversation',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -448,7 +560,21 @@ const categories: Category[] = [
                 />
               </div>
             ),
-            usageCode: `<MessageBubble data={{ content: "Hello!", avatar: "S", time: "10:30 AM" }} />`
+            usageCode: `<MessageBubble
+  data={{
+    content: "Hey! How are you doing today?",
+    avatar: "S",
+    author: "Sarah",
+    time: "10:30 AM"
+  }}
+/>
+
+// Own message with status
+<MessageBubble
+  data={{ content: "I'm doing great!", avatar: "Y", time: "10:31 AM" }}
+  appearance={{ isOwn: true }}
+  control={{ status: "read" }}
+/>`
           },
           {
             id: 'image',
@@ -475,7 +601,22 @@ const categories: Category[] = [
                 />
               </div>
             ),
-            usageCode: `<ImageMessageBubble data={{ image: "...", caption: "Check out this view!", avatar: "A" }} />`
+            usageCode: `<ImageMessageBubble
+  data={{
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba",
+    caption: "Check out this view!",
+    avatar: "A",
+    author: "Alex",
+    time: "2:45 PM"
+  }}
+/>
+
+// Own image message
+<ImageMessageBubble
+  data={{ image: "...", time: "2:46 PM" }}
+  appearance={{ isOwn: true }}
+  control={{ status: "delivered" }}
+/>`
           },
           {
             id: 'reactions',
@@ -494,7 +635,19 @@ const categories: Category[] = [
                 }}
               />
             ),
-            usageCode: `<MessageWithReactions data={{ content: "...", reactions: [{ emoji: '🎉', count: 5 }] }} />`
+            usageCode: `<MessageWithReactions
+  data={{
+    content: "We just hit 10,000 users!",
+    avatar: "T",
+    author: "Team",
+    time: "4:20 PM",
+    reactions: [
+      { emoji: "🎉", count: 5 },
+      { emoji: "❤️", count: 3 },
+      { emoji: "👏", count: 2 }
+    ]
+  }}
+/>`
           },
           {
             id: 'voice',
@@ -519,7 +672,21 @@ const categories: Category[] = [
                 />
               </div>
             ),
-            usageCode: `<VoiceMessageBubble data={{ duration: "0:42", avatar: "M" }} />`
+            usageCode: `<VoiceMessageBubble
+  data={{
+    duration: "0:42",
+    avatar: "M",
+    author: "Mike",
+    time: "3:15 PM"
+  }}
+/>
+
+// Own voice message
+<VoiceMessageBubble
+  data={{ duration: "1:23", avatar: "Y", time: "3:17 PM" }}
+  appearance={{ isOwn: true }}
+  control={{ status: "read" }}
+/>`
           }
         ]
       },
@@ -529,12 +696,48 @@ const categories: Category[] = [
         description: 'Full chat conversation view',
         registryName: 'chat-conversation',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <ChatConversation />,
-            usageCode: `<ChatConversation />`
+            usageCode: `<ChatConversation
+  data={{
+    messages: [
+      {
+        id: "1",
+        type: "text",
+        content: "Hey! Check out this new feature!",
+        author: "Sarah",
+        avatar: "S",
+        time: "10:30 AM",
+        isOwn: false
+      },
+      {
+        id: "2",
+        type: "text",
+        content: "That looks amazing!",
+        author: "You",
+        avatar: "Y",
+        time: "10:31 AM",
+        isOwn: true,
+        status: "read"
+      },
+      {
+        id: "3",
+        type: "image",
+        content: "",
+        image: "https://images.unsplash.com/...",
+        caption: "Here's a preview",
+        author: "Sarah",
+        avatar: "S",
+        time: "10:32 AM",
+        isOwn: false
+      }
+    ]
+  }}
+/>`
           }
         ]
       }
@@ -551,6 +754,7 @@ const categories: Category[] = [
           'Interactive map with location markers and a draggable carousel of cards',
         registryName: 'map-carousel',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -566,12 +770,26 @@ const categories: Category[] = [
         description: 'X (Twitter) post card',
         registryName: 'x-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <XPost />,
-            usageCode: `<XPost />`
+            usageCode: `<XPost
+  data={{
+    author: "Manifest",
+    username: "manifest",
+    avatar: "M",
+    content: "Just shipped a new feature! Build stunning agentic UIs that work seamlessly inside ChatGPT and Claude.",
+    time: "2h",
+    likes: "1.2K",
+    retweets: "234",
+    replies: "56",
+    views: "45.2K",
+    verified: true
+  }}
+/>`
           }
         ]
       },
@@ -581,12 +799,23 @@ const categories: Category[] = [
         description: 'Instagram post card',
         registryName: 'instagram-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <InstagramPost />,
-            usageCode: `<InstagramPost />`
+            usageCode: `<InstagramPost
+  data={{
+    author: "manifest.ai",
+    avatar: "M",
+    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600",
+    likes: "2,847",
+    caption: "Building the future of agentic UIs. What component would you love to see next?",
+    time: "2 hours ago",
+    verified: true
+  }}
+/>`
           }
         ]
       },
@@ -596,12 +825,24 @@ const categories: Category[] = [
         description: 'LinkedIn post card',
         registryName: 'linkedin-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <LinkedInPost />,
-            usageCode: `<LinkedInPost />`
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Agentic UI Toolkit | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.\\n\\n#AI #AgenticUI #Developer",
+    likes: "1,234",
+    comments: "89",
+    reposts: "45",
+    time: "2h"
+  }}
+/>`
           }
         ]
       },
@@ -611,12 +852,25 @@ const categories: Category[] = [
         description: 'YouTube video card',
         registryName: 'youtube-post',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <YouTubePost />,
-            usageCode: `<YouTubePost />`
+            usageCode: `<YouTubePost
+  data={{
+    channel: "NetworkChuck",
+    avatar: "N",
+    title: "you need to learn MCP RIGHT NOW!!",
+    views: "1M views",
+    time: "2 weeks ago",
+    duration: "18:42",
+    thumbnail: "https://img.youtube.com/vi/GuTcle5edjk/maxresdefault.jpg",
+    verified: true,
+    videoId: "GuTcle5edjk"
+  }}
+/>`
           }
         ]
       },
@@ -626,6 +880,7 @@ const categories: Category[] = [
         description: 'Various status indicators',
         registryName: 'status-badge',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -650,12 +905,22 @@ const categories: Category[] = [
         description: 'Step-by-step progress indicator',
         registryName: 'progress-steps',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <ProgressSteps />,
-            usageCode: `<ProgressSteps />`
+            usageCode: `<ProgressSteps
+  data={{
+    steps: [
+      { id: "1", label: "Order received", status: "completed" },
+      { id: "2", label: "Processing", status: "completed" },
+      { id: "3", label: "Shipping", status: "current" },
+      { id: "4", label: "Delivery", status: "pending" }
+    ]
+  }}
+/>`
           }
         ]
       },
@@ -665,12 +930,21 @@ const categories: Category[] = [
         description: 'Display statistics and metrics',
         registryName: 'stats',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <Stats />,
-            usageCode: `<Stats />`
+            usageCode: `<Stats
+  data={{
+    stats: [
+      { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
+      { label: "Orders", value: "342", change: -3.2, trend: "down" },
+      { label: "Customers", value: "1,205", change: 0, trend: "neutral" }
+    ]
+  }}
+/>`
           }
         ]
       },
@@ -680,6 +954,7 @@ const categories: Category[] = [
         description: 'Loading placeholder components',
         registryName: 'skeleton',
         layouts: ['inline'],
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -690,7 +965,14 @@ const categories: Category[] = [
                 <SkeletonStats />
               </div>
             ),
-            usageCode: `<Skeleton appearance={{ className: "h-4 w-32" }} />`
+            usageCode: `// Basic skeleton
+<Skeleton appearance={{ className: "h-4 w-32" }} />
+
+// Product card skeleton
+<SkeletonProductCard />
+
+// Stats skeleton
+<SkeletonStats />`
           }
         ]
       },
@@ -700,12 +982,25 @@ const categories: Category[] = [
         description: 'Quick reply buttons for chat',
         registryName: 'quick-reply',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <QuickReply />,
-            usageCode: `<QuickReply />`
+            usageCode: `<QuickReply
+  data={{
+    replies: [
+      { id: "1", label: "Yes, confirm" },
+      { id: "2", label: "No thanks" },
+      { id: "3", label: "I have a question" },
+      { id: "4", label: "View details" }
+    ]
+  }}
+  actions={{
+    onSelectReply: (reply) => console.log("Selected:", reply.label)
+  }}
+/>`
           }
         ]
       },
@@ -715,12 +1010,25 @@ const categories: Category[] = [
         description: 'Tag-style option selector',
         registryName: 'option-list',
         layouts: ['inline'],
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <OptionList />,
-            usageCode: `<OptionList />`
+            usageCode: `<OptionList
+  data={{
+    options: [
+      { id: "1", label: "Standard shipping", description: "3-5 business days" },
+      { id: "2", label: "Express shipping", description: "1-2 business days" },
+      { id: "3", label: "Store pickup", description: "Available in 2h" }
+    ]
+  }}
+  appearance={{ multiple: false }}
+  actions={{
+    onSelectOption: (option) => console.log("Selected:", option.label)
+  }}
+/>`
           }
         ]
       },
@@ -730,12 +1038,34 @@ const categories: Category[] = [
         description: 'Colored tag selector',
         registryName: 'tag-select',
         layouts: ['inline'],
+        actionCount: 2,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <TagSelect />,
-            usageCode: `<TagSelect />`
+            usageCode: `<TagSelect
+  data={{
+    tags: [
+      { id: "1", label: "Electronics" },
+      { id: "2", label: "Audio" },
+      { id: "3", label: "Wireless" },
+      { id: "4", label: "Apple" },
+      { id: "5", label: "Premium" },
+      { id: "6", label: "Sale" }
+    ]
+  }}
+  appearance={{
+    mode: "multiple",
+    showClear: true,
+    showValidate: true,
+    validateLabel: "Apply filters"
+  }}
+  actions={{
+    onSelectTags: (tagIds) => console.log("Tags:", tagIds),
+    onValidate: (tagIds) => console.log("Validated:", tagIds)
+  }}
+/>`
           }
         ]
       }
@@ -842,6 +1172,12 @@ function BlocksContent() {
                       {layout}
                     </span>
                   ))}
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                    <Zap className="w-3 h-3" />
+                    {selectedBlock.actionCount > 0
+                      ? `${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`
+                      : 'read only'}
+                  </span>
                 </div>
               </div>
               <p className="text-muted-foreground">
