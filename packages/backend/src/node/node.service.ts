@@ -19,7 +19,7 @@ import {
 } from '@chatgpt-app-builder/shared';
 import { generateUniqueSlug } from '@chatgpt-app-builder/shared';
 import { v4 as uuidv4 } from 'uuid';
-import { builtInNodeList, toNodeTypeInfo, type NodeTypeInfo } from '@chatgpt-app-builder/nodes';
+import { builtInNodeList, builtInNodes, toNodeTypeInfo, type NodeTypeInfo } from '@chatgpt-app-builder/nodes';
 import { generateUniqueToolName } from '../utils/tool-name';
 
 /**
@@ -169,13 +169,18 @@ export class NodeService {
     const existingSlugs = new Set(nodes.map((n) => n.slug).filter(Boolean));
     const slug = generateUniqueSlug(request.name, existingSlugs);
 
+    // Look up node definition to get defaultParameters
+    const nodeDefinition = builtInNodes[request.type];
+    const defaultParams = nodeDefinition?.defaultParameters ?? {};
+    const mergedParams = { ...defaultParams, ...(request.parameters ?? {}) };
+
     const newNode: NodeInstance = {
       id: uuidv4(),
       slug,
       type: request.type,
       name: request.name,
       position: request.position,
-      parameters: request.parameters ?? {},
+      parameters: mergedParams,
     };
 
     // For UserIntent nodes, auto-generate a unique toolName
@@ -379,9 +384,9 @@ export class NodeService {
     // Link nodes can only receive connections from interface (UI) nodes
     if (targetNode.type === 'Link') {
       const sourceNode = nodes.find((n) => n.id === request.sourceNodeId);
-      const INTERFACE_NODE_TYPES = ['StatCard'];
+      const INTERFACE_NODE_TYPES = ['StatCard', 'PostList'];
       if (!sourceNode || !INTERFACE_NODE_TYPES.includes(sourceNode.type)) {
-        throw new BadRequestException('Link nodes can only be connected after UI nodes (like StatCard).');
+        throw new BadRequestException('Link nodes can only be connected after UI nodes (like StatCard or PostList).');
       }
     }
 
