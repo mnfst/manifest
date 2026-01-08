@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: Edit UIs API Extensions
+  description: API extensions for the Editable UI Interfaces feature
+  version: 1.0.0
+
+paths:
+  /api/flows/{flowId}/nodes/{nodeId}:
+    patch:
+      summary: Update node parameters (existing endpoint, extended payload)
+      description: |
+        Updates a node's parameters. For Interface nodes, this now supports
+        the `customCode` field in parameters to store user-customized component code.
+      operationId: updateNode
+      tags:
+        - Nodes
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The flow ID containing the node
+        - name: nodeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The node ID to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNodeRequest'
+            examples:
+              updateInterfaceWithCustomCode:
+                summary: Update Interface node with custom code
+                value:
+                  parameters:
+                    layoutTemplate: "table"
+                    customCode: |
+                      import { Table } from '@/components/ui/table'
+
+                      export default function CustomTable({ data }) {
+                        return (
+                          <Table
+                            columns={[
+                              { header: 'Product', accessor: 'name' },
+                              { header: 'Price', accessor: 'price', align: 'right' },
+                            ]}
+                            data={data}
+                            selectable="single"
+                          />
+                        )
+                      }
+              clearCustomCode:
+                summary: Reset Interface node to default template
+                value:
+                  parameters:
+                    layoutTemplate: "table"
+      responses:
+        '200':
+          description: Node updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInstance'
+        '400':
+          description: Invalid request (validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Flow or node not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/templates/{templateType}/default-code:
+    get:
+      summary: Get default code for a layout template
+      description: |
+        Returns the default component code for a given layout template type.
+        Used when opening the editor for a node that hasn't been customized.
+      operationId: getTemplateDefaultCode
+      tags:
+        - Templates
+      parameters:
+        - name: templateType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [table, post-list]
+          description: The layout template type
+      responses:
+        '200':
+          description: Default code retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateCodeResponse'
+              examples:
+                tableTemplate:
+                  summary: Table template default code
+                  value:
+                    templateType: "table"
+                    defaultCode: |
+                      import { Table } from '@/components/ui/table'
+
+                      export default function CustomTable({ data }) {
+                        return (
+                          <Table
+                            columns={[
+                              { header: 'Name', accessor: 'name' },
+                              { header: 'Value', accessor: 'value' },
+                            ]}
+                            data={data}
+                            selectable="none"
+                          />
+                        )
+                      }
+                    sampleData:
+                      - id: 1
+                        name: "Product A"
+                        price: 29.99
+                        status: "Active"
+                      - id: 2
+                        name: "Product B"
+                        price: 49.99
+                        status: "Pending"
+        '404':
+          description: Template type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UpdateNodeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Optional new name for the node
+          example: "My Custom Table"
+        parameters:
+          type: object
+          description: Node-specific parameters (varies by node type)
+          additionalProperties: true
+          example:
+            layoutTemplate: "table"
+            customCode: "export default function..."
+
+    NodeInstance:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - position
+        - parameters
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [Interface, Return, CallFlow, UserIntent, ApiCall]
+        name:
+          type: string
+        position:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+          required: [x, y]
+        parameters:
+          type: object
+          additionalProperties: true
+
+    InterfaceNodeParameters:
+      type: object
+      required:
+        - layoutTemplate
+      properties:
+        layoutTemplate:
+          type: string
+          enum: [table, post-list]
+          description: The base layout template type
+        customCode:
+          type: string
+          description: |
+            Custom TSX component code. If present, overrides default template.
+            Must be valid TSX syntax with a default export function component.
+          maxLength: 50000
+
+    TemplateCodeResponse:
+      type: object
+      required:
+        - templateType
+        - defaultCode
+        - sampleData
+      properties:
+        templateType:
+          type: string
+          enum: [table, post-list]
+        defaultCode:
+          type: string
+          description: Default TSX component code for this template
+        sampleData:
+          type: array
+          description: Sample data for preview rendering
+          items:
+            type: object
+            additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - statusCode
+        - message
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+
+tags:
+  - name: Nodes
+    description: Node management operations
+  - name: Templates
+    description: Layout template operations

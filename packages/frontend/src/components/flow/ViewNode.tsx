@@ -2,7 +2,7 @@ import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { useEffect, useMemo } from 'react';
 import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters, type NodeType } from '@chatgpt-app-builder/shared';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Code2 } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 import { AddNodeButton } from './AddNodeButton';
 
@@ -11,6 +11,7 @@ export interface ViewNodeData extends Record<string, unknown> {
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onEditCode?: () => void;
   /** Handler for "+" button click */
   onAddFromNode?: () => void;
   /** Handler for dropping a node type on the "+" button */
@@ -23,12 +24,13 @@ export interface ViewNodeData extends Record<string, unknown> {
  * Displays action handles on the right side for nodes with actions
  */
 export function ViewNode({ data, id }: NodeProps) {
-  const { node, canDelete, onEdit, onDelete, onAddFromNode, onDropOnNode } = data as ViewNodeData;
+  const { node, canDelete, onEdit, onDelete, onEditCode, onAddFromNode, onDropOnNode } = data as ViewNodeData;
   const updateNodeInternals = useUpdateNodeInternals();
 
   // Get parameters with type safety
   const params = node.parameters as unknown as StatCardNodeParameters;
   const layoutTemplate = params?.layoutTemplate || 'stat-card';
+  const hasCustomCode = Boolean((params as unknown as Record<string, unknown>)?.customCode);
 
   // Look up actions for this node's layout template
   const actions = useMemo(() => {
@@ -64,16 +66,32 @@ export function ViewNode({ data, id }: NodeProps) {
             <h3 className="font-medium text-gray-900 text-sm">
               {node.name || 'Stat Card'}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">{layoutTemplate}</p>
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <p className="text-xs text-gray-500">{layoutTemplate}</p>
+              {hasCustomCode && (
+                <span
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700"
+                  title="Has custom code"
+                >
+                  <Code2 className="w-2.5 h-2.5" />
+                  <span className="text-[9px] font-medium">Custom</span>
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Action buttons */}
-          <ViewNodeDropdown canDelete={canDelete} onEdit={onEdit} onDelete={onDelete} />
+          <ViewNodeDropdown
+            canDelete={canDelete}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onEditCode={onEditCode}
+          />
         </div>
       </div>
 
-      {/* "+" button for adding connected nodes - StatCard has no output handle */}
-      {onAddFromNode && (
+      {/* "+" button for adding connected nodes - only show if there are actions */}
+      {onAddFromNode && actions.length > 0 && (
         <AddNodeButton
           onClick={onAddFromNode}
           onDrop={onDropOnNode}

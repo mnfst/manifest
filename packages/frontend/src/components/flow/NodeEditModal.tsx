@@ -397,16 +397,6 @@ export function NodeEditModal({
             {/* StatCard-specific fields */}
             {effectiveNodeType === 'StatCard' && (
               <>
-                {/* Use Previous Outputs component - only show in edit mode when we have a node ID */}
-                {isEditMode && node && (
-                  <UsePreviousOutputs
-                    upstreamNodes={upstreamNodes}
-                    isLoading={upstreamLoading}
-                    error={upstreamError}
-                    onRefresh={refreshUpstream}
-                  />
-                )}
-
                 <div>
                   <label htmlFor="layout-template" className="block text-sm font-medium text-gray-700 mb-1">
                     Layout Template

@@ -147,6 +147,9 @@ export interface Connection {
 export interface StatCardNodeParameters {
   /** Layout template type */
   layoutTemplate: LayoutTemplate;
+
+  /** Custom component code (TSX). If present, overrides the default template rendering */
+  customCode?: string;
 }
 
 /**
