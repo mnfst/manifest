@@ -125,7 +125,7 @@ export function VariantSection({
           <button
             onClick={() => setViewMode('inline')}
             className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
               viewMode === 'inline'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -142,7 +142,7 @@ export function VariantSection({
               viewMode === 'pip'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground',
-              !hasPip && 'opacity-40 cursor-not-allowed'
+              hasPip ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
             )}
           >
             <PictureInPicture2 className="h-3.5 w-3.5 lg:hidden" />
@@ -156,7 +156,7 @@ export function VariantSection({
               viewMode === 'fullwidth'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground',
-              !hasFullwidth && 'opacity-40 cursor-not-allowed'
+              hasFullwidth ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
             )}
           >
             <Maximize2 className="h-3.5 w-3.5 lg:hidden" />
@@ -165,7 +165,7 @@ export function VariantSection({
           <button
             onClick={() => setViewMode('code')}
             className={cn(
-              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors',
+              'p-1.5 lg:px-3 lg:py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
               viewMode === 'code'
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground'
