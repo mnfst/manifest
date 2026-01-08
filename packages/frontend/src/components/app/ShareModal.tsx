@@ -13,7 +13,7 @@ interface ShareModalProps {
  */
 export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const [copiedField, setCopiedField] = useState<'landing' | 'mcp' | null>(null);
+  const [copiedMcp, setCopiedMcp] = useState(false);
 
   const landingPageUrl = `${BACKEND_URL}/servers/${appSlug}`;
   const mcpEndpointUrl = `${BACKEND_URL}/servers/${appSlug}/mcp`;
@@ -45,7 +45,7 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
   // Reset copied state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setCopiedField(null);
+      setCopiedMcp(false);
     }
   }, [isOpen]);
 
@@ -57,11 +57,11 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
     }
   };
 
-  const copyToClipboard = async (url: string, field: 'landing' | 'mcp') => {
+  const copyMcpEndpoint = async () => {
     try {
-      await navigator.clipboard.writeText(url);
-      setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 2000);
+      await navigator.clipboard.writeText(mcpEndpointUrl);
+      setCopiedMcp(true);
+      setTimeout(() => setCopiedMcp(false), 2000);
     } catch {
       // Clipboard API failed - the URL is still visible and selectable
       console.warn('Clipboard API not available');
@@ -106,28 +106,6 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Landing Page Link */}
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800 font-medium mb-2">
-              Share with your users
-            </p>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={landingPageUrl}
-                className="flex-1 text-sm bg-white px-3 py-2 rounded border text-blue-600 truncate"
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <button
-                onClick={() => copyToClipboard(landingPageUrl, 'landing')}
-                className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors min-w-[70px]"
-              >
-                {copiedField === 'landing' ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-          </div>
-
           {/* MCP Endpoint */}
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-800 font-medium mb-2">
@@ -142,11 +120,35 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
                 onClick={(e) => (e.target as HTMLInputElement).select()}
               />
               <button
-                onClick={() => copyToClipboard(mcpEndpointUrl, 'mcp')}
+                onClick={copyMcpEndpoint}
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors min-w-[70px]"
               >
-                {copiedField === 'mcp' ? 'Copied!' : 'Copy'}
+                {copiedMcp ? 'Copied!' : 'Copy'}
               </button>
+            </div>
+          </div>
+
+          {/* Landing Page Link */}
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800 font-medium mb-2">
+              Landing Page
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={landingPageUrl}
+                className="flex-1 text-sm bg-white px-3 py-2 rounded border text-blue-600 truncate"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <a
+                href={landingPageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors min-w-[70px] text-center"
+              >
+                Open
+              </a>
             </div>
           </div>
 
