@@ -6,15 +6,18 @@
  *
  * This prevents the situation where changes are made to a component
  * without incrementing its version number.
+ *
+ * Additionally, tests ensure that every version has a corresponding
+ * changelog entry in changelog.json.
  */
 
 import { execSync } from 'child_process'
 import { readFileSync, existsSync } from 'fs'
-import { resolve, relative } from 'path'
+import { resolve } from 'path'
 import { describe, it, expect } from 'vitest'
 
-const REGISTRY_DIR = resolve(__dirname, '..', 'registry')
 const REGISTRY_JSON_PATH = resolve(__dirname, '..', 'registry.json')
+const CHANGELOG_JSON_PATH = resolve(__dirname, '..', 'changelog.json')
 
 interface RegistryItem {
   name: string
@@ -24,6 +27,21 @@ interface RegistryItem {
 
 interface Registry {
   items: RegistryItem[]
+}
+
+interface Changelog {
+  components: Record<string, Record<string, string>>
+}
+
+/**
+ * Load the changelog.json file
+ */
+function loadChangelog(): Changelog {
+  if (!existsSync(CHANGELOG_JSON_PATH)) {
+    return { components: {} }
+  }
+  const content = readFileSync(CHANGELOG_JSON_PATH, 'utf-8')
+  return JSON.parse(content)
 }
 
 /**
@@ -218,6 +236,22 @@ describe('Version Bump Enforcement', () => {
       expect(true).toBe(true)
     })
   })
+
+  describe('Changelog entries must exist for all versions', () => {
+    const changelog = loadChangelog()
+
+    for (const item of currentRegistry.items) {
+      const { name, version } = item
+      const componentChangelog = changelog.components[name]
+
+      it(`"${name}" v${version} should have a changelog entry`, () => {
+        expect(componentChangelog).toBeDefined()
+        expect(componentChangelog[version]).toBeDefined()
+        expect(typeof componentChangelog[version]).toBe('string')
+        expect(componentChangelog[version].length).toBeGreaterThan(0)
+      })
+    }
+  })
 })
 
 /**
@@ -274,7 +308,7 @@ export function checkVersionBumps(): { valid: boolean; errors: string[] } {
     }
 
     return { valid: errors.length === 0, errors }
-  } catch (error) {
+  } catch {
     return { valid: true, errors: [] } // Don't block on errors
   }
 }

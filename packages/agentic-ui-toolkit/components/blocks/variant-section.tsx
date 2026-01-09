@@ -5,6 +5,7 @@ import { InstallCommandInline } from '@/components/blocks/install-command-inline
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
@@ -31,10 +32,16 @@ export interface VariantSectionHandle {
   showActionsConfig: () => void
 }
 
+interface ChangelogEntry {
+  version: string
+  description: string
+}
+
 interface SourceCodeState {
   code: string | null
   relatedFiles: string[]
   version: string | null
+  changelog: ChangelogEntry[]
   loading: boolean
   error: string | null
 }
@@ -43,6 +50,7 @@ function useSourceCode(registryName: string): SourceCodeState {
   const [code, setCode] = useState<string | null>(null)
   const [relatedFiles, setRelatedFiles] = useState<string[]>([])
   const [version, setVersion] = useState<string | null>(null)
+  const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,6 +69,22 @@ function useSourceCode(registryName: string): SourceCodeState {
         if (mainContent) {
           setCode(mainContent)
           setVersion(data.version || null)
+          // Parse changelog from injected data
+          if (data.changelog && typeof data.changelog === 'object') {
+            const entries: ChangelogEntry[] = Object.entries(data.changelog)
+              .map(([ver, desc]) => ({ version: ver, description: desc as string }))
+              .sort((a, b) => {
+                // Sort by version descending (newest first)
+                const [aMajor, aMinor, aPatch] = a.version.split('.').map(Number)
+                const [bMajor, bMinor, bPatch] = b.version.split('.').map(Number)
+                const aTotal = aMajor * 10000 + aMinor * 100 + aPatch
+                const bTotal = bMajor * 10000 + bMinor * 100 + bPatch
+                return bTotal - aTotal
+              })
+            setChangelog(entries)
+          } else {
+            setChangelog([])
+          }
           // Collect all other file contents for type definition extraction
           const otherFiles = files
             .slice(1)
@@ -79,7 +103,7 @@ function useSourceCode(registryName: string): SourceCodeState {
     fetchCode()
   }, [registryName])
 
-  return { code, relatedFiles, version, loading, error }
+  return { code, relatedFiles, version, changelog, loading, error }
 }
 
 function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
@@ -177,7 +201,35 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold">{name}</h2>
             {sourceCode.version && (
-              <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <span className="group relative text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                    <span>V{sourceCode.version}</span>
+                    <span className="absolute left-full ml-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-xs text-primary">
+                      view changelog
+                    </span>
+                  </span>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 max-h-96 overflow-y-auto" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Changelog</h4>
+                    </div>
+                    {sourceCode.changelog.length > 0 ? (
+                      <div className="space-y-2">
+                        {sourceCode.changelog.map((entry) => (
+                          <div key={entry.version} className="border-l-2 border-muted pl-3 py-1">
+                            <div className="text-xs font-medium text-foreground">v{entry.version}</div>
+                            <div className="text-xs text-muted-foreground">{entry.description}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No changelog available</p>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
           </div>
           <InstallCommandInline componentName={registryName} />
