@@ -1,25 +1,24 @@
-# ChatGPT App Builder
+# Flows & Nodes - Visual Workflow Editor
 
-Build ChatGPT-powered applications from natural language prompts. This tool provides a hybrid visual editor + chat interface where users can customize workflows and publish them to serve on an MCP (Model Context Protocol) server.
+A visual node-based workflow editor and execution platform. Build application workflows through a drag-and-drop interface and deploy them as MCP (Model Context Protocol) servers accessible to AI assistants.
 
 ## Features
 
-- **Prompt-to-App Generation**: Describe your app in natural language and the AI agent generates an initial configuration with appropriate layout, theme, and mock data
-- **Hybrid Editor**: Visual preview combined with a chat panel for conversational customization
-- **AI-Powered Customization**: Modify layouts, themes, and data through natural language chat commands
-- **MCP Server Publishing**: Deploy your apps as MCP tools accessible by AI assistants
-- **Manifest UI Components**: Built with [Manifest Agentic UI](https://ui.manifest.build) components (Table, BlogPostList)
-- **Dark Mode Support**: Full dark/light theme support across all components
+- **Visual Flow Editor**: Drag-and-drop node-based interface powered by @xyflow/react
+- **Workflow Execution Engine**: Execute flows with context passing between nodes
+- **MCP Server Publishing**: Deploy workflows as MCP tools for AI assistant integration
+- **AI-Powered Customization**: Refine workflows through natural language chat (LangChain + OpenAI)
+- **External Connectors**: Integrate with external services via encrypted credentials
+- **Dark Mode Support**: Full dark/light theme support
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React 18, Vite, TypeScript, Tailwind CSS, React Router 7 |
+| **Frontend** | React 18, Vite 6, TypeScript 5.7, @xyflow/react, TailwindCSS, CodeMirror 6 |
 | **Backend** | NestJS 10, TypeORM, LangChain |
 | **Database** | SQLite (via better-sqlite3) |
 | **AI** | LangChain with OpenAI |
-| **UI Components** | Manifest UI (shadcn-based) |
 | **Monorepo** | Turborepo with pnpm workspaces |
 
 ## Project Structure
@@ -29,26 +28,52 @@ generator/
 ├── packages/
 │   ├── frontend/          # React + Vite application
 │   │   └── src/
-│   │       ├── components/    # UI components
-│   │       ├── lib/           # Utilities & mappers
-│   │       └── pages/         # Route pages
+│   │       ├── components/    # UI & editor components
+│   │       ├── pages/         # Route pages
+│   │       ├── hooks/         # React hooks
+│   │       └── lib/           # Utilities
 │   ├── backend/           # NestJS API server
 │   │   └── src/
-│   │       ├── agent/         # AI agent (LangChain)
-│   │       ├── mcp/           # MCP server & templates
-│   │       └── entities/      # TypeORM entities
-│   └── shared/            # Shared types & constants
+│   │       ├── flow/          # Flow CRUD & persistence
+│   │       ├── flow-execution/# Execution engine
+│   │       ├── node/          # Node type schemas
+│   │       ├── connector/     # External integrations
+│   │       ├── mcp/           # MCP server implementation
+│   │       └── agent/         # LangChain AI agent
+│   ├── nodes/             # Node type definitions
+│   │   └── src/nodes/
+│   │       ├── trigger/       # UserIntent trigger node
+│   │       ├── action/        # ApiCall node
+│   │       ├── interface/     # StatCard, PostList UI nodes
+│   │       ├── transform/     # JavaScriptCode transform node
+│   │       └── return/        # Return, CallFlow, Link nodes
+│   └── shared/            # Shared types & schemas
 ├── specs/                 # Feature specifications
+├── Dockerfile             # Multi-stage production build
+├── docker-compose.yml     # Container orchestration
 └── turbo.json             # Turborepo configuration
 ```
+
+## Node Types
+
+| Category | Node | Description |
+|----------|------|-------------|
+| **Trigger** | UserIntent | Entry point for MCP tools, defines user input schema |
+| **Action** | ApiCall | Make HTTP requests to external APIs |
+| **Interface** | StatCard | Display metric cards with values |
+| **Interface** | PostList | Render lists of posts/content items |
+| **Transform** | JavaScriptCode | Transform data with custom JavaScript |
+| **Return** | Return | Return flow output to caller |
+| **Return** | CallFlow | Execute nested flows |
+| **Return** | Link | Navigate to external URLs |
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- pnpm >= 9.0.0 (install via `npm install -g pnpm` or use corepack: `corepack enable`)
-- OpenAI API key
+- pnpm >= 9.0.0 (`corepack enable` or `npm install -g pnpm`)
+- OpenAI API key (optional, for AI customization)
 
 ### Installation
 
@@ -62,13 +87,13 @@ pnpm install
 
 # Configure environment
 cp packages/backend/.env.example packages/backend/.env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and set CONNECTOR_ENCRYPTION_KEY (and optionally OPENAI_API_KEY)
 ```
 
 ### Development
 
 ```bash
-# Start all services (frontend, backend, shared)
+# Start all services
 pnpm dev
 ```
 
@@ -77,31 +102,42 @@ This starts:
 - **Backend API**: http://localhost:3001/api
 - **MCP Servers**: http://localhost:3001/servers/{slug}/mcp
 
-### Build
+### Build & Quality
 
 ```bash
-# Build all packages
-pnpm build
-
-# Type check
-pnpm type-check
-
-# Lint
-pnpm lint
+pnpm build        # Build all packages
+pnpm type-check   # TypeScript validation
+pnpm lint         # ESLint checks
+pnpm clean        # Clean build artifacts
 ```
 
-## How It Works
+## Docker Deployment
 
-1. **Create**: Enter a natural language prompt describing your app (e.g., "Show a list of blog posts about technology")
+### Using Docker Compose
 
-2. **Customize**: Use the chat panel to refine your app:
-   - "Change the primary color to blue"
-   - "Switch to a table layout"
-   - "Add more sample data"
+```bash
+# Build and run
+docker compose up --build
 
-3. **Publish**: Deploy your app to the MCP server with one click
+# Run in background
+docker compose up -d
 
-4. **Connect**: Use the generated MCP endpoint in any AI assistant that supports the Model Context Protocol
+# View logs
+docker compose logs -f app
+
+# Stop
+docker compose down
+```
+
+### Standalone Docker
+
+```bash
+docker build -t chatgpt-app-builder .
+docker run -p 3001:3001 \
+  -e OPENAI_API_KEY=sk-... \
+  -e CONNECTOR_ENCRYPTION_KEY=your-key \
+  chatgpt-app-builder
+```
 
 ## API Endpoints
 
@@ -112,15 +148,33 @@ pnpm lint
 | `GET` | `/api/apps/:id` | Get app details |
 | `PATCH` | `/api/apps/:id` | Update app |
 | `POST` | `/api/apps/:id/publish` | Publish to MCP |
-| `POST` | `/api/views/:id/chat` | Chat with AI agent |
+| `GET` | `/api/flows` | List flows |
+| `POST` | `/api/flows/:flowId/execute` | Execute a flow |
+| `GET` | `/api/node-types` | Available node type schemas |
+| `POST` | `/api/chat` | AI chat endpoint |
 | `GET` | `/servers/:slug/mcp` | MCP server endpoint |
 
-## Layout Templates
+## How It Works
 
-| Template | Component | Use Case |
-|----------|-----------|----------|
-| **Table** | Manifest Table | Tabular data, lists, order history |
-| **Post List** | Manifest BlogPostList | Content feeds, articles, blog posts |
+1. **Design**: Create flows visually by connecting nodes in the editor
+2. **Configure**: Set node parameters, API endpoints, and data transformations
+3. **Execute**: Test flows directly or via the execution engine
+4. **Publish**: Deploy as an MCP server with one click
+5. **Connect**: Use the MCP endpoint in any AI assistant supporting Model Context Protocol
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CONNECTOR_ENCRYPTION_KEY` | Yes | 32-byte hex key for encrypting connector credentials |
+| `OPENAI_API_KEY` | No | OpenAI API key for AI customization features |
+| `PORT` | No | Server port (default: 3001) |
+| `NODE_ENV` | No | Environment mode (development/production) |
+
+Generate encryption key:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
 ## License
 
