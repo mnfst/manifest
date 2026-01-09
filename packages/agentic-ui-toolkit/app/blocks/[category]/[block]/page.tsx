@@ -430,7 +430,7 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'data',
+    id: 'list',
     name: 'List',
     blocks: [
       {

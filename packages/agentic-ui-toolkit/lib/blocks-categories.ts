@@ -26,7 +26,7 @@ export const blockCategories: BlockCategory[] = [
     ]
   },
   {
-    id: 'data',
+    id: 'list',
     name: 'Lists & Tables',
     blocks: [{ id: 'table', name: 'Table' }]
   },
