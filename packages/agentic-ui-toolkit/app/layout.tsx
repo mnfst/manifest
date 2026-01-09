@@ -38,9 +38,17 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
+        url: '/og-image.webp',
+        width: 1280,
+        height: 640,
+        type: 'image/webp',
+        alt: 'Manifest UI - Open Source Agentic UI Toolkit'
+      },
+      {
         url: '/og-image.png',
-        width: 1200,
-        height: 630,
+        width: 1280,
+        height: 640,
+        type: 'image/png',
         alt: 'Manifest UI - Open Source Agentic UI Toolkit'
       }
     ]
@@ -50,7 +58,7 @@ export const metadata: Metadata = {
     title: 'ChatGPT apps shadcn/ui components - Manifest UI',
     description:
       'Beautifully designed components for building ChatGPT apps and agentic UIs. Built on top of shadcn/ui.',
-    images: ['/og-image.png']
+    images: ['/og-image.webp', '/og-image.png']
   }
 }
 
