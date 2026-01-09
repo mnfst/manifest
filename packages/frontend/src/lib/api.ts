@@ -4,9 +4,6 @@ import type {
   CreateAppRequest,
   UpdateAppRequest,
   DeleteAppResponse,
-  GenerateAppRequest,
-  ChatRequest,
-  ChatResponse,
   PublishResult,
   ApiError,
   Flow,
@@ -420,54 +417,6 @@ export const api = {
   async deleteConnection(flowId: string, connectionId: string): Promise<void> {
     await fetchApi<void>(`/flows/${flowId}/connections/${connectionId}`, {
       method: 'DELETE',
-    });
-  },
-
-  // ============================================
-  // Legacy APIs (deprecated, for backwards compatibility)
-  // ============================================
-
-  /**
-   * Generate a new app from a prompt
-   * POST /api/generate
-   * @deprecated Use createApp + createFlow instead
-   */
-  async generateApp(request: GenerateAppRequest): Promise<App> {
-    return fetchApi<App>('/generate', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Get the current session app
-   * GET /api/current
-   * @deprecated Use getApp instead
-   */
-  async getCurrentApp(): Promise<App> {
-    return fetchApi<App>('/current');
-  },
-
-  /**
-   * Send a chat message to customize the app
-   * POST /api/chat
-   * @deprecated Use view-scoped chat instead
-   */
-  async chat(request: ChatRequest): Promise<ChatResponse> {
-    return fetchApi<ChatResponse>('/chat', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Publish the current app to MCP server
-   * POST /api/publish
-   * @deprecated Use publishAppById instead
-   */
-  async publishApp(): Promise<PublishResult> {
-    return fetchApi<PublishResult>('/publish', {
-      method: 'POST',
     });
   },
 
