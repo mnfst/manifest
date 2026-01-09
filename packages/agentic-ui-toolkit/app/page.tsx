@@ -365,7 +365,7 @@ export default function Home() {
                 rel="noreferrer"
                 className="inline-flex items-center justify-center rounded-full border border-foreground text-foreground px-8 py-3 text-base font-medium hover:bg-foreground/10 transition-colors"
               >
-                Suggest a block
+                Suggest a Block
               </a>
             </div>
           </div>

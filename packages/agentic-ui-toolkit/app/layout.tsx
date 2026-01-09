@@ -1,3 +1,4 @@
+import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 import { Analytics } from '@vercel/analytics/next'
@@ -81,6 +82,7 @@ export default function RootLayout({
         >
           <Header />
           <main>{children}</main>
+          <Footer />
         </ThemeProvider>
         <Analytics />
         <Script
