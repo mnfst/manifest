@@ -32,7 +32,7 @@ const footerLinks = [
   { href: '/blocks', label: 'Blocks' },
   {
     href: 'https://github.com/mnfst/manifest/discussions/new?category=feature-request',
-    label: 'Suggest a block',
+    label: 'Suggest a Block',
     external: true
   },
   {
