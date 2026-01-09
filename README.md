@@ -178,4 +178,4 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+UNLICENSED - Proprietary software by MNFST, Inc.
