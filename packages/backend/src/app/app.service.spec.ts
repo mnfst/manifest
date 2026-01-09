@@ -17,7 +17,6 @@ import { AppService } from './app.service';
 import { AppEntity } from './app.entity';
 import {
   createMockRepository,
-  createMockQueryBuilder,
   getMockQueryBuilder,
   type MockRepository,
 } from './test/mock-repository';
