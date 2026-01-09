@@ -118,6 +118,15 @@ Run `pnpm test` to verify version changes are valid. Tests will fail if:
 - A component file was modified but version wasn't bumped
 - Version format is invalid (must be `X.Y.Z` where X, Y, Z are non-negative integers)
 
+### IMPORTANT: Always Bump Versions
+
+**This is enforced by automated tests.** The test suite (`__tests__/version-bump.test.ts`) compares your changes against the base branch and will **fail the build** if:
+
+1. You modified any file in `registry/**/*.tsx`
+2. But did NOT update the corresponding component's `version` in `registry.json`
+
+This ensures that all component changes are properly versioned for consumers of the registry.
+
 ## Analytics Tracking (Vercel)
 
 **IMPORTANT**: When adding or updating blocks, maintain Vercel Analytics tracking for user interactions.

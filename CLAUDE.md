@@ -240,10 +240,37 @@ When adding a block to `app/blocks/page.tsx`, follow this pattern:
 }
 ```
 
+### Version Bump Requirements (CRITICAL)
+
+**Every modification to a block's source files MUST include a version bump in `registry.json`.**
+
+This is enforced by automated tests that will fail if:
+1. You modified any file in `registry/**/*.tsx`
+2. But did NOT update the corresponding component's `version` in `registry.json`
+
+#### Semantic Versioning Guide
+
+| Change Type | Version Bump | Examples |
+|-------------|--------------|----------|
+| **PATCH** | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, refactoring without API changes |
+| **MINOR** | `1.0.0` → `1.1.0` | New features, new optional props, new variants |
+| **MAJOR** | `1.0.0` → `2.0.0` | Breaking changes: removing/renaming props, changing behavior |
+
+#### Example
+
+```json
+// Before modifying message-bubble.tsx
+{ "name": "message-bubble", "version": "1.0.0", ... }
+
+// After bug fix - bump PATCH
+{ "name": "message-bubble", "version": "1.0.1", ... }
+```
+
 ### Checklist for Block Changes
 
 Before submitting a PR with block changes:
 
+- [ ] **Version bumped in `registry.json`** (REQUIRED - tests will fail otherwise)
 - [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
 - [ ] Block is registered in `registry.json` with correct dependencies
 - [ ] Block demo added to `app/blocks/page.tsx` with ALL variants
