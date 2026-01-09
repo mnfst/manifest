@@ -10,7 +10,10 @@
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",
-    "db:init": "ts-node src/scripts/init-db.ts"
+    "db:init": "ts-node src/scripts/init-db.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@chatgpt-app-builder/nodes": "workspace:*",
@@ -33,6 +36,10 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@nestjs/testing": "^10.4.15",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "@swc/jest": "^0.2.37",
     "@nestjs/cli": "^10.4.9",
     "node-addon-api": "^8.3.1",
     "node-gyp": "^11.2.0",
