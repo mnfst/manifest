@@ -180,15 +180,42 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
   const { onReact } = actions ?? {}
   const { isOwn = false } = appearance ?? {}
   const [reactions, setReactions] = useState(initialReactions)
+  // Track which emojis the current user has reacted with
+  const [userReactions, setUserReactions] = useState<Set<string>>(new Set())
 
   const handleReact = (emoji: string) => {
+    const hasUserReacted = userReactions.has(emoji)
     const existingIndex = reactions.findIndex((r) => r.emoji === emoji)
-    if (existingIndex >= 0) {
-      const updated = [...reactions]
-      updated[existingIndex] = { ...updated[existingIndex], count: updated[existingIndex].count + 1 }
-      setReactions(updated)
+
+    if (hasUserReacted) {
+      // User already reacted - toggle off (decrement)
+      if (existingIndex >= 0) {
+        const updated = [...reactions]
+        if (updated[existingIndex].count <= 1) {
+          // Remove reaction entirely if count would become 0
+          updated.splice(existingIndex, 1)
+        } else {
+          updated[existingIndex] = { ...updated[existingIndex], count: updated[existingIndex].count - 1 }
+        }
+        setReactions(updated)
+      }
+      // Remove from user's reactions
+      setUserReactions((prev) => {
+        const next = new Set(prev)
+        next.delete(emoji)
+        return next
+      })
     } else {
-      setReactions([...reactions, { emoji, count: 1 }])
+      // User hasn't reacted - add reaction
+      if (existingIndex >= 0) {
+        const updated = [...reactions]
+        updated[existingIndex] = { ...updated[existingIndex], count: updated[existingIndex].count + 1 }
+        setReactions(updated)
+      } else {
+        setReactions([...reactions, { emoji, count: 1 }])
+      }
+      // Add to user's reactions
+      setUserReactions((prev) => new Set(prev).add(emoji))
     }
     onReact?.(emoji)
   }
@@ -220,15 +247,25 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
           {reactions && reactions.length > 0 && (
             <>
               {reactions.map((reaction, index) => (
-                <span
+                <button
                   key={index}
-                  className="inline-flex items-center gap-0.5 bg-card border rounded-full px-1.5 py-0.5 text-xs"
+                  onClick={() => handleReact(reaction.emoji)}
+                  className={cn(
+                    "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs transition-colors cursor-pointer",
+                    userReactions.has(reaction.emoji)
+                      ? "bg-primary/15 border border-primary/50"
+                      : "bg-card border hover:bg-muted"
+                  )}
                 >
                   {reaction.emoji}
-                  <span className="text-muted-foreground">
+                  <span className={cn(
+                    userReactions.has(reaction.emoji)
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  )}>
                     {reaction.count}
                   </span>
-                </span>
+                </button>
               ))}
             </>
           )}
