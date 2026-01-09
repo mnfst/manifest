@@ -66,7 +66,7 @@ export function YouTubePost({ data }: YouTubePostProps) {
           />
         ) : (
           <>
-            <img src={thumbnail} alt="Video" className="w-full h-full object-cover" />
+            <img src={thumbnail} alt={`Video thumbnail: ${title}`} className="w-full h-full object-cover" />
 
             {/* YouTube play button overlay */}
             <button

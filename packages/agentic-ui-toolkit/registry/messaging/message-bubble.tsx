@@ -115,7 +115,7 @@ export function ImageMessageBubble({ data, appearance, control }: ImageMessageBu
         >
           <img
             src={image}
-            alt="Shared image"
+            alt={caption || "Shared image in chat"}
             className="w-full max-w-[280px] h-auto object-cover"
           />
           {caption && (
