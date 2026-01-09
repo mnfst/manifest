@@ -283,3 +283,45 @@ Before submitting a PR with block changes:
 
 See individual package `CLAUDE.md` files for package-specific guidance:
 - `packages/agentic-ui-toolkit/CLAUDE.md` - UI toolkit development guidelines
+
+## SEO Guidelines for ui.manifest.build
+
+The agentic-ui-toolkit package powers https://ui.manifest.build. Follow these SEO best practices:
+
+### Automated SEO Tests
+
+SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm test` to verify:
+- Meta tags configuration
+- Sitemap and robots.txt presence
+- Structured data (JSON-LD)
+- Heading hierarchy
+- Image alt text
+
+### Key SEO Files
+
+| File | Purpose |
+|------|---------|
+| `app/layout.tsx` | Global metadata, JSON-LD structured data |
+| `app/sitemap.ts` | Dynamic sitemap generation |
+| `app/robots.ts` | Crawler directives |
+| `app/blocks/layout.tsx` | /blocks page metadata |
+
+### When Adding New Pages
+
+1. **Add page-specific metadata** using Next.js Metadata API
+2. **Update sitemap.ts** to include the new route
+3. **Use semantic HTML** - one `<h1>` per page, proper heading hierarchy
+4. **Add alt text** to all images
+
+### When Modifying Existing Pages
+
+1. **Preserve heading structure** - don't remove or duplicate `<h1>`
+2. **Keep alt text** on images descriptive and relevant
+3. **Run SEO tests** before committing: `pnpm test`
+
+### Image Best Practices
+
+- Always include descriptive `alt` attributes
+- Use Next.js `Image` component when possible for optimization
+- Keep OG images under 100KB
+
