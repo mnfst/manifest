@@ -1,14 +1,25 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import type { ApiCallNodeParameters, HeaderEntry, JSONSchema } from '@chatgpt-app-builder/shared';
+import type { ApiCallNodeParameters, HeaderEntry, JSONSchema, ApiExecutionMetadata } from '@chatgpt-app-builder/shared';
+
+/**
+ * Execution metadata for API call nodes.
+ */
+interface ApiCallExecutionMetadata extends ApiExecutionMetadata {
+  success: boolean;
+  error?: string;
+  durationMs: number;
+  httpStatus?: number;
+  httpStatusText?: string;
+  requestUrl?: string;
+}
 
 /**
  * Output structure produced by the ApiCallNode.
+ * Data is at root level with _execution metadata.
  */
 interface ApiCallOutput {
   /** Discriminator for output type */
   type: 'apiCall';
-  /** true if request completed (even 4xx/5xx) */
-  success: boolean;
   /** HTTP status code */
   status?: number;
   /** HTTP status text */
@@ -17,10 +28,8 @@ interface ApiCallOutput {
   headers?: Record<string, string>;
   /** Parsed response body (JSON or text) */
   body?: unknown;
-  /** Error message when success=false */
-  error?: string;
-  /** Time taken for request in milliseconds */
-  requestDuration: number;
+  /** Execution metadata */
+  _execution: ApiCallExecutionMetadata;
 }
 
 /**
@@ -131,7 +140,6 @@ export const ApiCallNode: NodeTypeDefinition = {
       type: 'object',
       properties: {
         type: { type: 'string', const: 'apiCall', 'x-field-source': 'static' },
-        success: { type: 'boolean', description: 'Whether the request completed', 'x-field-source': 'static' },
         status: { type: 'integer', description: 'HTTP status code', 'x-field-source': 'static' },
         statusText: { type: 'string', description: 'HTTP status text', 'x-field-source': 'static' },
         headers: {
@@ -144,10 +152,22 @@ export const ApiCallNode: NodeTypeDefinition = {
           description: 'Response body (JSON parsed if Content-Type is application/json)',
           'x-field-source': 'dynamic',
         },
-        error: { type: 'string', description: 'Error message if request failed', 'x-field-source': 'static' },
-        requestDuration: { type: 'number', description: 'Request duration in milliseconds', 'x-field-source': 'static' },
+        _execution: {
+          type: 'object',
+          description: 'Execution metadata',
+          properties: {
+            success: { type: 'boolean', description: 'Whether the request succeeded' },
+            error: { type: 'string', description: 'Error message if request failed' },
+            durationMs: { type: 'number', description: 'Request duration in milliseconds' },
+            httpStatus: { type: 'integer', description: 'HTTP status code' },
+            httpStatusText: { type: 'string', description: 'HTTP status text' },
+            requestUrl: { type: 'string', description: 'The URL that was called' },
+          },
+          required: ['success', 'durationMs'],
+          'x-field-source': 'static',
+        },
       },
-      required: ['type', 'success', 'requestDuration'],
+      required: ['type', '_execution'],
     } as JSONSchema;
   },
 
@@ -168,15 +188,18 @@ export const ApiCallNode: NodeTypeDefinition = {
 
     // Validate URL is not empty
     if (!rawUrl || !rawUrl.trim()) {
+      const output: ApiCallOutput = {
+        type: 'apiCall',
+        _execution: {
+          success: false,
+          error: 'URL is required for API Call node',
+          durationMs: Date.now() - startTime,
+        },
+      };
       return {
         success: false,
         error: 'URL is required for API Call node',
-        output: {
-          type: 'apiCall',
-          success: false,
-          error: 'URL is required for API Call node',
-          requestDuration: Date.now() - startTime,
-        } satisfies ApiCallOutput,
+        output,
       };
     }
 
@@ -228,14 +251,20 @@ export const ApiCallNode: NodeTypeDefinition = {
           body = responseText;
         }
 
+        const durationMs = Date.now() - startTime;
         const output: ApiCallOutput = {
           type: 'apiCall',
-          success: true,
           status: response.status,
           statusText: response.statusText,
           headers: responseHeaders,
           body,
-          requestDuration: Date.now() - startTime,
+          _execution: {
+            success: true,
+            durationMs,
+            httpStatus: response.status,
+            httpStatusText: response.statusText,
+            requestUrl: url,
+          },
         };
 
         return {
@@ -244,14 +273,18 @@ export const ApiCallNode: NodeTypeDefinition = {
         };
       } catch (err) {
         clearTimeout(timeoutId);
+        const durationMs = Date.now() - startTime;
 
         // Handle abort error (timeout)
         if (err instanceof Error && err.name === 'AbortError') {
           const output: ApiCallOutput = {
             type: 'apiCall',
-            success: false,
-            error: `Request timeout after ${timeout}ms`,
-            requestDuration: Date.now() - startTime,
+            _execution: {
+              success: false,
+              error: `Request timeout after ${timeout}ms`,
+              durationMs,
+              requestUrl: url,
+            },
           };
           return {
             success: false,
@@ -264,9 +297,12 @@ export const ApiCallNode: NodeTypeDefinition = {
         const message = err instanceof Error ? err.message : 'Unknown network error';
         const output: ApiCallOutput = {
           type: 'apiCall',
-          success: false,
-          error: `Network error: ${message}`,
-          requestDuration: Date.now() - startTime,
+          _execution: {
+            success: false,
+            error: `Network error: ${message}`,
+            durationMs,
+            requestUrl: url,
+          },
         };
         return {
           success: false,
@@ -279,9 +315,11 @@ export const ApiCallNode: NodeTypeDefinition = {
       const message = err instanceof Error ? err.message : 'Unknown error';
       const output: ApiCallOutput = {
         type: 'apiCall',
-        success: false,
-        error: `API Call failed: ${message}`,
-        requestDuration: Date.now() - startTime,
+        _execution: {
+          success: false,
+          error: `API Call failed: ${message}`,
+          durationMs: Date.now() - startTime,
+        },
       };
       return {
         success: false,

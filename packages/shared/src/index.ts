@@ -116,6 +116,20 @@ export type {
   ExecutionListItem,
   ExecutionListResponse,
   ExecutionListQuery,
+  // Node output execution metadata
+  ExecutionMetadata,
+  ApiExecutionMetadata,
+  TransformExecutionMetadata,
+  NodeOutput,
+  PrimitiveOutput,
+} from './types/execution.js';
+export {
+  hasExecutionMetadata,
+  isSuccessfulExecution,
+  isApiExecutionMetadata,
+  extractOutputData,
+  createSuccessMetadata,
+  createErrorMetadata,
 } from './types/execution.js';
 
 // String utilities

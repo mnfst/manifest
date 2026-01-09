@@ -976,12 +976,12 @@ export function NodeEditModal({
                                     key={field.path}
                                     type="button"
                                     onClick={() => {
-                                      navigator.clipboard.writeText(`input.${field.path}`);
+                                      navigator.clipboard.writeText(`input.${node.slug}.${field.path}`);
                                     }}
                                     className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-teal-300 rounded text-xs font-mono text-teal-800 hover:bg-teal-100 hover:border-teal-400 transition-colors"
-                                    title={`Click to copy: input.${field.path}${field.description ? `\n${field.description}` : ''}`}
+                                    title={`Click to copy: input.${node.slug}.${field.path}${field.description ? `\n${field.description}` : ''}`}
                                   >
-                                    <span>input.{field.path}</span>
+                                    <span>input.{node.slug}.{field.path}</span>
                                     <span className="text-teal-500">: {field.type}</span>
                                   </button>
                                 ))}
@@ -1005,13 +1005,14 @@ export function NodeEditModal({
                     Transform Function
                   </label>
                   <p className="text-xs text-gray-500 mb-2">
-                    Write a TypeScript function that transforms the input data. The function receives <code className="bg-gray-100 px-1 rounded">input</code> and should return the transformed result.
+                    Write a TypeScript function that transforms the input data. The function receives <code className="bg-gray-100 px-1 rounded">input</code> with data from all connected nodes keyed by slug (e.g., <code className="bg-gray-100 px-1 rounded">input.nodeSlug.field</code>).
                   </p>
                   <CodeEditor
                     value={transformCode}
                     onChange={setTransformCode}
                     placeholder={`function transform(input: Input) {
-  // Transform the input data
+  // Access data from connected nodes by their slug
+  // e.g., input.callPokemonApi.body, input.listPokemons.triggered
   return input;
 }`}
                     height="250px"

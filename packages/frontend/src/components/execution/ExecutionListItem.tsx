@@ -1,10 +1,13 @@
 import type { ExecutionListItem as ExecutionListItemType } from '@chatgpt-app-builder/shared';
 import { ExecutionStatusBadge } from './ExecutionStatusBadge';
+import { AlertTriangle } from 'lucide-react';
 
 interface ExecutionListItemProps {
   execution: ExecutionListItemType;
   selected: boolean;
   onClick: () => void;
+  /** Optional: Name of the failed node (for error executions) */
+  failedNodeName?: string;
 }
 
 function formatDuration(ms: number | undefined): string {
@@ -35,7 +38,10 @@ export function ExecutionListItem({
   execution,
   selected,
   onClick,
+  failedNodeName,
 }: ExecutionListItemProps) {
+  const isError = execution.status === 'error';
+
   return (
     <button
       onClick={onClick}
@@ -65,6 +71,13 @@ export function ExecutionListItem({
             <p className="text-sm text-gray-500 truncate mt-0.5">
               {execution.initialParamsPreview}
             </p>
+          )}
+          {/* Show failed node indicator for error executions */}
+          {isError && failedNodeName && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+              <AlertTriangle className="w-3 h-3" />
+              <span className="truncate">Failed at: {failedNodeName}</span>
+            </div>
           )}
         </div>
       </div>

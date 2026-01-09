@@ -1,4 +1,4 @@
-import type { JSONSchema } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, ExecutionMetadata } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 
 /**
@@ -124,6 +124,9 @@ export const PostListNode: NodeTypeDefinition = {
       output: {
         type: 'interface',
         layoutTemplate,
+        _execution: {
+          success: true,
+        } as ExecutionMetadata,
       },
     };
   },

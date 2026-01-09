@@ -604,11 +604,20 @@ export class NodeService {
       const transformFunction = new Function('input', executableCode);
 
       // Execute the transform with the sample input
-      const output = transformFunction(sampleInput);
+      const rawOutput = transformFunction(sampleInput);
 
-      const executionTimeMs = Math.round(performance.now() - startTime);
+      const durationMs = Math.round(performance.now() - startTime);
 
-      // Infer the schema from the output
+      // Spread transformed data at root with _execution metadata (matches actual execution)
+      const output = {
+        ...(typeof rawOutput === 'object' && rawOutput !== null ? rawOutput : { _value: rawOutput }),
+        _execution: {
+          success: true,
+          durationMs,
+        },
+      };
+
+      // Infer the schema from the output (now includes _execution)
       const outputSchema = inferSchemaFromSample(output);
 
       return {

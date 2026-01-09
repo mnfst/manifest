@@ -630,12 +630,17 @@ export class McpToolService {
       }
     }
 
-    // Find the upstream node connected to this transform node
-    const incomingConnection = connections.find(c => c.targetNodeId === node.id);
-    let upstreamOutput: unknown = {};
+    // Find ALL upstream nodes connected to this transform node
+    const incomingConnections = connections.filter(c => c.targetNodeId === node.id);
 
-    if (incomingConnection) {
-      upstreamOutput = nodeOutputs.get(incomingConnection.sourceNodeId) || {};
+    // Build an object with all predecessor outputs keyed by their slug
+    const upstreamOutput: Record<string, unknown> = {};
+    for (const conn of incomingConnections) {
+      const sourceNode = allNodes.find(n => n.id === conn.sourceNodeId);
+      if (sourceNode) {
+        const slug = sourceNode.slug || sourceNode.id;
+        upstreamOutput[slug] = nodeOutputs.get(conn.sourceNodeId) || {};
+      }
     }
 
     // Create execution context for the Transform node
@@ -664,12 +669,12 @@ export class McpToolService {
 
     try {
       const result = await JavaScriptCodeTransform.execute(context);
-      // The transform node wraps output in { type: 'transform', success: boolean, data: ... }
-      const transformOutput = result.output as { type: string; success: boolean; data?: unknown; error?: string };
-      if (transformOutput && transformOutput.success) {
-        return { success: true, output: transformOutput.data };
+      // The transform node spreads data at root with _execution metadata
+      const transformOutput = result.output as Record<string, unknown> & { _execution?: { success: boolean; error?: string } };
+      if (transformOutput?._execution?.success) {
+        return { success: true, output: transformOutput };
       } else {
-        return { success: false, output: undefined, error: transformOutput?.error || result.error };
+        return { success: false, output: undefined, error: transformOutput?._execution?.error || result.error };
       }
     } catch (error) {
       return {
@@ -1381,10 +1386,24 @@ export class McpToolService {
         down: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>',
         neutral: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
       };
-      function getToolData() { return window.openai && window.openai.toolOutput ? window.openai.toolOutput : null; }
-      function initWidget() { var data = getToolData(); if (data) renderStats(data); }
-      window.addEventListener('openai:set_globals', function(e) { if (e.detail && e.detail.toolOutput) renderStats(e.detail.toolOutput); });
-      window.addEventListener('message', function(e) { if (e.data) renderStats(e.data.structuredContent || e.data); });
+      function unwrap(d) { return (d && d.structuredContent) ? d.structuredContent : d; }
+      function getToolData() {
+        if (!window.openai) return null;
+        // Check multiple possible locations for tool output
+        return window.openai.toolOutput || window.openai.structuredContent || null;
+      }
+      function initWidget() { var data = getToolData(); if (data) renderStats(unwrap(data)); }
+      window.addEventListener('openai:set_globals', function(e) {
+        if (!e.detail) return;
+        var output = e.detail.toolOutput || e.detail.structuredContent || (e.detail.globals && e.detail.globals.toolOutput);
+        if (output) renderStats(unwrap(output));
+      });
+      window.addEventListener('message', function(e) {
+        if (!e.data) return;
+        // Only handle messages that look like tool output data
+        var d = e.data.structuredContent || e.data;
+        if (d && d.stats) renderStats(d);
+      });
       function renderStats(data) {
         var grid = document.getElementById('stats-grid');
         var empty = document.getElementById('empty-message');
