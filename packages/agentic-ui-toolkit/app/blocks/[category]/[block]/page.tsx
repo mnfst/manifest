@@ -54,6 +54,9 @@ import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 // UI components
 import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section'
 
+// SEO components
+import { Breadcrumb } from '@/components/seo/breadcrumb'
+
 // Types for the new structure
 interface BlockVariant {
   id: string
@@ -1391,8 +1394,17 @@ function BlockPageContent() {
       {/* Main content */}
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         <div className="max-w-3xl mx-auto space-y-12">
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb
+            items={[
+              { name: 'Blocks', href: '/blocks' },
+              { name: selectedCategory?.name || categorySlug },
+              { name: selectedBlock.name }
+            ]}
+          />
+
           {/* Block Title */}
-          <div className="group" id={selectedBlock.id}>
+          <div className="group -mt-8" id={selectedBlock.id}>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
               <CopyLinkButton />
