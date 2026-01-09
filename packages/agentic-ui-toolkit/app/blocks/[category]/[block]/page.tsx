@@ -1,10 +1,10 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { ChevronRight, Zap } from 'lucide-react'
+import { ChevronRight, Link as LinkIcon, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { Suspense, useRef, useState } from 'react'
+import { useParams, usePathname } from 'next/navigation'
+import { Suspense, useEffect, useRef, useState } from 'react'
 
 // Form components
 import { ContactForm } from '@/registry/form/contact-form'
@@ -52,7 +52,6 @@ import { XPost } from '@/registry/miscellaneous/x-post'
 import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 
 // UI components
-import { GettingStarted } from '@/components/blocks/getting-started'
 import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section'
 
 // Types for the new structure
@@ -82,6 +81,8 @@ interface Category {
   blocks: BlockGroup[]
 }
 
+// Import categories data - this is the same data structure from the main page
+// In a production app, this would be in a shared file
 const categories: Category[] = [
   {
     id: 'blog',
@@ -272,28 +273,6 @@ const categories: Category[] = [
         readTime: "5 min read",
         tags: ["Tutorial", "Components"],
         category: "Tutorial"
-      },
-      {
-        id: "2",
-        title: "Designing for Conversational Interfaces",
-        excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
-        coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
-        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
-        publishedAt: "2024-01-12",
-        readTime: "8 min read",
-        tags: ["Design", "UX"],
-        category: "Design"
-      },
-      {
-        id: "3",
-        title: "MCP Integration Patterns",
-        excerpt: "How to leverage Model Context Protocol for seamless backend communication.",
-        coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
-        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
-        publishedAt: "2024-01-10",
-        readTime: "12 min read",
-        tags: ["MCP", "Backend"],
-        category: "Development"
       }
     ]
   }}
@@ -313,46 +292,7 @@ const categories: Category[] = [
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostList
-  data={{
-    posts: [
-      {
-        id: "1",
-        title: "Getting Started with Agentic UI Components",
-        excerpt: "Learn how to build conversational interfaces.",
-        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
-        publishedAt: "2024-01-15",
-        readTime: "5 min",
-        category: "Tutorial"
-      },
-      {
-        id: "2",
-        title: "Designing for Conversational Interfaces",
-        excerpt: "Best practices for creating intuitive UI components.",
-        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
-        publishedAt: "2024-01-12",
-        readTime: "8 min",
-        category: "Design"
-      },
-      {
-        id: "3",
-        title: "MCP Integration Patterns",
-        excerpt: "Seamless backend communication with MCP.",
-        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
-        publishedAt: "2024-01-10",
-        readTime: "12 min",
-        category: "Development"
-      },
-      {
-        id: "4",
-        title: "Building Payment Flows in Chat",
-        excerpt: "Implementing secure payment experiences.",
-        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
-        publishedAt: "2024-01-08",
-        readTime: "10 min",
-        category: "Tutorial"
-      }
-    ]
-  }}
+  data={{ posts: [...] }}
   appearance={{
     variant: "grid",
     columns: 2,
@@ -370,42 +310,7 @@ const categories: Category[] = [
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
             fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostList
-  data={{
-    posts: [
-      {
-        id: "1",
-        title: "Getting Started with Agentic UI",
-        excerpt: "Build conversational interfaces with our component library.",
-        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
-        publishedAt: "2024-01-15",
-        category: "Tutorial"
-      },
-      {
-        id: "2",
-        title: "Designing for Chat",
-        excerpt: "Best practices for chat UI components.",
-        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
-        publishedAt: "2024-01-12",
-        category: "Design"
-      },
-      {
-        id: "3",
-        title: "MCP Integration",
-        excerpt: "Backend communication with MCP.",
-        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
-        publishedAt: "2024-01-10",
-        category: "Development"
-      },
-      {
-        id: "4",
-        title: "Payment Flows",
-        excerpt: "Secure payments in chat.",
-        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
-        publishedAt: "2024-01-08",
-        category: "Tutorial"
-      }
-    ]
-  }}
+  data={{ posts: [...] }}
   appearance={{
     variant: "carousel",
     showAuthor: true,
@@ -446,13 +351,7 @@ const categories: Category[] = [
     showTitle: true
   }}
   actions={{
-    onSubmit: (data) => console.log("Form submitted:", {
-      name: data.firstName + " " + data.lastName,
-      email: data.email,
-      phone: data.countryCode + " " + data.phoneNumber,
-      message: data.message,
-      attachment: data.attachment?.name
-    })
+    onSubmit: (data) => console.log("Form submitted:", data)
   }}
   control={{
     isLoading: false
@@ -477,21 +376,10 @@ const categories: Category[] = [
   data={{
     title: "Select a Date & Time",
     availableDates: [
-      new Date(2025, 0, 7),  // Specific available dates
-      new Date(2025, 0, 8),
-      new Date(2025, 0, 14),
-      new Date(2025, 0, 15),
-      new Date(2025, 0, 21),
-      new Date(2025, 0, 22)
+      new Date(2025, 0, 7),
+      new Date(2025, 0, 8)
     ],
-    availableTimeSlots: [
-      "9:00am",
-      "10:00am",
-      "11:00am",
-      "2:00pm",
-      "3:00pm",
-      "4:00pm"
-    ],
+    availableTimeSlots: ["9:00am", "10:00am", "2:00pm"],
     timezone: "Eastern Time - US & Canada"
   }}
   appearance={{
@@ -500,14 +388,7 @@ const categories: Category[] = [
   }}
   actions={{
     onSelect: (date, time) => console.log("Selected:", { date, time }),
-    onNext: (date, time) => console.log("Confirmed booking:", {
-      date: date.toLocaleDateString(),
-      time: time
-    })
-  }}
-  control={{
-    selectedDate: null,
-    selectedTime: null
+    onNext: (date, time) => console.log("Confirmed:", { date, time })
   }}
 />`
           }
@@ -516,7 +397,7 @@ const categories: Category[] = [
       {
         id: 'issue-report-form',
         name: 'Issue Report Form',
-        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
+        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments.',
         registryName: 'issue-report-form',
         layouts: ['inline'],
         actionCount: 1,
@@ -528,51 +409,19 @@ const categories: Category[] = [
             usageCode: `<IssueReportForm
   data={{
     title: "Report an Issue",
-    teams: ["Engineering", "Product", "Design", "Support", "Operations"],
-    locations: ["New York - HQ", "San Francisco - Office", "Remote"],
+    teams: ["Engineering", "Product", "Design"],
+    locations: ["New York - HQ", "San Francisco"],
     categories: {
-      Software: ["Business App", "Email", "Browser", "VPN"],
-      Hardware: ["Computer", "Monitor", "Keyboard/Mouse", "Phone"],
-      Network: ["Internet Connection", "WiFi", "Server Access"],
-      Access: ["User Account", "Permissions", "Badge Access"]
-    },
-    impacts: [
-      { value: "critical", label: "Critical - Complete Blocker" },
-      { value: "high", label: "High - Severely Degraded" },
-      { value: "medium", label: "Medium - Partially Impacted" },
-      { value: "low", label: "Low - Minor Inconvenience" }
-    ],
-    urgencies: [
-      { value: "immediate", label: "Immediate" },
-      { value: "today", label: "Today" },
-      { value: "week", label: "This Week" }
-    ],
-    frequencies: [
-      { value: "permanent", label: "Permanent" },
-      { value: "frequent", label: "Frequent (multiple times/day)" },
-      { value: "occasional", label: "Occasional (few times/week)" }
-    ],
-    attemptedActions: [
-      "Restarted computer",
-      "Restarted application",
-      "Cleared cache",
-      "Asked a colleague"
-    ]
+      Software: ["Business App", "Email"],
+      Hardware: ["Computer", "Monitor"]
+    }
   }}
   appearance={{
     showTitle: true,
     compactMode: true
   }}
   actions={{
-    onSubmit: (formData) => console.log("Issue reported:", {
-      reporter: formData.declarantName,
-      email: formData.email,
-      team: formData.team,
-      category: formData.category + " > " + formData.subcategory,
-      title: formData.issueTitle,
-      impact: formData.impact,
-      urgency: formData.urgency
-    })
+    onSubmit: (formData) => console.log("Issue reported:", formData)
   }}
 />`
           }
@@ -605,11 +454,8 @@ const categories: Category[] = [
         description: "Nike",
         price: 119,
         image: "/demo/shoe-1.png",
-        rating: 4.9,
-        badge: "New",
-        inStock: true
-      },
-      // ... more products
+        rating: 4.9
+      }
     ]
   }}
   appearance={{ variant: "list", currency: "EUR" }}
@@ -667,27 +513,21 @@ const categories: Category[] = [
     title: "API Usage",
     columns: [
       { header: "Model", accessor: "model", sortable: true },
-      { header: "Input (w/ Cache)", accessor: "inputCache", sortable: true, align: "right" },
-      { header: "Output", accessor: "output", sortable: true, align: "right" },
-      { header: "Total Tokens", accessor: "totalTokens", sortable: true, align: "right" },
-      { header: "API Cost", accessor: "apiCost", sortable: true, align: "right", render: (value) => "$" + value.toFixed(2) }
+      { header: "Total Tokens", accessor: "totalTokens", sortable: true, align: "right" }
     ],
     rows: [
-      { model: "gpt-5", inputCache: 0, output: 103271, totalTokens: 2267482, apiCost: 0.0 },
-      { model: "claude-3.5-sonnet", inputCache: 176177, output: 8326, totalTokens: 647528, apiCost: 1.0 },
-      { model: "gemini-2.0-flash-exp", inputCache: 176100, output: 8326, totalTokens: 647528, apiCost: 0.0 }
-    ],
-    lastUpdated: new Date()
+      { model: "gpt-5", totalTokens: 2267482 },
+      { model: "claude-3.5-sonnet", totalTokens: 647528 }
+    ]
   }}
   appearance={{
     showHeader: true,
     showFooter: true,
-    maxRows: 5,
-    compact: false
+    maxRows: 5
   }}
   actions={{
-    onRefresh: () => console.log("Refreshing data..."),
-    onExpand: () => console.log("Expanding to fullscreen")
+    onRefresh: () => console.log("Refreshing..."),
+    onExpand: () => console.log("Expanding...")
   }}
 />`
           },
@@ -698,39 +538,19 @@ const categories: Category[] = [
               <TableDemo
                 data={{ title: 'Models' }}
                 appearance={{ selectable: 'single' }}
-                actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
               />
             ),
             fullscreenComponent: (
               <Table
                 data={{ title: 'Models' }}
                 appearance={{ selectable: 'single', displayMode: 'fullscreen' }}
-                actions={{ onCopy: (rows) => console.log('Copy:', rows) }}
               />
             ),
             usageCode: `<Table
-  data={{
-    title: "Models",
-    columns: [
-      { header: "Model", accessor: "model", sortable: true },
-      { header: "Input (w/ Cache)", accessor: "inputCache", sortable: true, align: "right" },
-      { header: "Output", accessor: "output", sortable: true, align: "right" },
-      { header: "Total Tokens", accessor: "totalTokens", sortable: true, align: "right" }
-    ],
-    rows: [
-      { model: "gpt-5", inputCache: 0, output: 103271, totalTokens: 2267482 },
-      { model: "claude-3.5-sonnet", inputCache: 176177, output: 8326, totalTokens: 647528 },
-      { model: "gemini-2.0-flash-exp", inputCache: 176100, output: 8326, totalTokens: 647528 }
-    ]
-  }}
-  appearance={{
-    selectable: "single",
-    showHeader: true,
-    showFooter: true
-  }}
+  data={{ title: "Models", columns: [...], rows: [...] }}
+  appearance={{ selectable: "single" }}
   actions={{
-    onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows),
-    onCopy: (rows) => console.log("Copy to clipboard:", rows)
+    onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows)
   }}
 />`
           },
@@ -741,48 +561,21 @@ const categories: Category[] = [
               <TableDemo
                 data={{ title: 'Export Data' }}
                 appearance={{ selectable: 'multi' }}
-                actions={{
-                  onDownload: (rows) => console.log('Download:', rows),
-                  onShare: (rows) => console.log('Share:', rows)
-                }}
               />
             ),
             fullscreenComponent: (
               <Table
                 data={{ title: 'Export Data' }}
                 appearance={{ selectable: 'multi', displayMode: 'fullscreen' }}
-                actions={{
-                  onDownload: (rows) => console.log('Download:', rows),
-                  onShare: (rows) => console.log('Share:', rows)
-                }}
               />
             ),
             usageCode: `<Table
-  data={{
-    title: "Export Data",
-    columns: [
-      { header: "Model", accessor: "model", sortable: true },
-      { header: "Input (w/ Cache)", accessor: "inputCache", sortable: true, align: "right" },
-      { header: "Output", accessor: "output", sortable: true, align: "right" },
-      { header: "API Cost", accessor: "apiCost", sortable: true, align: "right" }
-    ],
-    rows: [
-      { model: "gpt-5", inputCache: 0, output: 103271, apiCost: 0.0 },
-      { model: "claude-3.5-sonnet", inputCache: 176177, output: 8326, apiCost: 1.0 },
-      { model: "gemini-2.0-flash-exp", inputCache: 176100, output: 8326, apiCost: 0.0 }
-    ],
-    totalRows: 25
-  }}
-  appearance={{
-    selectable: "multi",
-    showHeader: true,
-    showFooter: true,
-    maxRows: 5
-  }}
+  data={{ title: "Export Data", columns: [...], rows: [...] }}
+  appearance={{ selectable: "multi" }}
   actions={{
-    onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows.length, "rows"),
-    onDownload: (rows) => console.log("Downloading", rows.length, "rows..."),
-    onShare: (rows) => console.log("Sharing", rows.length, "rows...")
+    onSelectionChange: (rows) => console.log("Selected:", rows.length),
+    onDownload: (rows) => console.log("Downloading..."),
+    onShare: (rows) => console.log("Sharing...")
   }}
 />`
           }
@@ -812,46 +605,16 @@ const categories: Category[] = [
     locations: [
       {
         id: "1",
-        name: "FOUND Hotel Carlton, Nob Hill",
+        name: "FOUND Hotel Carlton",
         subtitle: "Downtown San Francisco",
-        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop",
         price: 284,
-        priceSubtext: "USD • Includes taxes and fees",
         rating: 8.6,
         coordinates: [37.7879, -122.4137]
-      },
-      {
-        id: "2",
-        name: "Hotel Nikko San Francisco",
-        subtitle: "Union Square",
-        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop",
-        price: 299,
-        priceSubtext: "USD • Includes taxes and fees",
-        rating: 9.0,
-        coordinates: [37.7856, -122.4104]
-      },
-      {
-        id: "3",
-        name: "The Ritz-Carlton",
-        subtitle: "Nob Hill",
-        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop",
-        price: 527,
-        priceSubtext: "USD • Includes taxes and fees",
-        rating: 9.4,
-        coordinates: [37.7919, -122.4081]
       }
     ],
     center: [37.7899, -122.4034],
-    zoom: 14,
-    // Available styles (no API key required):
-    // "voyager" - Colorful, detailed, Apple Maps-like (default)
-    // "voyager-smooth" - Same as voyager with labels under roads
-    // "positron" - Light, minimal, clean
-    // "dark-matter" - Dark theme
-    // "openstreetmap" - Standard OSM
-    mapStyle: "voyager"
+    zoom: 14
   }}
-  appearance={{ mapHeight: "504px" }}
   actions={{
     onSelectLocation: (location) => console.log("Selected:", location.name)
   }}
@@ -939,19 +702,11 @@ const categories: Category[] = [
             ),
             usageCode: `<ImageMessageBubble
   data={{
-    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba",
+    image: "https://images.unsplash.com/...",
     caption: "Check out this view!",
     avatar: "A",
-    author: "Alex",
     time: "2:45 PM"
   }}
-/>
-
-// Own image message
-<ImageMessageBubble
-  data={{ image: "...", time: "2:46 PM" }}
-  appearance={{ isOwn: true }}
-  control={{ status: "delivered" }}
 />`
           },
           {
@@ -975,12 +730,10 @@ const categories: Category[] = [
   data={{
     content: "We just hit 10,000 users!",
     avatar: "T",
-    author: "Team",
     time: "4:20 PM",
     reactions: [
       { emoji: "🎉", count: 5 },
-      { emoji: "❤️", count: 3 },
-      { emoji: "👏", count: 2 }
+      { emoji: "❤️", count: 3 }
     ]
   }}
 />`
@@ -1012,16 +765,8 @@ const categories: Category[] = [
   data={{
     duration: "0:42",
     avatar: "M",
-    author: "Mike",
     time: "3:15 PM"
   }}
-/>
-
-// Own voice message
-<VoiceMessageBubble
-  data={{ duration: "1:23", avatar: "Y", time: "3:17 PM" }}
-  appearance={{ isOwn: true }}
-  control={{ status: "read" }}
 />`
           }
         ]
@@ -1054,22 +799,8 @@ const categories: Category[] = [
         id: "2",
         type: "text",
         content: "That looks amazing!",
-        author: "You",
-        avatar: "Y",
-        time: "10:31 AM",
         isOwn: true,
         status: "read"
-      },
-      {
-        id: "3",
-        type: "image",
-        content: "",
-        image: "https://images.unsplash.com/...",
-        caption: "Here's a preview",
-        author: "Sarah",
-        avatar: "S",
-        time: "10:32 AM",
-        isOwn: false
       }
     ]
   }}
@@ -1099,8 +830,7 @@ const categories: Category[] = [
   data={{
     options: [
       { id: "1", label: "Standard shipping", description: "3-5 business days" },
-      { id: "2", label: "Express shipping", description: "1-2 business days" },
-      { id: "3", label: "Store pickup", description: "Available in 2h" }
+      { id: "2", label: "Express shipping", description: "1-2 business days" }
     ]
   }}
   appearance={{ multiple: false }}
@@ -1152,9 +882,7 @@ const categories: Category[] = [
   data={{
     replies: [
       { id: "1", label: "Yes, confirm" },
-      { id: "2", label: "No thanks" },
-      { id: "3", label: "I have a question" },
-      { id: "4", label: "View details" }
+      { id: "2", label: "No thanks" }
     ]
   }}
   actions={{
@@ -1180,8 +908,7 @@ const categories: Category[] = [
   data={{
     stats: [
       { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
-      { label: "Orders", value: "342", change: -3.2, trend: "down" },
-      { label: "Customers", value: "1,205", change: 0, trend: "neutral" }
+      { label: "Orders", value: "342", change: -3.2, trend: "down" }
     ]
   }}
 />`
@@ -1209,39 +936,10 @@ const categories: Category[] = [
                 <StatusBadge data={{ status: 'error' }} />
               </div>
             ),
-            usageCode: `// Available status types: success, pending, processing, warning, error, shipped, delivered, cancelled
-
-// Basic status badge
-<StatusBadge data={{ status: "success" }} />
-
-// With custom label
-<StatusBadge
-  data={{ status: "processing" }}
-  appearance={{
-    label: "In Progress",
-    showIcon: true,
-    size: "md"
-  }}
-/>
-
-// Different sizes
-<StatusBadge data={{ status: "pending" }} appearance={{ size: "sm" }} />
-<StatusBadge data={{ status: "pending" }} appearance={{ size: "md" }} />
-<StatusBadge data={{ status: "pending" }} appearance={{ size: "lg" }} />
-
-// Hide icon
-<StatusBadge
-  data={{ status: "delivered" }}
-  appearance={{ showIcon: false }}
-/>
-
-// Order status examples
-<StatusBadge data={{ status: "pending" }} />     // Pending
-<StatusBadge data={{ status: "processing" }} />  // Processing (animated)
-<StatusBadge data={{ status: "shipped" }} />     // Shipped
-<StatusBadge data={{ status: "delivered" }} />   // Delivered
-<StatusBadge data={{ status: "cancelled" }} />   // Cancelled
-<StatusBadge data={{ status: "error" }} />       // Error`
+            usageCode: `<StatusBadge data={{ status: "success" }} />
+<StatusBadge data={{ status: "pending" }} />
+<StatusBadge data={{ status: "processing" }} />
+<StatusBadge data={{ status: "error" }} />`
           }
         ]
       },
@@ -1261,18 +959,13 @@ const categories: Category[] = [
   data={{
     tags: [
       { id: "1", label: "Electronics" },
-      { id: "2", label: "Audio" },
-      { id: "3", label: "Wireless" },
-      { id: "4", label: "Apple" },
-      { id: "5", label: "Premium" },
-      { id: "6", label: "Sale" }
+      { id: "2", label: "Audio" }
     ]
   }}
   appearance={{
     mode: "multiple",
     showClear: true,
-    showValidate: true,
-    validateLabel: "Apply filters"
+    showValidate: true
   }}
   actions={{
     onSelectTags: (tagIds) => console.log("Tags:", tagIds),
@@ -1304,16 +997,12 @@ const categories: Category[] = [
   data={{
     productName: "MacBook Pro 14-inch",
     productVariant: "Space Gray, M3 Pro",
-    productImage: "https://store.storeimages.cdn-apple.com/...",
     quantity: 1,
     price: 1999,
-    deliveryDate: "Wed. Jan 15",
-    deliveryAddress: "123 Main Street, San Francisco, CA 94102",
-    freeShipping: true
+    deliveryDate: "Wed. Jan 15"
   }}
   appearance={{ currency: "USD" }}
   actions={{ onConfirm: () => console.log("Order confirmed!") }}
-  control={{ isLoading: false }}
 />`
           }
         ]
@@ -1389,8 +1078,7 @@ const categories: Category[] = [
     min: 10,
     max: 1000,
     step: 10,
-    currency: "USD",
-    label: "Donation Amount"
+    currency: "USD"
   }}
   control={{ value: 50 }}
   actions={{
@@ -1476,9 +1164,9 @@ const categories: Category[] = [
   data={{
     author: "manifest.ai",
     avatar: "M",
-    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600",
+    image: "https://images.unsplash.com/...",
     likes: "2,847",
-    caption: "Building the future of agentic UIs. What component would you love to see next?",
+    caption: "Building the future of agentic UIs.",
     time: "2 hours ago",
     verified: true
   }}
@@ -1503,7 +1191,7 @@ const categories: Category[] = [
     author: "Manifest",
     headline: "Agentic UI Toolkit | 10K+ Developers",
     avatar: "M",
-    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.\\n\\n#AI #AgenticUI #Developer",
+    content: "Excited to announce our latest milestone!",
     likes: "1,234",
     comments: "89",
     reposts: "45",
@@ -1530,7 +1218,7 @@ const categories: Category[] = [
     author: "Manifest",
     username: "manifest",
     avatar: "M",
-    content: "Just shipped a new feature! Build stunning agentic UIs that work seamlessly inside ChatGPT and Claude.",
+    content: "Just shipped a new feature!",
     time: "2h",
     likes: "1.2K",
     retweets: "234",
@@ -1574,9 +1262,37 @@ const categories: Category[] = [
   }
 ]
 
-function BlocksContent() {
-  const searchParams = useSearchParams()
-  const blockId = searchParams.get('block')
+// Copy link button component
+function CopyLinkButton({ anchor, className }: { anchor?: string; className?: string }) {
+  const [copied, setCopied] = useState(false)
+  const pathname = usePathname()
+
+  const handleCopy = () => {
+    const url = `${window.location.origin}${pathname}${anchor ? `#${anchor}` : ''}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={cn(
+        'opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted',
+        className
+      )}
+      title={copied ? 'Copied!' : 'Copy link'}
+    >
+      <LinkIcon className={cn('h-4 w-4', copied ? 'text-green-500' : 'text-muted-foreground')} />
+    </button>
+  )
+}
+
+function BlockPageContent() {
+  const params = useParams()
+  const pathname = usePathname()
+  const categorySlug = params.category as string
+  const blockSlug = params.block as string
 
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     categories.map((c) => c.id)
@@ -1590,13 +1306,39 @@ function BlocksContent() {
     )
   }
 
-  // Find the selected block group
-  const selectedBlock = blockId
-    ? categories.flatMap((c) => c.blocks).find((b) => b.id === blockId)
-    : null
+  // Find the selected block
+  const selectedCategory = categories.find((c) => c.id === categorySlug)
+  const selectedBlock = selectedCategory?.blocks.find((b) => b.id === blockSlug)
 
-  // Ref for the first variant section to enable scrolling to actions config
+  // Ref for the first variant section
   const firstVariantRef = useRef<VariantSectionHandle>(null)
+
+  // Handle anchor scrolling on mount
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.slice(1)
+      const element = document.getElementById(id)
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 100)
+      }
+    }
+  }, [])
+
+  if (!selectedBlock) {
+    return (
+      <div className="flex min-h-[calc(100vh-3.5rem)] bg-card items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Block not found</h1>
+          <p className="text-muted-foreground mb-4">The requested block does not exist.</p>
+          <Link href="/blocks" className="text-primary hover:underline">
+            Go back to blocks
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] bg-card">
@@ -1605,12 +1347,7 @@ function BlocksContent() {
         <nav className="space-y-1">
           <Link
             href="/blocks"
-            className={cn(
-              'block text-xs font-medium rounded-sm transition-colors py-1 px-2 mb-2',
-              !blockId
-                ? 'bg-muted text-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            )}
+            className="block text-xs font-medium rounded-sm transition-colors py-1 px-2 mb-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
           >
             Getting Started
           </Link>
@@ -1636,7 +1373,7 @@ function BlocksContent() {
                       href={`/blocks/${category.id}/${block.id}`}
                       className={cn(
                         'block my-1 text-xs rounded-sm transition-colors py-1 px-2',
-                        blockId === block.id
+                        categorySlug === category.id && blockSlug === block.id
                           ? 'bg-muted text-foreground font-medium'
                           : 'text-foreground/70 hover:text-foreground hover:bg-muted/50'
                       )}
@@ -1653,36 +1390,40 @@ function BlocksContent() {
 
       {/* Main content */}
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
-        {selectedBlock ? (
-          <div className="max-w-3xl mx-auto space-y-12">
-            {/* Block Title */}
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
-                {selectedBlock.actionCount > 0 ? (
-                  <button
-                    onClick={() => firstVariantRef.current?.showActionsConfig()}
-                    className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                  >
-                    <Zap className="w-3 h-3" />
-                    {`${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`}
-                  </button>
-                ) : (
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
-                    <Zap className="w-3 h-3" />
-                    read only
-                  </span>
-                )}
-              </div>
-              <p className="text-muted-foreground">
-                {selectedBlock.description}
-              </p>
+        <div className="max-w-3xl mx-auto space-y-12">
+          {/* Block Title */}
+          <div className="group" id={selectedBlock.id}>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
+              <CopyLinkButton />
+              {selectedBlock.actionCount > 0 ? (
+                <button
+                  onClick={() => firstVariantRef.current?.showActionsConfig()}
+                  className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                >
+                  <Zap className="w-3 h-3" />
+                  {`${selectedBlock.actionCount} action${selectedBlock.actionCount > 1 ? 's' : ''}`}
+                </button>
+              ) : (
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  read only
+                </span>
+              )}
             </div>
+            <p className="text-muted-foreground">
+              {selectedBlock.description}
+            </p>
+          </div>
 
-            {/* All Variants */}
-            {selectedBlock.variants.map((variant, index) => (
+          {/* All Variants */}
+          {selectedBlock.variants.map((variant, index) => (
+            <div key={variant.id} id={variant.id} className="scroll-mt-20">
+              <div className="group flex items-center gap-2 mb-3">
+                <h2 className="text-lg font-bold">{variant.name}</h2>
+                <CopyLinkButton anchor={variant.id} />
+              </div>
               <VariantSection
-                key={variant.id}
                 ref={index === 0 ? firstVariantRef : undefined}
                 name={variant.name}
                 component={variant.component}
@@ -1690,23 +1431,22 @@ function BlocksContent() {
                 registryName={selectedBlock.registryName}
                 usageCode={variant.usageCode}
                 layouts={selectedBlock.layouts}
+                hideTitle
               />
-            ))}
-          </div>
-        ) : (
-          <GettingStarted />
-        )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-export default function BlocksPage() {
+export default function BlockPage() {
   return (
     <Suspense
       fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}
     >
-      <BlocksContent />
+      <BlockPageContent />
     </Suspense>
   )
 }

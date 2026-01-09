@@ -24,6 +24,7 @@ interface VariantSectionProps {
   registryName: string
   usageCode?: string
   layouts?: LayoutMode[]
+  hideTitle?: boolean
 }
 
 export interface VariantSectionHandle {
@@ -130,7 +131,8 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   fullscreenComponent,
   registryName,
   usageCode,
-  layouts = ['inline']
+  layouts = ['inline'],
+  hideTitle = false
 }, ref) {
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
@@ -170,15 +172,22 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   return (
     <div className="space-y-3">
       {/* Row 1: Title + Version (mobile) / Title + Version + Install command (desktop) */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold">{name}</h3>
-          {sourceCode.version && (
-            <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
-          )}
+      {!hideTitle && (
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold">{name}</h2>
+            {sourceCode.version && (
+              <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
+            )}
+          </div>
+          <InstallCommandInline componentName={registryName} />
         </div>
-        <InstallCommandInline componentName={registryName} />
-      </div>
+      )}
+      {hideTitle && (
+        <div className="flex justify-end">
+          <InstallCommandInline componentName={registryName} />
+        </div>
+      )}
 
       {/* Row 2 (desktop) / Row 3 (mobile): Mode buttons */}
       <div className="flex items-center gap-1.5">

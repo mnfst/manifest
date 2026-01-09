@@ -158,7 +158,7 @@ function MobileMenuContent({
                     {category.blocks.map((block) => (
                       <Link
                         key={block.id}
-                        href={`/blocks?block=${block.id}`}
+                        href={`/blocks/${category.id}/${block.id}`}
                         onClick={onClose}
                         className={cn(
                           'block my-0.5 text-xs rounded-sm transition-colors py-1.5 px-2',
@@ -247,12 +247,12 @@ function HeaderContent() {
             <Link href="/" className="flex items-center gap-2">
               <img
                 src="/logo-manifest-ui.svg"
-                alt="Agentic UI"
+                alt="Manifest UI - ChatGPT and Claude UI Components"
                 className="h-8 w-auto dark:hidden"
               />
               <img
                 src="/logo-manifest-ui-white.svg"
-                alt="Agentic UI"
+                alt="Manifest UI - ChatGPT and Claude UI Components"
                 className="h-8 w-auto hidden dark:block"
               />
             </Link>
@@ -321,12 +321,12 @@ function HeaderContent() {
               >
                 <img
                   src="/logo-manifest-ui.svg"
-                  alt="Agentic UI"
+                  alt="Manifest UI - ChatGPT and Claude UI Components"
                   className="h-7 w-auto dark:hidden"
                 />
                 <img
                   src="/logo-manifest-ui-white.svg"
-                  alt="Agentic UI"
+                  alt="Manifest UI - ChatGPT and Claude UI Components"
                   className="h-7 w-auto hidden dark:block"
                 />
               </Link>
@@ -364,12 +364,12 @@ export function Header() {
               </div>
               <img
                 src="/logo-manifest-ui.svg"
-                alt="Agentic UI"
+                alt="Manifest UI - ChatGPT and Claude UI Components"
                 className="h-8 w-auto dark:hidden"
               />
               <img
                 src="/logo-manifest-ui-white.svg"
-                alt="Agentic UI"
+                alt="Manifest UI - ChatGPT and Claude UI Components"
                 className="h-8 w-auto hidden dark:block"
               />
             </div>
