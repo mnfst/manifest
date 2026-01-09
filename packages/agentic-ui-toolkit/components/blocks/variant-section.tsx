@@ -134,12 +134,15 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 }, ref) {
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const [highlightCategory, setHighlightCategory] = useState<'data' | 'actions' | 'appearance' | 'control' | null>(null)
   const sourceCode = useSourceCode(registryName)
 
   // Expose imperative methods to parent components
   useImperativeHandle(ref, () => ({
     showActionsConfig: () => {
       setViewMode('config')
+      // Trigger the highlight animation
+      setHighlightCategory('actions')
       // Wait for the config view to render, then scroll to actions
       setTimeout(() => {
         const actionsElement = document.getElementById('config-actions')
@@ -147,6 +150,10 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           actionsElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
       }, 100)
+      // Clear the highlight after the animation completes (2.5s)
+      setTimeout(() => {
+        setHighlightCategory(null)
+      }, 2600)
     }
   }), [])
 
@@ -154,6 +161,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   useEffect(() => {
     setViewMode('inline')
     setIsFullscreenOpen(false)
+    setHighlightCategory(null)
   }, [registryName])
 
   const hasFullwidth = layouts.includes('fullscreen')
@@ -263,6 +271,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
             sourceCode={sourceCode.code}
             relatedSourceFiles={sourceCode.relatedFiles}
             loading={sourceCode.loading}
+            highlightCategory={highlightCategory}
           />
         )}
 

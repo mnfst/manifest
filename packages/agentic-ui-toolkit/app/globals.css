@@ -194,4 +194,32 @@
     overflow: visible;
     max-height: none;
   }
+
+  /* Stack Overflow-style highlight animation for linked sections */
+  @keyframes highlight-fade {
+    0% {
+      background-color: oklch(0.905 0.166 84.429);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  .animate-highlight {
+    animation: highlight-fade 2.5s ease-out forwards;
+  }
+
+  /* Dark mode highlight color - slightly muted amber */
+  .dark .animate-highlight {
+    animation: highlight-fade-dark 2.5s ease-out forwards;
+  }
+
+  @keyframes highlight-fade-dark {
+    0% {
+      background-color: oklch(0.45 0.12 84.429);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
 }

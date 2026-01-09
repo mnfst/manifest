@@ -572,12 +572,14 @@ interface ConfigurationViewerProps {
   sourceCode: string | null
   relatedSourceFiles?: string[]
   loading?: boolean
+  highlightCategory?: ConfigCategory['name'] | null
 }
 
 export function ConfigurationViewer({
   sourceCode,
   relatedSourceFiles = [],
-  loading
+  loading,
+  highlightCategory
 }: ConfigurationViewerProps) {
   const { categories, typeDefinitions } = useMemo(() => {
     if (!sourceCode) return { categories: [], typeDefinitions: new Map() }
@@ -644,7 +646,14 @@ export function ConfigurationViewer({
 
       <div className="grid gap-4">
         {categories.map((category) => (
-          <div key={category.name} id={`config-${category.name}`} className="rounded-lg border bg-card p-4">
+          <div
+            key={category.name}
+            id={`config-${category.name}`}
+            className={cn(
+              'rounded-lg border bg-card p-4',
+              highlightCategory === category.name && 'animate-highlight'
+            )}
+          >
             {/* Category header */}
             <div className="flex items-center gap-3 mb-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
