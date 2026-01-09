@@ -1,109 +1,15 @@
 /**
- * Execution tracking types for flow invocations via MCP
+ * Execution Metadata Type Contracts
+ *
+ * Feature: 001-execution-metadata-ui
+ * Date: 2026-01-08
+ *
+ * These interfaces define the standardized execution metadata
+ * that all nodes must include in their output.
  */
-
-/**
- * Execution status enum
- * - pending: Execution is in progress
- * - fulfilled: Execution completed successfully
- * - error: Execution failed
- */
-export type ExecutionStatus = 'pending' | 'fulfilled' | 'error';
-
-/**
- * Node execution status (different from overall execution status)
- */
-export type NodeExecutionStatus = 'pending' | 'completed' | 'error';
-
-/**
- * Represents the state of a single node during execution.
- * Stored as array elements in `nodeExecutions`.
- */
-export interface NodeExecutionData {
-  nodeId: string;
-  nodeName: string;
-  nodeType: string;
-  executedAt: string; // ISO datetime string
-  inputData: Record<string, unknown>;
-  outputData: Record<string, unknown>;
-  status: NodeExecutionStatus;
-  error?: string;
-  /** Execution time in milliseconds (primarily useful for transform nodes) */
-  executionTimeMs?: number;
-}
-
-/**
- * Detailed error information when execution fails.
- */
-export interface ExecutionErrorInfo {
-  message: string;
-  nodeId?: string;
-  nodeName?: string;
-  stack?: string;
-}
-
-/**
- * Full execution record with all details
- */
-export interface FlowExecution {
-  id: string;
-  flowId?: string;
-  flowName: string;
-  flowToolName: string;
-  status: ExecutionStatus;
-  startedAt: string; // ISO datetime string
-  endedAt?: string; // ISO datetime string
-  initialParams: Record<string, unknown>;
-  nodeExecutions: NodeExecutionData[];
-  errorInfo?: ExecutionErrorInfo;
-  /** Whether this execution was triggered from preview chat (vs MCP) */
-  isPreview?: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Compact execution representation for list view
- */
-export interface ExecutionListItem {
-  id: string;
-  flowId?: string;
-  flowName: string;
-  flowToolName: string;
-  status: ExecutionStatus;
-  startedAt: string;
-  endedAt?: string;
-  duration?: number; // milliseconds
-  initialParamsPreview: string;
-  /** Whether this execution was triggered from preview chat (vs MCP) */
-  isPreview?: boolean;
-}
-
-/**
- * Paginated execution list response
- */
-export interface ExecutionListResponse {
-  items: ExecutionListItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasPendingExecutions: boolean;
-}
-
-/**
- * Query parameters for listing executions
- */
-export interface ExecutionListQuery {
-  page?: number;
-  limit?: number;
-  status?: ExecutionStatus;
-  /** Filter by preview executions (true = only preview, false = only non-preview, undefined = all) */
-  isPreview?: boolean;
-}
 
 // =============================================================================
-// Node Output Execution Metadata
+// Base Execution Metadata
 // =============================================================================
 
 /**
@@ -130,6 +36,10 @@ export interface ExecutionMetadata {
    */
   durationMs?: number;
 }
+
+// =============================================================================
+// Node-Specific Metadata Extensions
+// =============================================================================
 
 /**
  * Extended metadata for API call nodes.
@@ -166,9 +76,16 @@ export interface TransformExecutionMetadata extends ExecutionMetadata {
   durationMs: number;
 }
 
+// =============================================================================
+// Node Output Wrapper Types
+// =============================================================================
+
 /**
  * Standard node output structure.
  * All node outputs follow this pattern: data at root with _execution metadata.
+ *
+ * @template T - The type of the actual output data
+ * @template M - The type of execution metadata (defaults to base)
  */
 export type NodeOutput<T extends object, M extends ExecutionMetadata = ExecutionMetadata> =
   T & { _execution: M };
@@ -181,6 +98,10 @@ export interface PrimitiveOutput<T, M extends ExecutionMetadata = ExecutionMetad
   _value: T;
   _execution: M;
 }
+
+// =============================================================================
+// Type Guards
+// =============================================================================
 
 /**
  * Type guard to check if an object has execution metadata.
@@ -212,14 +133,17 @@ export function isApiExecutionMetadata(
   return 'httpStatus' in metadata || 'requestUrl' in metadata;
 }
 
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
 /**
  * Extract the actual data from a node output, excluding _execution.
  */
-export function extractOutputData<T extends Record<string, unknown>>(
-  output: T
+export function extractOutputData<T extends object>(
+  output: NodeOutput<T>
 ): Omit<T, '_execution'> {
-  if (!output || typeof output !== 'object') return output;
-  const { _execution, ...data } = output as T & { _execution?: unknown };
+  const { _execution, ...data } = output;
   return data as Omit<T, '_execution'>;
 }
 

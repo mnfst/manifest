@@ -1,4 +1,4 @@
-import type { JSONSchema } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, ExecutionMetadata } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 
 /**
@@ -69,6 +69,13 @@ export const CallFlowNode: NodeTypeDefinition = {
       return {
         success: false,
         error: 'No target flow configured for CallFlow node',
+        output: {
+          type: 'callFlow',
+          _execution: {
+            success: false,
+            error: 'No target flow configured for CallFlow node',
+          } as ExecutionMetadata,
+        },
       };
     }
 
@@ -82,6 +89,9 @@ export const CallFlowNode: NodeTypeDefinition = {
           type: 'callFlow',
           targetFlowId,
           result,
+          _execution: {
+            success: true,
+          } as ExecutionMetadata,
         },
       };
     } catch (err) {
@@ -89,6 +99,14 @@ export const CallFlowNode: NodeTypeDefinition = {
       return {
         success: false,
         error: `Failed to call flow ${targetFlowId}: ${message}`,
+        output: {
+          type: 'callFlow',
+          targetFlowId,
+          _execution: {
+            success: false,
+            error: `Failed to call flow ${targetFlowId}: ${message}`,
+          } as ExecutionMetadata,
+        },
       };
     }
   },

@@ -1,4 +1,4 @@
-import type { JSONSchema } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, ExecutionMetadata } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 
 /**
@@ -49,6 +49,9 @@ export const ReturnNode: NodeTypeDefinition = {
       output: {
         type: 'return',
         value: text,
+        _execution: {
+          success: true,
+        } as ExecutionMetadata,
       },
     };
   },

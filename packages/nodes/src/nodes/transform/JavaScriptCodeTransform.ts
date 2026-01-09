@@ -1,19 +1,5 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import type { JavaScriptCodeTransformParameters, JSONSchema } from '@chatgpt-app-builder/shared';
-
-/**
- * Output structure produced by the JavaScriptCodeTransform node.
- */
-interface TransformOutput {
-  /** Discriminator for output type */
-  type: 'transform';
-  /** Whether the transformation was successful */
-  success: boolean;
-  /** The transformed data */
-  data?: unknown;
-  /** Error message if transformation failed */
-  error?: string;
-}
+import type { JavaScriptCodeTransformParameters, JSONSchema, TransformExecutionMetadata } from '@chatgpt-app-builder/shared';
 
 /**
  * Extract executable JavaScript from TypeScript transform code.
@@ -89,22 +75,32 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
   } as JSONSchema,
 
   // Dynamic output schema based on resolved schema from testing
+  // The output spreads transformed data at root with _execution metadata
   getOutputSchema(parameters: Record<string, unknown>): JSONSchema | null {
     const resolvedSchema = parameters.resolvedOutputSchema as JSONSchema | null | undefined;
     if (resolvedSchema) {
+      // Return resolved schema as-is (it should already have _execution added during resolution)
       return resolvedSchema;
     }
 
     // Default output structure when schema not yet resolved
+    // Uses additionalProperties to allow any transformed data at root
     return {
       type: 'object',
       properties: {
-        type: { type: 'string', const: 'transform' },
-        success: { type: 'boolean', description: 'Whether the transformation succeeded' },
-        data: { description: 'The transformed data' },
-        error: { type: 'string', description: 'Error message if transformation failed' },
+        _execution: {
+          type: 'object',
+          description: 'Execution metadata',
+          properties: {
+            success: { type: 'boolean', description: 'Whether the transformation succeeded' },
+            error: { type: 'string', description: 'Error message if transformation failed' },
+            durationMs: { type: 'number', description: 'Transform execution time in milliseconds' },
+          },
+          required: ['success', 'durationMs'],
+        },
       },
-      required: ['type', 'success'],
+      additionalProperties: true,
+      description: 'Transformed data with execution metadata',
     } as JSONSchema;
   },
 
@@ -117,6 +113,7 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
   async execute(context: ExecutionContext): Promise<ExecutionResult> {
     const { parameters, getNodeValue } = context;
     const rawCode = (parameters.code as string) || 'return input;';
+    const startTime = performance.now();
 
     try {
       // Get input from upstream node (via the 'main' input handle)
@@ -138,11 +135,15 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
       try {
         const transformFunction = new Function('input', executableCode);
         const result = transformFunction(input);
+        const durationMs = Math.round(performance.now() - startTime);
 
-        const output: TransformOutput = {
-          type: 'transform',
-          success: true,
-          data: result,
+        // Spread transformed data at root with _execution metadata
+        const output = {
+          ...(typeof result === 'object' && result !== null ? result : { _value: result }),
+          _execution: {
+            success: true,
+            durationMs,
+          } as TransformExecutionMetadata,
         };
 
         return {
@@ -152,10 +153,13 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
       } catch (err) {
         // Handle JavaScript execution errors (syntax errors, runtime errors)
         const message = err instanceof Error ? err.message : 'Unknown JavaScript error';
-        const output: TransformOutput = {
-          type: 'transform',
-          success: false,
-          error: `Transform execution failed: ${message}`,
+        const durationMs = Math.round(performance.now() - startTime);
+        const output = {
+          _execution: {
+            success: false,
+            error: `Transform execution failed: ${message}`,
+            durationMs,
+          } as TransformExecutionMetadata,
         };
 
         return {
@@ -167,10 +171,13 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
     } catch (err) {
       // Handle other errors (e.g., getting input value)
       const message = err instanceof Error ? err.message : 'Unknown error';
-      const output: TransformOutput = {
-        type: 'transform',
-        success: false,
-        error: `Transform failed: ${message}`,
+      const durationMs = Math.round(performance.now() - startTime);
+      const output = {
+        _execution: {
+          success: false,
+          error: `Transform failed: ${message}`,
+          durationMs,
+        } as TransformExecutionMetadata,
       };
 
       return {

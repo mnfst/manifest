@@ -10,6 +10,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-06
 - SQLite (better-sqlite3 11.7.0) via TypeORM - nodes stored as JSON arrays in Flow entity (089-transform-nodes)
 - TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20 (090-ui-node-actions)
 - SQLite (better-sqlite3 11.7.0) via TypeORM 0.3.20 - nodes stored as JSON in Flow entity (001-ui-edit-modal-merge)
+- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20 (001-execution-metadata-ui)
+- SQLite (better-sqlite3 11.7.0) via TypeORM - existing FlowExecution entity (001-execution-metadata-ui)
 
 - TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM) (001-trigger-node-refactor)
 
@@ -29,11 +31,9 @@ pnpm test && pnpm lint
 TypeScript 5.7.2: Follow standard conventions
 
 ## Recent Changes
+- 001-execution-metadata-ui: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20
 - 001-ui-edit-modal-merge: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, CodeMirror 6
 - 090-ui-node-actions: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20
-- 001-link-node: Added TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas)
-- 001-edit-uis: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, CodeMirror 6 (to add), Vite 6.0.5
-- 089-transform-nodes: Added TypeScript 5.7.2
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -1,6 +1,10 @@
 import type { NodeExecutionData } from '@chatgpt-app-builder/shared';
 import { ExecutionDataViewer } from './ExecutionDataViewer';
-import { CheckCircle, XCircle, Clock, Box, Shuffle, Globe, GitBranch, CornerDownLeft, LayoutTemplate, Zap } from 'lucide-react';
+import { StatusIcon } from './StatusIcon';
+import { ErrorBanner } from './ErrorBanner';
+import { Duration } from './Duration';
+import { extractStatusInfo, extractOutputDataForDisplay } from './executionUtils';
+import { Box, Shuffle, Globe, GitBranch, CornerDownLeft, LayoutTemplate, Zap } from 'lucide-react';
 
 interface NodeExecutionCardProps {
   nodeExecution: NodeExecutionData;
@@ -52,24 +56,11 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
   const category = nodeTypeCategories[nodeExecution.nodeType] || 'default';
   const styles = categoryStyles[category];
 
-  const statusIcon =
-    nodeExecution.status === 'completed' ? (
-      <CheckCircle className="w-4 h-4 text-green-500" />
-    ) : nodeExecution.status === 'error' ? (
-      <XCircle className="w-4 h-4 text-red-500" />
-    ) : (
-      <Clock className="w-4 h-4 text-orange-500" />
-    );
+  // Extract status info using new utilities (backward compatible)
+  const statusInfo = extractStatusInfo(nodeExecution);
 
-  // Format execution time if available
-  const formatExecutionTime = (ms?: number): string | null => {
-    if (ms === undefined || ms === null) return null;
-    if (ms < 1) return '<1ms';
-    if (ms < 1000) return `${Math.round(ms)}ms`;
-    return `${(ms / 1000).toFixed(2)}s`;
-  };
-
-  const executionTimeDisplay = formatExecutionTime(nodeExecution.executionTimeMs);
+  // Get clean output data without _execution metadata for display
+  const displayOutputData = extractOutputDataForDisplay(nodeExecution.outputData);
 
   return (
     <div className={`border ${styles.border} rounded-lg overflow-hidden`}>
@@ -86,34 +77,41 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
             <span>{formatTime(nodeExecution.executedAt)}</span>
-            {executionTimeDisplay && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {executionTimeDisplay}
-              </span>
-            )}
+            <Duration ms={statusInfo.durationMs} showIcon />
           </div>
         </div>
-        {statusIcon}
+        <StatusIcon status={statusInfo.status} showTooltip />
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-3">
+        {/* Error Banner - Prominently displayed above data */}
+        {statusInfo.status === 'error' && statusInfo.error && (
+          <ErrorBanner
+            error={statusInfo.error}
+            httpStatus={statusInfo.httpStatus}
+            requestUrl={statusInfo.requestUrl}
+          />
+        )}
+
         <ExecutionDataViewer
           data={nodeExecution.inputData}
           title="Input Data"
           defaultExpanded={false}
         />
         <ExecutionDataViewer
-          data={nodeExecution.outputData}
+          data={displayOutputData}
           title="Output Data"
           defaultExpanded={false}
         />
-        {nodeExecution.error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700 font-medium">Error</p>
-            <p className="text-sm text-red-600 mt-1">{nodeExecution.error}</p>
-          </div>
+
+        {/* Execution Info Section - shows _execution metadata separately */}
+        {nodeExecution.outputData._execution != null && (
+          <ExecutionDataViewer
+            data={{ _execution: nodeExecution.outputData._execution } as Record<string, unknown>}
+            title="Execution Info"
+            defaultExpanded={false}
+          />
         )}
       </div>
     </div>
