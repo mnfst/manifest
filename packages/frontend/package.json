@@ -16,6 +16,7 @@
     "@babel/parser": "^7.28.5",
     "@chatgpt-app-builder/shared": "workspace:*",
     "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/lang-json": "^6.0.2",
     "@codemirror/language": "^6.12.1",
     "@codemirror/lint": "^6.9.2",
     "@codemirror/view": "^6.39.9",

@@ -22,6 +22,7 @@ import { UsePreviousOutputs } from '../common/UsePreviousOutputs';
 import { TemplateReferencesDisplay } from '../common/TemplateReferencesDisplay';
 import { useUpstreamNodes } from '../../hooks/useUpstreamNodes';
 import { CodeEditor } from '../common/CodeEditor';
+import { JSONEditor } from '../common/JSONEditor';
 import { SchemaPreview } from '../common/SchemaPreview';
 import { useCodeValidation } from '../../hooks/useCodeValidation';
 import { useTestTransform } from '../../hooks/useTestTransform';
@@ -1036,16 +1037,14 @@ export function NodeEditModal({
 
                   {/* Test input */}
                   <div>
-                    <label htmlFor="test-input" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Sample Input (JSON)
                     </label>
-                    <textarea
-                      id="test-input"
+                    <JSONEditor
                       value={testInput}
-                      onChange={(e) => setTestInput(e.target.value)}
+                      onChange={setTestInput}
                       placeholder='{"example": "data"}'
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono text-sm resize-none"
-                      rows={3}
+                      height="150px"
                       disabled={isLoading || isTestLoading}
                     />
                   </div>

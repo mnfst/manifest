@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
 
 /**
@@ -974,6 +974,36 @@ export class McpToolService {
             result = {
               content: [{ type: 'text', text: JSON.stringify(transformResult.output, null, 2) }],
               structuredContent: transformResult.output,
+            };
+          }
+        } else if (node.type === 'Link') {
+          // Handle Link node - opens an external URL
+          const params = node.parameters as LinkNodeParameters;
+          const rawHref = params.href || '';
+
+          if (!rawHref.trim()) {
+            const linkOutput = { type: 'link', href: '', error: 'URL is required' };
+            nodeOutputs.set(node.id, linkOutput);
+            nodeExecutions.push(this.createNodeExecution(node, nodeInputData, linkOutput, 'error', 'URL is required'));
+            result = {
+              content: [{ type: 'text', text: 'Link node error: URL is required' }],
+            };
+          } else {
+            // Resolve template variables in the href
+            const resolvedHref = resolveTemplateVariables(rawHref, nodeOutputs, allNodes);
+
+            // Normalize URL (add https:// if missing)
+            let normalizedHref = resolvedHref.trim();
+            if (!normalizedHref.startsWith('http://') && !normalizedHref.startsWith('https://')) {
+              normalizedHref = `https://${normalizedHref}`;
+            }
+
+            const linkOutput = { type: 'link', href: normalizedHref };
+            nodeOutputs.set(node.id, linkOutput);
+            nodeExecutions.push(this.createNodeExecution(node, nodeInputData, linkOutput, 'completed'));
+            result = {
+              content: [{ type: 'text', text: `Opening: ${normalizedHref}` }],
+              structuredContent: linkOutput,
             };
           }
         }

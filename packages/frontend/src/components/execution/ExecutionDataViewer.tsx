@@ -39,23 +39,20 @@ export function ExecutionDataViewer({
   return (
     <div className="rounded-lg border border-gray-200 overflow-hidden">
       {title && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors"
-        >
-          <div className="flex items-center gap-2">
+        <div className="w-full flex items-center justify-between px-3 py-2 bg-gray-50">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2 hover:bg-gray-100 -ml-1 px-1 py-0.5 rounded transition-colors"
+          >
             {isExpanded ? (
               <ChevronDown className="w-4 h-4 text-gray-500" />
             ) : (
               <ChevronRight className="w-4 h-4 text-gray-500" />
             )}
             <span className="text-sm font-medium text-gray-700">{title}</span>
-          </div>
+          </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopy();
-            }}
+            onClick={handleCopy}
             className="p-1 hover:bg-gray-200 rounded transition-colors"
             title="Copy JSON"
           >
@@ -65,7 +62,7 @@ export function ExecutionDataViewer({
               <Copy className="w-4 h-4 text-gray-400" />
             )}
           </button>
-        </button>
+        </div>
       )}
       {isExpanded && (
         <pre className="p-3 text-xs font-mono bg-gray-900 text-gray-100 overflow-x-auto">
