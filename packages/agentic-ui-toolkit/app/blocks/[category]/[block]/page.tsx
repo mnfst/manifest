@@ -1435,6 +1435,28 @@ function BlockPageContent() {
               />
             </div>
           ))}
+
+          {/* Related Blocks in Same Category */}
+          {selectedCategory && selectedCategory.blocks.filter((b) => b.id !== blockSlug).length > 0 && (
+            <div className="pt-8 border-t border-border">
+              <h2 className="text-lg font-bold mb-4">
+                Other blocks in the {selectedCategory.name} category
+              </h2>
+              <div className="grid grid-cols-2 gap-3">
+                {selectedCategory.blocks
+                  .filter((b) => b.id !== blockSlug)
+                  .map((block) => (
+                    <Link
+                      key={block.id}
+                      href={`/blocks/${selectedCategory.id}/${block.id}`}
+                      className="flex items-center justify-center px-4 py-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-muted transition-colors text-foreground"
+                    >
+                      {block.name}
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
