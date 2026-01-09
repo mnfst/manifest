@@ -26,7 +26,7 @@ const navLinks = [
   { href: '/blocks', label: 'Blocks' },
   {
     href: 'https://manifest.build',
-    label: 'Your app in ChatGPT',
+    label: 'Your App in ChatGPT',
     external: true
   }
 ]

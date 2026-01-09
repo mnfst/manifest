@@ -1,4 +1,4 @@
-import { Github } from 'lucide-react'
+import { ArrowUpRight, Github } from 'lucide-react'
 import Link from 'next/link'
 
 function DiscordIcon({ className }: { className?: string }) {
@@ -37,7 +37,7 @@ const footerLinks = [
   },
   {
     href: 'https://manifest.build',
-    label: 'Your app in ChatGPT',
+    label: 'Your App in ChatGPT',
     external: true
   }
 ]
@@ -94,9 +94,10 @@ export function Footer() {
                   href={link.href}
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {link.label}
+                  {link.external && <ArrowUpRight className="h-3 w-3" />}
                 </Link>
               ))}
             </nav>
