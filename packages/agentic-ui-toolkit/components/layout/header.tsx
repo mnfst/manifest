@@ -158,7 +158,7 @@ function MobileMenuContent({
                     {category.blocks.map((block) => (
                       <Link
                         key={block.id}
-                        href={`/blocks?block=${block.id}`}
+                        href={`/blocks/${category.id}/${block.id}`}
                         onClick={onClose}
                         className={cn(
                           'block my-0.5 text-xs rounded-sm transition-colors py-1.5 px-2',

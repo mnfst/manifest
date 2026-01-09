@@ -141,6 +141,12 @@ describe('SEO Configuration', () => {
       const content = readFileSync(sitemapPath, 'utf-8')
       expect(content).toContain('priority')
     })
+
+    it('should dynamically generate block URLs from blockCategories', () => {
+      const content = readFileSync(sitemapPath, 'utf-8')
+      expect(content).toContain('blockCategories')
+      expect(content).toContain('/blocks/${category.id}/${block.id}')
+    })
   })
 
   describe('Robots.txt', () => {

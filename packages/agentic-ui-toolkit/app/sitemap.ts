@@ -1,10 +1,14 @@
 import { MetadataRoute } from 'next'
+import { blockCategories } from '@/lib/blocks-categories'
 
 /**
  * Dynamic sitemap generation for Manifest UI
  *
  * This sitemap is automatically served at /sitemap.xml
  * and helps search engines discover and index all pages.
+ *
+ * Block URLs are dynamically generated from the blockCategories
+ * configuration to ensure the sitemap stays in sync with available blocks.
  *
  * Priority levels:
  * - 1.0: Homepage (most important)
@@ -17,36 +21,6 @@ import { MetadataRoute } from 'next'
  */
 
 const BASE_URL = 'https://ui.manifest.build'
-
-// Block IDs from the blocks page - these are the available component demos
-const BLOCK_IDS = [
-  'post-card',
-  'post-list',
-  'contact-form',
-  'date-time-picker',
-  'issue-report-form',
-  'product-list',
-  'table',
-  'map-carousel',
-  'message-bubble',
-  'chat-conversation',
-  'option-list',
-  'progress-steps',
-  'quick-reply',
-  'stats-cards',
-  'status-badges',
-  'tag-select',
-  'order-confirm',
-  'payment-methods',
-  'card-form',
-  'amount-input',
-  'payment-success',
-  'payment-confirmed',
-  'instagram-post',
-  'linkedin-post',
-  'x-post',
-  'youtube-post',
-]
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const currentDate = new Date()
@@ -67,15 +41,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  // Dynamic block pages (query parameter based)
-  // Note: While these use query params, they represent distinct content
-  // Search engines can index these as separate pages
-  const blockPages: MetadataRoute.Sitemap = BLOCK_IDS.map((blockId) => ({
-    url: `${BASE_URL}/blocks?block=${blockId}`,
-    lastModified: currentDate,
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+  // Dynamic block pages generated from blockCategories
+  const blockPages: MetadataRoute.Sitemap = blockCategories.flatMap((category) =>
+    category.blocks.map((block) => ({
+      url: `${BASE_URL}/blocks/${category.id}/${block.id}`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    }))
+  )
 
   return [...staticPages, ...blockPages]
 }
