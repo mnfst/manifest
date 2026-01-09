@@ -253,7 +253,7 @@ function TableHeader({
         {titleImage && (
           <img
             src={titleImage}
-            alt=""
+            alt={title ? `${title} icon` : "Table icon"}
             className="h-5 w-5 rounded object-cover"
           />
         )}
@@ -645,7 +645,7 @@ export function Table<T extends Record<string, unknown>>({
             {titleImage && (
               <img
                 src={titleImage}
-                alt=""
+                alt={title ? `${title} icon` : "Table icon"}
                 className="h-5 w-5 rounded object-cover"
               />
             )}

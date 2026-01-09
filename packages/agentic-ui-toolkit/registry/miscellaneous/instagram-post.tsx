@@ -87,7 +87,7 @@ export function InstagramPost({ data }: InstagramPostProps) {
         </DropdownMenu>
       </div>
       <div className="aspect-square bg-muted">
-        <img src={image} alt="Post" className="w-full h-full object-cover" />
+        <img src={image} alt={`Instagram post by ${author}`} className="w-full h-full object-cover" />
       </div>
       <div className="p-3 space-y-2">
         <div className="flex items-center justify-between">

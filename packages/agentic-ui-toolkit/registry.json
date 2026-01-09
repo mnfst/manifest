@@ -396,7 +396,7 @@
     },
     {
       "name": "table",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "registry:component",
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
@@ -411,7 +411,7 @@
     },
     {
       "name": "message-bubble",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
@@ -460,7 +460,7 @@
     },
     {
       "name": "instagram-post",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "registry:component",
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
@@ -490,7 +490,7 @@
     },
     {
       "name": "youtube-post",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "registry:component",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
