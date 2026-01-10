@@ -190,8 +190,9 @@ jobs:
 
             echo "HTTP Status: ${HTTP_CODE}"
 
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "Container is healthy!"
+            # Accept 200 (success) or 401 (auth required but app is responding)
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "401" ]; then
+              echo "Container is healthy! (HTTP ${HTTP_CODE})"
               echo "health_status=healthy" >> $GITHUB_OUTPUT
               echo "::endgroup::"
               exit 0
