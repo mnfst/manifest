@@ -21,7 +21,7 @@ import { join } from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 import sharp from 'sharp';
 import { AppService } from './app.service';
-import { AppAccessGuard, AppAccessService, CurrentUser, type SessionUser } from '../auth';
+import { AppAccessGuard, AppAccessService, CurrentUser, Public, type SessionUser } from '../auth';
 import type {
   App,
   AppWithFlowCount,
@@ -54,6 +54,7 @@ export class AppController {
    * GET /api/health
    * Health check endpoint (no authentication required)
    */
+  @Public()
   @Get('health')
   healthCheck(): { status: string } {
     return { status: 'ok' };
