@@ -14,6 +14,7 @@ import { ConnectorModule } from '../connector/connector.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { SeedModule } from '../seed/seed.module';
 import { ChatModule } from '../chat/chat.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ChatModule } from '../chat/chat.module';
     FlowExecutionModule,
     SeedModule,
     ChatModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

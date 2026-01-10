@@ -9,6 +9,10 @@ import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
+import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
+import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
+
+type AppDetailTab = 'flows' | 'analytics';
 
 /**
  * App detail page - Shows app info and flows list
@@ -32,6 +36,7 @@ function AppDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditingApp, setIsEditingApp] = useState(false);
   const [editAppError, setEditAppError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AppDetailTab>('flows');
 
   useEffect(() => {
     async function loadData() {
@@ -286,50 +291,91 @@ function AppDetail() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="border-b">
+        <div className="max-w-4xl mx-auto px-4">
+          <nav className="flex gap-6" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('flows')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'flows'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
+              }`}
+            >
+              Flows
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'analytics'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
+              }`}
+            >
+              Analytics
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Flows Section */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Flows</h2>
-              <p className="text-sm text-muted-foreground">
-                {flows.length} flow{flows.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <button
-              onClick={() => setIsFlowModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-              </svg>
-              Create New Flow
-            </button>
-          </div>
+        {activeTab === 'flows' && (
+          <section className="space-y-6">
+            {/* Analytics Preview */}
+            {appId && (
+              <AnalyticsPreview
+                appId={appId}
+                onViewMore={() => setActiveTab('analytics')}
+              />
+            )}
 
-          {/* Existing flows list */}
-          <FlowList
-            flows={flows}
-            onFlowClick={handleFlowClick}
-            onFlowDelete={handleFlowDelete}
-            deletingFlowId={deletingFlowId}
-            onCreateFlow={() => setIsFlowModalOpen(true)}
-          />
-
-          {/* Delete confirmation message */}
-          {deleteConfirm && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-              Click delete again to confirm removal of this flow and all its views.
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Flows</h2>
+                <p className="text-sm text-muted-foreground">
+                  {flows.length} flow{flows.length !== 1 ? 's' : ''}
+                </p>
+              </div>
               <button
-                onClick={() => setDeleteConfirm(null)}
-                className="ml-2 underline hover:no-underline"
+                onClick={() => setIsFlowModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
               >
-                Cancel
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+                Create New Flow
               </button>
             </div>
-          )}
-        </section>
+
+            {/* Existing flows list */}
+            <FlowList
+              flows={flows}
+              onFlowClick={handleFlowClick}
+              onFlowDelete={handleFlowDelete}
+              deletingFlowId={deletingFlowId}
+              onCreateFlow={() => setIsFlowModalOpen(true)}
+            />
+
+            {/* Delete confirmation message */}
+            {deleteConfirm && (
+              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+                Click delete again to confirm removal of this flow and all its views.
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="ml-2 underline hover:no-underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'analytics' && appId && (
+          <AnalyticsDashboard appId={appId} />
+        )}
       </main>
 
       {/* Create Flow Modal */}
