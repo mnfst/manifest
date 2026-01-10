@@ -65,13 +65,16 @@ describe('AppService', () => {
   // T013: Tests for create() method
   // ============================================================
   describe('create', () => {
-    it('should create an app with valid input', async () => {
+    const mockOwnerId = 'owner-user-id';
+
+    it('should create an app with valid input and assign owner', async () => {
       const request = createMockCreateAppRequest({ name: 'My New App' });
       const mockEntity = createMockAppEntity({
         id: 'new-app-id',
         name: 'My New App',
         slug: 'my-new-app',
       });
+      const mockOwnerRole = { userId: mockOwnerId, appId: 'new-app-id', role: 'owner' };
 
       // Mock generateUniqueSlug - no existing slug
       mockRepository.findOne!.mockResolvedValueOnce(null);
@@ -79,14 +82,23 @@ describe('AppService', () => {
       mockRepository.create!.mockReturnValue(mockEntity);
       // Mock save
       mockRepository.save!.mockResolvedValue(mockEntity);
+      // Mock owner role creation
+      mockUserAppRoleRepository.create!.mockReturnValue(mockOwnerRole);
+      mockUserAppRoleRepository.save!.mockResolvedValue(mockOwnerRole);
 
-      const result = await service.create(request);
+      const result = await service.create(request, mockOwnerId);
 
       expect(result).toBeDefined();
       expect(result.name).toBe('My New App');
       expect(result.id).toBe('new-app-id');
       expect(mockRepository.create).toHaveBeenCalled();
       expect(mockRepository.save).toHaveBeenCalled();
+      expect(mockUserAppRoleRepository.create).toHaveBeenCalledWith({
+        userId: mockOwnerId,
+        appId: 'new-app-id',
+        role: 'owner',
+      });
+      expect(mockUserAppRoleRepository.save).toHaveBeenCalled();
     });
 
     it('should generate a unique slug from name', async () => {
@@ -99,8 +111,10 @@ describe('AppService', () => {
       mockRepository.findOne!.mockResolvedValueOnce(null);
       mockRepository.create!.mockReturnValue(mockEntity);
       mockRepository.save!.mockResolvedValue(mockEntity);
+      mockUserAppRoleRepository.create!.mockReturnValue({});
+      mockUserAppRoleRepository.save!.mockResolvedValue({});
 
-      const result = await service.create(request);
+      const result = await service.create(request, mockOwnerId);
 
       expect(result.slug).toBe('test-app-name');
     });
@@ -121,8 +135,10 @@ describe('AppService', () => {
       mockRepository.findOne!.mockResolvedValueOnce(null);
       mockRepository.create!.mockReturnValue(mockEntity);
       mockRepository.save!.mockResolvedValue(mockEntity);
+      mockUserAppRoleRepository.create!.mockReturnValue({});
+      mockUserAppRoleRepository.save!.mockResolvedValue({});
 
-      const result = await service.create(request);
+      const result = await service.create(request, mockOwnerId);
 
       expect(result.themeVariables['--primary']).toBe('200 50% 50%');
       expect(result.themeVariables['--background']).toBe(

@@ -27,7 +27,7 @@ export async function generateUniqueToolName(
   for (const flow of flows) {
     for (const node of flow.nodes ?? []) {
       if (node.type === 'UserIntent' && node.id !== excludeNodeId) {
-        const params = node.parameters as UserIntentNodeParameters;
+        const params = node.parameters as unknown as UserIntentNodeParameters;
         if (params.toolName) {
           existingNames.add(params.toolName);
         }
@@ -71,7 +71,7 @@ export async function toolNameExists(
   for (const flow of flows) {
     for (const node of flow.nodes ?? []) {
       if (node.type === 'UserIntent' && node.id !== excludeNodeId) {
-        const params = node.parameters as UserIntentNodeParameters;
+        const params = node.parameters as unknown as UserIntentNodeParameters;
         if (params.toolName === toolName) {
           return true;
         }

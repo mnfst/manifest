@@ -3,12 +3,16 @@
   "jsc": {
     "parser": {
       "syntax": "typescript",
+      "tsx": true,
       "decorators": true,
       "dynamicImport": true
     },
     "transform": {
       "legacyDecorator": true,
-      "decoratorMetadata": true
+      "decoratorMetadata": true,
+      "react": {
+        "runtime": "automatic"
+      }
     },
     "target": "es2022",
     "keepClassNames": true,

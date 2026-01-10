@@ -275,6 +275,7 @@ export class SeedService implements OnModuleInit {
         id: triggerId,
         type: 'UserIntent',
         name: 'Test Trigger',
+        slug: 'test-trigger',
         position: { x: 100, y: 100 },
         parameters: {
           whenToUse: 'Use this flow to test the application',
@@ -292,6 +293,7 @@ export class SeedService implements OnModuleInit {
         id: statCardId,
         type: 'StatCard',
         name: 'Test StatCard',
+        slug: 'test-stat-card',
         position: { x: 330, y: 100 },
         parameters: {
           layoutTemplate: 'stat-card',
