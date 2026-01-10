@@ -13,6 +13,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-06
 - TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20 (001-execution-metadata-ui)
 - SQLite (better-sqlite3 11.7.0) via TypeORM - existing FlowExecution entity (001-execution-metadata-ui)
 - SQLite (better-sqlite3 11.7.0) via TypeORM - nodes stored as JSON in Flow entity (091-post-list-action-handle)
+- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20 (001-backend-test-suite)
+- SQLite (better-sqlite3 11.7.0) via TypeORM - mocked for unit tests (001-backend-test-suite)
 
 - TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM) (001-trigger-node-refactor)
 
@@ -31,14 +33,96 @@ pnpm test && pnpm lint
 
 TypeScript 5.7.2: Follow standard conventions
 
+## Pull Request Guidelines
+
+**ALWAYS create PRs with detailed descriptions.** Every PR must include:
+
+### PR Description Template
+
+```markdown
+## Summary
+[2-3 sentences explaining what this PR does and why]
+
+## Changes
+[Bulleted list of key changes, organized by category if applicable:
+- Infrastructure changes
+- Code quality fixes
+- New features
+- Bug fixes
+- etc.]
+
+## Behavior
+[Describe how the system behaves after this change]
+
+## Test Plan
+[Checklist of what was tested:
+- [ ] Item 1
+- [ ] Item 2
+etc.]
+
+## Notes
+[Optional: Any additional context, trade-offs, or future considerations]
+```
+
+### Requirements
+- **Title**: Use conventional commit format (feat/fix/chore/docs/refactor)
+- **Summary**: Clear explanation of the "what" and "why"
+- **Changes**: Organized list of what was modified
+- **Test Plan**: Explicit verification steps taken
+- **Never** create a PR without a description
+
 ## Recent Changes
+- 001-backend-test-suite: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20
 - 001-execution-metadata-ui: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20
 - 091-post-list-action-handle: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20
-- 001-ui-edit-modal-merge: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, CodeMirror 6
-- 090-ui-node-actions: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20
 
 
 <!-- MANUAL ADDITIONS START -->
+
+## Pull Request Guidelines
+
+**IMPORTANT: When creating a PR, ALWAYS include a well-formatted description.**
+
+When using `gh pr create` or creating PRs, you MUST follow this format:
+
+```markdown
+## Summary
+
+[1-3 sentences explaining what this PR does and why]
+
+## Changes
+
+- [List each significant change as a bullet point]
+- [Be specific about files/components modified]
+- [Mention any new dependencies or configurations]
+
+## Type of Change
+
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Refactoring (no functional changes)
+- [ ] Documentation update
+- [ ] Tests (adding or updating tests)
+- [ ] CI/CD (changes to build process or workflows)
+
+## Testing
+
+- [ ] Tests pass locally (`pnpm test`)
+- [ ] Lint passes (`pnpm lint`)
+- [Describe any manual testing performed]
+
+## Related Issues
+
+[Link any related issues: Fixes #123, Relates to #456]
+```
+
+**Rules for PR descriptions:**
+1. NEVER create a PR with an empty description
+2. Always analyze ALL commits in the branch to write a comprehensive summary
+3. Check the type(s) of change that apply
+4. List specific files/components that were modified
+5. Include testing information
 
 ## Development Server Ports (edit-uis worktree)
 
