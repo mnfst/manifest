@@ -33,6 +33,44 @@ pnpm test && pnpm lint
 
 TypeScript 5.7.2: Follow standard conventions
 
+## Pull Request Guidelines
+
+**ALWAYS create PRs with detailed descriptions.** Every PR must include:
+
+### PR Description Template
+
+```markdown
+## Summary
+[2-3 sentences explaining what this PR does and why]
+
+## Changes
+[Bulleted list of key changes, organized by category if applicable:
+- Infrastructure changes
+- Code quality fixes
+- New features
+- Bug fixes
+- etc.]
+
+## Behavior
+[Describe how the system behaves after this change]
+
+## Test Plan
+[Checklist of what was tested:
+- [ ] Item 1
+- [ ] Item 2
+etc.]
+
+## Notes
+[Optional: Any additional context, trade-offs, or future considerations]
+```
+
+### Requirements
+- **Title**: Use conventional commit format (feat/fix/chore/docs/refactor)
+- **Summary**: Clear explanation of the "what" and "why"
+- **Changes**: Organized list of what was modified
+- **Test Plan**: Explicit verification steps taken
+- **Never** create a PR without a description
+
 ## Recent Changes
 - 001-backend-test-suite: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20
 - 001-execution-metadata-ui: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20

@@ -219,6 +219,7 @@ export function extractOutputData<T extends Record<string, unknown>>(
   output: T
 ): Omit<T, '_execution'> {
   if (!output || typeof output !== 'object') return output;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _execution, ...data } = output as T & { _execution?: unknown };
   return data as Omit<T, '_execution'>;
 }
