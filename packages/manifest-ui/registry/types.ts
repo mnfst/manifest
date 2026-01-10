@@ -1,5 +1,5 @@
 /**
- * Shared types for Agentic UI Toolkit components
+ * Shared types for Manifest UI components
  *
  * All components use a semantic prop structure with 4 categories:
  * - data: Content to display (arrays, objects, content)

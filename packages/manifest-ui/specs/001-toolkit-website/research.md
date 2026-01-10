@@ -1,11 +1,11 @@
-# Research: Agentic UI Toolkit Website
+# Research: Manifest UI Website
 
 **Feature**: 001-toolkit-website
 **Date**: 2025-12-05
 
 ## Overview
 
-This document captures research findings and design decisions for the Agentic UI Toolkit website implementation.
+This document captures research findings and design decisions for the Manifest UI website implementation.
 
 ## Technology Decisions
 

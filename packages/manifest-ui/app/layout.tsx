@@ -43,14 +43,14 @@ export const metadata: Metadata = {
         width: 1280,
         height: 640,
         type: 'image/webp',
-        alt: 'Manifest UI - Open Source Agentic UI Toolkit'
+        alt: 'Manifest UI - Open Source Manifest UI'
       },
       {
         url: '/og-image.png',
         width: 1280,
         height: 640,
         type: 'image/png',
-        alt: 'Manifest UI - Open Source Agentic UI Toolkit'
+        alt: 'Manifest UI - Open Source Manifest UI'
       }
     ]
   },

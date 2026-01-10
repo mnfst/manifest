@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Agentic UI Toolkit Website
+# Specification Quality Checklist: Manifest UI Website
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2025-12-05

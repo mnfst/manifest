@@ -1,4 +1,4 @@
-# Data Model: Agentic UI Toolkit Website
+# Data Model: Manifest UI Website
 
 **Feature**: 001-toolkit-website
 **Date**: 2025-12-05
@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document defines the data structures used in the Agentic UI Toolkit website. All data is static and embedded in the codebase - no database or API required.
+This document defines the data structures used in the Manifest UI website. All data is static and embedded in the codebase - no database or API required.
 
 ## Entities
 

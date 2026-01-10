@@ -50,7 +50,7 @@ function getChangedFiles(baseBranch = 'main'): string[] {
 function getPreviousRegistry(baseBranch = 'main'): Registry | null {
   try {
     const content = execSync(
-      `git show ${baseBranch}:packages/agentic-ui-toolkit/registry.json 2>/dev/null || git show HEAD~1:packages/agentic-ui-toolkit/registry.json 2>/dev/null`,
+      `git show ${baseBranch}:packages/manifest-ui/registry.json 2>/dev/null || git show HEAD~1:packages/manifest-ui/registry.json 2>/dev/null`,
       { encoding: 'utf-8', cwd: resolve(__dirname, '../../..') }
     )
     return JSON.parse(content)
@@ -85,7 +85,7 @@ function buildFileToComponentMap(registry: Registry): Map<string, string> {
   const map = new Map<string, string>()
   for (const item of registry.items) {
     for (const file of item.files) {
-      // Normalize path - registry files are relative to packages/agentic-ui-toolkit
+      // Normalize path - registry files are relative to packages/manifest-ui
       map.set(file.path, item.name)
     }
   }
@@ -119,15 +119,15 @@ describe('Version Bump Enforcement', () => {
     // Filter changed files to only registry component files
     const changedComponentFiles = changedFiles.filter(
       (file) =>
-        file.startsWith('packages/agentic-ui-toolkit/registry/') &&
+        file.startsWith('packages/manifest-ui/registry/') &&
         file.endsWith('.tsx')
     )
 
     // Get unique component names that have changes
     const modifiedComponents = new Set<string>()
     for (const file of changedComponentFiles) {
-      // Extract relative path from packages/agentic-ui-toolkit/
-      const relativePath = file.replace('packages/agentic-ui-toolkit/', '')
+      // Extract relative path from packages/manifest-ui/
+      const relativePath = file.replace('packages/manifest-ui/', '')
       const componentName = fileToComponent.get(relativePath)
       if (componentName) {
         modifiedComponents.add(componentName)
@@ -175,7 +175,7 @@ describe('Version Bump Enforcement', () => {
               `  Current version: ${currentVersion}\n` +
               `  Modified files: ${changedComponentFiles
                 .filter((f) => {
-                  const rel = f.replace('packages/agentic-ui-toolkit/', '')
+                  const rel = f.replace('packages/manifest-ui/', '')
                   return fileToComponent.get(rel) === componentName
                 })
                 .join(', ')}\n\n` +
@@ -202,14 +202,14 @@ describe('Version Bump Enforcement', () => {
       const fileToComponent = buildFileToComponentMap(currentRegistry)
       const changedComponentFiles = changedFiles.filter(
         (file) =>
-          file.startsWith('packages/agentic-ui-toolkit/registry/') &&
+          file.startsWith('packages/manifest-ui/registry/') &&
           file.endsWith('.tsx')
       )
 
       if (changedComponentFiles.length > 0) {
         console.log('\n=== Changed Component Files ===')
         for (const file of changedComponentFiles) {
-          const relativePath = file.replace('packages/agentic-ui-toolkit/', '')
+          const relativePath = file.replace('packages/manifest-ui/', '')
           const componentName = fileToComponent.get(relativePath) || 'unknown'
           console.log(`  ${file} (component: ${componentName})`)
         }
@@ -241,12 +241,12 @@ export function checkVersionBumps(): { valid: boolean; errors: string[] } {
 
     const changedComponentFiles = changedFiles.filter(
       (file) =>
-        file.startsWith('packages/agentic-ui-toolkit/registry/') &&
+        file.startsWith('packages/manifest-ui/registry/') &&
         file.endsWith('.tsx')
     )
 
     for (const file of changedComponentFiles) {
-      const relativePath = file.replace('packages/agentic-ui-toolkit/', '')
+      const relativePath = file.replace('packages/manifest-ui/', '')
       const componentName = fileToComponent.get(relativePath)
 
       if (!componentName) continue

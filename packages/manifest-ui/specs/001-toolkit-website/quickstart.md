@@ -1,4 +1,4 @@
-# Quickstart: Agentic UI Toolkit Website
+# Quickstart: Manifest UI Website
 
 **Feature**: 001-toolkit-website
 **Date**: 2025-12-05
@@ -7,14 +7,14 @@
 
 - Node.js 18+
 - pnpm (recommended) or npm
-- Existing agentic-ui-toolkit package setup
+- Existing manifest-ui package setup
 
 ## Development
 
 ### Start the dev server
 
 ```bash
-cd packages/agentic-ui-toolkit
+cd packages/manifest-ui
 pnpm dev
 ```
 

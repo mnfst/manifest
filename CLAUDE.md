@@ -10,7 +10,7 @@ Manifest is a monorepo containing tools for building MCP (Model Context Protocol
 
 ```
 packages/
-├── agentic-ui-toolkit/   # Component registry (Next.js) - port 3001
+├── manifest-ui/   # Component registry (Next.js) - port 3001
 ├── create-manifest/      # CLI for scaffolding new projects
 └── starter/              # Starter template (nested pnpm workspace) - port 3000
     ├── server/           # MCP server (Express + TypeScript)
@@ -64,7 +64,7 @@ Connect using: `https://xxxx.ngrok-free.app/mcp`
 ## Key Files
 
 - `/packages/starter/server/src/index.ts` - Main MCP server entry point
-- `/packages/agentic-ui-toolkit/registry.json` - Component registry definitions
+- `/packages/manifest-ui/registry.json` - Component registry definitions
 - `/turbo.json` - Turborepo configuration
 
 ## Pull Request Guidelines
@@ -137,10 +137,10 @@ EOF
 
 When creating or modifying a block, update these files:
 
-1. **Component file**: `packages/agentic-ui-toolkit/registry/<category>/<block-name>.tsx`
-2. **Registry definition**: `packages/agentic-ui-toolkit/registry.json`
-3. **Block demo with usage example**: `packages/agentic-ui-toolkit/app/blocks/page.tsx`
-4. **Category navigation** (if new): `packages/agentic-ui-toolkit/lib/blocks-categories.ts`
+1. **Component file**: `packages/manifest-ui/registry/<category>/<block-name>.tsx`
+2. **Registry definition**: `packages/manifest-ui/registry.json`
+3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/page.tsx`
+4. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
 
 ### Usage Example Requirements
 
@@ -282,11 +282,11 @@ Before submitting a PR with block changes:
 ## Package-Specific Guidance
 
 See individual package `CLAUDE.md` files for package-specific guidance:
-- `packages/agentic-ui-toolkit/CLAUDE.md` - UI toolkit development guidelines
+- `packages/manifest-ui/CLAUDE.md` - UI toolkit development guidelines
 
 ## SEO Guidelines for ui.manifest.build
 
-The agentic-ui-toolkit package powers https://ui.manifest.build. Follow these SEO best practices:
+The manifest-ui package powers https://ui.manifest.build. Follow these SEO best practices:
 
 ### Automated SEO Tests
 
