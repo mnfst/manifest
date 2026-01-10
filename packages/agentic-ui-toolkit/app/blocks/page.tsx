@@ -1661,17 +1661,18 @@ function BlocksContent() {
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         {selectedBlock ? (
           <div className="max-w-3xl mx-auto space-y-12">
-            {/* Breadcrumb Navigation */}
-            <Breadcrumb
-              items={[
-                { name: 'Blocks', href: '/blocks' },
-                { name: selectedCategory?.name || '' },
-                { name: selectedBlock.name }
-              ]}
-            />
+            {/* Block Header with Breadcrumb */}
+            <div>
+              {/* Breadcrumb Navigation */}
+              <Breadcrumb
+                items={[
+                  { name: 'Blocks', href: '/blocks' },
+                  { name: selectedCategory?.name || '' },
+                  { name: selectedBlock.name }
+                ]}
+              />
 
-            {/* Block Title */}
-            <div className="-mt-8">
+              {/* Block Title */}
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
                 {selectedBlock.actionCount > 0 ? (
