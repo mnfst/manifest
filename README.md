@@ -8,7 +8,6 @@ A visual node-based workflow editor and execution platform. Build application wo
 - **Workflow Execution Engine**: Execute flows with context passing between nodes
 - **MCP Server Publishing**: Deploy workflows as MCP tools for AI assistant integration
 - **AI-Powered Customization**: Refine workflows through natural language chat (LangChain + OpenAI)
-- **External Connectors**: Integrate with external services via encrypted credentials
 - **Dark Mode Support**: Full dark/light theme support
 
 ## Tech Stack
@@ -37,7 +36,6 @@ generator/
 │   │       ├── flow/          # Flow CRUD & persistence
 │   │       ├── flow-execution/# Execution engine
 │   │       ├── node/          # Node type schemas
-│   │       ├── connector/     # External integrations
 │   │       ├── mcp/           # MCP server implementation
 │   │       └── agent/         # LangChain AI agent
 │   ├── nodes/             # Node type definitions
@@ -87,7 +85,7 @@ pnpm install
 
 # Configure environment
 cp packages/backend/.env.example packages/backend/.env
-# Edit .env and set CONNECTOR_ENCRYPTION_KEY (and optionally OPENAI_API_KEY)
+# Edit .env and set OPENAI_API_KEY if you want to use AI features
 ```
 
 ### Development
@@ -135,7 +133,6 @@ docker compose down
 docker build -t chatgpt-app-builder .
 docker run -p 3001:3001 \
   -e OPENAI_API_KEY=sk-... \
-  -e CONNECTOR_ENCRYPTION_KEY=your-key \
   chatgpt-app-builder
 ```
 
@@ -166,15 +163,9 @@ docker run -p 3001:3001 \
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CONNECTOR_ENCRYPTION_KEY` | Yes | 32-byte hex key for encrypting connector credentials |
 | `OPENAI_API_KEY` | No | OpenAI API key for AI customization features |
 | `PORT` | No | Server port (default: 3001) |
 | `NODE_ENV` | No | Environment mode (development/production) |
-
-Generate encryption key:
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
 
 ## Email Configuration
 

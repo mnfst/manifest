@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { ConnectorsPage } from './pages/ConnectorsPage';
 import AppDetail from './pages/AppDetail';
 import FlowDetail from './pages/FlowDetail';
 import { SettingsPage } from './pages/SettingsPage';
@@ -72,7 +71,6 @@ function App() {
         <div className="flex-1 flex flex-col min-w-0">
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
-            <Route path="/connectors" element={<ConnectorsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/app/:appId" element={<AppDetail />} />
             <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
