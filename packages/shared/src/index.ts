@@ -216,3 +216,16 @@ export {
   getTemplateDefaultCode,
   getTemplateSampleData,
 } from './types/templates.js';
+
+// Email types
+export type {
+  EmailMessage,
+  EmailSendResult,
+  PasswordResetEmailProps,
+  InvitationEmailProps,
+  EmailTemplateProps,
+  SendEmailRequest,
+  EmailResultResponse,
+  EmailConfigStatus,
+} from './types/email.js';
+export { EmailTemplateType } from './types/email.js';
