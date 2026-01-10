@@ -266,11 +266,53 @@ This is enforced by automated tests that will fail if:
 { "name": "message-bubble", "version": "1.0.1", ... }
 ```
 
+### Changelog Requirements (CRITICAL)
+
+**Every version MUST have a corresponding changelog entry in `changelog.json`.**
+
+This is enforced by automated tests that will fail if:
+1. A component has a version in `registry.json`
+2. But does NOT have a changelog entry for that version in `changelog.json`
+
+#### Changelog File Structure
+
+The changelog is stored in `packages/manifest-ui/changelog.json`:
+
+```json
+{
+  "components": {
+    "component-name": {
+      "1.0.0": "Initial release with core features",
+      "1.0.1": "Fixed a display issue on mobile devices",
+      "1.1.0": "Added new compact variant"
+    }
+  }
+}
+```
+
+#### Changelog Entry Guidelines
+
+1. **Keep it simple** - One sentence, non-technical if possible
+2. **Focus on user impact** - What changed from the user's perspective
+3. **Be specific** - Avoid vague descriptions like "bug fixes"
+
+**Good examples:**
+- "Initial release with text, image, and voice message support"
+- "Fixed images not loading on slow connections"
+- "Added dark mode support"
+- "Improved accessibility with better screen reader support"
+
+**Bad examples:**
+- "Bug fixes" (too vague)
+- "Refactored internal state management" (too technical)
+- "Updated dependencies" (not user-facing)
+
 ### Checklist for Block Changes
 
 Before submitting a PR with block changes:
 
 - [ ] **Version bumped in `registry.json`** (REQUIRED - tests will fail otherwise)
+- [ ] **Changelog entry added in `changelog.json`** (REQUIRED - tests will fail otherwise)
 - [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
 - [ ] Block is registered in `registry.json` with correct dependencies
 - [ ] Block demo added to `app/blocks/page.tsx` with ALL variants
