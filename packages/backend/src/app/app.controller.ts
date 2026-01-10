@@ -34,6 +34,7 @@ import type {
 
 /**
  * App controller with endpoints for app management
+ * - GET /health - Health check (no auth required)
  * - GET /apps - List all apps (with flow counts)
  * - POST /apps - Create app
  * - GET /apps/:appId - Get app by ID
@@ -48,6 +49,15 @@ export class AppController {
     private readonly appService: AppService,
     private readonly appAccessService: AppAccessService
   ) {}
+
+  /**
+   * GET /api/health
+   * Health check endpoint (no authentication required)
+   */
+  @Get('health')
+  healthCheck(): { status: string } {
+    return { status: 'ok' };
+  }
 
   /**
    * GET /api/apps

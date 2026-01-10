@@ -173,7 +173,7 @@ jobs:
           fi
 
           FULL_URL="https://${DEPLOY_URL}"
-          HEALTH_ENDPOINT="${FULL_URL}/api/apps"
+          HEALTH_ENDPOINT="${FULL_URL}/api/health"
           MAX_ATTEMPTS=$(( ${{ env.MAX_HEALTH_WAIT_MINUTES }} * 60 / ${{ env.HEALTH_CHECK_INTERVAL_SECONDS }} ))
 
           echo "::group::Waiting for container to be healthy"
@@ -190,9 +190,8 @@ jobs:
 
             echo "HTTP Status: ${HTTP_CODE}"
 
-            # Accept 200 (success) or 401 (auth required but app is responding)
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "401" ]; then
-              echo "Container is healthy! (HTTP ${HTTP_CODE})"
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Container is healthy!"
               echo "health_status=healthy" >> $GITHUB_OUTPUT
               echo "::endgroup::"
               exit 0
