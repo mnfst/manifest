@@ -229,3 +229,16 @@ export type {
   EmailConfigStatus,
 } from './types/email.js';
 export { EmailTemplateType } from './types/email.js';
+
+// Analytics types (for app execution metrics dashboard)
+export type {
+  AnalyticsTimeRange,
+  ChartDataPoint,
+  TrendData,
+  AnalyticsMetric,
+  AnalyticsMetrics,
+  FlowOption,
+  AppAnalyticsResponse,
+  AnalyticsQueryParams,
+} from './types/analytics.js';
+export { TIME_RANGE_LABELS } from './types/analytics.js';

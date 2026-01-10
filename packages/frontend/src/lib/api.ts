@@ -47,6 +47,9 @@ import type {
   ResolveSchemaResponse,
   FlowValidationResponse,
   FlowSchemasResponse,
+  // Analytics types
+  AnalyticsTimeRange,
+  AppAnalyticsResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -714,6 +717,27 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(request),
     });
+  },
+
+  // ============================================
+  // Analytics APIs
+  // ============================================
+
+  /**
+   * Get analytics data for an app
+   * GET /api/apps/:appId/analytics
+   */
+  async getAppAnalytics(
+    appId: string,
+    options?: { timeRange?: AnalyticsTimeRange; flowId?: string }
+  ): Promise<AppAnalyticsResponse> {
+    const params = new URLSearchParams();
+    if (options?.timeRange) params.set('timeRange', options.timeRange);
+    if (options?.flowId) params.set('flowId', options.flowId);
+
+    const queryString = params.toString();
+    const endpoint = `/apps/${appId}/analytics${queryString ? `?${queryString}` : ''}`;
+    return fetchApi<AppAnalyticsResponse>(endpoint);
   },
 
 };

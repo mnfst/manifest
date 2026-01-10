@@ -17,6 +17,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-06
 - SQLite (better-sqlite3 11.7.0) via TypeORM - mocked for unit tests (001-backend-test-suite)
 - TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React Email (@react-email/components, @react-email/render), mailgun.js (or nestjs-mailgun), nodemailer (001-email)
 - N/A for email module (no persistence required; uses existing SQLite via TypeORM for user data) (001-email)
+- TypeScript 5.7.2, Node.js >=18.0.0 (001-analytics)
+- SQLite via better-sqlite3, existing FlowExecution entity (001-analytics)
 
 - TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM) (001-trigger-node-refactor)
 
@@ -75,6 +77,7 @@ etc.]
 
 ## Recent Changes
 - 001-email: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React Email (@react-email/components, @react-email/render), mailgun.js (or nestjs-mailgun), nodemailer
+- 001-analytics: Added TypeScript 5.7.2, Node.js >=18.0.0
 - 001-backend-test-suite: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20
 - 001-execution-metadata-ui: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20
 

@@ -15,6 +15,7 @@ import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { SeedModule } from '../seed/seed.module';
 import { ChatModule } from '../chat/chat.module';
 import { EmailModule } from '../email/email.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EmailModule } from '../email/email.module';
     SeedModule,
     ChatModule,
     EmailModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
