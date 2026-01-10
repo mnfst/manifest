@@ -9,7 +9,7 @@ Templates requiring updates: ⚠ pending review after initial setup
 Follow-up TODOs: None
 -->
 
-# Agentic UI Toolkit Constitution
+# Manifest UI Constitution
 
 ## Core Principles
 
@@ -150,7 +150,7 @@ Components SHOULD provide variants when relevant:
 
 ## Governance
 
-This constitution governs all development decisions for the Agentic UI Toolkit. Amendments require:
+This constitution governs all development decisions for the Manifest UI. Amendments require:
 
 1. Clear documentation of the proposed change
 2. Impact assessment on existing components

@@ -32,7 +32,7 @@ As a component developer, I need to understand where to place each prop in my co
 
 As an AI code generation agent (LLM), I need clear documentation on prop categorization rules so that I can generate component interfaces that follow the project's patterns without human intervention.
 
-**Why this priority**: The Agentic UI Toolkit is designed for AI-generated components. Consistent patterns dramatically improve code generation accuracy.
+**Why this priority**: The Manifest UI is designed for AI-generated components. Consistent patterns dramatically improve code generation accuracy.
 
 **Independent Test**: Can be tested by providing an AI agent with component requirements and verifying the generated props follow semantic grouping.
 

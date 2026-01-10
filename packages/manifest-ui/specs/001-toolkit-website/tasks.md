@@ -1,4 +1,4 @@
-# Tasks: Agentic UI Toolkit Website
+# Tasks: Manifest UI Website
 
 **Input**: Design documents from `/specs/001-toolkit-website/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, quickstart.md
@@ -15,7 +15,7 @@
 
 ## Path Conventions
 
-Base path: `packages/agentic-ui-toolkit/`
+Base path: `packages/manifest-ui/`
 
 ---
 

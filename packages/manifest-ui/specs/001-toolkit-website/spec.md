@@ -1,4 +1,4 @@
-# Feature Specification: Agentic UI Toolkit Website
+# Feature Specification: Manifest UI Website
 
 **Feature Branch**: `001-toolkit-website`
 **Created**: 2025-12-05
@@ -9,7 +9,7 @@
 
 ### User Story 1 - Browse blocks by Category (Priority: P1)
 
-A developer visits the Agentic UI Toolkit website to explore available blocks. They navigate to the Blocks page where they see a sidebar listing block categories (example: Payment, Products, Selection, Status & Progress, Lists & Tables, Miscellaneous, etc...). They click on a category to expand it and see the blocks within. They click on a block name to view its details. By default the first block of the sidebar is displayed
+A developer visits the Manifest UI website to explore available blocks. They navigate to the Blocks page where they see a sidebar listing block categories (example: Payment, Products, Selection, Status & Progress, Lists & Tables, Miscellaneous, etc...). They click on a category to expand it and see the blocks within. They click on a block name to view its details. By default the first block of the sidebar is displayed
 
 **Why this priority**: This is the core discovery flow - developers need to find blocks before they can use them. Without browsing capability, the toolkit has no discoverability.
 
@@ -82,7 +82,7 @@ A developer who wants to understand or customize a block can view its source cod
 
 ### User Story 5 - Explore Use Cases on Homepage (Priority: P3)
 
-A first-time visitor lands on the homepage to understand what Agentic UI Toolkit offers. They see interactive demonstrations of blocks in realistic conversational contexts (ChatGPT-clone and Claude-clone interfaces) with tabs to switch between different use case scenarios.
+A first-time visitor lands on the homepage to understand what Manifest UI offers. They see interactive demonstrations of blocks in realistic conversational contexts (ChatGPT-clone and Claude-clone interfaces) with tabs to switch between different use case scenarios.
 
 **Why this priority**: Homepage creates first impressions and helps visitors understand the toolkit's value proposition. Important for adoption but not blocking core functionality.
 

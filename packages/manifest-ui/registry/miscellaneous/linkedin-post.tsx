@@ -24,7 +24,7 @@ export interface LinkedInPostProps {
 
 const defaultData = {
   author: "Manifest",
-  headline: "Agentic UI Toolkit | 10K+ Developers",
+  headline: "Manifest UI | 10K+ Developers",
   avatar: "M",
   content: "Excited to announce our latest milestone!\n\nWe've just crossed 10,000 developers using Manifest to build agentic UIs. Thank you to everyone who believed in our vision.\n\nWhat's next? We're working on something big. Stay tuned!\n\n#AI #AgenticUI #Developer #Startup",
   likes: "1,234",

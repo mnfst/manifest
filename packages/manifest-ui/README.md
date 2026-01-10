@@ -1,4 +1,4 @@
-# Agentic UI Toolkit
+# Manifest UI
 
 A custom shadcn component registry built with Next.js 15 and Tailwind v4.
 

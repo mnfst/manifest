@@ -1504,7 +1504,7 @@ const categories: Category[] = [
             usageCode: `<LinkedInPost
   data={{
     author: "Manifest",
-    headline: "Agentic UI Toolkit | 10K+ Developers",
+    headline: "Manifest UI | 10K+ Developers",
     avatar: "M",
     content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.\\n\\n#AI #AgenticUI #Developer",
     likes: "1,234",
