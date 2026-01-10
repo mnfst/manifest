@@ -85,13 +85,13 @@ jobs:
 
           # Set BETTER_AUTH_SECRET from GitHub secret
           echo "Setting BETTER_AUTH_SECRET..."
-          railway variables set BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET" --service generator
+          railway variables --set "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET" --service generator
 
           # Set BETTER_AUTH_URL using Railway's automatic RAILWAY_PUBLIC_DOMAIN variable
           # Construct the template using printf to avoid GitHub Actions expression parsing
           RAILWAY_URL_TEMPLATE=$(printf 'https://$%sRAILWAY_PUBLIC_DOMAIN}}' '{{')
           echo "Setting BETTER_AUTH_URL to: $RAILWAY_URL_TEMPLATE"
-          railway variables set "BETTER_AUTH_URL=$RAILWAY_URL_TEMPLATE" --service generator
+          railway variables --set "BETTER_AUTH_URL=$RAILWAY_URL_TEMPLATE" --service generator
 
           echo "Auth environment variables configured"
           echo "::endgroup::"
