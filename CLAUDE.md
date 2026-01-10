@@ -41,6 +41,51 @@ TypeScript 5.7.2: Follow standard conventions
 
 <!-- MANUAL ADDITIONS START -->
 
+## Pull Request Guidelines
+
+**IMPORTANT: When creating a PR, ALWAYS include a well-formatted description.**
+
+When using `gh pr create` or creating PRs, you MUST follow this format:
+
+```markdown
+## Summary
+
+[1-3 sentences explaining what this PR does and why]
+
+## Changes
+
+- [List each significant change as a bullet point]
+- [Be specific about files/components modified]
+- [Mention any new dependencies or configurations]
+
+## Type of Change
+
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Refactoring (no functional changes)
+- [ ] Documentation update
+- [ ] Tests (adding or updating tests)
+- [ ] CI/CD (changes to build process or workflows)
+
+## Testing
+
+- [ ] Tests pass locally (`pnpm test`)
+- [ ] Lint passes (`pnpm lint`)
+- [Describe any manual testing performed]
+
+## Related Issues
+
+[Link any related issues: Fixes #123, Relates to #456]
+```
+
+**Rules for PR descriptions:**
+1. NEVER create a PR with an empty description
+2. Always analyze ALL commits in the branch to write a comprehensive summary
+3. Check the type(s) of change that apply
+4. List specific files/components that were modified
+5. Include testing information
+
 ## Development Server Ports (edit-uis worktree)
 
 This worktree uses unique ports to avoid conflicts with other instances:
