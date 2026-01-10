@@ -219,3 +219,6 @@ export {
   getTemplateDefaultCode,
   getTemplateSampleData,
 } from './types/templates.js';
+
+// Auth types
+export type { AppRole, AppUser, AddUserRequest, UserProfile } from './types/auth.js';

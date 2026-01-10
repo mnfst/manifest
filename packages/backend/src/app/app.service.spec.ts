@@ -15,9 +15,9 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AppEntity } from './app.entity';
+import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import {
   createMockRepository,
-  createMockQueryBuilder,
   getMockQueryBuilder,
   type MockRepository,
 } from './test/mock-repository';
@@ -30,9 +30,11 @@ import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
 describe('AppService', () => {
   let service: AppService;
   let mockRepository: MockRepository<AppEntity>;
+  let mockUserAppRoleRepository: MockRepository<UserAppRoleEntity>;
 
   beforeEach(async () => {
     mockRepository = createMockRepository();
+    mockUserAppRoleRepository = createMockRepository();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -40,6 +42,10 @@ describe('AppService', () => {
         {
           provide: getRepositoryToken(AppEntity),
           useValue: mockRepository,
+        },
+        {
+          provide: getRepositoryToken(UserAppRoleEntity),
+          useValue: mockUserAppRoleRepository,
         },
       ],
     }).compile();

@@ -10,8 +10,10 @@ import {
   HttpStatus,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -20,6 +22,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import sharp from 'sharp';
 import { AppService } from './app.service';
 import { AgentService } from '../agent/agent.service';
+import { AppAccessGuard, AppAccessService, CurrentUser, type SessionUser } from '../auth';
 import type {
   App,
   AppWithFlowCount,
@@ -52,25 +55,29 @@ import type {
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly agentService: AgentService
+    private readonly agentService: AgentService,
+    private readonly appAccessService: AppAccessService
   ) {}
 
   /**
    * GET /api/apps
-   * List all apps with flow counts
+   * List apps accessible by current user with flow counts
    */
   @Get('apps')
-  async listApps(): Promise<AppWithFlowCount[]> {
-    return this.appService.findAll();
+  async listApps(@CurrentUser() user: SessionUser): Promise<AppWithFlowCount[]> {
+    return this.appService.getAppsForUser(user.id);
   }
 
   /**
    * POST /api/apps
-   * Create a new app
+   * Create a new app (creator becomes owner)
    */
   @Post('apps')
   @HttpCode(HttpStatus.CREATED)
-  async createApp(@Body() request: CreateAppRequest): Promise<App> {
+  async createApp(
+    @Body() request: CreateAppRequest,
+    @CurrentUser() user: SessionUser
+  ): Promise<App> {
     // Validate name
     if (!request.name || request.name.trim().length === 0) {
       throw new BadRequestException('Name is required');
@@ -80,27 +87,29 @@ export class AppController {
       throw new BadRequestException('Name must be 100 characters or less');
     }
 
-    return this.appService.create(request);
+    return this.appService.create(request, user.id);
   }
 
   /**
    * GET /api/apps/:appId
-   * Get app by ID
+   * Get app by ID (requires access to the app)
    */
   @Get('apps/:appId')
+  @UseGuards(AppAccessGuard)
   async getApp(@Param('appId') appId: string): Promise<App> {
     const app = await this.appService.findById(appId);
     if (!app) {
-      throw new NotFoundException(`App with id ${appId} not found`);
+      throw new NotFoundException('App not found');
     }
     return app;
   }
 
   /**
    * PATCH /api/apps/:appId
-   * Update app
+   * Update app (requires access to the app)
    */
   @Patch('apps/:appId')
+  @UseGuards(AppAccessGuard)
   async updateApp(
     @Param('appId') appId: string,
     @Body() request: UpdateAppRequest
@@ -110,27 +119,37 @@ export class AppController {
 
   /**
    * DELETE /api/apps/:appId
-   * Delete app and all its flows (cascade delete)
+   * Delete app and all its flows (owner only)
    */
   @Delete('apps/:appId')
   @HttpCode(HttpStatus.OK)
-  async deleteApp(@Param('appId') appId: string): Promise<DeleteAppResponse> {
+  @UseGuards(AppAccessGuard)
+  async deleteApp(
+    @Param('appId') appId: string,
+    @CurrentUser() user: SessionUser
+  ): Promise<DeleteAppResponse> {
+    // Only the owner can delete an app
+    const isOwner = await this.appAccessService.isOwner(user.id, appId);
+    if (!isOwner) {
+      throw new ForbiddenException('Only the app owner can delete the app');
+    }
     return this.appService.delete(appId);
   }
 
   /**
    * POST /api/apps/:appId/publish
-   * Publish app to MCP server
+   * Publish app to MCP server (requires access to the app)
    */
   @Post('apps/:appId/publish')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AppAccessGuard)
   async publishAppById(@Param('appId') appId: string): Promise<PublishResult> {
     return this.appService.publish(appId);
   }
 
   /**
    * POST /api/apps/:appId/icon
-   * Upload a custom app icon
+   * Upload a custom app icon (requires access to the app)
    * - Accepts PNG, JPG, GIF, WebP
    * - Maximum 5MB
    * - Must be at least 128x128 pixels
@@ -138,6 +157,7 @@ export class AppController {
    */
   @Post('apps/:appId/icon')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AppAccessGuard)
   @UseInterceptors(
     FileInterceptor('icon', {
       storage: memoryStorage(),
@@ -207,12 +227,15 @@ export class AppController {
 
   /**
    * POST /api/generate
-   * Generate a new app from a natural language prompt
+   * Generate a new app from a natural language prompt (creator becomes owner)
    * @deprecated Use POST /api/apps + POST /api/apps/:appId/flows for flow generation
    */
   @Post('generate')
   @HttpCode(HttpStatus.OK)
-  async generateApp(@Body() request: GenerateAppRequest): Promise<App> {
+  async generateApp(
+    @Body() request: GenerateAppRequest,
+    @CurrentUser() user: SessionUser
+  ): Promise<App> {
     // Validate prompt
     if (!request.prompt || request.prompt.trim().length === 0) {
       throw new BadRequestException('Prompt is required');
@@ -230,7 +253,7 @@ export class AppController {
       name: result.name,
       description: result.description,
       themeVariables: result.themeVariables,
-    });
+    }, user.id);
 
     return app;
   }

@@ -10,6 +10,16 @@
  * - Validation tests included where applicable
  */
 
+// Mock the auth module to avoid better-auth ESM import issues
+jest.mock('../auth', () => ({
+  AppAccessGuard: class MockAppAccessGuard {
+    canActivate() {
+      return true;
+    }
+  },
+  CurrentUser: () => () => ({}),
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -47,6 +57,8 @@ describe('AppController', () => {
       setCurrentApp: jest.fn(),
       clearCurrentApp: jest.fn(),
       generateUniqueSlug: jest.fn(),
+      getAppsForUser: jest.fn(),
+      createWithOwner: jest.fn(),
     };
 
     mockAgentService = createMockAgentService();
@@ -80,24 +92,26 @@ describe('AppController', () => {
   // T025: Tests for listApps() - GET /api/apps
   // ============================================================
   describe('listApps (GET /api/apps)', () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test', image: null, createdAt: new Date(), updatedAt: new Date(), emailVerified: false };
+
     it('should return array of apps with flow counts', async () => {
       const mockApps = [
         createMockAppWithFlowCount({ id: '1', flowCount: 2 }),
         createMockAppWithFlowCount({ id: '2', flowCount: 0 }),
       ];
-      mockAppService.findAll.mockResolvedValue(mockApps);
+      mockAppService.getAppsForUser.mockResolvedValue(mockApps);
 
-      const result = await controller.listApps();
+      const result = await controller.listApps(mockUser);
 
       expect(result).toHaveLength(2);
       expect(result[0].flowCount).toBe(2);
-      expect(mockAppService.findAll).toHaveBeenCalled();
+      expect(mockAppService.getAppsForUser).toHaveBeenCalledWith('user-1');
     });
 
     it('should return empty array when no apps exist', async () => {
-      mockAppService.findAll.mockResolvedValue([]);
+      mockAppService.getAppsForUser.mockResolvedValue([]);
 
-      const result = await controller.listApps();
+      const result = await controller.listApps(mockUser);
 
       expect(result).toEqual([]);
     });

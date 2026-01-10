@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import slugify from 'slugify';
 import { AppEntity } from './app.entity';
+import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@chatgpt-app-builder/shared';
 import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
 
@@ -38,7 +39,9 @@ export class AppService {
 
   constructor(
     @InjectRepository(AppEntity)
-    private readonly appRepository: Repository<AppEntity>
+    private readonly appRepository: Repository<AppEntity>,
+    @InjectRepository(UserAppRoleEntity)
+    private readonly userAppRoleRepository: Repository<UserAppRoleEntity>,
   ) {}
 
   /**
@@ -66,8 +69,10 @@ export class AppService {
 
   /**
    * Create a new app and set as current session app
+   * @param request - App creation request
+   * @param ownerId - User ID of the creator who will become the owner
    */
-  async create(request: CreateAppRequest): Promise<App> {
+  async create(request: CreateAppRequest, ownerId: string): Promise<App> {
     const slug = await this.generateUniqueSlug(request.name);
 
     const themeVariables: ThemeVariables = {
@@ -86,6 +91,15 @@ export class AppService {
 
     const saved = await this.appRepository.save(entity);
     this.currentAppId = saved.id;
+
+    // Assign the creator as owner of the new app
+    const ownerRole = this.userAppRoleRepository.create({
+      userId: ownerId,
+      appId: saved.id,
+      role: 'owner',
+    });
+    await this.userAppRoleRepository.save(ownerRole);
+
     return this.entityToApp(saved);
   }
 
@@ -98,6 +112,32 @@ export class AppService {
       .loadRelationCountAndMap('app.flowCount', 'app.flows')
       .orderBy('app.createdAt', 'DESC')
       .getMany();
+    return entities.map((e) => this.entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
+  }
+
+  /**
+   * Get apps accessible by a specific user (with flow counts)
+   */
+  async getAppsForUser(userId: string): Promise<AppWithFlowCount[]> {
+    // Get app IDs the user has access to
+    const userRoles = await this.userAppRoleRepository.find({
+      where: { userId },
+      select: ['appId'],
+    });
+
+    const appIds = userRoles.map((r) => r.appId);
+
+    if (appIds.length === 0) {
+      return [];
+    }
+
+    const entities = await this.appRepository
+      .createQueryBuilder('app')
+      .loadRelationCountAndMap('app.flowCount', 'app.flows')
+      .where('app.id IN (:...appIds)', { appIds })
+      .orderBy('app.createdAt', 'DESC')
+      .getMany();
+
     return entities.map((e) => this.entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
   }
 

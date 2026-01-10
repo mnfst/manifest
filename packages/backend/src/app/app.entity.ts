@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import type { AppStatus, ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { UserAppRoleEntity } from '../auth/user-app-role.entity';
 
 /**
  * App entity representing an MCP server
@@ -42,4 +43,8 @@ export class AppEntity {
   // Relation to flows - will be added after FlowEntity is created
   @OneToMany('FlowEntity', 'app', { cascade: true })
   flows?: import('../flow/flow.entity').FlowEntity[];
+
+  // Relation to user roles for app access
+  @OneToMany('UserAppRoleEntity', 'app')
+  userRoles?: UserAppRoleEntity[];
 }

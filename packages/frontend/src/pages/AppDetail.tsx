@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
+import { Pencil, Users } from 'lucide-react';
 import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
@@ -9,6 +9,9 @@ import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
+import { UserManagement } from '../components/app/UserManagement';
+
+type AppTab = 'flows' | 'users';
 
 /**
  * App detail page - Shows app info and flows list
@@ -32,6 +35,7 @@ function AppDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditingApp, setIsEditingApp] = useState(false);
   const [editAppError, setEditAppError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AppTab>('flows');
 
   useEffect(() => {
     async function loadData() {
@@ -288,48 +292,93 @@ function AppDetail() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Flows Section */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Flows</h2>
-              <p className="text-sm text-muted-foreground">
-                {flows.length} flow{flows.length !== 1 ? 's' : ''}
-              </p>
-            </div>
+        {/* Tab Navigation */}
+        <div className="border-b mb-6">
+          <nav className="flex gap-6" aria-label="App sections">
             <button
-              onClick={() => setIsFlowModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+              onClick={() => setActiveTab('flows')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'flows'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-              </svg>
-              Create New Flow
+              Flows
+              <span className="ml-2 text-xs text-muted-foreground">
+                ({flows.length})
+              </span>
             </button>
-          </div>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'users'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              Users
+            </button>
+          </nav>
+        </div>
 
-          {/* Existing flows list */}
-          <FlowList
-            flows={flows}
-            onFlowClick={handleFlowClick}
-            onFlowDelete={handleFlowDelete}
-            deletingFlowId={deletingFlowId}
-            onCreateFlow={() => setIsFlowModalOpen(true)}
-          />
-
-          {/* Delete confirmation message */}
-          {deleteConfirm && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-              Click delete again to confirm removal of this flow and all its views.
+        {/* Flows Section */}
+        {activeTab === 'flows' && (
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Flows</h2>
+                <p className="text-sm text-muted-foreground">
+                  {flows.length} flow{flows.length !== 1 ? 's' : ''}
+                </p>
+              </div>
               <button
-                onClick={() => setDeleteConfirm(null)}
-                className="ml-2 underline hover:no-underline"
+                onClick={() => setIsFlowModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
               >
-                Cancel
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+                Create New Flow
               </button>
             </div>
-          )}
-        </section>
+
+            {/* Existing flows list */}
+            <FlowList
+              flows={flows}
+              onFlowClick={handleFlowClick}
+              onFlowDelete={handleFlowDelete}
+              deletingFlowId={deletingFlowId}
+              onCreateFlow={() => setIsFlowModalOpen(true)}
+            />
+
+            {/* Delete confirmation message */}
+            {deleteConfirm && (
+              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+                Click delete again to confirm removal of this flow and all its views.
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="ml-2 underline hover:no-underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Users Section */}
+        {activeTab === 'users' && appId && (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold">User Management</h2>
+              <p className="text-sm text-muted-foreground">
+                Manage who has access to this app
+              </p>
+            </div>
+            <UserManagement appId={appId} />
+          </section>
+        )}
       </main>
 
       {/* Create Flow Modal */}
