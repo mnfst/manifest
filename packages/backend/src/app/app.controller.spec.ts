@@ -18,10 +18,15 @@ jest.mock('../auth', () => ({
     }
   },
   CurrentUser: () => () => ({}),
+  AppAccessService: class MockAppAccessService {
+    isOwner = jest.fn();
+  },
 }));
 
+import { AppAccessService } from '../auth';
+
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {
@@ -34,6 +39,7 @@ import {
 describe('AppController', () => {
   let controller: AppController;
   let mockAppService: Record<string, jest.Mock>;
+  let mockAppAccessService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     // Create fresh mocks for each test
@@ -51,12 +57,21 @@ describe('AppController', () => {
       createWithOwner: jest.fn(),
     };
 
+    mockAppAccessService = {
+      isOwner: jest.fn(),
+      hasAccess: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
       providers: [
         {
           provide: AppService,
           useValue: mockAppService,
+        },
+        {
+          provide: AppAccessService,
+          useValue: mockAppAccessService,
         },
       ],
     }).compile();
@@ -105,21 +120,23 @@ describe('AppController', () => {
   // T026: Tests for createApp() - POST /api/apps
   // ============================================================
   describe('createApp (POST /api/apps)', () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test', image: null, createdAt: new Date(), updatedAt: new Date(), emailVerified: false };
+
     it('should create app with valid request', async () => {
       const request = { name: 'New App', description: 'Description' };
       const mockApp = createMockApp({ name: 'New App' });
       mockAppService.create.mockResolvedValue(mockApp);
 
-      const result = await controller.createApp(request);
+      const result = await controller.createApp(request, mockUser);
 
       expect(result.name).toBe('New App');
-      expect(mockAppService.create).toHaveBeenCalledWith(request);
+      expect(mockAppService.create).toHaveBeenCalledWith(request, 'user-1');
     });
 
     it('should throw BadRequestException for empty name', async () => {
       const request = { name: '' };
 
-      await expect(controller.createApp(request)).rejects.toThrow(
+      await expect(controller.createApp(request, mockUser)).rejects.toThrow(
         BadRequestException,
       );
       expect(mockAppService.create).not.toHaveBeenCalled();
@@ -128,7 +145,7 @@ describe('AppController', () => {
     it('should throw BadRequestException for whitespace-only name', async () => {
       const request = { name: '   ' };
 
-      await expect(controller.createApp(request)).rejects.toThrow(
+      await expect(controller.createApp(request, mockUser)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -136,7 +153,7 @@ describe('AppController', () => {
     it('should throw BadRequestException for name exceeding 100 characters', async () => {
       const request = { name: 'A'.repeat(101) };
 
-      await expect(controller.createApp(request)).rejects.toThrow(
+      await expect(controller.createApp(request, mockUser)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -146,7 +163,7 @@ describe('AppController', () => {
       const mockApp = createMockApp({ name: request.name });
       mockAppService.create.mockResolvedValue(mockApp);
 
-      const result = await controller.createApp(request);
+      const result = await controller.createApp(request, mockUser);
 
       expect(result).toBeDefined();
       expect(mockAppService.create).toHaveBeenCalled();
@@ -206,23 +223,37 @@ describe('AppController', () => {
   // T029: Tests for deleteApp() - DELETE /api/apps/:appId
   // ============================================================
   describe('deleteApp (DELETE /api/apps/:appId)', () => {
-    it('should delete app and return success response', async () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test', image: null, createdAt: new Date(), updatedAt: new Date(), emailVerified: false };
+
+    it('should delete app and return success response when user is owner', async () => {
       const mockResponse = createMockDeleteAppResponse({ deletedFlowCount: 3 });
+      mockAppAccessService.isOwner.mockResolvedValue(true);
       mockAppService.delete.mockResolvedValue(mockResponse);
 
-      const result = await controller.deleteApp('delete-id');
+      const result = await controller.deleteApp('delete-id', mockUser);
 
       expect(result.success).toBe(true);
       expect(result.deletedFlowCount).toBe(3);
+      expect(mockAppAccessService.isOwner).toHaveBeenCalledWith('user-1', 'delete-id');
       expect(mockAppService.delete).toHaveBeenCalledWith('delete-id');
     });
 
+    it('should throw ForbiddenException when user is not owner', async () => {
+      mockAppAccessService.isOwner.mockResolvedValue(false);
+
+      await expect(controller.deleteApp('app-id', mockUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockAppService.delete).not.toHaveBeenCalled();
+    });
+
     it('should pass through NotFoundException from service', async () => {
+      mockAppAccessService.isOwner.mockResolvedValue(true);
       mockAppService.delete.mockRejectedValue(
         new NotFoundException('App not found'),
       );
 
-      await expect(controller.deleteApp('non-existent')).rejects.toThrow(
+      await expect(controller.deleteApp('non-existent', mockUser)).rejects.toThrow(
         NotFoundException,
       );
     });
