@@ -79,6 +79,8 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          # Railway variable reference - use GitHub expression to output literal ${{
+          RAILWAY_URL_TEMPLATE: "https://${{ '{{' }}RAILWAY_PUBLIC_DOMAIN}}"
         run: |
           set -e
           echo "::group::Configuring auth environment variables"
@@ -89,8 +91,8 @@ jobs:
 
           # Set BETTER_AUTH_URL using Railway's automatic domain variable
           # Railway expands ${{RAILWAY_PUBLIC_DOMAIN}} at runtime
-          echo "Setting BETTER_AUTH_URL..."
-          railway variables set 'BETTER_AUTH_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}' --service generator
+          echo "Setting BETTER_AUTH_URL to: $RAILWAY_URL_TEMPLATE"
+          railway variables set "BETTER_AUTH_URL=$RAILWAY_URL_TEMPLATE" --service generator
 
           echo "Auth environment variables configured"
           echo "::endgroup::"
