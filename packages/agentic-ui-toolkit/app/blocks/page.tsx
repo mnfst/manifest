@@ -55,6 +55,9 @@ import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 import { GettingStarted } from '@/components/blocks/getting-started'
 import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section'
 
+// SEO components
+import { Breadcrumb } from '@/components/seo/breadcrumb'
+
 // Types for the new structure
 interface BlockVariant {
   id: string
@@ -1590,9 +1593,12 @@ function BlocksContent() {
     )
   }
 
-  // Find the selected block group
-  const selectedBlock = blockId
-    ? categories.flatMap((c) => c.blocks).find((b) => b.id === blockId)
+  // Find the selected block group and its category
+  const selectedCategory = blockId
+    ? categories.find((c) => c.blocks.some((b) => b.id === blockId))
+    : null
+  const selectedBlock = selectedCategory
+    ? selectedCategory.blocks.find((b) => b.id === blockId)
     : null
 
   // Ref for the first variant section to enable scrolling to actions config
@@ -1655,8 +1661,18 @@ function BlocksContent() {
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         {selectedBlock ? (
           <div className="max-w-3xl mx-auto space-y-12">
-            {/* Block Title */}
+            {/* Block Header with Breadcrumb */}
             <div>
+              {/* Breadcrumb Navigation */}
+              <Breadcrumb
+                items={[
+                  { name: 'Blocks', href: '/blocks' },
+                  { name: selectedCategory?.name || '' },
+                  { name: selectedBlock.name }
+                ]}
+              />
+
+              {/* Block Title */}
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
                 {selectedBlock.actionCount > 0 ? (
@@ -1694,7 +1710,15 @@ function BlocksContent() {
             ))}
           </div>
         ) : (
-          <GettingStarted />
+          <div className="max-w-3xl mx-auto">
+            {/* Breadcrumb Navigation */}
+            <Breadcrumb
+              items={[
+                { name: 'Blocks' }
+              ]}
+            />
+            <GettingStarted />
+          </div>
         )}
       </div>
     </div>
