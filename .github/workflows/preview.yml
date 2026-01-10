@@ -89,8 +89,8 @@ jobs:
 
           # Set BETTER_AUTH_URL using Railway's automatic domain variable
           # Railway expands ${{RAILWAY_PUBLIC_DOMAIN}} at runtime
-          # Use single quotes to prevent shell/GitHub from interpreting the Railway template
-          RAILWAY_URL_TEMPLATE='https://${{RAILWAY_PUBLIC_DOMAIN}}'
+          # Construct the template using printf to avoid GitHub Actions parsing ${{
+          RAILWAY_URL_TEMPLATE=$(printf 'https://$%sRAILWAY_PUBLIC_DOMAIN}}' '{{')
           echo "Setting BETTER_AUTH_URL to: $RAILWAY_URL_TEMPLATE"
           railway variables set "BETTER_AUTH_URL=$RAILWAY_URL_TEMPLATE" --service generator
 
