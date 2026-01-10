@@ -42,8 +42,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         email,
         password,
         name: `${firstName.trim()} ${lastName.trim()}`,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
       });
 
       if (result.error) {
