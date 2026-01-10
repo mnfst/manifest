@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-06
 - SQLite (better-sqlite3 11.7.0) via TypeORM - nodes stored as JSON in Flow entity (091-post-list-action-handle)
 - TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20 (001-backend-test-suite)
 - SQLite (better-sqlite3 11.7.0) via TypeORM - mocked for unit tests (001-backend-test-suite)
+- TypeScript 5.7.2, Node.js >=18.0.0 (001-analytics)
+- SQLite via better-sqlite3, existing FlowExecution entity (001-analytics)
 
 - TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM) (001-trigger-node-refactor)
 
@@ -72,9 +74,9 @@ etc.]
 - **Never** create a PR without a description
 
 ## Recent Changes
+- 001-analytics: Added TypeScript 5.7.2, Node.js >=18.0.0
 - 001-backend-test-suite: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20
 - 001-execution-metadata-ui: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20
-- 091-post-list-action-handle: Added TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20
 
 
 <!-- MANUAL ADDITIONS START -->

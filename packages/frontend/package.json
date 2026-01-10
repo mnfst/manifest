@@ -21,6 +21,7 @@
     "@codemirror/lint": "^6.9.2",
     "@codemirror/view": "^6.39.9",
     "@lezer/highlight": "^1.2.3",
+    "@tremor/react": "^3.18.7",
     "@uiw/react-codemirror": "^4.25.4",
     "@xyflow/react": "^12.10.0",
     "acorn": "^8.15.0",
