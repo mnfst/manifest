@@ -47,6 +47,10 @@ import type {
   ResolveSchemaResponse,
   FlowValidationResponse,
   FlowSchemasResponse,
+  // Auth types
+  AppUser,
+  AddUserRequest,
+  UserProfile,
   // Analytics types
   AnalyticsTimeRange,
   AppAnalyticsResponse,
@@ -143,6 +147,7 @@ async function fetchApi<T>(
 
   const response = await fetch(url, {
     ...options,
+    credentials: 'include', // Send cookies for authentication
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -241,6 +246,7 @@ export const api = {
     const response = await fetch(`${API_BASE}/apps/${appId}/icon`, {
       method: 'POST',
       body: formData,
+      credentials: 'include', // Send cookies for authentication
       // Don't set Content-Type header - browser will set it with boundary for multipart
     });
 
@@ -569,6 +575,7 @@ export const api = {
 
     const response = await fetch(url, {
       method: 'POST',
+      credentials: 'include', // Send cookies for authentication
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
@@ -716,6 +723,55 @@ export const api = {
     return fetchApi<TestTransformResponse>(`/flows/${flowId}/transformers/test`, {
       method: 'POST',
       body: JSON.stringify(request),
+    });
+  },
+
+  // ============================================
+  // User Management APIs
+  // ============================================
+
+  /**
+   * Get current user profile
+   * GET /api/users/me
+   */
+  async getCurrentUser(): Promise<UserProfile> {
+    return fetchApi<UserProfile>('/users/me');
+  },
+
+  /**
+   * Search for a user by email
+   * GET /api/users/search?email=...
+   */
+  async searchUserByEmail(email: string): Promise<UserProfile> {
+    return fetchApi<UserProfile>(`/users/search?email=${encodeURIComponent(email)}`);
+  },
+
+  /**
+   * List users with access to an app
+   * GET /api/apps/:appId/users
+   */
+  async listAppUsers(appId: string): Promise<AppUser[]> {
+    return fetchApi<AppUser[]>(`/apps/${appId}/users`);
+  },
+
+  /**
+   * Add a user to an app
+   * POST /api/apps/:appId/users
+   */
+  async addUserToApp(appId: string, request: AddUserRequest): Promise<AppUser> {
+    return fetchApi<AppUser>(`/apps/${appId}/users`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Remove a user from an app
+   * DELETE /api/apps/:appId/users/:userId
+   */
+  async removeUserFromApp(appId: string, userId: string): Promise<void> {
+    await fetchApi<void>(`/apps/${appId}/users/${userId}`, {
+      method: 'DELETE',
     });
   },
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
+import { Pencil, Users } from 'lucide-react';
 import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
@@ -9,10 +9,11 @@ import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
+import { UserManagement } from '../components/app/UserManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
 import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
 
-type AppDetailTab = 'flows' | 'analytics';
+type AppDetailTab = 'flows' | 'users' | 'analytics';
 
 /**
  * App detail page - Shows app info and flows list
@@ -321,6 +322,47 @@ function AppDetail() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Tab Navigation */}
+        <div className="border-b mb-6">
+          <nav className="flex gap-6" aria-label="App sections">
+            <button
+              onClick={() => setActiveTab('flows')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'flows'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
+            >
+              Flows
+              <span className="ml-2 text-xs text-muted-foreground">
+                ({flows.length})
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'analytics'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
+            >
+              Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'users'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              Users
+            </button>
+          </nav>
+        </div>
+
+        {/* Flows Section */}
         {activeTab === 'flows' && (
           <section className="space-y-6">
             {/* Analytics Preview */}
@@ -373,8 +415,22 @@ function AppDetail() {
           </section>
         )}
 
+        {/* Analytics Section */}
         {activeTab === 'analytics' && appId && (
           <AnalyticsDashboard appId={appId} />
+        )}
+
+        {/* Users Section */}
+        {activeTab === 'users' && appId && (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold">User Management</h2>
+              <p className="text-sm text-muted-foreground">
+                Manage who has access to this app
+              </p>
+            </div>
+            <UserManagement appId={appId} />
+          </section>
         )}
       </main>
 

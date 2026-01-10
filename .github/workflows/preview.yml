@@ -75,6 +75,27 @@ jobs:
           echo "env_name=${ENV_NAME}" >> $GITHUB_OUTPUT
           echo "::endgroup::"
 
+      - name: Configure Auth Environment Variables
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+        run: |
+          set -e
+          echo "::group::Configuring auth environment variables"
+
+          # Set BETTER_AUTH_SECRET from GitHub secret
+          echo "Setting BETTER_AUTH_SECRET..."
+          railway variables --set "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET" --service generator
+
+          # Set BETTER_AUTH_URL using Railway's automatic RAILWAY_PUBLIC_DOMAIN variable
+          # Construct the template using printf to avoid GitHub Actions expression parsing
+          RAILWAY_URL_TEMPLATE=$(printf 'https://$%sRAILWAY_PUBLIC_DOMAIN}}' '{{')
+          echo "Setting BETTER_AUTH_URL to: $RAILWAY_URL_TEMPLATE"
+          railway variables --set "BETTER_AUTH_URL=$RAILWAY_URL_TEMPLATE" --service generator
+
+          echo "Auth environment variables configured"
+          echo "::endgroup::"
+
       - name: Deploy and Wait for Build
         id: deploy
         env:
@@ -152,7 +173,7 @@ jobs:
           fi
 
           FULL_URL="https://${DEPLOY_URL}"
-          HEALTH_ENDPOINT="${FULL_URL}/api/apps"
+          HEALTH_ENDPOINT="${FULL_URL}/api/health"
           MAX_ATTEMPTS=$(( ${{ env.MAX_HEALTH_WAIT_MINUTES }} * 60 / ${{ env.HEALTH_CHECK_INTERVAL_SECONDS }} ))
 
           echo "::group::Waiting for container to be healthy"
@@ -276,16 +297,23 @@ jobs:
       - name: Comment on PR - Failure
         if: failure()
         uses: actions/github-script@v7
+        env:
+          DEPLOY_STATUS: ${{ steps.deploy.outputs.deploy_status }}
+          DEPLOY_ERROR: ${{ steps.deploy.outputs.deploy_error }}
+          HEALTH_STATUS: ${{ steps.health.outputs.health_status }}
+          HEALTH_ERROR: ${{ steps.health.outputs.health_error }}
+          DEPLOY_URL: ${{ steps.url.outputs.url }}
+          DEPLOY_LOGS: ${{ steps.logs.outputs.logs }}
         with:
           script: |
             const prNumber = context.issue.number;
             const sha = context.sha.substring(0, 7);
-            const deployStatus = '${{ steps.deploy.outputs.deploy_status }}' || 'unknown';
-            const deployError = `${{ steps.deploy.outputs.deploy_error }}` || '';
-            const healthStatus = '${{ steps.health.outputs.health_status }}' || 'unknown';
-            const healthError = '${{ steps.health.outputs.health_error }}' || '';
-            const url = '${{ steps.url.outputs.url }}';
-            const logs = `${{ steps.logs.outputs.logs }}` || 'No logs available';
+            const deployStatus = process.env.DEPLOY_STATUS || 'unknown';
+            const deployError = process.env.DEPLOY_ERROR || '';
+            const healthStatus = process.env.HEALTH_STATUS || 'unknown';
+            const healthError = process.env.HEALTH_ERROR || '';
+            const url = process.env.DEPLOY_URL || '';
+            const logs = process.env.DEPLOY_LOGS || 'No logs available';
 
             // Determine failure reason
             let failureReason = '';

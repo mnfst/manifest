@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { McpToolService } from './mcp.tool';
 import { FlowEntity } from '../flow/flow.entity';
 import { AppService } from '../app/app.service';
+import { Public } from '../auth';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ThemeVariables, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
@@ -12,8 +13,12 @@ import type { ThemeVariables, ExecuteActionRequest } from '@chatgpt-app-builder/
 /**
  * Controller for serving UI components for ChatGPT Apps SDK
  * Each flow in an app has its UI accessible at /servers/{appSlug}/ui/{toolName}/{layout}.html
+ *
+ * All routes in this controller are public (no authentication required)
+ * because MCP endpoints need to be accessible by external clients.
  */
 @Controller('servers')
+@Public()
 export class UiController {
   constructor(
     private readonly mcpToolService: McpToolService,

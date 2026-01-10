@@ -5,6 +5,8 @@ import AppDetail from './pages/AppDetail';
 import FlowDetail from './pages/FlowDetail';
 import { SettingsPage } from './pages/SettingsPage';
 import { Sidebar } from './components/layout/Sidebar';
+import { AuthPage } from './pages/AuthPage';
+import { AuthProvider } from './components/auth/AuthProvider';
 import { api } from './lib/api';
 import type { App } from '@chatgpt-app-builder/shared';
 
@@ -60,13 +62,11 @@ function HomeRedirect() {
 }
 
 /**
- * Root application component with routing
- * Routes follow App → Flow → View hierarchy
- * Sidebar provides persistent navigation across all pages
+ * Protected routes wrapper - requires authentication
  */
-function App() {
+function ProtectedRoutes() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
       <div className="flex min-h-screen bg-background">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
@@ -80,6 +80,23 @@ function App() {
           </Routes>
         </div>
       </div>
+    </AuthProvider>
+  );
+}
+
+/**
+ * Root application component with routing
+ * Routes follow App → Flow → View hierarchy
+ * Sidebar provides persistent navigation across all pages
+ * Auth page is public, all other routes require authentication
+ */
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/*" element={<ProtectedRoutes />} />
+      </Routes>
     </BrowserRouter>
   );
 }

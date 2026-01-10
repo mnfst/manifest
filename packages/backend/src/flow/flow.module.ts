@@ -4,6 +4,7 @@ import { FlowEntity } from './flow.entity';
 import { FlowService } from './flow.service';
 import { FlowController } from './flow.controller';
 import { AppEntity } from '../app/app.entity';
+import { AuthModule } from '../auth/auth.module';
 
 /**
  * Flow module for managing MCP tools
@@ -11,6 +12,7 @@ import { AppEntity } from '../app/app.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([FlowEntity, AppEntity]),
+    AuthModule,
   ],
   controllers: [FlowController],
   providers: [FlowService],
