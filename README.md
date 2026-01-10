@@ -176,6 +176,63 @@ Generate encryption key:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
+## Email Configuration
+
+The platform includes an email module for sending transactional emails (password reset, invitations) using React Email templates.
+
+### Email Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `EMAIL_PROVIDER` | No | `console` (default, logs to terminal) or `mailgun` |
+| `EMAIL_FROM` | No | Sender email address (default: `noreply@example.com`) |
+| `EMAIL_FROM_NAME` | No | Sender display name (default: `Manifest`) |
+| `APP_URL` | No | Your app's URL for email links |
+| `MAILGUN_API_KEY` | If using Mailgun | Your Mailgun API key |
+| `MAILGUN_DOMAIN` | If using Mailgun | Your Mailgun domain (e.g., `mg.yourdomain.com`) |
+| `MAILGUN_EU_REGION` | No | Set to `true` if using Mailgun EU region |
+
+### Quick Setup
+
+**Development** (emails logged to console):
+```env
+EMAIL_PROVIDER=console
+```
+
+**Production** (Mailgun):
+```env
+EMAIL_PROVIDER=mailgun
+EMAIL_FROM=noreply@yourdomain.com
+EMAIL_FROM_NAME=Manifest
+MAILGUN_API_KEY=key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MAILGUN_DOMAIN=mg.yourdomain.com
+```
+
+### Available Email Templates
+
+| Template | Description |
+|----------|-------------|
+| `password-reset` | Password reset request with secure link |
+| `invitation` | App/workspace invitation |
+
+### Usage in Code
+
+```typescript
+// Send password reset email
+await emailService.sendPasswordReset('user@example.com', {
+  userName: 'John Doe',
+  resetLink: 'https://yourapp.com/reset?token=abc123',
+  expiresIn: '1 hour',
+});
+
+// Send invitation email
+await emailService.sendInvitation('invitee@example.com', {
+  inviterName: 'Jane Smith',
+  appName: 'My App',
+  appLink: 'https://yourapp.com/invite?code=xyz789',
+});
+```
+
 ## License
 
 UNLICENSED - Proprietary software by MNFST, Inc.

@@ -10,8 +10,10 @@ import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
 import { UserManagement } from '../components/app/UserManagement';
+import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
+import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
 
-type AppTab = 'flows' | 'users';
+type AppDetailTab = 'flows' | 'users' | 'analytics';
 
 /**
  * App detail page - Shows app info and flows list
@@ -35,7 +37,7 @@ function AppDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditingApp, setIsEditingApp] = useState(false);
   const [editAppError, setEditAppError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<AppTab>('flows');
+  const [activeTab, setActiveTab] = useState<AppDetailTab>('flows');
 
   useEffect(() => {
     async function loadData() {
@@ -290,6 +292,34 @@ function AppDetail() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="border-b">
+        <div className="max-w-4xl mx-auto px-4">
+          <nav className="flex gap-6" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('flows')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'flows'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
+              }`}
+            >
+              Flows
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'analytics'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
+              }`}
+            >
+              Analytics
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Tab Navigation */}
@@ -309,6 +339,16 @@ function AppDetail() {
               </span>
             </button>
             <button
+              onClick={() => setActiveTab('analytics')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'analytics'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
+            >
+              Analytics
+            </button>
+            <button
               onClick={() => setActiveTab('users')}
               className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'users'
@@ -325,6 +365,14 @@ function AppDetail() {
         {/* Flows Section */}
         {activeTab === 'flows' && (
           <section className="space-y-6">
+            {/* Analytics Preview */}
+            {appId && (
+              <AnalyticsPreview
+                appId={appId}
+                onViewMore={() => setActiveTab('analytics')}
+              />
+            )}
+
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold">Flows</h2>
@@ -365,6 +413,11 @@ function AppDetail() {
               </div>
             )}
           </section>
+        )}
+
+        {/* Analytics Section */}
+        {activeTab === 'analytics' && appId && (
+          <AnalyticsDashboard appId={appId} />
         )}
 
         {/* Users Section */}

@@ -10,9 +10,6 @@ export type {
   AppWithFlows,
   AppWithFlowCount,
   DeleteAppResponse,
-  GenerateAppRequest,
-  ChatRequest,
-  ChatResponse,
   IconUploadResponse,
 } from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';
@@ -222,3 +219,29 @@ export {
 
 // Auth types
 export type { AppRole, AppUser, AddUserRequest, UserProfile } from './types/auth.js';
+
+// Email types
+export type {
+  EmailMessage,
+  EmailSendResult,
+  PasswordResetEmailProps,
+  InvitationEmailProps,
+  EmailTemplateProps,
+  SendEmailRequest,
+  EmailResultResponse,
+  EmailConfigStatus,
+} from './types/email.js';
+export { EmailTemplateType } from './types/email.js';
+
+// Analytics types (for app execution metrics dashboard)
+export type {
+  AnalyticsTimeRange,
+  ChartDataPoint,
+  TrendData,
+  AnalyticsMetric,
+  AnalyticsMetrics,
+  FlowOption,
+  AppAnalyticsResponse,
+  AnalyticsQueryParams,
+} from './types/analytics.js';
+export { TIME_RANGE_LABELS } from './types/analytics.js';

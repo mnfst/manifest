@@ -4,9 +4,6 @@ import type {
   CreateAppRequest,
   UpdateAppRequest,
   DeleteAppResponse,
-  GenerateAppRequest,
-  ChatRequest,
-  ChatResponse,
   PublishResult,
   ApiError,
   Flow,
@@ -54,6 +51,9 @@ import type {
   AppUser,
   AddUserRequest,
   UserProfile,
+  // Analytics types
+  AnalyticsTimeRange,
+  AppAnalyticsResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -430,54 +430,6 @@ export const api = {
   },
 
   // ============================================
-  // Legacy APIs (deprecated, for backwards compatibility)
-  // ============================================
-
-  /**
-   * Generate a new app from a prompt
-   * POST /api/generate
-   * @deprecated Use createApp + createFlow instead
-   */
-  async generateApp(request: GenerateAppRequest): Promise<App> {
-    return fetchApi<App>('/generate', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Get the current session app
-   * GET /api/current
-   * @deprecated Use getApp instead
-   */
-  async getCurrentApp(): Promise<App> {
-    return fetchApi<App>('/current');
-  },
-
-  /**
-   * Send a chat message to customize the app
-   * POST /api/chat
-   * @deprecated Use view-scoped chat instead
-   */
-  async chat(request: ChatRequest): Promise<ChatResponse> {
-    return fetchApi<ChatResponse>('/chat', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Publish the current app to MCP server
-   * POST /api/publish
-   * @deprecated Use publishAppById instead
-   */
-  async publishApp(): Promise<PublishResult> {
-    return fetchApi<PublishResult>('/publish', {
-      method: 'POST',
-    });
-  },
-
-  // ============================================
   // Connector Management APIs
   // ============================================
 
@@ -821,6 +773,27 @@ export const api = {
     await fetchApi<void>(`/apps/${appId}/users/${userId}`, {
       method: 'DELETE',
     });
+  },
+
+  // ============================================
+  // Analytics APIs
+  // ============================================
+
+  /**
+   * Get analytics data for an app
+   * GET /api/apps/:appId/analytics
+   */
+  async getAppAnalytics(
+    appId: string,
+    options?: { timeRange?: AnalyticsTimeRange; flowId?: string }
+  ): Promise<AppAnalyticsResponse> {
+    const params = new URLSearchParams();
+    if (options?.timeRange) params.set('timeRange', options.timeRange);
+    if (options?.flowId) params.set('flowId', options.flowId);
+
+    const queryString = params.toString();
+    const endpoint = `/apps/${appId}/analytics${queryString ? `?${queryString}` : ''}`;
+    return fetchApi<AppAnalyticsResponse>(endpoint);
   },
 
 };

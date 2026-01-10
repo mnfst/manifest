@@ -1,13 +1,14 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  moduleFileExtensions: ['js', 'json', 'ts'],
+  moduleFileExtensions: ['js', 'json', 'ts', 'tsx'],
   rootDir: 'src',
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': '@swc/jest',
+    '^.+\\.(t|j)sx?$': '@swc/jest',
   },
   collectCoverageFrom: [
     '**/*.(t|j)s',
+    '**/*.(t|j)sx',
     '!**/*.module.ts',
     '!**/main.ts',
     '!**/*.entity.ts',

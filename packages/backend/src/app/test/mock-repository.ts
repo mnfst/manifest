@@ -8,7 +8,7 @@
  *   mockRepository.findOne.mockResolvedValue(mockEntity);
  */
 
-import type { Repository, SelectQueryBuilder } from 'typeorm';
+import type { Repository } from 'typeorm';
 import type { AppEntity } from '../app.entity';
 
 /**

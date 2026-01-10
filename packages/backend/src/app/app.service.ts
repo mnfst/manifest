@@ -30,13 +30,9 @@ function getRandomDefaultIcon(): string {
 
 /**
  * Service for App CRUD operations
- * POC: Single-session operation - one app at a time
  */
 @Injectable()
 export class AppService {
-  // POC: Store current session app ID in memory
-  private currentAppId: string | null = null;
-
   constructor(
     @InjectRepository(AppEntity)
     private readonly appRepository: Repository<AppEntity>,
@@ -90,7 +86,6 @@ export class AppService {
     });
 
     const saved = await this.appRepository.save(entity);
-    this.currentAppId = saved.id;
 
     // Assign the creator as owner of the new app
     const ownerRole = this.userAppRoleRepository.create({
@@ -155,16 +150,6 @@ export class AppService {
   async findBySlug(slug: string): Promise<App | null> {
     const entity = await this.appRepository.findOne({ where: { slug } });
     return entity ? this.entityToApp(entity) : null;
-  }
-
-  /**
-   * Get current session app
-   */
-  async getCurrentApp(): Promise<App | null> {
-    if (!this.currentAppId) {
-      return null;
-    }
-    return this.findById(this.currentAppId);
   }
 
   /**
@@ -234,20 +219,6 @@ export class AppService {
   }
 
   /**
-   * Set current session app
-   */
-  setCurrentApp(id: string): void {
-    this.currentAppId = id;
-  }
-
-  /**
-   * Clear current session app
-   */
-  clearCurrentApp(): void {
-    this.currentAppId = null;
-  }
-
-  /**
    * Update app icon URL
    */
   async updateIcon(id: string, iconUrl: string): Promise<App> {
@@ -275,11 +246,6 @@ export class AppService {
     }
 
     const deletedFlowCount = entity.flows?.length ?? 0;
-
-    // Clear current app if this is the current one
-    if (this.currentAppId === id) {
-      this.currentAppId = null;
-    }
 
     await this.appRepository.remove(entity);
 
