@@ -10,9 +10,6 @@ export type {
   AppWithFlows,
   AppWithFlowCount,
   DeleteAppResponse,
-  GenerateAppRequest,
-  ChatRequest,
-  ChatResponse,
   IconUploadResponse,
 } from './types/app.js';
 export { LAYOUT_REGISTRY } from './types/app.js';

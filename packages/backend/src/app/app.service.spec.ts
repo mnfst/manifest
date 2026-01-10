@@ -17,6 +17,7 @@ import { AppService } from './app.service';
 import { AppEntity } from './app.entity';
 import {
   createMockRepository,
+  createMockQueryBuilder,
   getMockQueryBuilder,
   type MockRepository,
 } from './test/mock-repository';
@@ -122,22 +123,6 @@ describe('AppService', () => {
         DEFAULT_THEME_VARIABLES['--background'],
       );
     });
-
-    it('should set current app ID after creation', async () => {
-      const request = createMockCreateAppRequest();
-      const mockEntity = createMockAppEntity({ id: 'set-current-id' });
-
-      mockRepository.findOne!.mockResolvedValueOnce(null);
-      mockRepository.create!.mockReturnValue(mockEntity);
-      mockRepository.save!.mockResolvedValue(mockEntity);
-
-      await service.create(request);
-
-      // Verify current app is set by calling getCurrentApp
-      mockRepository.findOne!.mockResolvedValueOnce(mockEntity);
-      const current = await service.getCurrentApp();
-      expect(current?.id).toBe('set-current-id');
-    });
   });
 
   // ============================================================
@@ -233,34 +218,6 @@ describe('AppService', () => {
   });
 
   // ============================================================
-  // T17: Tests for getCurrentApp() method
-  // ============================================================
-  describe('getCurrentApp', () => {
-    it('should return null when no current app is set', async () => {
-      const result = await service.getCurrentApp();
-
-      expect(result).toBeNull();
-    });
-
-    it('should return current app when set', async () => {
-      const mockEntity = createMockAppEntity({ id: 'current-id' });
-
-      // Set current app by creating one
-      mockRepository.findOne!.mockResolvedValueOnce(null); // for slug check
-      mockRepository.create!.mockReturnValue(mockEntity);
-      mockRepository.save!.mockResolvedValue(mockEntity);
-
-      await service.create(createMockCreateAppRequest());
-
-      // Now get current app
-      mockRepository.findOne!.mockResolvedValueOnce(mockEntity);
-      const result = await service.getCurrentApp();
-
-      expect(result?.id).toBe('current-id');
-    });
-  });
-
-  // ============================================================
   // T018: Tests for update() method
   // ============================================================
   describe('update', () => {
@@ -351,25 +308,6 @@ describe('AppService', () => {
       const result = await service.delete('with-flows');
 
       expect(result.deletedFlowCount).toBe(3);
-    });
-
-    it('should clear current app if deleting current app', async () => {
-      const mockEntity = createMockAppEntity({ id: 'current-to-delete' });
-
-      // Set as current app
-      mockRepository.findOne!.mockResolvedValueOnce(null);
-      mockRepository.create!.mockReturnValue(mockEntity);
-      mockRepository.save!.mockResolvedValue(mockEntity);
-      await service.create(createMockCreateAppRequest());
-
-      // Delete it
-      mockRepository.findOne!.mockResolvedValueOnce({ ...mockEntity, flows: [] });
-      mockRepository.remove!.mockResolvedValue(mockEntity);
-      await service.delete('current-to-delete');
-
-      // Verify current app is cleared
-      const current = await service.getCurrentApp();
-      expect(current).toBeNull();
     });
 
     it('should throw NotFoundException when app not found', async () => {
@@ -495,31 +433,6 @@ describe('AppService', () => {
       await expect(
         service.updateIcon('non-existent', '/icon.png'),
       ).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  // ============================================================
-  // T023: Additional tests for setCurrentApp/clearCurrentApp
-  // ============================================================
-  describe('setCurrentApp', () => {
-    it('should set current app ID', async () => {
-      service.setCurrentApp('manual-id');
-
-      const mockEntity = createMockAppEntity({ id: 'manual-id' });
-      mockRepository.findOne!.mockResolvedValue(mockEntity);
-
-      const current = await service.getCurrentApp();
-      expect(current?.id).toBe('manual-id');
-    });
-  });
-
-  describe('clearCurrentApp', () => {
-    it('should clear current app ID', async () => {
-      service.setCurrentApp('to-clear');
-      service.clearCurrentApp();
-
-      const current = await service.getCurrentApp();
-      expect(current).toBeNull();
     });
   });
 });

@@ -132,27 +132,3 @@ export interface DeleteAppResponse {
 export interface IconUploadResponse {
   iconUrl: string;
 }
-
-/**
- * Legacy types for backwards compatibility during transition
- * @deprecated Use CreateAppRequest instead
- */
-export interface GenerateAppRequest {
-  prompt: string;
-}
-
-/**
- * @deprecated Use ViewChatRequest from view.ts instead
- */
-export interface ChatRequest {
-  message: string;
-}
-
-/**
- * @deprecated Use ViewChatResponse from view.ts instead
- */
-export interface ChatResponse {
-  response: string;
-  app: App;
-  changes: string[];
-}

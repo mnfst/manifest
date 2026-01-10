@@ -1,7 +1,7 @@
 /**
  * Unit tests for AppController
  *
- * Tests all HTTP endpoints with mocked AppService and AgentService.
+ * Tests all HTTP endpoints with mocked AppService.
  * Verifies request handling, validation, and response shaping.
  *
  * Test organization:
@@ -14,12 +14,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AgentService } from '../agent/agent.service';
-import {
-  createMockAgentService,
-  createMockGenerateAppResult,
-  createMockProcessChatResult,
-} from './test/mock-agent.service';
 import {
   createMockApp,
   createMockAppWithFlowCount,
@@ -30,7 +24,6 @@ import {
 describe('AppController', () => {
   let controller: AppController;
   let mockAppService: Record<string, jest.Mock>;
-  let mockAgentService: ReturnType<typeof createMockAgentService>;
 
   beforeEach(async () => {
     // Create fresh mocks for each test
@@ -38,18 +31,13 @@ describe('AppController', () => {
       findAll: jest.fn(),
       findById: jest.fn(),
       findBySlug: jest.fn(),
-      getCurrentApp: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       publish: jest.fn(),
       updateIcon: jest.fn(),
-      setCurrentApp: jest.fn(),
-      clearCurrentApp: jest.fn(),
       generateUniqueSlug: jest.fn(),
     };
-
-    mockAgentService = createMockAgentService();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
@@ -57,10 +45,6 @@ describe('AppController', () => {
         {
           provide: AppService,
           useValue: mockAppService,
-        },
-        {
-          provide: AgentService,
-          useValue: mockAgentService,
         },
       ],
     }).compile();
@@ -278,114 +262,6 @@ describe('AppController', () => {
       await expect(
         controller.uploadAppIcon('app-id', undefined as any),
       ).rejects.toThrow(BadRequestException);
-    });
-  });
-
-  // ============================================================
-  // Legacy Endpoints (deprecated but still tested for coverage)
-  // ============================================================
-  describe('Legacy Endpoints', () => {
-    describe('generateApp (POST /api/generate)', () => {
-      it('should generate app from prompt', async () => {
-        const mockGenResult = createMockGenerateAppResult({ name: 'Generated' });
-        mockAgentService.generateApp.mockResolvedValue(mockGenResult);
-
-        const mockApp = createMockApp({ name: 'Generated' });
-        mockAppService.create.mockResolvedValue(mockApp);
-
-        const result = await controller.generateApp({ prompt: 'Create an app' });
-
-        expect(result.name).toBe('Generated');
-        expect(mockAgentService.generateApp).toHaveBeenCalledWith('Create an app');
-      });
-
-      it('should throw BadRequestException for empty prompt', async () => {
-        await expect(controller.generateApp({ prompt: '' })).rejects.toThrow(
-          BadRequestException,
-        );
-      });
-
-      it('should throw BadRequestException for prompt exceeding 10000 characters', async () => {
-        await expect(
-          controller.generateApp({ prompt: 'A'.repeat(10001) }),
-        ).rejects.toThrow(BadRequestException);
-      });
-    });
-
-    describe('getCurrentApp (GET /api/current)', () => {
-      it('should return current session app', async () => {
-        const mockApp = createMockApp({ id: 'current-id' });
-        mockAppService.getCurrentApp.mockResolvedValue(mockApp);
-
-        const result = await controller.getCurrentApp();
-
-        expect(result.id).toBe('current-id');
-      });
-
-      it('should throw NotFoundException when no current app', async () => {
-        mockAppService.getCurrentApp.mockResolvedValue(null);
-
-        await expect(controller.getCurrentApp()).rejects.toThrow(
-          NotFoundException,
-        );
-      });
-    });
-
-    describe('chat (POST /api/chat)', () => {
-      it('should process chat message and return response', async () => {
-        const mockApp = createMockApp();
-        mockAppService.getCurrentApp.mockResolvedValue(mockApp);
-
-        const mockChatResult = createMockProcessChatResult({
-          response: 'Updated',
-          updates: { name: 'Chat Updated' },
-          changes: ['name updated'],
-        });
-        mockAgentService.processChat.mockResolvedValue(mockChatResult);
-
-        const updatedApp = createMockApp({ name: 'Chat Updated' });
-        mockAppService.update.mockResolvedValue(updatedApp);
-
-        const result = await controller.chat({ message: 'Update the name' });
-
-        expect(result.response).toBe('Updated');
-        expect(result.changes).toContain('name updated');
-      });
-
-      it('should throw BadRequestException for empty message', async () => {
-        await expect(controller.chat({ message: '' })).rejects.toThrow(
-          BadRequestException,
-        );
-      });
-
-      it('should throw NotFoundException when no current app', async () => {
-        mockAppService.getCurrentApp.mockResolvedValue(null);
-
-        await expect(controller.chat({ message: 'Hello' })).rejects.toThrow(
-          NotFoundException,
-        );
-      });
-    });
-
-    describe('publishApp (POST /api/publish)', () => {
-      it('should publish current app', async () => {
-        const mockApp = createMockApp({ id: 'current-to-publish' });
-        mockAppService.getCurrentApp.mockResolvedValue(mockApp);
-
-        const mockResult = createMockPublishResult();
-        mockAppService.publish.mockResolvedValue(mockResult);
-
-        const result = await controller.publishApp();
-
-        expect(result.app.status).toBe('published');
-        expect(mockAppService.publish).toHaveBeenCalledWith('current-to-publish');
-      });
-
-      it('should throw NotFoundException when no current app', async () => {
-        mockAppService.getCurrentApp.mockResolvedValue(null);
-
-        await expect(controller.publishApp()).rejects.toThrow(NotFoundException);
-      });
     });
   });
 });

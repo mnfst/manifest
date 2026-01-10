@@ -8,7 +8,6 @@ import { ConnectorEntity } from '../connector/connector.entity';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
 import { FlowModule } from '../flow/flow.module';
 import { NodeModule } from '../node/node.module';
-import { AgentModule } from '../agent/agent.module';
 import { McpModule } from '../mcp/mcp.module';
 import { ConnectorModule } from '../connector/connector.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
@@ -26,7 +25,6 @@ import { ChatModule } from '../chat/chat.module';
     TypeOrmModule.forFeature([AppEntity]),
     FlowModule,
     NodeModule,
-    AgentModule,
     McpModule,
     ConnectorModule,
     FlowExecutionModule,
