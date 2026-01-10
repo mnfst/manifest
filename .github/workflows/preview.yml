@@ -87,9 +87,8 @@ jobs:
           echo "Setting BETTER_AUTH_SECRET..."
           railway variables set BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET" --service generator
 
-          # Set BETTER_AUTH_URL using Railway's automatic domain variable
-          # Railway expands ${{RAILWAY_PUBLIC_DOMAIN}} at runtime
-          # Construct the template using printf to avoid GitHub Actions parsing ${{
+          # Set BETTER_AUTH_URL using Railway's automatic RAILWAY_PUBLIC_DOMAIN variable
+          # Construct the template using printf to avoid GitHub Actions expression parsing
           RAILWAY_URL_TEMPLATE=$(printf 'https://$%sRAILWAY_PUBLIC_DOMAIN}}' '{{')
           echo "Setting BETTER_AUTH_URL to: $RAILWAY_URL_TEMPLATE"
           railway variables set "BETTER_AUTH_URL=$RAILWAY_URL_TEMPLATE" --service generator
