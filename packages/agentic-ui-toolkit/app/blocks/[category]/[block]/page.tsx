@@ -1438,18 +1438,18 @@ function BlockPageContent() {
 
           {/* Related Blocks in Same Category */}
           {selectedCategory && selectedCategory.blocks.filter((b) => b.id !== blockSlug).length > 0 && (
-            <div className="pt-8 border-t border-border">
-              <h2 className="text-lg font-bold mb-4">
+            <div className="mt-16 pt-8 border-t border-border/50">
+              <h2 className="text-base font-medium text-muted-foreground mb-4">
                 Other blocks in the {selectedCategory.name} category
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {selectedCategory.blocks
                   .filter((b) => b.id !== blockSlug)
                   .map((block) => (
                     <Link
                       key={block.id}
                       href={`/blocks/${selectedCategory.id}/${block.id}`}
-                      className="flex items-center justify-center px-4 py-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-muted transition-colors text-foreground"
+                      className="px-3 py-2 text-sm rounded-md border border-border/50 bg-background/50 hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
                     >
                       {block.name}
                     </Link>
