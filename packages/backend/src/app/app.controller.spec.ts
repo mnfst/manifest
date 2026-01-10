@@ -18,6 +18,7 @@ jest.mock('../auth', () => ({
     }
   },
   CurrentUser: () => () => ({}),
+  Public: () => () => ({}),
   AppAccessService: class MockAppAccessService {
     isOwner = jest.fn();
   },
