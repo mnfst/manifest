@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ChevronRight, Link as LinkIcon, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
 // Form components
 import { ContactForm } from '@/registry/form/contact-form'
@@ -1269,13 +1269,25 @@ const categories: Category[] = [
 function CopyLinkButton({ anchor, className }: { anchor?: string; className?: string }) {
   const [copied, setCopied] = useState(false)
   const pathname = usePathname()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const handleCopy = () => {
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
+  const handleCopy = useCallback(() => {
     const url = `${window.location.origin}${pathname}${anchor ? `#${anchor}` : ''}`
     navigator.clipboard.writeText(url)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    timeoutRef.current = setTimeout(() => setCopied(false), 2000)
+  }, [pathname, anchor])
 
   return (
     <button
@@ -1293,7 +1305,6 @@ function CopyLinkButton({ anchor, className }: { anchor?: string; className?: st
 
 function BlockPageContent() {
   const params = useParams()
-  const pathname = usePathname()
   const categorySlug = params.category as string
   const blockSlug = params.block as string
 
@@ -1318,13 +1329,19 @@ function BlockPageContent() {
 
   // Handle anchor scrolling on mount
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout | undefined
     if (window.location.hash) {
       const id = window.location.hash.slice(1)
       const element = document.getElementById(id)
       if (element) {
-        setTimeout(() => {
+        scrollTimeout = setTimeout(() => {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }, 100)
+      }
+    }
+    return () => {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout)
       }
     }
   }, [])
