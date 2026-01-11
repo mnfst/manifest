@@ -307,6 +307,20 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
 
+### PostList Block Requirements (CRITICAL)
+
+**The PostList block MUST always have exactly 15 posts in its `usageCode` data.**
+
+This is required because:
+1. The PostList component does NOT have default posts - it requires data to be passed
+2. Users copy-paste the usage code to test in MCP Jam - they need complete data
+3. 15 posts provides a realistic dataset for pagination and scrolling demos
+
+When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[category]/[block]/page.tsx`:
+- Always include all 15 posts in the `data.posts` array
+- Use the standard 15 demo posts (Sarah Chen, Alex Rivera, Jordan Kim, etc.)
+- Never use placeholders like `[...]` or truncated arrays
+
 ### Checklist for Block Changes
 
 Before submitting a PR with block changes:
@@ -320,6 +334,7 @@ Before submitting a PR with block changes:
 - [ ] Usage example shows realistic data (not placeholder text like "test" or "foo")
 - [ ] All action handlers are demonstrated with `console.log` examples
 - [ ] New category added to `blocks-categories.ts` if needed
+- [ ] **PostList block has exactly 15 posts in usageCode** (if modifying PostList)
 
 ## Package-Specific Guidance
 
