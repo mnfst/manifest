@@ -295,7 +295,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     )
   }
 
-  // Grid variant
+  // Grid variant (inline mode - show only 4 posts)
   if (variant === 'grid') {
     return (
       <div
@@ -304,7 +304,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
         )}
       >
-        {posts.map((post) => (
+        {posts.slice(0, 4).map((post) => (
           <PostCard
             key={post.id}
             data={{ post }}
