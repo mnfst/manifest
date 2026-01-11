@@ -126,7 +126,22 @@ const categories: Category[] = [
       readTime: "5 min read",
       tags: ["Tutorial", "Components"],
       category: "Tutorial"
-    }
+    },
+    content: \`
+      <p>Building modern AI-powered applications requires a new approach to UI design. Traditional web components don't always translate well to conversational interfaces, where context and flow are paramount.</p>
+
+      <p>Our Agentic UI component library provides a collection of purpose-built components that work seamlessly within chat interfaces. From payment flows to product displays, each component is designed with the unique constraints of conversational UIs in mind.</p>
+
+      <h2>Key Features</h2>
+      <p>Each component supports three display modes: inline (within the chat flow), fullscreen (for complex interactions), and picture-in-picture (persistent visibility). This flexibility allows you to create rich, interactive experiences without breaking the conversational flow.</p>
+
+      <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
+
+      <h2>Getting Started</h2>
+      <p>To begin using Agentic UI components, install the package via npm or yarn. Each component is fully typed with TypeScript and includes comprehensive documentation with examples.</p>
+
+      <p>The components follow a consistent props pattern with data, actions, appearance, and control categories, making them predictable and easy to integrate into your existing codebase.</p>
+    \`
   }}
   appearance={{
     variant: "default",
@@ -157,7 +172,20 @@ const categories: Category[] = [
       readTime: "8 min read",
       tags: ["Design", "UX"],
       category: "Design"
-    }
+    },
+    content: \`
+      <p>Conversational interfaces present unique design challenges that traditional web design principles don't fully address. Users interact with chat-based UIs differently, expecting quick responses and contextual awareness.</p>
+
+      <h2>Understanding the Context</h2>
+      <p>In a conversational UI, every component exists within a flow. Unlike traditional web pages where users can freely navigate, chat interfaces guide users through a linear experience. This means your components must be self-contained yet contextually aware.</p>
+
+      <p>The key is to provide just enough information without overwhelming the user. Use progressive disclosure to reveal details as needed, and always provide clear actions for the next step.</p>
+
+      <h2>Visual Hierarchy in Chat</h2>
+      <p>With limited screen real estate, visual hierarchy becomes crucial. Use typography, spacing, and color to guide the user's attention to the most important elements. Avoid cluttered layouts that compete for attention.</p>
+
+      <p>Remember that users are often multitasking when using chat interfaces. Your components should be scannable and easy to understand at a glance.</p>
+    \`
   }}
   appearance={{
     showImage: false,
@@ -187,7 +215,23 @@ const categories: Category[] = [
       readTime: "12 min read",
       tags: ["MCP", "Backend"],
       category: "Development"
-    }
+    },
+    content: \`
+      <p>The Model Context Protocol (MCP) provides a standardized way for AI applications to communicate with backend services. Understanding the common integration patterns will help you build more robust and maintainable applications.</p>
+
+      <h2>Request-Response Pattern</h2>
+      <p>The most common pattern is simple request-response. Your frontend sends a request to the MCP server, which processes it and returns a response. This works well for simple queries and CRUD operations.</p>
+
+      <p>For more complex scenarios, consider using streaming responses. MCP supports server-sent events, allowing you to receive partial results as they become available.</p>
+
+      <h2>Tool Registration</h2>
+      <p>MCP tools are the building blocks of your backend integration. Each tool defines a specific capability that the AI can invoke. Design your tools to be atomic and composable for maximum flexibility.</p>
+
+      <p>When registering tools, provide clear descriptions and parameter schemas. This helps the AI understand when and how to use each tool effectively.</p>
+
+      <h2>Error Handling</h2>
+      <p>Robust error handling is essential for production applications. MCP provides structured error responses that you should propagate to your UI components gracefully.</p>
+    \`
   }}
   appearance={{
     variant: "compact",
@@ -218,7 +262,23 @@ const categories: Category[] = [
       readTime: "10 min read",
       tags: ["Payments", "Security"],
       category: "Tutorial"
-    }
+    },
+    content: \`
+      <p>Integrating payment flows within conversational interfaces requires careful consideration of security, user experience, and regulatory compliance. This guide walks you through the essential patterns and best practices.</p>
+
+      <h2>Security First</h2>
+      <p>Never handle raw credit card data in your chat interface. Instead, use tokenization services like Stripe or PayPal that provide secure, PCI-compliant payment forms. These services handle the sensitive data and return a token you can safely use.</p>
+
+      <p>Always use HTTPS and implement proper authentication. Consider adding additional verification steps for high-value transactions.</p>
+
+      <h2>User Experience</h2>
+      <p>Payment flows should be quick and intuitive. Show clear pricing information upfront, and provide progress indicators throughout the checkout process. Users should always know where they are and what's coming next.</p>
+
+      <p>Offer multiple payment methods when possible. Some users prefer cards, others prefer digital wallets like Apple Pay or Google Pay. The more options you provide, the higher your conversion rates.</p>
+
+      <h2>Confirmation and Receipts</h2>
+      <p>Always provide clear confirmation after a successful payment. Include order details, expected delivery dates, and contact information for support. Consider sending a follow-up message or email with the receipt.</p>
+    \`
   }}
   appearance={{
     variant: "horizontal",
@@ -250,7 +310,23 @@ const categories: Category[] = [
       readTime: "7 min read",
       tags: ["AI", "Future"],
       category: "Insights"
-    }
+    },
+    content: \`
+      <p>The rise of large language models has fundamentally changed how we think about user interfaces. Traditional GUIs gave way to conversational interfaces, and now we're seeing the emergence of agentic UIs - interfaces that can act autonomously on behalf of users.</p>
+
+      <h2>From Passive to Active</h2>
+      <p>Traditional UIs are passive - they wait for user input and respond accordingly. Agentic UIs, however, can anticipate user needs, suggest actions, and even take initiative when appropriate. This shift requires a new design paradigm.</p>
+
+      <p>The key challenge is building trust. Users need to feel in control even when the AI is taking actions on their behalf. Clear communication about what the AI is doing and why is essential.</p>
+
+      <h2>The Role of Context</h2>
+      <p>Agentic UIs excel when they understand context. By maintaining awareness of the user's goals, history, and preferences, these interfaces can provide more relevant and timely assistance.</p>
+
+      <p>The Model Context Protocol (MCP) provides the foundation for this contextual awareness, allowing AI systems to access and integrate information from various sources.</p>
+
+      <h2>Looking Ahead</h2>
+      <p>As AI capabilities continue to advance, we can expect agentic UIs to become even more sophisticated. The interfaces of tomorrow will feel less like tools and more like intelligent assistants that truly understand and help achieve our goals.</p>
+    \`
   }}
   appearance={{
     variant: "covered",
