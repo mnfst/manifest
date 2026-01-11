@@ -1,20 +1,17 @@
 'use client'
 
-import {
-  MessageBubble,
-  ImageMessageBubble
-} from './message-bubble'
+import { ImageMessageBubble, MessageBubble } from './message-bubble'
 
 // Chat Conversation (multiple messages)
 export interface ChatMessage {
   id: string
-  type: 'text' | 'image'
+  type?: 'text' | 'image'
   content: string
   image?: string
   caption?: string
   author: string
-  avatar: string
-  time: string
+  avatar?: string
+  time?: string
   isOwn: boolean
   status?: 'sent' | 'delivered' | 'read'
 }
@@ -73,8 +70,9 @@ export function ChatConversation({ data }: ChatConversationProps) {
   const { messages = defaultMessages } = data ?? {}
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
-      {messages.map((message) =>
-        message.type === 'image' ? (
+      {messages.map((message) => {
+        const messageType = message.type ?? 'text'
+        return messageType === 'image' ? (
           <ImageMessageBubble
             key={message.id}
             data={{
@@ -82,7 +80,7 @@ export function ChatConversation({ data }: ChatConversationProps) {
               caption: message.caption,
               avatar: message.avatar,
               author: message.author,
-              time: message.time,
+              time: message.time
             }}
             appearance={{ isOwn: message.isOwn }}
             control={{ status: message.status }}
@@ -94,13 +92,13 @@ export function ChatConversation({ data }: ChatConversationProps) {
               content: message.content,
               avatar: message.avatar,
               author: message.author,
-              time: message.time,
+              time: message.time
             }}
             appearance={{ isOwn: message.isOwn }}
             control={{ status: message.status }}
           />
         )
-      )}
+      })}
     </div>
   )
 }
