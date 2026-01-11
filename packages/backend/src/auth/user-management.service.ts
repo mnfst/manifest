@@ -2,8 +2,9 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Database from 'better-sqlite3';
-import type { AppRole, AppUser } from '@chatgpt-app-builder/shared';
+import type { AppRole, AppUser, AppUserListItem } from '@chatgpt-app-builder/shared';
 import { UserAppRoleEntity } from './user-app-role.entity';
+import { PendingInvitationEntity } from './pending-invitation.entity';
 import { AppAccessService } from './app-access.service';
 
 /**
@@ -14,6 +15,8 @@ export class UserManagementService {
   constructor(
     @InjectRepository(UserAppRoleEntity)
     private readonly userAppRoleRepository: Repository<UserAppRoleEntity>,
+    @InjectRepository(PendingInvitationEntity)
+    private readonly invitationRepository: Repository<PendingInvitationEntity>,
     private readonly appAccessService: AppAccessService,
   ) {}
 
@@ -47,6 +50,73 @@ export class UserManagementService {
     return users.sort((a, b) => {
       if (a.isOwner && !b.isOwner) return -1;
       if (!a.isOwner && b.isOwner) return 1;
+      return a.email.localeCompare(b.email);
+    });
+  }
+
+  /**
+   * Get all users with access to an app, including pending invitations
+   */
+  async getAppUsersWithPending(appId: string): Promise<AppUserListItem[]> {
+    // Get active users
+    const roles = await this.userAppRoleRepository.find({
+      where: { appId },
+      order: { createdAt: 'ASC' },
+    });
+
+    const activeUsers: AppUserListItem[] = [];
+
+    for (const role of roles) {
+      const user = await this.getUserById(role.userId);
+      if (user) {
+        activeUsers.push({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: role.role,
+          isOwner: role.role === 'owner',
+          createdAt: role.createdAt.toISOString(),
+          status: 'active',
+        });
+      }
+    }
+
+    // Get pending invitations
+    const invitations = await this.invitationRepository.find({
+      where: { appId },
+      order: { createdAt: 'DESC' },
+    });
+
+    // Get inviter names
+    const inviterIds = [...new Set(invitations.map(i => i.inviterId))];
+    const inviters = new Map<string, string>();
+    for (const id of inviterIds) {
+      const user = await this.getUserById(id);
+      if (user) {
+        inviters.set(id, user.name || user.email);
+      }
+    }
+
+    const pendingUsers: AppUserListItem[] = invitations.map(inv => ({
+      id: inv.id,
+      email: inv.email,
+      role: inv.role,
+      createdAt: inv.createdAt.toISOString(),
+      status: 'pending' as const,
+      invitedBy: inv.inviterId,
+      inviterName: inviters.get(inv.inviterId),
+    }));
+
+    // Combine and sort: owners first, then active users, then pending by email
+    const combined = [...activeUsers, ...pendingUsers];
+    return combined.sort((a, b) => {
+      // Owners first
+      if (a.isOwner && !b.isOwner) return -1;
+      if (!a.isOwner && b.isOwner) return 1;
+      // Active users before pending
+      if (a.status === 'active' && b.status === 'pending') return -1;
+      if (a.status === 'pending' && b.status === 'active') return 1;
+      // Then by email
       return a.email.localeCompare(b.email);
     });
   }

@@ -208,7 +208,18 @@ export {
 } from './types/templates.js';
 
 // Auth types
-export type { AppRole, AppUser, AddUserRequest, UserProfile } from './types/auth.js';
+export type {
+  AppRole,
+  AppUser,
+  AddUserRequest,
+  UserProfile,
+  PendingInvitation,
+  CreateInvitationRequest,
+  AcceptInvitationRequest,
+  AppUserListItem,
+  InvitationValidation,
+  AcceptInvitationResponse,
+} from './types/auth.js';
 
 // Email types
 export type {
