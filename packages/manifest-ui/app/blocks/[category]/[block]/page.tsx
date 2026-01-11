@@ -1380,8 +1380,22 @@ const categories: Category[] = [
   data={{
     duration: "0:42",
     avatar: "M",
-    time: "3:15 PM"
+    author: "Mike",
+    time: "3:15 PM",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   }}
+/>
+
+// Own voice message
+<VoiceMessageBubble
+  data={{
+    duration: "1:23",
+    avatar: "Y",
+    time: "3:17 PM",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+  }}
+  appearance={{ isOwn: true }}
+  control={{ status: "read" }}
 />`
           }
         ]
@@ -1404,7 +1418,7 @@ const categories: Category[] = [
       {
         id: "1",
         type: "text",
-        content: "Hey! Check out this new feature!",
+        content: "Hey! Check out this new feature we just shipped 🚀",
         author: "Sarah",
         avatar: "S",
         time: "10:30 AM",
@@ -1413,7 +1427,30 @@ const categories: Category[] = [
       {
         id: "2",
         type: "text",
-        content: "That looks amazing!",
+        content: "Oh wow, that looks amazing! How long did it take to build?",
+        author: "You",
+        avatar: "Y",
+        time: "10:31 AM",
+        isOwn: true,
+        status: "read"
+      },
+      {
+        id: "3",
+        type: "image",
+        image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
+        caption: "Here's a preview of the dashboard",
+        author: "Sarah",
+        avatar: "S",
+        time: "10:32 AM",
+        isOwn: false
+      },
+      {
+        id: "4",
+        type: "text",
+        content: "This is incredible! The UI is so clean 👏",
+        author: "You",
+        avatar: "Y",
+        time: "10:33 AM",
         isOwn: true,
         status: "read"
       }
