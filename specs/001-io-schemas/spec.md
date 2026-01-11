@@ -24,24 +24,7 @@ As a workflow designer, I want to see the input and output schema formats for an
 
 ---
 
-### User Story 2 - Visual Schema Compatibility in Connectors (Priority: P1)
-
-As a workflow designer, I want to see visual feedback on connection lines that indicates whether connected nodes have compatible schemas, so I can immediately know if my flow will work.
-
-**Why this priority**: Visual feedback enables design-time validation without requiring manual testing. This is core to the "know instantly if a flow will work" goal.
-
-**Independent Test**: Can be tested by connecting two nodes and observing the visual state of the connection line, delivering immediate feedback on compatibility.
-
-**Acceptance Scenarios**:
-
-1. **Given** two nodes with fully compatible schemas, **When** they are connected, **Then** the connection line displays in a "compatible" visual state (e.g., green)
-2. **Given** two nodes where the output has extra optional fields not required by the input, **When** they are connected, **Then** the connection line displays in a "compatible" visual state
-3. **Given** two nodes with partially compatible schemas (warnings only), **When** they are connected, **Then** the connection line displays in a "warning" visual state (e.g., yellow) with a tooltip explaining the warning
-4. **Given** two nodes with incompatible schemas, **When** they are connected, **Then** the connection line displays in an "error" visual state (e.g., red) with error details visible
-
----
-
-### User Story 3 - Design-Time Compatibility Validation (Priority: P1)
+### User Story 2 - Design-Time Compatibility Validation (Priority: P1)
 
 As a workflow designer, I want the system to validate schema compatibility when I attempt to connect two nodes, so I know immediately if the connection is valid.
 
@@ -58,7 +41,7 @@ As a workflow designer, I want the system to validate schema compatibility when 
 
 ---
 
-### User Story 4 - Inspect Schema Compatibility Details (Priority: P2)
+### User Story 3 - Inspect Schema Compatibility Details (Priority: P2)
 
 As a workflow designer, I want to see detailed compatibility information between connected nodes so I can understand exactly what data flows between them and identify any issues.
 
@@ -74,7 +57,7 @@ As a workflow designer, I want to see detailed compatibility information between
 
 ---
 
-### User Story 5 - Dynamic Schema Resolution (Priority: P2)
+### User Story 4 - Dynamic Schema Resolution (Priority: P2)
 
 As a workflow designer, when I use nodes with dynamic schemas (like API Call or User Intent Trigger), I want the system to compute or fetch the actual schema so compatibility can still be validated.
 
@@ -90,7 +73,7 @@ As a workflow designer, when I use nodes with dynamic schemas (like API Call or 
 
 ---
 
-### User Story 6 - Flow-Level Validation Summary (Priority: P3)
+### User Story 5 - Flow-Level Validation Summary (Priority: P3)
 
 As a workflow designer, I want to see an overall validation status for my entire flow so I can quickly identify if any connections have issues.
 

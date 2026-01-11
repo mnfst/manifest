@@ -28,8 +28,6 @@ services:
       # OpenAI API key (required for AI functionality)
       # Set via .env file or environment variable
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      # Database connector encryption key (optional)
-      - CONNECTOR_ENCRYPTION_KEY=${CONNECTOR_ENCRYPTION_KEY:-}
     volumes:
       # Persist SQLite database
       - app-data:/app/data

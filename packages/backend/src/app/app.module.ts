@@ -6,12 +6,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppEntity } from './app.entity';
 import { FlowEntity } from '../flow/flow.entity';
-import { ConnectorEntity } from '../connector/connector.entity';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
 import { FlowModule } from '../flow/flow.module';
 import { NodeModule } from '../node/node.module';
 import { McpModule } from '../mcp/mcp.module';
-import { ConnectorModule } from '../connector/connector.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { SeedModule } from '../seed/seed.module';
 import { ChatModule } from '../chat/chat.module';
@@ -28,7 +26,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, ConnectorEntity, FlowExecutionEntity, UserAppRoleEntity],
+      entities: [AppEntity, FlowEntity, FlowExecutionEntity, UserAppRoleEntity],
       synchronize: true, // POC only - use migrations in production
     }),
     TypeOrmModule.forFeature([AppEntity, UserAppRoleEntity]),
@@ -36,7 +34,6 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     FlowModule,
     NodeModule,
     McpModule,
-    ConnectorModule,
     FlowExecutionModule,
     SeedModule,
     ChatModule,

@@ -12,10 +12,6 @@ import type {
   GenerateFlowResponse,
   FlowDeletionCheck,
   DeleteFlowResponse,
-  Connector,
-  CreateConnectorRequest,
-  UpdateConnectorRequest,
-  DeleteConnectorResponse,
   IconUploadResponse,
   // Node/Connection types (new unified node architecture)
   NodeInstance,
@@ -426,85 +422,6 @@ export const api = {
   async deleteConnection(flowId: string, connectionId: string): Promise<void> {
     await fetchApi<void>(`/flows/${flowId}/connections/${connectionId}`, {
       method: 'DELETE',
-    });
-  },
-
-  // ============================================
-  // Connector Management APIs
-  // ============================================
-
-  /**
-   * List all connectors
-   * GET /api/connectors
-   */
-  async listConnectors(): Promise<Connector[]> {
-    return fetchApi<Connector[]>('/connectors');
-  },
-
-  /**
-   * Get connector by ID
-   * GET /api/connectors/:id
-   */
-  async getConnector(id: string): Promise<Connector> {
-    return fetchApi<Connector>(`/connectors/${id}`);
-  },
-
-  /**
-   * Create a new connector
-   * POST /api/connectors
-   */
-  async createConnector(request: CreateConnectorRequest): Promise<Connector> {
-    return fetchApi<Connector>('/connectors', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Update a connector
-   * PUT /api/connectors/:id
-   */
-  async updateConnector(id: string, request: UpdateConnectorRequest): Promise<Connector> {
-    return fetchApi<Connector>(`/connectors/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(request),
-    });
-  },
-
-  /**
-   * Delete a connector
-   * DELETE /api/connectors/:id
-   */
-  async deleteConnector(id: string): Promise<DeleteConnectorResponse> {
-    return fetchApi<DeleteConnectorResponse>(`/connectors/${id}`, {
-      method: 'DELETE',
-    });
-  },
-
-  /**
-   * Test a connector connection
-   * POST /api/connectors/:id/test
-   */
-  async testConnectorConnection(id: string): Promise<{ success: boolean; message: string }> {
-    return fetchApi<{ success: boolean; message: string }>(`/connectors/${id}/test`, {
-      method: 'POST',
-    });
-  },
-
-  /**
-   * Test a connection with raw config (before creating)
-   * POST /api/connectors/test
-   */
-  async testConnectionConfig(config: {
-    host: string;
-    port: number;
-    database: string;
-    username: string;
-    password: string;
-  }): Promise<{ success: boolean; message: string }> {
-    return fetchApi<{ success: boolean; message: string }>('/connectors/test', {
-      method: 'POST',
-      body: JSON.stringify(config),
     });
   },
 
