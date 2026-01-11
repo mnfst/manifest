@@ -4,7 +4,7 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { toNodeHandler } from 'better-auth/node';
 import { AppModule } from './app/app.module';
-import { auth } from './auth/auth';
+import { auth, runAuthMigrations } from './auth/auth';
 
 /**
  * Validate required environment variables
@@ -30,6 +30,11 @@ function validateEnvironment() {
 async function bootstrap() {
   // Validate environment on startup
   validateEnvironment();
+
+  // Run Better Auth database migrations (creates user, session, account, verification tables)
+  console.log('🔄 Running Better Auth database migrations...');
+  await runAuthMigrations();
+  console.log('✅ Better Auth migrations complete');
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false, // Required for better-auth to handle raw body
