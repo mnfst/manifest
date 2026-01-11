@@ -344,7 +344,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         <div className={cn('grid gap-6 grid-cols-1', getGridColsClass())}>
           {paginatedPosts.map((post) => (
             <PostCard
