@@ -1,10 +1,10 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { ChevronRight, Link as LinkIcon, Zap } from 'lucide-react'
+import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { useParams, usePathname } from 'next/navigation'
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Suspense, useEffect, useRef, useState } from 'react'
 
 // Form components
 import { ContactForm } from '@/registry/form/contact-form'
@@ -1274,44 +1274,6 @@ const categories: Category[] = [
   }
 ]
 
-// Copy link button component
-function CopyLinkButton({ anchor, className }: { anchor?: string; className?: string }) {
-  const [copied, setCopied] = useState(false)
-  const pathname = usePathname()
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [])
-
-  const handleCopy = useCallback(() => {
-    const url = `${window.location.origin}${pathname}${anchor ? `#${anchor}` : ''}`
-    navigator.clipboard.writeText(url)
-    setCopied(true)
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-    timeoutRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [pathname, anchor])
-
-  return (
-    <button
-      onClick={handleCopy}
-      className={cn(
-        'opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted',
-        className
-      )}
-      title={copied ? 'Copied!' : 'Copy link'}
-    >
-      <LinkIcon className={cn('h-4 w-4', copied ? 'text-green-500' : 'text-muted-foreground')} />
-    </button>
-  )
-}
-
 function BlockPageContent() {
   const params = useParams()
   const categorySlug = params.category as string
@@ -1434,7 +1396,6 @@ function BlockPageContent() {
             {/* Block Title */}
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
-              <CopyLinkButton />
               {selectedBlock.actionCount > 0 ? (
                 <button
                   onClick={() => firstVariantRef.current?.showActionsConfig()}
@@ -1458,10 +1419,6 @@ function BlockPageContent() {
           {/* All Variants */}
           {selectedBlock.variants.map((variant, index) => (
             <div key={variant.id} id={variant.id} className="scroll-mt-20">
-              <div className="group flex items-center gap-2 mb-3">
-                <h2 className="text-lg font-bold">{variant.name}</h2>
-                <CopyLinkButton anchor={variant.id} />
-              </div>
               <VariantSection
                 ref={index === 0 ? firstVariantRef : undefined}
                 name={variant.name}
@@ -1470,7 +1427,6 @@ function BlockPageContent() {
                 registryName={selectedBlock.registryName}
                 usageCode={variant.usageCode}
                 layouts={selectedBlock.layouts}
-                hideTitle
               />
             </div>
           ))}
