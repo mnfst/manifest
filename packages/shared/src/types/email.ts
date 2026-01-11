@@ -9,6 +9,7 @@
 export enum EmailTemplateType {
   PASSWORD_RESET = 'password-reset',
   INVITATION = 'invitation',
+  EMAIL_CHANGE_VERIFICATION = 'email-change-verification',
 }
 
 /**
@@ -70,11 +71,26 @@ export interface InvitationEmailProps {
 }
 
 /**
+ * Props for email change verification template
+ */
+export interface EmailChangeVerificationEmailProps {
+  /** User's display name */
+  userName: string;
+  /** The new email address being verified */
+  newEmail: string;
+  /** Email verification URL with token */
+  verificationLink: string;
+  /** Human-readable expiration (default: "24 hours") */
+  expiresIn?: string;
+}
+
+/**
  * Union type for all template props (type-safe rendering)
  */
 export type EmailTemplateProps =
   | ({ type: EmailTemplateType.PASSWORD_RESET } & PasswordResetEmailProps)
-  | ({ type: EmailTemplateType.INVITATION } & InvitationEmailProps);
+  | ({ type: EmailTemplateType.INVITATION } & InvitationEmailProps)
+  | ({ type: EmailTemplateType.EMAIL_CHANGE_VERIFICATION } & EmailChangeVerificationEmailProps);
 
 /**
  * Request DTO for sending emails via API

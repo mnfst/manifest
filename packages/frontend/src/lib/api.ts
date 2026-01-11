@@ -47,6 +47,14 @@ import type {
   AppUser,
   AddUserRequest,
   UserProfile,
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+  ChangeEmailRequest,
+  ChangeEmailResponse,
+  VerifyEmailChangeRequest,
+  VerifyEmailChangeResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
   // Analytics types
   AnalyticsTimeRange,
   AppAnalyticsResponse,
@@ -653,6 +661,50 @@ export const api = {
    */
   async getCurrentUser(): Promise<UserProfile> {
     return fetchApi<UserProfile>('/users/me');
+  },
+
+  /**
+   * Update current user profile (firstName, lastName)
+   * PATCH /api/users/me
+   */
+  async updateProfile(request: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+    return fetchApi<UpdateProfileResponse>('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Request email change - sends verification email to new address
+   * POST /api/users/me/email
+   */
+  async requestEmailChange(request: ChangeEmailRequest): Promise<ChangeEmailResponse> {
+    return fetchApi<ChangeEmailResponse>('/users/me/email', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Verify email change - validates token and updates email
+   * POST /api/users/me/email/verify
+   */
+  async verifyEmailChange(request: VerifyEmailChangeRequest): Promise<VerifyEmailChangeResponse> {
+    return fetchApi<VerifyEmailChangeResponse>('/users/me/email/verify', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Change password
+   * POST /api/users/me/password
+   */
+  async changePassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+    return fetchApi<ChangePasswordResponse>('/users/me/password', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   },
 
   /**
