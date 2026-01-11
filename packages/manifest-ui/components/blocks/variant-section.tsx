@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
+import { PipModal } from '@/components/layout/pip-modal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
@@ -136,6 +137,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 }, ref) {
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const [isPipOpen, setIsPipOpen] = useState(false)
   const [highlightCategory, setHighlightCategory] = useState<'data' | 'actions' | 'appearance' | 'control' | null>(null)
   const sourceCode = useSourceCode(registryName)
   const timeoutRefs = useRef<NodeJS.Timeout[]>([])
@@ -178,6 +180,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   useEffect(() => {
     setViewMode('inline')
     setIsFullscreenOpen(false)
+    setIsPipOpen(false)
     setHighlightCategory(null)
   }, [registryName])
 
@@ -286,7 +289,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 
         {viewMode === 'pip' && (
           <div className="flex items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border border-dashed">
-            <p className="text-muted-foreground text-sm">PiP mode coming soon</p>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setIsPipOpen(true)}
+              className="px-8"
+            >
+              Open PiP
+            </Button>
           </div>
         )}
 
@@ -323,6 +333,16 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         >
           {fullscreenComponent || component}
         </FullscreenModal>
+      )}
+
+      {/* PiP Modal */}
+      {isPipOpen && (
+        <PipModal
+          appName={name}
+          onClose={() => setIsPipOpen(false)}
+        >
+          {component}
+        </PipModal>
       )}
     </div>
   )
