@@ -96,7 +96,7 @@ const categories: Category[] = [
         description:
           'Display blog posts with various layouts and styles. Click "Read" to see fullscreen mode.',
         registryName: 'post-card',
-        layouts: ['inline', 'fullscreen'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
@@ -254,7 +254,7 @@ const categories: Category[] = [
         name: 'Post List',
         description: 'Display multiple posts in various layouts',
         registryName: 'post-list',
-        layouts: ['inline', 'fullscreen'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
@@ -432,13 +432,14 @@ const categories: Category[] = [
         name: 'Contact Form',
         description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
         registryName: 'contact-form',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <ContactForm />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><ContactForm /></div>,
             usageCode: `<ContactForm
   data={{
     title: "Contact Us",
@@ -469,13 +470,14 @@ const categories: Category[] = [
         name: 'Date & Time Picker',
         description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
         registryName: 'date-time-picker',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <DateTimePicker />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><DateTimePicker /></div>,
             usageCode: `<DateTimePicker
   data={{
     title: "Select a Date & Time",
@@ -521,13 +523,14 @@ const categories: Category[] = [
         name: 'Issue Report Form',
         description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments. Collapsible sections keep it chat-friendly.',
         registryName: 'issue-report-form',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <IssueReportForm />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><IssueReportForm /></div>,
             usageCode: `<IssueReportForm
   data={{
     title: "Report an Issue",
@@ -592,7 +595,7 @@ const categories: Category[] = [
         name: 'Product List',
         description: 'Display products in various layouts',
         registryName: 'product-list',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 2,
         variants: [
           {
@@ -657,7 +660,7 @@ const categories: Category[] = [
         description:
           'Data table with header, footer, expand to fullscreen, and optional selection',
         registryName: 'table',
-        layouts: ['inline', 'fullscreen'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 6,
         variants: [
           {
@@ -803,7 +806,7 @@ const categories: Category[] = [
         description:
           'Interactive map with location markers and a draggable carousel of cards',
         registryName: 'map-carousel',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
@@ -873,7 +876,7 @@ const categories: Category[] = [
         name: 'Message Bubble',
         description: 'Chat message bubbles',
         registryName: 'chat-conversation',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1034,7 +1037,7 @@ const categories: Category[] = [
         name: 'Chat Conversation',
         description: 'Full chat conversation view',
         registryName: 'chat-conversation',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1091,7 +1094,7 @@ const categories: Category[] = [
         name: 'Option List',
         description: 'Tag-style option selector',
         registryName: 'option-list',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
@@ -1119,7 +1122,7 @@ const categories: Category[] = [
         name: 'Progress Steps',
         description: 'Step-by-step progress indicator',
         registryName: 'progress-steps',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1144,7 +1147,7 @@ const categories: Category[] = [
         name: 'Quick Reply',
         description: 'Quick reply buttons for chat',
         registryName: 'quick-reply',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
@@ -1172,7 +1175,7 @@ const categories: Category[] = [
         name: 'Stats Cards',
         description: 'Display statistics and metrics',
         registryName: 'stats',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1196,7 +1199,7 @@ const categories: Category[] = [
         name: 'Status Badge',
         description: 'Various status indicators',
         registryName: 'status-badge',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1253,7 +1256,7 @@ const categories: Category[] = [
         name: 'Tag Select',
         description: 'Colored tag selector',
         registryName: 'tag-select',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 2,
         variants: [
           {
@@ -1296,13 +1299,14 @@ const categories: Category[] = [
         name: 'Order Confirmation',
         description: 'Display order summary before payment',
         registryName: 'order-confirm',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <OrderConfirm />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><OrderConfirm /></div>,
             usageCode: `<OrderConfirm
   data={{
     productName: "MacBook Pro 14-inch",
@@ -1326,13 +1330,14 @@ const categories: Category[] = [
         name: 'Payment Methods',
         description: 'Select payment method',
         registryName: 'payment-methods',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 3,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <PaymentMethods />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentMethods /></div>,
             usageCode: `<PaymentMethods
   data={{
     methods: [
@@ -1357,13 +1362,14 @@ const categories: Category[] = [
         name: 'Bank Card Form',
         description: 'Credit card input form',
         registryName: 'bank-card-form',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <BankCardForm />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><BankCardForm /></div>,
             usageCode: `<BankCardForm
   data={{ amount: 149.99 }}
   appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
@@ -1379,13 +1385,14 @@ const categories: Category[] = [
         name: 'Amount Input',
         description: 'Input for monetary amounts',
         registryName: 'amount-input',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 2,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <AmountInput />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><AmountInput /></div>,
             usageCode: `<AmountInput
   data={{ presets: [20, 50, 100, 200] }}
   appearance={{
@@ -1409,13 +1416,14 @@ const categories: Category[] = [
         name: 'Payment Success',
         description: 'Success confirmation after payment',
         registryName: 'payment-success',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <PaymentSuccess />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentSuccess /></div>,
             usageCode: `<PaymentSuccess
   data={{
     orderId: "ORD-2024-7842",
@@ -1435,13 +1443,14 @@ const categories: Category[] = [
         name: 'Payment Confirmation',
         description: 'Detailed payment confirmation',
         registryName: 'payment-confirmed',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
             component: <PaymentConfirmed />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentConfirmed /></div>,
             usageCode: `<PaymentConfirmed
   data={{
     orderId: "ORD-2024-7842",
@@ -1468,7 +1477,7 @@ const categories: Category[] = [
         name: 'Instagram Post',
         description: 'Instagram post card',
         registryName: 'instagram-post',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1494,7 +1503,7 @@ const categories: Category[] = [
         name: 'LinkedIn Post',
         description: 'LinkedIn post card',
         registryName: 'linkedin-post',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1521,7 +1530,7 @@ const categories: Category[] = [
         name: 'X Post',
         description: 'X (Twitter) post card',
         registryName: 'x-post',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {
@@ -1550,7 +1559,7 @@ const categories: Category[] = [
         name: 'YouTube Post',
         description: 'YouTube video card',
         registryName: 'youtube-post',
-        layouts: ['inline'],
+        layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [
           {

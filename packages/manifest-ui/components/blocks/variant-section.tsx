@@ -138,9 +138,11 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   const [viewMode, setViewMode] = useState<ViewMode>('inline')
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [isPipOpen, setIsPipOpen] = useState(false)
+  const [pipPosition, setPipPosition] = useState<{ left: number; width: number } | undefined>()
   const [highlightCategory, setHighlightCategory] = useState<'data' | 'actions' | 'appearance' | 'control' | null>(null)
   const sourceCode = useSourceCode(registryName)
   const timeoutRefs = useRef<NodeJS.Timeout[]>([])
+  const contentRef = useRef<HTMLDivElement>(null)
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -181,17 +183,27 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     setViewMode('inline')
     setIsFullscreenOpen(false)
     setIsPipOpen(false)
+    setPipPosition(undefined)
     setHighlightCategory(null)
   }, [registryName])
+
+  // Measure position and open PiP
+  const openPip = () => {
+    if (contentRef.current) {
+      const rect = contentRef.current.getBoundingClientRect()
+      setPipPosition({ left: rect.left, width: rect.width })
+    }
+    setIsPipOpen(true)
+  }
 
   const hasFullwidth = layouts.includes('fullscreen')
   const hasPip = layouts.includes('pip')
 
   return (
     <div className="space-y-3">
-      {/* Row 1: Title + Version (mobile) / Title + Version + Install command (desktop) */}
+      {/* Row 1: Title + Version + Install command (same row, wraps on small screens) */}
       {!hideTitle && (
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold">{name}</h2>
             {sourceCode.version && (
@@ -280,7 +292,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
       </div>
 
       {/* Content based on view mode */}
-      <div>
+      <div ref={contentRef}>
         {viewMode === 'inline' && component}
 
         {viewMode === 'fullwidth' && (
@@ -292,7 +304,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
             <Button
               variant="outline"
               size="lg"
-              onClick={() => setIsPipOpen(true)}
+              onClick={openPip}
               className="px-8"
             >
               Open PiP
@@ -340,6 +352,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         <PipModal
           appName={name}
           onClose={() => setIsPipOpen(false)}
+          position={pipPosition}
         >
           {component}
         </PipModal>

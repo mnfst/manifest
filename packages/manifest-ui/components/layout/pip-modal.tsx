@@ -7,6 +7,8 @@ export interface PipModalProps {
   children: ReactNode
   appName: string
   onClose?: () => void
+  /** Position and width to match the inline content */
+  position?: { left: number; width: number }
 }
 
 /**
@@ -21,37 +23,27 @@ export interface PipModalProps {
  * Our components should NOT render this directly - they call requestDisplayMode('pip')
  * and the host wraps them in their own PiP container.
  */
-export function PipModal({ children, appName, onClose }: PipModalProps) {
+export function PipModal({ children, onClose, position }: PipModalProps) {
   return (
     <>
-      {/* Backdrop - subtle overlay */}
+      {/* PiP Window - just the component with shadow and close button */}
       <div
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
+        className="fixed top-20 z-50"
+        style={position ? { left: position.left, width: position.width } : { right: 16, width: 'min(400px, calc(100vw - 2rem))' }}
+      >
+        {/* Close button - top left, floating over content */}
+        <button
+          onClick={onClose}
+          className="absolute -top-3 -left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black text-white shadow-lg hover:bg-black/80 transition-colors cursor-pointer"
+          aria-label="Close PiP"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-      {/* PiP Window - fixed floating container */}
-      <div className="fixed top-20 right-4 md:right-8 z-50 w-[min(400px,calc(100vw-2rem))] max-h-[calc(100vh-8rem)] flex flex-col bg-background rounded-xl shadow-2xl border overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
-        {/* Header */}
-        <header className="flex h-11 shrink-0 items-center justify-between border-b px-3 bg-muted/30">
-          <span className="text-sm font-medium truncate">{appName}</span>
-
-          <button
-            onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Close PiP"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
-
-        {/* Content */}
-        <div className="flex-1 overflow-auto overscroll-contain p-4">
+        {/* Content - just the component with rounded corners and shadow */}
+        <div className="rounded-2xl overflow-hidden shadow-lg">
           {children}
         </div>
-
-        {/* Footer indicator */}
-        <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-50" />
       </div>
     </>
   )
