@@ -2,7 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { toNodeHandler } from 'better-auth/node';
 import { AppModule } from './app/app.module';
+import { auth } from './auth/auth';
 
 /**
  * Validate required environment variables
@@ -29,7 +31,9 @@ async function bootstrap() {
   // Validate environment on startup
   validateEnvironment();
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false, // Required for better-auth to handle raw body
+  });
 
   // Enable CORS
   app.enableCors({
@@ -53,6 +57,18 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
+
+  // Register better-auth handler manually (Express 4 compatible)
+  // The @thallesp/nestjs-better-auth module uses /*path pattern which requires Express 5
+  const expressApp = app.getHttpAdapter().getInstance();
+  const authHandler = toNodeHandler(auth);
+  expressApp.all('/api/auth/*', (req, res) => authHandler(req, res));
+  console.log('🔐 Better Auth handler registered on /api/auth/*');
+
+  // Enable body parsing for non-auth routes (auth routes handle their own parsing)
+  // Use NestJS's built-in body parser methods
+  app.useBodyParser('json');
+  app.useBodyParser('urlencoded', { extended: true });
 
   // Serve uploaded files from /uploads path
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });

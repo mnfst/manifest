@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -12,6 +13,7 @@ import { McpModule } from '../mcp/mcp.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { SeedModule } from '../seed/seed.module';
 import { ChatModule } from '../chat/chat.module';
+import { AuthModule, AuthGuard, UserAppRoleEntity } from '../auth';
 import { EmailModule } from '../email/email.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
 
@@ -24,10 +26,11 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, FlowExecutionEntity],
+      entities: [AppEntity, FlowEntity, FlowExecutionEntity, UserAppRoleEntity],
       synchronize: true, // POC only - use migrations in production
     }),
-    TypeOrmModule.forFeature([AppEntity]),
+    TypeOrmModule.forFeature([AppEntity, UserAppRoleEntity]),
+    AuthModule,
     FlowModule,
     NodeModule,
     McpModule,
@@ -38,7 +41,14 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AnalyticsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Apply AuthGuard globally - use @Public() to exempt routes
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
   exports: [AppService],
 })
 export class AppModule {}

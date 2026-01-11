@@ -10,8 +10,10 @@ import {
   HttpStatus,
   NotFoundException,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { FlowService } from './flow.service';
+import { AppAccessGuard, FlowAccessGuard } from '../auth';
 import type {
   Flow,
   CreateFlowRequest,
@@ -39,20 +41,22 @@ export class FlowController {
 
   /**
    * GET /api/apps/:appId/flows
-   * List all flows for an app
+   * List all flows for an app (requires access to the app)
    */
   @Get('apps/:appId/flows')
+  @UseGuards(AppAccessGuard)
   async listFlows(@Param('appId') appId: string): Promise<Flow[]> {
     return this.flowService.findByAppId(appId);
   }
 
   /**
    * POST /api/apps/:appId/flows
-   * Create a new flow with name and description.
+   * Create a new flow with name and description (requires access to the app).
    * Tool properties are now set on individual UserIntent trigger nodes.
    */
   @Post('apps/:appId/flows')
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AppAccessGuard)
   async createFlow(
     @Param('appId') appId: string,
     @Body() request: CreateFlowRequest
@@ -91,23 +95,25 @@ export class FlowController {
 
   /**
    * GET /api/flows/:flowId
-   * Get flow by ID
+   * Get flow by ID (requires access to parent app)
    */
   @Get('flows/:flowId')
+  @UseGuards(FlowAccessGuard)
   async getFlow(@Param('flowId') flowId: string): Promise<Flow> {
     const flow = await this.flowService.findById(flowId);
     if (!flow) {
-      throw new NotFoundException(`Flow with id ${flowId} not found`);
+      throw new NotFoundException('Flow not found');
     }
     return flow;
   }
 
   /**
    * PATCH /api/flows/:flowId
-   * Update flow.
+   * Update flow (requires access to parent app).
    * Tool properties are now set on individual UserIntent trigger nodes.
    */
   @Patch('flows/:flowId')
+  @UseGuards(FlowAccessGuard)
   async updateFlow(
     @Param('flowId') flowId: string,
     @Body() request: UpdateFlowRequest
@@ -117,19 +123,21 @@ export class FlowController {
 
   /**
    * GET /api/flows/:flowId/deletion-check
-   * Check what happens if this flow is deleted
+   * Check what happens if this flow is deleted (requires access to parent app)
    */
   @Get('flows/:flowId/deletion-check')
+  @UseGuards(FlowAccessGuard)
   async checkFlowDeletion(@Param('flowId') flowId: string): Promise<FlowDeletionCheck> {
     return this.flowService.checkDeletion(flowId);
   }
 
   /**
    * DELETE /api/flows/:flowId
-   * Delete flow and return deletion info
+   * Delete flow and return deletion info (requires access to parent app)
    */
   @Delete('flows/:flowId')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(FlowAccessGuard)
   async deleteFlow(@Param('flowId') flowId: string): Promise<DeleteFlowResponse> {
     return this.flowService.delete(flowId);
   }
