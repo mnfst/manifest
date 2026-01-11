@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Copy } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { codeToHtml } from 'shiki'
 import { track } from '@vercel/analytics'
 
@@ -19,6 +19,16 @@ export function CodeBlock({
   const [copied, setCopied] = useState(false)
   const [html, setHtml] = useState<string | null>(null)
   const [isDark, setIsDark] = useState(false)
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Detect dark mode
   useEffect(() => {
@@ -46,12 +56,16 @@ export function CodeBlock({
     highlight()
   }, [code, language, isDark])
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(code)
     setCopied(true)
     track('code_copied', { code })
-    setTimeout(() => setCopied(false), 2000)
-  }
+    // Clear any existing timeout
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current)
+    }
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
+  }, [code])
 
   return (
     <div className={`relative group ${className || ''}`}>

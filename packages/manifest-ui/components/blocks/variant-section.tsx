@@ -7,7 +7,7 @@ import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   ssr: false,
@@ -138,24 +138,39 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [highlightCategory, setHighlightCategory] = useState<'data' | 'actions' | 'appearance' | 'control' | null>(null)
   const sourceCode = useSourceCode(registryName)
+  const timeoutRefs = useRef<NodeJS.Timeout[]>([])
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach(clearTimeout)
+    }
+  }, [])
 
   // Expose imperative methods to parent components
   useImperativeHandle(ref, () => ({
     showActionsConfig: () => {
+      // Clear any pending timeouts
+      timeoutRefs.current.forEach(clearTimeout)
+      timeoutRefs.current = []
+
       setViewMode('config')
       // Trigger the highlight animation
       setHighlightCategory('actions')
       // Wait for the config view to render, then scroll to actions
-      setTimeout(() => {
+      const scrollTimeout = setTimeout(() => {
         const actionsElement = document.getElementById('config-actions')
         if (actionsElement) {
           actionsElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
       }, 100)
+      timeoutRefs.current.push(scrollTimeout)
+
       // Clear the highlight after the animation completes (2.5s)
-      setTimeout(() => {
+      const highlightTimeout = setTimeout(() => {
         setHighlightCategory(null)
       }, 2600)
+      timeoutRefs.current.push(highlightTimeout)
     }
   }), [])
 
