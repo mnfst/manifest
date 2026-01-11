@@ -15,6 +15,7 @@ import { IssueReportForm } from '@/registry/form/issue-report-form'
 import { PostCardDemo } from '@/components/blocks/post-card-demo'
 import { PostListDemo } from '@/components/blocks/post-list-demo'
 import { PostDetail } from '@/registry/blogging/post-detail'
+import { PostList } from '@/registry/blogging/post-list'
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo'
@@ -262,7 +263,7 @@ const categories: Category[] = [
             id: 'list',
             name: 'List',
             component: <PostListDemo appearance={{ variant: 'list' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: <PostList appearance={{ variant: 'fullwidth', columns: 3, postsPerPage: 10 }} />,
             usageCode: `<PostList
   data={{
     posts: [
@@ -293,7 +294,7 @@ const categories: Category[] = [
             id: 'grid',
             name: 'Grid',
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: <PostList appearance={{ variant: 'fullwidth', columns: 3, postsPerPage: 10 }} />,
             usageCode: `<PostList
   data={{ posts: [...] }}
   appearance={{
@@ -311,7 +312,7 @@ const categories: Category[] = [
             id: 'carousel',
             name: 'Carousel',
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: <PostList appearance={{ variant: 'fullwidth', columns: 3, postsPerPage: 10 }} />,
             usageCode: `<PostList
   data={{ posts: [...] }}
   appearance={{
