@@ -87,7 +87,8 @@
     "chat-conversation": {
       "1.0.0": "Initial release with multiple message types",
       "1.0.1": "Updated to use improved message bubble styling",
-      "1.0.2": "Synced with message-bubble alt tag improvements"
+      "1.0.2": "Synced with message-bubble alt tag improvements",
+      "1.0.3": "Added default value 'text' for message type"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display"
