@@ -354,10 +354,10 @@
     },
     {
       "name": "post-list",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "type": "registry:component",
       "title": "Post List",
-      "description": "Post list with list, grid, and carousel variants. Includes post-detail for fullscreen view.",
+      "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
