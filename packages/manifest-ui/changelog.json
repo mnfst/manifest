@@ -131,7 +131,8 @@
       "4.0.0": "BREAKING: Added fullwidth variant with split-screen map layout. Updated to 15 events. Added coordinates to Event type.",
       "5.0.0": "BREAKING: Fullwidth is no longer a variant - use fullscreenComponent instead. Map now uses real Leaflet.",
       "5.1.0": "Added animated filter panel with Category, Date, Neighborhood, Price, and Format filters. Filters apply to both list and map markers.",
-      "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action"
+      "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action",
+      "5.2.1": "Fixed installation error by bundling event-card component with event-list"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",

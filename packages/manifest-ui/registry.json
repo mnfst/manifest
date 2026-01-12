@@ -539,15 +539,19 @@
     },
     {
       "name": "event-list",
-      "version": "5.2.0",
+      "version": "5.2.1",
       "type": "registry:component",
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
-      "registryDependencies": ["button", "checkbox", "event-card"],
+      "registryDependencies": ["button", "checkbox"],
       "files": [
         {
           "path": "registry/events/event-list.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/event-card.tsx",
           "type": "registry:component"
         },
         {
