@@ -60,8 +60,10 @@ export function FullscreenModal({
         )}
       </header>
 
-      {/* Content - component fills this space at 100% */}
-      <div className="flex-1 overflow-auto overscroll-contain">{children}</div>
+      {/* Content - full width/height white background with centered content */}
+      <div className="flex-1 overflow-auto overscroll-contain bg-white dark:bg-zinc-950 flex justify-center p-8">
+        {children}
+      </div>
     </div>
   )
 }

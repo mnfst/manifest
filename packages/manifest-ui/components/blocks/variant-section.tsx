@@ -5,6 +5,7 @@ import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
+import { PipModal } from '@/components/layout/pip-modal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
@@ -146,9 +147,12 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   }
   const [viewMode, setViewMode] = useState<ViewMode>(getDefaultViewMode)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const [isPipOpen, setIsPipOpen] = useState(false)
+  const [pipPosition, setPipPosition] = useState<{ left: number; width: number } | undefined>()
   const [highlightCategory, setHighlightCategory] = useState<'data' | 'actions' | 'appearance' | 'control' | null>(null)
   const sourceCode = useSourceCode(registryName)
   const timeoutRefs = useRef<NodeJS.Timeout[]>([])
+  const contentRef = useRef<HTMLDivElement>(null)
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -188,8 +192,19 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   useEffect(() => {
     setViewMode(getDefaultViewMode())
     setIsFullscreenOpen(false)
+    setIsPipOpen(false)
+    setPipPosition(undefined)
     setHighlightCategory(null)
   }, [registryName, layouts])
+
+  // Measure position and open PiP
+  const openPip = () => {
+    if (contentRef.current) {
+      const rect = contentRef.current.getBoundingClientRect()
+      setPipPosition({ left: rect.left, width: rect.width })
+    }
+    setIsPipOpen(true)
+  }
 
   const hasInline = layouts.includes('inline')
   const hasFullwidth = layouts.includes('fullscreen')
@@ -289,7 +304,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
       </div>
 
       {/* Content based on view mode */}
-      <div>
+      <div ref={contentRef}>
         {viewMode === 'inline' && component}
 
         {viewMode === 'fullwidth' && (
@@ -298,7 +313,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 
         {viewMode === 'pip' && (
           <div className="flex items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border border-dashed">
-            <p className="text-muted-foreground text-sm">PiP mode coming soon</p>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={openPip}
+              className="px-8"
+            >
+              Open PiP
+            </Button>
           </div>
         )}
 
@@ -335,6 +357,17 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         >
           {fullscreenComponent || component}
         </FullscreenModal>
+      )}
+
+      {/* PiP Modal */}
+      {isPipOpen && (
+        <PipModal
+          appName={name}
+          onClose={() => setIsPipOpen(false)}
+          position={pipPosition}
+        >
+          {component}
+        </PipModal>
       )}
     </div>
   )
