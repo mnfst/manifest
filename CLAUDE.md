@@ -486,6 +486,20 @@ type VibeTag =
   | "Upscale"          | "Views"             | "Wellness"
 ```
 
+#### Event Card UI Layout
+
+**EventSignal placement**: Always display the EventSignal badge to the right of the category label.
+
+```
+┌─────────────────────────────────┐
+│ [Category]  [EventSignal Badge] │  ← Signal next to category
+│ Event Title                     │
+│ 📅 Date/Time  📍 Location       │
+│ [Tag] [Tag] [Tag]               │
+│ $Price         ⭐ Rating  [CTA] │
+└─────────────────────────────────┘
+```
+
 #### Event Detail Sections
 
 The `event-detail` component has 11 sections in this order:
