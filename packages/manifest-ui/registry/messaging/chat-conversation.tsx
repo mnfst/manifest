@@ -8,8 +8,7 @@ export interface ChatMessage {
   type?: 'text' | 'image'
   content: string
   image?: string
-  caption?: string
-  author: string
+  author?: string
   avatarUrl?: string
   avatarFallback?: string
   time?: string
@@ -46,10 +45,9 @@ const defaultMessages: ChatMessage[] = [
   {
     id: '3',
     type: 'image',
-    content: '',
+    content: "Here's a preview of the dashboard",
     image:
       'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop',
-    caption: "Here's a preview of the dashboard",
     author: 'Sarah',
     avatarFallback: 'S',
     time: '10:32 AM',
@@ -78,7 +76,7 @@ export function ChatConversation({ data }: ChatConversationProps) {
             key={message.id}
             data={{
               image: message.image!,
-              caption: message.caption,
+              content: message.content,
               avatarFallback: message.avatarFallback,
               avatarUrl: message.avatarUrl,
               author: message.author,

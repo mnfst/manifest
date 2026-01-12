@@ -1447,8 +1447,8 @@ const categories: Category[] = [
       {
         id: "3",
         type: "image",
+        content: "Here's a preview of the dashboard",
         image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
-        caption: "Here's a preview of the dashboard",
         author: "Sarah",
         avatarUrl: "https://i.pravatar.cc/150?u=sarah",
         avatarFallback: "S",

@@ -116,7 +116,7 @@ export function MessageBubble({
 export interface ImageMessageBubbleProps {
   data?: {
     image?: string
-    caption?: string
+    content?: string
     avatarUrl?: string
     avatarFallback?: string
     author?: string
@@ -137,7 +137,7 @@ export function ImageMessageBubble({
 }: ImageMessageBubbleProps) {
   const {
     image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-    caption,
+    content,
     avatarFallback = 'J',
     avatarUrl,
     time = '10:32 AM'
@@ -156,17 +156,17 @@ export function ImageMessageBubble({
         >
           <img
             src={image}
-            alt={caption || 'Shared image in chat'}
+            alt={content || 'Shared image in chat'}
             className="w-full max-w-[280px] h-auto object-cover"
           />
-          {caption && (
+          {content && (
             <div
               className={cn(
                 'px-3 py-2',
                 isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
               )}
             >
-              <p className="text-sm">{caption}</p>
+              <p className="text-sm">{content}</p>
             </div>
           )}
         </div>

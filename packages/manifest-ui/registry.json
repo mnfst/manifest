@@ -411,7 +411,7 @@
     },
     {
       "name": "message-bubble",
-      "version": "2.0.0",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
@@ -426,7 +426,7 @@
     },
     {
       "name": "chat-conversation",
-      "version": "2.0.0",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
