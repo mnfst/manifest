@@ -517,6 +517,44 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "event-card",
+      "version": "1.0.0",
+      "type": "registry:component",
+      "title": "Event Card",
+      "description": "Display event information with multiple layouts. Supports physical, online, and hybrid events with signals and vibe tags.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-card.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "event-list",
+      "version": "1.0.0",
+      "type": "registry:component",
+      "title": "Event List",
+      "description": "Display a collection of events in grid, list, or carousel layouts with pagination support.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "event-card"],
+      "files": [
+        {
+          "path": "registry/events/event-list.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
     }
   ]
 }

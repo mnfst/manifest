@@ -116,6 +116,12 @@
     "map-carousel": {
       "1.0.0": "Initial release with interactive map and location cards",
       "1.1.0": "Made image and price fields optional in Location interface"
+    },
+    "event-card": {
+      "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags."
+    },
+    "event-list": {
+      "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support."
     }
   }
 }
