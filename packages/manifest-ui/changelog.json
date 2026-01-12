@@ -2,7 +2,8 @@
   "$schema": "./changelog.schema.json",
   "components": {
     "contact-form": {
-      "1.0.0": "Initial release with name, phone, email, message and file attachment fields"
+      "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
+      "1.1.0": "Made phone, email, and message fields optional with defaults"
     },
     "date-time-picker": {
       "1.0.0": "Initial release with calendar and time slot selection"
@@ -112,7 +113,8 @@
       "1.0.1": "Improved alt text to include video title"
     },
     "map-carousel": {
-      "1.0.0": "Initial release with interactive map and location cards"
+      "1.0.0": "Initial release with interactive map and location cards",
+      "1.1.0": "Made image and price fields optional in Location interface"
     }
   }
 }

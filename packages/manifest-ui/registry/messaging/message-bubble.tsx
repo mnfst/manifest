@@ -16,14 +16,14 @@ import { useRef, useState } from 'react'
  * - Note: Dropdown for reactions may be clipped in iframes - consider inline alternatives
  */
 
-// Avatar component that supports both image URLs and letter fallback
-interface AvatarProps {
-  src?: string // Image URL (optional)
-  fallback: string // Letter or text fallback
+// Internal avatar component (not exported)
+interface InternalAvatarOptions {
+  src?: string
+  fallback: string
   className?: string
 }
 
-function Avatar({ src, fallback, className }: AvatarProps) {
+function Avatar({ src, fallback, className }: InternalAvatarOptions) {
   const [imgError, setImgError] = useState(false)
 
   if (src && !imgError) {
