@@ -102,15 +102,32 @@ export interface EventBooking {
 }
 
 // Extended Event with full details for event-detail component
-export interface EventDetails extends Event {
+export interface EventDetails extends Omit<Event, 'dateTime'> {
+  // Override dateTime with ISO format dates for dynamic formatting
+  startDateTime: string // ISO format: "2025-01-11T21:00:00Z"
+  endDateTime?: string // ISO format: "2025-01-12T03:00:00Z"
+  locationType?: 'physical' | 'online' | 'hybrid' // Event location type
   images?: string[] // Multiple images for carousel
   description?: string
   organizer?: Organizer
   address?: string // Street address for the venue
+  venue_details?: {
+    name: string
+    address: string
+    city: string
+    coordinates?: { lat: number; lng: number }
+  }
   coordinates?: { lat: number; lng: number } // For map display
   attendeesCount?: number // "537 going"
   friendsGoing?: { name: string; avatar?: string }[]
   highlights?: string[] // "2 hours", "In person"
+  tiers?: {
+    id: string
+    name: string
+    price: number
+    available: number
+    benefits?: string[]
+  }[]
   goodToKnow?: {
     accessibility?: string[]
     dressCode?: string
