@@ -1301,7 +1301,7 @@ const categories: Category[] = [
                   data={{
                     image:
                       'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-                    caption: 'Check out this view!',
+                    content: 'Check out this view!',
                     avatarUrl: 'https://i.pravatar.cc/150?u=alex',
                     avatarFallback: 'A',
                     time: 'Dec 8, 2:45 PM'
@@ -1321,7 +1321,7 @@ const categories: Category[] = [
             usageCode: `<ImageMessageBubble
   data={{
     image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop",
-    caption: "Check out this view!",
+    content: "Check out this view!",
     avatarUrl: "https://i.pravatar.cc/150?u=alex",
     avatarFallback: "A",
     author: "Alex",
