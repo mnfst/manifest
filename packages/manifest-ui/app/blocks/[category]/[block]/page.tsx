@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -2411,7 +2412,7 @@ function BlockPageContent() {
             />
 
             {/* Block Title */}
-            <div className="flex items-center gap-3 mb-1">
+            <div className="group flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold">{selectedBlock.name}</h1>
               <CopyLinkButton />
               {selectedBlock.actionCount > 0 ? (
