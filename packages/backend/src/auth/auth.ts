@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { getMigrations } from 'better-auth/db';
 import Database from 'better-sqlite3';
 
 /**
@@ -45,3 +46,12 @@ export const auth = betterAuth({
 });
 
 export type Auth = typeof auth;
+
+/**
+ * Run Better Auth database migrations
+ * Creates user, session, account, and verification tables if they don't exist
+ */
+export async function runAuthMigrations(): Promise<void> {
+  const { runMigrations } = await getMigrations(auth.options);
+  await runMigrations();
+}
