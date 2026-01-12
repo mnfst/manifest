@@ -178,7 +178,7 @@ export class UserManagementService {
       const name = [firstName, lastName].filter(Boolean).join(' ') || null;
 
       // Update user record
-      db.prepare('UPDATE user SET firstName = ?, lastName = ?, name = ?, updatedAt = datetime("now") WHERE id = ?')
+      db.prepare("UPDATE user SET firstName = ?, lastName = ?, name = ?, updatedAt = datetime('now') WHERE id = ?")
         .run(firstName || null, lastName || null, name, userId);
 
       // Get updated user
