@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
@@ -25,6 +26,7 @@ interface VariantSectionProps {
   usageCode?: string
   layouts?: LayoutMode[]
   hideTitle?: boolean
+  variantId?: string
 }
 
 export interface VariantSectionHandle {
@@ -132,7 +134,8 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   registryName,
   usageCode,
   layouts = ['inline'],
-  hideTitle = false
+  hideTitle = false,
+  variantId
 }, ref) {
   // Determine default view mode based on available layouts
   const getDefaultViewMode = (): ViewMode => {
@@ -194,23 +197,22 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 
   return (
     <div className="space-y-3">
-      {/* Row 1: Title + Version (mobile) / Title + Version + Install command (desktop) */}
-      {!hideTitle && (
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold">{name}</h2>
-            {sourceCode.version && (
-              <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
-            )}
-          </div>
-          <InstallCommandInline componentName={registryName} />
+      {/* Header: Title + Version + CopyLinkButton (left) | Install command (right) */}
+      {/* On mobile, install command wraps below */}
+      <div className="group flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {!hideTitle && (
+            <>
+              <h2 className="text-lg font-bold">{name}</h2>
+              {sourceCode.version && (
+                <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
+              )}
+              {variantId && <CopyLinkButton anchor={variantId} />}
+            </>
+          )}
         </div>
-      )}
-      {hideTitle && (
-        <div className="flex justify-end">
-          <InstallCommandInline componentName={registryName} />
-        </div>
-      )}
+        <InstallCommandInline componentName={registryName} />
+      </div>
 
       {/* Row 2 (desktop) / Row 3 (mobile): Mode buttons */}
       <div className="flex items-center gap-1.5">
