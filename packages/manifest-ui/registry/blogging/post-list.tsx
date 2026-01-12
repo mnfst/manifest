@@ -8,7 +8,6 @@ import { Post, PostCard } from './post-card'
 
 const defaultPosts: Post[] = [
   {
-    id: '1',
     title: 'Getting Started with Agentic UI Components',
     excerpt:
       'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
@@ -24,7 +23,6 @@ const defaultPosts: Post[] = [
     category: 'Tutorial'
   },
   {
-    id: '2',
     title: 'Designing for Conversational Interfaces',
     excerpt:
       'Best practices for creating intuitive UI components that work within chat environments.',
@@ -40,7 +38,6 @@ const defaultPosts: Post[] = [
     category: 'Design'
   },
   {
-    id: '3',
     title: 'MCP Integration Patterns',
     excerpt:
       'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
@@ -56,7 +53,6 @@ const defaultPosts: Post[] = [
     category: 'Development'
   },
   {
-    id: '4',
     title: 'Building Payment Flows in Chat',
     excerpt:
       'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
@@ -72,7 +68,6 @@ const defaultPosts: Post[] = [
     category: 'Tutorial'
   },
   {
-    id: '5',
     title: 'Real-time Collaboration in AI Apps',
     excerpt:
       'Implementing WebSocket connections and real-time updates for collaborative agentic experiences.',
@@ -88,7 +83,6 @@ const defaultPosts: Post[] = [
     category: 'Development'
   },
   {
-    id: '6',
     title: 'Accessibility in Chat Interfaces',
     excerpt:
       'Making your conversational UI accessible to all users with screen readers and keyboard navigation.',
@@ -104,7 +98,6 @@ const defaultPosts: Post[] = [
     category: 'Design'
   },
   {
-    id: '7',
     title: 'State Management for Complex Workflows',
     excerpt:
       'Managing complex multi-step workflows in agentic applications using modern state patterns.',
@@ -120,7 +113,6 @@ const defaultPosts: Post[] = [
     category: 'Development'
   },
   {
-    id: '8',
     title: 'Testing Conversational Components',
     excerpt:
       'Strategies for unit testing and integration testing of chat-based UI components.',
@@ -136,7 +128,6 @@ const defaultPosts: Post[] = [
     category: 'Development'
   },
   {
-    id: '9',
     title: 'Theming and Dark Mode Support',
     excerpt:
       'Implementing flexible theming systems with dark mode for agentic UI components.',
@@ -152,7 +143,6 @@ const defaultPosts: Post[] = [
     category: 'Design'
   },
   {
-    id: '10',
     title: 'Performance Optimization Techniques',
     excerpt:
       'Optimizing render performance and reducing bundle size in chat applications.',
@@ -168,7 +158,6 @@ const defaultPosts: Post[] = [
     category: 'Development'
   },
   {
-    id: '11',
     title: 'Error Handling and Recovery',
     excerpt:
       'Graceful error handling patterns and user-friendly recovery flows in conversational UIs.',
@@ -184,7 +173,6 @@ const defaultPosts: Post[] = [
     category: 'Development'
   },
   {
-    id: '12',
     title: 'Internationalization Best Practices',
     excerpt:
       'Making your agentic UI components work across languages and locales.',
@@ -200,7 +188,6 @@ const defaultPosts: Post[] = [
     category: 'Design'
   },
   {
-    id: '13',
     title: 'Mobile-First Chat Design',
     excerpt:
       'Designing conversational interfaces that work beautifully on mobile devices.',
@@ -216,7 +203,6 @@ const defaultPosts: Post[] = [
     category: 'Design'
   },
   {
-    id: '14',
     title: 'Analytics and User Insights',
     excerpt:
       'Tracking user interactions and deriving insights from conversational UI usage.',
@@ -232,7 +218,6 @@ const defaultPosts: Post[] = [
     category: 'Tutorial'
   },
   {
-    id: '15',
     title: 'Building Reusable Component Libraries',
     excerpt:
       'Creating a scalable component library for agentic UIs that teams can share.',
@@ -283,9 +268,9 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
   if (variant === 'list') {
     return (
       <div className="space-y-3">
-        {posts.slice(0, 3).map((post) => (
+        {posts.slice(0, 3).map((post, index) => (
           <PostCard
-            key={post.id}
+            key={index}
             data={{ post }}
             appearance={{ variant: "horizontal", showAuthor, showCategory }}
             actions={{ onReadMore }}
@@ -304,9 +289,9 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
         )}
       >
-        {posts.slice(0, 4).map((post) => (
+        {posts.slice(0, 4).map((post, index) => (
           <PostCard
-            key={post.id}
+            key={index}
             data={{ post }}
             appearance={{ variant: "compact", showImage: false, showAuthor, showCategory }}
             actions={{ onReadMore }}
@@ -346,9 +331,9 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     return (
       <div className="space-y-6 p-6">
         <div className={cn('grid gap-6 grid-cols-1', getGridColsClass())}>
-          {paginatedPosts.map((post) => (
+          {paginatedPosts.map((post, index) => (
             <PostCard
-              key={post.id}
+              key={index}
               data={{ post }}
               appearance={{ variant: "default", showAuthor, showCategory }}
               actions={{ onReadMore }}
@@ -429,8 +414,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           className="flex transition-transform duration-300 ease-out md:hidden"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {posts.map((post) => (
-            <div key={post.id} className="w-full shrink-0 px-0.5">
+          {posts.map((post, index) => (
+            <div key={index} className="w-full shrink-0 px-0.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
@@ -445,8 +430,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           className="hidden md:flex lg:hidden transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * 50}%)` }}
         >
-          {posts.map((post) => (
-            <div key={post.id} className="w-1/2 shrink-0 px-1.5">
+          {posts.map((post, index) => (
+            <div key={index} className="w-1/2 shrink-0 px-1.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
@@ -461,8 +446,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           className="hidden lg:flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * (100 / 3)}%)` }}
         >
-          {posts.map((post) => (
-            <div key={post.id} className="w-1/3 shrink-0 px-1.5">
+          {posts.map((post, index) => (
+            <div key={index} className="w-1/3 shrink-0 px-1.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}

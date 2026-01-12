@@ -19,7 +19,6 @@ import type { Event, EventSignal } from './types'
 import '@/lib/openai-types'
 
 const defaultEvent: Event = {
-  id: 'evt-1',
   title: 'NEON Vol. 9',
   category: 'Music',
   venue: 'Echoplex',

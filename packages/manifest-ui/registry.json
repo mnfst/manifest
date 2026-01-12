@@ -200,7 +200,7 @@
     },
     {
       "name": "product-list",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
@@ -215,7 +215,7 @@
     },
     {
       "name": "option-list",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
@@ -260,7 +260,7 @@
     },
     {
       "name": "quick-reply",
-      "version": "2.0.0",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
@@ -335,7 +335,7 @@
     },
     {
       "name": "post-card",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
@@ -354,7 +354,7 @@
     },
     {
       "name": "post-list",
-      "version": "1.1.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
@@ -377,7 +377,7 @@
     },
     {
       "name": "post-detail",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
@@ -426,7 +426,7 @@
     },
     {
       "name": "chat-conversation",
-      "version": "3.0.0",
+      "version": "4.0.0",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
@@ -520,7 +520,7 @@
     },
     {
       "name": "event-card",
-      "version": "4.1.0",
+      "version": "5.0.0",
       "type": "registry:component",
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
@@ -539,7 +539,7 @@
     },
     {
       "name": "event-list",
-      "version": "5.2.1",
+      "version": "6.0.0",
       "type": "registry:component",
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
@@ -558,7 +558,7 @@
     },
     {
       "name": "event-detail",
-      "version": "2.2.0",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
