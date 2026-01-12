@@ -391,19 +391,24 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 All event components use a shared `Event` interface:
 
 ```typescript
+type EventLocationType = "physical" | "online" | "hybrid"
+
 interface Event {
   id: string
   title: string
-  category: string           // "Music", "Comedy", "Classes", "Nightlife", "Sports"
-  venue: string
+  category: string             // "Music", "Comedy", "Classes", "Nightlife", "Sports"
+  locationType?: EventLocationType // defaults to "physical"
+  venue?: string               // Optional for online events
   neighborhood?: string
-  city: string
-  dateTime: string           // "Tonight 9:00 PM - 3:00 AM"
-  priceRange: string         // "$45 - $150", "Free"
+  city?: string                // Optional for online events
+  onlineUrl?: string           // For online/hybrid events
+  startDateTime: string        // ISO format: "2025-01-11T21:00:00Z"
+  endDateTime?: string         // ISO format: "2025-01-12T03:00:00Z"
+  priceRange: string           // "$45 - $150", "Free"
   image?: string
-  vibeTags?: string[]        // ["High energy", "Late night", "Dressy"]
+  vibeTags?: string[]          // ["High energy", "Late night", "Dressy"]
   vibeDescription?: string
-  aiSummary?: string         // AI-generated match explanation
+  aiSummary?: string           // AI-generated match explanation
   lineup?: string[]
   eventSignal?: EventSignal
   ticketSignal?: TicketSignal
@@ -412,6 +417,26 @@ interface Event {
   hasMultipleDates?: boolean
   discount?: string
 }
+```
+
+#### Event Location Types
+
+Events can be physical, online, or hybrid:
+- `physical` - In-person event with venue and city (default)
+- `online` - Virtual event with `onlineUrl`, no venue/city required
+- `hybrid` - Both in-person and online, has venue/city AND `onlineUrl`
+
+#### Date/Time Formatting
+
+Store dates as ISO 8601 strings. The component automatically formats for display:
+- **Today**: "Tonight 9:00 PM - 3:00 AM"
+- **Tomorrow**: "Tomorrow 8:00 PM"
+- **Future dates**: "Jan 15 7:00 PM"
+
+```typescript
+// Example usage
+startDateTime: "2025-01-11T21:00:00Z"  // 9 PM UTC
+endDateTime: "2025-01-12T03:00:00Z"    // 3 AM UTC next day
 ```
 
 #### Signal Types
