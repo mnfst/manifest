@@ -17,6 +17,10 @@ import { PostListDemo } from '@/components/blocks/post-list-demo'
 import { PostDetail } from '@/registry/blogging/post-detail'
 import { PostList } from '@/registry/blogging/post-list'
 
+// Events components
+import { EventCard } from '@/registry/events/event-card'
+import { EventList } from '@/registry/events/event-list'
+
 // List components
 import { TableDemo } from '@/components/blocks/table-demo'
 import { ProductList } from '@/registry/list/product-list'
@@ -925,6 +929,354 @@ const categories: Category[] = [
   }}
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
+  }}
+/>`
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'events',
+    name: 'Events',
+    blocks: [
+      {
+        id: 'event-card',
+        name: 'Event Card',
+        description:
+          'Display event information with various layouts. Supports physical, online, and hybrid events.',
+        registryName: 'event-card',
+        layouts: ['inline'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <EventCard />,
+            usageCode: `<EventCard
+  data={{
+    event: {
+      id: "1",
+      title: "House Music Night at The Loft",
+      category: "Music",
+      locationType: "physical",
+      venue: "The Loft",
+      neighborhood: "SoHo",
+      city: "New York",
+      startDateTime: "2025-01-11T21:00:00Z",
+      endDateTime: "2025-01-12T03:00:00Z",
+      priceRange: "$45 - $150",
+      image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+      vibeTags: ["High energy", "Late night", "Dressy"],
+      eventSignal: "going-fast",
+      organizerRating: 4.8,
+      reviewCount: 234
+    }
+  }}
+  appearance={{
+    variant: "default",
+    showSignal: true,
+    showTags: true,
+    showRating: true
+  }}
+  actions={{
+    onClick: (event) => console.log("Event clicked:", event.title)
+  }}
+/>`
+          },
+          {
+            id: 'compact',
+            name: 'Compact',
+            component: <EventCard appearance={{ variant: 'compact' }} />,
+            usageCode: `<EventCard
+  data={{
+    event: {
+      id: "2",
+      title: "Comedy Night with Local Comedians",
+      category: "Comedy",
+      venue: "Laugh Factory",
+      city: "Los Angeles",
+      startDateTime: "2025-01-17T20:00:00Z",
+      priceRange: "$25 - $40",
+      vibeTags: ["Casual", "Fun"],
+      eventSignal: "popular"
+    }
+  }}
+  appearance={{
+    variant: "compact",
+    showSignal: true,
+    showTags: true
+  }}
+  actions={{
+    onClick: (event) => console.log("Event clicked:", event.title)
+  }}
+/>`
+          },
+          {
+            id: 'horizontal',
+            name: 'Horizontal',
+            component: <EventCard appearance={{ variant: 'horizontal' }} />,
+            usageCode: `<EventCard
+  data={{
+    event: {
+      id: "3",
+      title: "Yoga in the Park - Sunrise Session",
+      category: "Classes",
+      locationType: "physical",
+      venue: "Central Park",
+      neighborhood: "Upper West Side",
+      city: "New York",
+      startDateTime: "2025-01-18T06:30:00Z",
+      priceRange: "Free",
+      image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800",
+      vibeTags: ["Relaxing", "Outdoor", "Beginner-friendly"],
+      eventSignal: "just-added"
+    }
+  }}
+  appearance={{
+    variant: "horizontal",
+    showSignal: true,
+    showTags: true
+  }}
+  actions={{
+    onClick: (event) => console.log("Event clicked:", event.title)
+  }}
+/>`
+          },
+          {
+            id: 'covered',
+            name: 'Covered',
+            component: <EventCard appearance={{ variant: 'covered' }} />,
+            usageCode: `<EventCard
+  data={{
+    event: {
+      id: "4",
+      title: "Rooftop DJ Set with Sunset Views",
+      category: "Nightlife",
+      locationType: "physical",
+      venue: "Sky Lounge",
+      neighborhood: "Meatpacking",
+      city: "New York",
+      startDateTime: "2025-01-19T17:00:00Z",
+      endDateTime: "2025-01-19T23:00:00Z",
+      priceRange: "$60 - $200",
+      image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
+      vibeTags: ["Upscale", "Scenic", "Dressy"],
+      eventSignal: "few-tickets-left",
+      organizerRating: 4.9,
+      reviewCount: 512
+    }
+  }}
+  appearance={{
+    variant: "covered",
+    showSignal: true,
+    showTags: true,
+    showRating: true
+  }}
+  actions={{
+    onClick: (event) => console.log("Event clicked:", event.title)
+  }}
+/>`
+          },
+          {
+            id: 'online',
+            name: 'Online Event',
+            component: (
+              <EventCard
+                data={{
+                  event: {
+                    id: '5',
+                    title: 'Virtual Cooking Masterclass',
+                    category: 'Classes',
+                    locationType: 'online',
+                    onlineUrl: 'https://zoom.us/j/123456789',
+                    startDateTime: '2025-01-15T19:00:00-05:00',
+                    priceRange: '$35',
+                    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800',
+                    vibeTags: ['Interactive', 'Beginner-friendly'],
+                    eventSignal: 'just-added'
+                  }
+                }}
+              />
+            ),
+            usageCode: `<EventCard
+  data={{
+    event: {
+      id: "5",
+      title: "Virtual Cooking Masterclass",
+      category: "Classes",
+      locationType: "online",
+      onlineUrl: "https://zoom.us/j/123456789",
+      startDateTime: "2025-01-15T19:00:00-05:00",
+      priceRange: "$35",
+      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800",
+      vibeTags: ["Interactive", "Beginner-friendly"],
+      eventSignal: "just-added"
+    }
+  }}
+  appearance={{
+    variant: "default",
+    showSignal: true,
+    showTags: true
+  }}
+  actions={{
+    onClick: (event) => console.log("Event clicked:", event.title)
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'event-list',
+        name: 'Event List',
+        description:
+          'Display a collection of events in grid, list, or carousel layouts.',
+        registryName: 'event-list',
+        layouts: ['inline', 'fullscreen'],
+        actionCount: 1,
+        variants: [
+          {
+            id: 'grid',
+            name: 'Grid',
+            component: <EventList />,
+            usageCode: `<EventList
+  data={{
+    events: [
+      {
+        id: "1",
+        title: "House Music Night at The Loft",
+        category: "Music",
+        venue: "The Loft",
+        city: "New York",
+        startDateTime: "2025-01-11T21:00:00Z",
+        priceRange: "$45 - $150",
+        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+        vibeTags: ["High energy", "Late night"],
+        eventSignal: "going-fast"
+      },
+      {
+        id: "2",
+        title: "Comedy Night",
+        category: "Comedy",
+        venue: "Laugh Factory",
+        city: "Los Angeles",
+        startDateTime: "2025-01-17T20:00:00Z",
+        priceRange: "$25",
+        eventSignal: "popular"
+      },
+      {
+        id: "3",
+        title: "Yoga in the Park",
+        category: "Classes",
+        venue: "Central Park",
+        city: "New York",
+        startDateTime: "2025-01-18T06:30:00Z",
+        priceRange: "Free",
+        eventSignal: "just-added"
+      },
+      {
+        id: "4",
+        title: "Rooftop DJ Set",
+        category: "Nightlife",
+        venue: "Sky Lounge",
+        city: "New York",
+        startDateTime: "2025-01-19T17:00:00Z",
+        priceRange: "$60 - $200",
+        image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
+        eventSignal: "few-tickets-left"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "grid",
+    columns: 2
+  }}
+  actions={{
+    onEventSelect: (event) => console.log("Event selected:", event.title)
+  }}
+/>`
+          },
+          {
+            id: 'list',
+            name: 'List',
+            component: <EventList appearance={{ variant: 'list' }} />,
+            usageCode: `<EventList
+  data={{
+    events: [
+      {
+        id: "1",
+        title: "House Music Night at The Loft",
+        category: "Music",
+        venue: "The Loft",
+        city: "New York",
+        startDateTime: "2025-01-11T21:00:00Z",
+        priceRange: "$45 - $150",
+        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+        eventSignal: "going-fast"
+      },
+      {
+        id: "2",
+        title: "Comedy Night",
+        category: "Comedy",
+        venue: "Laugh Factory",
+        city: "Los Angeles",
+        startDateTime: "2025-01-17T20:00:00Z",
+        priceRange: "$25",
+        eventSignal: "popular"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "list"
+  }}
+  actions={{
+    onEventSelect: (event) => console.log("Event selected:", event.title)
+  }}
+/>`
+          },
+          {
+            id: 'carousel',
+            name: 'Carousel',
+            component: <EventList appearance={{ variant: 'carousel' }} />,
+            usageCode: `<EventList
+  data={{
+    events: [
+      {
+        id: "1",
+        title: "House Music Night",
+        category: "Music",
+        venue: "The Loft",
+        city: "New York",
+        startDateTime: "2025-01-11T21:00:00Z",
+        priceRange: "$45 - $150",
+        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+        eventSignal: "going-fast"
+      },
+      {
+        id: "2",
+        title: "Comedy Night",
+        category: "Comedy",
+        venue: "Laugh Factory",
+        city: "Los Angeles",
+        startDateTime: "2025-01-17T20:00:00Z",
+        priceRange: "$25"
+      },
+      {
+        id: "3",
+        title: "Yoga Session",
+        category: "Classes",
+        venue: "Central Park",
+        city: "New York",
+        startDateTime: "2025-01-18T06:30:00Z",
+        priceRange: "Free"
+      }
+    ]
+  }}
+  appearance={{
+    variant: "carousel"
+  }}
+  actions={{
+    onEventSelect: (event) => console.log("Event selected:", event.title)
   }}
 />`
           }
