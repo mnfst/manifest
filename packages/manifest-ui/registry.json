@@ -5,7 +5,7 @@
   "items": [
     {
       "name": "contact-form",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "type": "registry:component",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",

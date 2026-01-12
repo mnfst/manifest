@@ -93,6 +93,12 @@ function extractTypeName(type: string): string | null {
     return simpleMatch[1]
   }
 
+  // Handle generic types like "Partial<ContactFormData>" or "Array<Item>"
+  const genericMatch = type.match(/^\w+<(\w+)>$/)
+  if (genericMatch && isCustomType(genericMatch[1])) {
+    return genericMatch[1]
+  }
+
   // Handle nested object types like "{ emoji: string; count: number }[]"
   // These are inline types, not custom types
   if (type.includes('{')) {
