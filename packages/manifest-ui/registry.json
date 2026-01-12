@@ -260,7 +260,7 @@
     },
     {
       "name": "quick-reply",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",

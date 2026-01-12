@@ -51,7 +51,8 @@
       "1.0.0": "Initial release with color variants and multi-select"
     },
     "quick-reply": {
-      "1.0.0": "Initial release with quick reply button options"
+      "1.0.0": "Initial release with quick reply button options",
+      "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface"
     },
     "progress-steps": {
       "1.0.0": "Initial release with horizontal and vertical layouts"
