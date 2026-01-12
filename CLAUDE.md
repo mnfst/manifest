@@ -139,12 +139,46 @@ When creating or modifying a block, update these files:
 
 1. **Component file**: `packages/manifest-ui/registry/<category>/<block-name>.tsx`
 2. **Registry definition**: `packages/manifest-ui/registry.json`
-3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/page.tsx`
-4. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
+4. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
+5. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+
+### Avatar Pattern (IMPORTANT)
+
+**All components with avatars MUST support both image URLs and letter fallbacks.**
+
+When a component displays an avatar (e.g., in messaging, comments, profiles), implement this pattern:
+
+```typescript
+// In the component's data interface
+data?: {
+  avatarUrl?: string       // Image URL (optional, takes priority over letter)
+  avatarFallback?: string  // Letter fallback (e.g., "S" for Sarah)
+  // ... other props
+}
+```
+
+**Implementation:**
+- If `avatarUrl` is provided and loads successfully → show the image
+- If `avatarUrl` fails to load OR is not provided → show letter in a colored circle
+- Always require `avatarFallback` (letter) as the fallback
+
+**usageCode example:**
+```tsx
+<MessageBubble
+  data={{
+    avatarUrl: "https://i.pravatar.cc/150?u=sarah",  // Optional image URL
+    avatarFallback: "S",  // Letter fallback (required)
+    // ...
+  }}
+/>
+```
+
+This ensures components gracefully handle missing or broken avatar images.
 
 ### Usage Example Requirements
 
-Every block variant in `app/blocks/page.tsx` MUST have a `usageCode` field with a comprehensive example that demonstrates:
+Every block variant in `app/blocks/[category]/[block]/page.tsx` MUST have a `usageCode` field with a comprehensive example that demonstrates:
 
 1. **All common props** - Show the typical props a developer would use
 2. **Realistic demo data** - Use meaningful placeholder data, not just "test" or "foo"
