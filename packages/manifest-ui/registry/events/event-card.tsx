@@ -422,24 +422,24 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
       onClick={handleClick}
     >
       {event.image && (
-        <div className="aspect-video overflow-hidden relative">
+        <div className="aspect-video overflow-hidden">
           <img
             src={event.image}
             alt={event.title}
             className="h-full w-full object-cover transition-transform hover:scale-105"
           />
-          {showSignal && event.eventSignal && (
-            <div className="absolute top-2 left-2">
-              <EventSignalBadge signal={event.eventSignal} />
-            </div>
-          )}
         </div>
       )}
       <div className="flex flex-1 flex-col justify-between p-4">
         <div>
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            {event.category}
-          </p>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {event.category}
+            </p>
+            {showSignal && event.eventSignal && (
+              <EventSignalBadge signal={event.eventSignal} />
+            )}
+          </div>
           <h3 className="line-clamp-2 font-medium">{event.title}</h3>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
