@@ -128,7 +128,7 @@ export class UserManagementService {
     // Find user by email
     const user = await this.getUserByEmail(email);
     if (!user) {
-      throw new BadRequestException('User not found. They must sign up first.');
+      throw new NotFoundException('User not found. They must sign up first or be invited.');
     }
 
     // Check if user already has access
