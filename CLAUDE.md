@@ -131,7 +131,48 @@ EOF
 
 ## Block Development Guidelines
 
-**CRITICAL**: When adding or editing a block, you MUST include a comprehensive usage example.
+**CRITICAL**: When adding or editing a block, you MUST update ALL related code across the codebase.
+
+### Complete Update Requirement (CRITICAL)
+
+**When modifying ANY aspect of a block, you MUST update EVERY place that references it.**
+
+A block modification is NOT complete until you have updated:
+
+| Location | What to Update |
+|----------|----------------|
+| `registry/<category>/<block>.tsx` | Component code, interfaces, props, default values |
+| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data |
+| `registry.json` | Version bump (PATCH/MINOR/MAJOR) |
+| `changelog.json` | Changelog entry for the new version |
+
+#### What Lives in `page.tsx`
+
+The block detail page (`app/blocks/[category]/[block]/page.tsx`) contains:
+
+1. **Block metadata** - `id`, `name`, `description`, `registryName`, `layouts`, `actionCount`
+2. **Variants array** - Each variant has:
+   - `id`, `name` - Variant identifier and display name
+   - `component` - The actual React component with props for preview
+   - `usageCode` - **String** that developers copy-paste (MUST match the component interface exactly)
+3. **Default data** - Sample data used in the preview
+
+#### Common Mistakes to Avoid
+
+- Changing a prop name in the `.tsx` file but forgetting to update `usageCode`
+- Removing a prop from the interface but leaving it in `usageCode`
+- Adding a new required prop but not showing it in `usageCode`
+- Updating default values in the component but not reflecting them in preview data
+
+#### Verification Steps
+
+After ANY component change:
+1. Read the component `.tsx` file to understand the current interface
+2. Read the `page.tsx` block definition to see current `usageCode`
+3. Ensure `usageCode` exactly matches the component's interface
+4. Ensure the preview component uses the correct props
+5. Bump version in `registry.json`
+6. Add changelog entry in `changelog.json`
 
 ### Required Files to Update
 
@@ -359,11 +400,19 @@ When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[categor
 
 Before submitting a PR with block changes:
 
-- [ ] **Version bumped in `registry.json`** (REQUIRED - tests will fail otherwise)
-- [ ] **Changelog entry added in `changelog.json`** (REQUIRED - tests will fail otherwise)
+**Synchronization (CRITICAL):**
+- [ ] **Component interface matches `usageCode`** - Every prop in the interface is shown in usageCode
+- [ ] **`usageCode` uses correct prop names** - No stale/renamed props in usageCode
+- [ ] **Preview component uses current props** - The `<Component />` in variants uses the right props
+- [ ] **Default values are consistent** - Defaults in component match what's shown in preview
+
+**Versioning (REQUIRED):**
+- [ ] **Version bumped in `registry.json`** (tests will fail otherwise)
+- [ ] **Changelog entry added in `changelog.json`** (tests will fail otherwise)
+
+**Quality:**
 - [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
 - [ ] Block is registered in `registry.json` with correct dependencies
-- [ ] Block demo added to `app/blocks/page.tsx` with ALL variants
 - [ ] EVERY variant has a `usageCode` field with comprehensive example
 - [ ] Usage example shows realistic data (not placeholder text like "test" or "foo")
 - [ ] All action handlers are demonstrated with `console.log` examples
