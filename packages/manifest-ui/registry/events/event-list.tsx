@@ -1,8 +1,9 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, ChevronRight, MapPin, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Event } from './types'
@@ -356,6 +357,225 @@ const defaultEvents: Event[] = [
   }
 ]
 
+// Filter options
+const categoryOptions = ['Music', 'Comedy', 'Classes', 'Sports', 'Food & Drink', 'Arts', 'Film', 'Nightlife', 'Wellness', 'Networking']
+const dateOptions = ['Today', 'Tomorrow', 'This weekend', 'This week', 'Next week', 'This month', 'Custom range']
+const neighborhoodOptions = ['Downtown', 'Hollywood', 'Santa Monica', 'Venice', 'Echo Park', 'Silver Lake', 'Los Feliz', 'DTLA', 'Arts District', 'Brentwood', 'Miracle Mile', 'Hollywood Hills', 'Elysian Park']
+const priceOptions = ['Free', 'Under $25', '$25 - $50', '$50 - $100', '$100+']
+const formatOptions = ['In-person', 'Online', 'Hybrid']
+
+interface FilterState {
+  categories: string[]
+  dates: string[]
+  neighborhoods: string[]
+  prices: string[]
+  formats: string[]
+}
+
+const defaultFilters: FilterState = {
+  categories: [],
+  dates: [],
+  neighborhoods: [],
+  prices: [],
+  formats: []
+}
+
+// Filter section component
+function FilterSection({
+  title,
+  options,
+  selected,
+  onChange,
+  defaultExpanded = true,
+  showLimit = 5
+}: {
+  title: string
+  options: string[]
+  selected: string[]
+  onChange: (values: string[]) => void
+  defaultExpanded?: boolean
+  showLimit?: number
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
+  const [showAll, setShowAll] = useState(false)
+
+  const visibleOptions = showAll ? options : options.slice(0, showLimit)
+  const hasMore = options.length > showLimit
+
+  const toggleOption = (option: string) => {
+    if (selected.includes(option)) {
+      onChange(selected.filter(s => s !== option))
+    } else {
+      onChange([...selected, option])
+    }
+  }
+
+  return (
+    <div className="border-b border-border/50">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between py-4 text-sm font-medium hover:text-foreground/80 transition-colors"
+      >
+        <span>{title}</span>
+        <ChevronDown className={cn(
+          "h-4 w-4 text-muted-foreground transition-transform duration-200",
+          expanded && "rotate-180"
+        )} />
+      </button>
+      <div className={cn(
+        "grid transition-all duration-200 ease-out",
+        expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      )}>
+        <div className="overflow-hidden">
+          <div className="space-y-2 pb-4">
+            {visibleOptions.map(option => (
+              <label
+                key={option}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <Checkbox
+                  checked={selected.includes(option)}
+                  onCheckedChange={() => toggleOption(option)}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  {option}
+                </span>
+              </label>
+            ))}
+            {hasMore && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="mt-1 text-xs text-primary hover:text-primary/80 transition-colors"
+              >
+                {showAll ? 'Show less' : `View ${options.length - showLimit} more`}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Filter panel that slides over the event list
+function FilterPanel({
+  isOpen,
+  onClose,
+  filters,
+  onFiltersChange,
+  onApply,
+  onReset,
+  resultCount
+}: {
+  isOpen: boolean
+  onClose: () => void
+  filters: FilterState
+  onFiltersChange: (filters: FilterState) => void
+  onApply: () => void
+  onReset: () => void
+  resultCount: number
+}) {
+  const activeFiltersCount = Object.values(filters).flat().length
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-background/60 backdrop-blur-[2px] transition-opacity duration-300 z-10",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-background z-20 flex flex-col transition-all duration-300 ease-out",
+          isOpen
+            ? "opacity-100 translate-x-0"
+            : "opacity-0 -translate-x-4 pointer-events-none"
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                {activeFiltersCount}
+              </span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Filter sections */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+          <FilterSection
+            title="Category"
+            options={categoryOptions}
+            selected={filters.categories}
+            onChange={(categories) => onFiltersChange({ ...filters, categories })}
+          />
+          <FilterSection
+            title="Date"
+            options={dateOptions}
+            selected={filters.dates}
+            onChange={(dates) => onFiltersChange({ ...filters, dates })}
+          />
+          <FilterSection
+            title="Neighborhood"
+            options={neighborhoodOptions}
+            selected={filters.neighborhoods}
+            onChange={(neighborhoods) => onFiltersChange({ ...filters, neighborhoods })}
+          />
+          <FilterSection
+            title="Price"
+            options={priceOptions}
+            selected={filters.prices}
+            onChange={(prices) => onFiltersChange({ ...filters, prices })}
+          />
+          <FilterSection
+            title="Format"
+            options={formatOptions}
+            selected={filters.formats}
+            onChange={(formats) => onFiltersChange({ ...filters, formats })}
+            showLimit={3}
+          />
+        </div>
+
+        {/* Footer with actions */}
+        <div className="border-t px-4 py-3 space-y-2">
+          <Button
+            className="w-full"
+            onClick={onApply}
+          >
+            Show {resultCount} events
+          </Button>
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-foreground"
+              onClick={onReset}
+            >
+              Reset all filters
+            </Button>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 export interface EventListProps {
   data?: {
     events?: Event[]
@@ -365,7 +585,9 @@ export interface EventListProps {
     onEventSelect?: (event: Event) => void
     onPageChange?: (page: number) => void
     onViewMore?: () => void
+    onExpand?: () => void
     onFilterClick?: () => void
+    onFiltersApply?: (filters: FilterState) => void
   }
   appearance?: {
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
@@ -379,11 +601,16 @@ export interface EventListProps {
 
 export function EventList({ data, actions, appearance }: EventListProps) {
   const { events = defaultEvents, title } = data ?? {}
-  const { onEventSelect, onViewMore, onFilterClick } = actions ?? {}
+  const { onEventSelect, onViewMore, onExpand, onFilterClick, onFiltersApply } = actions ?? {}
   const { variant = 'list' } = appearance ?? {}
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+
+  // Filter state for fullwidth variant
+  const [showFilters, setShowFilters] = useState(false)
+  const [filters, setFilters] = useState<FilterState>(defaultFilters)
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters)
 
   // Refs for fullwidth variant scroll functionality
   const listContainerRef = useRef<HTMLDivElement>(null)
@@ -410,12 +637,122 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     setIsMounted(true)
   }, [])
 
+  // Filter events based on applied filters
+  const filterEvents = useCallback((eventsToFilter: Event[], filtersToApply: FilterState): Event[] => {
+    return eventsToFilter.filter(event => {
+      // Category filter
+      if (filtersToApply.categories.length > 0) {
+        if (!filtersToApply.categories.includes(event.category)) return false
+      }
+
+      // Date filter - parse dateTime string for keywords
+      if (filtersToApply.dates.length > 0) {
+        const dateTimeLower = event.dateTime.toLowerCase()
+        const dateMatch = filtersToApply.dates.some(dateOption => {
+          if (dateOption === 'Today') {
+            return dateTimeLower.includes('today') || dateTimeLower.includes('tonight')
+          }
+          if (dateOption === 'Tomorrow') {
+            return dateTimeLower.includes('tomorrow')
+          }
+          if (dateOption === 'This weekend') {
+            return dateTimeLower.includes('saturday') || dateTimeLower.includes('sunday')
+          }
+          if (dateOption === 'This week') {
+            // Match any day name or "In X days" where X <= 7
+            const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            if (dayNames.some(day => dateTimeLower.includes(day))) return true
+            if (dateTimeLower.includes('today') || dateTimeLower.includes('tonight') || dateTimeLower.includes('tomorrow')) return true
+            const inDaysMatch = dateTimeLower.match(/in (\d+) day/)
+            if (inDaysMatch && parseInt(inDaysMatch[1]) <= 7) return true
+            return false
+          }
+          if (dateOption === 'Next week') {
+            const inDaysMatch = dateTimeLower.match(/in (\d+) day/)
+            if (inDaysMatch) {
+              const days = parseInt(inDaysMatch[1])
+              return days > 7 && days <= 14
+            }
+            return false
+          }
+          if (dateOption === 'This month') {
+            // Accept all events for "this month" as a broad filter
+            return true
+          }
+          // Custom range - accept all for now
+          return true
+        })
+        if (!dateMatch) return false
+      }
+
+      // Neighborhood filter
+      if (filtersToApply.neighborhoods.length > 0) {
+        const eventNeighborhood = event.neighborhood || ''
+        if (!filtersToApply.neighborhoods.some(n =>
+          eventNeighborhood.toLowerCase().includes(n.toLowerCase())
+        )) return false
+      }
+
+      // Price filter
+      if (filtersToApply.prices.length > 0) {
+        const priceMatch = filtersToApply.prices.some(priceRange => {
+          if (priceRange === 'Free') {
+            return event.priceRange.toLowerCase().includes('free')
+          }
+          // Extract numeric price from event
+          const priceNum = parseInt(event.priceRange.replace(/[^0-9]/g, '')) || 0
+          if (priceRange === 'Under $25') return priceNum < 25
+          if (priceRange === '$25 - $50') return priceNum >= 25 && priceNum <= 50
+          if (priceRange === '$50 - $100') return priceNum >= 50 && priceNum <= 100
+          if (priceRange === '$100+') return priceNum >= 100
+          return true
+        })
+        if (!priceMatch) return false
+      }
+
+      // Format filter - check if event is in-person, online, or hybrid
+      if (filtersToApply.formats.length > 0) {
+        const formatMatch = filtersToApply.formats.some(format => {
+          // All demo events have venues, so they're all in-person
+          // In a real app, you'd check for onlineUrl or locationType
+          if (format === 'In-person') {
+            return event.venue && event.city
+          }
+          if (format === 'Online') {
+            // Would check for onlineUrl field
+            return false
+          }
+          if (format === 'Hybrid') {
+            // Would check for both venue and onlineUrl
+            return false
+          }
+          return true
+        })
+        if (!formatMatch) return false
+      }
+
+      return true
+    })
+  }, [])
+
   // List variant
   if (variant === 'list') {
     return (
       <div className="space-y-3">
         {title && (
-          <h2 className="text-lg font-semibold mb-4">{title}</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {onExpand && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={onExpand}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         )}
         {events.slice(0, 3).map((event) => (
           <EventCard
@@ -434,7 +771,19 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     return (
       <div className="space-y-4">
         {title && (
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {onExpand && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={onExpand}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         )}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {events.slice(0, 3).map((event) => (
@@ -477,70 +826,123 @@ export function EventList({ data, actions, appearance }: EventListProps) {
       onEventSelect?.(event)
     }
 
+    const handleFilterButtonClick = () => {
+      setFilters(appliedFilters) // Reset to applied filters when opening
+      setShowFilters(true)
+      onFilterClick?.()
+    }
+
+    const handleApplyFilters = () => {
+      setAppliedFilters(filters)
+      setShowFilters(false)
+      onFiltersApply?.(filters)
+    }
+
+    const handleResetFilters = () => {
+      setFilters(defaultFilters)
+      setAppliedFilters(defaultFilters)
+      onFiltersApply?.(defaultFilters)
+    }
+
+    // Get filtered events
+    const filteredEvents = filterEvents(events, appliedFilters)
+    // Get preview count for filter panel (shows what would be selected)
+    const previewFilteredCount = filterEvents(events, filters).length
+    // Count of active filters
+    const activeFiltersCount = Object.values(appliedFilters).flat().length
+
     return (
       <div className="flex h-full min-h-[600px] bg-background">
         {/* Left Panel - Event List */}
-        <div className="w-full md:w-[400px] lg:w-[420px] flex-shrink-0 border-r flex flex-col">
+        <div className="w-full md:w-[50%] lg:w-[45%] xl:w-[40%] xl:max-w-[720px] flex-shrink-0 border-r flex flex-col relative">
           {/* Header */}
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <div className="flex items-center gap-2">
-              {title && <span className="font-semibold">{title}</span>}
-              <span className="text-muted-foreground">|</span>
-              <span className="text-muted-foreground">{events.length} Events</span>
+          <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+            <div className="flex items-center gap-2 min-w-0">
+              {title && <span className="font-semibold truncate">{title}</span>}
+              <span className="text-muted-foreground text-xs whitespace-nowrap">| {filteredEvents.length}</span>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="gap-2"
-              onClick={onFilterClick}
+              className="gap-2 flex-shrink-0"
+              onClick={handleFilterButtonClick}
             >
               <SlidersHorizontal className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only">Filters</span>
+              <span className="hidden sm:inline">Filters</span>
+              {activeFiltersCount > 0 && (
+                <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                  {activeFiltersCount}
+                </span>
+              )}
             </Button>
           </div>
 
           {/* Scrollable Event List */}
           <div ref={listContainerRef} className="flex-1 overflow-y-auto">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                ref={(el) => {
-                  if (el) eventItemRefs.current.set(event.id, el)
-                }}
-                className={cn(
-                  'border-b transition-colors cursor-pointer',
-                  selectedEventId === event.id && 'bg-accent'
-                )}
-                onMouseEnter={() => handleEventHover(event.id)}
-                onMouseLeave={() => handleEventHover(null)}
-                onClick={() => handleEventClick(event)}
-              >
-                <div className="flex gap-3 p-3">
-                  {/* Thumbnail */}
-                  {event.image && (
-                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                      <img
-                        src={event.image}
-                        alt={event.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+            {filteredEvents.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <p className="text-muted-foreground">No events match your filters</p>
+                <Button
+                  variant="link"
+                  className="mt-2"
+                  onClick={handleResetFilters}
+                >
+                  Reset filters
+                </Button>
+              </div>
+            ) : (
+              filteredEvents.map((event) => (
+                <div
+                  key={event.id}
+                  ref={(el) => {
+                    if (el) eventItemRefs.current.set(event.id, el)
+                  }}
+                  className={cn(
+                    'border-b transition-colors cursor-pointer',
+                    selectedEventId === event.id && 'bg-accent'
                   )}
-                  {/* Event Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm">{event.priceRange}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {event.dateTime} · {event.category}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {event.venue}, {event.city}
-                    </p>
-                    <p className="text-sm font-medium mt-1 line-clamp-1">{event.title}</p>
+                  onMouseEnter={() => handleEventHover(event.id)}
+                  onMouseLeave={() => handleEventHover(null)}
+                  onClick={() => handleEventClick(event)}
+                >
+                  <div className="flex gap-3 p-3">
+                    {/* Thumbnail */}
+                    {event.image && (
+                      <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                        <img
+                          src={event.image}
+                          alt={event.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    {/* Event Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{event.priceRange}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {event.dateTime} · {event.category}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {event.venue}, {event.city}
+                      </p>
+                      <p className="text-sm font-medium mt-1 line-clamp-1">{event.title}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
+
+          {/* Filter Panel Overlay */}
+          <FilterPanel
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+            filters={filters}
+            onFiltersChange={setFilters}
+            onApply={handleApplyFilters}
+            onReset={handleResetFilters}
+            resultCount={previewFilteredCount}
+          />
         </div>
 
         {/* Right Panel - Map */}
@@ -558,7 +960,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               />
               <EventMapMarkers
-                events={events}
+                events={filteredEvents}
                 selectedId={selectedEventId}
                 onSelectEvent={handleMapMarkerClick}
               />
@@ -592,7 +994,19 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   return (
     <div className="relative">
       {title && (
-        <h2 className="text-lg font-semibold mb-4">{title}</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          {onExpand && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onExpand}
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
       <div className="overflow-hidden rounded-lg">
         {/* Mobile: 1 card, slides by 100% */}

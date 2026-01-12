@@ -25,7 +25,7 @@ import {
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
-import type { EventDetails, EventSignal, TicketTier } from './types'
+import type { EventDetails, EventSignal } from './types'
 
 // Dynamically import map components to avoid SSR issues with Leaflet
 const MapContainer = dynamic(
@@ -83,12 +83,17 @@ function formatFullDate(dateString: string): string {
   })
 }
 
-// Helper to generate dates
+// Helper to generate dates relative to today
 function getDateAt(daysFromNow: number, hour: number): string {
   const date = new Date()
   date.setDate(date.getDate() + daysFromNow)
   date.setHours(hour, 0, 0, 0)
   return date.toISOString()
+}
+
+// Format number with commas (consistent across server/client)
+function formatNumber(num: number): string {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 const defaultEvent: EventDetails = {
@@ -231,7 +236,7 @@ function VenueMapMarker({
       align-items: center;
     ">
       <div style="
-        background-color: #ea580c;
+        background-color: #18181b;
         color: white;
         padding: 6px 10px;
         border-radius: 8px;
@@ -246,7 +251,7 @@ function VenueMapMarker({
         height: 0;
         border-left: 8px solid transparent;
         border-right: 8px solid transparent;
-        border-top: 8px solid #ea580c;
+        border-top: 8px solid #18181b;
         margin-top: -1px;
       "></div>
     </div>`,
@@ -401,7 +406,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
             <span className="text-muted-foreground">·</span>
             <span className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-current text-yellow-500" />
-              {event.organizer.rating} ({event.organizer.reviewCount.toLocaleString()})
+              {event.organizer.rating} ({formatNumber(event.organizer.reviewCount)})
             </span>
           </div>
         )}
@@ -459,7 +464,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
         {/* CTA Buttons */}
         <div className="flex gap-3">
           <Button
-            className="flex-1 bg-orange-500 hover:bg-orange-600"
+            className="flex-1 bg-primary hover:bg-primary/90"
             onClick={() => onGetTickets?.(event)}
           >
             Get tickets
@@ -605,7 +610,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
                 <div className="flex-1">
                   <p className="font-medium">{event.organizer.name}</p>
                   <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span>Followers<br /><strong>{event.organizer.followers?.toLocaleString() || '--'}</strong></span>
+                    <span>Followers<br /><strong>{event.organizer.followers ? formatNumber(event.organizer.followers) : '--'}</strong></span>
                     <span>Events<br /><strong>{event.organizer.eventsCount || '--'}</strong></span>
                     <span>Hosting<br /><strong>{event.organizer.hostingYears ? `${event.organizer.hostingYears} yrs` : '--'}</strong></span>
                   </div>
@@ -615,7 +620,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => onContact?.(event.organizer)}>
                   Contact
                 </Button>
-                <Button size="sm" className="flex-1 bg-orange-500 hover:bg-orange-600" onClick={() => onFollow?.(event.organizer)}>
+                <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90" onClick={() => onFollow?.(event.organizer)}>
                   Follow
                 </Button>
               </div>
@@ -697,7 +702,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
               <p className="text-sm text-muted-foreground">{formatEventDateTime(event.startDateTime, event.endDateTime)}</p>
             </div>
             <Button
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-primary hover:bg-primary/90"
               onClick={() => onGetTickets?.(event)}
             >
               Get tickets

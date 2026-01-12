@@ -118,6 +118,7 @@ export interface EventDetails extends Event {
     duration?: string
     doorsOpen?: string
     showtime?: string
+    ageRestriction?: string
   }
   amenities?: string[]
   policies?: {

@@ -520,7 +520,7 @@
     },
     {
       "name": "event-card",
-      "version": "4.0.0",
+      "version": "4.1.0",
       "type": "registry:component",
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
@@ -539,12 +539,12 @@
     },
     {
       "name": "event-list",
-      "version": "5.0.0",
+      "version": "5.2.0",
       "type": "registry:component",
       "title": "Event List",
-      "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet.",
+      "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
-      "registryDependencies": ["button", "event-card"],
+      "registryDependencies": ["button", "checkbox", "event-card"],
       "files": [
         {
           "path": "registry/events/event-list.tsx",
