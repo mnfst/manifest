@@ -37,8 +37,11 @@ const categories: Category[] = [
     name: 'Events',
     blocks: [
       { id: 'event-card', name: 'Event Card' },
+      { id: 'event-list', name: 'Event List' },
       { id: 'event-detail', name: 'Event Detail' },
-      { id: 'event-list', name: 'Event List' }
+      { id: 'ticket-tier-select', name: 'Ticket Tier Select' },
+      { id: 'event-checkout', name: 'Event Checkout' },
+      { id: 'event-confirmation', name: 'Event Confirmation' }
     ]
   },
   {

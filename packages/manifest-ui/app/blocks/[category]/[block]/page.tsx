@@ -19,8 +19,11 @@ import { PostList } from '@/registry/blogging/post-list'
 
 // Events components
 import { EventCard } from '@/registry/events/event-card'
+import { EventCheckout } from '@/registry/events/event-checkout'
+import { EventConfirmation } from '@/registry/events/event-confirmation'
 import { EventDetail } from '@/registry/events/event-detail'
 import { EventList } from '@/registry/events/event-list'
+import { TicketTierSelect } from '@/registry/events/ticket-tier-select'
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo'
@@ -1283,6 +1286,146 @@ const categories: Category[] = [
   appearance={{ variant: "carousel" }}
   actions={{
     onEventSelect: (event) => console.log("Event selected:", event.title)
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'ticket-tier-select',
+        name: 'Ticket Tier Select',
+        description:
+          'Select ticket tiers with quantity controls and order summary.',
+        registryName: 'ticket-tier-select',
+        layouts: ['inline'],
+        actionCount: 2,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <TicketTierSelect />,
+            usageCode: `<TicketTierSelect
+  data={{
+    eventTitle: "Player Play Date",
+    eventDate: "Fri, Feb 06 · 2:00 pm",
+    tiers: [
+      {
+        id: "early-bird",
+        name: "Early Bird",
+        description: "Limited availability - best price!",
+        price: 45,
+        originalPrice: 65,
+        available: 12,
+        maxPerOrder: 4,
+        benefits: ["Priority entry", "Free drink"]
+      },
+      {
+        id: "general",
+        name: "General Admission",
+        description: "Standard entry to the event",
+        price: 65,
+        available: 250,
+        maxPerOrder: 8
+      },
+      {
+        id: "vip",
+        name: "VIP Access",
+        description: "Premium experience with exclusive perks",
+        price: 150,
+        available: 20,
+        maxPerOrder: 2,
+        benefits: ["Skip the line", "VIP lounge access", "Complimentary drinks", "Meet & greet"]
+      }
+    ],
+    currency: "USD"
+  }}
+  actions={{
+    onCheckout: (selections, total) => console.log("Checkout:", selections, "Total:", total),
+    onSelectionChange: (selections) => console.log("Selection changed:", selections)
+  }}
+  appearance={{
+    showOrderSummary: true
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'event-checkout',
+        name: 'Event Checkout',
+        description:
+          'Checkout form with billing information, payment methods, and order summary.',
+        registryName: 'event-checkout',
+        layouts: ['inline', 'fullscreen'],
+        actionCount: 2,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <EventCheckout />,
+            usageCode: `<EventCheckout
+  data={{
+    eventTitle: "Player Play Date",
+    eventDate: "Fri, Feb 06 · 2:00 pm",
+    eventPrice: "$25.05",
+    orderItems: [
+      { name: "General Admission", quantity: 2, price: 21.75 },
+      { name: "VIP Upgrade", quantity: 1, price: 35.00 }
+    ],
+    fees: 8.50,
+    delivery: 0,
+    deliveryMethod: "3 x eTicket",
+    paymentMethods: [
+      { id: "card", name: "Credit or debit card", icon: "card" },
+      { id: "paypal", name: "PayPal", icon: "paypal" },
+      { id: "google", name: "Google Pay", icon: "google" }
+    ],
+    currency: "USD",
+    timerMinutes: 20
+  }}
+  actions={{
+    onBack: () => console.log("Navigate back"),
+    onPlaceOrder: (formData) => console.log("Order placed:", formData)
+  }}
+  appearance={{
+    showTimer: true,
+    showEventCard: true
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'event-confirmation',
+        name: 'Event Confirmation',
+        description:
+          'Order confirmation with event details, organizer follow, and social sharing.',
+        registryName: 'event-confirmation',
+        layouts: ['inline', 'fullscreen'],
+        actionCount: 4,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <EventConfirmation />,
+            usageCode: `<EventConfirmation
+  data={{
+    orderNumber: "#14040333743",
+    eventTitle: "Cavity Free SF Children's Oral Health Strategic Plan Launch",
+    ticketCount: 2,
+    recipientEmail: "john@example.com",
+    eventDate: "Thursday, February 19 · 9am - 12pm PST",
+    eventLocation: "San Francisco, CA",
+    organizer: {
+      name: "CavityFree SF",
+      image: "https://i.pravatar.cc/80?u=cavityfree"
+    }
+  }}
+  actions={{
+    onViewTickets: () => console.log("View tickets"),
+    onChangeEmail: () => console.log("Change email"),
+    onFollowOrganizer: () => console.log("Follow organizer"),
+    onShare: (platform) => console.log("Share on:", platform)
   }}
 />`
           }

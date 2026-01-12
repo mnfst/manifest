@@ -138,6 +138,15 @@
       "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
       "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
       "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors"
+    },
+    "ticket-tier-select": {
+      "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar"
+    },
+    "event-checkout": {
+      "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary"
+    },
+    "event-confirmation": {
+      "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing"
     }
   }
 }
