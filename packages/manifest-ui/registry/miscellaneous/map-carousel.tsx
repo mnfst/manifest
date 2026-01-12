@@ -24,8 +24,8 @@ export interface Location {
   id: string
   name: string
   subtitle?: string
-  image: string
-  price: number
+  image?: string
+  price?: number
   priceLabel?: string
   priceSubtext?: string
   rating?: number

@@ -93,6 +93,12 @@ function extractTypeName(type: string): string | null {
     return simpleMatch[1]
   }
 
+  // Handle generic types like "Partial<ContactFormData>" or "Array<Item>"
+  const genericMatch = type.match(/^\w+<(\w+)>$/)
+  if (genericMatch && isCustomType(genericMatch[1])) {
+    return genericMatch[1]
+  }
+
   // Handle nested object types like "{ emoji: string; count: number }[]"
   // These are inline types, not custom types
   if (type.includes('{')) {
@@ -108,8 +114,8 @@ function extractTypeName(type: string): string | null {
 function extractTypeDefinitions(sourceCode: string): Map<string, TypeDefinition> {
   const definitions = new Map<string, TypeDefinition>()
 
-  // Match interface definitions
-  const interfaceRegex = /export\s+interface\s+(\w+)(?:<[^{]*>)?\s*\{/g
+  // Match interface definitions (including those with extends clause)
+  const interfaceRegex = /export\s+interface\s+(\w+)(?:<[^{]*>)?(?:\s+extends\s+[^{]+)?\s*\{/g
   let match
 
   while ((match = interfaceRegex.exec(sourceCode)) !== null) {

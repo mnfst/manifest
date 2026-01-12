@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
@@ -26,6 +27,7 @@ interface VariantSectionProps {
   usageCode?: string
   layouts?: LayoutMode[]
   hideTitle?: boolean
+  variantId?: string
 }
 
 export interface VariantSectionHandle {
@@ -133,9 +135,17 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   registryName,
   usageCode,
   layouts = ['inline'],
-  hideTitle = false
+  hideTitle = false,
+  variantId
 }, ref) {
-  const [viewMode, setViewMode] = useState<ViewMode>('inline')
+  // Determine default view mode based on available layouts
+  const getDefaultViewMode = (): ViewMode => {
+    if (layouts.includes('inline')) return 'inline'
+    if (layouts.includes('fullscreen')) return 'fullwidth'
+    if (layouts.includes('pip')) return 'pip'
+    return 'inline'
+  }
+  const [viewMode, setViewMode] = useState<ViewMode>(getDefaultViewMode)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [isPipOpen, setIsPipOpen] = useState(false)
   const [pipPosition, setPipPosition] = useState<{ left: number; width: number } | undefined>()
@@ -178,14 +188,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     }
   }), [])
 
-  // Reset view mode to inline when navigating to a different component
+  // Reset view mode when navigating to a different component
   useEffect(() => {
-    setViewMode('inline')
+    setViewMode(getDefaultViewMode())
     setIsFullscreenOpen(false)
     setIsPipOpen(false)
     setPipPosition(undefined)
     setHighlightCategory(null)
-  }, [registryName])
+  }, [registryName, layouts])
 
   // Measure position and open PiP
   const openPip = () => {
@@ -196,39 +206,41 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     setIsPipOpen(true)
   }
 
+  const hasInline = layouts.includes('inline')
   const hasFullwidth = layouts.includes('fullscreen')
   const hasPip = layouts.includes('pip')
 
   return (
     <div className="space-y-3">
-      {/* Row 1: Title + Version + Install command (same row, wraps on small screens) */}
-      {!hideTitle && (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold">{name}</h2>
-            {sourceCode.version && (
-              <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
-            )}
-          </div>
-          <InstallCommandInline componentName={registryName} />
+      {/* Header: Title + Version + CopyLinkButton (left) | Install command (right) */}
+      {/* On mobile, install command wraps below */}
+      <div className="group flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {!hideTitle && (
+            <>
+              <h2 className="text-lg font-bold">{name}</h2>
+              {sourceCode.version && (
+                <span className="text-xs text-muted-foreground">V{sourceCode.version}</span>
+              )}
+              {variantId && <CopyLinkButton anchor={variantId} />}
+            </>
+          )}
         </div>
-      )}
-      {hideTitle && (
-        <div className="flex justify-end">
-          <InstallCommandInline componentName={registryName} />
-        </div>
-      )}
+        <InstallCommandInline componentName={registryName} />
+      </div>
 
       {/* Row 2 (desktop) / Row 3 (mobile): Mode buttons */}
       <div className="flex items-center gap-1.5">
         {/* Preview buttons: icon-only on all screen sizes */}
         <button
-          onClick={() => setViewMode('inline')}
+          disabled={!hasInline}
+          onClick={() => hasInline && setViewMode('inline')}
           className={cn(
-            'p-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+            'p-1.5 text-xs font-medium rounded-full transition-colors',
             viewMode === 'inline'
               ? 'bg-foreground text-background'
-              : 'bg-muted text-muted-foreground hover:text-foreground'
+              : 'bg-muted text-muted-foreground hover:text-foreground',
+            hasInline ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
           )}
           title="Inline"
         >

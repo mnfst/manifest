@@ -2,8 +2,6 @@
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { HostAPIProvider, DisplayMode } from '@/lib/host-api'
-import { Post } from '@/registry/blogging/post-card'
-import { PostDetail } from '@/registry/blogging/post-detail'
 import { PostList, PostListProps } from '@/registry/blogging/post-list'
 import { useState, useCallback } from 'react'
 
@@ -25,7 +23,6 @@ export function PostListDemo({
   appearance
 }: PostListDemoProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('inline')
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
 
   const handleDisplayModeRequest = useCallback((mode: DisplayMode) => {
     setDisplayMode(mode)
@@ -44,19 +41,24 @@ export function PostListDemo({
         />
       )}
 
-      {/* Fullscreen mode - show selected post detail */}
-      {displayMode === 'fullscreen' && selectedPost && (
+      {/* Fullscreen mode - show fullwidth post list with pagination */}
+      {displayMode === 'fullscreen' && (
         <FullscreenModal
           appName={appName}
           appUrl={appUrl}
           onClose={() => {
             setDisplayMode('inline')
-            setSelectedPost(null)
           }}
         >
-          <PostDetail
-            data={{ post: selectedPost }}
-            appearance={{ displayMode: 'fullscreen' }}
+          <PostList
+            data={data}
+            appearance={{
+              variant: 'fullwidth',
+              columns: 3,
+              showAuthor: true,
+              showCategory: true,
+              postsPerPage: 10
+            }}
           />
         </FullscreenModal>
       )}

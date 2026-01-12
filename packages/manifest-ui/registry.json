@@ -5,7 +5,7 @@
   "items": [
     {
       "name": "contact-form",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "type": "registry:component",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
@@ -260,7 +260,7 @@
     },
     {
       "name": "quick-reply",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
@@ -354,10 +354,10 @@
     },
     {
       "name": "post-list",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "type": "registry:component",
       "title": "Post List",
-      "description": "Post list with list, grid, and carousel variants. Includes post-detail for fullscreen view.",
+      "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
@@ -411,7 +411,7 @@
     },
     {
       "name": "message-bubble",
-      "version": "1.0.2",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
@@ -426,7 +426,7 @@
     },
     {
       "name": "chat-conversation",
-      "version": "1.0.2",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
@@ -505,7 +505,7 @@
     },
     {
       "name": "map-carousel",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "type": "registry:component",
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
@@ -514,6 +514,108 @@
       "files": [
         {
           "path": "registry/miscellaneous/map-carousel.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "event-card",
+      "version": "4.1.0",
+      "type": "registry:component",
+      "title": "Event Card",
+      "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-card.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "event-list",
+      "version": "5.2.0",
+      "type": "registry:component",
+      "title": "Event List",
+      "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
+      "registryDependencies": ["button", "checkbox", "event-card"],
+      "files": [
+        {
+          "path": "registry/events/event-list.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "event-detail",
+      "version": "2.2.0",
+      "type": "registry:component",
+      "title": "Event Detail",
+      "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-detail.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "ticket-tier-select",
+      "version": "2.0.0",
+      "type": "registry:component",
+      "title": "Ticket Tier Select",
+      "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/ticket-tier-select.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "event-checkout",
+      "version": "2.0.0",
+      "type": "registry:component",
+      "title": "Event Checkout",
+      "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "checkbox"],
+      "files": [
+        {
+          "path": "registry/events/event-checkout.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "event-confirmation",
+      "version": "1.0.0",
+      "type": "registry:component",
+      "title": "Event Confirmation",
+      "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-confirmation.tsx",
           "type": "registry:component"
         }
       ]
