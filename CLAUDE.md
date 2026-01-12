@@ -382,6 +382,75 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
 
+### Events Category Guidelines (CRITICAL)
+
+**When creating or modifying Events category components, follow these guidelines:**
+
+#### Event Data Structure
+
+All event components use a shared `Event` interface:
+
+```typescript
+interface Event {
+  id: string
+  title: string
+  category: string           // "Music", "Comedy", "Classes", "Nightlife", "Sports"
+  venue: string
+  neighborhood?: string
+  city: string
+  dateTime: string           // "Tonight 9:00 PM - 3:00 AM"
+  priceRange: string         // "$45 - $150", "Free"
+  image?: string
+  vibeTags?: string[]        // ["High energy", "Late night", "Dressy"]
+  vibeDescription?: string
+  aiSummary?: string         // AI-generated match explanation
+  lineup?: string[]
+  eventSignal?: "going-fast" | "popular" | "just-added" | "sales-end-soon"
+  organizerRating?: number
+  reviewCount?: number
+  hasMultipleDates?: boolean
+  discount?: string
+}
+```
+
+#### Event Signal Display
+
+Event signals indicate urgency/popularity:
+- `going-fast` - Orange badge, "Going Fast"
+- `popular` - Pink badge, "Popular"
+- `just-added` - Blue badge, "Just Added"
+- `sales-end-soon` - Red badge, "Sales End Soon"
+
+#### Event Detail Sections
+
+The `event-detail` component has 11 sections in this order:
+1. Image header with title overlay
+2. Event basics (date, time, price, location)
+3. AI match explanation (optional, personalized recommendation)
+4. About section (description)
+5. Good to know (accessibility, dress code, age restriction)
+6. Organizer info (name, rating, verified badge)
+7. Location with map
+8. Amenities (parking, food, etc.)
+9. Policies (refund, entry requirements)
+10. FAQ (expandable questions)
+11. CTAs (Get Tickets, Share, Save)
+
+#### EventList Requirements
+
+Like PostList, the `EventList` component requires sufficient demo data:
+- Include at least 10 events in `usageCode` for grid/carousel demos
+- Use diverse categories and price ranges
+- Include various event signals to show all badge types
+
+#### Ticket Selection Flow
+
+The ticket selection follows this pattern:
+1. `ticket-select` - Simple quantity picker for single ticket type
+2. `tier-select` - Multiple tiers with individual quantities
+3. `event-checkout` - Order summary with fees breakdown
+4. `event-confirmation` - Booking confirmation with QR code
+
 ### PostList Block Requirements (CRITICAL)
 
 **The PostList block MUST always have exactly 15 posts in its `usageCode` data.**
