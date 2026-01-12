@@ -406,7 +406,7 @@ interface Event {
   endDateTime?: string         // ISO format: "2025-01-12T03:00:00Z"
   priceRange: string           // "$45 - $150", "Free"
   image?: string
-  vibeTags?: string[]          // ["High energy", "Late night", "Dressy"]
+  vibeTags?: VibeTag[]         // ["High energy", "Late night", "Dressy"]
   vibeDescription?: string
   aiSummary?: string           // AI-generated match explanation
   lineup?: string[]
@@ -469,6 +469,21 @@ type TicketSignal =
   | "sold-out"               // Red - "Sold Out"
   | "unavailable"            // Gray - "Unavailable"
   | "unlocked"               // Green - "Unlocked"
+```
+
+**Vibe Tags** - Descriptive tags for event atmosphere (multiple selection):
+
+```typescript
+type VibeTag =
+  | "All night"        | "Beginner-friendly" | "Casual"
+  | "Classic"          | "Cocktails"         | "Creative"
+  | "Date night"       | "Discover"          | "Dressy"
+  | "Educational"      | "Exciting"          | "Family-friendly"
+  | "Fun"              | "Hands-on"          | "High energy"
+  | "Interactive"      | "Intimate"          | "Late night"
+  | "Outdoor"          | "Relaxing"          | "Social"
+  | "Sophisticated"    | "Tasting"           | "Underground"
+  | "Upscale"          | "Views"             | "Wellness"
 ```
 
 #### Event Detail Sections
