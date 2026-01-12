@@ -136,7 +136,8 @@
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
       "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
-      "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode."
+      "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
+      "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors"
     }
   }
 }
