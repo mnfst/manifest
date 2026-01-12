@@ -577,7 +577,7 @@
     },
     {
       "name": "ticket-tier-select",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
@@ -592,7 +592,7 @@
     },
     {
       "name": "event-checkout",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Event Checkout",
       "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",

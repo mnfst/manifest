@@ -1,7 +1,13 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { CheckCircle, Facebook, Twitter, Mail, MessageCircle } from 'lucide-react'
+import {
+  CheckCircle,
+  Facebook,
+  Mail,
+  MessageCircle,
+  Twitter
+} from 'lucide-react'
 
 export interface EventConfirmationProps {
   data?: {
@@ -37,10 +43,11 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
       image: undefined
     }
   } = data ?? {}
-  const { onViewTickets, onChangeEmail, onFollowOrganizer, onShare } = actions ?? {}
+  const { onViewTickets, onChangeEmail, onFollowOrganizer, onShare } =
+    actions ?? {}
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="rounded-xl border bg-card p-6 ">
       {/* Success header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
@@ -122,7 +129,9 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
                   Don't miss out on events from
                 </p>
                 <p className="font-semibold">{organizer.name}</p>
-                <p className="text-xs text-muted-foreground">Created this event</p>
+                <p className="text-xs text-muted-foreground">
+                  Created this event
+                </p>
               </div>
             </div>
             <Button variant="outline" onClick={onFollowOrganizer}>

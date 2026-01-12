@@ -1303,27 +1303,31 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <TicketTierSelect />,
+            component: <TicketTierSelect data={{ event: { title: "Player Play Date", date: "Fri, Feb 06 · 2:00 pm", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", currency: "USD" } }} />,
             usageCode: `<TicketTierSelect
   data={{
-    eventTitle: "Player Play Date",
-    eventDate: "Fri, Feb 06 · 2:00 pm",
+    event: {
+      title: "Player Play Date",
+      date: "Fri, Feb 06 · 2:00 pm",
+      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+      currency: "USD"
+    },
     tiers: [
       {
         id: "early-bird",
         name: "Early Bird",
         description: "Limited availability - best price!",
         price: 45,
-        originalPrice: 65,
+        fee: 5.50,
         available: 12,
-        maxPerOrder: 4,
-        benefits: ["Priority entry", "Free drink"]
+        maxPerOrder: 4
       },
       {
         id: "general",
         name: "General Admission",
         description: "Standard entry to the event",
         price: 65,
+        fee: 7.25,
         available: 250,
         maxPerOrder: 8
       },
@@ -1332,12 +1336,11 @@ const categories: Category[] = [
         name: "VIP Access",
         description: "Premium experience with exclusive perks",
         price: 150,
+        fee: 12.00,
         available: 20,
-        maxPerOrder: 2,
-        benefits: ["Skip the line", "VIP lounge access", "Complimentary drinks", "Meet & greet"]
+        maxPerOrder: 2
       }
-    ],
-    currency: "USD"
+    ]
   }}
   actions={{
     onCheckout: (selections, total) => console.log("Checkout:", selections, "Total:", total),
@@ -1362,33 +1365,38 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <EventCheckout />,
+            component: <EventCheckout data={{ event: { title: "Player Play Date", date: "Fri, Feb 06 · 2:00 pm", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", price: "$25.05", currency: "USD" } }} actions={{ onBack: () => {}, onPlaceOrder: () => {} }} />,
             usageCode: `<EventCheckout
   data={{
-    eventTitle: "Player Play Date",
-    eventDate: "Fri, Feb 06 · 2:00 pm",
-    eventPrice: "$25.05",
-    orderItems: [
-      { name: "General Admission", quantity: 2, price: 21.75 },
-      { name: "VIP Upgrade", quantity: 1, price: 35.00 }
-    ],
-    fees: 8.50,
-    delivery: 0,
-    deliveryMethod: "3 x eTicket",
+    event: {
+      title: "Player Play Date",
+      date: "Fri, Feb 06 · 2:00 pm",
+      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+      price: "$25.05",
+      currency: "USD"
+    },
+    order: {
+      items: [
+        { name: "General Admission", quantity: 2, price: 21.75 },
+        { name: "VIP Upgrade", quantity: 1, price: 35.00 }
+      ],
+      fees: 8.50,
+      delivery: 0,
+      deliveryMethod: "3 x eTicket"
+    },
     paymentMethods: [
       { id: "card", name: "Credit or debit card", icon: "card" },
       { id: "paypal", name: "PayPal", icon: "paypal" },
       { id: "google", name: "Google Pay", icon: "google" }
-    ],
-    currency: "USD",
-    timerMinutes: 20
+    ]
   }}
   actions={{
     onBack: () => console.log("Navigate back"),
-    onPlaceOrder: (formData) => console.log("Order placed:", formData)
+    onPlaceOrder: () => console.log("Order placed")
   }}
   appearance={{
     showTimer: true,
+    timerMinutes: 20,
     showEventCard: true
   }}
 />`

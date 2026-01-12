@@ -140,10 +140,14 @@
       "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors"
     },
     "ticket-tier-select": {
-      "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar"
+      "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
+      "1.1.0": "Added optional event image above order summary. Order summary now always visible with fixed width.",
+      "2.0.0": "BREAKING: Refactored to use nested event object (event.title, event.date, event.image, event.currency) instead of flat props"
     },
     "event-checkout": {
-      "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary"
+      "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary",
+      "1.1.0": "Added event image display above order summary on right side",
+      "2.0.0": "BREAKING: Refactored to use nested event and order objects. Simplified onPlaceOrder to () => void. Moved timerMinutes to appearance."
     },
     "event-confirmation": {
       "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing"

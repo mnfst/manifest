@@ -60,12 +60,23 @@ const defaultTiers: TicketTier[] = [
   }
 ]
 
+export interface TicketTierEvent {
+  title: string
+  date: string
+  image?: string
+  currency?: string
+}
+
+const defaultEvent: TicketTierEvent = {
+  title: 'Player Play Date',
+  date: 'Friday, February 6 · 2 - 5pm PST',
+  currency: 'USD'
+}
+
 export interface TicketTierSelectProps {
   data?: {
-    eventTitle?: string
-    eventDate?: string
+    event?: TicketTierEvent
     tiers?: TicketTier[]
-    currency?: string
   }
   actions?: {
     onCheckout?: (selections: TicketSelection[], total: number) => void
@@ -81,11 +92,10 @@ export interface TicketTierSelectProps {
 
 export function TicketTierSelect({ data, actions, appearance, control }: TicketTierSelectProps) {
   const {
-    eventTitle = 'Player Play Date',
-    eventDate = 'Friday, February 6 · 2 - 5pm PST',
-    tiers = defaultTiers,
-    currency = 'USD'
+    event = defaultEvent,
+    tiers = defaultTiers
   } = data ?? {}
+  const currency = event.currency ?? 'USD'
   const { onCheckout, onSelectionChange } = actions ?? {}
   const { showOrderSummary = true } = appearance ?? {}
 
@@ -138,13 +148,14 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      {/* Left side - Tier selection */}
-      <div className="flex-1">
+    <div className="rounded-xl border bg-card p-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left side - Tier selection */}
+        <div className="flex-1">
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold">{eventTitle}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{eventDate}</p>
+          <h2 className="text-xl font-semibold">{event.title}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{event.date}</p>
         </div>
 
         {/* Tiers */}
@@ -229,46 +240,62 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
         </div>
       </div>
 
-      {/* Right side - Order summary */}
-      {showOrderSummary && hasSelections && (
-        <div className="w-full lg:w-80 shrink-0">
-          <div className="rounded-lg border bg-card p-4">
-            <h3 className="font-semibold mb-4">Order summary</h3>
+        {/* Right side - Order summary */}
+        {showOrderSummary && (
+          <div className="w-full lg:w-80 shrink-0">
+            {/* Event image */}
+            {event.image && (
+              <img
+                src={event.image}
+                alt={event.title}
+                className="w-full h-40 object-cover rounded-lg mb-4"
+              />
+            )}
 
-            {/* Line items */}
-            <div className="space-y-2">
-              {selectionsList.map((selection) => (
-                <div key={selection.tierId} className="flex justify-between text-sm">
-                  <span>{selection.quantity} x {selection.tierName}</span>
-                  <span>{formatCurrency(selection.price * selection.quantity, currency)}</span>
-                </div>
-              ))}
-            </div>
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <h3 className="font-semibold mb-4">Order summary</h3>
 
-            {/* Totals */}
-            <div className="mt-4 pt-4 border-t space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
-                <span>{formatCurrency(subtotal, currency)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-1">
-                  Fees
-                  <Info className="h-3 w-3 text-muted-foreground" />
-                </span>
-                <span>{formatCurrency(totalFees, currency)}</span>
-              </div>
-            </div>
+              {hasSelections ? (
+                <>
+                  {/* Line items */}
+                  <div className="space-y-2">
+                    {selectionsList.map((selection) => (
+                      <div key={selection.tierId} className="flex justify-between text-sm">
+                        <span>{selection.quantity} x {selection.tierName}</span>
+                        <span>{formatCurrency(selection.price * selection.quantity, currency)}</span>
+                      </div>
+                    ))}
+                  </div>
 
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex justify-between font-semibold">
-                <span>Total</span>
-                <span>{formatCurrency(total, currency)}</span>
-              </div>
+                  {/* Totals */}
+                  <div className="mt-4 pt-4 border-t space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(subtotal, currency)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="flex items-center gap-1">
+                        Fees
+                        <Info className="h-3 w-3 text-muted-foreground" />
+                      </span>
+                      <span>{formatCurrency(totalFees, currency)}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span>{formatCurrency(total, currency)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">No tickets selected</p>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
