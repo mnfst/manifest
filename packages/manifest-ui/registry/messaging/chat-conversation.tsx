@@ -10,7 +10,8 @@ export interface ChatMessage {
   image?: string
   caption?: string
   author: string
-  avatar?: string
+  avatarUrl?: string
+  avatarFallback?: string
   time?: string
   isOwn: boolean
   status?: 'sent' | 'delivered' | 'read'
@@ -28,7 +29,7 @@ const defaultMessages: ChatMessage[] = [
     type: 'text',
     content: 'Hey! Check out this new feature we just shipped 🚀',
     author: 'Sarah',
-    avatar: 'S',
+    avatarFallback: 'S',
     time: '10:30 AM',
     isOwn: false
   },
@@ -37,7 +38,7 @@ const defaultMessages: ChatMessage[] = [
     type: 'text',
     content: 'Oh wow, that looks amazing! How long did it take to build?',
     author: 'You',
-    avatar: 'Y',
+    avatarFallback: 'Y',
     time: '10:31 AM',
     isOwn: true,
     status: 'read'
@@ -50,7 +51,7 @@ const defaultMessages: ChatMessage[] = [
       'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop',
     caption: "Here's a preview of the dashboard",
     author: 'Sarah',
-    avatar: 'S',
+    avatarFallback: 'S',
     time: '10:32 AM',
     isOwn: false
   },
@@ -59,7 +60,7 @@ const defaultMessages: ChatMessage[] = [
     type: 'text',
     content: 'This is incredible! The UI is so clean 👏',
     author: 'You',
-    avatar: 'Y',
+    avatarFallback: 'Y',
     time: '10:33 AM',
     isOwn: true,
     status: 'delivered'
@@ -78,7 +79,8 @@ export function ChatConversation({ data }: ChatConversationProps) {
             data={{
               image: message.image!,
               caption: message.caption,
-              avatar: message.avatar,
+              avatarFallback: message.avatarFallback,
+              avatarUrl: message.avatarUrl,
               author: message.author,
               time: message.time
             }}
@@ -90,7 +92,8 @@ export function ChatConversation({ data }: ChatConversationProps) {
             key={message.id}
             data={{
               content: message.content,
-              avatar: message.avatar,
+              avatarFallback: message.avatarFallback,
+              avatarUrl: message.avatarUrl,
               author: message.author,
               time: message.time
             }}

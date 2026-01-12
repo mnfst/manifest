@@ -82,13 +82,17 @@
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
       "1.0.1": "Added better image captions for accessibility",
-      "1.0.2": "Improved alt text to use caption when available"
+      "1.0.2": "Improved alt text to use caption when available",
+      "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
+      "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity"
     },
     "chat-conversation": {
       "1.0.0": "Initial release with multiple message types",
       "1.0.1": "Updated to use improved message bubble styling",
       "1.0.2": "Synced with message-bubble alt tag improvements",
-      "1.0.3": "Added default value 'text' for message type"
+      "1.0.3": "Added default value 'text' for message type",
+      "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
+      "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display"

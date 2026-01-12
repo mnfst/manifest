@@ -1,13 +1,13 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { Check, CheckCheck, Smile } from 'lucide-react'
-import React, { useState, useRef } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
+import { Check, CheckCheck, Smile } from 'lucide-react'
+import { useRef, useState } from 'react'
 
 /*
  * MessageBubble Components - ChatGPT UI Guidelines Compliant
@@ -16,11 +16,45 @@ import {
  * - Note: Dropdown for reactions may be clipped in iframes - consider inline alternatives
  */
 
+// Avatar component that supports both image URLs and letter fallback
+interface AvatarProps {
+  src?: string // Image URL (optional)
+  fallback: string // Letter or text fallback
+  className?: string
+}
+
+function Avatar({ src, fallback, className }: AvatarProps) {
+  const [imgError, setImgError] = useState(false)
+
+  if (src && !imgError) {
+    return (
+      <img
+        src={src}
+        alt={fallback}
+        onError={() => setImgError(true)}
+        className={cn('h-8 w-8 rounded-full object-cover shrink-0', className)}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={cn(
+        'h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0',
+        className
+      )}
+    >
+      {fallback}
+    </div>
+  )
+}
+
 // Single Message Bubble
 export interface MessageBubbleProps {
   data?: {
     content?: string
-    avatar?: string
+    avatarUrl?: string
+    avatarFallback?: string
     author?: string
     time?: string
   }
@@ -32,17 +66,22 @@ export interface MessageBubbleProps {
   }
 }
 
-export function MessageBubble({ data, appearance, control }: MessageBubbleProps) {
-  const { content = 'Hey! How are you doing?', avatar = 'J', time = '10:30 AM' } = data ?? {}
+export function MessageBubble({
+  data,
+  appearance,
+  control
+}: MessageBubbleProps) {
+  const {
+    content = 'Hey! How are you doing?',
+    avatarFallback = 'J',
+    avatarUrl,
+    time = '10:30 AM'
+  } = data ?? {}
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && (
-        <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
-          {avatar}
-        </div>
-      )}
+      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
         <div
           className={cn(
@@ -78,7 +117,8 @@ export interface ImageMessageBubbleProps {
   data?: {
     image?: string
     caption?: string
-    avatar?: string
+    avatarUrl?: string
+    avatarFallback?: string
     author?: string
     time?: string
   }
@@ -90,22 +130,23 @@ export interface ImageMessageBubbleProps {
   }
 }
 
-export function ImageMessageBubble({ data, appearance, control }: ImageMessageBubbleProps) {
+export function ImageMessageBubble({
+  data,
+  appearance,
+  control
+}: ImageMessageBubbleProps) {
   const {
     image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
     caption,
-    avatar = 'J',
-    time = '10:32 AM',
+    avatarFallback = 'J',
+    avatarUrl,
+    time = '10:32 AM'
   } = data ?? {}
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && (
-        <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
-          {avatar}
-        </div>
-      )}
+      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
         <div
           className={cn(
@@ -115,7 +156,7 @@ export function ImageMessageBubble({ data, appearance, control }: ImageMessageBu
         >
           <img
             src={image}
-            alt={caption || "Shared image in chat"}
+            alt={caption || 'Shared image in chat'}
             className="w-full max-w-[280px] h-auto object-cover"
           />
           {caption && (
@@ -152,7 +193,8 @@ export function ImageMessageBubble({ data, appearance, control }: ImageMessageBu
 export interface MessageWithReactionsProps {
   data?: {
     content?: string
-    avatar?: string
+    avatarUrl?: string
+    avatarFallback?: string
     author?: string
     time?: string
     reactions?: { emoji: string; count: number }[]
@@ -165,17 +207,33 @@ export interface MessageWithReactionsProps {
   }
 }
 
-const availableEmojis = ['❤️', '👍', '👎', '😂', '😮', '😢', '🎉', '🔥', '👏', '💯']
+const availableEmojis = [
+  '❤️',
+  '👍',
+  '👎',
+  '😂',
+  '😮',
+  '😢',
+  '🎉',
+  '🔥',
+  '👏',
+  '💯'
+]
 
-export function MessageWithReactions({ data, actions, appearance }: MessageWithReactionsProps) {
+export function MessageWithReactions({
+  data,
+  actions,
+  appearance
+}: MessageWithReactionsProps) {
   const {
     content = 'This is such great news! 🎉',
-    avatar = 'A',
+    avatarFallback = 'A',
+    avatarUrl,
     time = '2:45 PM',
     reactions: initialReactions = [
       { emoji: '❤️', count: 3 },
       { emoji: '👍', count: 2 }
-    ],
+    ]
   } = data ?? {}
   const { onReact } = actions ?? {}
   const { isOwn = false } = appearance ?? {}
@@ -195,7 +253,10 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
           // Remove reaction entirely if count would become 0
           updated.splice(existingIndex, 1)
         } else {
-          updated[existingIndex] = { ...updated[existingIndex], count: updated[existingIndex].count - 1 }
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            count: updated[existingIndex].count - 1
+          }
         }
         setReactions(updated)
       }
@@ -209,7 +270,10 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
       // User hasn't reacted - add reaction
       if (existingIndex >= 0) {
         const updated = [...reactions]
-        updated[existingIndex] = { ...updated[existingIndex], count: updated[existingIndex].count + 1 }
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          count: updated[existingIndex].count + 1
+        }
         setReactions(updated)
       } else {
         setReactions([...reactions, { emoji, count: 1 }])
@@ -222,11 +286,7 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
 
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && (
-        <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
-          {avatar}
-        </div>
-      )}
+      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
         <div
           className={cn(
@@ -251,18 +311,20 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
                   key={index}
                   onClick={() => handleReact(reaction.emoji)}
                   className={cn(
-                    "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs transition-colors cursor-pointer",
+                    'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs transition-colors cursor-pointer',
                     userReactions.has(reaction.emoji)
-                      ? "bg-primary/15 border border-primary/50"
-                      : "bg-card border hover:bg-muted"
+                      ? 'bg-primary/15 border border-primary/50'
+                      : 'bg-card border hover:bg-muted'
                   )}
                 >
                   {reaction.emoji}
-                  <span className={cn(
-                    userReactions.has(reaction.emoji)
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}>
+                  <span
+                    className={cn(
+                      userReactions.has(reaction.emoji)
+                        ? 'text-primary'
+                        : 'text-muted-foreground'
+                    )}
+                  >
                     {reaction.count}
                   </span>
                 </button>
@@ -304,7 +366,8 @@ export function MessageWithReactions({ data, actions, appearance }: MessageWithR
 export interface VoiceMessageBubbleProps {
   data?: {
     duration?: string
-    avatar?: string
+    avatarUrl?: string
+    avatarFallback?: string
     author?: string
     time?: string
     audioSrc?: string
@@ -317,12 +380,17 @@ export interface VoiceMessageBubbleProps {
   }
 }
 
-export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBubbleProps) {
+export function VoiceMessageBubble({
+  data,
+  appearance,
+  control
+}: VoiceMessageBubbleProps) {
   const {
     duration = '0:42',
-    avatar = 'M',
+    avatarFallback = 'M',
+    avatarUrl,
     time = '3:15 PM',
-    audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
   } = data ?? {}
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
@@ -368,11 +436,7 @@ export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBu
         onEnded={handleEnded}
         preload="metadata"
       />
-      {!isOwn && (
-        <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
-          {avatar}
-        </div>
-      )}
+      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
         <div
           className={cn(
@@ -386,15 +450,13 @@ export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBu
             onClick={togglePlay}
             className={cn(
               'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer',
-              isOwn ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30' : 'bg-foreground/10 hover:bg-foreground/20'
+              isOwn
+                ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30'
+                : 'bg-foreground/10 hover:bg-foreground/20'
             )}
           >
             {isPlaying ? (
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
               </svg>
             ) : (
@@ -414,7 +476,9 @@ export function VoiceMessageBubble({ data, appearance, control }: VoiceMessageBu
                 style={{ width: `${progress || 33}%` }}
               />
             </div>
-            <span className="text-xs font-medium">{isPlaying ? currentTime : duration}</span>
+            <span className="text-xs font-medium">
+              {isPlaying ? currentTime : duration}
+            </span>
           </div>
         </div>
         <div
