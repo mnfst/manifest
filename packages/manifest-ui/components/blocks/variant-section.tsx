@@ -134,7 +134,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   layouts = ['inline'],
   hideTitle = false
 }, ref) {
-  const [viewMode, setViewMode] = useState<ViewMode>('inline')
+  // Determine default view mode based on available layouts
+  const getDefaultViewMode = (): ViewMode => {
+    if (layouts.includes('inline')) return 'inline'
+    if (layouts.includes('fullscreen')) return 'fullwidth'
+    if (layouts.includes('pip')) return 'pip'
+    return 'inline'
+  }
+  const [viewMode, setViewMode] = useState<ViewMode>(getDefaultViewMode)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [highlightCategory, setHighlightCategory] = useState<'data' | 'actions' | 'appearance' | 'control' | null>(null)
   const sourceCode = useSourceCode(registryName)
@@ -174,13 +181,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     }
   }), [])
 
-  // Reset view mode to inline when navigating to a different component
+  // Reset view mode when navigating to a different component
   useEffect(() => {
-    setViewMode('inline')
+    setViewMode(getDefaultViewMode())
     setIsFullscreenOpen(false)
     setHighlightCategory(null)
-  }, [registryName])
+  }, [registryName, layouts])
 
+  const hasInline = layouts.includes('inline')
   const hasFullwidth = layouts.includes('fullscreen')
   const hasPip = layouts.includes('pip')
 
@@ -208,12 +216,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
       <div className="flex items-center gap-1.5">
         {/* Preview buttons: icon-only on all screen sizes */}
         <button
-          onClick={() => setViewMode('inline')}
+          disabled={!hasInline}
+          onClick={() => hasInline && setViewMode('inline')}
           className={cn(
-            'p-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+            'p-1.5 text-xs font-medium rounded-full transition-colors',
             viewMode === 'inline'
               ? 'bg-foreground text-background'
-              : 'bg-muted text-muted-foreground hover:text-foreground'
+              : 'bg-muted text-muted-foreground hover:text-foreground',
+            hasInline ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'
           )}
           title="Inline"
         >

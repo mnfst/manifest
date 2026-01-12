@@ -520,10 +520,10 @@
     },
     {
       "name": "event-card",
-      "version": "1.0.0",
+      "version": "4.0.0",
       "type": "registry:component",
       "title": "Event Card",
-      "description": "Display event information with multiple layouts. Supports physical, online, and hybrid events with signals and vibe tags.",
+      "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
@@ -539,11 +539,11 @@
     },
     {
       "name": "event-list",
-      "version": "1.0.0",
+      "version": "5.0.0",
       "type": "registry:component",
       "title": "Event List",
-      "description": "Display a collection of events in grid, list, or carousel layouts with pagination support.",
-      "dependencies": ["lucide-react"],
+      "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet.",
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
       "registryDependencies": ["button", "event-card"],
       "files": [
         {
@@ -558,11 +558,11 @@
     },
     {
       "name": "event-detail",
-      "version": "1.0.0",
+      "version": "2.2.0",
       "type": "registry:component",
       "title": "Event Detail",
-      "description": "Full event detail view with image carousel, organizer info, location, policies, and ticket purchase.",
-      "dependencies": ["lucide-react"],
+      "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
       "registryDependencies": ["button"],
       "files": [
         {

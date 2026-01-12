@@ -945,7 +945,7 @@ const categories: Category[] = [
         id: 'event-card',
         name: 'Event Card',
         description:
-          'Display event information with various layouts. Supports physical, online, and hybrid events.',
+          'Display event information with various layouts.',
         registryName: 'event-card',
         layouts: ['inline'],
         actionCount: 1,
@@ -957,21 +957,21 @@ const categories: Category[] = [
             usageCode: `<EventCard
   data={{
     event: {
-      id: "1",
-      title: "House Music Night at The Loft",
+      id: "evt-1",
+      title: "NEON Vol. 9",
       category: "Music",
-      locationType: "physical",
-      venue: "The Loft",
-      neighborhood: "SoHo",
-      city: "New York",
-      startDateTime: "2025-01-11T21:00:00Z",
-      endDateTime: "2025-01-12T03:00:00Z",
+      venue: "Echoplex",
+      neighborhood: "Echo Park",
+      city: "Los Angeles",
+      dateTime: "Tonight 9:00 PM - 3:00 AM",
       priceRange: "$45 - $150",
-      image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+      image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
       vibeTags: ["High energy", "Late night", "Dressy"],
+      ticketTiers: ["General Admission $45", "VIP Access $120"],
       eventSignal: "going-fast",
       organizerRating: 4.8,
-      reviewCount: 234
+      reviewCount: 12453,
+      ageRestriction: "21+"
     }
   }}
   appearance={{
@@ -992,15 +992,19 @@ const categories: Category[] = [
             usageCode: `<EventCard
   data={{
     event: {
-      id: "2",
-      title: "Comedy Night with Local Comedians",
+      id: "evt-today-2",
+      title: "The Midnight Show",
       category: "Comedy",
-      venue: "Laugh Factory",
+      venue: "The Comedy Underground",
+      neighborhood: "Santa Monica",
       city: "Los Angeles",
-      startDateTime: "2025-01-17T20:00:00Z",
-      priceRange: "$25 - $40",
-      vibeTags: ["Casual", "Fun"],
-      eventSignal: "popular"
+      dateTime: "Tonight 10:00 PM - 12:00 AM",
+      priceRange: "$15 - $35",
+      vibeTags: ["Social", "Late night", "Casual"],
+      eventSignal: "popular",
+      organizerRating: 4.7,
+      reviewCount: 3241,
+      discount: "TONIGHT ONLY - 40% OFF"
     }
   }}
   appearance={{
@@ -1020,18 +1024,19 @@ const categories: Category[] = [
             usageCode: `<EventCard
   data={{
     event: {
-      id: "3",
-      title: "Yoga in the Park - Sunrise Session",
+      id: "evt-3",
+      title: "Dawn Flow: Griffith Park",
       category: "Classes",
-      locationType: "physical",
-      venue: "Central Park",
-      neighborhood: "Upper West Side",
-      city: "New York",
-      startDateTime: "2025-01-18T06:30:00Z",
+      venue: "Griffith Park",
+      neighborhood: "Los Feliz",
+      city: "Los Angeles",
+      dateTime: "Tomorrow 6:00 AM - 8:00 AM",
       priceRange: "Free",
-      image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800",
-      vibeTags: ["Relaxing", "Outdoor", "Beginner-friendly"],
-      eventSignal: "just-added"
+      vibeTags: ["Chill", "Wellness", "Outdoor"],
+      eventSignal: "just-added",
+      organizerRating: 4.9,
+      reviewCount: 8764,
+      discount: "FREE - First 50 Only"
     }
   }}
   appearance={{
@@ -1051,21 +1056,19 @@ const categories: Category[] = [
             usageCode: `<EventCard
   data={{
     event: {
-      id: "4",
-      title: "Rooftop DJ Set with Sunset Views",
-      category: "Nightlife",
-      locationType: "physical",
-      venue: "Sky Lounge",
-      neighborhood: "Meatpacking",
-      city: "New York",
-      startDateTime: "2025-01-19T17:00:00Z",
-      endDateTime: "2025-01-19T23:00:00Z",
-      priceRange: "$60 - $200",
-      image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
-      vibeTags: ["Upscale", "Scenic", "Dressy"],
-      eventSignal: "few-tickets-left",
-      organizerRating: 4.9,
-      reviewCount: 512
+      id: "evt-5",
+      title: "Lakers vs Celtics",
+      category: "Sports",
+      venue: "Crypto.com Arena",
+      neighborhood: "Downtown",
+      city: "Los Angeles",
+      dateTime: "Friday 7:30 PM - 10:30 PM",
+      priceRange: "$125 - $850",
+      vibeTags: ["High energy", "Social", "Premium"],
+      ticketTiers: ["Upper Level $125", "Lower Level $350", "Courtside $850"],
+      eventSignal: "sales-end-soon",
+      organizerRating: 4.5,
+      reviewCount: 2341
     }
   }}
   appearance={{
@@ -1078,52 +1081,6 @@ const categories: Category[] = [
     onClick: (event) => console.log("Event clicked:", event.title)
   }}
 />`
-          },
-          {
-            id: 'online',
-            name: 'Online Event',
-            component: (
-              <EventCard
-                data={{
-                  event: {
-                    id: '5',
-                    title: 'Virtual Cooking Masterclass',
-                    category: 'Classes',
-                    locationType: 'online',
-                    onlineUrl: 'https://zoom.us/j/123456789',
-                    startDateTime: '2025-01-15T19:00:00-05:00',
-                    priceRange: '$35',
-                    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800',
-                    vibeTags: ['Interactive', 'Beginner-friendly'],
-                    eventSignal: 'just-added'
-                  }
-                }}
-              />
-            ),
-            usageCode: `<EventCard
-  data={{
-    event: {
-      id: "5",
-      title: "Virtual Cooking Masterclass",
-      category: "Classes",
-      locationType: "online",
-      onlineUrl: "https://zoom.us/j/123456789",
-      startDateTime: "2025-01-15T19:00:00-05:00",
-      priceRange: "$35",
-      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800",
-      vibeTags: ["Interactive", "Beginner-friendly"],
-      eventSignal: "just-added"
-    }
-  }}
-  appearance={{
-    variant: "default",
-    showSignal: true,
-    showTags: true
-  }}
-  actions={{
-    onClick: (event) => console.log("Event clicked:", event.title)
-  }}
-/>`
           }
         ]
       },
@@ -1131,7 +1088,7 @@ const categories: Category[] = [
         id: 'event-detail',
         name: 'Event Detail',
         description:
-          'Detailed event view with image carousel, organizer info, location, policies, FAQs, and ticket purchase.',
+          'Detailed event view with organizer info, location, policies, FAQs, and ticket purchase.',
         registryName: 'event-detail',
         layouts: ['fullscreen'],
         actionCount: 5,
@@ -1143,25 +1100,30 @@ const categories: Category[] = [
             usageCode: `<EventDetail
   data={{
     event: {
-      id: "1",
-      title: "Sunglasses at Night: Underground Techno",
+      id: "evt-4",
+      title: "Meraki: Seth Troxler",
       category: "Nightlife",
-      venue: "The White Rabbit",
-      neighborhood: "The Woodlands",
-      city: "Houston, TX",
-      startDateTime: "2025-01-15T22:00:00Z",
-      endDateTime: "2025-01-16T04:00:00Z",
-      priceRange: "$15 - $30",
+      venue: "Celine Orlando",
+      neighborhood: "Downtown",
+      city: "Orlando",
+      dateTime: "Saturday 10:00 PM - 4:00 AM",
+      priceRange: "$35 - $65",
+      vibeTags: ["High energy", "Late night", "Underground"],
+      vibeDescription: "Raw, unfiltered techno in an authentic warehouse setting.",
+      aiSummary: "Raw, unfiltered techno in an authentic warehouse setting. Perfect for underground music lovers.",
+      lineup: ["Amelie Lens", "I Hate Models", "FJAAK"],
+      ticketTiers: ["Early Bird (Sold Out)", "General Admission $57", "Table Service $260"],
+      eventSignal: "going-fast",
+      organizerRating: 4.6,
+      reviewCount: 1876,
+      venueRating: 4.8,
+      ageRestriction: "21+",
+      // EventDetails extended fields
       images: [
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
-        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
-        "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800"
+        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800"
       ],
-      vibeTags: ["High energy", "Late night", "Underground"],
-      eventSignal: "going-fast",
-      aiSummary: "Raw, unfiltered techno in an authentic warehouse setting.",
-      description: "Experience the raw energy of underground techno. Industrial beats, immersive visuals, and a crowd that lives for the music.",
-      lineup: ["Amelie Lens", "I Hate Models", "FJAAK"],
+      description: "Experience the raw energy of underground techno.",
       attendeesCount: 537,
       friendsGoing: [
         { name: "Alex", avatar: "https://i.pravatar.cc/40?u=alex" },
@@ -1171,8 +1133,8 @@ const categories: Category[] = [
         id: "1",
         name: "Midnight Lovers",
         image: "https://i.pravatar.cc/80?u=midnight",
-        rating: 4.5,
-        reviewCount: 1067,
+        rating: 4.6,
+        reviewCount: 1876,
         verified: true,
         followers: 1200,
         eventsCount: 154,
@@ -1180,21 +1142,12 @@ const categories: Category[] = [
         trackRecord: "great",
         responseRate: "very responsive"
       },
-      venue_details: {
-        name: "The White Rabbit",
-        address: "8827 Nasher Ave",
-        city: "Houston TX",
-        coordinates: { lat: 29.7604, lng: -95.3698 }
-      },
-      tiers: [
-        { id: "1", name: "General Admission", price: 15, available: 50 },
-        { id: "2", name: "VIP Access", price: 30, available: 20, benefits: ["Skip the line", "Exclusive lounge"] }
-      ],
+      address: "8827 Nasher Ave",
+      coordinates: { lat: 29.7604, lng: -95.3698 },
       goodToKnow: {
-        duration: "2 hours",
-        doorsOpen: "7:00 PM",
-        showtime: "7:30 PM",
-        ageRestriction: "21+",
+        duration: "6 hours",
+        doorsOpen: "10:00 PM",
+        showtime: "10:30 PM",
         dressCode: "Casual",
         parking: "Limited, leave early to avoid long queues"
       },
@@ -1206,10 +1159,9 @@ const categories: Category[] = [
       },
       faq: [
         { question: "What is the refund policy?", answer: "No refunds. Tickets are transferable." },
-        { question: "When do doors open?", answer: "Open 2 hours before event." },
-        { question: "Is there parking?", answer: "Limited, leave early to avoid long queues." }
+        { question: "When do doors open?", answer: "Open 2 hours before event." }
       ],
-      relatedTags: ["Houston Events", "Texas Nightlife", "Techno Parties"]
+      relatedTags: ["Orlando Events", "Florida Nightlife", "Techno Parties"]
     }
   }}
   appearance={{
@@ -1232,105 +1184,71 @@ const categories: Category[] = [
         id: 'event-list',
         name: 'Event List',
         description:
-          'Display a collection of events in grid, list, or carousel layouts.',
+          'Display a collection of events in grid, list, or carousel layouts. Fullscreen mode shows split-screen map view.',
         registryName: 'event-list',
         layouts: ['inline', 'fullscreen'],
-        actionCount: 1,
+        actionCount: 3,
         variants: [
           {
             id: 'grid',
             name: 'Grid',
-            component: <EventList />,
+            component: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'grid' }} />,
+            fullscreenComponent: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'fullwidth' }} />,
             usageCode: `<EventList
   data={{
+    title: "Recommendations for you",
     events: [
-      {
-        id: "1",
-        title: "House Music Night at The Loft",
-        category: "Music",
-        venue: "The Loft",
-        city: "New York",
-        startDateTime: "2025-01-11T21:00:00Z",
-        priceRange: "$45 - $150",
-        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
-        vibeTags: ["High energy", "Late night"],
-        eventSignal: "going-fast"
-      },
-      {
-        id: "2",
-        title: "Comedy Night",
-        category: "Comedy",
-        venue: "Laugh Factory",
-        city: "Los Angeles",
-        startDateTime: "2025-01-17T20:00:00Z",
-        priceRange: "$25",
-        eventSignal: "popular"
-      },
-      {
-        id: "3",
-        title: "Yoga in the Park",
-        category: "Classes",
-        venue: "Central Park",
-        city: "New York",
-        startDateTime: "2025-01-18T06:30:00Z",
-        priceRange: "Free",
-        eventSignal: "just-added"
-      },
-      {
-        id: "4",
-        title: "Rooftop DJ Set",
-        category: "Nightlife",
-        venue: "Sky Lounge",
-        city: "New York",
-        startDateTime: "2025-01-19T17:00:00Z",
-        priceRange: "$60 - $200",
-        image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
-        eventSignal: "few-tickets-left"
-      }
+      { id: "evt-1", title: "NEON Vol. 9", category: "Music", venue: "Echoplex", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Tonight 9:00 PM - 3:00 AM", priceRange: "$45 - $150", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", coordinates: { lat: 34.0781, lng: -118.2606 }, vibeTags: ["High energy", "Late night"], eventSignal: "going-fast", organizerRating: 4.8, reviewCount: 12453, ageRestriction: "21+" },
+      { id: "evt-2", title: "The Midnight Show", category: "Comedy", venue: "The Comedy Underground", neighborhood: "Santa Monica", city: "Los Angeles", dateTime: "Tonight 10:00 PM - 12:00 AM", priceRange: "$15 - $35", image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800", coordinates: { lat: 34.0195, lng: -118.4912 }, vibeTags: ["Social", "Late night"], eventSignal: "popular", organizerRating: 4.7, reviewCount: 3241, discount: "TONIGHT ONLY - 40% OFF" },
+      { id: "evt-3", title: "Salsa Sundays @ Echo Park", category: "Classes", venue: "Echo Park Lake", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Saturday 6:00 PM - 10:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800", coordinates: { lat: 34.0731, lng: -118.2608 }, vibeTags: ["High energy", "Social"], eventSignal: "just-added", organizerRating: 4.9, reviewCount: 8764 },
+      { id: "evt-4", title: "Dawn Flow: Griffith Park", category: "Classes", venue: "Griffith Park", neighborhood: "Los Feliz", city: "Los Angeles", dateTime: "Tomorrow 6:00 AM - 8:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800", coordinates: { lat: 34.1365, lng: -118.2943 }, vibeTags: ["Chill", "Wellness", "Outdoor"], organizerRating: 4.9, reviewCount: 8764, discount: "FREE - First 50 Only" },
+      { id: "evt-5", title: "Lakers vs Celtics", category: "Sports", venue: "Crypto.com Arena", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Friday 7:30 PM - 10:30 PM", priceRange: "$125 - $850", image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800", coordinates: { lat: 34.0430, lng: -118.2673 }, vibeTags: ["High energy", "Social", "Premium"], eventSignal: "sales-end-soon", organizerRating: 4.5, reviewCount: 2341 },
+      { id: "evt-6", title: "Smorgasburg LA: Sunday Market", category: "Food & Drink", venue: "ROW DTLA", neighborhood: "Arts District", city: "Los Angeles", dateTime: "Sunday 10:00 AM - 4:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800", coordinates: { lat: 34.0341, lng: -118.2324 }, vibeTags: ["Family-friendly", "Outdoor", "Social"], organizerRating: 4.8, reviewCount: 5632 },
+      { id: "evt-7", title: "LACMA After Hours", category: "Arts", venue: "LACMA", neighborhood: "Miracle Mile", city: "Los Angeles", dateTime: "Friday 7:00 PM - 11:00 PM", priceRange: "$35 - $75", image: "https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800", coordinates: { lat: 34.0639, lng: -118.3592 }, vibeTags: ["Chill", "Date night", "Sophisticated"], organizerRating: 4.7, reviewCount: 1234, ageRestriction: "21+", discount: "MEMBER PRICE" },
+      { id: "evt-8", title: "Blue Note Under Stars", category: "Music", venue: "Hollywood Bowl", neighborhood: "Hollywood Hills", city: "Los Angeles", dateTime: "Saturday 8:00 PM - 11:00 PM", priceRange: "$45 - $200", image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800", coordinates: { lat: 34.1122, lng: -118.3391 }, vibeTags: ["Chill", "Date night", "Outdoor"], lineup: ["Kamasi Washington", "Thundercat", "Terrace Martin"], organizerRating: 4.8, reviewCount: 12453 },
+      { id: "evt-9", title: "Meraki: Seth Troxler", category: "Nightlife", venue: "Sound Nightclub", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "Saturday 10:00 PM - 4:00 AM", priceRange: "$35 - $65", image: "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800", coordinates: { lat: 34.0928, lng: -118.3287 }, vibeTags: ["High energy", "Late night", "Underground"], lineup: ["Amelie Lens", "I Hate Models", "FJAAK"], organizerRating: 4.6, reviewCount: 1876, ageRestriction: "21+" },
+      { id: "evt-10", title: "Whitney Cummings + Friends", category: "Comedy", venue: "The Laugh Factory", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "In 2 days 8:00 PM - 11:00 PM", priceRange: "$25 - $55", image: "https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800", coordinates: { lat: 34.0901, lng: -118.3615 }, vibeTags: ["Chill", "Social", "Date night"], organizerRating: 4.7, reviewCount: 3241, ageRestriction: "18+" },
+      { id: "evt-11", title: "Venice Beach Drum Circle", category: "Music", venue: "Venice Beach Boardwalk", neighborhood: "Venice", city: "Los Angeles", dateTime: "Sunday 4:00 PM - 8:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800", coordinates: { lat: 33.9850, lng: -118.4695 }, vibeTags: ["Outdoor", "Social", "Chill"], eventSignal: "popular", organizerRating: 4.6, reviewCount: 2145 },
+      { id: "evt-12", title: "Rooftop Cinema: Blade Runner", category: "Film", venue: "Rooftop Cinema Club", neighborhood: "DTLA", city: "Los Angeles", dateTime: "Friday 8:30 PM - 11:00 PM", priceRange: "$25 - $45", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800", coordinates: { lat: 34.0407, lng: -118.2468 }, vibeTags: ["Date night", "Views", "Chill"], organizerRating: 4.8, reviewCount: 892 },
+      { id: "evt-13", title: "Dodgers vs Giants", category: "Sports", venue: "Dodger Stadium", neighborhood: "Elysian Park", city: "Los Angeles", dateTime: "Saturday 1:10 PM - 4:30 PM", priceRange: "$35 - $350", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800", coordinates: { lat: 34.0739, lng: -118.2400 }, vibeTags: ["Family-friendly", "Social", "High energy"], eventSignal: "few-tickets-left", organizerRating: 4.7, reviewCount: 15678 },
+      { id: "evt-14", title: "Natural Wine Fair", category: "Food & Drink", venue: "Grand Central Market", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Sunday 12:00 PM - 6:00 PM", priceRange: "$45 - $85", image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800", coordinates: { lat: 34.0508, lng: -118.2490 }, vibeTags: ["Tasting", "Social", "Sophisticated"], eventSignal: "just-added", organizerRating: 4.5, reviewCount: 567, ageRestriction: "21+" },
+      { id: "evt-15", title: "Meditation in the Gardens", category: "Wellness", venue: "The Getty Center", neighborhood: "Brentwood", city: "Los Angeles", dateTime: "Sunday 7:00 AM - 9:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800", coordinates: { lat: 34.0780, lng: -118.4741 }, vibeTags: ["Wellness", "Outdoor", "Chill"], organizerRating: 4.9, reviewCount: 1234 }
     ]
   }}
-  appearance={{
-    variant: "grid",
-    columns: 2
-  }}
+  appearance={{ variant: "grid" }}
   actions={{
-    onEventSelect: (event) => console.log("Event selected:", event.title)
+    onEventSelect: (event) => console.log("Event selected:", event.title),
+    onViewMore: () => console.log("View more events")
   }}
 />`
           },
           {
             id: 'list',
             name: 'List',
-            component: <EventList appearance={{ variant: 'list' }} />,
+            component: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'list' }} />,
+            fullscreenComponent: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'fullwidth' }} />,
             usageCode: `<EventList
   data={{
+    title: "Recommendations for you",
     events: [
-      {
-        id: "1",
-        title: "House Music Night at The Loft",
-        category: "Music",
-        venue: "The Loft",
-        city: "New York",
-        startDateTime: "2025-01-11T21:00:00Z",
-        priceRange: "$45 - $150",
-        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
-        eventSignal: "going-fast"
-      },
-      {
-        id: "2",
-        title: "Comedy Night",
-        category: "Comedy",
-        venue: "Laugh Factory",
-        city: "Los Angeles",
-        startDateTime: "2025-01-17T20:00:00Z",
-        priceRange: "$25",
-        eventSignal: "popular"
-      }
+      { id: "evt-1", title: "NEON Vol. 9", category: "Music", venue: "Echoplex", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Tonight 9:00 PM - 3:00 AM", priceRange: "$45 - $150", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", coordinates: { lat: 34.0781, lng: -118.2606 }, vibeTags: ["High energy", "Late night"], eventSignal: "going-fast", organizerRating: 4.8, reviewCount: 12453, ageRestriction: "21+" },
+      { id: "evt-2", title: "The Midnight Show", category: "Comedy", venue: "The Comedy Underground", neighborhood: "Santa Monica", city: "Los Angeles", dateTime: "Tonight 10:00 PM - 12:00 AM", priceRange: "$15 - $35", image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800", coordinates: { lat: 34.0195, lng: -118.4912 }, vibeTags: ["Social", "Late night"], eventSignal: "popular", organizerRating: 4.7, reviewCount: 3241, discount: "TONIGHT ONLY - 40% OFF" },
+      { id: "evt-3", title: "Salsa Sundays @ Echo Park", category: "Classes", venue: "Echo Park Lake", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Saturday 6:00 PM - 10:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800", coordinates: { lat: 34.0731, lng: -118.2608 }, vibeTags: ["High energy", "Social"], eventSignal: "just-added", organizerRating: 4.9, reviewCount: 8764 },
+      { id: "evt-4", title: "Dawn Flow: Griffith Park", category: "Classes", venue: "Griffith Park", neighborhood: "Los Feliz", city: "Los Angeles", dateTime: "Tomorrow 6:00 AM - 8:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800", coordinates: { lat: 34.1365, lng: -118.2943 }, vibeTags: ["Chill", "Wellness", "Outdoor"], organizerRating: 4.9, reviewCount: 8764, discount: "FREE - First 50 Only" },
+      { id: "evt-5", title: "Lakers vs Celtics", category: "Sports", venue: "Crypto.com Arena", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Friday 7:30 PM - 10:30 PM", priceRange: "$125 - $850", image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800", coordinates: { lat: 34.0430, lng: -118.2673 }, vibeTags: ["High energy", "Social", "Premium"], eventSignal: "sales-end-soon", organizerRating: 4.5, reviewCount: 2341 },
+      { id: "evt-6", title: "Smorgasburg LA: Sunday Market", category: "Food & Drink", venue: "ROW DTLA", neighborhood: "Arts District", city: "Los Angeles", dateTime: "Sunday 10:00 AM - 4:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800", coordinates: { lat: 34.0341, lng: -118.2324 }, vibeTags: ["Family-friendly", "Outdoor", "Social"], organizerRating: 4.8, reviewCount: 5632 },
+      { id: "evt-7", title: "LACMA After Hours", category: "Arts", venue: "LACMA", neighborhood: "Miracle Mile", city: "Los Angeles", dateTime: "Friday 7:00 PM - 11:00 PM", priceRange: "$35 - $75", image: "https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800", coordinates: { lat: 34.0639, lng: -118.3592 }, vibeTags: ["Chill", "Date night", "Sophisticated"], organizerRating: 4.7, reviewCount: 1234, ageRestriction: "21+", discount: "MEMBER PRICE" },
+      { id: "evt-8", title: "Blue Note Under Stars", category: "Music", venue: "Hollywood Bowl", neighborhood: "Hollywood Hills", city: "Los Angeles", dateTime: "Saturday 8:00 PM - 11:00 PM", priceRange: "$45 - $200", image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800", coordinates: { lat: 34.1122, lng: -118.3391 }, vibeTags: ["Chill", "Date night", "Outdoor"], lineup: ["Kamasi Washington", "Thundercat", "Terrace Martin"], organizerRating: 4.8, reviewCount: 12453 },
+      { id: "evt-9", title: "Meraki: Seth Troxler", category: "Nightlife", venue: "Sound Nightclub", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "Saturday 10:00 PM - 4:00 AM", priceRange: "$35 - $65", image: "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800", coordinates: { lat: 34.0928, lng: -118.3287 }, vibeTags: ["High energy", "Late night", "Underground"], lineup: ["Amelie Lens", "I Hate Models", "FJAAK"], organizerRating: 4.6, reviewCount: 1876, ageRestriction: "21+" },
+      { id: "evt-10", title: "Whitney Cummings + Friends", category: "Comedy", venue: "The Laugh Factory", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "In 2 days 8:00 PM - 11:00 PM", priceRange: "$25 - $55", image: "https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800", coordinates: { lat: 34.0901, lng: -118.3615 }, vibeTags: ["Chill", "Social", "Date night"], organizerRating: 4.7, reviewCount: 3241, ageRestriction: "18+" },
+      { id: "evt-11", title: "Venice Beach Drum Circle", category: "Music", venue: "Venice Beach Boardwalk", neighborhood: "Venice", city: "Los Angeles", dateTime: "Sunday 4:00 PM - 8:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800", coordinates: { lat: 33.9850, lng: -118.4695 }, vibeTags: ["Outdoor", "Social", "Chill"], eventSignal: "popular", organizerRating: 4.6, reviewCount: 2145 },
+      { id: "evt-12", title: "Rooftop Cinema: Blade Runner", category: "Film", venue: "Rooftop Cinema Club", neighborhood: "DTLA", city: "Los Angeles", dateTime: "Friday 8:30 PM - 11:00 PM", priceRange: "$25 - $45", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800", coordinates: { lat: 34.0407, lng: -118.2468 }, vibeTags: ["Date night", "Views", "Chill"], organizerRating: 4.8, reviewCount: 892 },
+      { id: "evt-13", title: "Dodgers vs Giants", category: "Sports", venue: "Dodger Stadium", neighborhood: "Elysian Park", city: "Los Angeles", dateTime: "Saturday 1:10 PM - 4:30 PM", priceRange: "$35 - $350", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800", coordinates: { lat: 34.0739, lng: -118.2400 }, vibeTags: ["Family-friendly", "Social", "High energy"], eventSignal: "few-tickets-left", organizerRating: 4.7, reviewCount: 15678 },
+      { id: "evt-14", title: "Natural Wine Fair", category: "Food & Drink", venue: "Grand Central Market", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Sunday 12:00 PM - 6:00 PM", priceRange: "$45 - $85", image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800", coordinates: { lat: 34.0508, lng: -118.2490 }, vibeTags: ["Tasting", "Social", "Sophisticated"], eventSignal: "just-added", organizerRating: 4.5, reviewCount: 567, ageRestriction: "21+" },
+      { id: "evt-15", title: "Meditation in the Gardens", category: "Wellness", venue: "The Getty Center", neighborhood: "Brentwood", city: "Los Angeles", dateTime: "Sunday 7:00 AM - 9:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800", coordinates: { lat: 34.0780, lng: -118.4741 }, vibeTags: ["Wellness", "Outdoor", "Chill"], organizerRating: 4.9, reviewCount: 1234 }
     ]
   }}
-  appearance={{
-    variant: "list"
-  }}
+  appearance={{ variant: "list" }}
   actions={{
     onEventSelect: (event) => console.log("Event selected:", event.title)
   }}
@@ -1339,44 +1257,30 @@ const categories: Category[] = [
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <EventList appearance={{ variant: 'carousel' }} />,
+            component: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'carousel' }} />,
+            fullscreenComponent: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'fullwidth' }} />,
             usageCode: `<EventList
   data={{
+    title: "Recommendations for you",
     events: [
-      {
-        id: "1",
-        title: "House Music Night",
-        category: "Music",
-        venue: "The Loft",
-        city: "New York",
-        startDateTime: "2025-01-11T21:00:00Z",
-        priceRange: "$45 - $150",
-        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
-        eventSignal: "going-fast"
-      },
-      {
-        id: "2",
-        title: "Comedy Night",
-        category: "Comedy",
-        venue: "Laugh Factory",
-        city: "Los Angeles",
-        startDateTime: "2025-01-17T20:00:00Z",
-        priceRange: "$25"
-      },
-      {
-        id: "3",
-        title: "Yoga Session",
-        category: "Classes",
-        venue: "Central Park",
-        city: "New York",
-        startDateTime: "2025-01-18T06:30:00Z",
-        priceRange: "Free"
-      }
+      { id: "evt-1", title: "NEON Vol. 9", category: "Music", venue: "Echoplex", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Tonight 9:00 PM - 3:00 AM", priceRange: "$45 - $150", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", coordinates: { lat: 34.0781, lng: -118.2606 }, vibeTags: ["High energy", "Late night"], eventSignal: "going-fast", organizerRating: 4.8, reviewCount: 12453, ageRestriction: "21+" },
+      { id: "evt-2", title: "The Midnight Show", category: "Comedy", venue: "The Comedy Underground", neighborhood: "Santa Monica", city: "Los Angeles", dateTime: "Tonight 10:00 PM - 12:00 AM", priceRange: "$15 - $35", image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800", coordinates: { lat: 34.0195, lng: -118.4912 }, vibeTags: ["Social", "Late night"], eventSignal: "popular", organizerRating: 4.7, reviewCount: 3241, discount: "TONIGHT ONLY - 40% OFF" },
+      { id: "evt-3", title: "Salsa Sundays @ Echo Park", category: "Classes", venue: "Echo Park Lake", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Saturday 6:00 PM - 10:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800", coordinates: { lat: 34.0731, lng: -118.2608 }, vibeTags: ["High energy", "Social"], eventSignal: "just-added", organizerRating: 4.9, reviewCount: 8764 },
+      { id: "evt-4", title: "Dawn Flow: Griffith Park", category: "Classes", venue: "Griffith Park", neighborhood: "Los Feliz", city: "Los Angeles", dateTime: "Tomorrow 6:00 AM - 8:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800", coordinates: { lat: 34.1365, lng: -118.2943 }, vibeTags: ["Chill", "Wellness", "Outdoor"], organizerRating: 4.9, reviewCount: 8764, discount: "FREE - First 50 Only" },
+      { id: "evt-5", title: "Lakers vs Celtics", category: "Sports", venue: "Crypto.com Arena", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Friday 7:30 PM - 10:30 PM", priceRange: "$125 - $850", image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800", coordinates: { lat: 34.0430, lng: -118.2673 }, vibeTags: ["High energy", "Social", "Premium"], eventSignal: "sales-end-soon", organizerRating: 4.5, reviewCount: 2341 },
+      { id: "evt-6", title: "Smorgasburg LA: Sunday Market", category: "Food & Drink", venue: "ROW DTLA", neighborhood: "Arts District", city: "Los Angeles", dateTime: "Sunday 10:00 AM - 4:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800", coordinates: { lat: 34.0341, lng: -118.2324 }, vibeTags: ["Family-friendly", "Outdoor", "Social"], organizerRating: 4.8, reviewCount: 5632 },
+      { id: "evt-7", title: "LACMA After Hours", category: "Arts", venue: "LACMA", neighborhood: "Miracle Mile", city: "Los Angeles", dateTime: "Friday 7:00 PM - 11:00 PM", priceRange: "$35 - $75", image: "https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800", coordinates: { lat: 34.0639, lng: -118.3592 }, vibeTags: ["Chill", "Date night", "Sophisticated"], organizerRating: 4.7, reviewCount: 1234, ageRestriction: "21+", discount: "MEMBER PRICE" },
+      { id: "evt-8", title: "Blue Note Under Stars", category: "Music", venue: "Hollywood Bowl", neighborhood: "Hollywood Hills", city: "Los Angeles", dateTime: "Saturday 8:00 PM - 11:00 PM", priceRange: "$45 - $200", image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800", coordinates: { lat: 34.1122, lng: -118.3391 }, vibeTags: ["Chill", "Date night", "Outdoor"], lineup: ["Kamasi Washington", "Thundercat", "Terrace Martin"], organizerRating: 4.8, reviewCount: 12453 },
+      { id: "evt-9", title: "Meraki: Seth Troxler", category: "Nightlife", venue: "Sound Nightclub", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "Saturday 10:00 PM - 4:00 AM", priceRange: "$35 - $65", image: "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800", coordinates: { lat: 34.0928, lng: -118.3287 }, vibeTags: ["High energy", "Late night", "Underground"], lineup: ["Amelie Lens", "I Hate Models", "FJAAK"], organizerRating: 4.6, reviewCount: 1876, ageRestriction: "21+" },
+      { id: "evt-10", title: "Whitney Cummings + Friends", category: "Comedy", venue: "The Laugh Factory", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "In 2 days 8:00 PM - 11:00 PM", priceRange: "$25 - $55", image: "https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800", coordinates: { lat: 34.0901, lng: -118.3615 }, vibeTags: ["Chill", "Social", "Date night"], organizerRating: 4.7, reviewCount: 3241, ageRestriction: "18+" },
+      { id: "evt-11", title: "Venice Beach Drum Circle", category: "Music", venue: "Venice Beach Boardwalk", neighborhood: "Venice", city: "Los Angeles", dateTime: "Sunday 4:00 PM - 8:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800", coordinates: { lat: 33.9850, lng: -118.4695 }, vibeTags: ["Outdoor", "Social", "Chill"], eventSignal: "popular", organizerRating: 4.6, reviewCount: 2145 },
+      { id: "evt-12", title: "Rooftop Cinema: Blade Runner", category: "Film", venue: "Rooftop Cinema Club", neighborhood: "DTLA", city: "Los Angeles", dateTime: "Friday 8:30 PM - 11:00 PM", priceRange: "$25 - $45", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800", coordinates: { lat: 34.0407, lng: -118.2468 }, vibeTags: ["Date night", "Views", "Chill"], organizerRating: 4.8, reviewCount: 892 },
+      { id: "evt-13", title: "Dodgers vs Giants", category: "Sports", venue: "Dodger Stadium", neighborhood: "Elysian Park", city: "Los Angeles", dateTime: "Saturday 1:10 PM - 4:30 PM", priceRange: "$35 - $350", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800", coordinates: { lat: 34.0739, lng: -118.2400 }, vibeTags: ["Family-friendly", "Social", "High energy"], eventSignal: "few-tickets-left", organizerRating: 4.7, reviewCount: 15678 },
+      { id: "evt-14", title: "Natural Wine Fair", category: "Food & Drink", venue: "Grand Central Market", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Sunday 12:00 PM - 6:00 PM", priceRange: "$45 - $85", image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800", coordinates: { lat: 34.0508, lng: -118.2490 }, vibeTags: ["Tasting", "Social", "Sophisticated"], eventSignal: "just-added", organizerRating: 4.5, reviewCount: 567, ageRestriction: "21+" },
+      { id: "evt-15", title: "Meditation in the Gardens", category: "Wellness", venue: "The Getty Center", neighborhood: "Brentwood", city: "Los Angeles", dateTime: "Sunday 7:00 AM - 9:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800", coordinates: { lat: 34.0780, lng: -118.4741 }, vibeTags: ["Wellness", "Outdoor", "Chill"], organizerRating: 4.9, reviewCount: 1234 }
     ]
   }}
-  appearance={{
-    variant: "carousel"
-  }}
+  appearance={{ variant: "carousel" }}
   actions={{
     onEventSelect: (event) => console.log("Event selected:", event.title)
   }}

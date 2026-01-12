@@ -1,71 +1,32 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { MapPin, Clock, Star, Flame, TrendingUp, Sparkles, Timer, Ticket, XCircle, CirclePause, CalendarX, Video } from 'lucide-react'
-import type { Event } from './types'
+import { MapPin, Clock, Star, Flame, TrendingUp, Sparkles, Timer, Ticket, XCircle, CirclePause, CalendarX } from 'lucide-react'
+import type { Event, EventSignal } from './types'
 
 // Import shared OpenAI types
 import '@/lib/openai-types'
 
-// Format date for display (e.g., "Tonight 9:00 PM - 3:00 AM", "Tomorrow 8:00 PM", "Jan 15 • 7:00 PM")
-function formatEventDateTime(startDateTime: string, endDateTime?: string): string {
-  const start = new Date(startDateTime)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000)
-  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate())
-
-  const timeOptions: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
-  const startTime = start.toLocaleTimeString('en-US', timeOptions)
-
-  let datePrefix: string
-  if (startDay.getTime() === today.getTime()) {
-    datePrefix = 'Tonight'
-  } else if (startDay.getTime() === tomorrow.getTime()) {
-    datePrefix = 'Tomorrow'
-  } else {
-    datePrefix = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
-
-  if (endDateTime) {
-    const end = new Date(endDateTime)
-    const endTime = end.toLocaleTimeString('en-US', timeOptions)
-    return `${datePrefix} ${startTime} - ${endTime}`
-  }
-
-  return `${datePrefix} ${startTime}`
-}
-
-// Generate a date for tonight at a specific hour
-function getTonightAt(hour: number): string {
-  const date = new Date()
-  date.setHours(hour, 0, 0, 0)
-  return date.toISOString()
-}
-
-// Generate a date for tomorrow at a specific hour
-function getTomorrowAt(hour: number): string {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  date.setHours(hour, 0, 0, 0)
-  return date.toISOString()
-}
-
 const defaultEvent: Event = {
-  id: '1',
-  title: 'House Music Night at The Loft',
+  id: 'evt-1',
+  title: 'NEON Vol. 9',
   category: 'Music',
-  venue: 'The Loft',
-  neighborhood: 'SoHo',
-  city: 'New York',
-  startDateTime: getTonightAt(21), // 9 PM tonight
-  endDateTime: getTomorrowAt(3), // 3 AM tomorrow
+  venue: 'Echoplex',
+  neighborhood: 'Echo Park',
+  city: 'Los Angeles',
+  dateTime: 'Tonight 9:00 PM - 3:00 AM',
   priceRange: '$45 - $150',
-  image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
+  image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
   vibeTags: ['High energy', 'Late night', 'Dressy'],
+  vibeDescription: 'Immersive electronic experience with world-class DJs and stunning visuals.',
+  aiSummary: 'Immersive electronic night with world-class DJs and stunning visuals at LA\'s top-rated venue.',
+  lineup: ['DJ Shadow', 'Bonobo', 'Four Tet', 'Caribou'],
+  ticketTiers: ['General Admission $45', 'VIP Access $120', 'Backstage Pass $150'],
   eventSignal: 'going-fast',
   organizerRating: 4.8,
-  reviewCount: 234
+  reviewCount: 12453,
+  venueRating: 4.8,
+  ageRestriction: '21+',
+  hasMultipleDates: true
 }
 
 export interface EventCardProps {
@@ -83,48 +44,8 @@ export interface EventCardProps {
   }
 }
 
-function EventLocation({ event }: { event: Event }) {
-  const locationType = event.locationType || 'physical'
-
-  if (locationType === 'online') {
-    return (
-      <span className="flex items-center gap-1">
-        <Video className="h-3.5 w-3.5" />
-        Online Event
-      </span>
-    )
-  }
-
-  if (locationType === 'hybrid') {
-    return (
-      <>
-        <span className="flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5" />
-          {event.venue}
-          {event.neighborhood && `, ${event.neighborhood}`}
-        </span>
-        <span className="flex items-center gap-1">
-          <Video className="h-3.5 w-3.5" />
-          + Online
-        </span>
-      </>
-    )
-  }
-
-  // Physical (default)
-  return (
-    <span className="flex items-center gap-1">
-      <MapPin className="h-3.5 w-3.5" />
-      {event.venue}
-      {event.neighborhood && `, ${event.neighborhood}`}
-    </span>
-  )
-}
-
-function EventSignalBadge({ signal }: { signal: Event['eventSignal'] }) {
-  if (!signal) return null
-
-  const config: Record<NonNullable<Event['eventSignal']>, { label: string; icon: typeof Flame; className: string }> = {
+function EventSignalBadge({ signal }: { signal: EventSignal }) {
+  const config: Record<EventSignal, { label: string; icon: typeof Flame; className: string }> = {
     'going-fast': {
       label: 'Going Fast',
       icon: Flame,
@@ -196,21 +117,10 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   if (variant === 'covered') {
     return (
       <div
-        className="relative overflow-hidden rounded-lg border cursor-pointer"
+        className="relative overflow-hidden rounded-lg border cursor-pointer min-h-[280px]"
         onClick={handleClick}
       >
-        <div className="min-h-[280px] sm:aspect-[16/9] sm:min-h-0 w-full">
-          {event.image ? (
-            <img
-              src={event.image}
-              alt={event.title}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 h-full w-full bg-muted" />
-          )}
-        </div>
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
         <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -227,7 +137,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
-                {formatEventDateTime(event.startDateTime, event.endDateTime)}
+                {event.dateTime}
               </span>
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
@@ -247,27 +157,14 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
                 ))}
               </div>
             )}
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold">{event.priceRange}</span>
-                {showRating && event.organizerRating && (
-                  <span className="flex items-center gap-1 text-sm text-white/70">
-                    <Star className="h-3.5 w-3.5 fill-current text-yellow-400" />
-                    {event.organizerRating}
-                  </span>
-                )}
-              </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="w-full sm:w-auto"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleClick()
-                }}
-              >
-                View Event
-              </Button>
+            <div className="mt-3 flex items-center gap-3">
+              <span className="font-semibold">{event.priceRange}</span>
+              {showRating && event.organizerRating && (
+                <span className="flex items-center gap-1 text-sm text-white/70">
+                  <Star className="h-3.5 w-3.5 fill-current text-yellow-400" />
+                  {event.organizerRating}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -281,15 +178,6 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
         className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3 cursor-pointer hover:bg-accent/50 transition-colors"
         onClick={handleClick}
       >
-        {event.image && (
-          <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
-            <img
-              src={event.image}
-              alt={event.title}
-              className="h-full w-full object-cover"
-            />
-          </div>
-        )}
         <div className="flex flex-1 flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -306,7 +194,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {formatEventDateTime(event.startDateTime, event.endDateTime)}
+                {event.dateTime}
               </span>
               <span className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
@@ -326,26 +214,14 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
               </div>
             )}
           </div>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium">{event.priceRange}</span>
-              {showRating && event.organizerRating && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Star className="h-3 w-3 fill-current text-yellow-500" />
-                  {event.organizerRating}
-                </span>
-              )}
-            </div>
-            <Button
-              size="sm"
-              className="w-full sm:w-auto"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleClick()
-              }}
-            >
-              View
-            </Button>
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <span className="font-medium">{event.priceRange}</span>
+            {showRating && event.organizerRating && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Star className="h-3 w-3 fill-current text-yellow-500" />
+                {event.organizerRating}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -371,7 +247,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {formatEventDateTime(event.startDateTime, event.endDateTime)}
+              {event.dateTime}
             </span>
             <span className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
@@ -391,25 +267,14 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
             </div>
           )}
         </div>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{event.priceRange}</span>
-            {showRating && event.organizerRating && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Star className="h-3 w-3 fill-current text-yellow-500" />
-                {event.organizerRating}
-              </span>
-            )}
-          </div>
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleClick()
-            }}
-          >
-            View
-          </Button>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-sm font-medium">{event.priceRange}</span>
+          {showRating && event.organizerRating && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Star className="h-3 w-3 fill-current text-yellow-500" />
+              {event.organizerRating}
+            </span>
+          )}
         </div>
       </div>
     )
@@ -421,12 +286,13 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
       className="flex h-full flex-col overflow-hidden rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors"
       onClick={handleClick}
     >
+      {/* Image */}
       {event.image && (
-        <div className="aspect-video overflow-hidden">
+        <div className="aspect-[16/9] overflow-hidden bg-muted">
           <img
             src={event.image}
             alt={event.title}
-            className="h-full w-full object-cover transition-transform hover:scale-105"
+            className="h-full w-full object-cover"
           />
         </div>
       )}
@@ -444,7 +310,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              {formatEventDateTime(event.startDateTime, event.endDateTime)}
+              {event.dateTime}
             </span>
             <span className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" />
@@ -465,28 +331,17 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
             </div>
           )}
         </div>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="font-medium">{event.priceRange}</span>
-            {showRating && event.organizerRating && (
-              <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />
-                {event.organizerRating}
-                {event.reviewCount && (
-                  <span className="text-xs">({event.reviewCount})</span>
-                )}
-              </span>
-            )}
-          </div>
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleClick()
-            }}
-          >
-            View Event
-          </Button>
+        <div className="mt-4 flex items-center gap-3">
+          <span className="font-medium">{event.priceRange}</span>
+          {showRating && event.organizerRating && (
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />
+              {event.organizerRating}
+              {event.reviewCount && (
+                <span className="text-xs">({event.reviewCount.toLocaleString()})</span>
+              )}
+            </span>
+          )}
         </div>
       </div>
     </div>

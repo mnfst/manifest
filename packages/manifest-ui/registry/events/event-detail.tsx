@@ -23,8 +23,23 @@ import {
   Timer,
   DoorOpen
 } from 'lucide-react'
-import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import { useState, useEffect } from 'react'
 import type { EventDetails, EventSignal, TicketTier } from './types'
+
+// Dynamically import map components to avoid SSR issues with Leaflet
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+)
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+)
+const Marker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+)
 
 // Format date for display
 function formatEventDateTime(startDateTime: string, endDateTime?: string): string {
@@ -166,6 +181,87 @@ function EventSignalBadge({ signal }: { signal: EventSignal }) {
   )
 }
 
+// Map placeholder shown during SSR or when Leaflet isn't loaded
+function MapPlaceholder() {
+  return (
+    <div className="flex h-full items-center justify-center bg-muted/30">
+      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+        <MapPin className="h-8 w-8" />
+        <span className="text-sm">Loading map...</span>
+      </div>
+    </div>
+  )
+}
+
+// Venue marker component that uses Leaflet
+function VenueMapMarker({
+  coordinates,
+  venueName
+}: {
+  coordinates: { lat: number; lng: number }
+  venueName: string
+}) {
+  const [L, setL] = useState<typeof import('leaflet') | null>(null)
+
+  useEffect(() => {
+    import('leaflet').then((leaflet) => {
+      setL(leaflet.default)
+    })
+    // Add Leaflet CSS
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    document.head.appendChild(link)
+    return () => {
+      document.head.removeChild(link)
+    }
+  }, [])
+
+  if (!L) return null
+
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    ">
+      <div style="
+        background-color: #ea580c;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: system-ui, -apple-system, sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      ">${venueName}</div>
+      <div style="
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid #ea580c;
+        margin-top: -1px;
+      "></div>
+    </div>`,
+    iconSize: [100, 40],
+    iconAnchor: [50, 40]
+  })
+
+  return (
+    <Marker
+      position={[coordinates.lat, coordinates.lng]}
+      icon={icon}
+    />
+  )
+}
+
 export interface EventDetailProps {
   data?: {
     event?: EventDetails
@@ -192,6 +288,11 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isSaved, setIsSaved] = useState(false)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const images = event.images?.length ? event.images : (event.image ? [event.image] : [])
 
@@ -209,7 +310,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
   }
 
   return (
-    <div className="mx-auto max-w-lg bg-background pb-24">
+    <div className="mx-auto max-w-lg bg-background">
       {/* Image Carousel */}
       {images.length > 0 && (
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -442,9 +543,26 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
 
             {showMap && event.venue_details.coordinates && (
               <div className="mt-4 aspect-video overflow-hidden rounded-lg bg-muted">
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                  <Button variant="outline">Show map</Button>
-                </div>
+                {isMounted ? (
+                  <MapContainer
+                    center={[event.venue_details.coordinates.lat, event.venue_details.coordinates.lng]}
+                    zoom={15}
+                    style={{ height: '100%', width: '100%' }}
+                    zoomControl={true}
+                    scrollWheelZoom={false}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    />
+                    <VenueMapMarker
+                      coordinates={event.venue_details.coordinates}
+                      venueName={event.venue_details.name}
+                    />
+                  </MapContainer>
+                ) : (
+                  <MapPlaceholder />
+                )}
               </div>
             )}
 
@@ -570,21 +688,21 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Fixed Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
-        <div className="mx-auto flex max-w-lg items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold">{event.priceRange}</p>
-            <p className="text-sm text-muted-foreground">{formatEventDateTime(event.startDateTime, event.endDateTime)}</p>
+        {/* Bottom CTA */}
+        <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold">{event.priceRange}</p>
+              <p className="text-sm text-muted-foreground">{formatEventDateTime(event.startDateTime, event.endDateTime)}</p>
+            </div>
+            <Button
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={() => onGetTickets?.(event)}
+            >
+              Get tickets
+            </Button>
           </div>
-          <Button
-            className="bg-orange-500 hover:bg-orange-600"
-            onClick={() => onGetTickets?.(event)}
-          >
-            Get tickets
-          </Button>
         </div>
       </div>
     </div>

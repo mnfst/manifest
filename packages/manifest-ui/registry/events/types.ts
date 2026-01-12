@@ -10,24 +10,11 @@ export type EventSignal =
   | 'ended'
   | 'postponed'
 
-export type TicketSignal =
-  | 'discount-applied'
-  | 'few-tickets-left'
-  | 'less-than-10-remaining'
-  | 'more-than-11-remaining'
-  | 'not-yet-on-sale'
-  | 'sales-end-soon'
-  | 'sales-ended'
-  | 'sold-out'
-  | 'unavailable'
-  | 'unlocked'
-
-export type EventLocationType = 'physical' | 'online' | 'hybrid'
-
 export type VibeTag =
   | 'All night'
   | 'Beginner-friendly'
   | 'Casual'
+  | 'Chill'
   | 'Classic'
   | 'Cocktails'
   | 'Creative'
@@ -36,15 +23,21 @@ export type VibeTag =
   | 'Dressy'
   | 'Educational'
   | 'Exciting'
+  | 'Exclusive'
   | 'Family-friendly'
   | 'Fun'
   | 'Hands-on'
   | 'High energy'
+  | 'Immersive'
   | 'Interactive'
   | 'Intimate'
+  | 'Kids'
   | 'Late night'
+  | 'Legendary'
   | 'Outdoor'
+  | 'Premium'
   | 'Relaxing'
+  | 'Scenic'
   | 'Social'
   | 'Sophisticated'
   | 'Tasting'
@@ -56,36 +49,26 @@ export type VibeTag =
 export interface Event {
   id: string
   title: string
-  category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports"
-  locationType?: EventLocationType // "physical", "online", "hybrid" - defaults to "physical"
-  venue?: string // Optional for online events
-  neighborhood?: string
-  city?: string // Optional for online events
-  onlineUrl?: string // For online/hybrid events
-  startDateTime: string // ISO format: "2025-01-11T21:00:00Z"
-  endDateTime?: string // ISO format: "2025-01-12T03:00:00Z"
-  priceRange: string // "$45 - $150", "Free"
-  image?: string
-  vibeTags?: VibeTag[] // ["High energy", "Late night", "Dressy"]
+  category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
+  venue: string
+  neighborhood?: string | null
+  city: string
+  dateTime: string // Display format: "Tonight 9:00 PM - 3:00 AM", "Tomorrow 6:00 AM", "In 2 days 8:00 PM"
+  priceRange: string // "$45 - $150", "Free", "Free - $5"
+  image?: string // Cover image URL for the event
+  coordinates?: { lat: number; lng: number } // For map display in fullscreen mode
+  vibeTags?: VibeTag[]
   vibeDescription?: string
   aiSummary?: string // AI-generated match explanation
   lineup?: string[]
+  ticketTiers?: string[] // ["General Admission $45", "VIP Access $120"]
   eventSignal?: EventSignal
-  ticketSignal?: TicketSignal
   organizerRating?: number
   reviewCount?: number
+  venueRating?: number
+  ageRestriction?: string | null // "21+", "18+", "Ages 5-12", null
   hasMultipleDates?: boolean
-  discount?: string
-}
-
-export interface TicketTier {
-  id: string
-  name: string // "General Admission", "VIP Access"
-  price: number
-  description?: string
-  available: number
-  benefits?: string[]
-  signal?: TicketSignal
+  discount?: string // "TONIGHT ONLY - 40% OFF", "FREE - First 50 Only"
 }
 
 export interface Organizer {
@@ -102,16 +85,6 @@ export interface Organizer {
   trackRecord?: 'great' | 'good' | 'new'
 }
 
-export interface EventVenue {
-  name: string
-  address: string
-  neighborhood?: string
-  city: string
-  coordinates?: { lat: number; lng: number }
-  image?: string
-  rating?: number
-}
-
 export interface TicketSelection {
   tierId: string
   quantity: number
@@ -120,7 +93,7 @@ export interface TicketSelection {
 export interface EventBooking {
   id: string
   event: Event
-  tickets: { tier: TicketTier; quantity: number }[]
+  tickets: { tierName: string; quantity: number; price: number }[]
   total: number
   fees: number
   confirmationCode: string
@@ -133,15 +106,14 @@ export interface EventDetails extends Event {
   images?: string[] // Multiple images for carousel
   description?: string
   organizer?: Organizer
-  venue_details?: EventVenue
-  tiers?: TicketTier[]
+  address?: string // Street address for the venue
+  coordinates?: { lat: number; lng: number } // For map display
   attendeesCount?: number // "537 going"
   friendsGoing?: { name: string; avatar?: string }[]
   highlights?: string[] // "2 hours", "In person"
   goodToKnow?: {
     accessibility?: string[]
     dressCode?: string
-    ageRestriction?: string
     parking?: string
     duration?: string
     doorsOpen?: string
@@ -157,5 +129,5 @@ export interface EventDetails extends Event {
   }
   faq?: { question: string; answer: string }[]
   relatedEvents?: Event[]
-  relatedTags?: string[] // "San Francisco Events", "California Events"
+  relatedTags?: string[] // "Los Angeles Events", "California Nightlife"
 }
