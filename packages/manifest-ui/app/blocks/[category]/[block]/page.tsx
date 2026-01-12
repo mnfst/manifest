@@ -19,8 +19,8 @@ import { PostList } from '@/registry/blogging/post-list'
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo'
-import { Table } from '@/registry/list/table'
 import { ProductList } from '@/registry/list/product-list'
+import { Table } from '@/registry/list/table'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -53,7 +53,10 @@ import { XPost } from '@/registry/miscellaneous/x-post'
 import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 
 // UI components
-import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section'
+import {
+  VariantSection,
+  VariantSectionHandle
+} from '@/components/blocks/variant-section'
 
 // SEO components
 import { Breadcrumb } from '@/components/seo/breadcrumb'
@@ -105,7 +108,9 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PostCardDemo />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: (
+              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
+            ),
             usageCode: `<PostCard
   data={{
     post: {
@@ -121,7 +126,22 @@ const categories: Category[] = [
       readTime: "5 min read",
       tags: ["Tutorial", "Components"],
       category: "Tutorial"
-    }
+    },
+    content: \`
+      <p>Building modern AI-powered applications requires a new approach to UI design. Traditional web components don't always translate well to conversational interfaces, where context and flow are paramount.</p>
+
+      <p>Our Agentic UI component library provides a collection of purpose-built components that work seamlessly within chat interfaces. From payment flows to product displays, each component is designed with the unique constraints of conversational UIs in mind.</p>
+
+      <h2>Key Features</h2>
+      <p>Each component supports three display modes: inline (within the chat flow), fullscreen (for complex interactions), and picture-in-picture (persistent visibility). This flexibility allows you to create rich, interactive experiences without breaking the conversational flow.</p>
+
+      <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
+
+      <h2>Getting Started</h2>
+      <p>To begin using Agentic UI components, install the package via npm or yarn. Each component is fully typed with TypeScript and includes comprehensive documentation with examples.</p>
+
+      <p>The components follow a consistent props pattern with data, actions, appearance, and control categories, making them predictable and easy to integrate into your existing codebase.</p>
+    \`
   }}
   appearance={{
     variant: "default",
@@ -138,7 +158,9 @@ const categories: Category[] = [
             id: 'no-image',
             name: 'Without Image',
             component: <PostCardDemo appearance={{ showImage: false }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: (
+              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
+            ),
             usageCode: `<PostCard
   data={{
     post: {
@@ -150,7 +172,20 @@ const categories: Category[] = [
       readTime: "8 min read",
       tags: ["Design", "UX"],
       category: "Design"
-    }
+    },
+    content: \`
+      <p>Conversational interfaces present unique design challenges that traditional web design principles don't fully address. Users interact with chat-based UIs differently, expecting quick responses and contextual awareness.</p>
+
+      <h2>Understanding the Context</h2>
+      <p>In a conversational UI, every component exists within a flow. Unlike traditional web pages where users can freely navigate, chat interfaces guide users through a linear experience. This means your components must be self-contained yet contextually aware.</p>
+
+      <p>The key is to provide just enough information without overwhelming the user. Use progressive disclosure to reveal details as needed, and always provide clear actions for the next step.</p>
+
+      <h2>Visual Hierarchy in Chat</h2>
+      <p>With limited screen real estate, visual hierarchy becomes crucial. Use typography, spacing, and color to guide the user's attention to the most important elements. Avoid cluttered layouts that compete for attention.</p>
+
+      <p>Remember that users are often multitasking when using chat interfaces. Your components should be scannable and easy to understand at a glance.</p>
+    \`
   }}
   appearance={{
     showImage: false,
@@ -166,7 +201,9 @@ const categories: Category[] = [
             id: 'compact',
             name: 'Compact',
             component: <PostCardDemo appearance={{ variant: 'compact' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: (
+              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
+            ),
             usageCode: `<PostCard
   data={{
     post: {
@@ -178,7 +215,23 @@ const categories: Category[] = [
       readTime: "12 min read",
       tags: ["MCP", "Backend"],
       category: "Development"
-    }
+    },
+    content: \`
+      <p>The Model Context Protocol (MCP) provides a standardized way for AI applications to communicate with backend services. Understanding the common integration patterns will help you build more robust and maintainable applications.</p>
+
+      <h2>Request-Response Pattern</h2>
+      <p>The most common pattern is simple request-response. Your frontend sends a request to the MCP server, which processes it and returns a response. This works well for simple queries and CRUD operations.</p>
+
+      <p>For more complex scenarios, consider using streaming responses. MCP supports server-sent events, allowing you to receive partial results as they become available.</p>
+
+      <h2>Tool Registration</h2>
+      <p>MCP tools are the building blocks of your backend integration. Each tool defines a specific capability that the AI can invoke. Design your tools to be atomic and composable for maximum flexibility.</p>
+
+      <p>When registering tools, provide clear descriptions and parameter schemas. This helps the AI understand when and how to use each tool effectively.</p>
+
+      <h2>Error Handling</h2>
+      <p>Robust error handling is essential for production applications. MCP provides structured error responses that you should propagate to your UI components gracefully.</p>
+    \`
   }}
   appearance={{
     variant: "compact",
@@ -194,7 +247,9 @@ const categories: Category[] = [
             id: 'horizontal',
             name: 'Horizontal',
             component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: (
+              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
+            ),
             usageCode: `<PostCard
   data={{
     post: {
@@ -207,7 +262,23 @@ const categories: Category[] = [
       readTime: "10 min read",
       tags: ["Payments", "Security"],
       category: "Tutorial"
-    }
+    },
+    content: \`
+      <p>Integrating payment flows within conversational interfaces requires careful consideration of security, user experience, and regulatory compliance. This guide walks you through the essential patterns and best practices.</p>
+
+      <h2>Security First</h2>
+      <p>Never handle raw credit card data in your chat interface. Instead, use tokenization services like Stripe or PayPal that provide secure, PCI-compliant payment forms. These services handle the sensitive data and return a token you can safely use.</p>
+
+      <p>Always use HTTPS and implement proper authentication. Consider adding additional verification steps for high-value transactions.</p>
+
+      <h2>User Experience</h2>
+      <p>Payment flows should be quick and intuitive. Show clear pricing information upfront, and provide progress indicators throughout the checkout process. Users should always know where they are and what's coming next.</p>
+
+      <p>Offer multiple payment methods when possible. Some users prefer cards, others prefer digital wallets like Apple Pay or Google Pay. The more options you provide, the higher your conversion rates.</p>
+
+      <h2>Confirmation and Receipts</h2>
+      <p>Always provide clear confirmation after a successful payment. Include order details, expected delivery dates, and contact information for support. Consider sending a follow-up message or email with the receipt.</p>
+    \`
   }}
   appearance={{
     variant: "horizontal",
@@ -224,7 +295,9 @@ const categories: Category[] = [
             id: 'covered',
             name: 'Covered',
             component: <PostCardDemo appearance={{ variant: 'covered' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: (
+              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
+            ),
             usageCode: `<PostCard
   data={{
     post: {
@@ -237,7 +310,23 @@ const categories: Category[] = [
       readTime: "7 min read",
       tags: ["AI", "Future"],
       category: "Insights"
-    }
+    },
+    content: \`
+      <p>The rise of large language models has fundamentally changed how we think about user interfaces. Traditional GUIs gave way to conversational interfaces, and now we're seeing the emergence of agentic UIs - interfaces that can act autonomously on behalf of users.</p>
+
+      <h2>From Passive to Active</h2>
+      <p>Traditional UIs are passive - they wait for user input and respond accordingly. Agentic UIs, however, can anticipate user needs, suggest actions, and even take initiative when appropriate. This shift requires a new design paradigm.</p>
+
+      <p>The key challenge is building trust. Users need to feel in control even when the AI is taking actions on their behalf. Clear communication about what the AI is doing and why is essential.</p>
+
+      <h2>The Role of Context</h2>
+      <p>Agentic UIs excel when they understand context. By maintaining awareness of the user's goals, history, and preferences, these interfaces can provide more relevant and timely assistance.</p>
+
+      <p>The Model Context Protocol (MCP) provides the foundation for this contextual awareness, allowing AI systems to access and integrate information from various sources.</p>
+
+      <h2>Looking Ahead</h2>
+      <p>As AI capabilities continue to advance, we can expect agentic UIs to become even more sophisticated. The interfaces of tomorrow will feel less like tools and more like intelligent assistants that truly understand and help achieve our goals.</p>
+    \`
   }}
   appearance={{
     variant: "covered",
@@ -263,20 +352,182 @@ const categories: Category[] = [
             id: 'list',
             name: 'List',
             component: <PostListDemo appearance={{ variant: 'list' }} />,
-            fullscreenComponent: <PostList appearance={{ variant: 'fullwidth', columns: 3, postsPerPage: 10 }} />,
+            fullscreenComponent: (
+              <PostList
+                appearance={{
+                  variant: 'fullwidth',
+                  columns: 3,
+                  postsPerPage: 10
+                }}
+              />
+            ),
             usageCode: `<PostList
   data={{
     posts: [
       {
         id: "1",
         title: "Getting Started with Agentic UI Components",
-        excerpt: "Learn how to build conversational interfaces with our comprehensive component library.",
+        excerpt: "Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.",
         coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
         author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
         publishedAt: "2024-01-15",
         readTime: "5 min read",
-        tags: ["Tutorial", "Components"],
+        tags: ["Tutorial", "Components", "AI"],
         category: "Tutorial"
+      },
+      {
+        id: "2",
+        title: "Designing for Conversational Interfaces",
+        excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
+        coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        readTime: "8 min read",
+        tags: ["Design", "UX"],
+        category: "Design"
+      },
+      {
+        id: "3",
+        title: "MCP Integration Patterns",
+        excerpt: "How to leverage Model Context Protocol for seamless backend communication in your agentic applications.",
+        coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        readTime: "12 min read",
+        tags: ["MCP", "Backend", "Integration"],
+        category: "Development"
+      },
+      {
+        id: "4",
+        title: "Building Payment Flows in Chat",
+        excerpt: "A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.",
+        coverImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800",
+        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
+        publishedAt: "2024-01-08",
+        readTime: "10 min read",
+        tags: ["Payments", "Security"],
+        category: "Tutorial"
+      },
+      {
+        id: "5",
+        title: "Real-time Collaboration in AI Apps",
+        excerpt: "Implementing WebSocket connections and real-time updates for collaborative agentic experiences.",
+        coverImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800",
+        author: { name: "Casey Taylor", avatar: "https://i.pravatar.cc/150?u=casey" },
+        publishedAt: "2024-01-06",
+        readTime: "15 min read",
+        tags: ["WebSocket", "Real-time", "Collaboration"],
+        category: "Development"
+      },
+      {
+        id: "6",
+        title: "Accessibility in Chat Interfaces",
+        excerpt: "Making your conversational UI accessible to all users with screen readers and keyboard navigation.",
+        coverImage: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800",
+        author: { name: "Jamie Park", avatar: "https://i.pravatar.cc/150?u=jamie" },
+        publishedAt: "2024-01-04",
+        readTime: "9 min read",
+        tags: ["Accessibility", "A11y", "UX"],
+        category: "Design"
+      },
+      {
+        id: "7",
+        title: "State Management for Complex Workflows",
+        excerpt: "Managing complex multi-step workflows in agentic applications using modern state patterns.",
+        coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+        author: { name: "Drew Martinez", avatar: "https://i.pravatar.cc/150?u=drew" },
+        publishedAt: "2024-01-02",
+        readTime: "11 min read",
+        tags: ["State", "Workflow", "Architecture"],
+        category: "Development"
+      },
+      {
+        id: "8",
+        title: "Testing Conversational Components",
+        excerpt: "Strategies for unit testing and integration testing of chat-based UI components.",
+        coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800",
+        author: { name: "Riley Johnson", avatar: "https://i.pravatar.cc/150?u=riley" },
+        publishedAt: "2023-12-30",
+        readTime: "8 min read",
+        tags: ["Testing", "Quality", "CI/CD"],
+        category: "Development"
+      },
+      {
+        id: "9",
+        title: "Theming and Dark Mode Support",
+        excerpt: "Implementing flexible theming systems with dark mode for agentic UI components.",
+        coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+        author: { name: "Avery Williams", avatar: "https://i.pravatar.cc/150?u=avery" },
+        publishedAt: "2023-12-28",
+        readTime: "7 min read",
+        tags: ["Theming", "Dark Mode", "CSS"],
+        category: "Design"
+      },
+      {
+        id: "10",
+        title: "Performance Optimization Techniques",
+        excerpt: "Optimizing render performance and reducing bundle size in chat applications.",
+        coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+        author: { name: "Quinn Anderson", avatar: "https://i.pravatar.cc/150?u=quinn" },
+        publishedAt: "2023-12-25",
+        readTime: "13 min read",
+        tags: ["Performance", "Optimization", "React"],
+        category: "Development"
+      },
+      {
+        id: "11",
+        title: "Error Handling and Recovery",
+        excerpt: "Graceful error handling patterns and user-friendly recovery flows in conversational UIs.",
+        coverImage: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800",
+        author: { name: "Sage Thompson", avatar: "https://i.pravatar.cc/150?u=sage" },
+        publishedAt: "2023-12-22",
+        readTime: "10 min read",
+        tags: ["Error Handling", "UX", "Resilience"],
+        category: "Development"
+      },
+      {
+        id: "12",
+        title: "Internationalization Best Practices",
+        excerpt: "Making your agentic UI components work across languages and locales.",
+        coverImage: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800",
+        author: { name: "Blake Garcia", avatar: "https://i.pravatar.cc/150?u=blake" },
+        publishedAt: "2023-12-20",
+        readTime: "9 min read",
+        tags: ["i18n", "Localization", "Global"],
+        category: "Design"
+      },
+      {
+        id: "13",
+        title: "Mobile-First Chat Design",
+        excerpt: "Designing conversational interfaces that work beautifully on mobile devices.",
+        coverImage: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800",
+        author: { name: "Charlie Brown", avatar: "https://i.pravatar.cc/150?u=charlie" },
+        publishedAt: "2023-12-18",
+        readTime: "8 min read",
+        tags: ["Mobile", "Responsive", "Design"],
+        category: "Design"
+      },
+      {
+        id: "14",
+        title: "Analytics and User Insights",
+        excerpt: "Tracking user interactions and deriving insights from conversational UI usage.",
+        coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+        author: { name: "Sydney Chen", avatar: "https://i.pravatar.cc/150?u=sydney" },
+        publishedAt: "2023-12-15",
+        readTime: "11 min read",
+        tags: ["Analytics", "Insights", "Data"],
+        category: "Tutorial"
+      },
+      {
+        id: "15",
+        title: "Building Reusable Component Libraries",
+        excerpt: "Creating a scalable component library for agentic UIs that teams can share.",
+        coverImage: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=800",
+        author: { name: "Taylor Swift", avatar: "https://i.pravatar.cc/150?u=taylor" },
+        publishedAt: "2023-12-12",
+        readTime: "14 min read",
+        tags: ["Components", "Library", "Scalability"],
+        category: "Development"
       }
     ]
   }}
@@ -294,9 +545,185 @@ const categories: Category[] = [
             id: 'grid',
             name: 'Grid',
             component: <PostListDemo appearance={{ variant: 'grid' }} />,
-            fullscreenComponent: <PostList appearance={{ variant: 'fullwidth', columns: 3, postsPerPage: 10 }} />,
+            fullscreenComponent: (
+              <PostList
+                appearance={{
+                  variant: 'fullwidth',
+                  columns: 3,
+                  postsPerPage: 10
+                }}
+              />
+            ),
             usageCode: `<PostList
-  data={{ posts: [...] }}
+  data={{
+    posts: [
+      {
+        id: "1",
+        title: "Getting Started with Agentic UI Components",
+        excerpt: "Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.",
+        coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+        publishedAt: "2024-01-15",
+        readTime: "5 min read",
+        tags: ["Tutorial", "Components", "AI"],
+        category: "Tutorial"
+      },
+      {
+        id: "2",
+        title: "Designing for Conversational Interfaces",
+        excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
+        coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        readTime: "8 min read",
+        tags: ["Design", "UX"],
+        category: "Design"
+      },
+      {
+        id: "3",
+        title: "MCP Integration Patterns",
+        excerpt: "How to leverage Model Context Protocol for seamless backend communication in your agentic applications.",
+        coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        readTime: "12 min read",
+        tags: ["MCP", "Backend", "Integration"],
+        category: "Development"
+      },
+      {
+        id: "4",
+        title: "Building Payment Flows in Chat",
+        excerpt: "A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.",
+        coverImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800",
+        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
+        publishedAt: "2024-01-08",
+        readTime: "10 min read",
+        tags: ["Payments", "Security"],
+        category: "Tutorial"
+      },
+      {
+        id: "5",
+        title: "Real-time Collaboration in AI Apps",
+        excerpt: "Implementing WebSocket connections and real-time updates for collaborative agentic experiences.",
+        coverImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800",
+        author: { name: "Casey Taylor", avatar: "https://i.pravatar.cc/150?u=casey" },
+        publishedAt: "2024-01-06",
+        readTime: "15 min read",
+        tags: ["WebSocket", "Real-time", "Collaboration"],
+        category: "Development"
+      },
+      {
+        id: "6",
+        title: "Accessibility in Chat Interfaces",
+        excerpt: "Making your conversational UI accessible to all users with screen readers and keyboard navigation.",
+        coverImage: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800",
+        author: { name: "Jamie Park", avatar: "https://i.pravatar.cc/150?u=jamie" },
+        publishedAt: "2024-01-04",
+        readTime: "9 min read",
+        tags: ["Accessibility", "A11y", "UX"],
+        category: "Design"
+      },
+      {
+        id: "7",
+        title: "State Management for Complex Workflows",
+        excerpt: "Managing complex multi-step workflows in agentic applications using modern state patterns.",
+        coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+        author: { name: "Drew Martinez", avatar: "https://i.pravatar.cc/150?u=drew" },
+        publishedAt: "2024-01-02",
+        readTime: "11 min read",
+        tags: ["State", "Workflow", "Architecture"],
+        category: "Development"
+      },
+      {
+        id: "8",
+        title: "Testing Conversational Components",
+        excerpt: "Strategies for unit testing and integration testing of chat-based UI components.",
+        coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800",
+        author: { name: "Riley Johnson", avatar: "https://i.pravatar.cc/150?u=riley" },
+        publishedAt: "2023-12-30",
+        readTime: "8 min read",
+        tags: ["Testing", "Quality", "CI/CD"],
+        category: "Development"
+      },
+      {
+        id: "9",
+        title: "Theming and Dark Mode Support",
+        excerpt: "Implementing flexible theming systems with dark mode for agentic UI components.",
+        coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+        author: { name: "Avery Williams", avatar: "https://i.pravatar.cc/150?u=avery" },
+        publishedAt: "2023-12-28",
+        readTime: "7 min read",
+        tags: ["Theming", "Dark Mode", "CSS"],
+        category: "Design"
+      },
+      {
+        id: "10",
+        title: "Performance Optimization Techniques",
+        excerpt: "Optimizing render performance and reducing bundle size in chat applications.",
+        coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+        author: { name: "Quinn Anderson", avatar: "https://i.pravatar.cc/150?u=quinn" },
+        publishedAt: "2023-12-25",
+        readTime: "13 min read",
+        tags: ["Performance", "Optimization", "React"],
+        category: "Development"
+      },
+      {
+        id: "11",
+        title: "Error Handling and Recovery",
+        excerpt: "Graceful error handling patterns and user-friendly recovery flows in conversational UIs.",
+        coverImage: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800",
+        author: { name: "Sage Thompson", avatar: "https://i.pravatar.cc/150?u=sage" },
+        publishedAt: "2023-12-22",
+        readTime: "10 min read",
+        tags: ["Error Handling", "UX", "Resilience"],
+        category: "Development"
+      },
+      {
+        id: "12",
+        title: "Internationalization Best Practices",
+        excerpt: "Making your agentic UI components work across languages and locales.",
+        coverImage: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800",
+        author: { name: "Blake Garcia", avatar: "https://i.pravatar.cc/150?u=blake" },
+        publishedAt: "2023-12-20",
+        readTime: "9 min read",
+        tags: ["i18n", "Localization", "Global"],
+        category: "Design"
+      },
+      {
+        id: "13",
+        title: "Mobile-First Chat Design",
+        excerpt: "Designing conversational interfaces that work beautifully on mobile devices.",
+        coverImage: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800",
+        author: { name: "Charlie Brown", avatar: "https://i.pravatar.cc/150?u=charlie" },
+        publishedAt: "2023-12-18",
+        readTime: "8 min read",
+        tags: ["Mobile", "Responsive", "Design"],
+        category: "Design"
+      },
+      {
+        id: "14",
+        title: "Analytics and User Insights",
+        excerpt: "Tracking user interactions and deriving insights from conversational UI usage.",
+        coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+        author: { name: "Sydney Chen", avatar: "https://i.pravatar.cc/150?u=sydney" },
+        publishedAt: "2023-12-15",
+        readTime: "11 min read",
+        tags: ["Analytics", "Insights", "Data"],
+        category: "Tutorial"
+      },
+      {
+        id: "15",
+        title: "Building Reusable Component Libraries",
+        excerpt: "Creating a scalable component library for agentic UIs that teams can share.",
+        coverImage: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=800",
+        author: { name: "Taylor Swift", avatar: "https://i.pravatar.cc/150?u=taylor" },
+        publishedAt: "2023-12-12",
+        readTime: "14 min read",
+        tags: ["Components", "Library", "Scalability"],
+        category: "Development"
+      }
+    ]
+  }}
   appearance={{
     variant: "grid",
     columns: 2,
@@ -312,9 +739,185 @@ const categories: Category[] = [
             id: 'carousel',
             name: 'Carousel',
             component: <PostListDemo appearance={{ variant: 'carousel' }} />,
-            fullscreenComponent: <PostList appearance={{ variant: 'fullwidth', columns: 3, postsPerPage: 10 }} />,
+            fullscreenComponent: (
+              <PostList
+                appearance={{
+                  variant: 'fullwidth',
+                  columns: 3,
+                  postsPerPage: 10
+                }}
+              />
+            ),
             usageCode: `<PostList
-  data={{ posts: [...] }}
+  data={{
+    posts: [
+      {
+        id: "1",
+        title: "Getting Started with Agentic UI Components",
+        excerpt: "Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.",
+        coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+        author: { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah" },
+        publishedAt: "2024-01-15",
+        readTime: "5 min read",
+        tags: ["Tutorial", "Components", "AI"],
+        category: "Tutorial"
+      },
+      {
+        id: "2",
+        title: "Designing for Conversational Interfaces",
+        excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
+        coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        readTime: "8 min read",
+        tags: ["Design", "UX"],
+        category: "Design"
+      },
+      {
+        id: "3",
+        title: "MCP Integration Patterns",
+        excerpt: "How to leverage Model Context Protocol for seamless backend communication in your agentic applications.",
+        coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        readTime: "12 min read",
+        tags: ["MCP", "Backend", "Integration"],
+        category: "Development"
+      },
+      {
+        id: "4",
+        title: "Building Payment Flows in Chat",
+        excerpt: "A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.",
+        coverImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800",
+        author: { name: "Morgan Lee", avatar: "https://i.pravatar.cc/150?u=morgan" },
+        publishedAt: "2024-01-08",
+        readTime: "10 min read",
+        tags: ["Payments", "Security"],
+        category: "Tutorial"
+      },
+      {
+        id: "5",
+        title: "Real-time Collaboration in AI Apps",
+        excerpt: "Implementing WebSocket connections and real-time updates for collaborative agentic experiences.",
+        coverImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800",
+        author: { name: "Casey Taylor", avatar: "https://i.pravatar.cc/150?u=casey" },
+        publishedAt: "2024-01-06",
+        readTime: "15 min read",
+        tags: ["WebSocket", "Real-time", "Collaboration"],
+        category: "Development"
+      },
+      {
+        id: "6",
+        title: "Accessibility in Chat Interfaces",
+        excerpt: "Making your conversational UI accessible to all users with screen readers and keyboard navigation.",
+        coverImage: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800",
+        author: { name: "Jamie Park", avatar: "https://i.pravatar.cc/150?u=jamie" },
+        publishedAt: "2024-01-04",
+        readTime: "9 min read",
+        tags: ["Accessibility", "A11y", "UX"],
+        category: "Design"
+      },
+      {
+        id: "7",
+        title: "State Management for Complex Workflows",
+        excerpt: "Managing complex multi-step workflows in agentic applications using modern state patterns.",
+        coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+        author: { name: "Drew Martinez", avatar: "https://i.pravatar.cc/150?u=drew" },
+        publishedAt: "2024-01-02",
+        readTime: "11 min read",
+        tags: ["State", "Workflow", "Architecture"],
+        category: "Development"
+      },
+      {
+        id: "8",
+        title: "Testing Conversational Components",
+        excerpt: "Strategies for unit testing and integration testing of chat-based UI components.",
+        coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800",
+        author: { name: "Riley Johnson", avatar: "https://i.pravatar.cc/150?u=riley" },
+        publishedAt: "2023-12-30",
+        readTime: "8 min read",
+        tags: ["Testing", "Quality", "CI/CD"],
+        category: "Development"
+      },
+      {
+        id: "9",
+        title: "Theming and Dark Mode Support",
+        excerpt: "Implementing flexible theming systems with dark mode for agentic UI components.",
+        coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+        author: { name: "Avery Williams", avatar: "https://i.pravatar.cc/150?u=avery" },
+        publishedAt: "2023-12-28",
+        readTime: "7 min read",
+        tags: ["Theming", "Dark Mode", "CSS"],
+        category: "Design"
+      },
+      {
+        id: "10",
+        title: "Performance Optimization Techniques",
+        excerpt: "Optimizing render performance and reducing bundle size in chat applications.",
+        coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+        author: { name: "Quinn Anderson", avatar: "https://i.pravatar.cc/150?u=quinn" },
+        publishedAt: "2023-12-25",
+        readTime: "13 min read",
+        tags: ["Performance", "Optimization", "React"],
+        category: "Development"
+      },
+      {
+        id: "11",
+        title: "Error Handling and Recovery",
+        excerpt: "Graceful error handling patterns and user-friendly recovery flows in conversational UIs.",
+        coverImage: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800",
+        author: { name: "Sage Thompson", avatar: "https://i.pravatar.cc/150?u=sage" },
+        publishedAt: "2023-12-22",
+        readTime: "10 min read",
+        tags: ["Error Handling", "UX", "Resilience"],
+        category: "Development"
+      },
+      {
+        id: "12",
+        title: "Internationalization Best Practices",
+        excerpt: "Making your agentic UI components work across languages and locales.",
+        coverImage: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800",
+        author: { name: "Blake Garcia", avatar: "https://i.pravatar.cc/150?u=blake" },
+        publishedAt: "2023-12-20",
+        readTime: "9 min read",
+        tags: ["i18n", "Localization", "Global"],
+        category: "Design"
+      },
+      {
+        id: "13",
+        title: "Mobile-First Chat Design",
+        excerpt: "Designing conversational interfaces that work beautifully on mobile devices.",
+        coverImage: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800",
+        author: { name: "Charlie Brown", avatar: "https://i.pravatar.cc/150?u=charlie" },
+        publishedAt: "2023-12-18",
+        readTime: "8 min read",
+        tags: ["Mobile", "Responsive", "Design"],
+        category: "Design"
+      },
+      {
+        id: "14",
+        title: "Analytics and User Insights",
+        excerpt: "Tracking user interactions and deriving insights from conversational UI usage.",
+        coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+        author: { name: "Sydney Chen", avatar: "https://i.pravatar.cc/150?u=sydney" },
+        publishedAt: "2023-12-15",
+        readTime: "11 min read",
+        tags: ["Analytics", "Insights", "Data"],
+        category: "Tutorial"
+      },
+      {
+        id: "15",
+        title: "Building Reusable Component Libraries",
+        excerpt: "Creating a scalable component library for agentic UIs that teams can share.",
+        coverImage: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=800",
+        author: { name: "Taylor Swift", avatar: "https://i.pravatar.cc/150?u=taylor" },
+        publishedAt: "2023-12-12",
+        readTime: "14 min read",
+        tags: ["Components", "Library", "Scalability"],
+        category: "Development"
+      }
+    ]
+  }}
   appearance={{
     variant: "carousel",
     showAuthor: true,
@@ -336,7 +939,8 @@ const categories: Category[] = [
       {
         id: 'contact-form',
         name: 'Contact Form',
-        description: 'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
+        description:
+          'A complete contact form with name fields, phone number with country selector, email, message textarea, and file attachment.',
         registryName: 'contact-form',
         layouts: ['inline'],
         actionCount: 1,
@@ -367,7 +971,8 @@ const categories: Category[] = [
       {
         id: 'date-time-picker',
         name: 'Date & Time Picker',
-        description: 'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
+        description:
+          'A Calendly-style date and time picker. Select a date to reveal available time slots, then select a time to show the Next button.',
         registryName: 'date-time-picker',
         layouts: ['inline'],
         actionCount: 1,
@@ -401,7 +1006,8 @@ const categories: Category[] = [
       {
         id: 'issue-report-form',
         name: 'Issue Report Form',
-        description: 'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments.',
+        description:
+          'A compact issue reporting form for team members with categories, subcategories, impact/urgency levels, and file attachments.',
         registryName: 'issue-report-form',
         layouts: ['inline'],
         actionCount: 1,
@@ -511,7 +1117,12 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <TableDemo data={{ title: 'API Usage' }} />,
-            fullscreenComponent: <Table data={{ title: 'API Usage' }} appearance={{ displayMode: 'fullscreen' }} />,
+            fullscreenComponent: (
+              <Table
+                data={{ title: 'API Usage' }}
+                appearance={{ displayMode: 'fullscreen' }}
+              />
+            ),
             usageCode: `<Table
   data={{
     title: "API Usage",
@@ -648,14 +1259,15 @@ const categories: Category[] = [
                 <MessageBubble
                   data={{
                     content: 'Hey! How are you doing today?',
-                    avatar: 'S',
+                    avatarUrl: 'https://i.pravatar.cc/150?u=sarah',
+                    avatarFallback: 'S',
                     time: 'Dec 8, 10:30 AM'
                   }}
                 />
                 <MessageBubble
                   data={{
                     content: "I'm doing great, thanks for asking!",
-                    avatar: 'Y',
+                    avatarFallback: 'Y',
                     time: 'Dec 8, 10:31 AM'
                   }}
                   appearance={{ isOwn: true }}
@@ -666,7 +1278,8 @@ const categories: Category[] = [
             usageCode: `<MessageBubble
   data={{
     content: "Hey! How are you doing today?",
-    avatar: "S",
+    avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+    avatarFallback: "S",
     author: "Sarah",
     time: "10:30 AM"
   }}
@@ -674,7 +1287,7 @@ const categories: Category[] = [
 
 // Own message with status
 <MessageBubble
-  data={{ content: "I'm doing great!", avatar: "Y", time: "10:31 AM" }}
+  data={{ content: "I'm doing great!", avatarFallback: "Y", time: "10:31 AM" }}
   appearance={{ isOwn: true }}
   control={{ status: "read" }}
 />`
@@ -688,8 +1301,9 @@ const categories: Category[] = [
                   data={{
                     image:
                       'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-                    caption: 'Check out this view!',
-                    avatar: 'A',
+                    content: 'Check out this view!',
+                    avatarUrl: 'https://i.pravatar.cc/150?u=alex',
+                    avatarFallback: 'A',
                     time: 'Dec 8, 2:45 PM'
                   }}
                 />
@@ -706,9 +1320,11 @@ const categories: Category[] = [
             ),
             usageCode: `<ImageMessageBubble
   data={{
-    image: "https://images.unsplash.com/...",
-    caption: "Check out this view!",
-    avatar: "A",
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop",
+    content: "Check out this view!",
+    avatarUrl: "https://i.pravatar.cc/150?u=alex",
+    avatarFallback: "A",
+    author: "Alex",
     time: "2:45 PM"
   }}
 />`
@@ -720,7 +1336,7 @@ const categories: Category[] = [
               <MessageWithReactions
                 data={{
                   content: 'We just hit 10,000 users!',
-                  avatar: 'T',
+                  avatarFallback: 'T',
                   time: 'Dec 8, 4:20 PM',
                   reactions: [
                     { emoji: '🎉', count: 5 },
@@ -733,7 +1349,9 @@ const categories: Category[] = [
             usageCode: `<MessageWithReactions
   data={{
     content: "We just hit 10,000 users!",
-    avatar: "T",
+    avatarUrl: "https://i.pravatar.cc/150?u=team",
+    avatarFallback: "T",
+    author: "Team",
     time: "4:20 PM",
     reactions: [
       { emoji: "🎉", count: 5 },
@@ -750,14 +1368,15 @@ const categories: Category[] = [
                 <VoiceMessageBubble
                   data={{
                     duration: '0:42',
-                    avatar: 'M',
+                    avatarUrl: 'https://i.pravatar.cc/150?u=mickael',
+                    avatarFallback: 'M',
                     time: 'Dec 8, 3:15 PM'
                   }}
                 />
                 <VoiceMessageBubble
                   data={{
                     duration: '1:23',
-                    avatar: 'Y',
+                    avatarFallback: 'Y',
                     time: 'Dec 8, 3:17 PM'
                   }}
                   appearance={{ isOwn: true }}
@@ -768,9 +1387,24 @@ const categories: Category[] = [
             usageCode: `<VoiceMessageBubble
   data={{
     duration: "0:42",
-    avatar: "M",
-    time: "3:15 PM"
+    avatarUrl: "https://i.pravatar.cc/150?u=mike",
+    avatarFallback: "M",
+    author: "Mike",
+    time: "3:15 PM",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   }}
+/>
+
+// Own voice message
+<VoiceMessageBubble
+  data={{
+    duration: "1:23",
+    avatarFallback: "Y",
+    time: "3:17 PM",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+  }}
+  appearance={{ isOwn: true }}
+  control={{ status: "read" }}
 />`
           }
         ]
@@ -793,16 +1427,41 @@ const categories: Category[] = [
       {
         id: "1",
         type: "text",
-        content: "Hey! Check out this new feature!",
+        content: "Hey! Check out this new feature we just shipped 🚀",
         author: "Sarah",
-        avatar: "S",
+        avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+        avatarFallback: "S",
         time: "10:30 AM",
         isOwn: false
       },
       {
         id: "2",
         type: "text",
-        content: "That looks amazing!",
+        content: "Oh wow, that looks amazing! How long did it take to build?",
+        author: "You",
+        avatarFallback: "Y",
+        time: "10:31 AM",
+        isOwn: true,
+        status: "read"
+      },
+      {
+        id: "3",
+        type: "image",
+        content: "Here's a preview of the dashboard",
+        image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
+        author: "Sarah",
+        avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+        avatarFallback: "S",
+        time: "10:32 AM",
+        isOwn: false
+      },
+      {
+        id: "4",
+        type: "text",
+        content: "This is incredible! The UI is so clean 👏",
+        author: "You",
+        avatarFallback: "Y",
+        time: "10:33 AM",
         isOwn: true,
         status: "read"
       }
@@ -1267,7 +1926,13 @@ const categories: Category[] = [
 ]
 
 // Copy link button component
-function CopyLinkButton({ anchor, className }: { anchor?: string; className?: string }) {
+function CopyLinkButton({
+  anchor,
+  className
+}: {
+  anchor?: string
+  className?: string
+}) {
   const [copied, setCopied] = useState(false)
   const pathname = usePathname()
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -1299,7 +1964,12 @@ function CopyLinkButton({ anchor, className }: { anchor?: string; className?: st
       )}
       title={copied ? 'Copied!' : 'Copy link'}
     >
-      <LinkIcon className={cn('h-4 w-4', copied ? 'text-green-500' : 'text-muted-foreground')} />
+      <LinkIcon
+        className={cn(
+          'h-4 w-4',
+          copied ? 'text-green-500' : 'text-muted-foreground'
+        )}
+      />
     </button>
   )
 }
@@ -1352,7 +2022,9 @@ function BlockPageContent() {
       <div className="flex min-h-[calc(100vh-3.5rem)] bg-card items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Block not found</h1>
-          <p className="text-muted-foreground mb-4">The requested block does not exist.</p>
+          <p className="text-muted-foreground mb-4">
+            The requested block does not exist.
+          </p>
           <Link href="/blocks" className="text-primary hover:underline">
             Go back to blocks
           </Link>
@@ -1442,9 +2114,7 @@ function BlockPageContent() {
                 </span>
               )}
             </div>
-            <p className="text-muted-foreground">
-              {selectedBlock.description}
-            </p>
+            <p className="text-muted-foreground">{selectedBlock.description}</p>
           </div>
 
           {/* All Variants */}
@@ -1468,26 +2138,28 @@ function BlockPageContent() {
           ))}
 
           {/* Related Blocks in Same Category */}
-          {selectedCategory && selectedCategory.blocks.filter((b) => b.id !== blockSlug).length > 0 && (
-            <div className="mt-16 pt-8 border-t border-border/50">
-              <h2 className="text-base font-medium text-muted-foreground mb-4">
-                Other blocks in the {selectedCategory.name} category
-              </h2>
-              <div className="grid grid-cols-2 gap-2">
-                {selectedCategory.blocks
-                  .filter((b) => b.id !== blockSlug)
-                  .map((block) => (
-                    <Link
-                      key={block.id}
-                      href={`/blocks/${selectedCategory.id}/${block.id}`}
-                      className="px-3 py-2 text-sm rounded-md border border-border/50 bg-background/50 hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                      {block.name}
-                    </Link>
-                  ))}
+          {selectedCategory &&
+            selectedCategory.blocks.filter((b) => b.id !== blockSlug).length >
+              0 && (
+              <div className="mt-16 pt-8 border-t border-border/50">
+                <h2 className="text-base font-medium text-muted-foreground mb-4">
+                  Other blocks in the {selectedCategory.name} category
+                </h2>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedCategory.blocks
+                    .filter((b) => b.id !== blockSlug)
+                    .map((block) => (
+                      <Link
+                        key={block.id}
+                        href={`/blocks/${selectedCategory.id}/${block.id}`}
+                        className="px-3 py-2 text-sm rounded-md border border-border/50 bg-background/50 hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
+                      >
+                        {block.name}
+                      </Link>
+                    ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>

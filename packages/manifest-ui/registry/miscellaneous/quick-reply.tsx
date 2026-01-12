@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils'
 export interface QuickReply {
   id: string
   label: string
-  value?: string
   icon?: React.ReactNode
 }
 

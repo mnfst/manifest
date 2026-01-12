@@ -5,7 +5,7 @@
   "items": [
     {
       "name": "contact-form",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "type": "registry:component",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
@@ -260,7 +260,7 @@
     },
     {
       "name": "quick-reply",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "type": "registry:component",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
@@ -411,7 +411,7 @@
     },
     {
       "name": "message-bubble",
-      "version": "1.0.2",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
@@ -426,7 +426,7 @@
     },
     {
       "name": "chat-conversation",
-      "version": "1.0.2",
+      "version": "3.0.0",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
@@ -505,7 +505,7 @@
     },
     {
       "name": "map-carousel",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "type": "registry:component",
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",

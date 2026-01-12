@@ -131,7 +131,48 @@ EOF
 
 ## Block Development Guidelines
 
-**CRITICAL**: When adding or editing a block, you MUST include a comprehensive usage example.
+**CRITICAL**: When adding or editing a block, you MUST update ALL related code across the codebase.
+
+### Complete Update Requirement (CRITICAL)
+
+**When modifying ANY aspect of a block, you MUST update EVERY place that references it.**
+
+A block modification is NOT complete until you have updated:
+
+| Location | What to Update |
+|----------|----------------|
+| `registry/<category>/<block>.tsx` | Component code, interfaces, props, default values |
+| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data |
+| `registry.json` | Version bump (PATCH/MINOR/MAJOR) |
+| `changelog.json` | Changelog entry for the new version |
+
+#### What Lives in `page.tsx`
+
+The block detail page (`app/blocks/[category]/[block]/page.tsx`) contains:
+
+1. **Block metadata** - `id`, `name`, `description`, `registryName`, `layouts`, `actionCount`
+2. **Variants array** - Each variant has:
+   - `id`, `name` - Variant identifier and display name
+   - `component` - The actual React component with props for preview
+   - `usageCode` - **String** that developers copy-paste (MUST match the component interface exactly)
+3. **Default data** - Sample data used in the preview
+
+#### Common Mistakes to Avoid
+
+- Changing a prop name in the `.tsx` file but forgetting to update `usageCode`
+- Removing a prop from the interface but leaving it in `usageCode`
+- Adding a new required prop but not showing it in `usageCode`
+- Updating default values in the component but not reflecting them in preview data
+
+#### Verification Steps
+
+After ANY component change:
+1. Read the component `.tsx` file to understand the current interface
+2. Read the `page.tsx` block definition to see current `usageCode`
+3. Ensure `usageCode` exactly matches the component's interface
+4. Ensure the preview component uses the correct props
+5. Bump version in `registry.json`
+6. Add changelog entry in `changelog.json`
 
 ### Required Files to Update
 
@@ -139,12 +180,46 @@ When creating or modifying a block, update these files:
 
 1. **Component file**: `packages/manifest-ui/registry/<category>/<block-name>.tsx`
 2. **Registry definition**: `packages/manifest-ui/registry.json`
-3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/page.tsx`
-4. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
+4. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
+5. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+
+### Avatar Pattern (IMPORTANT)
+
+**All components with avatars MUST support both image URLs and letter fallbacks.**
+
+When a component displays an avatar (e.g., in messaging, comments, profiles), implement this pattern:
+
+```typescript
+// In the component's data interface
+data?: {
+  avatarUrl?: string       // Image URL (optional, takes priority over letter)
+  avatarFallback?: string  // Letter fallback (e.g., "S" for Sarah)
+  // ... other props
+}
+```
+
+**Implementation:**
+- If `avatarUrl` is provided and loads successfully → show the image
+- If `avatarUrl` fails to load OR is not provided → show letter in a colored circle
+- Always require `avatarFallback` (letter) as the fallback
+
+**usageCode example:**
+```tsx
+<MessageBubble
+  data={{
+    avatarUrl: "https://i.pravatar.cc/150?u=sarah",  // Optional image URL
+    avatarFallback: "S",  // Letter fallback (required)
+    // ...
+  }}
+/>
+```
+
+This ensures components gracefully handle missing or broken avatar images.
 
 ### Usage Example Requirements
 
-Every block variant in `app/blocks/page.tsx` MUST have a `usageCode` field with a comprehensive example that demonstrates:
+Every block variant in `app/blocks/[category]/[block]/page.tsx` MUST have a `usageCode` field with a comprehensive example that demonstrates:
 
 1. **All common props** - Show the typical props a developer would use
 2. **Realistic demo data** - Use meaningful placeholder data, not just "test" or "foo"
@@ -307,19 +382,42 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
 
+### PostList Block Requirements (CRITICAL)
+
+**The PostList block MUST always have exactly 15 posts in its `usageCode` data.**
+
+This is required because:
+1. The PostList component does NOT have default posts - it requires data to be passed
+2. Users copy-paste the usage code to test in MCP Jam - they need complete data
+3. 15 posts provides a realistic dataset for pagination and scrolling demos
+
+When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[category]/[block]/page.tsx`:
+- Always include all 15 posts in the `data.posts` array
+- Use the standard 15 demo posts (Sarah Chen, Alex Rivera, Jordan Kim, etc.)
+- Never use placeholders like `[...]` or truncated arrays
+
 ### Checklist for Block Changes
 
 Before submitting a PR with block changes:
 
-- [ ] **Version bumped in `registry.json`** (REQUIRED - tests will fail otherwise)
-- [ ] **Changelog entry added in `changelog.json`** (REQUIRED - tests will fail otherwise)
+**Synchronization (CRITICAL):**
+- [ ] **Component interface matches `usageCode`** - Every prop in the interface is shown in usageCode
+- [ ] **`usageCode` uses correct prop names** - No stale/renamed props in usageCode
+- [ ] **Preview component uses current props** - The `<Component />` in variants uses the right props
+- [ ] **Default values are consistent** - Defaults in component match what's shown in preview
+
+**Versioning (REQUIRED):**
+- [ ] **Version bumped in `registry.json`** (tests will fail otherwise)
+- [ ] **Changelog entry added in `changelog.json`** (tests will fail otherwise)
+
+**Quality:**
 - [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
 - [ ] Block is registered in `registry.json` with correct dependencies
-- [ ] Block demo added to `app/blocks/page.tsx` with ALL variants
 - [ ] EVERY variant has a `usageCode` field with comprehensive example
 - [ ] Usage example shows realistic data (not placeholder text like "test" or "foo")
 - [ ] All action handlers are demonstrated with `console.log` examples
 - [ ] New category added to `blocks-categories.ts` if needed
+- [ ] **PostList block has exactly 15 posts in usageCode** (if modifying PostList)
 
 ## Package-Specific Guidance
 

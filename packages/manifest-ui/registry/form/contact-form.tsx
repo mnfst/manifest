@@ -15,11 +15,11 @@ import { useEffect, useRef, useState } from 'react'
 export interface ContactFormData {
   firstName: string
   lastName: string
-  countryId: string
-  countryCode: string
-  phoneNumber: string
-  email: string
-  message: string
+  countryId?: string
+  countryCode?: string
+  phoneNumber?: string
+  email?: string
+  message?: string
   attachment?: File | null
 }
 
