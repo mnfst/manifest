@@ -1259,14 +1259,15 @@ const categories: Category[] = [
                 <MessageBubble
                   data={{
                     content: 'Hey! How are you doing today?',
-                    avatar: 'S',
+                    avatarUrl: 'https://i.pravatar.cc/150?u=sarah',
+                    avatarFallback: 'S',
                     time: 'Dec 8, 10:30 AM'
                   }}
                 />
                 <MessageBubble
                   data={{
                     content: "I'm doing great, thanks for asking!",
-                    avatar: 'Y',
+                    avatarFallback: 'Y',
                     time: 'Dec 8, 10:31 AM'
                   }}
                   appearance={{ isOwn: true }}
@@ -1277,7 +1278,8 @@ const categories: Category[] = [
             usageCode: `<MessageBubble
   data={{
     content: "Hey! How are you doing today?",
-    avatar: "S",
+    avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+    avatarFallback: "S",
     author: "Sarah",
     time: "10:30 AM"
   }}
@@ -1285,7 +1287,7 @@ const categories: Category[] = [
 
 // Own message with status
 <MessageBubble
-  data={{ content: "I'm doing great!", avatar: "Y", time: "10:31 AM" }}
+  data={{ content: "I'm doing great!", avatarFallback: "Y", time: "10:31 AM" }}
   appearance={{ isOwn: true }}
   control={{ status: "read" }}
 />`
@@ -1300,7 +1302,8 @@ const categories: Category[] = [
                     image:
                       'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
                     caption: 'Check out this view!',
-                    avatar: 'A',
+                    avatarUrl: 'https://i.pravatar.cc/150?u=alex',
+                    avatarFallback: 'A',
                     time: 'Dec 8, 2:45 PM'
                   }}
                 />
@@ -1317,9 +1320,11 @@ const categories: Category[] = [
             ),
             usageCode: `<ImageMessageBubble
   data={{
-    image: "https://images.unsplash.com/...",
+    image: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop",
     caption: "Check out this view!",
-    avatar: "A",
+    avatarUrl: "https://i.pravatar.cc/150?u=alex",
+    avatarFallback: "A",
+    author: "Alex",
     time: "2:45 PM"
   }}
 />`
@@ -1331,7 +1336,7 @@ const categories: Category[] = [
               <MessageWithReactions
                 data={{
                   content: 'We just hit 10,000 users!',
-                  avatar: 'T',
+                  avatarFallback: 'T',
                   time: 'Dec 8, 4:20 PM',
                   reactions: [
                     { emoji: '🎉', count: 5 },
@@ -1344,7 +1349,9 @@ const categories: Category[] = [
             usageCode: `<MessageWithReactions
   data={{
     content: "We just hit 10,000 users!",
-    avatar: "T",
+    avatarUrl: "https://i.pravatar.cc/150?u=team",
+    avatarFallback: "T",
+    author: "Team",
     time: "4:20 PM",
     reactions: [
       { emoji: "🎉", count: 5 },
@@ -1361,14 +1368,15 @@ const categories: Category[] = [
                 <VoiceMessageBubble
                   data={{
                     duration: '0:42',
-                    avatar: 'M',
+                    avatarUrl: 'https://i.pravatar.cc/150?u=mickael',
+                    avatarFallback: 'M',
                     time: 'Dec 8, 3:15 PM'
                   }}
                 />
                 <VoiceMessageBubble
                   data={{
                     duration: '1:23',
-                    avatar: 'Y',
+                    avatarFallback: 'Y',
                     time: 'Dec 8, 3:17 PM'
                   }}
                   appearance={{ isOwn: true }}
@@ -1379,7 +1387,8 @@ const categories: Category[] = [
             usageCode: `<VoiceMessageBubble
   data={{
     duration: "0:42",
-    avatar: "M",
+    avatarUrl: "https://i.pravatar.cc/150?u=mike",
+    avatarFallback: "M",
     author: "Mike",
     time: "3:15 PM",
     audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
@@ -1390,7 +1399,7 @@ const categories: Category[] = [
 <VoiceMessageBubble
   data={{
     duration: "1:23",
-    avatar: "Y",
+    avatarFallback: "Y",
     time: "3:17 PM",
     audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   }}
@@ -1420,7 +1429,8 @@ const categories: Category[] = [
         type: "text",
         content: "Hey! Check out this new feature we just shipped 🚀",
         author: "Sarah",
-        avatar: "S",
+        avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+        avatarFallback: "S",
         time: "10:30 AM",
         isOwn: false
       },
@@ -1429,7 +1439,7 @@ const categories: Category[] = [
         type: "text",
         content: "Oh wow, that looks amazing! How long did it take to build?",
         author: "You",
-        avatar: "Y",
+        avatarFallback: "Y",
         time: "10:31 AM",
         isOwn: true,
         status: "read"
@@ -1440,7 +1450,8 @@ const categories: Category[] = [
         image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
         caption: "Here's a preview of the dashboard",
         author: "Sarah",
-        avatar: "S",
+        avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+        avatarFallback: "S",
         time: "10:32 AM",
         isOwn: false
       },
@@ -1449,7 +1460,7 @@ const categories: Category[] = [
         type: "text",
         content: "This is incredible! The UI is so clean 👏",
         author: "You",
-        avatar: "Y",
+        avatarFallback: "Y",
         time: "10:33 AM",
         isOwn: true,
         status: "read"
