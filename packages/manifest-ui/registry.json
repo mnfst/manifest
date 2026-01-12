@@ -555,6 +555,25 @@
           "type": "registry:lib"
         }
       ]
+    },
+    {
+      "name": "event-detail",
+      "version": "1.0.0",
+      "type": "registry:component",
+      "title": "Event Detail",
+      "description": "Full event detail view with image carousel, organizer info, location, policies, and ticket purchase.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-detail.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
     }
   ]
 }

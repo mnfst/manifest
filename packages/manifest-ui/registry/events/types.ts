@@ -95,6 +95,11 @@ export interface Organizer {
   rating: number
   reviewCount: number
   verified?: boolean
+  followers?: number
+  eventsCount?: number
+  hostingYears?: number
+  responseRate?: 'very responsive' | 'responsive' | 'slow'
+  trackRecord?: 'great' | 'good' | 'new'
 }
 
 export interface EventVenue {
@@ -125,22 +130,32 @@ export interface EventBooking {
 
 // Extended Event with full details for event-detail component
 export interface EventDetails extends Event {
+  images?: string[] // Multiple images for carousel
   description?: string
   organizer?: Organizer
   venue_details?: EventVenue
   tiers?: TicketTier[]
+  attendeesCount?: number // "537 going"
+  friendsGoing?: { name: string; avatar?: string }[]
+  highlights?: string[] // "2 hours", "In person"
   goodToKnow?: {
     accessibility?: string[]
     dressCode?: string
     ageRestriction?: string
     parking?: string
+    duration?: string
+    doorsOpen?: string
+    showtime?: string
   }
   amenities?: string[]
   policies?: {
     refund?: string
     entry?: string
+    idRequired?: boolean
+    securityOnSite?: boolean
     items?: string[]
   }
   faq?: { question: string; answer: string }[]
   relatedEvents?: Event[]
+  relatedTags?: string[] // "San Francisco Events", "California Events"
 }

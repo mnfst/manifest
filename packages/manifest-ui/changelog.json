@@ -122,6 +122,9 @@
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support."
+    },
+    "event-detail": {
+      "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase."
     }
   }
 }

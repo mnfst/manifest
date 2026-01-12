@@ -21,6 +21,7 @@ export const blockCategories: BlockCategory[] = [
     name: 'Events',
     blocks: [
       { id: 'event-card', name: 'Event Card' },
+      { id: 'event-detail', name: 'Event Detail' },
       { id: 'event-list', name: 'Event List' }
     ]
   },

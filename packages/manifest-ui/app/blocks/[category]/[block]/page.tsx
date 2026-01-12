@@ -19,6 +19,7 @@ import { PostList } from '@/registry/blogging/post-list'
 
 // Events components
 import { EventCard } from '@/registry/events/event-card'
+import { EventDetail } from '@/registry/events/event-detail'
 import { EventList } from '@/registry/events/event-list'
 
 // List components
@@ -1121,6 +1122,107 @@ const categories: Category[] = [
   }}
   actions={{
     onClick: (event) => console.log("Event clicked:", event.title)
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'event-detail',
+        name: 'Event Detail',
+        description:
+          'Detailed event view with image carousel, organizer info, location, policies, FAQs, and ticket purchase.',
+        registryName: 'event-detail',
+        layouts: ['fullscreen'],
+        actionCount: 5,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <EventDetail />,
+            usageCode: `<EventDetail
+  data={{
+    event: {
+      id: "1",
+      title: "Sunglasses at Night: Underground Techno",
+      category: "Nightlife",
+      venue: "The White Rabbit",
+      neighborhood: "The Woodlands",
+      city: "Houston, TX",
+      startDateTime: "2025-01-15T22:00:00Z",
+      endDateTime: "2025-01-16T04:00:00Z",
+      priceRange: "$15 - $30",
+      images: [
+        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
+        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+        "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800"
+      ],
+      vibeTags: ["High energy", "Late night", "Underground"],
+      eventSignal: "going-fast",
+      aiSummary: "Raw, unfiltered techno in an authentic warehouse setting.",
+      description: "Experience the raw energy of underground techno. Industrial beats, immersive visuals, and a crowd that lives for the music.",
+      lineup: ["Amelie Lens", "I Hate Models", "FJAAK"],
+      attendeesCount: 537,
+      friendsGoing: [
+        { name: "Alex", avatar: "https://i.pravatar.cc/40?u=alex" },
+        { name: "Sam", avatar: "https://i.pravatar.cc/40?u=sam" }
+      ],
+      organizer: {
+        id: "1",
+        name: "Midnight Lovers",
+        image: "https://i.pravatar.cc/80?u=midnight",
+        rating: 4.5,
+        reviewCount: 1067,
+        verified: true,
+        followers: 1200,
+        eventsCount: 154,
+        hostingYears: 8,
+        trackRecord: "great",
+        responseRate: "very responsive"
+      },
+      venue_details: {
+        name: "The White Rabbit",
+        address: "8827 Nasher Ave",
+        city: "Houston TX",
+        coordinates: { lat: 29.7604, lng: -95.3698 }
+      },
+      tiers: [
+        { id: "1", name: "General Admission", price: 15, available: 50 },
+        { id: "2", name: "VIP Access", price: 30, available: 20, benefits: ["Skip the line", "Exclusive lounge"] }
+      ],
+      goodToKnow: {
+        duration: "2 hours",
+        doorsOpen: "7:00 PM",
+        showtime: "7:30 PM",
+        ageRestriction: "21+",
+        dressCode: "Casual",
+        parking: "Limited, leave early to avoid long queues"
+      },
+      policies: {
+        refund: "No refunds. Tickets are transferable.",
+        entry: "Open 2 hours before event",
+        idRequired: true,
+        securityOnSite: true
+      },
+      faq: [
+        { question: "What is the refund policy?", answer: "No refunds. Tickets are transferable." },
+        { question: "When do doors open?", answer: "Open 2 hours before event." },
+        { question: "Is there parking?", answer: "Limited, leave early to avoid long queues." }
+      ],
+      relatedTags: ["Houston Events", "Texas Nightlife", "Techno Parties"]
+    }
+  }}
+  appearance={{
+    showAiMatch: true,
+    showMap: true
+  }}
+  actions={{
+    onGetTickets: (event) => console.log("Get tickets for:", event.title),
+    onShare: (event) => console.log("Share event:", event.title),
+    onSave: (event) => console.log("Save event:", event.title),
+    onBack: () => console.log("Navigate back"),
+    onFollow: (organizer) => console.log("Follow organizer:", organizer?.name),
+    onContact: (organizer) => console.log("Contact organizer:", organizer?.name)
   }}
 />`
           }
