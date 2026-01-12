@@ -1,4 +1,4 @@
-import { IssueReportForm } from '../components/issue-report-form'
+import { ContactForm } from '@/components/contact-form'
 import React from 'react'
 import { mountWidget } from 'skybridge/web'
 import '../index.css'
@@ -10,7 +10,29 @@ import '../index.css'
 const MyWidget: React.FC = () => {
   return (
     <div>
-      <IssueReportForm />
+      <ContactForm
+        data={{
+          title: 'Contact us',
+          subtitle:
+            "Fill out the form below and we'll get back to you as soon as possible.",
+          submitLabel: 'Send message',
+          initialValues: {
+            firstName: 'John',
+            lastName: 'Doe',
+            countryId: 'us',
+            countryCode: '+1',
+            phoneNumber: '(555) 123-4567',
+            email: 'john.doe@example.com',
+            message: "I'm interested in learning more about your services."
+          }
+        }}
+        appearance={{
+          showTitle: true
+        }}
+        actions={{
+          onSubmit: (formData) => console.log(formData)
+        }}
+      />
     </div>
   )
 }

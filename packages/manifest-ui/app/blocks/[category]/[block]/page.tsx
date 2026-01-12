@@ -951,18 +951,24 @@ const categories: Category[] = [
             component: <ContactForm />,
             usageCode: `<ContactForm
   data={{
-    title: "Contact Us",
+    title: "Contact us",
     subtitle: "Fill out the form below and we'll get back to you as soon as possible.",
-    submitLabel: "Send Message"
+    submitLabel: "Send message",
+    initialValues: {
+      firstName: "John",
+      lastName: "Doe",
+      countryId: "us",
+      countryCode: "+1",
+      phoneNumber: "(555) 123-4567",
+      email: "john.doe@example.com",
+      message: "I'm interested in learning more about your services."
+    }
   }}
   appearance={{
     showTitle: true
   }}
   actions={{
-    onSubmit: (data) => console.log("Form submitted:", data)
-  }}
-  control={{
-    isLoading: false
+    onSubmit: (formData) => console.log(formData)
   }}
 />`
           }

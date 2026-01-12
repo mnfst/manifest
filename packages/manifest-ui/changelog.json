@@ -3,7 +3,8 @@
   "components": {
     "contact-form": {
       "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
-      "1.1.0": "Made phone, email, and message fields optional with defaults"
+      "1.1.0": "Made phone, email, and message fields optional with defaults",
+      "1.2.0": "Added initialValues prop to pre-fill form fields"
     },
     "date-time-picker": {
       "1.0.0": "Initial release with calendar and time slot selection"
