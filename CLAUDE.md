@@ -405,7 +405,8 @@ interface Event {
   vibeDescription?: string
   aiSummary?: string         // AI-generated match explanation
   lineup?: string[]
-  eventSignal?: "going-fast" | "popular" | "just-added" | "sales-end-soon"
+  eventSignal?: EventSignal
+  ticketSignal?: TicketSignal
   organizerRating?: number
   reviewCount?: number
   hasMultipleDates?: boolean
@@ -413,13 +414,37 @@ interface Event {
 }
 ```
 
-#### Event Signal Display
+#### Signal Types
 
-Event signals indicate urgency/popularity:
-- `going-fast` - Orange badge, "Going Fast"
-- `popular` - Pink badge, "Popular"
-- `just-added` - Blue badge, "Just Added"
-- `sales-end-soon` - Red badge, "Sales End Soon"
+**Event Signals** - Status indicators for events:
+
+```typescript
+type EventSignal =
+  | "going-fast"       // Orange - "Going Fast"
+  | "popular"          // Pink - "Popular"
+  | "just-added"       // Blue - "Just Added"
+  | "sales-end-soon"   // Red - "Sales End Soon"
+  | "few-tickets-left" // Orange - "Few Tickets Left"
+  | "canceled"         // Gray - "Canceled"
+  | "ended"            // Gray - "Ended"
+  | "postponed"        // Yellow - "Postponed"
+```
+
+**Ticket Signals** - Status indicators for ticket availability:
+
+```typescript
+type TicketSignal =
+  | "discount-applied"       // Green - "Discount Applied"
+  | "few-tickets-left"       // Orange - "Few Tickets Left"
+  | "less-than-10-remaining" // Orange - "Less than 10 Remaining"
+  | "more-than-11-remaining" // Gray - "More than 11 Remaining"
+  | "not-yet-on-sale"        // Blue - "Not Yet On Sale"
+  | "sales-end-soon"         // Red - "Sales End Soon"
+  | "sales-ended"            // Gray - "Sales Ended"
+  | "sold-out"               // Red - "Sold Out"
+  | "unavailable"            // Gray - "Unavailable"
+  | "unlocked"               // Green - "Unlocked"
+```
 
 #### Event Detail Sections
 
