@@ -116,6 +116,28 @@
     "map-carousel": {
       "1.0.0": "Initial release with interactive map and location cards",
       "1.1.0": "Made image and price fields optional in Location interface"
+    },
+    "event-card": {
+      "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
+      "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
+      "3.0.0": "Added image support to Event type and default variant for displaying cover images.",
+      "4.0.0": "BREAKING: Removed View button from all variants. Entire card is now clickable.",
+      "4.1.0": "Added image display to horizontal (list) and compact (carousel) variants"
+    },
+    "event-list": {
+      "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
+      "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
+      "3.0.0": "Updated grid variant to show 3 cards with images and View More button. Added onViewMore action.",
+      "4.0.0": "BREAKING: Added fullwidth variant with split-screen map layout. Updated to 15 events. Added coordinates to Event type.",
+      "5.0.0": "BREAKING: Fullwidth is no longer a variant - use fullscreenComponent instead. Map now uses real Leaflet.",
+      "5.1.0": "Added animated filter panel with Category, Date, Neighborhood, Price, and Format filters. Filters apply to both list and map markers.",
+      "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action"
+    },
+    "event-detail": {
+      "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
+      "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
+      "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
+      "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors"
     }
   }
 }

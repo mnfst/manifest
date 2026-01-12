@@ -382,6 +382,154 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
 
+### Events Category Guidelines (CRITICAL)
+
+**When creating or modifying Events category components, follow these guidelines:**
+
+#### Event Data Structure
+
+All event components use a shared `Event` interface:
+
+```typescript
+type EventLocationType = "physical" | "online" | "hybrid"
+
+interface Event {
+  id: string
+  title: string
+  category: string             // "Music", "Comedy", "Classes", "Nightlife", "Sports"
+  locationType?: EventLocationType // defaults to "physical"
+  venue?: string               // Optional for online events
+  neighborhood?: string
+  city?: string                // Optional for online events
+  onlineUrl?: string           // For online/hybrid events
+  startDateTime: string        // ISO format: "2025-01-11T21:00:00Z"
+  endDateTime?: string         // ISO format: "2025-01-12T03:00:00Z"
+  priceRange: string           // "$45 - $150", "Free"
+  image?: string
+  vibeTags?: VibeTag[]         // ["High energy", "Late night", "Dressy"]
+  vibeDescription?: string
+  aiSummary?: string           // AI-generated match explanation
+  lineup?: string[]
+  eventSignal?: EventSignal
+  ticketSignal?: TicketSignal
+  organizerRating?: number
+  reviewCount?: number
+  hasMultipleDates?: boolean
+  discount?: string
+}
+```
+
+#### Event Location Types
+
+Events can be physical, online, or hybrid:
+- `physical` - In-person event with venue and city (default)
+- `online` - Virtual event with `onlineUrl`, no venue/city required
+- `hybrid` - Both in-person and online, has venue/city AND `onlineUrl`
+
+#### Date/Time Formatting
+
+Store dates as ISO 8601 strings. The component automatically formats for display:
+- **Today**: "Tonight 9:00 PM - 3:00 AM"
+- **Tomorrow**: "Tomorrow 8:00 PM"
+- **Future dates**: "Jan 15 7:00 PM"
+
+```typescript
+// Example usage
+startDateTime: "2025-01-11T21:00:00Z"  // 9 PM UTC
+endDateTime: "2025-01-12T03:00:00Z"    // 3 AM UTC next day
+```
+
+#### Signal Types
+
+**Event Signals** - Status indicators for events:
+
+```typescript
+type EventSignal =
+  | "going-fast"       // Orange - "Going Fast"
+  | "popular"          // Pink - "Popular"
+  | "just-added"       // Blue - "Just Added"
+  | "sales-end-soon"   // Red - "Sales End Soon"
+  | "few-tickets-left" // Orange - "Few Tickets Left"
+  | "canceled"         // Gray - "Canceled"
+  | "ended"            // Gray - "Ended"
+  | "postponed"        // Yellow - "Postponed"
+```
+
+**Ticket Signals** - Status indicators for ticket availability:
+
+```typescript
+type TicketSignal =
+  | "discount-applied"       // Green - "Discount Applied"
+  | "few-tickets-left"       // Orange - "Few Tickets Left"
+  | "less-than-10-remaining" // Orange - "Less than 10 Remaining"
+  | "more-than-11-remaining" // Gray - "More than 11 Remaining"
+  | "not-yet-on-sale"        // Blue - "Not Yet On Sale"
+  | "sales-end-soon"         // Red - "Sales End Soon"
+  | "sales-ended"            // Gray - "Sales Ended"
+  | "sold-out"               // Red - "Sold Out"
+  | "unavailable"            // Gray - "Unavailable"
+  | "unlocked"               // Green - "Unlocked"
+```
+
+**Vibe Tags** - Descriptive tags for event atmosphere (multiple selection):
+
+```typescript
+type VibeTag =
+  | "All night"        | "Beginner-friendly" | "Casual"
+  | "Classic"          | "Cocktails"         | "Creative"
+  | "Date night"       | "Discover"          | "Dressy"
+  | "Educational"      | "Exciting"          | "Family-friendly"
+  | "Fun"              | "Hands-on"          | "High energy"
+  | "Interactive"      | "Intimate"          | "Late night"
+  | "Outdoor"          | "Relaxing"          | "Social"
+  | "Sophisticated"    | "Tasting"           | "Underground"
+  | "Upscale"          | "Views"             | "Wellness"
+```
+
+#### Event Card UI Layout
+
+**EventSignal placement**: Always display the EventSignal badge to the right of the category label.
+
+```
+┌─────────────────────────────────┐
+│ [Category]  [EventSignal Badge] │  ← Signal next to category
+│ Event Title                     │
+│ 📅 Date/Time  📍 Location       │
+│ [Tag] [Tag] [Tag]               │
+│ $Price         ⭐ Rating  [CTA] │
+└─────────────────────────────────┘
+```
+
+#### Event Detail Sections
+
+The `event-detail` component has 11 sections in this order:
+1. Image header with title overlay
+2. Event basics (date, time, price, location)
+3. AI match explanation (optional, personalized recommendation)
+4. About section (description)
+5. Good to know (accessibility, dress code, age restriction)
+6. Organizer info (name, rating, verified badge)
+7. Location with map
+8. Amenities (parking, food, etc.)
+9. Policies (refund, entry requirements)
+10. FAQ (expandable questions)
+11. CTAs (Get Tickets, Share, Save)
+
+#### EventList Requirements
+
+Like PostList, the `EventList` component requires sufficient demo data:
+- Include at least 10 events in `usageCode` for grid/carousel demos
+- Use diverse categories and price ranges
+- Include various event signals to show all badge types
+
+#### Ticket Selection Flow
+
+The ticket selection follows this pattern:
+1. `ticket-select` - Simple quantity picker for single ticket type
+2. `tier-select` - Multiple tiers with individual quantities
+3. `event-checkout` - Order summary with fees breakdown
+4. `event-confirmation` - Booking confirmation with QR code
+
 ### PostList Block Requirements (CRITICAL)
 
 **The PostList block MUST always have exactly 15 posts in its `usageCode` data.**

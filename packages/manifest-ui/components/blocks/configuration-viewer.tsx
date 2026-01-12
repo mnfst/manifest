@@ -114,8 +114,8 @@ function extractTypeName(type: string): string | null {
 function extractTypeDefinitions(sourceCode: string): Map<string, TypeDefinition> {
   const definitions = new Map<string, TypeDefinition>()
 
-  // Match interface definitions
-  const interfaceRegex = /export\s+interface\s+(\w+)(?:<[^{]*>)?\s*\{/g
+  // Match interface definitions (including those with extends clause)
+  const interfaceRegex = /export\s+interface\s+(\w+)(?:<[^{]*>)?(?:\s+extends\s+[^{]+)?\s*\{/g
   let match
 
   while ((match = interfaceRegex.exec(sourceCode)) !== null) {

@@ -517,6 +517,63 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "event-card",
+      "version": "4.1.0",
+      "type": "registry:component",
+      "title": "Event Card",
+      "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-card.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "event-list",
+      "version": "5.2.0",
+      "type": "registry:component",
+      "title": "Event List",
+      "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
+      "registryDependencies": ["button", "checkbox", "event-card"],
+      "files": [
+        {
+          "path": "registry/events/event-list.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "event-detail",
+      "version": "2.2.0",
+      "type": "registry:component",
+      "title": "Event Detail",
+      "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/events/event-detail.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/events/types.ts",
+          "type": "registry:lib"
+        }
+      ]
     }
   ]
 }
