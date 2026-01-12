@@ -1,13 +1,13 @@
 {
   "name": "create-manifest",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Create a new Manifest project",
   "type": "module",
   "bin": {
     "create-manifest": "./index.js"
   },
   "scripts": {
-    "prepublishOnly": "cp -r ../starter ./starter",
+    "prepublishOnly": "rm -rf ./starter && cp -r ../starter ./starter",
     "postpublish": "rm -rf ./starter"
   },
   "files": [
