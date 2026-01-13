@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 // Import shared OpenAI types
 import '@/lib/openai-types' // Side effect: extends Window interface
 
+import { demoPost } from './demo/data'
+
 export interface Post {
   title: string
   excerpt: string
@@ -18,22 +20,6 @@ export interface Post {
   tags?: string[]
   category?: string
   url?: string
-}
-
-const defaultPost: Post = {
-  title: 'Getting Started with Agentic UI Components',
-  excerpt:
-    'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
-  coverImage:
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: {
-    name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
-  },
-  publishedAt: '2024-01-15',
-  readTime: '5 min read',
-  tags: ['Tutorial', 'Components'],
-  category: 'Tutorial'
 }
 
 export interface PostCardProps {
@@ -52,7 +38,7 @@ export interface PostCardProps {
 }
 
 export function PostCard({ data, actions, appearance }: PostCardProps) {
-  const { post = defaultPost } = data ?? {}
+  const { post = demoPost } = data ?? {}
   const { onReadMore } = actions ?? {}
   const {
     variant = 'default',

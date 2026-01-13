@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Package, Percent, Truck } from "lucide-react"
+import { demoOrderData } from './demo/data'
 
 export interface OrderItem {
   id: string
@@ -34,30 +35,15 @@ export interface OrderSummaryProps {
   }
 }
 
-const defaultItems: OrderItem[] = [
-  { id: "1", name: "Premium Headphones", quantity: 1, price: 199.99 },
-  { id: "2", name: "Wireless Charger", quantity: 2, price: 29.99 },
-]
-
-const defaultData = {
-  items: defaultItems,
-  subtotal: 259.97,
-  shipping: 9.99,
-  tax: 21.58,
-  discount: 25.0,
-  discountCode: "SAVE10",
-  total: 266.54,
-}
-
 export function OrderSummary({ data, appearance }: OrderSummaryProps) {
   const {
-    items = defaultData.items,
-    subtotal = defaultData.subtotal,
-    shipping = defaultData.shipping,
-    tax = defaultData.tax,
-    discount = defaultData.discount,
-    discountCode = defaultData.discountCode,
-    total = defaultData.total,
+    items = demoOrderData.items,
+    subtotal = demoOrderData.subtotal,
+    shipping = demoOrderData.shipping,
+    tax = demoOrderData.tax,
+    discount = demoOrderData.discount,
+    discountCode = demoOrderData.discountCode,
+    total = demoOrderData.total,
   } = data ?? {}
   const { currency = "USD" } = appearance ?? {}
   const formatCurrency = (value: number) => {
