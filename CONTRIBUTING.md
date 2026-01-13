@@ -12,7 +12,7 @@ This guide explains how to set up and work with the Manifest monorepo as a devel
 
 ```
 packages/
-├── agentic-ui-toolkit/   # Component registry (Next.js)
+├── manifest-ui/   # Component registry (Next.js)
 ├── create-manifest/      # CLI for scaffolding new projects
 └── starter/              # Starter template for new projects
 ```
@@ -96,10 +96,10 @@ The MCP server endpoint is available at `/mcp`, not at the root path.
 
 ## Working with Individual Packages
 
-### Registry (agentic-ui-toolkit)
+### Registry (manifest-ui)
 
 ```bash
-cd packages/agentic-ui-toolkit
+cd packages/manifest-ui
 pnpm run dev          # Start dev server on port 3001
 pnpm run registry:build  # Build registry JSON files
 ```
@@ -115,7 +115,7 @@ pnpm run inspector    # Open MCP Inspector
 
 ## Adding Components to the Registry
 
-1. Create component files in `packages/agentic-ui-toolkit/registry/misc/<component-name>/`
+1. Create component files in `packages/manifest-ui/registry/misc/<component-name>/`
 2. Add entry to `registry.json` with file paths and dependencies
 3. Run `pnpm run registry:build` to generate the distributable JSON
 4. Preview at `http://localhost:3001`
