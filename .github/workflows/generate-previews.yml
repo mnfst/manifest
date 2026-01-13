@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      statuses: write
 
     steps:
       - name: Checkout source code
@@ -106,3 +107,29 @@ jobs:
           commit_user_name: github-actions[bot]
           commit_user_email: github-actions[bot]@users.noreply.github.com
           commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+      # Run tests and report status (needed because bot commits don't trigger CI)
+      - name: Install nested workspace dependencies
+        run: cd packages/starter && pnpm install
+
+      - name: Build App
+        run: pnpm run build
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Set success status
+        if: success()
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: success
+          context: test
+
+      - name: Set failure status
+        if: failure()
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: failure
+          context: test
