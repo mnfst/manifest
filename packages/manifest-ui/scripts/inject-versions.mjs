@@ -1,5 +1,5 @@
 /**
- * Post-build script to inject version numbers, changelog, and categories into generated registry JSON files.
+ * Post-build script to inject version numbers, changelog, categories, and preview URLs into generated registry JSON files.
  *
  * The shadcn build command doesn't include version fields in the output,
  * so this script reads versions from registry.json and changelog from changelog.json
@@ -7,6 +7,8 @@
  *
  * Categories are automatically derived from the file path (e.g., registry/form/date-time-picker.tsx → "form")
  * and injected into the output. This ensures every component has a category.
+ *
+ * Preview URLs are also injected if defined in registry.json.
  */
 
 /* eslint-disable no-undef */
@@ -49,7 +51,7 @@ let categoryErrors = []
 let registryNeedsUpdate = false
 
 for (const item of registry.items) {
-  const { name, version, files, category: declaredCategory } = item
+  const { name, version, files, category: declaredCategory, preview } = item
 
   if (!version) {
     console.log(`⚠ Skipping ${name}: no version defined`)
@@ -92,12 +94,13 @@ for (const item of registry.items) {
   // Get changelog for this component
   const componentChangelog = changelog.components[name] || {}
 
-  // Add version, category, and changelog fields after name
+  // Add version, category, preview, and changelog fields after name
   const updatedJson = {
     $schema: outputJson.$schema,
     name: outputJson.name,
     version: version,
     category: category || derivedCategory,
+    ...(preview && { preview }),
     changelog: componentChangelog,
     ...Object.fromEntries(
       Object.entries(outputJson).filter(([key]) => !['$schema', 'name'].includes(key))
@@ -115,7 +118,7 @@ if (registryNeedsUpdate) {
   console.log('✓ Updated registry.json with auto-filled categories')
 }
 
-console.log(`✓ Injected versions, categories, and changelog into ${updated} component(s)`)
+console.log(`✓ Injected versions, categories, previews, and changelog into ${updated} component(s)`)
 if (skipped > 0) {
   console.log(`⚠ Skipped ${skipped} component(s)`)
 }
