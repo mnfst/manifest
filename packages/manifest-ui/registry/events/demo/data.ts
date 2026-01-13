@@ -273,7 +273,6 @@ export const demoEvents: Event[] = [
 
 // Detailed event for EventDetail default
 export const demoEventDetails: EventDetails = {
-  id: '1',
   title: 'Sunglasses at Night: Underground Techno',
   category: 'Nightlife',
   venue: 'The White Rabbit',
@@ -299,7 +298,6 @@ export const demoEventDetails: EventDetails = {
     { name: 'Sam', avatar: 'https://i.pravatar.cc/40?u=sam' }
   ],
   organizer: {
-    id: '1',
     name: 'Midnight Lovers',
     image: 'https://i.pravatar.cc/80?u=midnight',
     rating: 4.5,
@@ -318,9 +316,8 @@ export const demoEventDetails: EventDetails = {
     coordinates: { lat: 29.7604, lng: -95.3698 }
   },
   tiers: [
-    { id: '1', name: 'General Admission', price: 15, available: 50 },
+    { name: 'General Admission', price: 15, available: 50 },
     {
-      id: '2',
       name: 'VIP Access',
       price: 30,
       available: 20,
