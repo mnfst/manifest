@@ -6,7 +6,6 @@ on:
       - 'packages/manifest-ui/registry/**/*.tsx'
       - 'packages/manifest-ui/app/blocks/**/*.tsx'
       - 'packages/manifest-ui/lib/preview-components.tsx'
-      - 'packages/manifest-ui/registry.json'
 
 jobs:
   generate-previews:
@@ -100,7 +99,7 @@ jobs:
         if: steps.check-changes.outputs.has_changes == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'chore: update component previews [skip ci]'
+          commit_message: 'chore: update component previews'
           file_pattern: |
             packages/manifest-ui/public/previews/*.png
             packages/manifest-ui/registry.json
