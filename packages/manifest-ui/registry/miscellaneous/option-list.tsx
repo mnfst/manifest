@@ -3,15 +3,15 @@
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
+import { demoOptions } from './demo/data'
 
 /**
- * Represents an individual option in the list.
+ * Represents a selectable option.
  * @interface Option
- * @property {string} id - Unique identifier for the option
- * @property {string} label - Display text for the option
- * @property {string} [description] - Optional description shown after the label
- * @property {React.ReactNode} [icon] - Optional icon displayed before the label
- * @property {boolean} [disabled] - Whether the option is disabled
+ * @property {string} label - Display label
+ * @property {string} [description] - Optional description text
+ * @property {React.ReactNode} [icon] - Optional icon element
+ * @property {boolean} [disabled] - Whether option is disabled
  */
 export interface Option {
   label: string
@@ -23,16 +23,16 @@ export interface Option {
 /**
  * Props for the OptionList component.
  * @interface OptionListProps
- * @property {object} [data] - Options data
- * @property {Option[]} [data.options] - Array of options to display
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectOption] - Called when a single option is selected
- * @property {function} [actions.onSelectOptions] - Called when multiple options are selected
- * @property {object} [appearance] - Visual customization options
- * @property {boolean} [appearance.multiple] - Enable multiple selection mode
- * @property {object} [control] - State control options
- * @property {string} [control.selectedOptionId] - ID of the selected option (single mode)
- * @property {string[]} [control.selectedOptionIds] - IDs of selected options (multiple mode)
+ * @property {object} [data] - Option data
+ * @property {Option[]} [data.options] - Array of options
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onSelectOption] - Called on single selection
+ * @property {function} [actions.onSelectOptions] - Called on multiple selection
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.multiple] - Enable multiple selection
+ * @property {object} [control] - State control
+ * @property {number} [control.selectedOptionIndex] - Controlled selected index
+ * @property {number[]} [control.selectedOptionIndexes] - Controlled selected indexes
  */
 export interface OptionListProps {
   data?: {
@@ -51,22 +51,15 @@ export interface OptionListProps {
   }
 }
 
-const defaultOptions: Option[] = [
-  { label: 'Standard shipping', description: '3-5 business days' },
-  { label: 'Express shipping', description: '1-2 business days' },
-  { label: 'Store pickup', description: 'Available in 2h' }
-]
-
 /**
- * A selectable option list with single or multiple selection modes.
- * Displays options as pill-shaped buttons with optional icons and descriptions.
+ * An option list component with single or multiple selection.
+ * Uses compact pill/chip design with check indicators.
  *
  * Features:
- * - Single or multiple selection modes
- * - Optional icons and descriptions
+ * - Single and multiple selection modes
+ * - Optional descriptions and icons
  * - Disabled state support
- * - Compact pill/chip design
- * - Responsive sizing
+ * - Controlled and uncontrolled usage
  *
  * @component
  * @example
@@ -74,19 +67,18 @@ const defaultOptions: Option[] = [
  * <OptionList
  *   data={{
  *     options: [
- *       { id: "1", label: "Standard shipping", description: "3-5 days" },
- *       { id: "2", label: "Express shipping", description: "1-2 days" }
+ *       { label: "Option A" },
+ *       { label: "Option B", description: "With description" },
+ *       { label: "Option C", disabled: true }
  *     ]
  *   }}
- *   actions={{
- *     onSelectOption: (option) => console.log("Selected:", option)
- *   }}
- *   appearance={{ multiple: false }}
+ *   appearance={{ multiple: true }}
+ *   actions={{ onSelectOptions: (opts) => console.log(opts) }}
  * />
  * ```
  */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
-  const { options = defaultOptions } = data ?? {}
+  const { options = demoOptions } = data ?? {}
   const { onSelectOption, onSelectOptions } = actions ?? {}
   const { multiple = false } = appearance ?? {}
   const { selectedOptionIndex, selectedOptionIndexes = [] } = control ?? {}

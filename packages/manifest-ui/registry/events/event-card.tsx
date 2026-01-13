@@ -14,37 +14,10 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
+import { demoEvent } from './demo/data'
 
 // Import shared OpenAI types
 import '@/lib/openai-types'
-
-const defaultEvent: Event = {
-  title: 'NEON Vol. 9',
-  category: 'Music',
-  venue: 'Echoplex',
-  neighborhood: 'Echo Park',
-  city: 'Los Angeles',
-  dateTime: 'Tonight 9:00 PM - 3:00 AM',
-  priceRange: '$45 - $150',
-  image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
-  vibeTags: ['High energy', 'Late night', 'Dressy'],
-  vibeDescription:
-    'Immersive electronic experience with world-class DJs and stunning visuals.',
-  aiSummary:
-    "Immersive electronic night with world-class DJs and stunning visuals at LA's top-rated venue.",
-  lineup: ['DJ Shadow', 'Bonobo', 'Four Tet', 'Caribou'],
-  ticketTiers: [
-    'General Admission $45',
-    'VIP Access $120',
-    'Backstage Pass $150'
-  ],
-  eventSignal: 'going-fast',
-  organizerRating: 4.8,
-  reviewCount: 12453,
-  venueRating: 4.8,
-  ageRestriction: '21+',
-  hasMultipleDates: true
-}
 
 /**
  * Props for the EventCard component.
@@ -52,7 +25,7 @@ const defaultEvent: Event = {
  * @property {object} [data] - Event data
  * @property {Event} [data.event] - The event to display
  * @property {object} [actions] - Callback functions
- * @property {function} [actions.onClick] - Called when card is clicked
+ * @property {function} [actions.onClick] - Called when the card is clicked
  * @property {object} [appearance] - Visual customization
  * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
  * @property {boolean} [appearance.showSignal] - Whether to show event signal badge
@@ -74,10 +47,6 @@ export interface EventCardProps {
   }
 }
 
-/**
- * Renders an event signal badge with icon and label.
- * @param {{ signal: EventSignal }} props - Signal type to display
- */
 function EventSignalBadge({ signal }: { signal: EventSignal }) {
   const config: Record<
     EventSignal,
@@ -138,26 +107,20 @@ function EventSignalBadge({ signal }: { signal: EventSignal }) {
 }
 
 // Format number with commas (consistent across server/client)
-/**
- * Formats a number with comma separators.
- * @param {number} num - Number to format
- * @returns {string} Formatted number string
- */
 function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 /**
  * An event card component with multiple layout variants.
- * Displays event info, image, tags, and organizer rating.
+ * Displays event information with signals, tags, and ratings.
  *
  * Features:
  * - Four layout variants (default, compact, horizontal, covered)
- * - Event signal badges (Going Fast, Popular, etc.)
+ * - Event signal badges (going fast, popular, etc.)
  * - Vibe tags display
- * - Organizer rating with review count
- * - Date, venue, and price display
- * - Hover state for interactivity
+ * - Organizer rating display
+ * - Clickable card interaction
  *
  * @component
  * @example
@@ -165,33 +128,20 @@ function formatNumber(num: number): string {
  * <EventCard
  *   data={{
  *     event: {
- *       id: "evt-1",
- *       title: "NEON Vol. 9",
+ *       title: "Concert Night",
  *       category: "Music",
- *       venue: "Echoplex",
- *       city: "Los Angeles",
- *       dateTime: "Tonight 9:00 PM",
- *       priceRange: "$45 - $150",
- *       image: "https://example.com/event.jpg",
- *       vibeTags: ["High energy", "Late night"],
- *       eventSignal: "going-fast",
- *       organizerRating: 4.8
+ *       dateTime: "Sat, Jan 20 · 8pm",
+ *       venue: "The Fillmore",
+ *       priceRange: "$45 - $150"
  *     }
  *   }}
- *   actions={{
- *     onClick: (event) => console.log("Selected:", event.title)
- *   }}
- *   appearance={{
- *     variant: "default",
- *     showSignal: true,
- *     showTags: true,
- *     showRating: true
- *   }}
+ *   appearance={{ variant: "default", showSignal: true }}
+ *   actions={{ onClick: (event) => console.log("Clicked:", event.title) }}
  * />
  * ```
  */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const { event = defaultEvent } = data ?? {}
+  const { event = demoEvent } = data ?? {}
   const { onClick } = actions ?? {}
   const {
     variant = 'default',

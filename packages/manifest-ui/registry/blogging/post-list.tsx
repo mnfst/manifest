@@ -5,255 +5,24 @@ import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Post, PostCard } from './post-card'
-
-/**
- * Default posts for demonstration.
- * @constant
- */
-const defaultPosts: Post[] = [
-  {
-    title: 'Getting Started with Agentic UI Components',
-    excerpt:
-      'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
-    coverImage:
-      'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-    author: {
-      name: 'Sarah Chen',
-      avatar: 'https://i.pravatar.cc/150?u=sarah'
-    },
-    publishedAt: '2024-01-15',
-    readTime: '5 min read',
-    tags: ['Tutorial', 'Components', 'AI'],
-    category: 'Tutorial'
-  },
-  {
-    title: 'Designing for Conversational Interfaces',
-    excerpt:
-      'Best practices for creating intuitive UI components that work within chat environments.',
-    coverImage:
-      'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800',
-    author: {
-      name: 'Alex Rivera',
-      avatar: 'https://i.pravatar.cc/150?u=alex'
-    },
-    publishedAt: '2024-01-12',
-    readTime: '8 min read',
-    tags: ['Design', 'UX'],
-    category: 'Design'
-  },
-  {
-    title: 'MCP Integration Patterns',
-    excerpt:
-      'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
-    coverImage:
-      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
-    author: {
-      name: 'Jordan Kim',
-      avatar: 'https://i.pravatar.cc/150?u=jordan'
-    },
-    publishedAt: '2024-01-10',
-    readTime: '12 min read',
-    tags: ['MCP', 'Backend', 'Integration'],
-    category: 'Development'
-  },
-  {
-    title: 'Building Payment Flows in Chat',
-    excerpt:
-      'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
-    coverImage:
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800',
-    author: {
-      name: 'Morgan Lee',
-      avatar: 'https://i.pravatar.cc/150?u=morgan'
-    },
-    publishedAt: '2024-01-08',
-    readTime: '10 min read',
-    tags: ['Payments', 'Security'],
-    category: 'Tutorial'
-  },
-  {
-    title: 'Real-time Collaboration in AI Apps',
-    excerpt:
-      'Implementing WebSocket connections and real-time updates for collaborative agentic experiences.',
-    coverImage:
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
-    author: {
-      name: 'Casey Taylor',
-      avatar: 'https://i.pravatar.cc/150?u=casey'
-    },
-    publishedAt: '2024-01-06',
-    readTime: '15 min read',
-    tags: ['WebSocket', 'Real-time', 'Collaboration'],
-    category: 'Development'
-  },
-  {
-    title: 'Accessibility in Chat Interfaces',
-    excerpt:
-      'Making your conversational UI accessible to all users with screen readers and keyboard navigation.',
-    coverImage:
-      'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800',
-    author: {
-      name: 'Jamie Park',
-      avatar: 'https://i.pravatar.cc/150?u=jamie'
-    },
-    publishedAt: '2024-01-04',
-    readTime: '9 min read',
-    tags: ['Accessibility', 'A11y', 'UX'],
-    category: 'Design'
-  },
-  {
-    title: 'State Management for Complex Workflows',
-    excerpt:
-      'Managing complex multi-step workflows in agentic applications using modern state patterns.',
-    coverImage:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
-    author: {
-      name: 'Drew Martinez',
-      avatar: 'https://i.pravatar.cc/150?u=drew'
-    },
-    publishedAt: '2024-01-02',
-    readTime: '11 min read',
-    tags: ['State', 'Workflow', 'Architecture'],
-    category: 'Development'
-  },
-  {
-    title: 'Testing Conversational Components',
-    excerpt:
-      'Strategies for unit testing and integration testing of chat-based UI components.',
-    coverImage:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800',
-    author: {
-      name: 'Riley Johnson',
-      avatar: 'https://i.pravatar.cc/150?u=riley'
-    },
-    publishedAt: '2023-12-30',
-    readTime: '8 min read',
-    tags: ['Testing', 'Quality', 'CI/CD'],
-    category: 'Development'
-  },
-  {
-    title: 'Theming and Dark Mode Support',
-    excerpt:
-      'Implementing flexible theming systems with dark mode for agentic UI components.',
-    coverImage:
-      'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800',
-    author: {
-      name: 'Avery Williams',
-      avatar: 'https://i.pravatar.cc/150?u=avery'
-    },
-    publishedAt: '2023-12-28',
-    readTime: '7 min read',
-    tags: ['Theming', 'Dark Mode', 'CSS'],
-    category: 'Design'
-  },
-  {
-    title: 'Performance Optimization Techniques',
-    excerpt:
-      'Optimizing render performance and reducing bundle size in chat applications.',
-    coverImage:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
-    author: {
-      name: 'Quinn Anderson',
-      avatar: 'https://i.pravatar.cc/150?u=quinn'
-    },
-    publishedAt: '2023-12-25',
-    readTime: '13 min read',
-    tags: ['Performance', 'Optimization', 'React'],
-    category: 'Development'
-  },
-  {
-    title: 'Error Handling and Recovery',
-    excerpt:
-      'Graceful error handling patterns and user-friendly recovery flows in conversational UIs.',
-    coverImage:
-      'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800',
-    author: {
-      name: 'Sage Thompson',
-      avatar: 'https://i.pravatar.cc/150?u=sage'
-    },
-    publishedAt: '2023-12-22',
-    readTime: '10 min read',
-    tags: ['Error Handling', 'UX', 'Resilience'],
-    category: 'Development'
-  },
-  {
-    title: 'Internationalization Best Practices',
-    excerpt:
-      'Making your agentic UI components work across languages and locales.',
-    coverImage:
-      'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800',
-    author: {
-      name: 'Blake Garcia',
-      avatar: 'https://i.pravatar.cc/150?u=blake'
-    },
-    publishedAt: '2023-12-20',
-    readTime: '9 min read',
-    tags: ['i18n', 'Localization', 'Global'],
-    category: 'Design'
-  },
-  {
-    title: 'Mobile-First Chat Design',
-    excerpt:
-      'Designing conversational interfaces that work beautifully on mobile devices.',
-    coverImage:
-      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800',
-    author: {
-      name: 'Charlie Brown',
-      avatar: 'https://i.pravatar.cc/150?u=charlie'
-    },
-    publishedAt: '2023-12-18',
-    readTime: '8 min read',
-    tags: ['Mobile', 'Responsive', 'Design'],
-    category: 'Design'
-  },
-  {
-    title: 'Analytics and User Insights',
-    excerpt:
-      'Tracking user interactions and deriving insights from conversational UI usage.',
-    coverImage:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
-    author: {
-      name: 'Sydney Chen',
-      avatar: 'https://i.pravatar.cc/150?u=sydney'
-    },
-    publishedAt: '2023-12-15',
-    readTime: '11 min read',
-    tags: ['Analytics', 'Insights', 'Data'],
-    category: 'Tutorial'
-  },
-  {
-    title: 'Building Reusable Component Libraries',
-    excerpt:
-      'Creating a scalable component library for agentic UIs that teams can share.',
-    coverImage:
-      'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800',
-    author: {
-      name: 'Taylor Swift',
-      avatar: 'https://i.pravatar.cc/150?u=taylor'
-    },
-    publishedAt: '2023-12-12',
-    readTime: '14 min read',
-    tags: ['Components', 'Library', 'Scalability'],
-    category: 'Development'
-  }
-]
+import { demoPosts } from './demo/data'
 
 /**
  * Props for the PostList component.
  * @interface PostListProps
- * @property {object} [data] - Posts data
+ * @property {object} [data] - Post data
  * @property {Post[]} [data.posts] - Array of posts to display
  * @property {object} [actions] - Callback functions
- * @property {function} [actions.onReadMore] - Called when a post's read more is clicked
+ * @property {function} [actions.onReadMore] - Called when read more is clicked
  * @property {function} [actions.onPageChange] - Called when page changes (fullwidth variant)
  * @property {object} [appearance] - Visual customization
  * @property {"list" | "grid" | "carousel" | "fullwidth"} [appearance.variant] - Layout variant
- * @property {2 | 3 | 4} [appearance.columns] - Number of columns (grid/fullwidth)
+ * @property {2 | 3 | 4} [appearance.columns] - Number of columns for grid/fullwidth
  * @property {boolean} [appearance.showAuthor] - Whether to show author info
  * @property {boolean} [appearance.showCategory] - Whether to show category
- * @property {number} [appearance.postsPerPage] - Posts per page (fullwidth)
- * @property {object} [control] - State control options
- * @property {number} [control.currentPage] - Current page number (fullwidth)
+ * @property {number} [appearance.postsPerPage] - Posts per page (fullwidth variant)
+ * @property {object} [control] - State control
+ * @property {number} [control.currentPage] - Controlled current page
  */
 export interface PostListProps {
   data?: {
@@ -276,15 +45,15 @@ export interface PostListProps {
 }
 
 /**
- * A post list component with multiple layout variants and pagination.
- * Supports list, grid, carousel, and fullwidth layouts.
+ * A blog post list component with multiple layout variants.
+ * Supports list, grid, carousel, and fullwidth paginated modes.
  *
  * Features:
  * - Four layout variants (list, grid, carousel, fullwidth)
- * - Responsive carousel with touch support
- * - Pagination for fullwidth variant
- * - Configurable column count
- * - Author and category display options
+ * - Responsive grid columns
+ * - Carousel with touch-friendly navigation
+ * - Fullwidth mode with pagination
+ * - Configurable author and category display
  *
  * @component
  * @example
@@ -292,25 +61,28 @@ export interface PostListProps {
  * <PostList
  *   data={{
  *     posts: [
- *       { id: "1", title: "Post 1", excerpt: "...", author: {...}, publishedAt: "..." },
- *       { id: "2", title: "Post 2", excerpt: "...", author: {...}, publishedAt: "..." }
+ *       {
+ *         title: "Getting Started Guide",
+ *         excerpt: "Learn the basics...",
+ *         coverImage: "https://example.com/image.jpg",
+ *         author: { name: "Sarah Chen" },
+ *         publishedAt: "2024-01-15"
+ *       }
  *     ]
- *   }}
- *   actions={{
- *     onReadMore: (post) => console.log("Read:", post.title),
- *     onPageChange: (page) => console.log("Page:", page)
  *   }}
  *   appearance={{
  *     variant: "grid",
  *     columns: 3,
- *     showAuthor: true,
- *     postsPerPage: 10
+ *     showAuthor: true
+ *   }}
+ *   actions={{
+ *     onReadMore: (post) => console.log("Read:", post.title)
  *   }}
  * />
  * ```
  */
 export function PostList({ data, actions, appearance, control }: PostListProps) {
-  const { posts = defaultPosts } = data ?? {}
+  const { posts = demoPosts } = data ?? {}
   const { onReadMore, onPageChange } = actions ?? {}
   const { variant = 'list', columns = 2, showAuthor = true, showCategory = true, postsPerPage = 10 } = appearance ?? {}
   const { currentPage: controlledPage } = control ?? {}

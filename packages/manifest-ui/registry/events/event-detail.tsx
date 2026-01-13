@@ -26,6 +26,7 @@ import {
 import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import type { EventDetails, EventSignal } from './types'
+import { demoEventDetails } from './demo/data'
 
 // Dynamically import map components to avoid SSR issues with Leaflet
 const MapContainer = dynamic(
@@ -83,85 +84,9 @@ function formatFullDate(dateString: string): string {
   })
 }
 
-// Helper to generate dates relative to today
-function getDateAt(daysFromNow: number, hour: number): string {
-  const date = new Date()
-  date.setDate(date.getDate() + daysFromNow)
-  date.setHours(hour, 0, 0, 0)
-  return date.toISOString()
-}
-
 // Format number with commas (consistent across server/client)
 function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-const defaultEvent: EventDetails = {
-  title: 'Sunglasses at Night: Underground Techno',
-  category: 'Nightlife',
-  venue: 'The White Rabbit',
-  neighborhood: 'The Woodlands',
-  city: 'Houston, TX',
-  startDateTime: getDateAt(2, 22),
-  endDateTime: getDateAt(3, 4),
-  priceRange: '$15 - $30',
-  images: [
-    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
-    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
-    'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800'
-  ],
-  vibeTags: ['High energy', 'Late night', 'Underground'],
-  eventSignal: 'going-fast',
-  aiSummary: 'Raw, unfiltered techno in an authentic warehouse setting.',
-  description: 'Experience the raw energy of underground techno. Industrial beats, immersive visuals, and a crowd that lives for the music.',
-  lineup: ['Amelie Lens', 'I Hate Models', 'FJAAK'],
-  attendeesCount: 537,
-  friendsGoing: [
-    { name: 'Alex', avatar: 'https://i.pravatar.cc/40?u=alex' },
-    { name: 'Sam', avatar: 'https://i.pravatar.cc/40?u=sam' }
-  ],
-  organizer: {
-    name: 'Midnight Lovers',
-    image: 'https://i.pravatar.cc/80?u=midnight',
-    rating: 4.5,
-    reviewCount: 1067,
-    verified: true,
-    followers: 1200,
-    eventsCount: 154,
-    hostingYears: 8,
-    trackRecord: 'great',
-    responseRate: 'very responsive'
-  },
-  venue_details: {
-    name: 'The White Rabbit',
-    address: '8827 Nasher Ave',
-    city: 'Houston TX',
-    coordinates: { lat: 29.7604, lng: -95.3698 }
-  },
-  tiers: [
-    { name: 'General Admission', price: 15, available: 50 },
-    { name: 'VIP Access', price: 30, available: 20, benefits: ['Skip the line', 'Exclusive lounge'] }
-  ],
-  goodToKnow: {
-    duration: '2 hours',
-    doorsOpen: '7:00 PM',
-    showtime: '7:30 PM',
-    ageRestriction: '21+',
-    dressCode: 'Casual',
-    parking: 'Limited, leave early to avoid long queues'
-  },
-  policies: {
-    refund: 'No refunds. Tickets are transferable.',
-    entry: 'Open 2 hours before event',
-    idRequired: true,
-    securityOnSite: true
-  },
-  faq: [
-    { question: 'What is the refund policy?', answer: 'No refunds. Tickets are transferable.' },
-    { question: 'When do doors open?', answer: 'Open 2 hours before event.' },
-    { question: 'Is there parking?', answer: 'Limited, leave early to avoid long queues.' }
-  ],
-  relatedTags: ['Houston Events', 'Texas Nightlife', 'Techno Parties']
 }
 
 function EventSignalBadge({ signal }: { signal: EventSignal }) {
@@ -284,7 +209,7 @@ export interface EventDetailProps {
 }
 
 export function EventDetail({ data, actions, appearance }: EventDetailProps) {
-  const { event = defaultEvent } = data ?? {}
+  const { event = demoEventDetails } = data ?? {}
   const { onGetTickets, onShare, onSave, onBack, onFollow, onContact } = actions ?? {}
   const { showAiMatch = true, showMap = true } = appearance ?? {}
 
