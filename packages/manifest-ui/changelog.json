@@ -41,10 +41,12 @@
       "1.0.0": "Initial release with product image and tracking button"
     },
     "product-list": {
-      "1.0.0": "Initial release with list, grid, carousel and picker variants"
+      "1.0.0": "Initial release with list, grid, carousel and picker variants",
+      "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking."
     },
     "option-list": {
-      "1.0.0": "Initial release with single and multiple selection modes"
+      "1.0.0": "Initial release with single and multiple selection modes",
+      "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking."
     },
     "amount-input": {
       "1.0.0": "Initial release with increment buttons and preset values"
@@ -54,7 +56,8 @@
     },
     "quick-reply": {
       "1.0.0": "Initial release with quick reply button options",
-      "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface"
+      "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
+      "3.0.0": "BREAKING: Removed id from QuickReply interface. Use array index for key."
     },
     "progress-steps": {
       "1.0.0": "Initial release with horizontal and vertical layouts"
@@ -69,14 +72,17 @@
       "1.0.0": "Initial release with pulse animation placeholders"
     },
     "post-card": {
-      "1.0.0": "Initial release with default, compact, horizontal and covered variants"
+      "1.0.0": "Initial release with default, compact, horizontal and covered variants",
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key."
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
-      "1.1.0": "Added fullwidth variant with pagination for fullscreen mode"
+      "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key."
     },
     "post-detail": {
-      "1.0.0": "Initial release with cover image, author info and related posts"
+      "1.0.0": "Initial release with cover image, author info and related posts",
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key."
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
@@ -97,7 +103,8 @@
       "1.0.3": "Added default value 'text' for message type",
       "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
       "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
-      "3.0.0": "BREAKING: Removed caption prop, use content for image captions"
+      "3.0.0": "BREAKING: Removed caption prop, use content for image captions",
+      "4.0.0": "BREAKING: Removed id from ChatMessage interface. Use array index for key."
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display"
@@ -122,7 +129,8 @@
       "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
       "3.0.0": "Added image support to Event type and default variant for displaying cover images.",
       "4.0.0": "BREAKING: Removed View button from all variants. Entire card is now clickable.",
-      "4.1.0": "Added image display to horizontal (list) and compact (carousel) variants"
+      "4.1.0": "Added image display to horizontal (list) and compact (carousel) variants",
+      "5.0.0": "BREAKING: Removed id from Event interface. Use array index for key."
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
@@ -132,13 +140,15 @@
       "5.0.0": "BREAKING: Fullwidth is no longer a variant - use fullscreenComponent instead. Map now uses real Leaflet.",
       "5.1.0": "Added animated filter panel with Category, Date, Neighborhood, Price, and Format filters. Filters apply to both list and map markers.",
       "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action",
-      "5.2.1": "Fixed event-card dependency resolution for shadcn CLI installation"
+      "5.2.1": "Fixed event-card dependency resolution for shadcn CLI installation",
+      "6.0.0": "BREAKING: Removed id from Event interface. Use array index for selection and key."
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
       "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
       "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
-      "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors"
+      "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors",
+      "3.0.0": "BREAKING: Removed id from EventDetails, Organizer, and tier interfaces. Use array index for key."
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",

@@ -18,7 +18,6 @@ import { useCallback, useState } from 'react'
  */
 
 export interface Product {
-  id: string
   name: string
   description?: string
   price: number
@@ -44,13 +43,12 @@ export interface ProductListProps {
     buttonLabel?: string
   }
   control?: {
-    selectedProductId?: string
+    selectedProductIndex?: number
   }
 }
 
 const defaultProducts: Product[] = [
   {
-    id: '1',
     name: "Air Force 1 '07",
     description: 'Nike',
     price: 119,
@@ -60,7 +58,6 @@ const defaultProducts: Product[] = [
     inStock: true
   },
   {
-    id: '2',
     name: 'Air Max 90',
     description: 'Nike',
     price: 140,
@@ -69,7 +66,6 @@ const defaultProducts: Product[] = [
     inStock: true
   },
   {
-    id: '3',
     name: 'Air Max Plus',
     description: 'Nike',
     price: 170,
@@ -80,7 +76,6 @@ const defaultProducts: Product[] = [
     inStock: true
   },
   {
-    id: '4',
     name: 'Dunk Low',
     description: 'Nike',
     price: 115,
@@ -89,7 +84,6 @@ const defaultProducts: Product[] = [
     inStock: true
   },
   {
-    id: '5',
     name: 'Jordan 1 Low',
     description: 'Nike',
     price: 135,
@@ -98,7 +92,6 @@ const defaultProducts: Product[] = [
     inStock: true
   },
   {
-    id: '6',
     name: 'Blazer Mid',
     description: 'Nike',
     price: 105,
@@ -186,18 +179,18 @@ function ListVariant({
   formatCurrency
 }: {
   products: Product[]
-  selected: string | undefined
-  onSelect: (product: Product) => void
+  selected: number | undefined
+  onSelect: (product: Product, index: number) => void
   formatCurrency: (value: number) => string
 }) {
   return (
     <div className="w-full space-y-2 p-1 sm:p-0">
-      {products.slice(0, 4).map((product) => (
+      {products.slice(0, 4).map((product, index) => (
         <ProductHorizontalCard
-          key={product.id}
+          key={index}
           product={product}
-          selected={selected === product.id}
-          onSelect={() => onSelect(product)}
+          selected={selected === index}
+          onSelect={() => onSelect(product, index)}
           formatCurrency={formatCurrency}
         />
       ))}
@@ -214,8 +207,8 @@ function GridVariant({
   columns
 }: {
   products: Product[]
-  selected: string | undefined
-  onSelect: (product: Product) => void
+  selected: number | undefined
+  onSelect: (product: Product, index: number) => void
   formatCurrency: (value: number) => string
   columns: 3 | 4
 }) {
@@ -229,14 +222,14 @@ function GridVariant({
           columns === 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'
         )}
       >
-        {displayProducts.map((product) => (
+        {displayProducts.map((product, index) => (
           <button
-            key={product.id}
-            onClick={() => onSelect(product)}
+            key={index}
+            onClick={() => onSelect(product, index)}
             disabled={!product.inStock}
             className={cn(
               'rounded-[12px] border text-left transition-all overflow-hidden cursor-pointer',
-              selected === product.id
+              selected === index
                 ? 'bg-card border-foreground ring-1 ring-foreground'
                 : 'bg-card border-border hover:border-foreground/50',
               !product.inStock && 'opacity-50 !cursor-not-allowed'
@@ -313,8 +306,8 @@ function CarouselVariant({
   formatCurrency
 }: {
   products: Product[]
-  selected: string | undefined
-  onSelect: (product: Product) => void
+  selected: number | undefined
+  onSelect: (product: Product, index: number) => void
   formatCurrency: (value: number) => string
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -331,15 +324,15 @@ function CarouselVariant({
   }
 
   // Horizontal card for mobile/tablet
-  const HorizontalCard = ({ product }: { product: Product }) => (
+  const HorizontalCard = ({ product, index }: { product: Product; index: number }) => (
     <button
       type="button"
-      onClick={() => onSelect(product)}
+      onClick={() => onSelect(product, index)}
       disabled={!product.inStock}
       className={cn(
         'w-full rounded-[12px] border text-left cursor-pointer',
         'flex items-center gap-3 p-2',
-        selected === product.id
+        selected === index
           ? 'bg-card border-foreground shadow-[0_0_0_1px] shadow-foreground'
           : 'bg-card border-border hover:border-foreground/50',
         !product.inStock && 'opacity-50 !cursor-not-allowed'
@@ -419,7 +412,7 @@ function CarouselVariant({
           key={currentIndex}
           className="w-full animate-in fade-in slide-in-from-right-4 duration-300"
         >
-          {mobileProduct && <HorizontalCard product={mobileProduct} />}
+          {mobileProduct && <HorizontalCard product={mobileProduct} index={currentIndex} />}
         </div>
         <Dots
           count={products.length}
@@ -434,9 +427,10 @@ function CarouselVariant({
           key={Math.min(currentIndex, tabletMaxIndex)}
           className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-right-4 duration-300"
         >
-          {tabletProducts.map((product) => (
-            <HorizontalCard key={product.id} product={product} />
-          ))}
+          {tabletProducts.map((product, i) => {
+            const productIndex = Math.min(currentIndex, tabletMaxIndex) + i
+            return <HorizontalCard key={productIndex} product={product} index={productIndex} />
+          })}
         </div>
         <Dots
           count={tabletMaxIndex + 1}
@@ -484,15 +478,15 @@ function CarouselVariant({
                 className="flex gap-3 transition-transform duration-300 ease-out px-1"
                 style={{ transform: `translateX(-${desktopTransform}px)` }}
               >
-                {products.map((product) => (
+                {products.map((product, index) => (
                   <button
                     type="button"
-                    key={product.id}
-                    onClick={() => onSelect(product)}
+                    key={index}
+                    onClick={() => onSelect(product, index)}
                     disabled={!product.inStock}
                     className={cn(
                       'flex-shrink-0 w-40 rounded-[12px] border text-left cursor-pointer',
-                      selected === product.id
+                      selected === index
                         ? 'bg-card border-foreground ring-1 ring-foreground'
                         : 'bg-card border-border hover:border-foreground/50',
                       !product.inStock && 'opacity-50 !cursor-not-allowed'
@@ -555,60 +549,64 @@ function PickerVariant({
   onAddToCart?: (products: Product[]) => void
   buttonLabel?: string
 }) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectedIndexes, setSelectedIndexes] = useState<Set<number>>(new Set())
 
-  const handleSelect = useCallback((product: Product) => {
+  const handleSelect = useCallback((index: number, product: Product) => {
     if (!product.inStock) return
 
-    setSelectedIds((prev) => {
+    setSelectedIndexes((prev) => {
       const newSet = new Set(prev)
-      if (newSet.has(product.id)) {
-        newSet.delete(product.id)
+      if (newSet.has(index)) {
+        newSet.delete(index)
       } else {
-        newSet.add(product.id)
+        newSet.add(index)
       }
       return newSet
     })
   }, [])
 
   const handleSelectAll = useCallback(() => {
-    const availableProducts = products.filter((p) => p.inStock)
-    const allSelected = availableProducts.every((p) => selectedIds.has(p.id))
+    const availableIndexes = products
+      .map((p, i) => (p.inStock ? i : -1))
+      .filter((i) => i !== -1)
+    const allSelected = availableIndexes.every((i) => selectedIndexes.has(i))
 
     if (allSelected) {
-      setSelectedIds(new Set())
+      setSelectedIndexes(new Set())
     } else {
-      setSelectedIds(new Set(availableProducts.map((p) => p.id)))
+      setSelectedIndexes(new Set(availableIndexes))
     }
-  }, [products, selectedIds])
+  }, [products, selectedIndexes])
 
   const handleAddToCart = useCallback(() => {
-    const selectedProducts = products.filter((p) => selectedIds.has(p.id))
+    const selectedProducts = products.filter((_, i) => selectedIndexes.has(i))
     onAddToCart?.(selectedProducts)
-  }, [products, selectedIds, onAddToCart])
+  }, [products, selectedIndexes, onAddToCart])
 
-  const availableProducts = products.filter((p) => p.inStock)
+  const availableIndexes = products
+    .map((p, i) => (p.inStock ? i : -1))
+    .filter((i) => i !== -1)
   const allSelected =
-    availableProducts.length > 0 &&
-    availableProducts.every((p) => selectedIds.has(p.id))
+    availableIndexes.length > 0 &&
+    availableIndexes.every((i) => selectedIndexes.has(i))
 
   const totalPrice = products
-    .filter((p) => selectedIds.has(p.id))
+    .filter((_, i) => selectedIndexes.has(i))
     .reduce((sum, p) => sum + p.price, 0)
 
   return (
     <div className="w-full space-y-3 rounded-md sm:rounded-lg p-4 sm:p-0">
       {/* Mobile: Card view */}
       <div className="sm:hidden space-y-2 px-0.5">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <button
-            key={product.id}
+            key={index}
             type="button"
-            onClick={() => handleSelect(product)}
+            onClick={() => handleSelect(index, product)}
             disabled={!product.inStock}
             className={cn(
               'w-full flex items-center gap-3 rounded-md sm:rounded-lg border bg-card p-2 text-left transition-all cursor-pointer',
-              selectedIds.has(product.id)
+              selectedIndexes.has(index)
                 ? 'border-foreground ring-1 ring-foreground'
                 : 'border-border hover:border-foreground/30',
               !product.inStock && 'opacity-50 !cursor-not-allowed'
@@ -618,12 +616,12 @@ function PickerVariant({
             <div
               className={cn(
                 'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors',
-                selectedIds.has(product.id)
+                selectedIndexes.has(index)
                   ? 'bg-foreground border-foreground text-background'
                   : 'border-border'
               )}
             >
-              {selectedIds.has(product.id) && <Check className="h-3 w-3" />}
+              {selectedIndexes.has(index) && <Check className="h-3 w-3" />}
             </div>
 
             {/* Image */}
@@ -691,10 +689,10 @@ function PickerVariant({
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products.map((product, index) => (
               <tr
-                key={product.id}
-                onClick={() => handleSelect(product)}
+                key={index}
+                onClick={() => handleSelect(index, product)}
                 className={cn(
                   'border-b border-border last:border-0 transition-colors',
                   product.inStock
@@ -706,12 +704,12 @@ function PickerVariant({
                   <div
                     className={cn(
                       'flex h-4 w-4 items-center justify-center rounded border transition-colors',
-                      selectedIds.has(product.id)
+                      selectedIndexes.has(index)
                         ? 'bg-foreground border-foreground text-background'
                         : 'border-border'
                     )}
                   >
-                    {selectedIds.has(product.id) && (
+                    {selectedIndexes.has(index) && (
                       <Check className="h-3 w-3" />
                     )}
                   </div>
@@ -759,9 +757,9 @@ function PickerVariant({
       {/* Add to cart button */}
       <div className="flex items-center justify-between gap-4 p-3 border-t-1">
         <div className="text-xs sm:text-sm text-muted-foreground">
-          {selectedIds.size > 0 ? (
+          {selectedIndexes.size > 0 ? (
             <span>
-              {selectedIds.size} item{selectedIds.size !== 1 ? 's' : ''}{' '}
+              {selectedIndexes.size} item{selectedIndexes.size !== 1 ? 's' : ''}{' '}
               selected
               {' · '}
               <span className="font-medium text-foreground">
@@ -774,7 +772,7 @@ function PickerVariant({
         </div>
         <Button
           onClick={handleAddToCart}
-          disabled={selectedIds.size === 0}
+          disabled={selectedIndexes.size === 0}
           size="sm"
         >
           <ShoppingCart className="h-4 w-4 mr-1.5" />
@@ -789,8 +787,8 @@ export function ProductList({ data, actions, appearance, control }: ProductListP
   const { products = defaultProducts } = data ?? {}
   const { onSelectProduct, onAddToCart } = actions ?? {}
   const { variant = 'list', currency = 'EUR', columns = 4, buttonLabel } = appearance ?? {}
-  const { selectedProductId } = control ?? {}
-  const [selected, setSelected] = useState<string | undefined>(selectedProductId)
+  const { selectedProductIndex } = control ?? {}
+  const [selected, setSelected] = useState<number | undefined>(selectedProductIndex)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -800,8 +798,8 @@ export function ProductList({ data, actions, appearance, control }: ProductListP
     }).format(value)
   }
 
-  const handleSelect = (product: Product) => {
-    setSelected(product.id)
+  const handleSelect = (product: Product, index: number) => {
+    setSelected(index)
     onSelectProduct?.(product)
   }
 

@@ -47,7 +47,6 @@ export type VibeTag =
   | 'Wellness'
 
 export interface Event {
-  id: string
   title: string
   category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
   venue: string
@@ -72,7 +71,6 @@ export interface Event {
 }
 
 export interface Organizer {
-  id: string
   name: string
   image?: string
   rating: number
@@ -86,12 +84,11 @@ export interface Organizer {
 }
 
 export interface TicketSelection {
-  tierId: string
+  tierIndex: number
   quantity: number
 }
 
 export interface EventBooking {
-  id: string
   event: Event
   tickets: { tierName: string; quantity: number; price: number }[]
   total: number
@@ -122,7 +119,6 @@ export interface EventDetails extends Omit<Event, 'dateTime'> {
   friendsGoing?: { name: string; avatar?: string }[]
   highlights?: string[] // "2 hours", "In person"
   tiers?: {
-    id: string
     name: string
     price: number
     available: number

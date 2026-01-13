@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 import { Send, Copy, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react'
 
 interface Message {
-  id: string
   role: 'user' | 'assistant'
   content?: string
   component?: React.ReactNode
@@ -79,10 +78,10 @@ export function ChatDemo({ messages, className, variant = 'chatgpt' }: ChatDemoP
             ? 'max-w-[calc(100vw-16px)] sm:max-w-[768px]'
             : 'max-w-[calc(100vw-16px)] sm:max-w-[720px]'
         )}>
-          {messages.map((message) => {
+          {messages.map((message, index) => {
             return (
               <div
-                key={message.id}
+                key={index}
                 className={cn(
                   'flex flex-col',
                   message.role === 'user' ? 'items-end' : 'items-start'

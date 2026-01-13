@@ -66,7 +66,6 @@ function TagList({
 }
 
 const defaultPost: Post = {
-  id: '1',
   title: 'Getting Started with Agentic UI Components',
   excerpt:
     'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
@@ -95,7 +94,6 @@ const defaultContent = `
 
 const defaultRelatedPosts: Post[] = [
   {
-    id: '2',
     title: 'Designing for Conversational Interfaces',
     excerpt:
       'Best practices for creating intuitive UI components that work within chat environments.',
@@ -112,7 +110,6 @@ const defaultRelatedPosts: Post[] = [
     url: 'https://example.com/posts/designing-conversational-interfaces'
   },
   {
-    id: '3',
     title: 'MCP Integration Patterns',
     excerpt:
       'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
@@ -129,7 +126,6 @@ const defaultRelatedPosts: Post[] = [
     url: 'https://example.com/posts/mcp-integration-patterns'
   },
   {
-    id: '4',
     title: 'Building Payment Flows in Chat',
     excerpt:
       'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
@@ -328,9 +324,9 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <div className="mt-16 border-t pt-10">
             <h3 className="mb-6 text-lg font-semibold">Related Posts</h3>
             <div className="space-y-4">
-              {relatedPosts.map((related) => (
+              {relatedPosts.map((related, index) => (
                 <a
-                  key={related.id}
+                  key={index}
                   href={related.url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
