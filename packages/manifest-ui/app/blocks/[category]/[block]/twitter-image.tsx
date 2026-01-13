@@ -1,71 +1,16 @@
 import { ImageResponse } from 'next/og'
+import {
+  getBlockName,
+  getCategoryName,
+  OG_GRADIENT,
+  OG_IMAGE_SIZE
+} from '@/lib/og-image-utils'
 
 export const runtime = 'edge'
 
 export const alt = 'Component Preview'
-export const size = {
-  width: 1200,
-  height: 630
-}
+export const size = OG_IMAGE_SIZE
 export const contentType = 'image/png'
-
-// Map block IDs to display names
-const blockNames: Record<string, string> = {
-  'contact-form': 'Contact Form',
-  'date-time-picker': 'Date & Time Picker',
-  'issue-report-form': 'Issue Report Form',
-  'card-form': 'Card Form',
-  'pay-confirm': 'Payment Confirmation',
-  'order-summary': 'Order Summary',
-  'saved-cards': 'Saved Cards',
-  'payment-success': 'Payment Success',
-  'bank-card-form': 'Bank Card Form',
-  'payment-methods': 'Payment Methods',
-  'order-confirm': 'Order Confirmation',
-  'payment-confirmed': 'Payment Confirmed',
-  'product-list': 'Product List',
-  'option-list': 'Option List',
-  'amount-input': 'Amount Input',
-  'tag-select': 'Tag Selection',
-  'quick-reply': 'Quick Reply',
-  'progress-steps': 'Progress Steps',
-  'status-badge': 'Status Badge',
-  'stats': 'Stats Cards',
-  'skeleton': 'Skeleton',
-  'post-card': 'Post Card',
-  'post-list': 'Post List',
-  'post-detail': 'Post Detail',
-  table: 'Data Table',
-  'message-bubble': 'Message Bubble',
-  'chat-conversation': 'Chat Conversation',
-  'x-post': 'X Post',
-  'instagram-post': 'Instagram Post',
-  'linkedin-post': 'LinkedIn Post',
-  'youtube-post': 'YouTube Post',
-  'map-carousel': 'Map Carousel',
-  'event-card': 'Event Card',
-  'event-list': 'Event List',
-  'event-detail': 'Event Detail',
-  'ticket-tier-select': 'Ticket Selection',
-  'event-checkout': 'Event Checkout',
-  'event-confirmation': 'Event Confirmation'
-}
-
-// Category display names
-const categoryNames: Record<string, string> = {
-  blog: 'Blogging',
-  events: 'Events',
-  form: 'Forms',
-  list: 'Lists & Tables',
-  map: 'Map',
-  messaging: 'Messaging',
-  misc: 'Miscellaneous',
-  payment: 'Payment',
-  products: 'Products',
-  selection: 'Selection',
-  social: 'Social',
-  status: 'Status & Progress'
-}
 
 export default async function Image({
   params
@@ -74,8 +19,8 @@ export default async function Image({
 }) {
   const { category, block } = await params
 
-  const blockName = blockNames[block] || formatBlockName(block)
-  const categoryName = categoryNames[category] || formatCategoryName(category)
+  const blockName = getBlockName(block)
+  const categoryName = getCategoryName(category)
 
   return new ImageResponse(
     (
@@ -87,7 +32,7 @@ export default async function Image({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+          background: OG_GRADIENT,
           padding: '60px'
         }}
       >
@@ -171,17 +116,4 @@ export default async function Image({
       ...size
     }
   )
-}
-
-// Helper function to format block names
-function formatBlockName(block: string): string {
-  return block
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
-
-// Helper function to format category names
-function formatCategoryName(category: string): string {
-  return category.charAt(0).toUpperCase() + category.slice(1)
 }
