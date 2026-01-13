@@ -3,20 +3,25 @@
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 
-/*
- * ProgressSteps Component - ChatGPT UI Guidelines Compliant
- * - Use system colors (bg-card instead of specific colors)
- * - Horizontal/vertical responsive layout
- * - Clear visual hierarchy for step states
- * - Step-by-step inline wizard pattern
+/**
+ * Represents an individual step in the progress tracker.
+ * @interface Step
+ * @property {string} id - Unique identifier for the step
+ * @property {string} label - Display text for the step
+ * @property {"completed" | "current" | "pending"} status - Current status of the step
  */
-
 export interface Step {
   id: string
   label: string
   status: 'completed' | 'current' | 'pending'
 }
 
+/**
+ * Props for the ProgressSteps component.
+ * @interface ProgressStepsProps
+ * @property {object} [data] - Steps data
+ * @property {Step[]} [data.steps] - Array of steps to display
+ */
 export interface ProgressStepsProps {
   data?: {
     steps?: Step[]
@@ -30,6 +35,31 @@ const defaultSteps: Step[] = [
   { id: '4', label: 'Delivery', status: 'pending' }
 ]
 
+/**
+ * A progress stepper component showing sequential step status.
+ * Displays steps with completed, current, and pending states.
+ *
+ * Features:
+ * - Three step states: completed, current, pending
+ * - Check icon for completed steps
+ * - Responsive horizontal/vertical layout
+ * - Connected step indicators
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ProgressSteps
+ *   data={{
+ *     steps: [
+ *       { id: "1", label: "Order received", status: "completed" },
+ *       { id: "2", label: "Processing", status: "completed" },
+ *       { id: "3", label: "Shipping", status: "current" },
+ *       { id: "4", label: "Delivery", status: "pending" }
+ *     ]
+ *   }}
+ * />
+ * ```
+ */
 export function ProgressSteps({ data }: ProgressStepsProps) {
   const { steps = defaultSteps } = data ?? {}
   return (

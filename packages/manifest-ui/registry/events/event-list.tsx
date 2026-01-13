@@ -128,6 +128,10 @@ interface FilterState {
   formats: string[]
 }
 
+/**
+ * Default empty filter state.
+ * @constant
+ */
 const defaultFilters: FilterState = {
   categories: [],
   dates: [],
@@ -136,7 +140,10 @@ const defaultFilters: FilterState = {
   formats: []
 }
 
-// Filter section component
+/**
+ * Filter section component with expandable checkbox list.
+ * @component
+ */
 function FilterSection({
   title,
   options,
@@ -356,6 +363,39 @@ export interface EventListProps {
   }
 }
 
+/**
+ * An event list component with multiple layout variants.
+ * Supports list, grid, carousel, and fullwidth (split-screen with map) layouts.
+ *
+ * Features:
+ * - Four layout variants (list, grid, carousel, fullwidth)
+ * - Interactive map with event markers (fullwidth)
+ * - Filter panel with categories, dates, neighborhoods, prices, formats
+ * - Responsive carousel with navigation
+ * - Event hover/selection sync between list and map
+ * - Pagination support
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventList
+ *   data={{
+ *     events: [...],
+ *     title: "Events near you"
+ *   }}
+ *   actions={{
+ *     onEventSelect: (event) => console.log("Selected:", event.title),
+ *     onExpand: () => console.log("Expand to fullscreen"),
+ *     onFiltersApply: (filters) => console.log("Filters:", filters)
+ *   }}
+ *   appearance={{
+ *     variant: "grid",
+ *     columns: 3,
+ *     eventsPerPage: 10
+ *   }}
+ * />
+ * ```
+ */
 export function EventList({ data, actions, appearance }: EventListProps) {
   const { events = demoEvents, title } = data ?? {}
   const { onEventSelect, onViewMore, onExpand, onFilterClick, onFiltersApply } = actions ?? {}

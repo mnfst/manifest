@@ -5,12 +5,21 @@ import { cn } from '@/lib/utils'
 import { Minus, Plus, Info } from 'lucide-react'
 import { useState } from 'react'
 
-// Format number with commas (consistent across server/client)
+/**
+ * Formats a number with comma separators.
+ * @param {number} num - Number to format
+ * @returns {string} Formatted number string
+ */
 function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
-// Format currency
+/**
+ * Formats a currency amount.
+ * @param {number} amount - Amount to format
+ * @param {string} currency - Currency code
+ * @returns {string} Formatted currency string
+ */
 function formatCurrency(amount: number, currency: string = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -19,6 +28,18 @@ function formatCurrency(amount: number, currency: string = 'USD'): string {
   }).format(amount)
 }
 
+/**
+ * Represents a ticket tier option.
+ * @interface TicketTier
+ * @property {string} id - Unique identifier
+ * @property {string} name - Tier name (e.g., "General Admission", "VIP")
+ * @property {number} price - Base price
+ * @property {number} fee - Service fee
+ * @property {number} available - Number available
+ * @property {string} [salesEndDate] - When sales end
+ * @property {string} [description] - Tier description
+ * @property {number} [maxPerOrder] - Maximum tickets per order
+ */
 export interface TicketTier {
   id: string
   name: string
@@ -30,6 +51,15 @@ export interface TicketTier {
   maxPerOrder?: number
 }
 
+/**
+ * Represents a selected ticket with quantity.
+ * @interface TicketSelection
+ * @property {string} tierId - Selected tier ID
+ * @property {string} tierName - Tier name for display
+ * @property {number} quantity - Number of tickets
+ * @property {number} price - Base price per ticket
+ * @property {number} fee - Fee per ticket
+ */
 export interface TicketSelection {
   tierId: string
   tierName: string
@@ -73,6 +103,20 @@ const defaultEvent: TicketTierEvent = {
   currency: 'USD'
 }
 
+/**
+ * Props for the TicketTierSelect component.
+ * @interface TicketTierSelectProps
+ * @property {object} [data] - Event and tier data
+ * @property {TicketTierEvent} [data.event] - Event information
+ * @property {TicketTier[]} [data.tiers] - Available ticket tiers
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onCheckout] - Called when checkout is clicked
+ * @property {function} [actions.onSelectionChange] - Called when selection changes
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.showOrderSummary] - Whether to show order summary
+ * @property {object} [control] - State control options
+ * @property {Record<string, number>} [control.selections] - Initial selections
+ */
 export interface TicketTierSelectProps {
   data?: {
     event?: TicketTierEvent
@@ -90,6 +134,41 @@ export interface TicketTierSelectProps {
   }
 }
 
+/**
+ * A ticket tier selection component with quantity pickers and order summary.
+ * Allows users to select quantities for multiple ticket tiers.
+ *
+ * Features:
+ * - Multiple tier selection with quantities
+ * - Price and fee breakdown
+ * - Sales end date display
+ * - Tier descriptions
+ * - Order summary sidebar
+ * - Checkout button
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <TicketTierSelect
+ *   data={{
+ *     event: {
+ *       title: "Concert Night",
+ *       date: "Friday, Feb 6 · 8pm",
+ *       currency: "USD"
+ *     },
+ *     tiers: [
+ *       { id: "ga", name: "General Admission", price: 45, fee: 5, available: 100 },
+ *       { id: "vip", name: "VIP", price: 120, fee: 10, available: 50 }
+ *     ]
+ *   }}
+ *   actions={{
+ *     onCheckout: (selections, total) => console.log("Checkout:", total),
+ *     onSelectionChange: (selections) => console.log("Selections:", selections)
+ *   }}
+ *   appearance={{ showOrderSummary: true }}
+ * />
+ * ```
+ */
 export function TicketTierSelect({ data, actions, appearance, control }: TicketTierSelectProps) {
   const {
     event = defaultEvent,

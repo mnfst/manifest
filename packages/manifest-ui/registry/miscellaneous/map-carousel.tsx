@@ -19,7 +19,20 @@ const Marker = dynamic(
   { ssr: false }
 )
 
-// Location/Hotel data interface
+/**
+ * Represents a location/hotel to display on the map.
+ * @interface Location
+ * @property {string} id - Unique identifier
+ * @property {string} name - Location name
+ * @property {string} [subtitle] - Subtitle (e.g., neighborhood)
+ * @property {string} [image] - Location image URL
+ * @property {number} [price] - Price value
+ * @property {string} [priceLabel] - Full price text (e.g., "$284 total Jan 29 - Feb 1")
+ * @property {string} [priceSubtext] - Additional price info (e.g., "USD • Includes taxes")
+ * @property {number} [rating] - Rating value (e.g., 8.6)
+ * @property {[number, number]} coordinates - Lat/lng coordinates
+ * @property {string} [link] - External link URL
+ */
 export interface Location {
   id: string
   name: string
@@ -33,6 +46,10 @@ export interface Location {
   link?: string
 }
 
+/**
+ * Available map tile styles.
+ * @typedef {"voyager" | "voyager-smooth" | "positron" | "dark-matter" | "openstreetmap"} MapStyle
+ */
 export type MapStyle =
   | 'voyager'
   | 'voyager-smooth'
@@ -40,6 +57,19 @@ export type MapStyle =
   | 'dark-matter'
   | 'openstreetmap'
 
+/**
+ * Props for the MapCarousel component.
+ * @interface MapCarouselProps
+ * @property {object} [data] - Map and location data
+ * @property {Location[]} [data.locations] - Array of locations to display
+ * @property {[number, number]} [data.center] - Map center coordinates [lat, lng]
+ * @property {number} [data.zoom] - Initial zoom level
+ * @property {MapStyle} [data.mapStyle] - Map tile style
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onSelectLocation] - Called when a location is selected
+ * @property {object} [appearance] - Visual customization
+ * @property {string} [appearance.mapHeight] - Map container height (e.g., "504px")
+ */
 export interface MapCarouselProps {
   data?: {
     locations?: Location[]
@@ -316,6 +346,11 @@ function MapWithMarkers({
   )
 }
 
+/**
+ * Gets the tile configuration for a given map style.
+ * @param {MapStyle} style - The map style to use
+ * @returns {{ url: string; attribution: string }} The tile URL and attribution
+ */
 const getTileConfig = (style: MapStyle) => {
   const configs: Record<MapStyle, { url: string; attribution: string }> = {
     // Voyager - Colorful, detailed, Apple Maps-like (recommended default)
@@ -352,6 +387,45 @@ const getTileConfig = (style: MapStyle) => {
   return configs[style]
 }
 
+/**
+ * An interactive map with a horizontal carousel of location cards.
+ * Clicking a marker or card selects that location and syncs the view.
+ *
+ * Features:
+ * - Leaflet map with multiple tile style options
+ * - Price markers on map locations
+ * - Draggable horizontal card carousel
+ * - Location cards with image, rating, and price
+ * - Selection sync between map and carousel
+ * - Mobile touch support
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <MapCarousel
+ *   data={{
+ *     locations: [
+ *       {
+ *         id: "1",
+ *         name: "Hotel Carlton",
+ *         subtitle: "Downtown",
+ *         image: "/hotel.jpg",
+ *         price: 284,
+ *         rating: 8.6,
+ *         coordinates: [37.7879, -122.4137]
+ *       }
+ *     ],
+ *     center: [37.7899, -122.4034],
+ *     zoom: 14,
+ *     mapStyle: "voyager"
+ *   }}
+ *   actions={{
+ *     onSelectLocation: (loc) => console.log("Selected:", loc.name)
+ *   }}
+ *   appearance={{ mapHeight: "504px" }}
+ * />
+ * ```
+ */
 export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const {
     locations = defaultLocations,

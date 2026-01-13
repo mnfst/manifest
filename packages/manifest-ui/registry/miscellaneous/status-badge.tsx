@@ -10,13 +10,10 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-/*
- * StatusBadge Component - ChatGPT UI Guidelines Compliant
- * - Use system colors for text, icons, and spatial elements
- * - Neutral grayscale palette with subtle differentiation
- * - Icons use monochromatic outlined style
+/**
+ * Available status types for the badge.
+ * @typedef {"success" | "pending" | "processing" | "warning" | "error" | "shipped" | "delivered" | "cancelled"} StatusType
  */
-
 export type StatusType =
   | "success"
   | "pending"
@@ -27,6 +24,16 @@ export type StatusType =
   | "delivered"
   | "cancelled"
 
+/**
+ * Props for the StatusBadge component.
+ * @interface StatusBadgeProps
+ * @property {object} [data] - Status data
+ * @property {StatusType} [data.status] - The status to display
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.label] - Custom label text (overrides default)
+ * @property {boolean} [appearance.showIcon] - Whether to show the status icon
+ * @property {"sm" | "md" | "lg"} [appearance.size] - Badge size variant
+ */
 export interface StatusBadgeProps {
   data?: {
     status?: StatusType
@@ -96,6 +103,26 @@ const iconSizes = {
   lg: "h-4 w-4",
 }
 
+/**
+ * A status badge component displaying various states with icons.
+ * Supports multiple status types with appropriate colors and icons.
+ *
+ * Features:
+ * - 8 status types: success, pending, processing, warning, error, shipped, delivered, cancelled
+ * - Three size variants (sm, md, lg)
+ * - Optional status icon
+ * - Custom label override
+ * - Animated spinner for processing state
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <StatusBadge
+ *   data={{ status: "shipped" }}
+ *   appearance={{ size: "md", showIcon: true }}
+ * />
+ * ```
+ */
 export function StatusBadge({ data, appearance }: StatusBadgeProps) {
   const { status = "pending" } = data ?? {}
   const { label, showIcon = true, size = "md" } = appearance ?? {}

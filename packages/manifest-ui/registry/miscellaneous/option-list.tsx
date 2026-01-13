@@ -5,14 +5,14 @@ import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { demoOptions } from './demo/data'
 
-/*
- * OptionList Component - ChatGPT UI Guidelines Compliant
- * - Use system colors (bg-card instead of specific colors)
- * - Selection uses ring-1 pattern for no layout jumps
- * - Single/multiple selection modes
- * - Compact pill/chip design
+/**
+ * Represents a selectable option.
+ * @interface Option
+ * @property {string} label - Display label
+ * @property {string} [description] - Optional description text
+ * @property {React.ReactNode} [icon] - Optional icon element
+ * @property {boolean} [disabled] - Whether option is disabled
  */
-
 export interface Option {
   label: string
   description?: string
@@ -20,6 +20,20 @@ export interface Option {
   disabled?: boolean
 }
 
+/**
+ * Props for the OptionList component.
+ * @interface OptionListProps
+ * @property {object} [data] - Option data
+ * @property {Option[]} [data.options] - Array of options
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onSelectOption] - Called on single selection
+ * @property {function} [actions.onSelectOptions] - Called on multiple selection
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.multiple] - Enable multiple selection
+ * @property {object} [control] - State control
+ * @property {number} [control.selectedOptionIndex] - Controlled selected index
+ * @property {number[]} [control.selectedOptionIndexes] - Controlled selected indexes
+ */
 export interface OptionListProps {
   data?: {
     options?: Option[]
@@ -37,6 +51,32 @@ export interface OptionListProps {
   }
 }
 
+/**
+ * An option list component with single or multiple selection.
+ * Uses compact pill/chip design with check indicators.
+ *
+ * Features:
+ * - Single and multiple selection modes
+ * - Optional descriptions and icons
+ * - Disabled state support
+ * - Controlled and uncontrolled usage
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <OptionList
+ *   data={{
+ *     options: [
+ *       { label: "Option A" },
+ *       { label: "Option B", description: "With description" },
+ *       { label: "Option C", disabled: true }
+ *     ]
+ *   }}
+ *   appearance={{ multiple: true }}
+ *   actions={{ onSelectOptions: (opts) => console.log(opts) }}
+ * />
+ * ```
+ */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
   const { options = demoOptions } = data ?? {}
   const { onSelectOption, onSelectOptions } = actions ?? {}

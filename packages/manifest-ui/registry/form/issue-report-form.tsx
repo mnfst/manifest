@@ -86,6 +86,24 @@ const defaultAttemptedActions = [
   'Asked a colleague'
 ]
 
+/**
+ * Props for the IssueReportForm component.
+ * @interface IssueReportFormProps
+ * @property {object} [data] - Configuration data for the form
+ * @property {string} [data.title] - Form title displayed at the top
+ * @property {string[]} [data.teams] - List of team options for the dropdown
+ * @property {string[]} [data.locations] - List of location options
+ * @property {Record<string, string[]>} [data.categories] - Category to subcategory mapping
+ * @property {{ value: string; label: string }[]} [data.impacts] - Impact level options
+ * @property {{ value: string; label: string }[]} [data.urgencies] - Urgency level options
+ * @property {{ value: string; label: string }[]} [data.frequencies] - Frequency options
+ * @property {string[]} [data.attemptedActions] - Pre-defined actions user may have tried
+ * @property {object} [actions] - Callback functions for form events
+ * @property {function} [actions.onSubmit] - Called when the form is submitted
+ * @property {object} [appearance] - Visual customization options
+ * @property {boolean} [appearance.showTitle] - Whether to display the title
+ * @property {boolean} [appearance.compactMode] - Use compact layout
+ */
 export interface IssueReportFormProps {
   data?: {
     title?: string
@@ -106,6 +124,27 @@ export interface IssueReportFormProps {
   }
 }
 
+/**
+ * Data structure representing an issue report submission.
+ * @interface IssueFormData
+ * @property {string} declarantName - Name of the person reporting the issue
+ * @property {string} email - Contact email for follow-up
+ * @property {string} team - Department or team affected
+ * @property {string} location - Office location
+ * @property {string} office - Specific office or area identifier
+ * @property {string} workstation - Machine or workstation identifier
+ * @property {string} category - Main issue category (e.g., 'Software', 'Hardware')
+ * @property {string} subcategory - Specific subcategory within the main category
+ * @property {string} issueTitle - Brief summary of the issue
+ * @property {string} description - Detailed description of the problem
+ * @property {string} impact - Impact level (critical, high, medium, low)
+ * @property {string} urgency - How urgent the fix is needed
+ * @property {string} frequency - How often the issue occurs
+ * @property {string} startDate - When the issue first occurred
+ * @property {string[]} attemptedActions - List of troubleshooting actions already tried
+ * @property {File[]} attachments - Supporting files (screenshots, logs, etc.)
+ * @property {string} additionalComments - Any extra information
+ */
 export interface IssueFormData {
   declarantName: string
   email: string
@@ -126,6 +165,39 @@ export interface IssueFormData {
   additionalComments: string
 }
 
+/**
+ * A comprehensive issue reporting form for IT support, help desk, or internal ticketing systems.
+ * Includes categorization, impact assessment, and file attachments.
+ *
+ * Features:
+ * - Reporter information (name, email)
+ * - Team and location selection
+ * - Category with dynamic subcategories
+ * - Impact, urgency, and frequency assessment
+ * - Collapsible sections for detailed context
+ * - Pre-defined troubleshooting actions checklist
+ * - Multiple file attachment support
+ * - Office/workstation identification
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <IssueReportForm
+ *   data={{
+ *     title: "Report a Problem",
+ *     teams: ["Engineering", "Design", "Product"],
+ *     categories: {
+ *       "Software": ["Email", "Browser", "VPN"],
+ *       "Hardware": ["Computer", "Monitor", "Keyboard"]
+ *     }
+ *   }}
+ *   actions={{
+ *     onSubmit: (data) => console.log("Issue reported:", data)
+ *   }}
+ *   appearance={{ showTitle: true, compactMode: true }}
+ * />
+ * ```
+ */
 export function IssueReportForm({
   data,
   actions,

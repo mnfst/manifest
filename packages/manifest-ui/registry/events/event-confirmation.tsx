@@ -9,6 +9,25 @@ import {
   Twitter
 } from 'lucide-react'
 
+/**
+ * Props for the EventConfirmation component.
+ * @interface EventConfirmationProps
+ * @property {object} [data] - Confirmation data
+ * @property {string} [data.orderNumber] - Order/confirmation number
+ * @property {string} [data.eventTitle] - Event title
+ * @property {number} [data.ticketCount] - Number of tickets purchased
+ * @property {string} [data.recipientEmail] - Email where tickets were sent
+ * @property {string} [data.eventDate] - Event date and time string
+ * @property {string} [data.eventLocation] - Event location
+ * @property {object} [data.organizer] - Event organizer info
+ * @property {string} [data.organizer.name] - Organizer name
+ * @property {string} [data.organizer.image] - Organizer image URL
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onViewTickets] - Called when view tickets is clicked
+ * @property {function} [actions.onChangeEmail] - Called when change email is clicked
+ * @property {function} [actions.onFollowOrganizer] - Called when follow is clicked
+ * @property {function} [actions.onShare] - Called when a share button is clicked
+ */
 export interface EventConfirmationProps {
   data?: {
     orderNumber?: string
@@ -30,6 +49,39 @@ export interface EventConfirmationProps {
   }
 }
 
+/**
+ * An event booking confirmation component with order details and sharing.
+ * Displays success message, ticket info, and social share options.
+ *
+ * Features:
+ * - Success header with order number
+ * - Event details (title, date, location)
+ * - Ticket delivery info with change option
+ * - Organizer follow card
+ * - Social sharing buttons (Facebook, Messenger, Twitter, Email)
+ * - View tickets button
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventConfirmation
+ *   data={{
+ *     orderNumber: "#14040333743",
+ *     eventTitle: "Concert Night",
+ *     ticketCount: 2,
+ *     recipientEmail: "user@example.com",
+ *     eventDate: "Friday, Feb 6 · 8pm PST",
+ *     eventLocation: "Los Angeles, CA",
+ *     organizer: { name: "Event Organizer", image: "/avatar.jpg" }
+ *   }}
+ *   actions={{
+ *     onViewTickets: () => console.log("View tickets"),
+ *     onFollowOrganizer: () => console.log("Follow"),
+ *     onShare: (platform) => console.log("Share on:", platform)
+ *   }}
+ * />
+ * ```
+ */
 export function EventConfirmation({ data, actions }: EventConfirmationProps) {
   const {
     orderNumber = '#14040333743',
