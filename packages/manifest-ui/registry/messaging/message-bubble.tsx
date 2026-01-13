@@ -431,6 +431,7 @@ export function MessageWithReactions({
                 <button
                   key={index}
                   onClick={() => handleReact(reaction.emoji)}
+                  aria-label={`${userReactions.has(reaction.emoji) ? 'Remove' : 'Add'} ${reaction.emoji} reaction, ${reaction.count} ${reaction.count === 1 ? 'reaction' : 'reactions'}`}
                   className={cn(
                     'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs transition-colors cursor-pointer',
                     userReactions.has(reaction.emoji)
@@ -454,7 +455,10 @@ export function MessageWithReactions({
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors cursor-pointer">
+              <button
+                aria-label="Add reaction"
+                className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors cursor-pointer"
+              >
                 <Smile className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -464,6 +468,7 @@ export function MessageWithReactions({
                   <button
                     key={emoji}
                     onClick={() => handleReact(emoji)}
+                    aria-label={`React with ${emoji}`}
                     className="h-8 w-8 flex items-center justify-center text-lg hover:bg-muted rounded transition-colors cursor-pointer"
                   >
                     {emoji}
@@ -609,6 +614,7 @@ export function VoiceMessageBubble({
         >
           <button
             onClick={togglePlay}
+            aria-label={isPlaying ? 'Pause voice message' : 'Play voice message'}
             className={cn(
               'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer',
               isOwn

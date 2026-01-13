@@ -14,7 +14,6 @@ import { useState } from 'react'
  * @property {boolean} [disabled] - Whether the option is disabled
  */
 export interface Option {
-  id: string
   label: string
   description?: string
   icon?: React.ReactNode
@@ -47,15 +46,15 @@ export interface OptionListProps {
     multiple?: boolean
   }
   control?: {
-    selectedOptionId?: string
-    selectedOptionIds?: string[]
+    selectedOptionIndex?: number
+    selectedOptionIndexes?: number[]
   }
 }
 
 const defaultOptions: Option[] = [
-  { id: '1', label: 'Standard shipping', description: '3-5 business days' },
-  { id: '2', label: 'Express shipping', description: '1-2 business days' },
-  { id: '3', label: 'Store pickup', description: 'Available in 2h' }
+  { label: 'Standard shipping', description: '3-5 business days' },
+  { label: 'Express shipping', description: '1-2 business days' },
+  { label: 'Store pickup', description: 'Available in 2h' }
 ]
 
 /**
@@ -90,45 +89,45 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
   const { options = defaultOptions } = data ?? {}
   const { onSelectOption, onSelectOptions } = actions ?? {}
   const { multiple = false } = appearance ?? {}
-  const { selectedOptionId, selectedOptionIds = [] } = control ?? {}
-  const [selected, setSelected] = useState<string | string[]>(
-    multiple ? selectedOptionIds : selectedOptionId || ''
+  const { selectedOptionIndex, selectedOptionIndexes = [] } = control ?? {}
+  const [selected, setSelected] = useState<number | number[]>(
+    multiple ? selectedOptionIndexes : selectedOptionIndex ?? -1
   )
 
-  const handleSelect = (option: Option) => {
+  const handleSelect = (option: Option, index: number) => {
     if (option.disabled) return
 
     if (multiple) {
-      const currentSelected = selected as string[]
-      const newSelected = currentSelected.includes(option.id)
-        ? currentSelected.filter((id) => id !== option.id)
-        : [...currentSelected, option.id]
+      const currentSelected = selected as number[]
+      const newSelected = currentSelected.includes(index)
+        ? currentSelected.filter((i) => i !== index)
+        : [...currentSelected, index]
       setSelected(newSelected)
-      onSelectOptions?.(options.filter((o) => newSelected.includes(o.id)))
+      onSelectOptions?.(options.filter((_, i) => newSelected.includes(i)))
     } else {
-      setSelected(option.id)
+      setSelected(index)
       onSelectOption?.(option)
     }
   }
 
-  const isSelected = (id: string) => {
+  const isSelected = (index: number) => {
     if (multiple) {
-      return (selected as string[]).includes(id)
+      return (selected as number[]).includes(index)
     }
-    return selected === id
+    return selected === index
   }
 
   return (
     <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
+        {options.map((option, index) => (
           <button
-            key={option.id}
-            onClick={() => handleSelect(option)}
+            key={index}
+            onClick={() => handleSelect(option, index)}
             disabled={option.disabled}
             className={cn(
               'inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm transition-colors cursor-pointer',
-              isSelected(option.id)
+              isSelected(index)
                 ? 'border-foreground bg-foreground text-background'
                 : 'border-border bg-background hover:bg-muted',
               option.disabled && 'opacity-50 !cursor-not-allowed'
@@ -140,7 +139,7 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
               <span
                 className={cn(
                   'text-[10px] sm:text-xs',
-                  isSelected(option.id)
+                  isSelected(index)
                     ? 'text-background/70'
                     : 'text-muted-foreground'
                 )}
@@ -148,7 +147,7 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
                 · {option.description}
               </span>
             )}
-            {isSelected(option.id) && multiple && (
+            {isSelected(index) && multiple && (
               <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             )}
           </button>

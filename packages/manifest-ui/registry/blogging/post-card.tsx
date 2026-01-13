@@ -22,7 +22,6 @@ import '@/lib/openai-types' // Side effect: extends Window interface
  * @property {string} [url] - External URL for the post
  */
 export interface Post {
-  id: string
   title: string
   excerpt: string
   coverImage?: string
@@ -38,7 +37,6 @@ export interface Post {
 }
 
 const defaultPost: Post = {
-  id: '1',
   title: 'Getting Started with Agentic UI Components',
   excerpt:
     'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',

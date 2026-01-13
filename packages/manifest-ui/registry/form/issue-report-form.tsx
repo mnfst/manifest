@@ -642,6 +642,7 @@ export function IssueReportForm({
                   <span className="max-w-[100px] truncate">{file.name}</span>
                   <button
                     onClick={() => removeFile(index)}
+                    aria-label="Remove file"
                     className="text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-3 w-3" />

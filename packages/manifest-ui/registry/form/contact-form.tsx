@@ -452,6 +452,7 @@ export function ContactForm({
               <button
                 type="button"
                 onClick={handleRemoveFile}
+                aria-label="Remove attachment"
                 className="p-1 hover:bg-background rounded transition-colors"
               >
                 <X className="h-4 w-4 text-muted-foreground" />

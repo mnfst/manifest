@@ -81,7 +81,6 @@ export type VibeTag =
  * @property {string} [discount] - Discount text
  */
 export interface Event {
-  id: string
   title: string
   category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
   venue: string
@@ -121,7 +120,6 @@ export interface Event {
  * @property {"great" | "good" | "new"} [trackRecord] - Track record rating
  */
 export interface Organizer {
-  id: string
   name: string
   image?: string
   rating: number
@@ -141,7 +139,7 @@ export interface Organizer {
  * @property {number} quantity - Number of tickets
  */
 export interface TicketSelection {
-  tierId: string
+  tierIndex: number
   quantity: number
 }
 
@@ -158,7 +156,6 @@ export interface TicketSelection {
  * @property {string} purchaseDate - Purchase date string
  */
 export interface EventBooking {
-  id: string
   event: Event
   tickets: { tierName: string; quantity: number; price: number }[]
   total: number
@@ -194,7 +191,6 @@ export interface EventDetails extends Omit<Event, 'dateTime'> {
   friendsGoing?: { name: string; avatar?: string }[]
   highlights?: string[] // "2 hours", "In person"
   tiers?: {
-    id: string
     name: string
     price: number
     available: number

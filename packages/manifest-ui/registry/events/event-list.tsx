@@ -38,12 +38,12 @@ function MapPlaceholder() {
 // Inner map component that uses Leaflet hooks for event markers
 function EventMapMarkers({
   events,
-  selectedId,
+  selectedIndex,
   onSelectEvent
 }: {
   events: Event[]
-  selectedId: string | null
-  onSelectEvent: (event: Event) => void
+  selectedIndex: number | null
+  onSelectEvent: (event: Event, index: number) => void
 }) {
   const [L, setL] = useState<typeof import('leaflet') | null>(null)
 
@@ -79,9 +79,9 @@ function EventMapMarkers({
 
   return (
     <>
-      {events.map((event) => {
+      {events.map((event, index) => {
         if (!event.coordinates) return null
-        const isSelected = selectedId === event.id
+        const isSelected = selectedIndex === index
 
         const icon = L.divIcon({
           className: '',
@@ -98,12 +98,12 @@ function EventMapMarkers({
 
         return (
           <Marker
-            key={event.id}
+            key={index}
             position={[event.coordinates.lat, event.coordinates.lng]}
             icon={icon}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{
-              click: () => onSelectEvent(event)
+              click: () => onSelectEvent(event, index)
             }}
           />
         )
@@ -114,7 +114,6 @@ function EventMapMarkers({
 
 const defaultEvents: Event[] = [
   {
-    id: 'evt-1',
     title: 'NEON Vol. 9',
     category: 'Music',
     venue: 'Echoplex',
@@ -131,7 +130,7 @@ const defaultEvents: Event[] = [
     ageRestriction: '21+'
   },
   {
-    id: 'evt-2',
+    
     title: 'The Midnight Show',
     category: 'Comedy',
     venue: 'The Comedy Underground',
@@ -148,7 +147,7 @@ const defaultEvents: Event[] = [
     discount: 'TONIGHT ONLY - 40% OFF'
   },
   {
-    id: 'evt-3',
+    
     title: 'Salsa Sundays @ Echo Park',
     category: 'Classes',
     venue: 'Echo Park Lake',
@@ -164,7 +163,7 @@ const defaultEvents: Event[] = [
     reviewCount: 8764
   },
   {
-    id: 'evt-4',
+    
     title: 'Dawn Flow: Griffith Park',
     category: 'Classes',
     venue: 'Griffith Park',
@@ -180,7 +179,7 @@ const defaultEvents: Event[] = [
     discount: 'FREE - First 50 Only'
   },
   {
-    id: 'evt-5',
+    
     title: 'Lakers vs Celtics',
     category: 'Sports',
     venue: 'Crypto.com Arena',
@@ -196,7 +195,7 @@ const defaultEvents: Event[] = [
     reviewCount: 2341
   },
   {
-    id: 'evt-6',
+    
     title: 'Smorgasburg LA: Sunday Market',
     category: 'Food & Drink',
     venue: 'ROW DTLA',
@@ -211,7 +210,7 @@ const defaultEvents: Event[] = [
     reviewCount: 5632
   },
   {
-    id: 'evt-7',
+    
     title: 'LACMA After Hours',
     category: 'Arts',
     venue: 'LACMA',
@@ -228,7 +227,7 @@ const defaultEvents: Event[] = [
     discount: 'MEMBER PRICE'
   },
   {
-    id: 'evt-8',
+    
     title: 'Blue Note Under Stars',
     category: 'Music',
     venue: 'Hollywood Bowl',
@@ -244,7 +243,7 @@ const defaultEvents: Event[] = [
     reviewCount: 12453
   },
   {
-    id: 'evt-9',
+    
     title: 'Meraki: Seth Troxler',
     category: 'Nightlife',
     venue: 'Sound Nightclub',
@@ -261,7 +260,7 @@ const defaultEvents: Event[] = [
     ageRestriction: '21+'
   },
   {
-    id: 'evt-10',
+    
     title: 'Whitney Cummings + Friends',
     category: 'Comedy',
     venue: 'The Laugh Factory',
@@ -277,7 +276,7 @@ const defaultEvents: Event[] = [
     ageRestriction: '18+'
   },
   {
-    id: 'evt-11',
+    
     title: 'Venice Beach Drum Circle',
     category: 'Music',
     venue: 'Venice Beach Boardwalk',
@@ -293,7 +292,7 @@ const defaultEvents: Event[] = [
     reviewCount: 2145
   },
   {
-    id: 'evt-12',
+    
     title: 'Rooftop Cinema: Blade Runner',
     category: 'Film',
     venue: 'Rooftop Cinema Club',
@@ -308,7 +307,7 @@ const defaultEvents: Event[] = [
     reviewCount: 892
   },
   {
-    id: 'evt-13',
+    
     title: 'Dodgers vs Giants',
     category: 'Sports',
     venue: 'Dodger Stadium',
@@ -324,7 +323,7 @@ const defaultEvents: Event[] = [
     reviewCount: 15678
   },
   {
-    id: 'evt-14',
+    
     title: 'Natural Wine Fair',
     category: 'Food & Drink',
     venue: 'Grand Central Market',
@@ -341,7 +340,7 @@ const defaultEvents: Event[] = [
     ageRestriction: '21+'
   },
   {
-    id: 'evt-15',
+    
     title: 'Meditation in the Gardens',
     category: 'Wellness',
     venue: 'The Getty Center',
@@ -520,6 +519,7 @@ function FilterPanel({
             size="icon"
             className="h-8 w-8"
             onClick={onClose}
+            aria-label="Close filters"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -644,7 +644,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   const { onEventSelect, onViewMore, onExpand, onFilterClick, onFiltersApply } = actions ?? {}
   const { variant = 'list' } = appearance ?? {}
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
   const [isMounted, setIsMounted] = useState(false)
 
   // Filter state for fullwidth variant
@@ -654,11 +654,11 @@ export function EventList({ data, actions, appearance }: EventListProps) {
 
   // Refs for fullwidth variant scroll functionality
   const listContainerRef = useRef<HTMLDivElement>(null)
-  const eventItemRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const eventItemRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
   // Scroll to event in list when selected from map
-  const scrollToEvent = useCallback((eventId: string) => {
-    const eventElement = eventItemRefs.current.get(eventId)
+  const scrollToEvent = useCallback((eventIndex: number) => {
+    const eventElement = eventItemRefs.current.get(eventIndex)
     if (eventElement && listContainerRef.current) {
       const container = listContainerRef.current
       const elementTop = eventElement.offsetTop
@@ -788,15 +788,16 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 size="icon"
                 className="h-8 w-8"
                 onClick={onExpand}
+                aria-label="Expand view"
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
             )}
           </div>
         )}
-        {events.slice(0, 3).map((event) => (
+        {events.slice(0, 3).map((event, index) => (
           <EventCard
-            key={event.id}
+            key={index}
             data={{ event }}
             appearance={{ variant: 'horizontal' }}
             actions={{ onClick: onEventSelect }}
@@ -819,6 +820,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 size="icon"
                 className="h-8 w-8"
                 onClick={onExpand}
+                aria-label="Expand view"
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
@@ -826,9 +828,9 @@ export function EventList({ data, actions, appearance }: EventListProps) {
           </div>
         )}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {events.slice(0, 3).map((event) => (
+          {events.slice(0, 3).map((event, index) => (
             <EventCard
-              key={event.id}
+              key={index}
               data={{ event }}
               appearance={{ variant: 'default' }}
               actions={{ onClick: onEventSelect }}
@@ -851,18 +853,18 @@ export function EventList({ data, actions, appearance }: EventListProps) {
 
   // Fullwidth variant with split-screen layout (list on left, map on right)
   if (variant === 'fullwidth') {
-    const handleEventHover = (eventId: string | null) => {
-      setSelectedEventId(eventId)
+    const handleEventHover = (eventIndex: number | null) => {
+      setSelectedEventIndex(eventIndex)
     }
 
-    const handleEventClick = (event: Event) => {
-      setSelectedEventId(event.id)
+    const handleEventClick = (event: Event, index: number) => {
+      setSelectedEventIndex(index)
       onEventSelect?.(event)
     }
 
-    const handleMapMarkerClick = (event: Event) => {
-      setSelectedEventId(event.id)
-      scrollToEvent(event.id)
+    const handleMapMarkerClick = (event: Event, index: number) => {
+      setSelectedEventIndex(index)
+      scrollToEvent(index)
       onEventSelect?.(event)
     }
 
@@ -931,19 +933,19 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 </Button>
               </div>
             ) : (
-              filteredEvents.map((event) => (
+              filteredEvents.map((event, index) => (
                 <div
-                  key={event.id}
+                  key={index}
                   ref={(el) => {
-                    if (el) eventItemRefs.current.set(event.id, el)
+                    if (el) eventItemRefs.current.set(index, el)
                   }}
                   className={cn(
                     'border-b transition-colors cursor-pointer',
-                    selectedEventId === event.id && 'bg-accent'
+                    selectedEventIndex === index && 'bg-accent'
                   )}
-                  onMouseEnter={() => handleEventHover(event.id)}
+                  onMouseEnter={() => handleEventHover(index)}
                   onMouseLeave={() => handleEventHover(null)}
-                  onClick={() => handleEventClick(event)}
+                  onClick={() => handleEventClick(event, index)}
                 >
                   <div className="flex gap-3 p-3">
                     {/* Thumbnail */}
@@ -1001,7 +1003,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
               />
               <EventMapMarkers
                 events={filteredEvents}
-                selectedId={selectedEventId}
+                selectedIndex={selectedEventIndex}
                 onSelectEvent={handleMapMarkerClick}
               />
             </MapContainer>
@@ -1054,8 +1056,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
           className="flex transition-transform duration-300 ease-out md:hidden"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {events.map((event) => (
-            <div key={event.id} className="w-full shrink-0 px-0.5">
+          {events.map((event, index) => (
+            <div key={index} className="w-full shrink-0 px-0.5">
               <EventCard
                 data={{ event }}
                 appearance={{ variant: 'compact' }}
@@ -1070,8 +1072,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
           className="hidden md:flex lg:hidden transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * 50}%)` }}
         >
-          {events.map((event) => (
-            <div key={event.id} className="w-1/2 shrink-0 px-1.5">
+          {events.map((event, index) => (
+            <div key={index} className="w-1/2 shrink-0 px-1.5">
               <EventCard
                 data={{ event }}
                 appearance={{ variant: 'compact' }}
@@ -1086,8 +1088,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
           className="hidden lg:flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * (100 / 3)}%)` }}
         >
-          {events.map((event) => (
-            <div key={event.id} className="w-1/3 shrink-0 px-1.5">
+          {events.map((event, index) => (
+            <div key={index} className="w-1/3 shrink-0 px-1.5">
               <EventCard
                 data={{ event }}
                 appearance={{ variant: 'compact' }}
@@ -1103,6 +1105,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
+              aria-label={`Go to slide ${i + 1}`}
               className={cn(
                 'h-1.5 rounded-full transition-all cursor-pointer',
                 i === currentIndex
@@ -1120,6 +1123,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1129,6 +1133,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndMobile}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -1141,6 +1146,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1150,6 +1156,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndTablet}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -1162,6 +1169,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1171,6 +1179,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndDesktop}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

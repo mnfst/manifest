@@ -5,15 +5,18 @@
       "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
       "1.1.0": "Made phone, email, and message fields optional with defaults",
       "1.2.0": "Added initialValues prop to pre-fill form fields",
-      "1.2.1": "Added comprehensive JSDoc documentation"
+      "1.2.1": "Added aria-label to file removal button for screen reader accessibility",
+      "1.2.2": "Added comprehensive JSDoc documentation"
     },
     "date-time-picker": {
       "1.0.0": "Initial release with calendar and time slot selection",
-      "1.0.1": "Added comprehensive JSDoc documentation"
+      "1.0.1": "Added aria-labels to navigation buttons for better screen reader accessibility",
+      "1.0.2": "Added comprehensive JSDoc documentation"
     },
     "issue-report-form": {
       "1.0.0": "Initial release with categories, impact levels and file attachments",
-      "1.0.1": "Added comprehensive JSDoc documentation"
+      "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
+      "1.0.2": "Added comprehensive JSDoc documentation"
     },
     "card-form": {
       "1.0.0": "Initial release with card number, expiry, CVV and name fields",
@@ -54,11 +57,14 @@
     },
     "product-list": {
       "1.0.0": "Initial release with list, grid, carousel and picker variants",
-      "1.0.1": "Added comprehensive JSDoc documentation"
+      "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
+      "2.0.1": "Added aria-labels to carousel navigation buttons and dots for accessibility",
+      "2.0.2": "Added comprehensive JSDoc documentation"
     },
     "option-list": {
       "1.0.0": "Initial release with single and multiple selection modes",
-      "1.0.1": "Added comprehensive JSDoc documentation"
+      "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
+      "2.0.1": "Added comprehensive JSDoc documentation"
     },
     "amount-input": {
       "1.0.0": "Initial release with increment buttons and preset values",
@@ -71,7 +77,8 @@
     "quick-reply": {
       "1.0.0": "Initial release with quick reply button options",
       "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
-      "2.0.1": "Added comprehensive JSDoc documentation"
+      "3.0.0": "BREAKING: Removed id from QuickReply interface. Use array index for key.",
+      "3.0.1": "Added comprehensive JSDoc documentation"
     },
     "progress-steps": {
       "1.0.0": "Initial release with horizontal and vertical layouts",
@@ -91,21 +98,26 @@
     },
     "post-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants",
-      "1.0.1": "Added comprehensive JSDoc documentation"
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+      "2.0.1": "Added comprehensive JSDoc documentation"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
       "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
-      "1.1.1": "Added comprehensive JSDoc documentation"
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+      "2.0.1": "Added aria-labels to pagination and carousel navigation buttons for accessibility",
+      "2.0.2": "Added comprehensive JSDoc documentation"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
-      "1.0.1": "Added comprehensive JSDoc documentation"
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+      "2.0.1": "Added comprehensive JSDoc documentation"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
       "1.0.1": "Added descriptive alt tags for title images",
-      "1.0.2": "Added comprehensive JSDoc documentation"
+      "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
+      "1.0.3": "Added comprehensive JSDoc documentation"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
@@ -114,7 +126,8 @@
       "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
       "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
       "3.0.0": "BREAKING: Renamed caption prop to content in ImageMessageBubble",
-      "3.0.1": "Added comprehensive JSDoc documentation"
+      "3.0.1": "Added aria-labels to reaction buttons and voice message controls for accessibility",
+      "3.0.2": "Added comprehensive JSDoc documentation"
     },
     "chat-conversation": {
       "1.0.0": "Initial release with multiple message types",
@@ -124,7 +137,9 @@
       "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
       "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
       "3.0.0": "BREAKING: Removed caption prop, use content for image captions",
-      "3.0.1": "Added comprehensive JSDoc documentation"
+      "4.0.0": "BREAKING: Removed id from ChatMessage interface. Use array index for key.",
+      "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls",
+      "4.0.2": "Added comprehensive JSDoc documentation"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display",
@@ -155,7 +170,9 @@
       "3.0.0": "Added image support to Event type and default variant for displaying cover images.",
       "4.0.0": "BREAKING: Removed View button from all variants. Entire card is now clickable.",
       "4.1.0": "Added image display to horizontal (list) and compact (carousel) variants",
-      "4.1.1": "Added comprehensive JSDoc documentation"
+      "5.0.0": "BREAKING: Removed id from Event interface. Use array index for key.",
+      "5.0.1": "Added accessibility support with role, tabIndex, keyboard handlers, and aria-label for all card variants",
+      "5.0.2": "Added comprehensive JSDoc documentation"
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
@@ -166,13 +183,18 @@
       "5.1.0": "Added animated filter panel with Category, Date, Neighborhood, Price, and Format filters. Filters apply to both list and map markers.",
       "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action",
       "5.2.1": "Fixed event-card dependency resolution for shadcn CLI installation",
-      "5.2.2": "Added comprehensive JSDoc documentation"
+      "6.0.0": "BREAKING: Removed id from Event interface. Use array index for selection and key.",
+      "6.0.1": "Added aria-labels to navigation buttons, carousel dots, filter close, and expand buttons for accessibility",
+      "6.0.2": "Added comprehensive JSDoc documentation"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
       "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
       "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
-      "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors"
+      "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors",
+      "3.0.0": "BREAKING: Removed id from EventDetails, Organizer, and tier interfaces. Use array index for key.",
+      "3.0.1": "Added aria-labels to image navigation, share, save, and back buttons for accessibility",
+      "3.0.2": "Added comprehensive JSDoc documentation"
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",

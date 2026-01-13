@@ -17,7 +17,6 @@ import { ImageMessageBubble, MessageBubble } from './message-bubble'
  * @property {"sent" | "delivered" | "read"} [status] - Delivery status
  */
 export interface ChatMessage {
-  id: string
   type?: 'text' | 'image'
   content: string
   image?: string
@@ -43,7 +42,6 @@ export interface ChatConversationProps {
 
 const defaultMessages: ChatMessage[] = [
   {
-    id: '1',
     type: 'text',
     content: 'Hey! Check out this new feature we just shipped 🚀',
     author: 'Sarah',
@@ -52,7 +50,6 @@ const defaultMessages: ChatMessage[] = [
     isOwn: false
   },
   {
-    id: '2',
     type: 'text',
     content: 'Oh wow, that looks amazing! How long did it take to build?',
     author: 'You',
@@ -62,7 +59,6 @@ const defaultMessages: ChatMessage[] = [
     status: 'read'
   },
   {
-    id: '3',
     type: 'image',
     content: "Here's a preview of the dashboard",
     image:
@@ -73,7 +69,6 @@ const defaultMessages: ChatMessage[] = [
     isOwn: false
   },
   {
-    id: '4',
     type: 'text',
     content: 'This is incredible! The UI is so clean 👏',
     author: 'You',
@@ -127,11 +122,11 @@ export function ChatConversation({ data }: ChatConversationProps) {
   const { messages = defaultMessages } = data ?? {}
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         const messageType = message.type ?? 'text'
         return messageType === 'image' ? (
           <ImageMessageBubble
-            key={message.id}
+            key={index}
             data={{
               image: message.image!,
               content: message.content,
@@ -145,7 +140,7 @@ export function ChatConversation({ data }: ChatConversationProps) {
           />
         ) : (
           <MessageBubble
-            key={message.id}
+            key={index}
             data={{
               content: message.content,
               avatarFallback: message.avatarFallback,

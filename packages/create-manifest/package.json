@@ -1,7 +1,7 @@
 {
   "name": "create-manifest",
   "version": "2.0.3",
-  "description": "Create a new Manifest project",
+  "description": "Create a new Manifest MCP server project with production-ready UI components for ChatGPT apps",
   "type": "module",
   "bin": {
     "create-manifest": "./index.js"
@@ -17,9 +17,30 @@
   "keywords": [
     "manifest",
     "mcp",
+    "model-context-protocol",
+    "chatgpt",
+    "ai",
+    "agentic-ui",
+    "conversational-ui",
+    "react",
+    "nextjs",
+    "shadcn",
+    "ui-components",
     "create",
-    "cli"
+    "cli",
+    "scaffold",
+    "template",
+    "typescript"
   ],
   "author": "MNFST, Inc.",
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://ui.manifest.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest.git",
+    "directory": "packages/create-manifest"
+  },
+  "bugs": {
+    "url": "https://github.com/mnfst/manifest/issues"
+  }
 }

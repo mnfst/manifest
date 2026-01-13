@@ -299,6 +299,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
           <div className="flex items-center justify-center gap-4 mb-4">
             <button
               onClick={handlePrevMonth}
+              aria-label="Previous month"
               className="p-1 hover:bg-muted rounded transition-colors"
             >
               <ChevronLeft className="h-5 w-5 text-muted-foreground" />
@@ -308,6 +309,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
             </span>
             <button
               onClick={handleNextMonth}
+              aria-label="Next month"
               className="p-1 hover:bg-muted rounded transition-colors"
             >
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -362,7 +364,10 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
               <p className="text-sm font-medium text-foreground mb-2">Time zone</p>
               <Popover open={timezoneDropdownOpen} onOpenChange={setTimezoneDropdownOpen}>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <button
+                    aria-label="Select timezone"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     <Globe className="h-4 w-4" />
                     <span>{selectedTimezone.name} ({getTimeForOffset(selectedTimezone.offset)})</span>
                     <ChevronRight className={cn("h-3 w-3 transition-transform", timezoneDropdownOpen ? "rotate-90" : "rotate-0")} />

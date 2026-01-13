@@ -19,7 +19,6 @@ import type { Event, EventSignal } from './types'
 import '@/lib/openai-types'
 
 const defaultEvent: Event = {
-  id: 'evt-1',
   title: 'NEON Vol. 9',
   category: 'Music',
   venue: 'Echoplex',
@@ -207,11 +206,24 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+
+  const cardAriaLabel = `${event.title}, ${event.category} event at ${event.venue || 'online'}, ${event.dateTime}, ${event.priceRange}`
+
   if (variant === 'covered') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={cardAriaLabel}
         className="relative overflow-hidden rounded-lg border cursor-pointer min-h-[280px]"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {/* Background image */}
         {event.image && (
@@ -276,8 +288,12 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   if (variant === 'horizontal') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={cardAriaLabel}
         className="flex gap-4 rounded-xl border bg-card p-4 cursor-pointer hover:bg-accent/50 transition-colors"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {/* Image */}
         {event.image && (
@@ -318,8 +334,12 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   if (variant === 'compact') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={cardAriaLabel}
         className="flex h-full flex-col overflow-hidden rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {/* Image */}
         {event.image && (
@@ -382,8 +402,12 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   // Default variant
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={cardAriaLabel}
       className="flex h-full flex-col overflow-hidden rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
       {/* Image */}
       {event.image && (

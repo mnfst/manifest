@@ -5,10 +5,11 @@
   "items": [
     {
       "name": "contact-form",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "type": "registry:component",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
+      "category": "form",
       "dependencies": [
         "lucide-react"
       ],
@@ -27,10 +28,11 @@
     },
     {
       "name": "date-time-picker",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
+      "category": "form",
       "dependencies": [
         "lucide-react"
       ],
@@ -46,10 +48,11 @@
     },
     {
       "name": "issue-report-form",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
+      "category": "form",
       "dependencies": [
         "lucide-react"
       ],
@@ -72,6 +75,7 @@
       "type": "registry:component",
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -94,6 +98,7 @@
       "type": "registry:component",
       "title": "Pay Confirm",
       "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -115,6 +120,7 @@
       "type": "registry:component",
       "title": "Order Summary",
       "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -136,6 +142,7 @@
       "type": "registry:component",
       "title": "Saved Cards",
       "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -156,6 +163,7 @@
       "type": "registry:component",
       "title": "Payment Success",
       "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -177,6 +185,7 @@
       "type": "registry:component",
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -196,6 +205,7 @@
       "type": "registry:component",
       "title": "Payment Methods",
       "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -215,6 +225,7 @@
       "type": "registry:component",
       "title": "Order Confirm",
       "description": "Order confirmation with product image, delivery info, and confirm action.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -229,30 +240,12 @@
       ]
     },
     {
-      "name": "payment-success",
-      "version": "1.0.1",
-      "type": "registry:component",
-      "title": "Payment Success",
-      "description": "Payment success with order details, brand logo, and tracking button.",
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
-      "files": [
-        {
-          "path": "registry/payment/payment-success.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
       "name": "payment-confirmed",
       "version": "1.0.1",
       "type": "registry:component",
       "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -268,10 +261,11 @@
     },
     {
       "name": "product-list",
-      "version": "1.0.1",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
+      "category": "list",
       "dependencies": [
         "lucide-react"
       ],
@@ -287,10 +281,11 @@
     },
     {
       "name": "option-list",
-      "version": "1.0.1",
+      "version": "2.0.1",
       "type": "registry:component",
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -308,6 +303,7 @@
       "type": "registry:component",
       "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
+      "category": "payment",
       "dependencies": [
         "lucide-react"
       ],
@@ -327,6 +323,7 @@
       "type": "registry:component",
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -342,10 +339,11 @@
     },
     {
       "name": "quick-reply",
-      "version": "2.0.1",
+      "version": "3.0.1",
       "type": "registry:component",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
+      "category": "miscellaneous",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -361,6 +359,7 @@
       "type": "registry:component",
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -378,6 +377,7 @@
       "type": "registry:component",
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -395,6 +395,7 @@
       "type": "registry:component",
       "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -412,6 +413,7 @@
       "type": "registry:component",
       "title": "Skeleton Loaders",
       "description": "Skeleton placeholder components with pulse animation for loading states.",
+      "category": "miscellaneous",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -423,10 +425,11 @@
     },
     {
       "name": "post-card",
-      "version": "1.0.1",
+      "version": "2.0.1",
       "type": "registry:component",
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
+      "category": "blogging",
       "dependencies": [
         "lucide-react"
       ],
@@ -446,10 +449,11 @@
     },
     {
       "name": "post-list",
-      "version": "1.1.1",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
+      "category": "blogging",
       "dependencies": [
         "lucide-react"
       ],
@@ -473,10 +477,11 @@
     },
     {
       "name": "post-detail",
-      "version": "1.0.1",
+      "version": "2.0.1",
       "type": "registry:component",
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
+      "category": "blogging",
       "dependencies": [
         "lucide-react"
       ],
@@ -496,10 +501,11 @@
     },
     {
       "name": "table",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
+      "category": "list",
       "dependencies": [
         "lucide-react"
       ],
@@ -519,10 +525,11 @@
     },
     {
       "name": "message-bubble",
-      "version": "3.0.1",
+      "version": "3.0.2",
       "type": "registry:component",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
+      "category": "messaging",
       "dependencies": [
         "lucide-react"
       ],
@@ -538,10 +545,11 @@
     },
     {
       "name": "chat-conversation",
-      "version": "3.0.1",
+      "version": "4.0.2",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
+      "category": "messaging",
       "dependencies": [
         "lucide-react"
       ],
@@ -565,6 +573,7 @@
       "type": "registry:component",
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -582,6 +591,7 @@
       "type": "registry:component",
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -601,6 +611,7 @@
       "type": "registry:component",
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -620,6 +631,7 @@
       "type": "registry:component",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react"
       ],
@@ -639,6 +651,7 @@
       "type": "registry:component",
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
+      "category": "miscellaneous",
       "dependencies": [
         "lucide-react",
         "leaflet",
@@ -654,10 +667,11 @@
     },
     {
       "name": "event-card",
-      "version": "4.1.1",
+      "version": "5.0.2",
       "type": "registry:component",
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
+      "category": "events",
       "dependencies": [
         "lucide-react"
       ],
@@ -677,10 +691,11 @@
     },
     {
       "name": "event-list",
-      "version": "5.2.2",
+      "version": "6.0.2",
       "type": "registry:component",
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
+      "category": "events",
       "dependencies": [
         "lucide-react",
         "react-leaflet",
@@ -704,10 +719,11 @@
     },
     {
       "name": "event-detail",
-      "version": "2.2.0",
+      "version": "3.0.2",
       "type": "registry:component",
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
+      "category": "events",
       "dependencies": [
         "lucide-react",
         "react-leaflet",
@@ -733,6 +749,7 @@
       "type": "registry:component",
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
+      "category": "events",
       "dependencies": [
         "lucide-react"
       ],
@@ -752,6 +769,7 @@
       "type": "registry:component",
       "title": "Event Checkout",
       "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
+      "category": "events",
       "dependencies": [
         "lucide-react"
       ],
@@ -772,6 +790,7 @@
       "type": "registry:component",
       "title": "Event Confirmation",
       "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
+      "category": "events",
       "dependencies": [
         "lucide-react"
       ],
