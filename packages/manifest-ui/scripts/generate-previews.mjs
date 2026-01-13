@@ -35,10 +35,10 @@ const OUTPUT_DIR = join(rootDir, 'public', 'previews')
 const BASE_URL_DEFAULT = 'http://localhost:3001'
 const PREVIEW_BASE_URL = 'https://ui.manifest.build'
 
-// Viewport for consistent screenshots
+// Viewport for consistent screenshots (optimized for og:image)
 const VIEWPORT = {
-  width: 800,
-  height: 600
+  width: 1200,
+  height: 630
 }
 
 // Parse command line arguments

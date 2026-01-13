@@ -34,8 +34,8 @@ export const categoryBackgrounds: Record<string, PreviewBackground> = {
     className: 'from-cyan-400 to-blue-600'
   },
   miscellaneous: {
-    gradient: 'linear-gradient(135deg, #536976 0%, #292E49 100%)',
-    className: 'from-slate-500 to-slate-800'
+    gradient: 'linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%)',
+    className: 'from-teal-400 to-emerald-600'
   }
 }
 
@@ -53,13 +53,15 @@ export function getPreviewBackground(category: string): PreviewBackground {
 
 /**
  * Preview viewport dimensions for consistent screenshots.
+ * Using 1200x630 which is the optimal resolution for og:image (Open Graph).
+ * This provides the best display across social media platforms.
  */
 export const PREVIEW_VIEWPORT = {
-  width: 800,
-  height: 600
+  width: 1200,
+  height: 630
 } as const
 
 /**
  * Preview container padding (px).
  */
-export const PREVIEW_PADDING = 40
+export const PREVIEW_PADDING = 48
