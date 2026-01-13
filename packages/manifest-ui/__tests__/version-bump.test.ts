@@ -22,6 +22,7 @@ const CHANGELOG_JSON_PATH = resolve(__dirname, '..', 'changelog.json')
 interface RegistryItem {
   name: string
   version: string
+  category?: string
   files: Array<{ path: string }>
 }
 
@@ -108,6 +109,19 @@ function buildFileToComponentMap(registry: Registry): Map<string, string> {
     }
   }
   return map
+}
+
+/**
+ * Extract category from file path.
+ * e.g., "registry/form/date-time-picker.tsx" → "form"
+ */
+function extractCategoryFromPath(filePath: string): string | null {
+  const parts = filePath.split('/')
+  // Expected format: registry/<category>/<component>.tsx
+  if (parts.length >= 2 && parts[0] === 'registry') {
+    return parts[1]
+  }
+  return null
 }
 
 describe('Version Bump Enforcement', () => {
@@ -249,6 +263,51 @@ describe('Version Bump Enforcement', () => {
         expect(componentChangelog[version]).toBeDefined()
         expect(typeof componentChangelog[version]).toBe('string')
         expect(componentChangelog[version].length).toBeGreaterThan(0)
+      })
+    }
+  })
+
+  describe('Category validation', () => {
+    it('should have valid categories for all components', () => {
+      for (const item of currentRegistry.items) {
+        const { name, category, files } = item
+
+        // Category must be present
+        expect(category).toBeDefined()
+        expect(typeof category).toBe('string')
+        expect(category!.length).toBeGreaterThan(0)
+
+        // Category must match folder name from file path
+        if (files && files.length > 0) {
+          const derivedCategory = extractCategoryFromPath(files[0].path)
+          expect(category).toBe(derivedCategory)
+        }
+      }
+    })
+
+    for (const item of currentRegistry.items) {
+      const { name, category, files } = item
+      const derivedCategory = files && files.length > 0
+        ? extractCategoryFromPath(files[0].path)
+        : null
+
+      it(`"${name}" should have category matching file path`, () => {
+        expect(category).toBeDefined()
+
+        if (derivedCategory) {
+          if (category !== derivedCategory) {
+            throw new Error(
+              `Component "${name}" has category mismatch!\n` +
+              `  Declared category: ${category}\n` +
+              `  Category from file path: ${derivedCategory}\n` +
+              `  File path: ${files[0].path}\n\n` +
+              `The category is automatically derived from the folder name.\n` +
+              `Either update the category in registry.json to "${derivedCategory}"\n` +
+              `or move the component to registry/${category}/`
+            )
+          }
+          expect(category).toBe(derivedCategory)
+        }
       })
     }
   })
