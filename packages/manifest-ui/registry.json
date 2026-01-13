@@ -426,7 +426,7 @@
     },
     {
       "name": "chat-conversation",
-      "version": "3.0.0",
+      "version": "3.0.1",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",

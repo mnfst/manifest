@@ -104,7 +104,8 @@
       "1.0.3": "Added default value 'text' for message type",
       "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
       "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
-      "3.0.0": "BREAKING: Removed caption prop, use content for image captions"
+      "3.0.0": "BREAKING: Removed caption prop, use content for image captions",
+      "3.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display"
