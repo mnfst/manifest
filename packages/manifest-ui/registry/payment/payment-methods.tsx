@@ -5,6 +5,15 @@ import { cn } from '@/lib/utils'
 import { CreditCard, Lock, Plus } from 'lucide-react'
 import { useState } from 'react'
 
+/**
+ * Represents a payment method option.
+ * @interface PaymentMethod
+ * @property {string} id - Unique identifier for the payment method
+ * @property {"card" | "apple_pay" | "google_pay" | "paypal"} type - Type of payment method
+ * @property {"visa" | "mastercard" | "amex" | "cb"} [brand] - Card brand (for card type)
+ * @property {string} [last4] - Last 4 digits of card (for card type)
+ * @property {boolean} [isDefault] - Whether this is the default payment method
+ */
 export interface PaymentMethod {
   id: string
   type: 'card' | 'apple_pay' | 'google_pay' | 'paypal'
@@ -13,6 +22,22 @@ export interface PaymentMethod {
   isDefault?: boolean
 }
 
+/**
+ * Props for the PaymentMethods component.
+ * @interface PaymentMethodsProps
+ * @property {object} [data] - Payment methods and amount data
+ * @property {PaymentMethod[]} [data.methods] - Available payment methods
+ * @property {number} [data.amount] - Amount to charge
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onSelectMethod] - Called when a method is selected
+ * @property {function} [actions.onAddCard] - Called when user wants to add a card
+ * @property {function} [actions.onPay] - Called when user initiates payment
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting
+ * @property {object} [control] - State control options
+ * @property {string} [control.selectedMethodId] - Currently selected method ID
+ * @property {boolean} [control.isLoading] - Shows loading state on pay button
+ */
 export interface PaymentMethodsProps {
   data?: {
     methods?: PaymentMethod[]
@@ -126,6 +151,39 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
   return <BrandLogo brand={method.brand} />
 }
 
+/**
+ * A payment method selector supporting cards (Visa, Mastercard, CB, Amex) and digital wallets.
+ * Displays methods as pill-shaped buttons with brand logos.
+ *
+ * Features:
+ * - Card brand logos (Visa, Mastercard, Amex, CB)
+ * - Digital wallet support (Apple Pay, Google Pay, PayPal)
+ * - Pill-shaped method selectors
+ * - Default method indicator
+ * - Add new card option
+ * - Secure transaction indicator
+ * - Loading state support
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PaymentMethods
+ *   data={{
+ *     methods: [
+ *       { id: "1", type: "card", brand: "visa", last4: "4242" },
+ *       { id: "2", type: "apple_pay" }
+ *     ],
+ *     amount: 99.99
+ *   }}
+ *   actions={{
+ *     onSelectMethod: (id) => console.log("Selected:", id),
+ *     onAddCard: () => console.log("Add card"),
+ *     onPay: (id) => console.log("Pay with:", id)
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ * />
+ * ```
+ */
 export function PaymentMethods({ data, actions, appearance, control }: PaymentMethodsProps) {
   const { methods = defaultMethods, amount = 279.0 } = data ?? {}
   const { onSelectMethod, onAddCard, onPay } = actions ?? {}

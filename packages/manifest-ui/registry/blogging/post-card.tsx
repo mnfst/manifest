@@ -5,6 +5,23 @@ import { Button } from '@/components/ui/button'
 // Import shared OpenAI types
 import '@/lib/openai-types' // Side effect: extends Window interface
 
+import { demoPost } from './demo/data'
+
+/**
+ * Represents a blog post with metadata.
+ * @interface Post
+ * @property {string} title - Post title
+ * @property {string} excerpt - Brief description or summary
+ * @property {string} [coverImage] - URL of the cover image
+ * @property {object} author - Author information
+ * @property {string} author.name - Author's display name
+ * @property {string} [author.avatar] - Author's avatar URL
+ * @property {string} publishedAt - ISO date string of publication
+ * @property {string} [readTime] - Estimated read time (e.g., "5 min read")
+ * @property {string[]} [tags] - Array of tag labels
+ * @property {string} [category] - Category name
+ * @property {string} [url] - External URL for the post
+ */
 export interface Post {
   title: string
   excerpt: string
@@ -20,22 +37,19 @@ export interface Post {
   url?: string
 }
 
-const defaultPost: Post = {
-  title: 'Getting Started with Agentic UI Components',
-  excerpt:
-    'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
-  coverImage:
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: {
-    name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
-  },
-  publishedAt: '2024-01-15',
-  readTime: '5 min read',
-  tags: ['Tutorial', 'Components'],
-  category: 'Tutorial'
-}
-
+/**
+ * Props for the PostCard component.
+ * @interface PostCardProps
+ * @property {object} [data] - Post data
+ * @property {Post} [data.post] - The post to display
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onReadMore] - Called when read more is clicked
+ * @property {object} [appearance] - Visual customization
+ * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
+ * @property {boolean} [appearance.showImage] - Whether to show cover image
+ * @property {boolean} [appearance.showAuthor] - Whether to show author info
+ * @property {boolean} [appearance.showCategory] - Whether to show category
+ */
 export interface PostCardProps {
   data?: {
     post?: Post
@@ -51,8 +65,48 @@ export interface PostCardProps {
   }
 }
 
+/**
+ * A blog post card component with multiple layout variants.
+ * Supports default, compact, horizontal, and covered (overlay) styles.
+ *
+ * Features:
+ * - Four layout variants (default, compact, horizontal, covered)
+ * - Cover image with hover zoom effect
+ * - Author avatar and info display
+ * - Category and tags display
+ * - Read more action button
+ * - Responsive design
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PostCard
+ *   data={{
+ *     post: {
+ *       title: "Getting Started Guide",
+ *       excerpt: "Learn the basics of our component library.",
+ *       coverImage: "https://example.com/image.jpg",
+ *       author: { name: "Sarah Chen", avatar: "https://example.com/avatar.jpg" },
+ *       publishedAt: "2024-01-15",
+ *       readTime: "5 min read",
+ *       tags: ["Tutorial", "Components"],
+ *       category: "Tutorial"
+ *     }
+ *   }}
+ *   actions={{
+ *     onReadMore: (post) => console.log("Read more:", post.title)
+ *   }}
+ *   appearance={{
+ *     variant: "default",
+ *     showImage: true,
+ *     showAuthor: true,
+ *     showCategory: true
+ *   }}
+ * />
+ * ```
+ */
 export function PostCard({ data, actions, appearance }: PostCardProps) {
-  const { post = defaultPost } = data ?? {}
+  const { post = demoPost } = data ?? {}
   const { onReadMore } = actions ?? {}
   const {
     variant = 'default',

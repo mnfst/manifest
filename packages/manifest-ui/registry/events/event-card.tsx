@@ -14,38 +14,24 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
+import { demoEvent } from './demo/data'
 
 // Import shared OpenAI types
 import '@/lib/openai-types'
 
-const defaultEvent: Event = {
-  title: 'NEON Vol. 9',
-  category: 'Music',
-  venue: 'Echoplex',
-  neighborhood: 'Echo Park',
-  city: 'Los Angeles',
-  dateTime: 'Tonight 9:00 PM - 3:00 AM',
-  priceRange: '$45 - $150',
-  image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
-  vibeTags: ['High energy', 'Late night', 'Dressy'],
-  vibeDescription:
-    'Immersive electronic experience with world-class DJs and stunning visuals.',
-  aiSummary:
-    "Immersive electronic night with world-class DJs and stunning visuals at LA's top-rated venue.",
-  lineup: ['DJ Shadow', 'Bonobo', 'Four Tet', 'Caribou'],
-  ticketTiers: [
-    'General Admission $45',
-    'VIP Access $120',
-    'Backstage Pass $150'
-  ],
-  eventSignal: 'going-fast',
-  organizerRating: 4.8,
-  reviewCount: 12453,
-  venueRating: 4.8,
-  ageRestriction: '21+',
-  hasMultipleDates: true
-}
-
+/**
+ * Props for the EventCard component.
+ * @interface EventCardProps
+ * @property {object} [data] - Event data
+ * @property {Event} [data.event] - The event to display
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onClick] - Called when the card is clicked
+ * @property {object} [appearance] - Visual customization
+ * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
+ * @property {boolean} [appearance.showSignal] - Whether to show event signal badge
+ * @property {boolean} [appearance.showTags] - Whether to show vibe tags
+ * @property {boolean} [appearance.showRating] - Whether to show organizer rating
+ */
 export interface EventCardProps {
   data?: {
     event?: Event
@@ -125,8 +111,37 @@ function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+/**
+ * An event card component with multiple layout variants.
+ * Displays event information with signals, tags, and ratings.
+ *
+ * Features:
+ * - Four layout variants (default, compact, horizontal, covered)
+ * - Event signal badges (going fast, popular, etc.)
+ * - Vibe tags display
+ * - Organizer rating display
+ * - Clickable card interaction
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventCard
+ *   data={{
+ *     event: {
+ *       title: "Concert Night",
+ *       category: "Music",
+ *       dateTime: "Sat, Jan 20 · 8pm",
+ *       venue: "The Fillmore",
+ *       priceRange: "$45 - $150"
+ *     }
+ *   }}
+ *   appearance={{ variant: "default", showSignal: true }}
+ *   actions={{ onClick: (event) => console.log("Clicked:", event.title) }}
+ * />
+ * ```
+ */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const { event = defaultEvent } = data ?? {}
+  const { event = demoEvent } = data ?? {}
   const { onClick } = actions ?? {}
   const {
     variant = 'default',
@@ -141,11 +156,24 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+
+  const cardAriaLabel = `${event.title}, ${event.category} event at ${event.venue || 'online'}, ${event.dateTime}, ${event.priceRange}`
+
   if (variant === 'covered') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={cardAriaLabel}
         className="relative overflow-hidden rounded-lg border cursor-pointer min-h-[280px]"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {/* Background image */}
         {event.image && (
@@ -210,8 +238,12 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   if (variant === 'horizontal') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={cardAriaLabel}
         className="flex gap-4 rounded-xl border bg-card p-4 cursor-pointer hover:bg-accent/50 transition-colors"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {/* Image */}
         {event.image && (
@@ -252,8 +284,12 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   if (variant === 'compact') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={cardAriaLabel}
         className="flex h-full flex-col overflow-hidden rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
       >
         {/* Image */}
         {event.image && (
@@ -316,8 +352,12 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
   // Default variant
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={cardAriaLabel}
       className="flex h-full flex-col overflow-hidden rounded-lg border bg-card cursor-pointer hover:bg-accent/50 transition-colors"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
       {/* Image */}
       {event.image && (

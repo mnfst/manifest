@@ -3,14 +3,21 @@
 import { Button } from '@/components/ui/button'
 import { Check, ExternalLink } from 'lucide-react'
 
-/*
- * PaymentConfirmed Component - ChatGPT UI Guidelines Compliant
- * - Use system colors (foreground/background) instead of custom green
- * - Single CTA action (Track order)
- * - Proper visual hierarchy
- * - No nested scrolling
+/**
+ * Props for the PaymentConfirmed component.
+ * @interface PaymentConfirmedProps
+ * @property {object} [data] - Order and product data
+ * @property {string} [data.orderId] - Order reference number
+ * @property {string} [data.productName] - Name of the purchased product
+ * @property {string} [data.productDescription] - Product description/details
+ * @property {string} [data.productImage] - Product image URL
+ * @property {number} [data.price] - Total price paid
+ * @property {string} [data.deliveryDate] - Expected delivery date
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onTrackOrder] - Called when user clicks track order
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting
  */
-
 export interface PaymentConfirmedProps {
   data?: {
     orderId?: string
@@ -28,6 +35,37 @@ export interface PaymentConfirmedProps {
   }
 }
 
+/**
+ * A payment confirmation card with product image, price, delivery info, and tracking button.
+ * Shows a header with success indicator and order ID, plus detailed product information.
+ *
+ * Features:
+ * - Success checkmark with "Payment confirmed" header
+ * - Order ID reference
+ * - Product image and description
+ * - Price and delivery date display
+ * - Track order button
+ * - Responsive mobile/desktop layouts
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PaymentConfirmed
+ *   data={{
+ *     orderId: "ORD-2024-5678",
+ *     productName: "Running Shoes",
+ *     productDescription: "Nike · Size 10 · Black",
+ *     productImage: "/images/shoes.jpg",
+ *     price: 129.99,
+ *     deliveryDate: "Wed. Jan 18"
+ *   }}
+ *   actions={{
+ *     onTrackOrder: () => console.log("Track order clicked")
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ * />
+ * ```
+ */
 export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmedProps) {
   const {
     orderId = 'ORD-2024-7842',

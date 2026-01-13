@@ -9,6 +9,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+/**
+ * Props for the InstagramPost component.
+ * @interface InstagramPostProps
+ * @property {object} [data] - Post content and metadata
+ * @property {string} [data.author] - Author's username
+ * @property {string} [data.avatar] - Avatar letter or URL
+ * @property {string} [data.image] - Post image URL
+ * @property {string} [data.likes] - Like count (e.g., "2,847")
+ * @property {string} [data.caption] - Post caption text
+ * @property {string} [data.time] - Time since posted (e.g., "2 hours ago")
+ * @property {boolean} [data.verified] - Whether the author is verified
+ */
 export interface InstagramPostProps {
   data?: {
     author?: string
@@ -31,6 +43,34 @@ const defaultData = {
   verified: true
 }
 
+/**
+ * An Instagram post embed component with image, caption, and engagement.
+ * Displays the post with like, comment, share, and save actions.
+ *
+ * Features:
+ * - Square aspect ratio image display
+ * - Gradient avatar ring for stories indicator
+ * - Verified badge support
+ * - Action buttons (like, comment, share, save)
+ * - Dropdown menu (report, unfollow, copy link, embed)
+ * - Like count and caption display
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <InstagramPost
+ *   data={{
+ *     author: "manifest.ai",
+ *     avatar: "M",
+ *     image: "https://example.com/photo.jpg",
+ *     likes: "2,847",
+ *     caption: "Check out this amazing view!",
+ *     time: "2 hours ago",
+ *     verified: true
+ *   }}
+ * />
+ * ```
+ */
 export function InstagramPost({ data }: InstagramPostProps) {
   const {
     author = defaultData.author,

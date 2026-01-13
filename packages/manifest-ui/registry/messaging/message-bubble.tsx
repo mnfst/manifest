@@ -9,14 +9,13 @@ import { cn } from '@/lib/utils'
 import { Check, CheckCheck, Smile } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-/*
- * MessageBubble Components - ChatGPT UI Guidelines Compliant
- * - Use system colors (foreground/background) instead of custom blue
- * - Compact design suitable for chat embedding
- * - Note: Dropdown for reactions may be clipped in iframes - consider inline alternatives
+/**
+ * Internal avatar component options.
+ * @interface InternalAvatarOptions
+ * @property {string} [src] - Avatar image URL
+ * @property {string} fallback - Fallback letter when image fails or is missing
+ * @property {string} [className] - Additional CSS classes
  */
-
-// Internal avatar component (not exported)
 interface InternalAvatarOptions {
   src?: string
   fallback: string
@@ -49,7 +48,20 @@ function Avatar({ src, fallback, className }: InternalAvatarOptions) {
   )
 }
 
-// Single Message Bubble
+/**
+ * Props for the MessageBubble component.
+ * @interface MessageBubbleProps
+ * @property {object} [data] - Message content and metadata
+ * @property {string} [data.content] - Message text content
+ * @property {string} [data.avatarUrl] - Avatar image URL
+ * @property {string} [data.avatarFallback] - Avatar fallback letter
+ * @property {string} [data.author] - Author name
+ * @property {string} [data.time] - Time display string
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
+ * @property {object} [control] - State control options
+ * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ */
 export interface MessageBubbleProps {
   data?: {
     content?: string
@@ -66,6 +78,31 @@ export interface MessageBubbleProps {
   }
 }
 
+/**
+ * A single text message bubble for chat interfaces.
+ * Displays avatar, message content, time, and delivery status.
+ *
+ * Features:
+ * - Own/other message styling with color differentiation
+ * - Avatar with image or letter fallback
+ * - Delivery status indicators (sent, delivered, read)
+ * - Time display
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <MessageBubble
+ *   data={{
+ *     content: "Hey! How are you?",
+ *     avatarUrl: "https://example.com/avatar.jpg",
+ *     avatarFallback: "J",
+ *     time: "10:30 AM"
+ *   }}
+ *   appearance={{ isOwn: false }}
+ *   control={{ status: "read" }}
+ * />
+ * ```
+ */
 export function MessageBubble({
   data,
   appearance,
@@ -112,7 +149,21 @@ export function MessageBubble({
   )
 }
 
-// Image Message Bubble
+/**
+ * Props for the ImageMessageBubble component.
+ * @interface ImageMessageBubbleProps
+ * @property {object} [data] - Image message content and metadata
+ * @property {string} [data.image] - Image URL to display
+ * @property {string} [data.content] - Optional caption text
+ * @property {string} [data.avatarUrl] - Avatar image URL
+ * @property {string} [data.avatarFallback] - Avatar fallback letter
+ * @property {string} [data.author] - Author name
+ * @property {string} [data.time] - Time display string
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
+ * @property {object} [control] - State control options
+ * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ */
 export interface ImageMessageBubbleProps {
   data?: {
     image?: string
@@ -130,6 +181,30 @@ export interface ImageMessageBubbleProps {
   }
 }
 
+/**
+ * An image message bubble for sharing photos in chat.
+ * Displays an image with optional caption and message metadata.
+ *
+ * Features:
+ * - Image display with max width constraint
+ * - Optional caption below image
+ * - Own/other message styling
+ * - Avatar and delivery status support
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ImageMessageBubble
+ *   data={{
+ *     image: "https://example.com/photo.jpg",
+ *     content: "Check this out!",
+ *     avatarFallback: "J",
+ *     time: "10:32 AM"
+ *   }}
+ *   appearance={{ isOwn: false }}
+ * />
+ * ```
+ */
 export function ImageMessageBubble({
   data,
   appearance,
@@ -189,7 +264,21 @@ export function ImageMessageBubble({
   )
 }
 
-// Message with reactions
+/**
+ * Props for the MessageWithReactions component.
+ * @interface MessageWithReactionsProps
+ * @property {object} [data] - Message content and metadata
+ * @property {string} [data.content] - Message text content
+ * @property {string} [data.avatarUrl] - Avatar image URL
+ * @property {string} [data.avatarFallback] - Avatar fallback letter
+ * @property {string} [data.author] - Author name
+ * @property {string} [data.time] - Time display string
+ * @property {{ emoji: string; count: number }[]} [data.reactions] - Reaction counts
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onReact] - Called when user reacts with an emoji
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
+ */
 export interface MessageWithReactionsProps {
   data?: {
     content?: string
@@ -207,6 +296,10 @@ export interface MessageWithReactionsProps {
   }
 }
 
+/**
+ * Available emoji options for reactions.
+ * @constant
+ */
 const availableEmojis = [
   '❤️',
   '👍',
@@ -220,6 +313,34 @@ const availableEmojis = [
   '💯'
 ]
 
+/**
+ * A message bubble with emoji reaction support.
+ * Allows users to add, toggle, and view reactions on messages.
+ *
+ * Features:
+ * - Emoji reaction picker dropdown
+ * - Toggle reactions on/off
+ * - Reaction count display
+ * - Highlighted user's own reactions
+ * - Full reaction emoji set
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <MessageWithReactions
+ *   data={{
+ *     content: "This is great news! 🎉",
+ *     avatarFallback: "A",
+ *     time: "2:45 PM",
+ *     reactions: [{ emoji: "❤️", count: 3 }, { emoji: "👍", count: 2 }]
+ *   }}
+ *   actions={{
+ *     onReact: (emoji) => console.log("Reacted with:", emoji)
+ *   }}
+ *   appearance={{ isOwn: false }}
+ * />
+ * ```
+ */
 export function MessageWithReactions({
   data,
   actions,
@@ -310,6 +431,7 @@ export function MessageWithReactions({
                 <button
                   key={index}
                   onClick={() => handleReact(reaction.emoji)}
+                  aria-label={`${userReactions.has(reaction.emoji) ? 'Remove' : 'Add'} ${reaction.emoji} reaction, ${reaction.count} ${reaction.count === 1 ? 'reaction' : 'reactions'}`}
                   className={cn(
                     'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs transition-colors cursor-pointer',
                     userReactions.has(reaction.emoji)
@@ -333,7 +455,10 @@ export function MessageWithReactions({
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors cursor-pointer">
+              <button
+                aria-label="Add reaction"
+                className="inline-flex items-center justify-center h-6 w-6 bg-card border rounded-full hover:bg-muted transition-colors cursor-pointer"
+              >
                 <Smile className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -343,6 +468,7 @@ export function MessageWithReactions({
                   <button
                     key={emoji}
                     onClick={() => handleReact(emoji)}
+                    aria-label={`React with ${emoji}`}
                     className="h-8 w-8 flex items-center justify-center text-lg hover:bg-muted rounded transition-colors cursor-pointer"
                   >
                     {emoji}
@@ -362,7 +488,21 @@ export function MessageWithReactions({
   )
 }
 
-// Voice Message Bubble
+/**
+ * Props for the VoiceMessageBubble component.
+ * @interface VoiceMessageBubbleProps
+ * @property {object} [data] - Voice message content and metadata
+ * @property {string} [data.duration] - Total duration display (e.g., "0:42")
+ * @property {string} [data.avatarUrl] - Avatar image URL
+ * @property {string} [data.avatarFallback] - Avatar fallback letter
+ * @property {string} [data.author] - Author name
+ * @property {string} [data.time] - Time display string
+ * @property {string} [data.audioSrc] - Audio file URL
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
+ * @property {object} [control] - State control options
+ * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ */
 export interface VoiceMessageBubbleProps {
   data?: {
     duration?: string
@@ -380,6 +520,32 @@ export interface VoiceMessageBubbleProps {
   }
 }
 
+/**
+ * A voice/audio message bubble with playback controls.
+ * Allows users to play, pause, and see progress of audio messages.
+ *
+ * Features:
+ * - Play/pause button with icon toggle
+ * - Progress bar showing playback position
+ * - Duration and current time display
+ * - Own/other message styling
+ * - Delivery status indicators
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <VoiceMessageBubble
+ *   data={{
+ *     duration: "0:42",
+ *     audioSrc: "https://example.com/audio.mp3",
+ *     avatarFallback: "M",
+ *     time: "3:15 PM"
+ *   }}
+ *   appearance={{ isOwn: false }}
+ *   control={{ status: "delivered" }}
+ * />
+ * ```
+ */
 export function VoiceMessageBubble({
   data,
   appearance,
@@ -448,6 +614,7 @@ export function VoiceMessageBubble({
         >
           <button
             onClick={togglePlay}
+            aria-label={isPlaying ? 'Pause voice message' : 'Play voice message'}
             className={cn(
               'h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer',
               isOwn

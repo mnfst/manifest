@@ -3,6 +3,25 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
 
+/**
+ * Props for the OrderConfirm component.
+ * @interface OrderConfirmProps
+ * @property {object} [data] - Product and delivery data
+ * @property {string} [data.productName] - Name of the product
+ * @property {string} [data.productVariant] - Product variant/color
+ * @property {string} [data.productImage] - Product image URL
+ * @property {number} [data.quantity] - Number of items
+ * @property {number} [data.price] - Total price
+ * @property {string} [data.deliveryDate] - Expected delivery date
+ * @property {string} [data.deliveryAddress] - Delivery address
+ * @property {boolean} [data.freeShipping] - Whether shipping is free
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onConfirm] - Called when user confirms the order
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting
+ * @property {object} [control] - State control options
+ * @property {boolean} [control.isLoading] - Shows loading state on confirm button
+ */
 export interface OrderConfirmProps {
   data?: {
     productName?: string
@@ -28,6 +47,40 @@ export interface OrderConfirmProps {
 const DEFAULT_AIRPODS_IMAGE =
   'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
+/**
+ * An order confirmation component with product image, delivery info, and confirm action.
+ * Displays responsive layouts for mobile and desktop with delivery details.
+ *
+ * Features:
+ * - Product image and details display
+ * - Variant and quantity information
+ * - Price with free shipping indicator
+ * - Delivery date and address
+ * - Confirm order button with loading state
+ * - Responsive mobile/desktop layouts
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <OrderConfirm
+ *   data={{
+ *     productName: "Wireless Earbuds",
+ *     productVariant: "White",
+ *     productImage: "/images/earbuds.jpg",
+ *     quantity: 1,
+ *     price: 149.99,
+ *     deliveryDate: "Fri. Jan 20",
+ *     deliveryAddress: "123 Main St, New York 10001",
+ *     freeShipping: true
+ *   }}
+ *   actions={{
+ *     onConfirm: () => console.log("Order confirmed")
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ *   control={{ isLoading: false }}
+ * />
+ * ```
+ */
 export function OrderConfirm({ data, actions, appearance, control }: OrderConfirmProps) {
   const {
     productName = 'Iyo Pro',

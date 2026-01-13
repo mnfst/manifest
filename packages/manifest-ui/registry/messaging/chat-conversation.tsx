@@ -1,8 +1,21 @@
 'use client'
 
 import { ImageMessageBubble, MessageBubble } from './message-bubble'
+import { demoMessages } from './demo/data'
 
-// Chat Conversation (multiple messages)
+/**
+ * Represents a chat message.
+ * @interface ChatMessage
+ * @property {"text" | "image"} [type] - Message type (defaults to "text")
+ * @property {string} content - Message content or image caption
+ * @property {string} [image] - Image URL for image messages
+ * @property {string} [author] - Sender's name
+ * @property {string} [avatarUrl] - Sender's avatar image URL
+ * @property {string} [avatarFallback] - Fallback letter for avatar
+ * @property {string} [time] - Message timestamp
+ * @property {boolean} isOwn - Whether message is from current user
+ * @property {"sent" | "delivered" | "read"} [status] - Message delivery status
+ */
 export interface ChatMessage {
   type?: 'text' | 'image'
   content: string
@@ -15,53 +28,44 @@ export interface ChatMessage {
   status?: 'sent' | 'delivered' | 'read'
 }
 
+/**
+ * Props for the ChatConversation component.
+ * @interface ChatConversationProps
+ * @property {object} [data] - Conversation data
+ * @property {ChatMessage[]} [data.messages] - Array of messages
+ */
 export interface ChatConversationProps {
   data?: {
     messages?: ChatMessage[]
   }
 }
 
-const defaultMessages: ChatMessage[] = [
-  {
-    type: 'text',
-    content: 'Hey! Check out this new feature we just shipped 🚀',
-    author: 'Sarah',
-    avatarFallback: 'S',
-    time: '10:30 AM',
-    isOwn: false
-  },
-  {
-    type: 'text',
-    content: 'Oh wow, that looks amazing! How long did it take to build?',
-    author: 'You',
-    avatarFallback: 'Y',
-    time: '10:31 AM',
-    isOwn: true,
-    status: 'read'
-  },
-  {
-    type: 'image',
-    content: "Here's a preview of the dashboard",
-    image:
-      'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop',
-    author: 'Sarah',
-    avatarFallback: 'S',
-    time: '10:32 AM',
-    isOwn: false
-  },
-  {
-    type: 'text',
-    content: 'This is incredible! The UI is so clean 👏',
-    author: 'You',
-    avatarFallback: 'Y',
-    time: '10:33 AM',
-    isOwn: true,
-    status: 'delivered'
-  }
-]
-
+/**
+ * A chat conversation component displaying multiple messages.
+ * Supports text and image messages with avatars and status indicators.
+ *
+ * Features:
+ * - Text and image message types
+ * - Message status indicators (sent, delivered, read)
+ * - Avatar support with image URL or letter fallback
+ * - Author name and timestamp display
+ * - Own vs other message styling
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ChatConversation
+ *   data={{
+ *     messages: [
+ *       { content: "Hello!", isOwn: false, avatarFallback: "S", author: "Sarah" },
+ *       { content: "Hi there!", isOwn: true, status: "read" }
+ *     ]
+ *   }}
+ * />
+ * ```
+ */
 export function ChatConversation({ data }: ChatConversationProps) {
-  const { messages = defaultMessages } = data ?? {}
+  const { messages = demoMessages } = data ?? {}
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
       {messages.map((message, index) => {

@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
+import { demoEvents } from './demo/data'
 
 // Dynamically import map components to avoid SSR issues with Leaflet
 const MapContainer = dynamic(
@@ -112,250 +113,6 @@ function EventMapMarkers({
   )
 }
 
-const defaultEvents: Event[] = [
-  {
-    title: 'NEON Vol. 9',
-    category: 'Music',
-    venue: 'Echoplex',
-    neighborhood: 'Echo Park',
-    city: 'Los Angeles',
-    dateTime: 'Tonight 9:00 PM - 3:00 AM',
-    priceRange: '$45 - $150',
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
-    coordinates: { lat: 34.0781, lng: -118.2606 },
-    vibeTags: ['High energy', 'Late night'],
-    eventSignal: 'going-fast',
-    organizerRating: 4.8,
-    reviewCount: 12453,
-    ageRestriction: '21+'
-  },
-  {
-    
-    title: 'The Midnight Show',
-    category: 'Comedy',
-    venue: 'The Comedy Underground',
-    neighborhood: 'Santa Monica',
-    city: 'Los Angeles',
-    dateTime: 'Tonight 10:00 PM - 12:00 AM',
-    priceRange: '$15 - $35',
-    image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800',
-    coordinates: { lat: 34.0195, lng: -118.4912 },
-    vibeTags: ['Social', 'Late night'],
-    eventSignal: 'popular',
-    organizerRating: 4.7,
-    reviewCount: 3241,
-    discount: 'TONIGHT ONLY - 40% OFF'
-  },
-  {
-    
-    title: 'Salsa Sundays @ Echo Park',
-    category: 'Classes',
-    venue: 'Echo Park Lake',
-    neighborhood: 'Echo Park',
-    city: 'Los Angeles',
-    dateTime: 'Saturday 6:00 PM - 10:00 PM',
-    priceRange: 'Free',
-    image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800',
-    coordinates: { lat: 34.0731, lng: -118.2608 },
-    vibeTags: ['High energy', 'Social'],
-    eventSignal: 'just-added',
-    organizerRating: 4.9,
-    reviewCount: 8764
-  },
-  {
-    
-    title: 'Dawn Flow: Griffith Park',
-    category: 'Classes',
-    venue: 'Griffith Park',
-    neighborhood: 'Los Feliz',
-    city: 'Los Angeles',
-    dateTime: 'Tomorrow 6:00 AM - 8:00 AM',
-    priceRange: 'Free',
-    image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800',
-    coordinates: { lat: 34.1365, lng: -118.2943 },
-    vibeTags: ['Chill', 'Wellness', 'Outdoor'],
-    organizerRating: 4.9,
-    reviewCount: 8764,
-    discount: 'FREE - First 50 Only'
-  },
-  {
-    
-    title: 'Lakers vs Celtics',
-    category: 'Sports',
-    venue: 'Crypto.com Arena',
-    neighborhood: 'Downtown',
-    city: 'Los Angeles',
-    dateTime: 'Friday 7:30 PM - 10:30 PM',
-    priceRange: '$125 - $850',
-    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800',
-    coordinates: { lat: 34.0430, lng: -118.2673 },
-    vibeTags: ['High energy', 'Social', 'Premium'],
-    eventSignal: 'sales-end-soon',
-    organizerRating: 4.5,
-    reviewCount: 2341
-  },
-  {
-    
-    title: 'Smorgasburg LA: Sunday Market',
-    category: 'Food & Drink',
-    venue: 'ROW DTLA',
-    neighborhood: 'Arts District',
-    city: 'Los Angeles',
-    dateTime: 'Sunday 10:00 AM - 4:00 PM',
-    priceRange: 'Free',
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800',
-    coordinates: { lat: 34.0341, lng: -118.2324 },
-    vibeTags: ['Family-friendly', 'Outdoor', 'Social'],
-    organizerRating: 4.8,
-    reviewCount: 5632
-  },
-  {
-    
-    title: 'LACMA After Hours',
-    category: 'Arts',
-    venue: 'LACMA',
-    neighborhood: 'Miracle Mile',
-    city: 'Los Angeles',
-    dateTime: 'Friday 7:00 PM - 11:00 PM',
-    priceRange: '$35 - $75',
-    image: 'https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800',
-    coordinates: { lat: 34.0639, lng: -118.3592 },
-    vibeTags: ['Chill', 'Date night', 'Sophisticated'],
-    organizerRating: 4.7,
-    reviewCount: 1234,
-    ageRestriction: '21+',
-    discount: 'MEMBER PRICE'
-  },
-  {
-    
-    title: 'Blue Note Under Stars',
-    category: 'Music',
-    venue: 'Hollywood Bowl',
-    neighborhood: 'Hollywood Hills',
-    city: 'Los Angeles',
-    dateTime: 'Saturday 8:00 PM - 11:00 PM',
-    priceRange: '$45 - $200',
-    image: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800',
-    coordinates: { lat: 34.1122, lng: -118.3391 },
-    vibeTags: ['Chill', 'Date night', 'Outdoor'],
-    lineup: ['Kamasi Washington', 'Thundercat', 'Terrace Martin'],
-    organizerRating: 4.8,
-    reviewCount: 12453
-  },
-  {
-    
-    title: 'Meraki: Seth Troxler',
-    category: 'Nightlife',
-    venue: 'Sound Nightclub',
-    neighborhood: 'Hollywood',
-    city: 'Los Angeles',
-    dateTime: 'Saturday 10:00 PM - 4:00 AM',
-    priceRange: '$35 - $65',
-    image: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800',
-    coordinates: { lat: 34.0928, lng: -118.3287 },
-    vibeTags: ['High energy', 'Late night', 'Underground'],
-    lineup: ['Amelie Lens', 'I Hate Models', 'FJAAK'],
-    organizerRating: 4.6,
-    reviewCount: 1876,
-    ageRestriction: '21+'
-  },
-  {
-    
-    title: 'Whitney Cummings + Friends',
-    category: 'Comedy',
-    venue: 'The Laugh Factory',
-    neighborhood: 'Hollywood',
-    city: 'Los Angeles',
-    dateTime: 'In 2 days 8:00 PM - 11:00 PM',
-    priceRange: '$25 - $55',
-    image: 'https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800',
-    coordinates: { lat: 34.0901, lng: -118.3615 },
-    vibeTags: ['Chill', 'Social', 'Date night'],
-    organizerRating: 4.7,
-    reviewCount: 3241,
-    ageRestriction: '18+'
-  },
-  {
-    
-    title: 'Venice Beach Drum Circle',
-    category: 'Music',
-    venue: 'Venice Beach Boardwalk',
-    neighborhood: 'Venice',
-    city: 'Los Angeles',
-    dateTime: 'Sunday 4:00 PM - 8:00 PM',
-    priceRange: 'Free',
-    image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800',
-    coordinates: { lat: 33.9850, lng: -118.4695 },
-    vibeTags: ['Outdoor', 'Social', 'Chill'],
-    eventSignal: 'popular',
-    organizerRating: 4.6,
-    reviewCount: 2145
-  },
-  {
-    
-    title: 'Rooftop Cinema: Blade Runner',
-    category: 'Film',
-    venue: 'Rooftop Cinema Club',
-    neighborhood: 'DTLA',
-    city: 'Los Angeles',
-    dateTime: 'Friday 8:30 PM - 11:00 PM',
-    priceRange: '$25 - $45',
-    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800',
-    coordinates: { lat: 34.0407, lng: -118.2468 },
-    vibeTags: ['Date night', 'Views', 'Chill'],
-    organizerRating: 4.8,
-    reviewCount: 892
-  },
-  {
-    
-    title: 'Dodgers vs Giants',
-    category: 'Sports',
-    venue: 'Dodger Stadium',
-    neighborhood: 'Elysian Park',
-    city: 'Los Angeles',
-    dateTime: 'Saturday 1:10 PM - 4:30 PM',
-    priceRange: '$35 - $350',
-    image: 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800',
-    coordinates: { lat: 34.0739, lng: -118.2400 },
-    vibeTags: ['Family-friendly', 'Social', 'High energy'],
-    eventSignal: 'few-tickets-left',
-    organizerRating: 4.7,
-    reviewCount: 15678
-  },
-  {
-    
-    title: 'Natural Wine Fair',
-    category: 'Food & Drink',
-    venue: 'Grand Central Market',
-    neighborhood: 'Downtown',
-    city: 'Los Angeles',
-    dateTime: 'Sunday 12:00 PM - 6:00 PM',
-    priceRange: '$45 - $85',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800',
-    coordinates: { lat: 34.0508, lng: -118.2490 },
-    vibeTags: ['Tasting', 'Social', 'Sophisticated'],
-    eventSignal: 'just-added',
-    organizerRating: 4.5,
-    reviewCount: 567,
-    ageRestriction: '21+'
-  },
-  {
-    
-    title: 'Meditation in the Gardens',
-    category: 'Wellness',
-    venue: 'The Getty Center',
-    neighborhood: 'Brentwood',
-    city: 'Los Angeles',
-    dateTime: 'Sunday 7:00 AM - 9:00 AM',
-    priceRange: 'Free',
-    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800',
-    coordinates: { lat: 34.0780, lng: -118.4741 },
-    vibeTags: ['Wellness', 'Outdoor', 'Chill'],
-    organizerRating: 4.9,
-    reviewCount: 1234
-  }
-]
-
 // Filter options
 const categoryOptions = ['Music', 'Comedy', 'Classes', 'Sports', 'Food & Drink', 'Arts', 'Film', 'Nightlife', 'Wellness', 'Networking']
 const dateOptions = ['Today', 'Tomorrow', 'This weekend', 'This week', 'Next week', 'This month', 'Custom range']
@@ -371,6 +128,10 @@ interface FilterState {
   formats: string[]
 }
 
+/**
+ * Default empty filter state.
+ * @constant
+ */
 const defaultFilters: FilterState = {
   categories: [],
   dates: [],
@@ -379,7 +140,10 @@ const defaultFilters: FilterState = {
   formats: []
 }
 
-// Filter section component
+/**
+ * Filter section component with expandable checkbox list.
+ * @component
+ */
 function FilterSection({
   title,
   options,
@@ -512,6 +276,7 @@ function FilterPanel({
             size="icon"
             className="h-8 w-8"
             onClick={onClose}
+            aria-label="Close filters"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -598,8 +363,41 @@ export interface EventListProps {
   }
 }
 
+/**
+ * An event list component with multiple layout variants.
+ * Supports list, grid, carousel, and fullwidth (split-screen with map) layouts.
+ *
+ * Features:
+ * - Four layout variants (list, grid, carousel, fullwidth)
+ * - Interactive map with event markers (fullwidth)
+ * - Filter panel with categories, dates, neighborhoods, prices, formats
+ * - Responsive carousel with navigation
+ * - Event hover/selection sync between list and map
+ * - Pagination support
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventList
+ *   data={{
+ *     events: [...],
+ *     title: "Events near you"
+ *   }}
+ *   actions={{
+ *     onEventSelect: (event) => console.log("Selected:", event.title),
+ *     onExpand: () => console.log("Expand to fullscreen"),
+ *     onFiltersApply: (filters) => console.log("Filters:", filters)
+ *   }}
+ *   appearance={{
+ *     variant: "grid",
+ *     columns: 3,
+ *     eventsPerPage: 10
+ *   }}
+ * />
+ * ```
+ */
 export function EventList({ data, actions, appearance }: EventListProps) {
-  const { events = defaultEvents, title } = data ?? {}
+  const { events = demoEvents, title } = data ?? {}
   const { onEventSelect, onViewMore, onExpand, onFilterClick, onFiltersApply } = actions ?? {}
   const { variant = 'list' } = appearance ?? {}
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -747,6 +545,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 size="icon"
                 className="h-8 w-8"
                 onClick={onExpand}
+                aria-label="Expand view"
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
@@ -778,6 +577,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 size="icon"
                 className="h-8 w-8"
                 onClick={onExpand}
+                aria-label="Expand view"
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
@@ -1062,6 +862,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
+              aria-label={`Go to slide ${i + 1}`}
               className={cn(
                 'h-1.5 rounded-full transition-all cursor-pointer',
                 i === currentIndex
@@ -1079,6 +880,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1088,6 +890,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndMobile}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -1100,6 +903,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1109,6 +913,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndTablet}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -1121,6 +926,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1130,6 +936,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndDesktop}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

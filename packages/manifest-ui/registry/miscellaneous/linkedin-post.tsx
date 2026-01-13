@@ -9,6 +9,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+/**
+ * Props for the LinkedInPost component.
+ * @interface LinkedInPostProps
+ * @property {object} [data] - Post content and metadata
+ * @property {string} [data.author] - Author's name
+ * @property {string} [data.headline] - Author's headline/title
+ * @property {string} [data.avatar] - Avatar letter or URL
+ * @property {string} [data.content] - Post text content (supports line breaks)
+ * @property {string} [data.likes] - Like count (e.g., "1,234")
+ * @property {string} [data.comments] - Comment count
+ * @property {string} [data.reposts] - Repost count
+ * @property {string} [data.time] - Time since posted (e.g., "2h")
+ */
 export interface LinkedInPostProps {
   data?: {
     author?: string
@@ -33,6 +46,35 @@ const defaultData = {
   time: "2h"
 }
 
+/**
+ * A LinkedIn post embed component with professional styling.
+ * Displays author info, content, and engagement metrics.
+ *
+ * Features:
+ * - Author avatar with headline
+ * - Multi-line content with hashtag support
+ * - Reaction indicators (like, love)
+ * - Engagement counts (likes, comments, reposts)
+ * - Action buttons (like, comment, repost, send)
+ * - Dropdown menu (save, copy link, hide, unfollow, report)
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <LinkedInPost
+ *   data={{
+ *     author: "Manifest",
+ *     headline: "Building the future of AI",
+ *     avatar: "M",
+ *     content: "Excited to share our latest update!",
+ *     likes: "1,234",
+ *     comments: "89",
+ *     reposts: "45",
+ *     time: "2h"
+ *   }}
+ * />
+ * ```
+ */
 export function LinkedInPost({ data }: LinkedInPostProps) {
   const {
     author = defaultData.author,

@@ -3,6 +3,16 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+/**
+ * Represents a single statistic card with trend data.
+ * @interface StatCard
+ * @property {string} label - Label for the stat (e.g., "Sales", "Orders")
+ * @property {string | number} value - The stat value to display
+ * @property {number} [change] - Percentage change value
+ * @property {string} [changeLabel] - Additional context for the change
+ * @property {React.ReactNode} [icon] - Optional icon for the stat
+ * @property {"up" | "down" | "neutral"} [trend] - Trend direction
+ */
 export interface StatCard {
   label: string
   value: string | number
@@ -12,6 +22,12 @@ export interface StatCard {
   trend?: "up" | "down" | "neutral"
 }
 
+/**
+ * Props for the Stats component.
+ * @interface StatsProps
+ * @property {object} [data] - Statistics data
+ * @property {StatCard[]} [data.stats] - Array of stat cards to display
+ */
 export interface StatsProps {
   data?: {
     stats?: StatCard[]
@@ -24,6 +40,31 @@ const defaultStats: StatCard[] = [
   { label: "Customers", value: "1,205", change: 0, trend: "neutral" },
 ]
 
+/**
+ * A statistics card grid displaying key metrics with trend indicators.
+ * Shows stats in a responsive 2-3 column grid layout.
+ *
+ * Features:
+ * - Trend indicators (up, down, neutral) with colors
+ * - Percentage change display
+ * - Optional icons per stat
+ * - Responsive grid layout
+ * - Optional change labels
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <Stats
+ *   data={{
+ *     stats: [
+ *       { label: "Revenue", value: "$12,543", change: 12.5, trend: "up" },
+ *       { label: "Orders", value: "342", change: -3.2, trend: "down" },
+ *       { label: "Customers", value: "1,205", change: 0, trend: "neutral" }
+ *     ]
+ *   }}
+ * />
+ * ```
+ */
 export function Stats({ data }: StatsProps) {
   const { stats = defaultStats } = data ?? {}
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {

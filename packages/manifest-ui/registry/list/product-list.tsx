@@ -4,19 +4,21 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react'
 import { useCallback, useState } from 'react'
+import { demoProducts } from './demo/data'
 
-/*
- * ProductList Component - ChatGPT UI Guidelines Compliant
- * Carousel Rules:
- * - Keep to 3-8 items per carousel for scannability
- * - Reduce metadata to most relevant details (3 lines max)
- * - Each card may have a single, optional CTA
- * - Use consistent visual hierarchy across cards
- *
- * Selection Style:
- * - Use ring-1 ring-foreground for selected items (no border-2 to avoid layout jumps)
+/**
+ * Represents a single product in the product list.
+ * @interface Product
+ * @property {string} id - Unique identifier for the product
+ * @property {string} name - Display name of the product
+ * @property {string} [description] - Short product description or brand
+ * @property {number} price - Current price of the product
+ * @property {number} [originalPrice] - Original price before discount
+ * @property {string} [image] - Product image URL
+ * @property {number} [rating] - Product rating (0-5)
+ * @property {string} [badge] - Badge text (e.g., "New", "-10%")
+ * @property {boolean} [inStock] - Whether the product is in stock
  */
-
 export interface Product {
   name: string
   description?: string
@@ -28,6 +30,22 @@ export interface Product {
   inStock?: boolean
 }
 
+/**
+ * Props for the ProductList component.
+ * @interface ProductListProps
+ * @property {object} [data] - Product data
+ * @property {Product[]} [data.products] - Array of products to display
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onSelectProduct] - Called when a product is selected
+ * @property {function} [actions.onAddToCart] - Called when products are added to cart (picker variant)
+ * @property {object} [appearance] - Visual customization options
+ * @property {"list" | "grid" | "carousel" | "picker"} [appearance.variant] - Display variant
+ * @property {string} [appearance.currency] - Currency code for formatting
+ * @property {3 | 4} [appearance.columns] - Number of columns for grid variant
+ * @property {string} [appearance.buttonLabel] - Custom label for add to cart button
+ * @property {object} [control] - State control options
+ * @property {string} [control.selectedProductId] - Currently selected product ID
+ */
 export interface ProductListProps {
   data?: {
     products?: Product[]
@@ -46,60 +64,6 @@ export interface ProductListProps {
     selectedProductIndex?: number
   }
 }
-
-const defaultProducts: Product[] = [
-  {
-    name: "Air Force 1 '07",
-    description: 'Nike',
-    price: 119,
-    image: '/demo/shoe-1.png',
-    rating: 4.9,
-    badge: 'New',
-    inStock: true
-  },
-  {
-    name: 'Air Max 90',
-    description: 'Nike',
-    price: 140,
-    image: '/demo/shoe-2.png',
-    rating: 4.8,
-    inStock: true
-  },
-  {
-    name: 'Air Max Plus',
-    description: 'Nike',
-    price: 170,
-    originalPrice: 190,
-    image: '/demo/shoe-4.png',
-    rating: 4.7,
-    badge: '-10%',
-    inStock: true
-  },
-  {
-    name: 'Dunk Low',
-    description: 'Nike',
-    price: 115,
-    image: '/demo/shoe-3.png',
-    rating: 4.6,
-    inStock: true
-  },
-  {
-    name: 'Jordan 1 Low',
-    description: 'Nike',
-    price: 135,
-    image: '/demo/shoe-1.png',
-    rating: 4.8,
-    inStock: true
-  },
-  {
-    name: 'Blazer Mid',
-    description: 'Nike',
-    price: 105,
-    image: '/demo/shoe-2.png',
-    rating: 4.5,
-    inStock: true
-  }
-]
 
 // Horizontal card for list variant
 function ProductHorizontalCard({
@@ -387,6 +351,7 @@ function CarouselVariant({
           key={i}
           type="button"
           onClick={() => onDotClick(i)}
+          aria-label={`Go to slide ${i + 1}`}
           className={cn(
             'h-1.5 rounded-full transition-all duration-300 cursor-pointer',
             i === active
@@ -449,6 +414,7 @@ function CarouselVariant({
               type="button"
               onClick={goLeft}
               disabled={currentIndex === 0}
+              aria-label="Previous product"
               className={cn(
                 'absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center cursor-pointer',
                 currentIndex === 0 ? 'opacity-0' : 'hover:bg-background'
@@ -465,6 +431,7 @@ function CarouselVariant({
                 }
               }}
               disabled={isAtEnd}
+              aria-label="Next product"
               className={cn(
                 'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center cursor-pointer',
                 isAtEnd ? 'opacity-0' : 'hover:bg-background'
@@ -783,8 +750,45 @@ function PickerVariant({
   )
 }
 
+/**
+ * A versatile product list component with list, grid, carousel, and picker variants.
+ * Supports product selection, badges, ratings, and add to cart functionality.
+ *
+ * Features:
+ * - Multiple layout variants (list, grid, carousel, picker)
+ * - Product cards with images, badges, and pricing
+ * - Original price strikethrough for discounts
+ * - Star ratings display
+ * - Out of stock indication
+ * - Single product selection (list/grid/carousel)
+ * - Multi-select with cart total (picker)
+ * - Responsive layouts for all screen sizes
+ * - Animated carousel navigation
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ProductList
+ *   data={{
+ *     products: [
+ *       { id: "1", name: "Sneakers", price: 99, image: "/shoe.jpg", rating: 4.5 },
+ *       { id: "2", name: "Boots", price: 149, originalPrice: 199, badge: "-25%" }
+ *     ]
+ *   }}
+ *   actions={{
+ *     onSelectProduct: (product) => console.log("Selected:", product),
+ *     onAddToCart: (products) => console.log("Cart:", products)
+ *   }}
+ *   appearance={{
+ *     variant: "grid",
+ *     currency: "USD",
+ *     columns: 4
+ *   }}
+ * />
+ * ```
+ */
 export function ProductList({ data, actions, appearance, control }: ProductListProps) {
-  const { products = defaultProducts } = data ?? {}
+  const { products = demoProducts } = data ?? {}
   const { onSelectProduct, onAddToCart } = actions ?? {}
   const { variant = 'list', currency = 'EUR', columns = 4, buttonLabel } = appearance ?? {}
   const { selectedProductIndex } = control ?? {}
