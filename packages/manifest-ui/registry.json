@@ -169,21 +169,6 @@
       ]
     },
     {
-      "name": "payment-success",
-      "version": "1.0.0",
-      "type": "registry:component",
-      "title": "Payment Success",
-      "description": "Payment success with order details, brand logo, and tracking button.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/payment/payment-success.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
       "name": "payment-confirmed",
       "version": "1.0.0",
       "type": "registry:component",
