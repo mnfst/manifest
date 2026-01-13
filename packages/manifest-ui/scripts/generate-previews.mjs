@@ -127,7 +127,7 @@ async function generatePreviews() {
 
   const context = await browser.newContext({
     viewport: VIEWPORT,
-    deviceScaleFactor: 2 // Retina quality
+    deviceScaleFactor: 1 // Standard 1200x630 for OG images
   })
 
   const page = await context.newPage()
