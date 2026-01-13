@@ -387,6 +387,7 @@ function CarouselVariant({
           key={i}
           type="button"
           onClick={() => onDotClick(i)}
+          aria-label={`Go to slide ${i + 1}`}
           className={cn(
             'h-1.5 rounded-full transition-all duration-300 cursor-pointer',
             i === active
@@ -449,6 +450,7 @@ function CarouselVariant({
               type="button"
               onClick={goLeft}
               disabled={currentIndex === 0}
+              aria-label="Previous product"
               className={cn(
                 'absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center cursor-pointer',
                 currentIndex === 0 ? 'opacity-0' : 'hover:bg-background'
@@ -465,6 +467,7 @@ function CarouselVariant({
                 }
               }}
               disabled={isAtEnd}
+              aria-label="Next product"
               className={cn(
                 'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm flex items-center justify-center cursor-pointer',
                 isAtEnd ? 'opacity-0' : 'hover:bg-background'

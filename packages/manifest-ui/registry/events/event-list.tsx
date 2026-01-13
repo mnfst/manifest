@@ -512,6 +512,7 @@ function FilterPanel({
             size="icon"
             className="h-8 w-8"
             onClick={onClose}
+            aria-label="Close filters"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -747,6 +748,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 size="icon"
                 className="h-8 w-8"
                 onClick={onExpand}
+                aria-label="Expand view"
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
@@ -778,6 +780,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 size="icon"
                 className="h-8 w-8"
                 onClick={onExpand}
+                aria-label="Expand view"
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
@@ -1062,6 +1065,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
+              aria-label={`Go to slide ${i + 1}`}
               className={cn(
                 'h-1.5 rounded-full transition-all cursor-pointer',
                 i === currentIndex
@@ -1079,6 +1083,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1088,6 +1093,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndMobile}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -1100,6 +1106,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1109,6 +1116,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndTablet}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -1121,6 +1129,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous event"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1130,6 +1139,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndDesktop}
+            aria-label="Next event"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
