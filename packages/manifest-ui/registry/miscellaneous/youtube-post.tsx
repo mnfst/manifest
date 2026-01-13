@@ -10,6 +10,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+/**
+ * Props for the YouTubePost component.
+ * @interface YouTubePostProps
+ * @property {object} [data] - Video content and metadata
+ * @property {string} [data.channel] - Channel name
+ * @property {string} [data.avatar] - Channel avatar letter or URL
+ * @property {string} [data.title] - Video title
+ * @property {string} [data.views] - View count (e.g., "1M views")
+ * @property {string} [data.time] - Time since published (e.g., "2 weeks ago")
+ * @property {string} [data.duration] - Video duration (e.g., "18:42")
+ * @property {string} [data.thumbnail] - Video thumbnail URL
+ * @property {string} [data.subscribers] - Subscriber count
+ * @property {boolean} [data.verified] - Whether the channel is verified
+ * @property {string} [data.videoId] - YouTube video ID for embedding
+ */
 export interface YouTubePostProps {
   data?: {
     channel?: string
@@ -42,6 +57,37 @@ const defaultData = {
   videoId: "GuTcle5edjk"
 }
 
+/**
+ * A YouTube video embed component with thumbnail preview and playback.
+ * Click the play button to load and play the embedded video.
+ *
+ * Features:
+ * - Thumbnail preview with YouTube play button
+ * - Duration badge overlay
+ * - Channel avatar and info
+ * - Verified channel badge
+ * - View count and publish time
+ * - Click-to-play video embedding
+ * - Dropdown menu (save, share, not interested, report)
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <YouTubePost
+ *   data={{
+ *     channel: "Tech Channel",
+ *     avatar: "T",
+ *     title: "How to build amazing UIs",
+ *     views: "1M views",
+ *     time: "2 weeks ago",
+ *     duration: "18:42",
+ *     thumbnail: "https://img.youtube.com/vi/abc123/maxresdefault.jpg",
+ *     verified: true,
+ *     videoId: "abc123"
+ *   }}
+ * />
+ * ```
+ */
 export function YouTubePost({ data }: YouTubePostProps) {
   const {
     channel = defaultData.channel,

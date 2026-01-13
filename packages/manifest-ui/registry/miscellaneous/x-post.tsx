@@ -2,6 +2,21 @@
 
 import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
 
+/**
+ * Props for the XPost component.
+ * @interface XPostProps
+ * @property {object} [data] - Post content and metadata
+ * @property {string} [data.author] - Author's display name
+ * @property {string} [data.username] - Author's handle (without @)
+ * @property {string} [data.avatar] - Avatar letter or URL
+ * @property {string} [data.content] - Post text content
+ * @property {string} [data.time] - Time since posted (e.g., "2h")
+ * @property {string} [data.likes] - Like count (e.g., "1.2K")
+ * @property {string} [data.retweets] - Retweet count
+ * @property {string} [data.replies] - Reply count
+ * @property {string} [data.views] - View count
+ * @property {boolean} [data.verified] - Whether the author is verified
+ */
 export interface XPostProps {
   data?: {
     author?: string
@@ -30,6 +45,36 @@ const defaultData = {
   verified: true
 }
 
+/**
+ * An X (Twitter) post embed component with engagement metrics.
+ * Displays author info, content, and interactive action buttons.
+ *
+ * Features:
+ * - Author avatar, name, and username
+ * - Verified badge support
+ * - Engagement metrics (likes, retweets, replies, views)
+ * - Interactive action buttons (reply, retweet, like, bookmark, share)
+ * - Time display
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <XPost
+ *   data={{
+ *     author: "John Doe",
+ *     username: "johndoe",
+ *     avatar: "J",
+ *     content: "Hello world! This is my first post.",
+ *     time: "2h",
+ *     likes: "1.2K",
+ *     retweets: "234",
+ *     replies: "56",
+ *     views: "45.2K",
+ *     verified: true
+ *   }}
+ * />
+ * ```
+ */
 export function XPost({ data }: XPostProps) {
   const {
     author = defaultData.author,

@@ -5,13 +5,20 @@
   "items": [
     {
       "name": "contact-form",
-      "version": "1.2.1",
+      "version": "1.2.3",
       "type": "registry:component",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
       "category": "form",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "input", "label", "select"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/form/contact-form.tsx",
@@ -21,13 +28,17 @@
     },
     {
       "name": "date-time-picker",
-      "version": "1.0.1",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
       "category": "form",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/form/date-time-picker.tsx",
@@ -37,13 +48,20 @@
     },
     {
       "name": "issue-report-form",
-      "version": "1.0.1",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
       "category": "form",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "input", "label", "select"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/form/issue-report-form.tsx",
@@ -53,13 +71,20 @@
     },
     {
       "name": "card-form",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "input", "label", "button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card",
+        "input",
+        "label",
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/card-form.tsx",
@@ -69,13 +94,19 @@
     },
     {
       "name": "pay-confirm",
-      "version": "1.0.1",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Pay Confirm",
       "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "button", "separator"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card",
+        "button",
+        "separator"
+      ],
       "files": [
         {
           "path": "registry/payment/pay-confirm.tsx",
@@ -85,13 +116,19 @@
     },
     {
       "name": "order-summary",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Order Summary",
       "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "badge", "separator"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card",
+        "badge",
+        "separator"
+      ],
       "files": [
         {
           "path": "registry/payment/order-summary.tsx",
@@ -101,13 +138,18 @@
     },
     {
       "name": "saved-cards",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Saved Cards",
       "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card",
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/saved-cards.tsx",
@@ -117,13 +159,19 @@
     },
     {
       "name": "payment-success",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Payment Success",
       "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "button", "separator"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card",
+        "button",
+        "separator"
+      ],
       "files": [
         {
           "path": "registry/payment/payment-success.tsx",
@@ -133,13 +181,17 @@
     },
     {
       "name": "bank-card-form",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/bank-card-form.tsx",
@@ -149,13 +201,17 @@
     },
     {
       "name": "payment-methods",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Payment Methods",
       "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/payment-methods.tsx",
@@ -165,13 +221,17 @@
     },
     {
       "name": "order-confirm",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Order Confirm",
       "description": "Order confirmation with product image, delivery info, and confirm action.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/order-confirm.tsx",
@@ -181,13 +241,17 @@
     },
     {
       "name": "payment-confirmed",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/payment-confirmed.tsx",
@@ -197,13 +261,17 @@
     },
     {
       "name": "product-list",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "type": "registry:component",
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
       "category": "list",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/list/product-list.tsx",
@@ -213,12 +281,14 @@
     },
     {
       "name": "option-list",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -229,13 +299,17 @@
     },
     {
       "name": "amount-input",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
       "category": "payment",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/amount-input.tsx",
@@ -245,13 +319,17 @@
     },
     {
       "name": "tag-select",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/miscellaneous/tag-select.tsx",
@@ -261,7 +339,7 @@
     },
     {
       "name": "quick-reply",
-      "version": "3.0.0",
+      "version": "3.0.2",
       "type": "registry:component",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
@@ -277,12 +355,14 @@
     },
     {
       "name": "progress-steps",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -293,12 +373,14 @@
     },
     {
       "name": "status-badge",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -309,12 +391,14 @@
     },
     {
       "name": "stats",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -325,7 +409,7 @@
     },
     {
       "name": "skeleton",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Skeleton Loaders",
       "description": "Skeleton placeholder components with pulse animation for loading states.",
@@ -341,13 +425,17 @@
     },
     {
       "name": "post-card",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "type": "registry:component",
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
       "category": "blogging",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/blogging/post-card.tsx",
@@ -361,13 +449,17 @@
     },
     {
       "name": "post-list",
-      "version": "2.0.3",
+      "version": "2.0.4",
       "type": "registry:component",
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
       "category": "blogging",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/blogging/post-list.tsx",
@@ -385,13 +477,17 @@
     },
     {
       "name": "post-detail",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "type": "registry:component",
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
       "category": "blogging",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/blogging/post-detail.tsx",
@@ -405,13 +501,21 @@
     },
     {
       "name": "table",
-      "version": "1.0.2",
+      "version": "1.0.4",
       "type": "registry:component",
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
       "category": "list",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "checkbox", "popover", "select", "input"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "checkbox",
+        "popover",
+        "select",
+        "input"
+      ],
       "files": [
         {
           "path": "registry/list/table.tsx",
@@ -421,13 +525,17 @@
     },
     {
       "name": "message-bubble",
-      "version": "3.0.1",
+      "version": "3.0.3",
       "type": "registry:component",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
       "category": "messaging",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/messaging/message-bubble.tsx",
@@ -437,13 +545,17 @@
     },
     {
       "name": "chat-conversation",
-      "version": "4.0.2",
+      "version": "4.0.3",
       "type": "registry:component",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
       "category": "messaging",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/messaging/chat-conversation.tsx",
@@ -457,12 +569,14 @@
     },
     {
       "name": "x-post",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -473,13 +587,17 @@
     },
     {
       "name": "instagram-post",
-      "version": "1.0.1",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/miscellaneous/instagram-post.tsx",
@@ -489,13 +607,17 @@
     },
     {
       "name": "linkedin-post",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/miscellaneous/linkedin-post.tsx",
@@ -505,13 +627,17 @@
     },
     {
       "name": "youtube-post",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/miscellaneous/youtube-post.tsx",
@@ -521,12 +647,16 @@
     },
     {
       "name": "map-carousel",
-      "version": "1.1.0",
+      "version": "1.1.2",
       "type": "registry:component",
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
       "category": "miscellaneous",
-      "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
+      "dependencies": [
+        "lucide-react",
+        "leaflet",
+        "react-leaflet"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -537,13 +667,17 @@
     },
     {
       "name": "event-card",
-      "version": "5.0.2",
+      "version": "5.0.3",
       "type": "registry:component",
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
       "category": "events",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/event-card.tsx",
@@ -557,13 +691,21 @@
     },
     {
       "name": "event-list",
-      "version": "6.0.2",
+      "version": "6.0.3",
       "type": "registry:component",
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
       "category": "events",
-      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
-      "registryDependencies": ["button", "checkbox", "https://ui.manifest.build/r/event-card.json"],
+      "dependencies": [
+        "lucide-react",
+        "react-leaflet",
+        "leaflet"
+      ],
+      "registryDependencies": [
+        "button",
+        "checkbox",
+        "https://ui.manifest.build/r/event-card.json"
+      ],
       "files": [
         {
           "path": "registry/events/event-list.tsx",
@@ -577,13 +719,19 @@
     },
     {
       "name": "event-detail",
-      "version": "3.0.2",
+      "version": "3.0.3",
       "type": "registry:component",
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
       "category": "events",
-      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react",
+        "react-leaflet",
+        "leaflet"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/event-detail.tsx",
@@ -597,13 +745,17 @@
     },
     {
       "name": "ticket-tier-select",
-      "version": "2.0.0",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
       "category": "events",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/ticket-tier-select.tsx",
@@ -613,13 +765,18 @@
     },
     {
       "name": "event-checkout",
-      "version": "2.0.0",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Event Checkout",
       "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
       "category": "events",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "checkbox"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "checkbox"
+      ],
       "files": [
         {
           "path": "registry/events/event-checkout.tsx",
@@ -629,13 +786,17 @@
     },
     {
       "name": "event-confirmation",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "Event Confirmation",
       "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
       "category": "events",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/event-confirmation.tsx",

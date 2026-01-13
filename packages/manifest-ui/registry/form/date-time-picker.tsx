@@ -10,6 +10,7 @@ import {
 import { ArrowLeft, ChevronLeft, ChevronRight, Globe, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+/** Timezone configuration with offset from UTC */
 const timezones = [
   { id: 'pacific', name: 'Pacific Time - US & Canada', offset: -8 },
   { id: 'mountain', name: 'Mountain Time - US & Canada', offset: -7 },
@@ -42,6 +43,24 @@ const getTimeForOffset = (offset: number) => {
   return `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')}${hours >= 12 ? 'pm' : 'am'}`
 }
 
+/**
+ * Props for the DateTimePicker component.
+ * @interface DateTimePickerProps
+ * @property {object} [data] - Configuration data for the picker
+ * @property {string} [data.title] - Title displayed at the top of the picker
+ * @property {Date[]} [data.availableDates] - Array of dates that can be selected
+ * @property {string[]} [data.availableTimeSlots] - Array of time slot strings (e.g., '11:30am')
+ * @property {string} [data.timezone] - Default timezone name to display
+ * @property {object} [actions] - Callback functions for picker events
+ * @property {function} [actions.onSelect] - Called when a date and time are selected
+ * @property {function} [actions.onNext] - Called when the user clicks the Next button
+ * @property {object} [appearance] - Visual customization options
+ * @property {boolean} [appearance.showTitle] - Whether to display the title
+ * @property {boolean} [appearance.showTimezone] - Whether to show timezone selector
+ * @property {object} [control] - Controlled state options
+ * @property {Date | null} [control.selectedDate] - Controlled selected date value
+ * @property {string | null} [control.selectedTime] - Controlled selected time value
+ */
 export interface DateTimePickerProps {
   data?: {
     title?: string
@@ -111,6 +130,36 @@ const isSameDay = (date1: Date, date2: Date) => {
   )
 }
 
+/**
+ * A Calendly-style date and time picker with calendar view, available time slots,
+ * and timezone selection. Supports both desktop and mobile layouts.
+ *
+ * Features:
+ * - Monthly calendar navigation with available date highlighting
+ * - Time slot selection with animated transitions
+ * - Searchable timezone dropdown with current time display
+ * - Responsive design with mobile-first time view
+ * - Today indicator and selected date highlighting
+ * - Controlled and uncontrolled modes
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <DateTimePicker
+ *   data={{
+ *     title: "Schedule a Meeting",
+ *     availableDates: [new Date('2024-01-15'), new Date('2024-01-16')],
+ *     availableTimeSlots: ['9:00am', '10:00am', '2:00pm'],
+ *     timezone: "Pacific Time - US & Canada"
+ *   }}
+ *   actions={{
+ *     onSelect: (date, time) => console.log("Selected:", date, time),
+ *     onNext: (date, time) => console.log("Proceeding with:", date, time)
+ *   }}
+ *   appearance={{ showTitle: true, showTimezone: true }}
+ * />
+ * ```
+ */
 export function DateTimePicker({ data, actions, appearance, control }: DateTimePickerProps) {
   const {
     title = 'Select a Date & Time',

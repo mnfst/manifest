@@ -2,12 +2,28 @@
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Props for the Skeleton component.
+ * @interface SkeletonProps
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.className] - Additional CSS classes for sizing and styling
+ */
 export interface SkeletonProps {
   appearance?: {
     className?: string
   }
 }
 
+/**
+ * A basic skeleton loading placeholder with pulse animation.
+ * Use this as a building block for custom skeleton layouts.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <Skeleton appearance={{ className: "h-4 w-32" }} />
+ * ```
+ */
 export function Skeleton({ appearance }: SkeletonProps) {
   const { className } = appearance ?? {}
   return <div className={cn('animate-pulse rounded-md bg-muted', className)} />

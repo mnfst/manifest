@@ -23,6 +23,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CreditCard, Lock } from 'lucide-react'
 
+/**
+ * Data structure representing credit card form submission.
+ * @interface CardFormData
+ * @property {string} cardNumber - The formatted card number (with spaces)
+ * @property {string} cardHolder - The cardholder's name
+ * @property {string} expiryDate - Expiry date in MM/YY format
+ * @property {string} cvv - Card verification value (3-4 digits)
+ */
 export interface CardFormData {
   cardNumber: string
   cardHolder: string
@@ -30,6 +38,14 @@ export interface CardFormData {
   cvv: string
 }
 
+/**
+ * Props for the CardForm component.
+ * @interface CardFormProps
+ * @property {object} [actions] - Callback functions for form events
+ * @property {function} [actions.onSubmit] - Called when the form is submitted with card data
+ * @property {object} [control] - State control options
+ * @property {boolean} [control.isLoading] - Shows loading state on submit button
+ */
 export interface CardFormProps {
   actions?: {
     onSubmit?: (data: CardFormData) => void
@@ -39,6 +55,28 @@ export interface CardFormProps {
   }
 }
 
+/**
+ * A credit card payment form with card number, expiry date, CVV, and cardholder name fields.
+ * Includes automatic formatting for card number and expiry date inputs.
+ *
+ * Features:
+ * - Card number formatting with spaces every 4 digits
+ * - Automatic MM/YY expiry date formatting
+ * - CVV input with masking
+ * - Loading state support
+ * - Secure payment button with lock icon
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <CardForm
+ *   actions={{
+ *     onSubmit: (data) => console.log("Payment data:", data)
+ *   }}
+ *   control={{ isLoading: false }}
+ * />
+ * ```
+ */
 export function CardForm({ actions, control }: CardFormProps) {
   const { onSubmit } = actions ?? {}
   const { isLoading = false } = control ?? {}

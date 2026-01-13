@@ -7,6 +7,23 @@ import { useState } from 'react'
 import { Post, PostCard } from './post-card'
 import { demoPosts } from './demo/data'
 
+/**
+ * Props for the PostList component.
+ * @interface PostListProps
+ * @property {object} [data] - Post data
+ * @property {Post[]} [data.posts] - Array of posts to display
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onReadMore] - Called when read more is clicked
+ * @property {function} [actions.onPageChange] - Called when page changes (fullwidth variant)
+ * @property {object} [appearance] - Visual customization
+ * @property {"list" | "grid" | "carousel" | "fullwidth"} [appearance.variant] - Layout variant
+ * @property {2 | 3 | 4} [appearance.columns] - Number of columns for grid/fullwidth
+ * @property {boolean} [appearance.showAuthor] - Whether to show author info
+ * @property {boolean} [appearance.showCategory] - Whether to show category
+ * @property {number} [appearance.postsPerPage] - Posts per page (fullwidth variant)
+ * @property {object} [control] - State control
+ * @property {number} [control.currentPage] - Controlled current page
+ */
 export interface PostListProps {
   data?: {
     posts?: Post[]
@@ -27,6 +44,43 @@ export interface PostListProps {
   }
 }
 
+/**
+ * A blog post list component with multiple layout variants.
+ * Supports list, grid, carousel, and fullwidth paginated modes.
+ *
+ * Features:
+ * - Four layout variants (list, grid, carousel, fullwidth)
+ * - Responsive grid columns
+ * - Carousel with touch-friendly navigation
+ * - Fullwidth mode with pagination
+ * - Configurable author and category display
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PostList
+ *   data={{
+ *     posts: [
+ *       {
+ *         title: "Getting Started Guide",
+ *         excerpt: "Learn the basics...",
+ *         coverImage: "https://example.com/image.jpg",
+ *         author: { name: "Sarah Chen" },
+ *         publishedAt: "2024-01-15"
+ *       }
+ *     ]
+ *   }}
+ *   appearance={{
+ *     variant: "grid",
+ *     columns: 3,
+ *     showAuthor: true
+ *   }}
+ *   actions={{
+ *     onReadMore: (post) => console.log("Read:", post.title)
+ *   }}
+ * />
+ * ```
+ */
 export function PostList({ data, actions, appearance, control }: PostListProps) {
   const { posts = demoPosts } = data ?? {}
   const { onReadMore, onPageChange } = actions ?? {}

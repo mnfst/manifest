@@ -12,14 +12,21 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Check, CreditCard, ShieldCheck } from "lucide-react"
 
-/*
- * PayConfirm Component - ChatGPT UI Guidelines Compliant
- * - Limit to 2 primary actions (Cancel + Confirm)
- * - Use system colors for icons (no custom green)
- * - Proper visual hierarchy: headline, details, CTA
- * - No nested scrolling
+/**
+ * Props for the PayConfirm component.
+ * @interface PayConfirmProps
+ * @property {object} [data] - Payment data to display
+ * @property {number} data.amount - The amount to be charged
+ * @property {string} [data.cardLast4] - Last 4 digits of the card
+ * @property {string} [data.cardBrand] - Card brand name (e.g., 'Visa', 'Mastercard')
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onConfirm] - Called when user confirms the payment
+ * @property {function} [actions.onCancel] - Called when user cancels the payment
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting (default: 'USD')
+ * @property {object} [control] - State control options
+ * @property {boolean} [control.isLoading] - Shows loading state on buttons
  */
-
 export interface PayConfirmProps {
   data?: {
     amount: number
@@ -38,6 +45,35 @@ export interface PayConfirmProps {
   }
 }
 
+/**
+ * A payment confirmation component displaying amount, card details, and confirm/cancel actions.
+ * Follows ChatGPT UI guidelines for clear visual hierarchy and limited primary actions.
+ *
+ * Features:
+ * - Large amount display in highlighted box
+ * - Card brand and last 4 digits preview
+ * - Confirm and cancel action buttons
+ * - Loading state support
+ * - Shield icon for security indication
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PayConfirm
+ *   data={{
+ *     amount: 99.99,
+ *     cardLast4: "4242",
+ *     cardBrand: "Visa"
+ *   }}
+ *   actions={{
+ *     onConfirm: () => console.log("Payment confirmed"),
+ *     onCancel: () => console.log("Payment cancelled")
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ *   control={{ isLoading: false }}
+ * />
+ * ```
+ */
 export function PayConfirm({ data, actions, appearance, control }: PayConfirmProps) {
   const { amount = 99.99, cardLast4 = "4242", cardBrand = "Visa" } = data ?? {}
   const { onConfirm, onCancel } = actions ?? {}

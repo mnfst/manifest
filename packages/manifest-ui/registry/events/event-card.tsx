@@ -19,6 +19,19 @@ import { demoEvent } from './demo/data'
 // Import shared OpenAI types
 import '@/lib/openai-types'
 
+/**
+ * Props for the EventCard component.
+ * @interface EventCardProps
+ * @property {object} [data] - Event data
+ * @property {Event} [data.event] - The event to display
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onClick] - Called when the card is clicked
+ * @property {object} [appearance] - Visual customization
+ * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
+ * @property {boolean} [appearance.showSignal] - Whether to show event signal badge
+ * @property {boolean} [appearance.showTags] - Whether to show vibe tags
+ * @property {boolean} [appearance.showRating] - Whether to show organizer rating
+ */
 export interface EventCardProps {
   data?: {
     event?: Event
@@ -98,6 +111,35 @@ function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+/**
+ * An event card component with multiple layout variants.
+ * Displays event information with signals, tags, and ratings.
+ *
+ * Features:
+ * - Four layout variants (default, compact, horizontal, covered)
+ * - Event signal badges (going fast, popular, etc.)
+ * - Vibe tags display
+ * - Organizer rating display
+ * - Clickable card interaction
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventCard
+ *   data={{
+ *     event: {
+ *       title: "Concert Night",
+ *       category: "Music",
+ *       dateTime: "Sat, Jan 20 · 8pm",
+ *       venue: "The Fillmore",
+ *       priceRange: "$45 - $150"
+ *     }
+ *   }}
+ *   appearance={{ variant: "default", showSignal: true }}
+ *   actions={{ onClick: (event) => console.log("Clicked:", event.title) }}
+ * />
+ * ```
+ */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
   const { event = demoEvent } = data ?? {}
   const { onClick } = actions ?? {}

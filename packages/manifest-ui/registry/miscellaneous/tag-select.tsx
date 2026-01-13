@@ -5,19 +5,35 @@ import { cn } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 import { useState } from 'react'
 
-/*
- * TagSelect Component - ChatGPT UI Guidelines Compliant
- * - Use system colors (neutral grayscale) instead of colorful tags
- * - Selection uses foreground/background contrast
- * - Consistent with system design
+/**
+ * Represents an individual tag option.
+ * @interface Tag
+ * @property {string} id - Unique identifier for the tag
+ * @property {string} label - Display text for the tag
+ * @property {"default" | "blue" | "green" | "red" | "yellow" | "purple"} [color] - Optional color theme
  */
-
 export interface Tag {
   id: string
   label: string
   color?: 'default' | 'blue' | 'green' | 'red' | 'yellow' | 'purple'
 }
 
+/**
+ * Props for the TagSelect component.
+ * @interface TagSelectProps
+ * @property {object} [data] - Tags data
+ * @property {Tag[]} [data.tags] - Array of tags to display
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onSelectTags] - Called when tag selection changes
+ * @property {function} [actions.onValidate] - Called when user clicks validate button
+ * @property {object} [appearance] - Visual customization options
+ * @property {"single" | "multiple"} [appearance.mode] - Selection mode
+ * @property {boolean} [appearance.showClear] - Show clear selection button
+ * @property {boolean} [appearance.showValidate] - Show validate button
+ * @property {string} [appearance.validateLabel] - Custom label for validate button
+ * @property {object} [control] - State control options
+ * @property {string[]} [control.selectedTagIds] - Array of selected tag IDs
+ */
 export interface TagSelectProps {
   data?: {
     tags?: Tag[]
@@ -52,6 +68,41 @@ const tagClasses = {
   unselected: 'bg-background text-foreground border-border hover:bg-muted'
 }
 
+/**
+ * A tag selection component with single or multiple selection modes.
+ * Features clear selection and validate buttons for user actions.
+ *
+ * Features:
+ * - Single or multiple selection modes
+ * - Check icon on selected tags
+ * - Clear selection button with count
+ * - Validate button with selection count
+ * - Neutral system color scheme
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <TagSelect
+ *   data={{
+ *     tags: [
+ *       { id: "1", label: "Electronics" },
+ *       { id: "2", label: "Audio" },
+ *       { id: "3", label: "Wireless" }
+ *     ]
+ *   }}
+ *   actions={{
+ *     onSelectTags: (ids) => console.log("Selected:", ids),
+ *     onValidate: (ids) => console.log("Validated:", ids)
+ *   }}
+ *   appearance={{
+ *     mode: "multiple",
+ *     showClear: true,
+ *     showValidate: true,
+ *     validateLabel: "Apply filters"
+ *   }}
+ * />
+ * ```
+ */
 export function TagSelect({ data, actions, appearance, control }: TagSelectProps) {
   const { tags = defaultTags } = data ?? {}
   const { onSelectTags, onValidate } = actions ?? {}

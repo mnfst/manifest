@@ -72,6 +72,17 @@ interface FilterCondition {
   value: string
 }
 
+/**
+ * Configuration for a table column.
+ * @interface TableColumn
+ * @template T - The row data type
+ * @property {string} header - Column header text
+ * @property {keyof T | string} accessor - Key to access row data or dot-notation path
+ * @property {boolean} [sortable] - Whether the column is sortable
+ * @property {string} [width] - CSS width value for the column
+ * @property {"left" | "center" | "right"} [align] - Text alignment
+ * @property {function} [render] - Custom render function for cell content
+ */
 export interface TableColumn<T = Record<string, unknown>> {
   header: string
   accessor: keyof T | string
@@ -81,6 +92,38 @@ export interface TableColumn<T = Record<string, unknown>> {
   render?: (value: unknown, row: T, index: number) => React.ReactNode
 }
 
+/**
+ * Props for the Table component.
+ * @interface TableProps
+ * @template T - The row data type
+ * @property {object} [data] - Table data configuration
+ * @property {TableColumn<T>[]} [data.columns] - Column definitions
+ * @property {T[]} [data.rows] - Row data array
+ * @property {string} [data.title] - Table title displayed in header
+ * @property {string} [data.titleImage] - Icon/image URL for the title
+ * @property {Date | string} [data.lastUpdated] - Last data update timestamp
+ * @property {number} [data.totalRows] - Total rows for "more" indicator
+ * @property {object} [actions] - Callback functions for table actions
+ * @property {function} [actions.onSelectionChange] - Called when row selection changes
+ * @property {function} [actions.onCopy] - Called when copy action is triggered
+ * @property {function} [actions.onDownload] - Called when download action is triggered
+ * @property {function} [actions.onShare] - Called when share action is triggered
+ * @property {function} [actions.onRefresh] - Called when refresh is triggered
+ * @property {function} [actions.onExpand] - Called when expand to fullscreen is triggered
+ * @property {object} [appearance] - Visual customization options
+ * @property {"none" | "single" | "multi"} [appearance.selectable] - Row selection mode
+ * @property {string} [appearance.emptyMessage] - Message when table has no data
+ * @property {boolean} [appearance.stickyHeader] - Whether to stick header on scroll
+ * @property {boolean} [appearance.compact] - Use compact row height
+ * @property {boolean} [appearance.showActions] - Show action buttons
+ * @property {boolean} [appearance.showHeader] - Show table header
+ * @property {boolean} [appearance.showFooter] - Show table footer
+ * @property {number} [appearance.maxRows] - Maximum rows in inline mode
+ * @property {DisplayMode} [appearance.displayMode] - Display mode (inline or fullscreen)
+ * @property {object} [control] - State control options
+ * @property {boolean} [control.loading] - Show loading skeleton
+ * @property {T[]} [control.selectedRows] - Controlled selected rows
+ */
 export interface TableProps<T = Record<string, unknown>> {
   data?: {
     columns?: TableColumn<T>[]
@@ -374,6 +417,53 @@ function TableFooter({
   )
 }
 
+/**
+ * A data table component with optional single or multi-select modes for chat interfaces.
+ * Supports both inline (compact) and fullscreen (paginated) display modes.
+ *
+ * Features:
+ * - Column sorting (ascending/descending)
+ * - Row selection (none, single, multi)
+ * - Inline and fullscreen display modes
+ * - Pagination in fullscreen mode
+ * - Column filtering in fullscreen mode
+ * - Custom cell rendering
+ * - Loading skeleton state
+ * - Copy, download, share actions
+ * - Sticky header option
+ * - Mobile card layout
+ * - OpenAI/ChatGPT integration support
+ *
+ * @component
+ * @template T - The row data type
+ * @example
+ * ```tsx
+ * <Table
+ *   data={{
+ *     columns: [
+ *       { header: "Name", accessor: "name", sortable: true },
+ *       { header: "Price", accessor: "price", align: "right" }
+ *     ],
+ *     rows: [
+ *       { name: "Product A", price: 99 },
+ *       { name: "Product B", price: 149 }
+ *     ],
+ *     title: "Products",
+ *     lastUpdated: new Date()
+ *   }}
+ *   actions={{
+ *     onSelectionChange: (rows) => console.log("Selected:", rows),
+ *     onRefresh: () => console.log("Refresh")
+ *   }}
+ *   appearance={{
+ *     selectable: "multi",
+ *     maxRows: 10,
+ *     showHeader: true,
+ *     showFooter: true
+ *   }}
+ * />
+ * ```
+ */
 export function Table<T extends Record<string, unknown>>({
   data: dataProps,
   actions,

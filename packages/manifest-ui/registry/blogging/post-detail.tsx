@@ -93,6 +93,10 @@ const defaultContent = `
   <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
 `
 
+/**
+ * Default related posts for demonstration.
+ * @constant
+ */
 const defaultRelatedPosts: Post[] = [
   {
     title: 'Designing for Conversational Interfaces',
@@ -144,6 +148,22 @@ const defaultRelatedPosts: Post[] = [
   }
 ]
 
+/**
+ * Props for the PostDetail component.
+ * @interface PostDetailProps
+ * @property {object} [data] - Post detail data
+ * @property {Post} [data.post] - The main post to display
+ * @property {string} [data.content] - HTML content of the post body
+ * @property {Post[]} [data.relatedPosts] - Related posts to show at the bottom
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onBack] - Called when back is clicked
+ * @property {function} [actions.onReadMore] - Called when read more is clicked (inline mode)
+ * @property {function} [actions.onReadRelated] - Called when a related post is clicked
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.showCover] - Whether to show cover image
+ * @property {boolean} [appearance.showAuthor] - Whether to show author info
+ * @property {"inline" | "fullscreen"} [appearance.displayMode] - Display mode
+ */
 export interface PostDetailProps {
   data?: {
     post?: Post
@@ -162,6 +182,50 @@ export interface PostDetailProps {
   }
 }
 
+/**
+ * A full post detail component with Medium-style typography.
+ * Supports inline preview and fullscreen reading modes.
+ *
+ * Features:
+ * - Medium-style typography and spacing
+ * - Cover image display
+ * - Author info with avatar
+ * - Tag list with overflow tooltip
+ * - Related posts section
+ * - Inline (truncated) and fullscreen modes
+ * - ChatGPT display mode integration
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PostDetail
+ *   data={{
+ *     post: {
+ *       id: "1",
+ *       title: "Getting Started",
+ *       excerpt: "Learn the basics...",
+ *       coverImage: "https://example.com/cover.jpg",
+ *       author: { name: "Sarah Chen", avatar: "https://example.com/avatar.jpg" },
+ *       publishedAt: "2024-01-15",
+ *       readTime: "5 min read",
+ *       tags: ["Tutorial", "Components"],
+ *       category: "Tutorial"
+ *     },
+ *     content: "<p>Full post content here...</p>",
+ *     relatedPosts: [...]
+ *   }}
+ *   actions={{
+ *     onReadMore: () => console.log("Expand to fullscreen"),
+ *     onReadRelated: (post) => console.log("Read related:", post.title)
+ *   }}
+ *   appearance={{
+ *     showCover: true,
+ *     showAuthor: true,
+ *     displayMode: "fullscreen"
+ *   }}
+ * />
+ * ```
+ */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
   const { onReadMore } = actions ?? {}

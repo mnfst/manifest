@@ -1,0 +1,58 @@
+import type { Metadata } from 'next'
+import {
+  getBlockDescription,
+  getBlockName,
+  getCategoryName
+} from '@/lib/og-image-utils'
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ category: string; block: string }>
+}): Promise<Metadata> {
+  const { category, block } = await params
+
+  const blockName = getBlockName(block)
+  const categoryName = getCategoryName(category)
+  const description = getBlockDescription(block, blockName)
+
+  const title = `${blockName} - ${categoryName} Component`
+  const fullTitle = `${title} | Manifest UI`
+
+  return {
+    title: fullTitle,
+    description,
+    keywords: [
+      blockName,
+      categoryName,
+      'React component',
+      'ChatGPT UI',
+      'shadcn',
+      'agentic UI',
+      'MCP apps'
+    ],
+    alternates: {
+      canonical: `/blocks/${category}/${block}`
+    },
+    openGraph: {
+      title: fullTitle,
+      description,
+      url: `https://ui.manifest.build/blocks/${category}/${block}`,
+      type: 'website',
+      siteName: 'Manifest UI'
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: fullTitle,
+      description
+    }
+  }
+}
+
+export default function BlockLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  return children
+}

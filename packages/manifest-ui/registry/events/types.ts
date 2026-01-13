@@ -1,5 +1,9 @@
 // Shared types for Events category components
 
+/**
+ * Status indicators for events.
+ * @typedef {"going-fast" | "popular" | "just-added" | "sales-end-soon" | "few-tickets-left" | "canceled" | "ended" | "postponed"} EventSignal
+ */
 export type EventSignal =
   | 'going-fast'
   | 'popular'
@@ -10,6 +14,10 @@ export type EventSignal =
   | 'ended'
   | 'postponed'
 
+/**
+ * Descriptive tags for event atmosphere and vibe.
+ * @typedef VibeTag
+ */
 export type VibeTag =
   | 'All night'
   | 'Beginner-friendly'
@@ -46,6 +54,32 @@ export type VibeTag =
   | 'Views'
   | 'Wellness'
 
+/**
+ * Represents a basic event with essential information.
+ * @interface Event
+ * @property {string} id - Unique identifier
+ * @property {string} title - Event title
+ * @property {string} category - Event category (Music, Comedy, etc.)
+ * @property {string} venue - Venue name
+ * @property {string | null} [neighborhood] - Neighborhood/district
+ * @property {string} city - City name
+ * @property {string} dateTime - Display format date/time
+ * @property {string} priceRange - Price display (e.g., "$45 - $150", "Free")
+ * @property {string} [image] - Cover image URL
+ * @property {{ lat: number; lng: number }} [coordinates] - Map coordinates
+ * @property {VibeTag[]} [vibeTags] - Atmosphere/vibe tags
+ * @property {string} [vibeDescription] - Vibe description text
+ * @property {string} [aiSummary] - AI-generated summary
+ * @property {string[]} [lineup] - Performer lineup
+ * @property {string[]} [ticketTiers] - Available ticket tiers
+ * @property {EventSignal} [eventSignal] - Status signal
+ * @property {number} [organizerRating] - Organizer rating
+ * @property {number} [reviewCount] - Number of reviews
+ * @property {number} [venueRating] - Venue rating
+ * @property {string | null} [ageRestriction] - Age restriction
+ * @property {boolean} [hasMultipleDates] - Whether event has multiple dates
+ * @property {string} [discount] - Discount text
+ */
 export interface Event {
   title: string
   category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
@@ -70,6 +104,21 @@ export interface Event {
   discount?: string // "TONIGHT ONLY - 40% OFF", "FREE - First 50 Only"
 }
 
+/**
+ * Represents an event organizer.
+ * @interface Organizer
+ * @property {string} id - Unique identifier
+ * @property {string} name - Organizer name
+ * @property {string} [image] - Profile image URL
+ * @property {number} rating - Average rating
+ * @property {number} reviewCount - Number of reviews
+ * @property {boolean} [verified] - Whether organizer is verified
+ * @property {number} [followers] - Follower count
+ * @property {number} [eventsCount] - Total events hosted
+ * @property {number} [hostingYears] - Years hosting events
+ * @property {"very responsive" | "responsive" | "slow"} [responseRate] - Response speed
+ * @property {"great" | "good" | "new"} [trackRecord] - Track record rating
+ */
 export interface Organizer {
   name: string
   image?: string
@@ -83,11 +132,29 @@ export interface Organizer {
   trackRecord?: 'great' | 'good' | 'new'
 }
 
+/**
+ * Represents a ticket selection with tier and quantity.
+ * @interface TicketSelection
+ * @property {string} tierId - Selected tier ID
+ * @property {number} quantity - Number of tickets
+ */
 export interface TicketSelection {
   tierIndex: number
   quantity: number
 }
 
+/**
+ * Represents a completed event booking.
+ * @interface EventBooking
+ * @property {string} id - Booking ID
+ * @property {Event} event - The booked event
+ * @property {{ tierName: string; quantity: number; price: number }[]} tickets - Purchased tickets
+ * @property {number} total - Total amount paid
+ * @property {number} fees - Service fees
+ * @property {string} confirmationCode - Confirmation code
+ * @property {string} [qrCode] - QR code image URL
+ * @property {string} purchaseDate - Purchase date string
+ */
 export interface EventBooking {
   event: Event
   tickets: { tierName: string; quantity: number; price: number }[]
@@ -98,7 +165,12 @@ export interface EventBooking {
   purchaseDate: string
 }
 
-// Extended Event with full details for event-detail component
+/**
+ * Extended Event with full details for event-detail component.
+ * Includes additional fields for comprehensive event display.
+ * @interface EventDetails
+ * @extends {Omit<Event, 'dateTime'>}
+ */
 export interface EventDetails extends Omit<Event, 'dateTime'> {
   // Override dateTime with ISO format dates for dynamic formatting
   startDateTime: string // ISO format: "2025-01-11T21:00:00Z"

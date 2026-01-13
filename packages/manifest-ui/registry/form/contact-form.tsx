@@ -12,6 +12,18 @@ import { cn } from '@/lib/utils'
 import { ChevronDown, Paperclip, Search, Send, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+/**
+ * Data structure representing the contact form submission.
+ * @interface ContactFormData
+ * @property {string} firstName - The user's first name (required)
+ * @property {string} lastName - The user's last name (required)
+ * @property {string} [countryId] - The selected country identifier (e.g., 'us', 'fr')
+ * @property {string} [countryCode] - The phone country code (e.g., '+1', '+33')
+ * @property {string} [phoneNumber] - The user's phone number without country code
+ * @property {string} [email] - The user's email address
+ * @property {string} [message] - The message or project description
+ * @property {File | null} [attachment] - An optional file attachment
+ */
 export interface ContactFormData {
   firstName: string
   lastName: string
@@ -23,6 +35,21 @@ export interface ContactFormData {
   attachment?: File | null
 }
 
+/**
+ * Props for the ContactForm component.
+ * @interface ContactFormProps
+ * @property {object} [data] - Configuration data for the form
+ * @property {string} [data.title] - The form title displayed at the top
+ * @property {string} [data.subtitle] - Descriptive text below the title
+ * @property {string} [data.submitLabel] - Custom label for the submit button
+ * @property {Partial<ContactFormData>} [data.initialValues] - Pre-filled form values
+ * @property {object} [actions] - Callback functions for form events
+ * @property {function} [actions.onSubmit] - Called when the form is submitted with form data
+ * @property {object} [appearance] - Visual customization options
+ * @property {boolean} [appearance.showTitle] - Whether to display the title section
+ * @property {object} [control] - State control options
+ * @property {boolean} [control.isLoading] - Shows loading state on submit button
+ */
 export interface ContactFormProps {
   data?: {
     title?: string
@@ -154,6 +181,36 @@ const countries = [
   { id: 'zw', code: '+263', name: 'Zimbabwe', flag: '🇿🇼' }
 ]
 
+/**
+ * A complete contact form component with name fields, phone number with country selector,
+ * email input, message textarea, and file attachment support.
+ *
+ * Features:
+ * - First and last name fields
+ * - Phone number with searchable country code dropdown
+ * - Email input with validation
+ * - Message textarea for project descriptions
+ * - File attachment with preview and removal
+ * - Loading state support
+ * - Customizable title and submit button text
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ContactForm
+ *   data={{
+ *     title: "Get in Touch",
+ *     subtitle: "We'd love to hear from you",
+ *     submitLabel: "Send"
+ *   }}
+ *   actions={{
+ *     onSubmit: (data) => console.log("Form submitted:", data)
+ *   }}
+ *   appearance={{ showTitle: true }}
+ *   control={{ isLoading: false }}
+ * />
+ * ```
+ */
 export function ContactForm({
   data,
   actions,

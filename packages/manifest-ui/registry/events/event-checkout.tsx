@@ -6,7 +6,12 @@ import { cn } from '@/lib/utils'
 import { ArrowLeft, CreditCard, Info, Timer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-// Format currency
+/**
+ * Formats a currency amount.
+ * @param {number} amount - Amount to format
+ * @param {string} currency - Currency code
+ * @returns {string} Formatted currency string
+ */
 function formatCurrency(amount: number, currency: string = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -15,12 +20,27 @@ function formatCurrency(amount: number, currency: string = 'USD'): string {
   }).format(amount)
 }
 
+/**
+ * Represents an order line item.
+ * @interface OrderItem
+ * @property {string} name - Item name
+ * @property {number} quantity - Quantity
+ * @property {number} price - Price per item
+ */
 export interface OrderItem {
   name: string
   quantity: number
   price: number
 }
 
+/**
+ * Represents a checkout order.
+ * @interface CheckoutOrder
+ * @property {OrderItem[]} items - Order line items
+ * @property {number} [fees] - Service fees
+ * @property {number} [delivery] - Delivery fee
+ * @property {string} [deliveryMethod] - Delivery method description
+ */
 export interface CheckoutOrder {
   items: OrderItem[]
   fees?: number
@@ -28,6 +48,13 @@ export interface CheckoutOrder {
   deliveryMethod?: string
 }
 
+/**
+ * Represents a payment method option.
+ * @interface PaymentMethod
+ * @property {string} id - Unique identifier
+ * @property {string} name - Display name
+ * @property {"card" | "paypal" | "google" | "apple"} [icon] - Icon type
+ */
 export interface PaymentMethod {
   id: string
   name: string
@@ -62,6 +89,21 @@ const defaultEvent: CheckoutEvent = {
   currency: 'USD'
 }
 
+/**
+ * Props for the EventCheckout component.
+ * @interface EventCheckoutProps
+ * @property {object} [data] - Checkout data
+ * @property {CheckoutEvent} [data.event] - Event information
+ * @property {CheckoutOrder} [data.order] - Order details
+ * @property {PaymentMethod[]} [data.paymentMethods] - Available payment methods
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onBack] - Called when back button is clicked
+ * @property {function} [actions.onPlaceOrder] - Called when order is placed
+ * @property {object} [appearance] - Visual customization
+ * @property {boolean} [appearance.showTimer] - Whether to show countdown timer
+ * @property {number} [appearance.timerMinutes] - Timer duration in minutes
+ * @property {boolean} [appearance.showEventCard] - Whether to show event card
+ */
 export interface EventCheckoutProps {
   data?: {
     event?: CheckoutEvent
@@ -79,6 +121,46 @@ export interface EventCheckoutProps {
   }
 }
 
+/**
+ * An event checkout form with billing info, payment selection, and order summary.
+ * Includes countdown timer and form validation.
+ *
+ * Features:
+ * - Billing information form
+ * - Multiple payment method selection
+ * - Order summary with line items
+ * - Countdown timer for ticket reservation
+ * - Marketing opt-in checkboxes
+ * - Form validation
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventCheckout
+ *   data={{
+ *     event: {
+ *       title: "Concert Night",
+ *       date: "Fri, Feb 6 · 8pm",
+ *       price: "$50.00",
+ *       currency: "USD"
+ *     },
+ *     order: {
+ *       items: [{ name: "General Admission", quantity: 2, price: 45 }],
+ *       fees: 10,
+ *       delivery: 0
+ *     }
+ *   }}
+ *   actions={{
+ *     onBack: () => console.log("Back"),
+ *     onPlaceOrder: () => console.log("Order placed")
+ *   }}
+ *   appearance={{
+ *     showTimer: true,
+ *     timerMinutes: 15
+ *   }}
+ * />
+ * ```
+ */
 export function EventCheckout({
   data,
   actions,
