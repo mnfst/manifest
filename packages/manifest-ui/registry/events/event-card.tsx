@@ -14,37 +14,10 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
+import { demoEvent } from './demo/data'
 
 // Import shared OpenAI types
 import '@/lib/openai-types'
-
-const defaultEvent: Event = {
-  title: 'NEON Vol. 9',
-  category: 'Music',
-  venue: 'Echoplex',
-  neighborhood: 'Echo Park',
-  city: 'Los Angeles',
-  dateTime: 'Tonight 9:00 PM - 3:00 AM',
-  priceRange: '$45 - $150',
-  image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
-  vibeTags: ['High energy', 'Late night', 'Dressy'],
-  vibeDescription:
-    'Immersive electronic experience with world-class DJs and stunning visuals.',
-  aiSummary:
-    "Immersive electronic night with world-class DJs and stunning visuals at LA's top-rated venue.",
-  lineup: ['DJ Shadow', 'Bonobo', 'Four Tet', 'Caribou'],
-  ticketTiers: [
-    'General Admission $45',
-    'VIP Access $120',
-    'Backstage Pass $150'
-  ],
-  eventSignal: 'going-fast',
-  organizerRating: 4.8,
-  reviewCount: 12453,
-  venueRating: 4.8,
-  ageRestriction: '21+',
-  hasMultipleDates: true
-}
 
 export interface EventCardProps {
   data?: {
@@ -126,7 +99,7 @@ function formatNumber(num: number): string {
 }
 
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const { event = defaultEvent } = data ?? {}
+  const { event = demoEvent } = data ?? {}
   const { onClick } = actions ?? {}
   const {
     variant = 'default',

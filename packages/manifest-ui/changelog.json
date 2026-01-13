@@ -23,7 +23,8 @@
       "1.0.1": "Updated to show a more realistic default amount"
     },
     "order-summary": {
-      "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts"
+      "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts",
+      "1.0.1": "Moved demo data to separate file for cleaner component code"
     },
     "saved-cards": {
       "1.0.0": "Initial release with support for multiple card brands"
@@ -46,11 +47,13 @@
     "product-list": {
       "1.0.0": "Initial release with list, grid, carousel and picker variants",
       "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
-      "2.0.1": "Added aria-labels to carousel navigation buttons and dots for accessibility"
+      "2.0.1": "Added aria-labels to carousel navigation buttons and dots for accessibility",
+      "2.0.2": "Moved demo data to separate file for cleaner component code"
     },
     "option-list": {
       "1.0.0": "Initial release with single and multiple selection modes",
-      "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking."
+      "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
+      "2.0.1": "Moved demo data to separate file for cleaner component code"
     },
     "amount-input": {
       "1.0.0": "Initial release with increment buttons and preset values"
@@ -77,17 +80,20 @@
     },
     "post-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants",
-      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key."
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+      "2.0.1": "Moved demo data to separate file for cleaner component code"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
       "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
       "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
-      "2.0.1": "Added aria-labels to pagination and carousel navigation buttons for accessibility"
+      "2.0.1": "Added aria-labels to pagination and carousel navigation buttons for accessibility",
+      "2.0.2": "Moved demo data to separate file for cleaner component code"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
-      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key."
+      "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+      "2.0.1": "Updated post-card dependency with extracted demo data"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
@@ -112,7 +118,8 @@
       "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
       "3.0.0": "BREAKING: Removed caption prop, use content for image captions",
       "4.0.0": "BREAKING: Removed id from ChatMessage interface. Use array index for key.",
-      "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls"
+      "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls",
+      "4.0.2": "Moved demo data to separate file for cleaner component code"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display"
@@ -139,7 +146,8 @@
       "4.0.0": "BREAKING: Removed View button from all variants. Entire card is now clickable.",
       "4.1.0": "Added image display to horizontal (list) and compact (carousel) variants",
       "5.0.0": "BREAKING: Removed id from Event interface. Use array index for key.",
-      "5.0.1": "Added accessibility support with role, tabIndex, keyboard handlers, and aria-label for all card variants"
+      "5.0.1": "Added accessibility support with role, tabIndex, keyboard handlers, and aria-label for all card variants",
+      "5.0.2": "Moved demo data to separate file for cleaner component code"
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
@@ -151,7 +159,8 @@
       "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action",
       "5.2.1": "Fixed event-card dependency resolution for shadcn CLI installation",
       "6.0.0": "BREAKING: Removed id from Event interface. Use array index for selection and key.",
-      "6.0.1": "Added aria-labels to navigation buttons, carousel dots, filter close, and expand buttons for accessibility"
+      "6.0.1": "Added aria-labels to navigation buttons, carousel dots, filter close, and expand buttons for accessibility",
+      "6.0.2": "Moved demo data to separate file for cleaner component code"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
@@ -159,7 +168,8 @@
       "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
       "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors",
       "3.0.0": "BREAKING: Removed id from EventDetails, Organizer, and tier interfaces. Use array index for key.",
-      "3.0.1": "Added aria-labels to image navigation, share, save, and back buttons for accessibility"
+      "3.0.1": "Added aria-labels to image navigation, share, save, and back buttons for accessibility",
+      "3.0.2": "Moved demo data to separate file for cleaner component code"
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",

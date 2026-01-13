@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
+import { demoOptions } from './demo/data'
 
 /*
  * OptionList Component - ChatGPT UI Guidelines Compliant
@@ -36,14 +37,8 @@ export interface OptionListProps {
   }
 }
 
-const defaultOptions: Option[] = [
-  { label: 'Standard shipping', description: '3-5 business days' },
-  { label: 'Express shipping', description: '1-2 business days' },
-  { label: 'Store pickup', description: 'Available in 2h' }
-]
-
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
-  const { options = defaultOptions } = data ?? {}
+  const { options = demoOptions } = data ?? {}
   const { onSelectOption, onSelectOptions } = actions ?? {}
   const { multiple = false } = appearance ?? {}
   const { selectedOptionIndex, selectedOptionIndexes = [] } = control ?? {}

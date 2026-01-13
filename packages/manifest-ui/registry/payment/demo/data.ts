@@ -1,0 +1,21 @@
+// Demo data for Payment category components
+// This file contains sample data used for component previews and documentation
+
+import type { OrderItem } from '../order-summary'
+
+// Default order items for OrderSummary
+export const demoOrderItems: OrderItem[] = [
+  { id: '1', name: 'Premium Headphones', quantity: 1, price: 199.99 },
+  { id: '2', name: 'Wireless Charger', quantity: 2, price: 29.99 }
+]
+
+// Default order data for OrderSummary
+export const demoOrderData = {
+  items: demoOrderItems,
+  subtotal: 259.97,
+  shipping: 9.99,
+  tax: 21.58,
+  discount: 25.0,
+  discountCode: 'SAVE10',
+  total: 266.54
+}
