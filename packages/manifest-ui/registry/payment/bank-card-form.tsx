@@ -1,5 +1,14 @@
 'use client'
 
+/**
+ * WARNING: This is a UI demonstration component.
+ * For production payment processing:
+ * - Use a PCI-compliant payment processor (Stripe, Square, etc.)
+ * - Never store raw card data on your servers
+ * - Implement tokenization instead of handling raw card numbers
+ * - Ensure PCI DSS compliance
+ */
+
 import { Button } from '@/components/ui/button'
 import { CreditCard, Lock } from 'lucide-react'
 import { useState } from 'react'
@@ -68,6 +77,9 @@ export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
           value={cardNumber}
           onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
           className="h-8 bg-transparent border-0 outline-none text-sm flex-1 min-w-0 placeholder:text-muted-foreground"
+          autoComplete="cc-number"
+          inputMode="numeric"
+          spellCheck={false}
         />
       </div>
       {/* Expiry and CVV row */}
@@ -79,14 +91,20 @@ export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
           value={expiry}
           onChange={(e) => setExpiry(formatExpiry(e.target.value))}
           className="h-8 bg-transparent border-0 outline-none text-sm w-14 sm:text-center placeholder:text-muted-foreground"
+          autoComplete="cc-exp"
+          inputMode="numeric"
+          spellCheck={false}
         />
         <div className="h-4 w-px bg-border shrink-0" />
         <input
-          type="text"
+          type="password"
           placeholder="CVV"
           value={cvv}
           onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
           className="h-8 bg-transparent border-0 outline-none text-sm w-10 sm:text-center placeholder:text-muted-foreground"
+          autoComplete="cc-csc"
+          inputMode="numeric"
+          spellCheck={false}
         />
       </div>
       <Button size="sm" onClick={handleSubmit} className="w-full sm:w-auto shrink-0 sm:ml-1">

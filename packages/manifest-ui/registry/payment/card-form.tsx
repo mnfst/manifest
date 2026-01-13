@@ -1,5 +1,14 @@
 'use client'
 
+/**
+ * WARNING: This is a UI demonstration component.
+ * For production payment processing:
+ * - Use a PCI-compliant payment processor (Stripe, Square, etc.)
+ * - Never store raw card data on your servers
+ * - Implement tokenization instead of handling raw card numbers
+ * - Ensure PCI DSS compliance
+ */
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -105,6 +114,9 @@ export function CardForm({ actions, control }: CardFormProps) {
               value={formData.cardNumber}
               onChange={(e) => handleChange('cardNumber', e.target.value)}
               maxLength={19}
+              autoComplete="cc-number"
+              inputMode="numeric"
+              spellCheck={false}
             />
           </div>
           <div className="space-y-2">
@@ -114,6 +126,8 @@ export function CardForm({ actions, control }: CardFormProps) {
               placeholder="John Doe"
               value={formData.cardHolder}
               onChange={(e) => handleChange('cardHolder', e.target.value)}
+              autoComplete="cc-name"
+              spellCheck={false}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -125,6 +139,9 @@ export function CardForm({ actions, control }: CardFormProps) {
                 value={formData.expiryDate}
                 onChange={(e) => handleChange('expiryDate', e.target.value)}
                 maxLength={5}
+                autoComplete="cc-exp"
+                inputMode="numeric"
+                spellCheck={false}
               />
             </div>
             <div className="space-y-2">
@@ -136,6 +153,9 @@ export function CardForm({ actions, control }: CardFormProps) {
                 value={formData.cvv}
                 onChange={(e) => handleChange('cvv', e.target.value)}
                 maxLength={4}
+                autoComplete="cc-csc"
+                inputMode="numeric"
+                spellCheck={false}
               />
             </div>
           </div>

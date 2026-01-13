@@ -25,6 +25,10 @@ export interface YouTubePostProps {
   }
 }
 
+const isValidYouTubeId = (id: string): boolean => {
+  return /^[a-zA-Z0-9_-]{11}$/.test(id)
+}
+
 const defaultData = {
   channel: "NetworkChuck",
   avatar: "N",
@@ -52,14 +56,16 @@ export function YouTubePost({ data }: YouTubePostProps) {
   } = data ?? {}
   const [isPlaying, setIsPlaying] = useState(false)
 
+  const safeVideoId = isValidYouTubeId(videoId) ? videoId : null
+
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Thumbnail / Video */}
       <div className="relative aspect-video bg-black">
-        {isPlaying ? (
+        {isPlaying && safeVideoId ? (
           <iframe
             className="w-full h-full"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+            src={`https://www.youtube.com/embed/${safeVideoId}?autoplay=1`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

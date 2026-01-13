@@ -1,5 +1,6 @@
 'use client'
 
+import DOMPurify from 'dompurify'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -315,7 +316,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
                 [&>ol]:mb-8 [&>ol]:pl-6 [&>ol>li]:mb-2
                 [&>blockquote]:border-l-4 [&>blockquote]:border-foreground [&>blockquote]:pl-6 [&>blockquote]:my-8 [&>blockquote]:italic
               "
-              dangerouslySetInnerHTML={{ __html: content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
             />
           )}
         </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import DOMPurify from 'dompurify'
 import { Check, Copy } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { codeToHtml } from 'shiki'
@@ -72,7 +73,7 @@ export function CodeBlock({
       {html ? (
         <div
           className="rounded-lg overflow-x-auto text-sm bg-muted dark:bg-[#262626] [&_pre]:p-4 [&_pre]:m-0 [&_pre]:!bg-transparent [&_.shiki]:!bg-transparent [&_pre]:min-w-max"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}
         />
       ) : (
         <pre className="rounded-lg bg-muted dark:bg-[#262626] p-4 overflow-x-auto text-sm font-mono min-w-max">

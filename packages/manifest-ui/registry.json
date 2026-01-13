@@ -53,7 +53,7 @@
     },
     {
       "name": "card-form",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "registry:component",
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
@@ -133,7 +133,7 @@
     },
     {
       "name": "bank-card-form",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "registry:component",
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
@@ -341,7 +341,7 @@
     },
     {
       "name": "post-card",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
@@ -361,7 +361,7 @@
     },
     {
       "name": "post-list",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "type": "registry:component",
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
@@ -385,7 +385,7 @@
     },
     {
       "name": "post-detail",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "type": "registry:component",
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
@@ -505,7 +505,7 @@
     },
     {
       "name": "youtube-post",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "type": "registry:component",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",

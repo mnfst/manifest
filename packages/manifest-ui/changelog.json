@@ -16,7 +16,8 @@
       "1.0.1": "Added aria-label to file removal button for screen reader accessibility"
     },
     "card-form": {
-      "1.0.0": "Initial release with card number, expiry, CVV and name fields"
+      "1.0.0": "Initial release with card number, expiry, CVV and name fields",
+      "1.0.1": "Added security attributes (autocomplete, inputMode, spellCheck) and PCI compliance warning"
     },
     "pay-confirm": {
       "1.0.0": "Initial release with amount display and confirm actions",
@@ -33,7 +34,8 @@
       "1.0.0": "Initial release with order details and tracking options"
     },
     "bank-card-form": {
-      "1.0.0": "Initial release with compact inline layout for chat"
+      "1.0.0": "Initial release with compact inline layout for chat",
+      "1.0.1": "Added security attributes (autocomplete, inputMode, spellCheck), CVV masking, and PCI compliance warning"
     },
     "payment-methods": {
       "1.0.0": "Initial release with card brands and Apple Pay support"
@@ -81,19 +83,22 @@
     "post-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants",
       "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
-      "2.0.1": "Moved demo data to separate file for cleaner component code"
+      "2.0.1": "Moved demo data to separate file for cleaner component code",
+      "2.0.2": "Security fix: Added DOMPurify sanitization for HTML content in post-detail"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
       "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
       "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
       "2.0.1": "Added aria-labels to pagination and carousel navigation buttons for accessibility",
-      "2.0.2": "Moved demo data to separate file for cleaner component code"
+      "2.0.2": "Moved demo data to separate file for cleaner component code",
+      "2.0.3": "Security fix: Added DOMPurify sanitization for HTML content in post-detail dependency"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
       "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
-      "2.0.1": "Updated post-card dependency with extracted demo data"
+      "2.0.1": "Updated post-card dependency with extracted demo data",
+      "2.0.2": "Security fix: Added DOMPurify sanitization for HTML content to prevent XSS"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
@@ -133,7 +138,8 @@
     },
     "youtube-post": {
       "1.0.0": "Initial release with playable video embed",
-      "1.0.1": "Improved alt text to include video title"
+      "1.0.1": "Improved alt text to include video title",
+      "1.0.2": "Security fix: Added YouTube video ID validation to prevent iframe injection"
     },
     "map-carousel": {
       "1.0.0": "Initial release with interactive map and location cards",
