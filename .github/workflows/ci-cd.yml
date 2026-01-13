@@ -9,6 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set pending status
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: pending
+          context: test
+
       - name: Checkout source code
         uses: actions/checkout@v3
         with:
@@ -37,3 +44,19 @@ jobs:
         run: pnpm run build
       - name: Run tests
         run: pnpm run test
+
+      - name: Set success status
+        if: success()
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: success
+          context: test
+
+      - name: Set failure status
+        if: failure()
+        uses: myrotvorets/set-commit-status-action@v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: failure
+          context: test
