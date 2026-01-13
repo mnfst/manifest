@@ -17,6 +17,8 @@ import {
 import { cn } from '@/lib/utils'
 
 // Import shared OpenAI types
+import '@/lib/openai-types' // Side effect: extends Window interface
+import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -36,15 +38,14 @@ import {
   Type
 } from 'lucide-react'
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
-import type { DisplayMode, OpenAiProperties } from '@/lib/openai-types'
 
 // =============================================================================
 // Hook to subscribe to window.openai changes (official pattern)
 // =============================================================================
 
-function useOpenAIGlobal<K extends keyof OpenAiProperties>(
+function useOpenAIGlobal<K extends keyof OpenAIBridge>(
   key: K
-): OpenAiProperties[K] | undefined {
+): OpenAIBridge[K] | undefined {
   return useSyncExternalStore(
     (onChange) => {
       if (typeof window === 'undefined') return () => {}
@@ -252,7 +253,7 @@ function TableHeader({
         {titleImage && (
           <img
             src={titleImage}
-            alt=""
+            alt={title ? `${title} icon` : "Table icon"}
             className="h-5 w-5 rounded object-cover"
           />
         )}
@@ -513,8 +514,8 @@ export function Table<T extends Record<string, unknown>>({
   const moreCount = totalRows
     ? totalRows - maxRows
     : sortedData.length > maxRows
-      ? sortedData.length - maxRows
-      : 0
+    ? sortedData.length - maxRows
+    : 0
 
   // Filter helpers
   const addFilter = () => {
@@ -577,7 +578,8 @@ export function Table<T extends Record<string, unknown>>({
       sortedData,
       onSelectionChange,
       isFullscreen,
-      currentPage
+      currentPage,
+      rowsPerPage
     ]
   )
 
@@ -643,7 +645,7 @@ export function Table<T extends Record<string, unknown>>({
             {titleImage && (
               <img
                 src={titleImage}
-                alt=""
+                alt={title ? `${title} icon` : "Table icon"}
                 className="h-5 w-5 rounded object-cover"
               />
             )}
@@ -1160,7 +1162,7 @@ export function Table<T extends Record<string, unknown>>({
           })`
         }}
       >
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" role="grid">
           <thead
             className={cn(
               'border-b bg-muted/50',
@@ -1255,6 +1257,7 @@ export function Table<T extends Record<string, unknown>>({
                     'border-b border-border last:border-0 transition-colors',
                     selectable !== 'none' && 'cursor-pointer hover:bg-muted/30'
                   )}
+                  role="row"
                   aria-selected={selectedRowsSet.has(rowIndex)}
                 >
                   {selectable !== 'none' && (

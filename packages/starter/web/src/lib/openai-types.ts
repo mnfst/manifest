@@ -19,5 +19,11 @@ export type OpenAiProperties = {
   widgetState: Record<string, unknown> | null
 }
 
+// OpenAIBridge is the interface for window.openai
+// This includes both properties and methods available on the bridge
+export interface OpenAIBridge extends OpenAiProperties {
+  requestDisplayMode?: (options: { mode: DisplayMode }) => void
+}
+
 // Note: window.openai is globally typed by skybridge/web
 // We only define the property types needed for our components

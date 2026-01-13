@@ -13,6 +13,7 @@
       "Bash(COREPACK_ENABLE_STRICT=0 pnpm install:*)",
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
+      "Bash(git stash:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",

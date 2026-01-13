@@ -12,7 +12,7 @@ This guide explains how to set up and work with the Manifest monorepo as a devel
 
 ```
 packages/
-├── agentic-ui-toolkit/   # Component registry (Next.js)
+├── manifest-ui/   # Component registry (Next.js)
 ├── create-manifest/      # CLI for scaffolding new projects
 └── starter/              # Starter template for new projects
 ```
@@ -22,12 +22,20 @@ packages/
 1. Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/mnfst-ai/manifest.git
+git clone https://github.com/mnfst/manifest.git
 cd manifest
 pnpm install
 ```
 
-2. Start the development servers:
+2. Install dependencies for the starter package (nested workspace):
+
+```bash
+cd packages/starter
+pnpm install
+cd ../..
+```
+
+3. Start the development servers:
 
 ```bash
 pnpm run dev
@@ -38,7 +46,7 @@ This runs both packages in parallel via Turborepo:
 - **Registry** at `http://localhost:3001` - Component documentation
 - **Starter** at `http://localhost:3000` - Example MCP server
 
-3. Install components from the registry using the shadcn CLI with the `@manifest-dev` namespace:
+4. Install components from the registry using the shadcn CLI with the `@manifest-dev` namespace:
 
 ```bash
 cd packages/starter/web
@@ -88,10 +96,10 @@ The MCP server endpoint is available at `/mcp`, not at the root path.
 
 ## Working with Individual Packages
 
-### Registry (agentic-ui-toolkit)
+### Registry (manifest-ui)
 
 ```bash
-cd packages/agentic-ui-toolkit
+cd packages/manifest-ui
 pnpm run dev          # Start dev server on port 3001
 pnpm run registry:build  # Build registry JSON files
 ```
@@ -107,7 +115,7 @@ pnpm run inspector    # Open MCP Inspector
 
 ## Adding Components to the Registry
 
-1. Create component files in `packages/agentic-ui-toolkit/registry/misc/<component-name>/`
+1. Create component files in `packages/manifest-ui/registry/misc/<component-name>/`
 2. Add entry to `registry.json` with file paths and dependencies
 3. Run `pnpm run registry:build` to generate the distributable JSON
 4. Preview at `http://localhost:3001`

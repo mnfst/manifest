@@ -15,7 +15,7 @@
 ---
 
 <p align='center'>
-<strong>Shadcn/ui components library for building ChatGPT Apps
+<strong>Production-ready UI blocks for ChatGPT apps, built on top of shadcn/ui
 </strong>
 <br><br>  
   <a href="https://www.npmjs.com/package/manifest" target="_blank"><img alt="npm download" src="https://img.shields.io/npm/dt/manifest.svg"></a>
@@ -28,6 +28,12 @@
   <a href="https://github.com/mnfst/manifest/blob/develop/LICENSE" target="_blank"><img alt="License MIT" src="https://img.shields.io/badge/licence-MIT-green"></a>
   <a href="https://www.jsdelivr.com/package/npm/manifest" target="_blank"><img alt="jsdelivr" src="https://data.jsdelivr.com/v1/package/npm/manifest/badge"></a>
 <br>
+
+<p align="center">
+  <a href="https://ui.manifest.build/">
+    <img src="./assets/ui-homepage-screenshot.png" alt="Manifest UI Homepage" width="800">
+  </a>
+</p>
 
 ## Why Manifest?
 
