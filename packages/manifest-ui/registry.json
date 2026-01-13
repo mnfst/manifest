@@ -71,7 +71,7 @@
     },
     {
       "name": "card-form",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
@@ -181,7 +181,7 @@
     },
     {
       "name": "bank-card-form",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "type": "registry:component",
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
@@ -627,7 +627,7 @@
     },
     {
       "name": "youtube-post",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "type": "registry:component",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
