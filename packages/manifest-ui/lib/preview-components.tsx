@@ -60,7 +60,6 @@ import { EventConfirmation } from '@/registry/events/event-confirmation'
 
 // Demo data
 const demoPost = {
-  id: '1',
   title: 'Getting Started with Agentic UI',
   excerpt: 'Learn how to build conversational interfaces with our component library.',
   coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
@@ -73,43 +72,15 @@ const demoPost = {
 
 const demoPosts = Array.from({ length: 6 }, (_, i) => ({
   ...demoPost,
-  id: String(i + 1),
   title: `Post Title ${i + 1}`,
   excerpt: `This is the excerpt for post ${i + 1}.`
 }))
 
-const demoEvent = {
-  id: '1',
-  title: 'Summer Music Festival',
-  category: 'Music',
-  venue: 'Central Park',
-  neighborhood: 'Manhattan',
-  city: 'New York',
-  startDateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
-  priceRange: '$45 - $150',
-  image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
-  vibeTags: ['High energy', 'Outdoor', 'Social'] as const,
-  eventSignal: 'popular' as const
-}
-
 const demoProducts = [
-  { id: '1', name: 'Premium Headphones', price: 299, image: '/demo/shoe-1.png' },
-  { id: '2', name: 'Wireless Earbuds', price: 149, image: '/demo/shoe-2.png' },
-  { id: '3', name: 'Smart Speaker', price: 199, image: '/demo/shoe-3.png' }
+  { name: 'Premium Headphones', price: 299, image: '/demo/shoe-1.png' },
+  { name: 'Wireless Earbuds', price: 149, image: '/demo/shoe-2.png' },
+  { name: 'Smart Speaker', price: 199, image: '/demo/shoe-3.png' }
 ]
-
-const demoTableData = {
-  columns: [
-    { key: 'name', label: 'Name', type: 'text' as const },
-    { key: 'email', label: 'Email', type: 'text' as const },
-    { key: 'status', label: 'Status', type: 'badge' as const }
-  ],
-  rows: [
-    { id: '1', name: 'John Doe', email: 'john@example.com', status: 'Active' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', status: 'Pending' },
-    { id: '3', name: 'Bob Johnson', email: 'bob@example.com', status: 'Active' }
-  ]
-}
 
 const demoOrderItems = [
   { id: '1', name: 'Wireless Headphones', quantity: 1, price: 199.99 },
@@ -117,19 +88,19 @@ const demoOrderItems = [
 ]
 
 const demoSavedCards = [
-  { id: '1', brand: 'visa' as const, lastFour: '4242', expiryMonth: '12', expiryYear: '25', isDefault: true },
-  { id: '2', brand: 'mastercard' as const, lastFour: '5555', expiryMonth: '06', expiryYear: '26', isDefault: false }
+  { id: '1', brand: 'visa' as const, last4: '4242', expiryMonth: '12', expiryYear: '25', isDefault: true },
+  { id: '2', brand: 'mastercard' as const, last4: '5555', expiryMonth: '06', expiryYear: '26', isDefault: false }
 ]
 
 const demoTicketTiers = [
-  { id: '1', name: 'General Admission', price: 45, available: 100, maxPerOrder: 10 },
-  { id: '2', name: 'VIP', price: 150, available: 20, maxPerOrder: 4, description: 'Includes backstage access' }
+  { id: '1', name: 'General Admission', price: 45, fee: 5, available: 100, maxPerOrder: 10 },
+  { id: '2', name: 'VIP', price: 150, fee: 15, available: 20, maxPerOrder: 4, description: 'Includes backstage access' }
 ]
 
 const demoMapLocations = [
-  { id: '1', name: 'Coffee Shop', lat: 40.7128, lng: -74.006, description: 'Best coffee in town' },
-  { id: '2', name: 'Book Store', lat: 40.7138, lng: -74.008, description: 'Rare books collection' },
-  { id: '3', name: 'Park', lat: 40.7148, lng: -74.004, description: 'Beautiful city park' }
+  { id: '1', name: 'Coffee Shop', coordinates: [40.7128, -74.006] as [number, number], description: 'Best coffee in town' },
+  { id: '2', name: 'Book Store', coordinates: [40.7138, -74.008] as [number, number], description: 'Rare books collection' },
+  { id: '3', name: 'Park', coordinates: [40.7148, -74.004] as [number, number], description: 'Beautiful city park' }
 ]
 
 export interface PreviewComponentConfig {
@@ -162,7 +133,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'payment'
   },
   'pay-confirm': {
-    component: <PayConfirm data={{ amount: 259.97, cardLastFour: '4242', cardBrand: 'visa' }} />,
+    component: <PayConfirm data={{ amount: 259.97, cardLast4: '4242', cardBrand: 'visa' }} />,
     category: 'payment'
   },
   'order-summary': {
@@ -174,7 +145,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'payment'
   },
   'payment-success': {
-    component: <PaymentSuccess data={{ orderId: 'ORD-12345', email: 'customer@example.com', total: 291.56 }} />,
+    component: <PaymentSuccess />,
     category: 'payment'
   },
   'bank-card-form': {
@@ -190,7 +161,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'payment'
   },
   'payment-confirmed': {
-    component: <PaymentConfirmed data={{ productName: 'Premium Headphones', productImage: '/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024', trackingNumber: 'TRK123456' }} />,
+    component: <PaymentConfirmed data={{ productName: 'Premium Headphones', productImage: '/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'
   },
   'amount-input': {
@@ -204,13 +175,28 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'list'
   },
   'table': {
-    component: <Table data={demoTableData} />,
+    component: (
+      <Table
+        data={{
+          columns: [
+            { header: 'Name', accessor: 'name' },
+            { header: 'Email', accessor: 'email' },
+            { header: 'Status', accessor: 'status' }
+          ],
+          rows: [
+            { name: 'John Doe', email: 'john@example.com', status: 'Active' },
+            { name: 'Jane Smith', email: 'jane@example.com', status: 'Pending' },
+            { name: 'Bob Johnson', email: 'bob@example.com', status: 'Active' }
+          ]
+        }}
+      />
+    ),
     category: 'list'
   },
 
   // Miscellaneous components
   'option-list': {
-    component: <OptionList data={{ options: [{ id: '1', label: 'Option A' }, { id: '2', label: 'Option B' }, { id: '3', label: 'Option C' }] }} />,
+    component: <OptionList data={{ options: [{ label: 'Option A' }, { label: 'Option B' }, { label: 'Option C' }] }} />,
     category: 'miscellaneous'
   },
   'tag-select': {
@@ -218,15 +204,15 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'miscellaneous'
   },
   'quick-reply': {
-    component: <QuickReply data={{ options: ['Yes, please', 'No, thanks', 'Tell me more'] }} />,
+    component: <QuickReply data={{ replies: [{ label: 'Yes, please' }, { label: 'No, thanks' }, { label: 'Tell me more' }] }} />,
     category: 'miscellaneous'
   },
   'progress-steps': {
-    component: <ProgressSteps data={{ steps: [{ id: '1', label: 'Cart' }, { id: '2', label: 'Shipping' }, { id: '3', label: 'Payment' }, { id: '4', label: 'Confirm' }], currentStep: 2 }} />,
+    component: <ProgressSteps data={{ steps: [{ id: '1', label: 'Cart', status: 'completed' }, { id: '2', label: 'Shipping', status: 'current' }, { id: '3', label: 'Payment', status: 'pending' }, { id: '4', label: 'Confirm', status: 'pending' }] }} />,
     category: 'miscellaneous'
   },
   'status-badge': {
-    component: <StatusBadge data={{ status: 'processing', label: 'Processing' }} />,
+    component: <StatusBadge data={{ status: 'processing' }} appearance={{ label: 'Processing' }} />,
     category: 'miscellaneous'
   },
   'stats': {
@@ -234,27 +220,33 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'miscellaneous'
   },
   'skeleton': {
-    component: <div className="space-y-3"><div className="h-4 bg-muted rounded animate-pulse w-3/4" /><div className="h-4 bg-muted rounded animate-pulse w-1/2" /><div className="h-20 bg-muted rounded animate-pulse" /></div>,
+    component: (
+      <div className="space-y-3">
+        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+        <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+        <div className="h-20 bg-muted rounded animate-pulse" />
+      </div>
+    ),
     category: 'miscellaneous'
   },
   'x-post': {
-    component: <XPost data={{ author: { name: 'Elon Musk', handle: 'elonmusk', avatar: 'https://i.pravatar.cc/150?u=elon', verified: true }, content: 'The future of AI is here! 🚀', timestamp: '2h', likes: 42000, reposts: 8500, replies: 3200 }} />,
+    component: <XPost data={{ author: 'Elon Musk', username: 'elonmusk', avatar: 'https://i.pravatar.cc/150?u=elon', verified: true, content: 'The future of AI is here!', time: '2h', likes: '42K', retweets: '8.5K', replies: '3.2K' }} />,
     category: 'miscellaneous'
   },
   'instagram-post': {
-    component: <InstagramPost data={{ author: { name: 'National Geographic', handle: 'natgeo', avatar: 'https://i.pravatar.cc/150?u=natgeo', verified: true }, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', caption: 'Nature at its finest 🌿', likes: 125000, comments: 2340 }} />,
+    component: <InstagramPost data={{ author: 'National Geographic', avatar: 'https://i.pravatar.cc/150?u=natgeo', verified: true, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', caption: 'Nature at its finest', likes: '125K', time: '2h' }} />,
     category: 'miscellaneous'
   },
   'linkedin-post': {
-    component: <LinkedInPost data={{ author: { name: 'Satya Nadella', headline: 'CEO at Microsoft', avatar: 'https://i.pravatar.cc/150?u=satya' }, content: 'Excited to announce our latest AI innovations...', timestamp: '1d', likes: 15000, comments: 890, reposts: 2100 }} />,
+    component: <LinkedInPost data={{ author: 'Satya Nadella', headline: 'CEO at Microsoft', avatar: 'https://i.pravatar.cc/150?u=satya', content: 'Excited to announce our latest AI innovations...', time: '1d', likes: '15K', comments: '890', reposts: '2.1K' }} />,
     category: 'miscellaneous'
   },
   'youtube-post': {
-    component: <YouTubePost data={{ title: 'Building the Future of AI', channel: { name: 'TechTalks', avatar: 'https://i.pravatar.cc/150?u=techtalks', subscribers: '2.5M' }, thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800', views: '1.2M', timestamp: '3 days ago', duration: '15:42' }} />,
+    component: <YouTubePost data={{ channel: 'TechTalks', avatar: 'https://i.pravatar.cc/150?u=techtalks', title: 'Building the Future of AI', views: '1.2M', time: '3 days ago', thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800', duration: '15:42' }} />,
     category: 'miscellaneous'
   },
   'map-carousel': {
-    component: <MapCarousel data={{ locations: demoMapLocations, center: { lat: 40.7128, lng: -74.006 } }} />,
+    component: <MapCarousel data={{ locations: demoMapLocations, center: [40.7128, -74.006] }} />,
     category: 'miscellaneous'
   },
 
@@ -268,7 +260,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'blogging'
   },
   'post-detail': {
-    component: <PostDetail data={{ post: { ...demoPost, content: '<p>This is the full article content...</p>' } }} />,
+    component: <PostDetail data={{ post: demoPost, content: '<p>This is the full article content...</p>' }} />,
     category: 'blogging'
   },
 
@@ -283,37 +275,111 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'messaging'
   },
   'chat-conversation': {
-    component: <ChatConversation data={{ messages: [
-      { id: '1', content: 'Hello! How can I help you today?', sender: 'assistant', timestamp: '10:00 AM' },
-      { id: '2', content: 'I need help with my order', sender: 'user', timestamp: '10:01 AM' },
-      { id: '3', content: 'Of course! Could you please provide your order number?', sender: 'assistant', timestamp: '10:01 AM' }
-    ] }} />,
+    component: (
+      <ChatConversation
+        data={{
+          messages: [
+            { content: 'Hello! How can I help you today?', isOwn: false, time: '10:00 AM' },
+            { content: 'I need help with my order', isOwn: true, time: '10:01 AM' },
+            { content: 'Of course! Could you please provide your order number?', isOwn: false, time: '10:01 AM' }
+          ]
+        }}
+      />
+    ),
     category: 'messaging'
   },
 
   // Events components
   'event-card': {
-    component: <EventCard data={{ event: demoEvent }} />,
+    component: (
+      <EventCard
+        data={{
+          event: {
+            title: 'Summer Music Festival',
+            category: 'Music',
+            venue: 'Central Park',
+            city: 'New York',
+            dateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
+            priceRange: '$45 - $150',
+            image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
+            vibeTags: ['High energy', 'Outdoor', 'Social'],
+            eventSignal: 'popular'
+          }
+        }}
+      />
+    ),
     category: 'events'
   },
   'event-list': {
-    component: <EventList data={{ events: [demoEvent, { ...demoEvent, id: '2', title: 'Jazz Night', category: 'Music' }, { ...demoEvent, id: '3', title: 'Comedy Show', category: 'Comedy' }] }} appearance={{ variant: 'grid' }} />,
+    component: (
+      <EventList
+        data={{
+          events: [
+            { title: 'Summer Music Festival', category: 'Music', venue: 'Central Park', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 7).toISOString(), priceRange: '$45 - $150', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800' },
+            { title: 'Jazz Night', category: 'Music', venue: 'Blue Note', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 14).toISOString(), priceRange: '$30 - $80' },
+            { title: 'Comedy Show', category: 'Comedy', venue: 'Comedy Cellar', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 3).toISOString(), priceRange: '$25 - $50' }
+          ]
+        }}
+        appearance={{ variant: 'grid' }}
+      />
+    ),
     category: 'events'
   },
   'event-detail': {
-    component: <EventDetail data={{ event: { ...demoEvent, description: 'Join us for an amazing summer music festival!', organizer: { name: 'Live Events Co', avatar: 'https://i.pravatar.cc/150?u=live', verified: true } } }} />,
+    component: (
+      <EventDetail
+        data={{
+          event: {
+            title: 'Summer Music Festival',
+            category: 'Music',
+            venue: 'Central Park',
+            city: 'New York',
+            startDateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
+            priceRange: '$45 - $150',
+            image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
+            description: 'Join us for an amazing summer music festival!',
+            organizer: { name: 'Live Events Co', image: 'https://i.pravatar.cc/150?u=live', rating: 4.8, reviewCount: 120, verified: true }
+          }
+        }}
+      />
+    ),
     category: 'events'
   },
   'ticket-tier-select': {
-    component: <TicketTierSelect data={{ tiers: demoTicketTiers, eventTitle: 'Summer Music Festival' }} />,
+    component: (
+      <TicketTierSelect
+        data={{
+          event: { title: 'Summer Music Festival', date: 'Jan 20, 2024' },
+          tiers: demoTicketTiers
+        }}
+      />
+    ),
     category: 'events'
   },
   'event-checkout': {
-    component: <EventCheckout data={{ event: demoEvent, selectedTiers: [{ tierId: '1', quantity: 2, price: 45 }], subtotal: 90, fees: 9, total: 99 }} />,
+    component: (
+      <EventCheckout
+        data={{
+          event: { title: 'Summer Music Festival', date: 'Jan 20, 2024', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800' },
+          order: { items: [{ name: 'General Admission', quantity: 2, price: 90 }], fees: 10 }
+        }}
+      />
+    ),
     category: 'events'
   },
   'event-confirmation': {
-    component: <EventConfirmation data={{ event: demoEvent, orderNumber: 'EVT-12345', tickets: [{ tierName: 'General Admission', quantity: 2 }], total: 99 }} />,
+    component: (
+      <EventConfirmation
+        data={{
+          orderNumber: 'EVT-12345',
+          eventTitle: 'Summer Music Festival',
+          ticketCount: 2,
+          recipientEmail: 'customer@example.com',
+          eventDate: 'Jan 20, 2024',
+          eventLocation: 'Central Park, New York'
+        }}
+      />
+    ),
     category: 'events'
   }
 }
