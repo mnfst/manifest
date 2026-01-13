@@ -97,6 +97,7 @@ jobs:
           fi
 
       - name: Commit and push preview changes
+        id: auto-commit
         if: steps.check-changes.outputs.has_changes == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -107,6 +108,16 @@ jobs:
           commit_user_name: github-actions[bot]
           commit_user_email: github-actions[bot]@users.noreply.github.com
           commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+      # Determine which commit SHA to report status for
+      - name: Get commit SHA for status
+        id: get-sha
+        run: |
+          if [ "${{ steps.auto-commit.outputs.commit_hash }}" != "" ]; then
+            echo "sha=${{ steps.auto-commit.outputs.commit_hash }}" >> $GITHUB_OUTPUT
+          else
+            echo "sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          fi
 
       # Run tests and report status (needed because bot commits don't trigger CI)
       - name: Install nested workspace dependencies
@@ -123,6 +134,7 @@ jobs:
         uses: myrotvorets/set-commit-status-action@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ steps.get-sha.outputs.sha }}
           status: success
           context: test
 
@@ -131,5 +143,6 @@ jobs:
         uses: myrotvorets/set-commit-status-action@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ steps.get-sha.outputs.sha }}
           status: failure
           context: test
