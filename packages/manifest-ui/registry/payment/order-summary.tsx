@@ -11,6 +11,15 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Package, Percent, Truck } from "lucide-react"
 
+/**
+ * Represents a single item in the order.
+ * @interface OrderItem
+ * @property {string} id - Unique identifier for the item
+ * @property {string} name - Display name of the product
+ * @property {number} quantity - Number of units ordered
+ * @property {number} price - Unit price of the item
+ * @property {string} [image] - Optional product image URL
+ */
 export interface OrderItem {
   id: string
   name: string
@@ -19,6 +28,20 @@ export interface OrderItem {
   image?: string
 }
 
+/**
+ * Props for the OrderSummary component.
+ * @interface OrderSummaryProps
+ * @property {object} [data] - Order data to display
+ * @property {OrderItem[]} [data.items] - List of items in the order
+ * @property {number} [data.subtotal] - Sum of item prices before fees
+ * @property {number} [data.shipping] - Shipping cost (0 for free shipping)
+ * @property {number} [data.tax] - Tax amount
+ * @property {number} [data.discount] - Discount amount to subtract
+ * @property {string} [data.discountCode] - Applied discount code label
+ * @property {number} [data.total] - Final total after all adjustments
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting (default: 'USD')
+ */
 export interface OrderSummaryProps {
   data?: {
     items?: OrderItem[]
@@ -49,6 +72,37 @@ const defaultData = {
   total: 266.54,
 }
 
+/**
+ * An order summary component displaying items, subtotal, shipping, tax, discounts, and total.
+ * Ideal for checkout flows and order review pages.
+ *
+ * Features:
+ * - Item list with images, names, quantities, and prices
+ * - Subtotal, shipping, and tax breakdown
+ * - Discount display with code badge
+ * - Grand total with prominent styling
+ * - Terms of service footer text
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <OrderSummary
+ *   data={{
+ *     items: [
+ *       { id: "1", name: "Product A", quantity: 2, price: 29.99 },
+ *       { id: "2", name: "Product B", quantity: 1, price: 49.99 }
+ *     ],
+ *     subtotal: 109.97,
+ *     shipping: 9.99,
+ *     tax: 10.00,
+ *     discount: 15.00,
+ *     discountCode: "SAVE15",
+ *     total: 114.96
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ * />
+ * ```
+ */
 export function OrderSummary({ data, appearance }: OrderSummaryProps) {
   const {
     items = defaultData.items,

@@ -47,6 +47,19 @@ const defaultEvent: Event = {
   hasMultipleDates: true
 }
 
+/**
+ * Props for the EventCard component.
+ * @interface EventCardProps
+ * @property {object} [data] - Event data
+ * @property {Event} [data.event] - The event to display
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onClick] - Called when card is clicked
+ * @property {object} [appearance] - Visual customization
+ * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
+ * @property {boolean} [appearance.showSignal] - Whether to show event signal badge
+ * @property {boolean} [appearance.showTags] - Whether to show vibe tags
+ * @property {boolean} [appearance.showRating] - Whether to show organizer rating
+ */
 export interface EventCardProps {
   data?: {
     event?: Event
@@ -62,6 +75,10 @@ export interface EventCardProps {
   }
 }
 
+/**
+ * Renders an event signal badge with icon and label.
+ * @param {{ signal: EventSignal }} props - Signal type to display
+ */
 function EventSignalBadge({ signal }: { signal: EventSignal }) {
   const config: Record<
     EventSignal,
@@ -122,10 +139,58 @@ function EventSignalBadge({ signal }: { signal: EventSignal }) {
 }
 
 // Format number with commas (consistent across server/client)
+/**
+ * Formats a number with comma separators.
+ * @param {number} num - Number to format
+ * @returns {string} Formatted number string
+ */
 function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+/**
+ * An event card component with multiple layout variants.
+ * Displays event info, image, tags, and organizer rating.
+ *
+ * Features:
+ * - Four layout variants (default, compact, horizontal, covered)
+ * - Event signal badges (Going Fast, Popular, etc.)
+ * - Vibe tags display
+ * - Organizer rating with review count
+ * - Date, venue, and price display
+ * - Hover state for interactivity
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <EventCard
+ *   data={{
+ *     event: {
+ *       id: "evt-1",
+ *       title: "NEON Vol. 9",
+ *       category: "Music",
+ *       venue: "Echoplex",
+ *       city: "Los Angeles",
+ *       dateTime: "Tonight 9:00 PM",
+ *       priceRange: "$45 - $150",
+ *       image: "https://example.com/event.jpg",
+ *       vibeTags: ["High energy", "Late night"],
+ *       eventSignal: "going-fast",
+ *       organizerRating: 4.8
+ *     }
+ *   }}
+ *   actions={{
+ *     onClick: (event) => console.log("Selected:", event.title)
+ *   }}
+ *   appearance={{
+ *     variant: "default",
+ *     showSignal: true,
+ *     showTags: true,
+ *     showRating: true
+ *   }}
+ * />
+ * ```
+ */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
   const { event = defaultEvent } = data ?? {}
   const { onClick } = actions ?? {}

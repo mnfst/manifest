@@ -2,7 +2,20 @@
 
 import { ImageMessageBubble, MessageBubble } from './message-bubble'
 
-// Chat Conversation (multiple messages)
+/**
+ * Represents a single chat message.
+ * @interface ChatMessage
+ * @property {string} id - Unique message identifier
+ * @property {"text" | "image"} [type] - Message type (defaults to "text")
+ * @property {string} content - Message text content or caption
+ * @property {string} [image] - Image URL (for image type)
+ * @property {string} [author] - Author name
+ * @property {string} [avatarUrl] - Avatar image URL
+ * @property {string} [avatarFallback] - Avatar fallback letter
+ * @property {string} [time] - Time display string
+ * @property {boolean} isOwn - Whether this is the current user's message
+ * @property {"sent" | "delivered" | "read"} [status] - Delivery status
+ */
 export interface ChatMessage {
   id: string
   type?: 'text' | 'image'
@@ -16,6 +29,12 @@ export interface ChatMessage {
   status?: 'sent' | 'delivered' | 'read'
 }
 
+/**
+ * Props for the ChatConversation component.
+ * @interface ChatConversationProps
+ * @property {object} [data] - Conversation data
+ * @property {ChatMessage[]} [data.messages] - Array of messages to display
+ */
 export interface ChatConversationProps {
   data?: {
     messages?: ChatMessage[]
@@ -65,6 +84,45 @@ const defaultMessages: ChatMessage[] = [
   }
 ]
 
+/**
+ * A chat conversation component displaying multiple messages.
+ * Renders text and image messages with appropriate styling.
+ *
+ * Features:
+ * - Support for text and image messages
+ * - Automatic message type detection
+ * - Avatar and delivery status display
+ * - Own/other message differentiation
+ * - Vertical message spacing
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ChatConversation
+ *   data={{
+ *     messages: [
+ *       {
+ *         id: "1",
+ *         type: "text",
+ *         content: "Hey! Check out this new feature 🚀",
+ *         author: "Sarah",
+ *         avatarFallback: "S",
+ *         time: "10:30 AM",
+ *         isOwn: false
+ *       },
+ *       {
+ *         id: "2",
+ *         type: "text",
+ *         content: "That looks amazing!",
+ *         time: "10:31 AM",
+ *         isOwn: true,
+ *         status: "read"
+ *       }
+ *     ]
+ *   }}
+ * />
+ * ```
+ */
 export function ChatConversation({ data }: ChatConversationProps) {
   const { messages = defaultMessages } = data ?? {}
   return (

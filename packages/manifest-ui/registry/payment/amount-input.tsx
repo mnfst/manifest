@@ -5,6 +5,23 @@ import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+/**
+ * Props for the AmountInput component.
+ * @interface AmountInputProps
+ * @property {object} [data] - Configuration data
+ * @property {number[]} [data.presets] - Quick-select preset amounts
+ * @property {object} [actions] - Callback functions for value changes
+ * @property {function} [actions.onChange] - Called when the amount changes
+ * @property {function} [actions.onConfirm] - Called when user confirms the amount
+ * @property {object} [appearance] - Visual and behavior customization
+ * @property {number} [appearance.min] - Minimum allowed value
+ * @property {number} [appearance.max] - Maximum allowed value
+ * @property {number} [appearance.step] - Increment/decrement step size
+ * @property {string} [appearance.currency] - Currency code for formatting
+ * @property {string} [appearance.label] - Label text above the input
+ * @property {object} [control] - Controlled state options
+ * @property {number} [control.value] - Controlled value
+ */
 export interface AmountInputProps {
   data?: {
     presets?: number[]
@@ -25,6 +42,39 @@ export interface AmountInputProps {
   }
 }
 
+/**
+ * An amount input with increment/decrement buttons and preset values.
+ * Supports direct text editing by clicking on the amount.
+ *
+ * Features:
+ * - Large centered amount display
+ * - Plus/minus increment buttons
+ * - Preset amount quick-select buttons
+ * - Click-to-edit direct input
+ * - Min/max value clamping
+ * - Configurable step size
+ * - Optional confirm button
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <AmountInput
+ *   data={{ presets: [25, 50, 100, 250] }}
+ *   actions={{
+ *     onChange: (value) => console.log("Amount changed:", value),
+ *     onConfirm: (value) => console.log("Confirmed:", value)
+ *   }}
+ *   appearance={{
+ *     min: 10,
+ *     max: 500,
+ *     step: 5,
+ *     currency: "USD",
+ *     label: "Donation Amount"
+ *   }}
+ *   control={{ value: 50 }}
+ * />
+ * ```
+ */
 export function AmountInput({ data, actions, appearance, control }: AmountInputProps) {
   const { presets = [20, 50, 100, 200] } = data ?? {}
   const { onChange, onConfirm } = actions ?? {}

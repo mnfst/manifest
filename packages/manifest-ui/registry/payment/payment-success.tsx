@@ -3,14 +3,20 @@
 import { Button } from '@/components/ui/button'
 import { Check, ExternalLink } from 'lucide-react'
 
-/*
- * PaymentSuccess Component - ChatGPT UI Guidelines Compliant
- * - Use system colors for icons (foreground/background instead of green)
- * - Single CTA action (Track order)
- * - Compact inline layout for desktop
- * - No nested scrolling
+/**
+ * Props for the PaymentSuccess component.
+ * @interface PaymentSuccessProps
+ * @property {object} [data] - Order and product data
+ * @property {string} [data.orderId] - Order reference number
+ * @property {string} [data.productName] - Name of the purchased product
+ * @property {string} [data.productImage] - Product image URL
+ * @property {number} [data.price] - Total price paid
+ * @property {string} [data.deliveryDate] - Expected delivery date string
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onTrackOrder] - Called when user clicks track order
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting
  */
-
 export interface PaymentSuccessProps {
   data?: {
     orderId?: string
@@ -27,6 +33,36 @@ export interface PaymentSuccessProps {
   }
 }
 
+/**
+ * A payment success confirmation component showing order details and tracking option.
+ * Displays responsive layouts optimized for both mobile and desktop views.
+ *
+ * Features:
+ * - Success checkmark icon
+ * - Product image and name display
+ * - Order ID reference
+ * - Price and delivery date information
+ * - Track order button with external link icon
+ * - Responsive mobile/desktop layouts
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PaymentSuccess
+ *   data={{
+ *     orderId: "ORD-2024-1234",
+ *     productName: "Premium Headphones",
+ *     productImage: "/images/headphones.jpg",
+ *     price: 199.99,
+ *     deliveryDate: "Mon. Jan 15"
+ *   }}
+ *   actions={{
+ *     onTrackOrder: () => console.log("Track order clicked")
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ * />
+ * ```
+ */
 export function PaymentSuccess({ data, actions, appearance }: PaymentSuccessProps) {
   const {
     orderId = 'ORD-2024-7842',

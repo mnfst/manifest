@@ -4,12 +4,30 @@ import { Button } from '@/components/ui/button'
 import { CreditCard, Lock } from 'lucide-react'
 import { useState } from 'react'
 
+/**
+ * Data structure representing bank card form submission.
+ * @interface BankCardFormData
+ * @property {string} cardNumber - The formatted card number
+ * @property {string} expiry - Expiry date in MM/YY format
+ * @property {string} cvv - Card verification value (3 digits)
+ */
 export interface BankCardFormData {
   cardNumber: string
   expiry: string
   cvv: string
 }
 
+/**
+ * Props for the BankCardForm component.
+ * @interface BankCardFormProps
+ * @property {object} [data] - Payment amount data
+ * @property {number} [data.amount] - Amount to charge
+ * @property {object} [actions] - Callback functions for form events
+ * @property {function} [actions.onSubmit] - Called when the form is submitted
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.submitLabel] - Custom label for submit button
+ * @property {string} [appearance.currency] - Currency code for formatting
+ */
 export interface BankCardFormProps {
   data?: {
     amount?: number
@@ -23,6 +41,33 @@ export interface BankCardFormProps {
   }
 }
 
+/**
+ * A compact bank card payment form with inline layout optimized for chat interfaces.
+ * All inputs appear in a single row on desktop for minimal footprint.
+ *
+ * Features:
+ * - Compact inline layout on desktop
+ * - Card number with automatic formatting
+ * - MM/YY expiry formatting
+ * - CVV input
+ * - Customizable submit button label
+ * - Lock icon for security indication
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <BankCardForm
+ *   data={{ amount: 99.99 }}
+ *   actions={{
+ *     onSubmit: (data) => console.log("Card submitted:", data)
+ *   }}
+ *   appearance={{
+ *     submitLabel: "Pay Now",
+ *     currency: "USD"
+ *   }}
+ * />
+ * ```
+ */
 export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
   const { amount = 279 } = data ?? {}
   const { onSubmit } = actions ?? {}

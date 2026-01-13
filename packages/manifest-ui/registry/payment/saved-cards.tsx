@@ -12,6 +12,16 @@ import {
 } from "@/components/ui/card"
 import { CreditCard, Plus, Check } from "lucide-react"
 
+/**
+ * Represents a saved payment card.
+ * @interface SavedCard
+ * @property {string} id - Unique identifier for the card
+ * @property {"visa" | "mastercard" | "amex"} brand - Card brand/network
+ * @property {string} last4 - Last 4 digits of the card number
+ * @property {string} expiryMonth - Two-digit expiry month
+ * @property {string} expiryYear - Two-digit expiry year
+ * @property {boolean} [isDefault] - Whether this is the default payment method
+ */
 export interface SavedCard {
   id: string
   brand: "visa" | "mastercard" | "amex"
@@ -21,6 +31,22 @@ export interface SavedCard {
   isDefault?: boolean
 }
 
+/**
+ * Props for the SavedCards component.
+ * @interface SavedCardsProps
+ * @property {object} [data] - Card and payment data
+ * @property {SavedCard[]} [data.cards] - List of saved payment cards
+ * @property {number} [data.amount] - Amount to charge
+ * @property {object} [actions] - Callback functions for user actions
+ * @property {function} [actions.onSelectCard] - Called when a card is selected
+ * @property {function} [actions.onAddNewCard] - Called when user wants to add a new card
+ * @property {function} [actions.onPay] - Called when user initiates payment
+ * @property {object} [appearance] - Visual customization options
+ * @property {string} [appearance.currency] - Currency code for formatting
+ * @property {object} [control] - State control options
+ * @property {string} [control.selectedCardId] - Currently selected card ID
+ * @property {boolean} [control.isLoading] - Shows loading state on pay button
+ */
 export interface SavedCardsProps {
   data?: {
     cards?: SavedCard[]
@@ -70,6 +96,39 @@ const brandColors: Record<string, string> = {
   amex: "bg-blue-400",
 }
 
+/**
+ * A card selector component for choosing a saved payment method.
+ * Supports multiple card brands with visual indicators and default card marking.
+ *
+ * Features:
+ * - Visual card brand logos (Visa, Mastercard, Amex)
+ * - Card selection with highlight and checkmark
+ * - Default card indicator
+ * - Add new card option
+ * - Pay button with amount display
+ * - Loading state support
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <SavedCards
+ *   data={{
+ *     cards: [
+ *       { id: "1", brand: "visa", last4: "4242", expiryMonth: "12", expiryYear: "26", isDefault: true },
+ *       { id: "2", brand: "mastercard", last4: "8888", expiryMonth: "03", expiryYear: "25" }
+ *     ],
+ *     amount: 99.99
+ *   }}
+ *   actions={{
+ *     onSelectCard: (id) => console.log("Selected card:", id),
+ *     onAddNewCard: () => console.log("Add new card"),
+ *     onPay: (id) => console.log("Pay with card:", id)
+ *   }}
+ *   appearance={{ currency: "USD" }}
+ *   control={{ isLoading: false }}
+ * />
+ * ```
+ */
 export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
   const { cards = defaultCards, amount = 279.0 } = data ?? {}
   const { onSelectCard, onAddNewCard, onPay } = actions ?? {}

@@ -6,6 +6,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Post, PostCard } from './post-card'
 
+/**
+ * Default posts for demonstration.
+ * @constant
+ */
 const defaultPosts: Post[] = [
   {
     id: '1',
@@ -249,6 +253,23 @@ const defaultPosts: Post[] = [
   }
 ]
 
+/**
+ * Props for the PostList component.
+ * @interface PostListProps
+ * @property {object} [data] - Posts data
+ * @property {Post[]} [data.posts] - Array of posts to display
+ * @property {object} [actions] - Callback functions
+ * @property {function} [actions.onReadMore] - Called when a post's read more is clicked
+ * @property {function} [actions.onPageChange] - Called when page changes (fullwidth variant)
+ * @property {object} [appearance] - Visual customization
+ * @property {"list" | "grid" | "carousel" | "fullwidth"} [appearance.variant] - Layout variant
+ * @property {2 | 3 | 4} [appearance.columns] - Number of columns (grid/fullwidth)
+ * @property {boolean} [appearance.showAuthor] - Whether to show author info
+ * @property {boolean} [appearance.showCategory] - Whether to show category
+ * @property {number} [appearance.postsPerPage] - Posts per page (fullwidth)
+ * @property {object} [control] - State control options
+ * @property {number} [control.currentPage] - Current page number (fullwidth)
+ */
 export interface PostListProps {
   data?: {
     posts?: Post[]
@@ -269,6 +290,40 @@ export interface PostListProps {
   }
 }
 
+/**
+ * A post list component with multiple layout variants and pagination.
+ * Supports list, grid, carousel, and fullwidth layouts.
+ *
+ * Features:
+ * - Four layout variants (list, grid, carousel, fullwidth)
+ * - Responsive carousel with touch support
+ * - Pagination for fullwidth variant
+ * - Configurable column count
+ * - Author and category display options
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PostList
+ *   data={{
+ *     posts: [
+ *       { id: "1", title: "Post 1", excerpt: "...", author: {...}, publishedAt: "..." },
+ *       { id: "2", title: "Post 2", excerpt: "...", author: {...}, publishedAt: "..." }
+ *     ]
+ *   }}
+ *   actions={{
+ *     onReadMore: (post) => console.log("Read:", post.title),
+ *     onPageChange: (page) => console.log("Page:", page)
+ *   }}
+ *   appearance={{
+ *     variant: "grid",
+ *     columns: 3,
+ *     showAuthor: true,
+ *     postsPerPage: 10
+ *   }}
+ * />
+ * ```
+ */
 export function PostList({ data, actions, appearance, control }: PostListProps) {
   const { posts = defaultPosts } = data ?? {}
   const { onReadMore, onPageChange } = actions ?? {}
