@@ -143,8 +143,10 @@ A block modification is NOT complete until you have updated:
 |----------|----------------|
 | `registry/<category>/<block>.tsx` | Component code, interfaces, props, default values |
 | `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data |
-| `registry.json` | Version bump (PATCH/MINOR/MAJOR) |
+| `registry.json` | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
 | `changelog.json` | Changelog entry for the new version |
+
+**Note**: The `category` field in `registry.json` is automatically derived from the folder name (e.g., `registry/form/` → `category: "form"`). When adding a new component, place it in the correct folder and the category will be set automatically.
 
 #### What Lives in `page.tsx`
 
@@ -381,6 +383,43 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 - "Bug fixes" (too vague)
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
+
+### Category Requirements (CRITICAL)
+
+**Every component MUST have a `category` field in `registry.json`.**
+
+The category is automatically derived from the folder structure:
+- File path: `registry/form/date-time-picker.tsx`
+- Category: `form`
+
+This is enforced by automated tests that will fail if:
+1. A component is missing a `category` field
+2. The `category` doesn't match the folder name in the file path
+
+#### How Categories Work
+
+1. **Folder determines category**: Place your component in `registry/<category>/<component-name>.tsx`
+2. **Category is auto-derived**: The build script extracts the category from the file path
+3. **URL structure matches**: The category appears in URLs as `/blocks/<category>/<component>`
+
+#### Available Categories
+
+| Folder | Category | URL Example |
+|--------|----------|-------------|
+| `registry/blogging/` | `blogging` | `/blocks/blogging/post-card` |
+| `registry/events/` | `events` | `/blocks/events/event-card` |
+| `registry/form/` | `form` | `/blocks/form/contact-form` |
+| `registry/list/` | `list` | `/blocks/list/table` |
+| `registry/messaging/` | `messaging` | `/blocks/messaging/message-bubble` |
+| `registry/miscellaneous/` | `miscellaneous` | `/blocks/miscellaneous/quick-reply` |
+| `registry/payment/` | `payment` | `/blocks/payment/card-form` |
+
+#### Adding a New Category
+
+1. Create a new folder: `registry/<new-category>/`
+2. Add your component: `registry/<new-category>/<component>.tsx`
+3. The category will be automatically derived from the folder name
+4. Update `lib/blocks-categories.ts` to add the category to navigation
 
 ### Events Category Guidelines (CRITICAL)
 

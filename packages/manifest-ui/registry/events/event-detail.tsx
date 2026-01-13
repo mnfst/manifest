@@ -97,7 +97,6 @@ function formatNumber(num: number): string {
 }
 
 const defaultEvent: EventDetails = {
-  id: '1',
   title: 'Sunglasses at Night: Underground Techno',
   category: 'Nightlife',
   venue: 'The White Rabbit',
@@ -122,7 +121,6 @@ const defaultEvent: EventDetails = {
     { name: 'Sam', avatar: 'https://i.pravatar.cc/40?u=sam' }
   ],
   organizer: {
-    id: '1',
     name: 'Midnight Lovers',
     image: 'https://i.pravatar.cc/80?u=midnight',
     rating: 4.5,
@@ -141,8 +139,8 @@ const defaultEvent: EventDetails = {
     coordinates: { lat: 29.7604, lng: -95.3698 }
   },
   tiers: [
-    { id: '1', name: 'General Admission', price: 15, available: 50 },
-    { id: '2', name: 'VIP Access', price: 30, available: 20, benefits: ['Skip the line', 'Exclusive lounge'] }
+    { name: 'General Admission', price: 15, available: 50 },
+    { name: 'VIP Access', price: 30, available: 20, benefits: ['Skip the line', 'Exclusive lounge'] }
   ],
   goodToKnow: {
     duration: '2 hours',

@@ -82,7 +82,6 @@ function TechCrunchLogo({ className }: { className?: string }) {
 
 const techCrunchArticles = [
   {
-    id: '1',
     title: 'The accelerator is on the floor for autonomous vehicles',
     excerpt:
       'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer.',
@@ -97,7 +96,6 @@ const techCrunchArticles = [
     category: 'Transportation'
   },
   {
-    id: '2',
     title: 'X deactivates European Commission ad account after €120M fine',
     excerpt:
       "The social media platform has suspended the EU institution's advertising capabilities following the recent penalty.",
@@ -112,7 +110,6 @@ const techCrunchArticles = [
     category: 'Social'
   },
   {
-    id: '3',
     title: 'Coinbase starts onboarding users again in India',
     excerpt:
       'The crypto exchange plans to introduce fiat on-ramp capabilities in the region by next year.',
@@ -127,7 +124,6 @@ const techCrunchArticles = [
 
 const audioProducts: Product[] = [
   {
-    id: '1',
     name: 'Iyo Pro',
     description: 'Premium Earbuds',
     price: 299,
@@ -138,7 +134,6 @@ const audioProducts: Product[] = [
     inStock: true
   },
   {
-    id: '2',
     name: 'Iyo Air',
     description: 'Wireless Earbuds',
     price: 149,
@@ -149,7 +144,6 @@ const audioProducts: Product[] = [
     inStock: true
   },
   {
-    id: '3',
     name: 'Iyo Studio',
     description: 'Over-Ear Headphones',
     price: 349,
@@ -161,7 +155,6 @@ const audioProducts: Product[] = [
     inStock: true
   },
   {
-    id: '4',
     name: 'Iyo Sport',
     description: 'Active Earbuds',
     price: 199,
@@ -171,7 +164,6 @@ const audioProducts: Product[] = [
     inStock: true
   },
   {
-    id: '5',
     name: 'Iyo Mini',
     description: 'Compact Earbuds',
     price: 99,
@@ -183,7 +175,6 @@ const audioProducts: Product[] = [
     inStock: true
   },
   {
-    id: '6',
     name: 'Iyo Max',
     description: 'Premium Headphones',
     price: 449,
@@ -195,7 +186,6 @@ const audioProducts: Product[] = [
 ]
 
 const featuredArticle = {
-  id: '0',
   title: 'The accelerator is on the floor for autonomous vehicles',
   excerpt:
     'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer and consumer acceptance grows.',
@@ -217,12 +207,10 @@ const useCases = [
     label: 'Product selection',
     messages: [
       {
-        id: '1',
         role: 'user' as const,
         content: "I'm looking for premium wireless earbuds"
       },
       {
-        id: '2',
         role: 'assistant' as const,
         content: 'Here are our best-selling audio products:',
         component: <ProductList data={{ products: audioProducts }} appearance={{ variant: "carousel" }} />,
@@ -232,12 +220,10 @@ const useCases = [
           'Browse through our selection and let me know which one catches your eye. Each model offers different features to match your lifestyle.'
       },
       {
-        id: '3',
         role: 'user' as const,
         content: "I'll take the Iyo Pro"
       },
       {
-        id: '4',
         role: 'assistant' as const,
         content: "Excellent choice! Here's your order summary:",
         component: <OrderConfirm />,
@@ -252,12 +238,10 @@ const useCases = [
     label: 'Payment workflow',
     messages: [
       {
-        id: '1',
         role: 'user' as const,
         content: "I'd like to complete my purchase"
       },
       {
-        id: '2',
         role: 'assistant' as const,
         content: 'Please select your payment method:',
         component: <PaymentMethods />,
@@ -266,12 +250,10 @@ const useCases = [
           'Your payment information is secured with end-to-end encryption. Select your preferred method to continue.'
       },
       {
-        id: '3',
         role: 'user' as const,
         content: 'Using my Visa card'
       },
       {
-        id: '4',
         role: 'assistant' as const,
         content: 'Payment successful!',
         component: <PaymentConfirmed />,
@@ -286,12 +268,10 @@ const useCases = [
     label: 'Tech news',
     messages: [
       {
-        id: '1',
         role: 'user' as const,
         content: "What's happening in tech today?"
       },
       {
-        id: '2',
         role: 'assistant' as const,
         content: "Here's the top story from TechCrunch:",
         component: <PostCard data={{ post: featuredArticle }} appearance={{ variant: "covered" }} />,
@@ -303,12 +283,10 @@ const useCases = [
           'This article is getting a lot of attention. Would you like to see more tech news?'
       },
       {
-        id: '3',
         role: 'user' as const,
         content: 'Yes, show me more articles'
       },
       {
-        id: '4',
         role: 'assistant' as const,
         content: 'Here are more trending stories:',
         component: <PostList data={{ posts: techCrunchArticles }} appearance={{ variant: "list" }} />,
