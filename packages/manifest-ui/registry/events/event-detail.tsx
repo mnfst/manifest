@@ -331,12 +331,14 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
               <>
                 <button
                   onClick={handlePrevImage}
+                  aria-label="Previous image"
                   className="rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   onClick={handleNextImage}
+                  aria-label="Next image"
                   className="rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
                 >
                   <ChevronRight className="h-5 w-5" />
@@ -349,12 +351,14 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
           <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={() => onShare?.(event)}
+              aria-label="Share event"
               className="rounded-full bg-white/90 p-2 shadow-sm hover:bg-white"
             >
               <Share2 className="h-5 w-5" />
             </button>
             <button
               onClick={handleSave}
+              aria-label={isSaved ? 'Remove from saved' : 'Save event'}
               className="rounded-full bg-white/90 p-2 shadow-sm hover:bg-white"
             >
               <Heart className={cn('h-5 w-5', isSaved && 'fill-red-500 text-red-500')} />
@@ -365,6 +369,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
           {onBack && (
             <button
               onClick={onBack}
+              aria-label="Go back"
               className="absolute top-3 left-3 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
             >
               <ChevronLeft className="h-5 w-5" />

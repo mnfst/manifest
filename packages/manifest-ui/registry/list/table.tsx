@@ -788,6 +788,7 @@ export function Table<T extends Record<string, unknown>>({
                             )}
                           <button
                             onClick={() => removeFilter(filter.id)}
+                            aria-label="Remove filter"
                             className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />

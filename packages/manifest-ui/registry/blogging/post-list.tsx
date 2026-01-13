@@ -365,6 +365,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
               className="h-8 w-8"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
+              aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -389,6 +390,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
               className="h-8 w-8"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
+              aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -478,6 +480,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
+              aria-label={`Go to slide ${i + 1}`}
               className={cn(
                 'h-1.5 rounded-full transition-all cursor-pointer',
                 i === currentIndex
@@ -495,6 +498,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous post"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -504,6 +508,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndMobile}
+            aria-label="Next post"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -516,6 +521,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous post"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -525,6 +531,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndTablet}
+            aria-label="Next post"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -537,6 +544,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             className="h-8 w-8"
             onClick={prev}
             disabled={isAtStart}
+            aria-label="Previous post"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -546,6 +554,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
             className="h-8 w-8"
             onClick={next}
             disabled={isAtEndDesktop}
+            aria-label="Next post"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
