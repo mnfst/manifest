@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 /**
@@ -8,6 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 export function UserAvatar() {
   const { user, isLoading, logout, getInitials } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -60,6 +62,28 @@ export function UserAvatar() {
           {/* Menu */}
           <div className="absolute bottom-full left-0 mb-2 w-48 rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 z-20">
             <div className="py-1">
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate('/settings?tab=account');
+                }}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <svg
+                  className="mr-3 h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Edit Account
+              </button>
               <button
                 onClick={() => {
                   setIsMenuOpen(false);

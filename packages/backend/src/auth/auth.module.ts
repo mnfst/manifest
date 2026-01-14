@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule as BetterAuthModule } from '@thallesp/nestjs-better-auth';
 import { auth } from './auth';
@@ -9,6 +9,8 @@ import { AppAccessService } from './app-access.service';
 import { UserManagementService } from './user-management.service';
 import { UserManagementController } from './user-management.controller';
 import { FlowEntity } from '../flow/flow.entity';
+import { EmailVerificationTokenEntity } from './entities/email-verification-token.entity';
+import { EmailModule } from '../email/email.module';
 
 /**
  * Authentication module using better-auth
@@ -28,7 +30,8 @@ import { FlowEntity } from '../flow/flow.entity';
         next();
       },
     }),
-    TypeOrmModule.forFeature([UserAppRoleEntity, FlowEntity]),
+    TypeOrmModule.forFeature([UserAppRoleEntity, FlowEntity, EmailVerificationTokenEntity]),
+    forwardRef(() => EmailModule),
   ],
   controllers: [UserManagementController],
   providers: [AppAccessGuard, FlowAccessGuard, AppAccessService, UserManagementService],

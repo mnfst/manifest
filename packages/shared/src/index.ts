@@ -208,7 +208,20 @@ export {
 } from './types/templates.js';
 
 // Auth types
-export type { AppRole, AppUser, AddUserRequest, UserProfile } from './types/auth.js';
+export type {
+  AppRole,
+  AppUser,
+  AddUserRequest,
+  UserProfile,
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+  ChangeEmailRequest,
+  ChangeEmailResponse,
+  VerifyEmailChangeRequest,
+  VerifyEmailChangeResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+} from './types/auth.js';
 
 // Email types
 export type {
@@ -216,6 +229,7 @@ export type {
   EmailSendResult,
   PasswordResetEmailProps,
   InvitationEmailProps,
+  EmailChangeVerificationEmailProps,
   EmailTemplateProps,
   SendEmailRequest,
   EmailResultResponse,

@@ -5,15 +5,18 @@ import {
   EmailTemplateType,
   PasswordResetEmailProps,
   InvitationEmailProps,
+  EmailChangeVerificationEmailProps,
 } from '@chatgpt-app-builder/shared';
 import { TemplateEngine, RenderResult } from './template-engine.interface';
 import { PasswordResetEmail, getPasswordResetSubject } from '../password-reset';
 import { InvitationEmail, getInvitationSubject } from '../invitation';
+import { EmailChangeVerificationEmail, getEmailChangeVerificationSubject } from '../email-change-verification';
 
 // Template registry - maps template types to React components
 const templateRegistry: Record<EmailTemplateType, React.FC<unknown>> = {
   [EmailTemplateType.PASSWORD_RESET]: PasswordResetEmail as React.FC<unknown>,
   [EmailTemplateType.INVITATION]: InvitationEmail as React.FC<unknown>,
+  [EmailTemplateType.EMAIL_CHANGE_VERIFICATION]: EmailChangeVerificationEmail as React.FC<unknown>,
 };
 
 // Subject generators - maps template types to subject line functions
@@ -25,6 +28,8 @@ const subjectRegistry: Record<
     getPasswordResetSubject(props.appName as string),
   [EmailTemplateType.INVITATION]: (props) =>
     getInvitationSubject(props.inviterName as string, props.appName as string),
+  [EmailTemplateType.EMAIL_CHANGE_VERIFICATION]: (props) =>
+    getEmailChangeVerificationSubject(props.appName as string),
 };
 
 /**
@@ -130,6 +135,19 @@ export class ReactEmailEngine implements TemplateEngine {
         }
         if (!p.appLink || typeof p.appLink !== 'string') {
           errors.push('appLink is required and must be a string');
+        }
+        break;
+      }
+      case EmailTemplateType.EMAIL_CHANGE_VERIFICATION: {
+        const p = props as Partial<EmailChangeVerificationEmailProps>;
+        if (!p.userName || typeof p.userName !== 'string') {
+          errors.push('userName is required and must be a string');
+        }
+        if (!p.newEmail || typeof p.newEmail !== 'string') {
+          errors.push('newEmail is required and must be a string');
+        }
+        if (!p.verificationLink || typeof p.verificationLink !== 'string') {
+          errors.push('verificationLink is required and must be a string');
         }
         break;
       }

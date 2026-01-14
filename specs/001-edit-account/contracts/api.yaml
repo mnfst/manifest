@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: Edit Account API
+  description: API endpoints for user account management
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3847/api
+    description: Development server
+
+paths:
+  /users/me:
+    get:
+      summary: Get current user profile
+      description: Returns the authenticated user's profile information
+      operationId: getCurrentUser
+      tags:
+        - User Profile
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      summary: Update user profile
+      description: Updates the authenticated user's profile information (name fields)
+      operationId: updateProfile
+      tags:
+        - User Profile
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/email:
+    post:
+      summary: Request email change
+      description: |
+        Initiates an email change request. A verification email is sent to the new address.
+        The email is not changed until the verification link is clicked.
+        Previous pending requests are invalidated.
+      operationId: requestEmailChange
+      tags:
+        - Email Change
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeEmailRequest'
+      responses:
+        '200':
+          description: Verification email sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeEmailResponse'
+        '400':
+          description: Invalid email or email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/email/verify:
+    post:
+      summary: Verify email change
+      description: |
+        Verifies the email change using the token from the verification email.
+        Updates the user's email upon successful verification.
+      operationId: verifyEmailChange
+      tags:
+        - Email Change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailChangeRequest'
+      responses:
+        '200':
+          description: Email changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyEmailChangeResponse'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/me/password:
+    post:
+      summary: Change password
+      description: |
+        Changes the authenticated user's password. Requires current password verification.
+        If password fields are empty, no change is made.
+      operationId: changePassword
+      tags:
+        - Password
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePasswordResponse'
+        '400':
+          description: Invalid current password or password requirements not met
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+
+  schemas:
+    UserProfile:
+      type: object
+      required:
+        - id
+        - email
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+          example: "usr_abc123"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        name:
+          type: string
+          nullable: true
+          description: Display name (derived from firstName + lastName)
+          example: "John Doe"
+        firstName:
+          type: string
+          nullable: true
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          nullable: true
+          description: User's last name
+          example: "Doe"
+        image:
+          type: string
+          nullable: true
+          description: Profile image URL
+          example: "https://example.com/avatar.jpg"
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2026-01-10T12:00:00Z"
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's first name
+          example: "Jonathan"
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's last name
+          example: "Doe"
+      additionalProperties: false
+
+    UpdateProfileResponse:
+      type: object
+      required:
+        - user
+        - message
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        message:
+          type: string
+          example: "Profile updated successfully"
+
+    ChangeEmailRequest:
+      type: object
+      required:
+        - newEmail
+      properties:
+        newEmail:
+          type: string
+          format: email
+          description: New email address to change to
+          example: "newemail@example.com"
+
+    ChangeEmailResponse:
+      type: object
+      required:
+        - message
+        - pendingEmail
+        - expiresAt
+      properties:
+        message:
+          type: string
+          example: "Verification email sent"
+        pendingEmail:
+          type: string
+          format: email
+          description: The email address awaiting verification
+          example: "newemail@example.com"
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the verification link expires
+          example: "2026-01-11T12:00:00Z"
+
+    VerifyEmailChangeRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Verification token from email link
+          example: "abc123def456"
+
+    VerifyEmailChangeResponse:
+      type: object
+      required:
+        - user
+        - message
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        message:
+          type: string
+          example: "Email changed successfully"
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: User's current password for verification
+          example: "currentPass123"
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          description: New password (minimum 8 characters)
+          example: "newSecurePass456"
+        revokeOtherSessions:
+          type: boolean
+          default: false
+          description: Whether to sign out other sessions
+          example: true
+
+    ChangePasswordResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Password changed successfully"
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+        - statusCode
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: "Current password is incorrect"
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: Error type
+          example: "Bad Request"
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Unauthorized"
+            statusCode: 401
+            error: "Unauthorized"
+
+    BadRequest:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: User Profile
+    description: User profile management operations
+  - name: Email Change
+    description: Email change request and verification
+  - name: Password
+    description: Password management operations
