@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Settings, Key } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Settings, Key, User } from 'lucide-react';
 import { Tabs } from '../components/common/Tabs';
 import { ApiKeysTab } from '../components/settings/ApiKeysTab';
 import { GeneralTab } from '../components/settings/GeneralTab';
+import { AccountTab } from '../components/settings/AccountTab';
 import type { SettingsTab, SettingsTabConfig } from '../types/tabs';
 
 /**
@@ -10,9 +12,24 @@ import type { SettingsTab, SettingsTabConfig } from '../types/tabs';
  * Mirrors the tab pattern used in FlowDetail
  */
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('api-keys');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab') as SettingsTab | null;
+  const [activeTab, setActiveTab] = useState<SettingsTab>(tabFromUrl || 'api-keys');
+
+  // Sync tab state with URL
+  useEffect(() => {
+    if (tabFromUrl && ['general', 'api-keys', 'account'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+
+  const handleTabChange = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   const tabs: SettingsTabConfig[] = [
+    { id: 'account', label: 'Account', icon: User },
     { id: 'general', label: 'General', icon: Settings },
     { id: 'api-keys', label: 'API Keys', icon: Key },
   ];
@@ -32,10 +49,18 @@ export function SettingsPage() {
       {/* Tabs and Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 bg-white flex justify-center border-b">
-          <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
+          <Tabs activeTab={activeTab} onTabChange={handleTabChange} tabs={tabs} />
         </div>
 
         <div className="flex-1 overflow-auto p-6">
+          {activeTab === 'account' && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-card rounded-lg border">
+                <AccountTab />
+              </div>
+            </div>
+          )}
+
           {activeTab === 'general' && (
             <div className="max-w-2xl mx-auto">
               <div className="bg-card rounded-lg border">

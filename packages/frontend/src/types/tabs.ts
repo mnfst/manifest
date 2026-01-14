@@ -8,7 +8,7 @@ export type FlowDetailTab = 'build' | 'preview' | 'usage';
 /**
  * Available tabs in the settings page
  */
-export type SettingsTab = 'general' | 'api-keys';
+export type SettingsTab = 'general' | 'api-keys' | 'account';
 
 /**
  * Tab configuration for rendering

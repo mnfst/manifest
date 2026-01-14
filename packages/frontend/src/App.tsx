@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import AppDetail from './pages/AppDetail';
 import FlowDetail from './pages/FlowDetail';
 import { SettingsPage } from './pages/SettingsPage';
+import { VerifyEmailChangePage } from './pages/VerifyEmailChangePage';
 import { Sidebar } from './components/layout/Sidebar';
 import { AuthPage } from './pages/AuthPage';
 import { AcceptInvitePage } from './pages/AcceptInvitePage';
@@ -73,6 +74,7 @@ function ProtectedRoutes() {
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
             <Route path="/app/:appId" element={<AppDetail />} />
             <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
             <Route path="*" element={<Navigate to="/" replace />} />

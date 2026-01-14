@@ -23,6 +23,7 @@ describe('UserManagementController', () => {
 
   const mockUserManagementService = {
     getAppUsers: jest.fn(),
+    getAppUsersWithPending: jest.fn(),
     addUserToApp: jest.fn(),
     removeUserFromApp: jest.fn(),
     searchUserByEmail: jest.fn(),
@@ -137,12 +138,12 @@ describe('UserManagementController', () => {
           createdAt: '2024-01-02T00:00:00.000Z',
         },
       ];
-      mockUserManagementService.getAppUsers.mockResolvedValue(appUsers);
+      mockUserManagementService.getAppUsersWithPending.mockResolvedValue(appUsers);
 
       const result = await controller.listAppUsers('app-1');
 
       expect(result).toEqual(appUsers);
-      expect(mockUserManagementService.getAppUsers).toHaveBeenCalledWith('app-1');
+      expect(mockUserManagementService.getAppUsersWithPending).toHaveBeenCalledWith('app-1');
     });
   });
 

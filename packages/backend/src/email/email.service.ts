@@ -5,6 +5,7 @@ import {
   EmailSendResult,
   PasswordResetEmailProps,
   InvitationEmailProps,
+  EmailChangeVerificationEmailProps,
 } from '@chatgpt-app-builder/shared';
 import { EmailProvider, EMAIL_PROVIDER } from './providers/email-provider.interface';
 import { TemplateEngine, TEMPLATE_ENGINE } from './templates/engine/template-engine.interface';
@@ -72,6 +73,24 @@ export class EmailService {
       to,
       template: EmailTemplateType.INVITATION,
       props,
+    });
+  }
+
+  /**
+   * Send an email change verification email
+   */
+  async sendEmailChangeVerification(
+    to: string,
+    props: EmailChangeVerificationEmailProps,
+  ): Promise<EmailSendResult> {
+    this.validateEmail(to);
+
+    this.logger.log(`Sending email change verification to ${to} for user ${props.userName}`);
+
+    return this.send({
+      to,
+      template: EmailTemplateType.EMAIL_CHANGE_VERIFICATION,
+      props: { ...props, appName: this.fromName },
     });
   }
 

@@ -219,6 +219,14 @@ export type {
   AppUserListItem,
   InvitationValidation,
   AcceptInvitationResponse,
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+  ChangeEmailRequest,
+  ChangeEmailResponse,
+  VerifyEmailChangeRequest,
+  VerifyEmailChangeResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from './types/auth.js';
 
 // Email types
@@ -227,6 +235,7 @@ export type {
   EmailSendResult,
   PasswordResetEmailProps,
   InvitationEmailProps,
+  EmailChangeVerificationEmailProps,
   EmailTemplateProps,
   SendEmailRequest,
   EmailResultResponse,

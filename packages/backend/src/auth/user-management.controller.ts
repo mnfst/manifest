@@ -2,18 +2,35 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Param,
   Body,
   Query,
   UseGuards,
   NotFoundException,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
-import type { AddUserRequest, AppUser, AppUserListItem, UserProfile } from '@chatgpt-app-builder/shared';
+import type { Request } from 'express';
+import type {
+  AddUserRequest,
+  AppUser,
+  AppUserListItem,
+  UserProfile,
+  UpdateProfileResponse,
+  ChangeEmailResponse,
+  VerifyEmailChangeResponse,
+  ChangePasswordResponse,
+} from '@chatgpt-app-builder/shared';
 import { UserManagementService } from './user-management.service';
 import { AppAccessGuard } from './app-access.guard';
 import { AppAccessService } from './app-access.service';
 import { CurrentUser, type SessionUser } from './decorators/current-user.decorator';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangeEmailDto } from './dto/change-email.dto';
+import { VerifyEmailChangeDto } from './dto/verify-email-change.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 /**
  * Controller for user management endpoints
@@ -38,6 +55,56 @@ export class UserManagementController {
       image: user.image,
       createdAt: user.createdAt.toISOString(),
     };
+  }
+
+  /**
+   * Update current user profile (firstName, lastName)
+   */
+  @Patch('users/me')
+  async updateProfile(
+    @CurrentUser() user: SessionUser,
+    @Body() body: UpdateProfileDto,
+  ): Promise<UpdateProfileResponse> {
+    return this.userManagementService.updateProfile(user.id, body);
+  }
+
+  /**
+   * Request email change - sends verification email to new address
+   */
+  @Post('users/me/email')
+  async requestEmailChange(
+    @CurrentUser() user: SessionUser,
+    @Body() body: ChangeEmailDto,
+  ): Promise<ChangeEmailResponse> {
+    return this.userManagementService.requestEmailChange(user.id, user.email, body);
+  }
+
+  /**
+   * Verify email change - validates token and updates email
+   */
+  @Post('users/me/email/verify')
+  async verifyEmailChange(
+    @Body() body: VerifyEmailChangeDto,
+  ): Promise<VerifyEmailChangeResponse> {
+    return this.userManagementService.verifyEmailChange(body.token);
+  }
+
+  /**
+   * Change password - requires current password
+   */
+  @Post('users/me/password')
+  async changePassword(
+    @CurrentUser() user: SessionUser,
+    @Body() body: ChangePasswordDto,
+    @Req() req: Request,
+  ): Promise<ChangePasswordResponse> {
+    // Extract session token from cookies
+    const sessionToken = req.cookies?.['better-auth.session_token'];
+    if (!sessionToken) {
+      throw new BadRequestException('Session not found. Please log in again.');
+    }
+
+    return this.userManagementService.changePassword(user.id, body, sessionToken);
   }
 
   /**

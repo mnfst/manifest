@@ -1,11 +1,27 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull, LessThanOrEqual } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import Database from 'better-sqlite3';
-import type { AppRole, AppUser, AppUserListItem } from '@chatgpt-app-builder/shared';
+import { randomBytes } from 'crypto';
+import type {
+  AppRole,
+  AppUser,
+  AppUserListItem,
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+  ChangeEmailRequest,
+  ChangeEmailResponse,
+  VerifyEmailChangeResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+} from '@chatgpt-app-builder/shared';
+import { auth } from './auth';
 import { UserAppRoleEntity } from './user-app-role.entity';
 import { PendingInvitationEntity } from './pending-invitation.entity';
+import { EmailVerificationTokenEntity } from './entities/email-verification-token.entity';
 import { AppAccessService } from './app-access.service';
+import { EmailService } from '../email/email.service';
 
 /**
  * Service for managing user access to apps
@@ -17,7 +33,11 @@ export class UserManagementService {
     private readonly userAppRoleRepository: Repository<UserAppRoleEntity>,
     @InjectRepository(PendingInvitationEntity)
     private readonly invitationRepository: Repository<PendingInvitationEntity>,
+    @InjectRepository(EmailVerificationTokenEntity)
+    private readonly emailVerificationTokenRepository: Repository<EmailVerificationTokenEntity>,
     private readonly appAccessService: AppAccessService,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -185,6 +205,291 @@ export class UserManagementService {
       email: user.email,
       name: user.name,
     };
+  }
+
+  /**
+   * Update user profile (firstName, lastName)
+   */
+  async updateProfile(userId: string, data: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+    // Validate that at least one name field is provided
+    if (!data.firstName && !data.lastName) {
+      throw new BadRequestException('At least one of firstName or lastName is required');
+    }
+
+    try {
+      const db = new Database('./data/app.db');
+
+      // Get current user data
+      const currentUser = db.prepare('SELECT id, email, name, firstName, lastName, image, createdAt FROM user WHERE id = ?').get(userId) as {
+        id: string;
+        email: string;
+        name?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        image?: string | null;
+        createdAt: string;
+      } | undefined;
+
+      if (!currentUser) {
+        db.close();
+        throw new NotFoundException('User not found');
+      }
+
+      // Merge with existing data
+      const firstName = data.firstName !== undefined ? data.firstName : currentUser.firstName;
+      const lastName = data.lastName !== undefined ? data.lastName : currentUser.lastName;
+
+      // Validate after merge
+      if (!firstName && !lastName) {
+        db.close();
+        throw new BadRequestException('At least one of firstName or lastName must be non-empty');
+      }
+
+      // Compute display name
+      const name = [firstName, lastName].filter(Boolean).join(' ') || null;
+
+      // Update user record
+      db.prepare("UPDATE user SET firstName = ?, lastName = ?, name = ?, updatedAt = datetime('now') WHERE id = ?")
+        .run(firstName || null, lastName || null, name, userId);
+
+      // Get updated user
+      const updatedUser = db.prepare('SELECT id, email, name, firstName, lastName, image, createdAt FROM user WHERE id = ?').get(userId) as {
+        id: string;
+        email: string;
+        name?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        image?: string | null;
+        createdAt: string;
+      };
+
+      db.close();
+
+      return {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          image: updatedUser.image,
+          createdAt: updatedUser.createdAt,
+        },
+        message: 'Profile updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to update profile');
+    }
+  }
+
+  /**
+   * Request email change - creates verification token and sends email
+   */
+  async requestEmailChange(
+    userId: string,
+    currentEmail: string,
+    data: ChangeEmailRequest,
+  ): Promise<ChangeEmailResponse> {
+    const { newEmail } = data;
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      throw new BadRequestException('Invalid email format');
+    }
+
+    // Check if new email is same as current
+    if (newEmail.toLowerCase() === currentEmail.toLowerCase()) {
+      throw new BadRequestException('New email must be different from current email');
+    }
+
+    // Check if email is already in use by another user
+    const existingUser = await this.getUserByEmail(newEmail);
+    if (existingUser) {
+      throw new BadRequestException('This email address is already in use');
+    }
+
+    // Invalidate any previous tokens for this user
+    await this.emailVerificationTokenRepository.update(
+      { userId, usedAt: IsNull() },
+      { usedAt: new Date() },
+    );
+
+    // Generate secure token
+    const token = randomBytes(32).toString('hex');
+
+    // Token expires in 24 hours
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    // Create verification token
+    const verificationToken = this.emailVerificationTokenRepository.create({
+      token,
+      userId,
+      currentEmail,
+      newEmail,
+      expiresAt,
+    });
+    await this.emailVerificationTokenRepository.save(verificationToken);
+
+    // Get user name for email
+    const user = await this.getUserById(userId);
+    const userName = user?.name || currentEmail;
+
+    // Build verification link
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+    const verificationLink = `${frontendUrl}/verify-email-change?token=${token}`;
+
+    // Send verification email to the new email address
+    await this.emailService.sendEmailChangeVerification(newEmail, {
+      userName,
+      newEmail,
+      verificationLink,
+      expiresIn: '24 hours',
+    });
+
+    return {
+      message: 'Verification email sent. Please check your new email address.',
+      pendingEmail: newEmail,
+      expiresAt: expiresAt.toISOString(),
+    };
+  }
+
+  /**
+   * Verify email change - validates token and updates email
+   */
+  async verifyEmailChange(token: string): Promise<VerifyEmailChangeResponse> {
+    // Find the token
+    const verificationToken = await this.emailVerificationTokenRepository.findOne({
+      where: { token },
+    });
+
+    if (!verificationToken) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    // Check if already used
+    if (verificationToken.usedAt) {
+      throw new BadRequestException('This verification link has already been used');
+    }
+
+    // Check if expired
+    if (new Date() > verificationToken.expiresAt) {
+      throw new BadRequestException('This verification link has expired');
+    }
+
+    // Check if new email is still available (might have been taken since request)
+    const existingUser = await this.getUserByEmail(verificationToken.newEmail);
+    if (existingUser && existingUser.id !== verificationToken.userId) {
+      throw new BadRequestException('This email address is no longer available');
+    }
+
+    try {
+      const db = new Database('./data/app.db');
+
+      // Update user email
+      db.prepare('UPDATE user SET email = ?, emailVerified = 1, updatedAt = datetime("now") WHERE id = ?')
+        .run(verificationToken.newEmail, verificationToken.userId);
+
+      // Get updated user
+      const updatedUser = db.prepare('SELECT id, email, name, firstName, lastName, image, createdAt FROM user WHERE id = ?').get(verificationToken.userId) as {
+        id: string;
+        email: string;
+        name?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        image?: string | null;
+        createdAt: string;
+      };
+
+      db.close();
+
+      // Mark token as used
+      await this.emailVerificationTokenRepository.update(
+        { id: verificationToken.id },
+        { usedAt: new Date() },
+      );
+
+      return {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          image: updatedUser.image,
+          createdAt: updatedUser.createdAt,
+        },
+        message: 'Email address updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to update email address');
+    }
+  }
+
+  /**
+   * Change user password using better-auth API
+   */
+  async changePassword(
+    userId: string,
+    data: ChangePasswordRequest,
+    sessionToken: string,
+  ): Promise<ChangePasswordResponse> {
+    const { currentPassword, newPassword, revokeOtherSessions } = data;
+
+    // Validate password length
+    if (newPassword.length < 8) {
+      throw new BadRequestException('New password must be at least 8 characters');
+    }
+
+    try {
+      // Use better-auth's change password API
+      const result = await auth.api.changePassword({
+        body: {
+          currentPassword,
+          newPassword,
+          revokeOtherSessions: revokeOtherSessions ?? false,
+        },
+        headers: {
+          cookie: `better-auth.session_token=${sessionToken}`,
+        },
+      });
+
+      if (!result) {
+        throw new BadRequestException('Failed to change password');
+      }
+
+      return {
+        message: 'Password changed successfully',
+      };
+    } catch (error) {
+      // better-auth throws specific errors for invalid password
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid password') || error.message.includes('incorrect')) {
+          throw new BadRequestException('Current password is incorrect');
+        }
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException('Failed to change password');
+    }
+  }
+
+  /**
+   * Clean up expired email verification tokens
+   * Can be called on-demand or by a scheduled job
+   */
+  async cleanupExpiredTokens(): Promise<{ deleted: number }> {
+    const result = await this.emailVerificationTokenRepository.delete({
+      expiresAt: LessThanOrEqual(new Date()),
+    });
+
+    return { deleted: result.affected ?? 0 };
   }
 
   /**
