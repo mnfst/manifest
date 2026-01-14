@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "agentic",
-  "homepage": "https://manifest.build",
+  "name": "Manifest UI",
+  "homepage": "https://ui.manifest.build",
   "items": [
     {
       "name": "contact-form",
