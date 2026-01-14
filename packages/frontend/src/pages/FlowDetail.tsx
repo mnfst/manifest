@@ -837,6 +837,7 @@ function FlowDetail() {
                 flowId={flowId}
                 messages={chatMessages}
                 onMessagesChange={setChatMessages}
+                themeVariables={app?.themeVariables}
               />
             </div>
           )}
