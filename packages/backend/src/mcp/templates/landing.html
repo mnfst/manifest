@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{appName}} - MCP Server</title>
   <style>
+    :root {
+      {{themeVariables}}
+      /* Fallback theme values */
+      --primary: 222.2 47.4% 11.2%;
+      --primary-foreground: 210 40% 98%;
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
     * {
       margin: 0;
       padding: 0;
@@ -12,21 +27,21 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
       min-height: 100vh;
       padding: 2rem;
     }
     .container {
       max-width: 800px;
       margin: 0 auto;
-      background: white;
+      background: hsl(var(--card));
       border-radius: 16px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       overflow: hidden;
     }
     .header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: white;
+      background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--card-foreground)) 100%);
+      color: hsl(var(--primary-foreground));
       padding: 2rem;
       text-align: center;
     }
@@ -46,7 +61,7 @@
     }
     .section h2 {
       font-size: 1.25rem;
-      color: #1a1a2e;
+      color: hsl(var(--foreground));
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
@@ -57,29 +72,29 @@
       height: 24px;
     }
     .endpoint-box {
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
+      background: hsl(var(--muted));
+      border: 1px solid hsl(var(--border));
       border-radius: 8px;
       padding: 1rem;
       font-family: 'Monaco', 'Menlo', monospace;
       font-size: 0.875rem;
       word-break: break-all;
-      color: #374151;
+      color: hsl(var(--foreground));
     }
     .copy-btn {
       margin-top: 0.75rem;
-      background: #3b82f6;
-      color: white;
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
       border: none;
       padding: 0.5rem 1rem;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.875rem;
       font-weight: 500;
-      transition: background 0.2s;
+      transition: opacity 0.2s;
     }
     .copy-btn:hover {
-      background: #2563eb;
+      opacity: 0.9;
     }
     .steps {
       counter-reset: step;
@@ -91,8 +106,8 @@
       align-items: flex-start;
     }
     .step-number {
-      background: #e0e7ff;
-      color: #4f46e5;
+      background: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
       width: 28px;
       height: 28px;
       border-radius: 50%;
@@ -107,10 +122,10 @@
       flex: 1;
     }
     .step-content strong {
-      color: #1a1a2e;
+      color: hsl(var(--foreground));
     }
     .step-content p {
-      color: #6b7280;
+      color: hsl(var(--muted-foreground));
       font-size: 0.875rem;
       margin-top: 0.25rem;
     }
@@ -118,8 +133,8 @@
       list-style: none;
     }
     .tool-item {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      background: hsl(var(--muted));
+      border: 1px solid hsl(var(--border));
       border-radius: 8px;
       padding: 1rem;
       margin-bottom: 0.75rem;
@@ -127,28 +142,28 @@
     .tool-name {
       font-family: 'Monaco', 'Menlo', monospace;
       font-weight: 600;
-      color: #1a1a2e;
+      color: hsl(var(--foreground));
     }
     .tool-description {
-      color: #6b7280;
+      color: hsl(var(--muted-foreground));
       font-size: 0.875rem;
       margin-top: 0.25rem;
     }
     .empty-state {
       text-align: center;
       padding: 2rem;
-      color: #9ca3af;
+      color: hsl(var(--muted-foreground));
     }
     .footer {
       text-align: center;
       padding: 1.5rem;
-      background: #f9fafb;
-      border-top: 1px solid #e5e7eb;
-      color: #6b7280;
+      background: hsl(var(--muted));
+      border-top: 1px solid hsl(var(--border));
+      color: hsl(var(--muted-foreground));
       font-size: 0.875rem;
     }
     .footer a {
-      color: #3b82f6;
+      color: hsl(var(--primary));
       text-decoration: none;
     }
     .footer a:hover {

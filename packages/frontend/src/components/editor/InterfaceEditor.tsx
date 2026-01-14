@@ -14,6 +14,7 @@ import {
   getTemplateSampleData,
   type AppearanceConfig,
   type RegistryAppearanceOption,
+  type ThemeVariables,
   getDefaultAppearanceConfig,
 } from '@chatgpt-app-builder/shared';
 import { validateCode } from '../../lib/codeValidator';
@@ -36,6 +37,8 @@ export interface InterfaceEditorProps {
   appearanceOptions?: RegistryAppearanceOption[];
   /** All files for the component (for registry components with multiple files) */
   files?: Array<{ path: string; content: string }>;
+  /** Theme variables for preview styling */
+  themeVariables?: ThemeVariables;
   /** Callback when editor is closed */
   onClose: () => void;
   /** Callback when changes are saved */
@@ -53,6 +56,7 @@ export function InterfaceEditor({
   initialAppearanceConfig,
   appearanceOptions,
   files,
+  themeVariables,
   onClose,
   onSave,
 }: InterfaceEditorProps) {
@@ -300,6 +304,7 @@ export function InterfaceEditor({
               renderKey={previewKey}
               appearanceConfig={appearanceConfig}
               siblingFiles={siblingFiles}
+              themeVariables={themeVariables}
             />
           </div>
         </TabsContent>

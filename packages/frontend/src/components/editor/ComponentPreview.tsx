@@ -9,6 +9,8 @@ import { PreviewErrorBoundary } from './PreviewErrorBoundary';
 import * as LucideIcons from 'lucide-react';
 import { Loader2, AlertCircle, Copy, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { ThemeProvider } from './ThemeProvider';
+import type { ThemeVariables } from '@chatgpt-app-builder/shared';
 
 export interface ComponentPreviewProps {
   /** TSX code string to render */
@@ -21,6 +23,8 @@ export interface ComponentPreviewProps {
   appearanceConfig?: Record<string, string | number | boolean>;
   /** Additional files for resolving sibling imports (from registry components) */
   siblingFiles?: Array<{ path: string; content: string }>;
+  /** Theme variables for styling */
+  themeVariables?: ThemeVariables;
 }
 
 // ===========================================
@@ -289,6 +293,7 @@ export function ComponentPreview({
   renderKey = 0,
   appearanceConfig,
   siblingFiles,
+  themeVariables,
 }: ComponentPreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [resetKey, setResetKey] = useState(0);
@@ -374,7 +379,13 @@ export function ComponentPreview({
 
         {/* Render the user's component with sample data and appearance config */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <Component data={sampleData} appearance={appearanceConfig} />
+          {themeVariables ? (
+            <ThemeProvider themeVariables={themeVariables}>
+              <Component data={sampleData} appearance={appearanceConfig} />
+            </ThemeProvider>
+          ) : (
+            <Component data={sampleData} appearance={appearanceConfig} />
+          )}
         </div>
 
         {/* Sample data reference */}
