@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AppRole } from '@chatgpt-app-builder/shared';
 
-interface InviteUserModalProps {
+interface InviteCollaboratorModalProps {
   isOpen: boolean;
   email: string;
   role: AppRole;
@@ -12,10 +12,10 @@ interface InviteUserModalProps {
 }
 
 /**
- * Modal for confirming invitation of a non-registered user
- * Shows when attempting to add a user who doesn't exist in the system
+ * Modal for confirming invitation of a non-registered collaborator
+ * Shows when attempting to add a collaborator who doesn't exist in the system
  */
-export function InviteUserModal({
+export function InviteCollaboratorModal({
   isOpen,
   email,
   role,
@@ -23,7 +23,7 @@ export function InviteUserModal({
   onConfirm,
   isLoading = false,
   error,
-}: InviteUserModalProps) {
+}: InviteCollaboratorModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [hasConfirmed, setHasConfirmed] = useState(false);
 
@@ -86,7 +86,7 @@ export function InviteUserModal({
       >
         <div className="flex items-center justify-between p-4 border-b">
           <h2 id="invite-modal-title" className="text-lg font-semibold">
-            Invite User
+            Invite Collaborator
           </h2>
           <button
             onClick={onClose}
@@ -127,7 +127,7 @@ export function InviteUserModal({
               />
             </svg>
             <div className="text-sm text-amber-700 dark:text-amber-300">
-              <p className="font-medium">User not found</p>
+              <p className="font-medium">Collaborator not found</p>
               <p className="mt-1">
                 No account exists for <strong>{email}</strong>. Would you like
                 to send them an invitation email?

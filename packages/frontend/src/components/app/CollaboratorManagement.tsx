@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AppUserListItem, AppRole } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../../lib/api';
-import { InviteUserModal } from './InviteUserModal';
+import { InviteCollaboratorModal } from './InviteCollaboratorModal';
 
-interface UserManagementProps {
+interface CollaboratorManagementProps {
   appId: string;
 }
 
 /**
- * User management component for app owners/admins
- * Allows adding/removing users and managing their roles
+ * Collaborator management component for app owners/admins
+ * Allows adding/removing collaborators and managing their roles
  */
-export function UserManagement({ appId }: UserManagementProps) {
+export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
   const [users, setUsers] = useState<AppUserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export function UserManagement({ appId }: UserManagementProps) {
       if (err instanceof ApiClientError) {
         setError(err.message);
       } else {
-        setError('Failed to load users');
+        setError('Failed to load collaborators');
       }
     } finally {
       setIsLoading(false);
@@ -89,7 +89,7 @@ export function UserManagement({ appId }: UserManagementProps) {
           setAddError(err.message);
         }
       } else {
-        setAddError('Failed to add user');
+        setAddError('Failed to add collaborator');
       }
     } finally {
       setIsAdding(false);
@@ -190,7 +190,7 @@ export function UserManagement({ appId }: UserManagementProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading users...</div>
+        <div className="text-muted-foreground">Loading collaborators...</div>
       </div>
     );
   }
@@ -211,9 +211,9 @@ export function UserManagement({ appId }: UserManagementProps) {
 
   return (
     <div className="space-y-6">
-      {/* Add User Form */}
+      {/* Add Collaborator Form */}
       <div className="rounded-lg border bg-card p-4">
-        <h3 className="text-sm font-medium mb-3">Add User</h3>
+        <h3 className="text-sm font-medium mb-3">Add Collaborator</h3>
         <form onSubmit={handleAddUser} className="flex gap-3">
           <input
             type="email"
@@ -245,11 +245,11 @@ export function UserManagement({ appId }: UserManagementProps) {
         )}
       </div>
 
-      {/* Users List */}
+      {/* Collaborators List */}
       <div className="rounded-lg border bg-card">
         <div className="px-4 py-3 border-b">
           <h3 className="text-sm font-medium">
-            Users ({users.length})
+            Collaborators ({users.length})
           </h3>
         </div>
         <ul className="divide-y">
@@ -405,7 +405,7 @@ export function UserManagement({ appId }: UserManagementProps) {
 
           {users.length === 0 && (
             <li className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No users have access to this app yet.
+              No collaborators have access to this app yet.
             </li>
           )}
         </ul>
@@ -424,8 +424,8 @@ export function UserManagement({ appId }: UserManagementProps) {
         </div>
       )}
 
-      {/* Invite User Modal */}
-      <InviteUserModal
+      {/* Invite Collaborator Modal */}
+      <InviteCollaboratorModal
         isOpen={showInviteModal}
         email={inviteEmail}
         role={inviteRole}

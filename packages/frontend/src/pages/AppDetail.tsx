@@ -9,11 +9,11 @@ import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
-import { UserManagement } from '../components/app/UserManagement';
+import { CollaboratorManagement } from '../components/app/CollaboratorManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
 import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
 
-type AppDetailTab = 'flows' | 'users' | 'analytics';
+type AppDetailTab = 'flows' | 'collaborators' | 'analytics';
 
 /**
  * App detail page - Shows app info and flows list
@@ -321,15 +321,15 @@ function AppDetail() {
               Analytics
             </button>
             <button
-              onClick={() => setActiveTab('users')}
+              onClick={() => setActiveTab('collaborators')}
               className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'users'
+                activeTab === 'collaborators'
                   ? 'border-indigo-600 text-indigo-600'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
               <Users className="w-4 h-4" />
-              Users
+              Collaborators
             </button>
           </nav>
         </div>
@@ -392,16 +392,16 @@ function AppDetail() {
           <AnalyticsDashboard appId={appId} />
         )}
 
-        {/* Users Section */}
-        {activeTab === 'users' && appId && (
+        {/* Collaborators Section */}
+        {activeTab === 'collaborators' && appId && (
           <section>
             <div className="mb-6">
-              <h2 className="text-lg font-semibold">User Management</h2>
+              <h2 className="text-lg font-semibold">Collaborator Management</h2>
               <p className="text-sm text-muted-foreground">
-                Manage who has access to this app
+                Manage who can work on this app
               </p>
             </div>
-            <UserManagement appId={appId} />
+            <CollaboratorManagement appId={appId} />
           </section>
         )}
       </main>
