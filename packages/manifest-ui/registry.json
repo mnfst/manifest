@@ -5,916 +5,1063 @@
   "items": [
     {
       "name": "contact-form",
-      "version": "1.2.3",
       "type": "registry:block",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
-      "category": "form",
+      "author": "MNFST, Inc",
+      "categories": ["form"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/contact-form.png"
+        "preview": "https://ui.manifest.build/previews/contact-form.png",
+        "version": "1.2.3",
+        "changelog": {
+          "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
+          "1.1.0": "Made phone, email, and message fields optional with defaults",
+          "1.2.0": "Added initialValues prop to pre-fill form fields",
+          "1.2.1": "Added aria-label to file removal button for screen reader accessibility",
+          "1.2.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button",
-        "input",
-        "label",
-        "select"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "input", "label", "select"],
       "files": [
         {
           "path": "registry/form/contact-form.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/contact-form.tsx"
         }
       ]
     },
     {
       "name": "date-time-picker",
-      "version": "1.0.3",
       "type": "registry:block",
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
-      "category": "form",
+      "author": "MNFST, Inc",
+      "categories": ["form"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/date-time-picker.png"
+        "preview": "https://ui.manifest.build/previews/date-time-picker.png",
+        "version": "1.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with calendar and time slot selection",
+          "1.0.1": "Added aria-labels to navigation buttons for better screen reader accessibility",
+          "1.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/form/date-time-picker.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/date-time-picker.tsx"
         }
       ]
     },
     {
       "name": "issue-report-form",
-      "version": "1.0.3",
       "type": "registry:block",
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
-      "category": "form",
+      "author": "MNFST, Inc",
+      "categories": ["form"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/issue-report-form.png"
+        "preview": "https://ui.manifest.build/previews/issue-report-form.png",
+        "version": "1.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with categories, impact levels and file attachments",
+          "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
+          "1.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button",
-        "input",
-        "label",
-        "select"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "input", "label", "select"],
       "files": [
         {
           "path": "registry/form/issue-report-form.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/issue-report-form.tsx"
         }
       ]
     },
     {
       "name": "card-form",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/card-form.png"
+        "preview": "https://ui.manifest.build/previews/card-form.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with card number, expiry, CVV and name fields",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "card",
-        "input",
-        "label",
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "input", "label", "button"],
       "files": [
         {
           "path": "registry/payment/card-form.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/card-form.tsx"
         }
       ]
     },
     {
       "name": "pay-confirm",
-      "version": "1.0.3",
       "type": "registry:block",
       "title": "Pay Confirm",
       "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/pay-confirm.png"
+        "preview": "https://ui.manifest.build/previews/pay-confirm.png",
+        "version": "1.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with amount display and confirm actions",
+          "1.0.1": "Updated to show a more realistic default amount",
+          "1.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "card",
-        "button",
-        "separator"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "button", "separator"],
       "files": [
         {
           "path": "registry/payment/pay-confirm.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/pay-confirm.tsx"
         }
       ]
     },
     {
       "name": "order-summary",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Order Summary",
       "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/order-summary.png"
+        "preview": "https://ui.manifest.build/previews/order-summary.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts",
+          "1.0.1": "Moved demo data to separate file for cleaner component code",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "card",
-        "badge",
-        "separator"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "badge", "separator"],
       "files": [
         {
           "path": "registry/payment/order-summary.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/order-summary.tsx"
         }
       ]
     },
     {
       "name": "saved-cards",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Saved Cards",
       "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/saved-cards.png"
+        "preview": "https://ui.manifest.build/previews/saved-cards.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with support for multiple card brands",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "card",
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "button"],
       "files": [
         {
           "path": "registry/payment/saved-cards.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/saved-cards.tsx"
         }
       ]
     },
     {
       "name": "payment-success",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Payment Success",
       "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/payment-success.png"
+        "preview": "https://ui.manifest.build/previews/payment-success.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with order details and tracking options",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "card",
-        "button",
-        "separator"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["card", "button", "separator"],
       "files": [
         {
           "path": "registry/payment/payment-success.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/payment-success.tsx"
         }
       ]
     },
     {
       "name": "bank-card-form",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/bank-card-form.png"
+        "preview": "https://ui.manifest.build/previews/bank-card-form.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with compact inline layout for chat",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/payment/bank-card-form.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/bank-card-form.tsx"
         }
       ]
     },
     {
       "name": "payment-methods",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Payment Methods",
       "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/payment-methods.png"
+        "preview": "https://ui.manifest.build/previews/payment-methods.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with card brands and Apple Pay support",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/payment/payment-methods.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/payment-methods.tsx"
         }
       ]
     },
     {
       "name": "order-confirm",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Order Confirm",
       "description": "Order confirmation with product image, delivery info, and confirm action.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/order-confirm.png"
+        "preview": "https://ui.manifest.build/previews/order-confirm.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with product image and delivery info",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/payment/order-confirm.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/order-confirm.tsx"
         }
       ]
     },
     {
       "name": "payment-confirmed",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/payment-confirmed.png"
+        "preview": "https://ui.manifest.build/previews/payment-confirmed.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with product image and tracking button",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/payment/payment-confirmed.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/payment-confirmed.tsx"
         }
       ]
     },
     {
       "name": "product-list",
-      "version": "2.0.3",
       "type": "registry:block",
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
-      "category": "list",
+      "author": "MNFST, Inc",
+      "categories": ["list"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/product-list.png"
+        "preview": "https://ui.manifest.build/previews/product-list.png",
+        "version": "2.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with list, grid, carousel and picker variants",
+          "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
+          "2.0.1": "Added aria-labels to carousel navigation buttons and dots for accessibility",
+          "2.0.2": "Moved demo data to separate file for cleaner component code",
+          "2.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/list/product-list.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/product-list.tsx"
         }
       ]
     },
     {
       "name": "option-list",
-      "version": "2.0.2",
       "type": "registry:block",
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/option-list.png"
+        "preview": "https://ui.manifest.build/previews/option-list.png",
+        "version": "2.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with single and multiple selection modes",
+          "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
+          "2.0.1": "Moved demo data to separate file for cleaner component code",
+          "2.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
+      "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/option-list.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/option-list.tsx"
         }
       ]
     },
     {
       "name": "amount-input",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
-      "category": "payment",
+      "author": "MNFST, Inc",
+      "categories": ["payment"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/amount-input.png"
+        "preview": "https://ui.manifest.build/previews/amount-input.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with increment buttons and preset values",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/payment/amount-input.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/amount-input.tsx"
         }
       ]
     },
     {
       "name": "tag-select",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/tag-select.png"
+        "preview": "https://ui.manifest.build/previews/tag-select.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with color variants and multi-select",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/miscellaneous/tag-select.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/tag-select.tsx"
         }
       ]
     },
     {
       "name": "quick-reply",
-      "version": "3.0.2",
       "type": "registry:block",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/quick-reply.png"
+        "preview": "https://ui.manifest.build/previews/quick-reply.png",
+        "version": "3.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with quick reply button options",
+          "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
+          "3.0.0": "BREAKING: Removed id from QuickReply interface. Use array index for key.",
+          "3.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/quick-reply.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/quick-reply.tsx"
         }
       ]
     },
     {
       "name": "progress-steps",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/progress-steps.png"
+        "preview": "https://ui.manifest.build/previews/progress-steps.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with horizontal and vertical layouts",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
+      "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/progress-steps.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/progress-steps.tsx"
         }
       ]
     },
     {
       "name": "status-badge",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/status-badge.png"
+        "preview": "https://ui.manifest.build/previews/status-badge.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with multiple status states",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
+      "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/status-badge.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/status-badge.tsx"
         }
       ]
     },
     {
       "name": "stats",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/stats.png"
+        "preview": "https://ui.manifest.build/previews/stats.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with scrollable stat cards and trends",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
+      "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/stat-card.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/stat-card.tsx"
         }
       ]
     },
     {
       "name": "skeleton",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Skeleton Loaders",
       "description": "Skeleton placeholder components with pulse animation for loading states.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/skeleton.png"
+        "preview": "https://ui.manifest.build/previews/skeleton.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with pulse animation placeholders",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/skeleton.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/skeleton.tsx"
         }
       ]
     },
     {
       "name": "post-card",
-      "version": "2.0.2",
       "type": "registry:block",
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
-      "category": "blogging",
+      "author": "MNFST, Inc",
+      "categories": ["blogging"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/post-card.png"
+        "preview": "https://ui.manifest.build/previews/post-card.png",
+        "version": "2.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with default, compact, horizontal and covered variants",
+          "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+          "2.0.1": "Moved demo data to separate file for cleaner component code",
+          "2.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/blogging/post-card.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-card.tsx"
         },
         {
           "path": "registry/blogging/post-detail.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-detail.tsx"
         }
       ]
     },
     {
       "name": "post-list",
-      "version": "2.0.3",
       "type": "registry:block",
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
-      "category": "blogging",
+      "author": "MNFST, Inc",
+      "categories": ["blogging"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/post-list.png"
+        "preview": "https://ui.manifest.build/previews/post-list.png",
+        "version": "2.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with list, grid and carousel variants",
+          "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
+          "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+          "2.0.1": "Added aria-labels to pagination and carousel navigation buttons for accessibility",
+          "2.0.2": "Moved demo data to separate file for cleaner component code",
+          "2.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/blogging/post-list.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-list.tsx"
         },
         {
           "path": "registry/blogging/post-card.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-card.tsx"
         },
         {
           "path": "registry/blogging/post-detail.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-detail.tsx"
         }
       ]
     },
     {
       "name": "post-detail",
-      "version": "2.0.2",
       "type": "registry:block",
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
-      "category": "blogging",
+      "author": "MNFST, Inc",
+      "categories": ["blogging"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/post-detail.png"
+        "preview": "https://ui.manifest.build/previews/post-detail.png",
+        "version": "2.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with cover image, author info and related posts",
+          "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
+          "2.0.1": "Updated post-card dependency with extracted demo data",
+          "2.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/blogging/post-detail.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-detail.tsx"
         },
         {
           "path": "registry/blogging/post-card.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/post-card.tsx"
         }
       ]
     },
     {
       "name": "table",
-      "version": "1.0.4",
       "type": "registry:block",
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
-      "category": "list",
+      "author": "MNFST, Inc",
+      "categories": ["list"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/table.png"
+        "preview": "https://ui.manifest.build/previews/table.png",
+        "version": "1.0.4",
+        "changelog": {
+          "1.0.0": "Initial release with single and multi-select modes",
+          "1.0.1": "Added descriptive alt tags for title images",
+          "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
+          "1.0.4": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button",
-        "checkbox",
-        "popover",
-        "select",
-        "input"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "checkbox", "popover", "select", "input"],
       "files": [
         {
           "path": "registry/list/table.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/table.tsx"
         }
       ]
     },
     {
       "name": "message-bubble",
-      "version": "3.0.3",
       "type": "registry:block",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
-      "category": "messaging",
+      "author": "MNFST, Inc",
+      "categories": ["messaging"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/message-bubble.png"
+        "preview": "https://ui.manifest.build/previews/message-bubble.png",
+        "version": "3.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with text, image, voice and reaction variants",
+          "1.0.1": "Added better image captions for accessibility",
+          "1.0.2": "Improved alt text to use caption when available",
+          "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
+          "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
+          "3.0.0": "BREAKING: Renamed caption prop to content in ImageMessageBubble",
+          "3.0.1": "Added aria-labels to reaction buttons and voice message controls for accessibility",
+          "3.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "dropdown-menu"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
       "files": [
         {
           "path": "registry/messaging/message-bubble.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/message-bubble.tsx"
         }
       ]
     },
     {
       "name": "chat-conversation",
-      "version": "4.0.3",
       "type": "registry:block",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
-      "category": "messaging",
+      "author": "MNFST, Inc",
+      "categories": ["messaging"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/chat-conversation.png"
+        "preview": "https://ui.manifest.build/previews/chat-conversation.png",
+        "version": "4.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with multiple message types",
+          "1.0.1": "Updated to use improved message bubble styling",
+          "1.0.2": "Synced with message-bubble alt tag improvements",
+          "1.0.3": "Added default value 'text' for message type",
+          "1.1.0": "Added avatarUrl prop for image avatars with letter fallback",
+          "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
+          "3.0.0": "BREAKING: Removed caption prop, use content for image captions",
+          "4.0.0": "BREAKING: Removed id from ChatMessage interface. Use array index for key.",
+          "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls",
+          "4.0.2": "Moved demo data to separate file for cleaner component code",
+          "4.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "dropdown-menu"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
       "files": [
         {
           "path": "registry/messaging/chat-conversation.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/chat-conversation.tsx"
         },
         {
           "path": "registry/messaging/message-bubble.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/message-bubble.tsx"
         }
       ]
     },
     {
       "name": "x-post",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/x-post.png"
+        "preview": "https://ui.manifest.build/previews/x-post.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with engagement metrics display",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
+      "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/x-post.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/x-post.tsx"
         }
       ]
     },
     {
       "name": "instagram-post",
-      "version": "1.0.3",
       "type": "registry:block",
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/instagram-post.png"
+        "preview": "https://ui.manifest.build/previews/instagram-post.png",
+        "version": "1.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with image and engagement display",
+          "1.0.1": "Improved alt text to include author name",
+          "1.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "dropdown-menu"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
       "files": [
         {
           "path": "registry/miscellaneous/instagram-post.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/instagram-post.tsx"
         }
       ]
     },
     {
       "name": "linkedin-post",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/linkedin-post.png"
+        "preview": "https://ui.manifest.build/previews/linkedin-post.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with professional styling",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "dropdown-menu"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
       "files": [
         {
           "path": "registry/miscellaneous/linkedin-post.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/linkedin-post.tsx"
         }
       ]
     },
     {
       "name": "youtube-post",
-      "version": "1.0.3",
       "type": "registry:block",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/youtube-post.png"
+        "preview": "https://ui.manifest.build/previews/youtube-post.png",
+        "version": "1.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with playable video embed",
+          "1.0.1": "Improved alt text to include video title",
+          "1.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "dropdown-menu"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["dropdown-menu"],
       "files": [
         {
           "path": "registry/miscellaneous/youtube-post.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/youtube-post.tsx"
         }
       ]
     },
     {
       "name": "map-carousel",
-      "version": "1.1.2",
       "type": "registry:block",
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
-      "category": "miscellaneous",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/map-carousel.png"
+        "preview": "https://ui.manifest.build/previews/map-carousel.png",
+        "version": "1.1.2",
+        "changelog": {
+          "1.0.0": "Initial release with interactive map and location cards",
+          "1.1.0": "Made image and price fields optional in Location interface",
+          "1.1.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react",
-        "leaflet",
-        "react-leaflet"
-      ],
+      "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
+      "devDependencies": ["@types/leaflet"],
       "registryDependencies": [],
       "files": [
         {
           "path": "registry/miscellaneous/map-carousel.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/map-carousel.tsx"
         }
       ]
     },
     {
       "name": "event-card",
-      "version": "5.0.3",
       "type": "registry:block",
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
-      "category": "events",
+      "author": "MNFST, Inc",
+      "categories": ["events"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/event-card.png"
+        "preview": "https://ui.manifest.build/previews/event-card.png",
+        "version": "5.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
+          "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
+          "3.0.0": "Added image support to Event type and default variant for displaying cover images.",
+          "4.0.0": "BREAKING: Removed View button from all variants. Entire card is now clickable.",
+          "4.1.0": "Added image display to horizontal (list) and compact (carousel) variants",
+          "5.0.0": "BREAKING: Removed id from Event interface. Use array index for key.",
+          "5.0.1": "Added accessibility support with role, tabIndex, keyboard handlers, and aria-label for all card variants",
+          "5.0.2": "Moved demo data to separate file for cleaner component code",
+          "5.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/events/event-card.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/event-card.tsx"
         },
         {
           "path": "registry/events/types.ts",
-          "type": "registry:lib"
+          "type": "registry:lib",
+          "target": "components/ui/event-types.ts"
         }
       ]
     },
     {
       "name": "event-list",
-      "version": "6.0.3",
       "type": "registry:block",
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
-      "category": "events",
+      "author": "MNFST, Inc",
+      "categories": ["events"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/event-list.png"
+        "preview": "https://ui.manifest.build/previews/event-list.png",
+        "version": "6.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
+          "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
+          "3.0.0": "Updated grid variant to show 3 cards with images and View More button. Added onViewMore action.",
+          "4.0.0": "BREAKING: Added fullwidth variant with split-screen map layout. Updated to 15 events. Added coordinates to Event type.",
+          "5.0.0": "BREAKING: Fullwidth is no longer a variant - use fullscreenComponent instead. Map now uses real Leaflet.",
+          "5.1.0": "Added animated filter panel with Category, Date, Neighborhood, Price, and Format filters. Filters apply to both list and map markers.",
+          "5.2.0": "Added expand button next to title in list and carousel variants with onExpand action",
+          "5.2.1": "Fixed event-card dependency resolution for shadcn CLI installation",
+          "6.0.0": "BREAKING: Removed id from Event interface. Use array index for selection and key.",
+          "6.0.1": "Added aria-labels to navigation buttons, carousel dots, filter close, and expand buttons for accessibility",
+          "6.0.2": "Moved demo data to separate file for cleaner component code",
+          "6.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react",
-        "react-leaflet",
-        "leaflet"
-      ],
-      "registryDependencies": [
-        "button",
-        "checkbox",
-        "https://ui.manifest.build/r/event-card.json"
-      ],
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
+      "devDependencies": ["@types/leaflet"],
+      "registryDependencies": ["button", "checkbox", "https://ui.manifest.build/r/event-card.json"],
       "files": [
         {
           "path": "registry/events/event-list.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/event-list.tsx"
         },
         {
           "path": "registry/events/types.ts",
-          "type": "registry:lib"
+          "type": "registry:lib",
+          "target": "components/ui/event-types.ts"
         }
       ]
     },
     {
       "name": "event-detail",
-      "version": "3.0.3",
       "type": "registry:block",
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
-      "category": "events",
+      "author": "MNFST, Inc",
+      "categories": ["events"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/event-detail.png"
+        "preview": "https://ui.manifest.build/previews/event-detail.png",
+        "version": "3.0.3",
+        "changelog": {
+          "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
+          "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
+          "2.1.0": "Moved Get Tickets CTA from sticky bottom to end of content for fullscreen mode.",
+          "2.2.0": "Changed CTA buttons and map tooltip from orange to dark theme colors",
+          "3.0.0": "BREAKING: Removed id from EventDetails, Organizer, and tier interfaces. Use array index for key.",
+          "3.0.1": "Added aria-labels to image navigation, share, save, and back buttons for accessibility",
+          "3.0.2": "Moved demo data to separate file for cleaner component code",
+          "3.0.3": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react",
-        "react-leaflet",
-        "leaflet"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
+      "devDependencies": ["@types/leaflet"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/events/event-detail.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/event-detail.tsx"
         },
         {
           "path": "registry/events/types.ts",
-          "type": "registry:lib"
+          "type": "registry:lib",
+          "target": "components/ui/event-types.ts"
         }
       ]
     },
     {
       "name": "ticket-tier-select",
-      "version": "2.0.2",
       "type": "registry:block",
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
-      "category": "events",
+      "author": "MNFST, Inc",
+      "categories": ["events"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/ticket-tier-select.png"
+        "preview": "https://ui.manifest.build/previews/ticket-tier-select.png",
+        "version": "2.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
+          "1.1.0": "Added optional event image above order summary. Order summary now always visible with fixed width.",
+          "2.0.0": "BREAKING: Refactored to use nested event object (event.title, event.date, event.image, event.currency) instead of flat props",
+          "2.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/events/ticket-tier-select.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/ticket-tier-select.tsx"
         }
       ]
     },
     {
       "name": "event-checkout",
-      "version": "2.0.2",
       "type": "registry:block",
       "title": "Event Checkout",
       "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
-      "category": "events",
+      "author": "MNFST, Inc",
+      "categories": ["events"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/event-checkout.png"
+        "preview": "https://ui.manifest.build/previews/event-checkout.png",
+        "version": "2.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary",
+          "1.1.0": "Added event image display above order summary on right side",
+          "2.0.0": "BREAKING: Refactored to use nested event and order objects. Simplified onPlaceOrder to () => void. Moved timerMinutes to appearance.",
+          "2.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button",
-        "checkbox"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button", "checkbox"],
       "files": [
         {
           "path": "registry/events/event-checkout.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/event-checkout.tsx"
         }
       ]
     },
     {
       "name": "event-confirmation",
-      "version": "1.0.2",
       "type": "registry:block",
       "title": "Event Confirmation",
       "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
-      "category": "events",
+      "author": "MNFST, Inc",
+      "categories": ["events"],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/event-confirmation.png"
+        "preview": "https://ui.manifest.build/previews/event-confirmation.png",
+        "version": "1.0.2",
+        "changelog": {
+          "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",
+          "1.0.2": "Added comprehensive JSDoc documentation"
+        }
       },
-      "dependencies": [
-        "lucide-react"
-      ],
-      "registryDependencies": [
-        "button"
-      ],
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
       "files": [
         {
           "path": "registry/events/event-confirmation.tsx",
-          "type": "registry:block"
+          "type": "registry:block",
+          "target": "components/ui/event-confirmation.tsx"
         }
       ]
     }
