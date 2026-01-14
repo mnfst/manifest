@@ -4,25 +4,68 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ComponentType } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
 import { demoEvents } from './demo/data'
 
-// Dynamically import map components to avoid SSR issues with Leaflet
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-)
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-)
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-)
+// Internal types for react-leaflet component attributes (not exported component props)
+type LeafletMapContainerAttrs = {
+  center: [number, number]
+  zoom: number
+  style?: React.CSSProperties
+  zoomControl?: boolean
+  scrollWheelZoom?: boolean
+  children?: React.ReactNode
+}
+
+type LeafletTileLayerAttrs = {
+  attribution: string
+  url: string
+}
+
+type LeafletMarkerAttrs = {
+  position: [number, number]
+  icon?: unknown
+  zIndexOffset?: number
+  eventHandlers?: {
+    click?: () => void
+  }
+}
+
+// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
+interface ReactLeafletComponents {
+  MapContainer: ComponentType<LeafletMapContainerAttrs>
+  TileLayer: ComponentType<LeafletTileLayerAttrs>
+  Marker: ComponentType<LeafletMarkerAttrs>
+}
+
+/**
+ * Hook to lazy load react-leaflet components on client-side only.
+ * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
+ */
+function useReactLeaflet(): ReactLeafletComponents | null {
+  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    import('react-leaflet').then((mod) => {
+      if (mounted) {
+        setComponents({
+          MapContainer: mod.MapContainer,
+          TileLayer: mod.TileLayer,
+          Marker: mod.Marker,
+        })
+      }
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  return components
+}
 
 // Map placeholder shown during SSR or when Leaflet isn't loaded
 function MapPlaceholder() {
@@ -40,11 +83,13 @@ function MapPlaceholder() {
 function EventMapMarkers({
   events,
   selectedIndex,
-  onSelectEvent
+  onSelectEvent,
+  MarkerComponent
 }: {
   events: Event[]
   selectedIndex: number | null
   onSelectEvent: (event: Event, index: number) => void
+  MarkerComponent: ComponentType<LeafletMarkerAttrs>
 }) {
   const [L, setL] = useState<typeof import('leaflet') | null>(null)
 
@@ -98,7 +143,7 @@ function EventMapMarkers({
         })
 
         return (
-          <Marker
+          <MarkerComponent
             key={index}
             position={[event.coordinates.lat, event.coordinates.lng]}
             icon={icon}
@@ -402,7 +447,9 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   const { variant = 'list' } = appearance ?? {}
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
-  const [isMounted, setIsMounted] = useState(false)
+
+  // Lazy load react-leaflet components (React-only, no Next.js dependency)
+  const leafletComponents = useReactLeaflet()
 
   // Filter state for fullwidth variant
   const [showFilters, setShowFilters] = useState(false)
@@ -428,10 +475,6 @@ export function EventList({ data, actions, appearance }: EventListProps) {
         behavior: 'smooth'
       })
     }
-  }, [])
-
-  useEffect(() => {
-    setIsMounted(true)
   }, [])
 
   // Filter events based on applied filters
@@ -746,15 +789,15 @@ export function EventList({ data, actions, appearance }: EventListProps) {
 
         {/* Right Panel - Map */}
         <div className="hidden md:flex flex-1 relative">
-          {isMounted ? (
-            <MapContainer
+          {leafletComponents ? (
+            <leafletComponents.MapContainer
               center={[34.0522, -118.2437]} // Los Angeles center
               zoom={12}
               style={{ height: '100%', width: '100%' }}
               zoomControl={true}
               scrollWheelZoom={true}
             >
-              <TileLayer
+              <leafletComponents.TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               />
@@ -762,8 +805,9 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                 events={filteredEvents}
                 selectedIndex={selectedEventIndex}
                 onSelectEvent={handleMapMarkerClick}
+                MarkerComponent={leafletComponents.Marker}
               />
-            </MapContainer>
+            </leafletComponents.MapContainer>
           ) : (
             <MapPlaceholder />
           )}

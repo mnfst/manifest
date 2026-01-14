@@ -2,22 +2,65 @@
 
 import { cn } from '@/lib/utils'
 import { MapPin } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ComponentType } from 'react'
 
-// Dynamically import map components to avoid SSR issues with Leaflet
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-)
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-)
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-)
+// Internal types for react-leaflet component attributes (not exported component props)
+type LeafletMapContainerAttrs = {
+  center: [number, number]
+  zoom: number
+  style?: React.CSSProperties
+  zoomControl?: boolean
+  scrollWheelZoom?: boolean
+  children?: React.ReactNode
+}
+
+type LeafletTileLayerAttrs = {
+  attribution: string
+  url: string
+}
+
+type LeafletMarkerAttrs = {
+  position: [number, number]
+  icon?: unknown
+  zIndexOffset?: number
+  eventHandlers?: {
+    click?: () => void
+  }
+}
+
+// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
+interface ReactLeafletComponents {
+  MapContainer: ComponentType<LeafletMapContainerAttrs>
+  TileLayer: ComponentType<LeafletTileLayerAttrs>
+  Marker: ComponentType<LeafletMarkerAttrs>
+}
+
+/**
+ * Hook to lazy load react-leaflet components on client-side only.
+ * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
+ */
+function useReactLeaflet(): ReactLeafletComponents | null {
+  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    import('react-leaflet').then((mod) => {
+      if (mounted) {
+        setComponents({
+          MapContainer: mod.MapContainer,
+          TileLayer: mod.TileLayer,
+          Marker: mod.Marker,
+        })
+      }
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  return components
+}
 
 /**
  * Represents a location/hotel to display on the map.
@@ -275,11 +318,13 @@ function MapPlaceholder({ height }: { height: string }) {
 function MapWithMarkers({
   locations,
   selectedId,
-  onSelectLocation
+  onSelectLocation,
+  MarkerComponent
 }: {
   locations: Location[]
   selectedId: string | null
   onSelectLocation: (location: Location) => void
+  MarkerComponent: ComponentType<LeafletMarkerAttrs>
 }) {
   const [L, setL] = useState<typeof import('leaflet') | null>(null)
 
@@ -331,7 +376,7 @@ function MapWithMarkers({
         })
 
         return (
-          <Marker
+          <MarkerComponent
             key={location.id}
             position={location.coordinates}
             icon={icon}
@@ -445,11 +490,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const [hasDragged, setHasDragged] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const [isMounted, setIsMounted] = useState(false)
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  // Lazy load react-leaflet components (React-only, no Next.js dependency)
+  const leafletComponents = useReactLeaflet()
 
   // Handle location selection
   const handleSelectLocation = useCallback(
@@ -550,15 +593,15 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
       style={{ height: mapHeight }}
     >
       {/* Map Section - Full size */}
-      {isMounted ? (
-        <MapContainer
+      {leafletComponents ? (
+        <leafletComponents.MapContainer
           center={center}
           zoom={zoom}
           style={{ height: '100%', width: '100%' }}
           zoomControl={true}
           scrollWheelZoom={true}
         >
-          <TileLayer
+          <leafletComponents.TileLayer
             attribution={tileConfig.attribution}
             url={tileConfig.url}
           />
@@ -566,8 +609,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
             locations={locations}
             selectedId={selectedId}
             onSelectLocation={handleSelectLocation}
+            MarkerComponent={leafletComponents.Marker}
           />
-        </MapContainer>
+        </leafletComponents.MapContainer>
       ) : (
         <MapPlaceholder height={mapHeight} />
       )}
