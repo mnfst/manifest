@@ -64,7 +64,7 @@ export function transformToNodeParameters(detail: ComponentDetail): RegistryNode
     version: detail.version,
     title: detail.title || detail.name,
     description: detail.description || 'No description',
-    category: detail.category,
+    category: detail.categories[0] || 'miscellaneous',
     previewUrl: detail.meta?.preview,
     dependencies: detail.dependencies || [],
     registryDependencies: detail.registryDependencies || [],
