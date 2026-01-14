@@ -31,7 +31,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | '
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'StatCard' | 'PostList' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link';
+export type NodeType = 'StatCard' | 'PostList' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link' | 'RegistryComponent';
 
 // =============================================================================
 // API Call Node Types

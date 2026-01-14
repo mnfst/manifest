@@ -32,6 +32,7 @@ import { CallFlowNode } from './CallFlowNode';
 import { ApiCallNode } from './ApiCallNode';
 import { TransformNode } from './TransformNode';
 import { LinkNode } from './LinkNode';
+import { RegistryComponentNode } from './RegistryComponentNode';
 import { DeletableEdge } from './DeletableEdge';
 import { CompatibilityDetailModal } from './CompatibilityDetailModal';
 import { useSchemaValidation } from '../../hooks/useSchemaValidation';
@@ -53,6 +54,8 @@ interface FlowDiagramProps {
   onDropOnNode?: (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => void;
   /** Handler for dropping node type on canvas */
   onDropOnCanvas?: (nodeType: NodeType, position: { x: number; y: number }) => void;
+  /** Handler for dropping registry item on canvas */
+  onDropRegistryItem?: (registryItemName: string, position: { x: number; y: number }) => void;
   /** Callback when user wants to edit Interface node code */
   onNodeEditCode?: (node: NodeInstance) => void;
   /** Callback when flow data needs to be refreshed (e.g., after transformer insertion) */
@@ -67,6 +70,7 @@ function getFlowState(flow: Flow) {
   const userIntentNodes = nodes.filter(n => n.type === 'UserIntent');
   const statCardNodes = nodes.filter(n => n.type === 'StatCard');
   const postListNodes = nodes.filter(n => n.type === 'PostList');
+  const registryComponentNodes = nodes.filter(n => n.type === 'RegistryComponent');
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
   const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
@@ -75,13 +79,14 @@ function getFlowState(flow: Flow) {
   const hasUserIntentNodes = userIntentNodes.length > 0;
   const hasStatCardNodes = statCardNodes.length > 0;
   const hasPostListNodes = postListNodes.length > 0;
+  const hasRegistryComponentNodes = registryComponentNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasApiCallNodes = apiCallNodes.length > 0;
   const hasTransformNodes = transformNodes.length > 0;
   const hasLinkNodes = linkNodes.length > 0;
-  const hasSteps = hasStatCardNodes || hasPostListNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
-  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
+  const hasSteps = hasStatCardNodes || hasPostListNodes || hasRegistryComponentNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
+  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasRegistryComponentNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, registryComponentNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
 }
 
 const nodeTypes = {
@@ -93,6 +98,7 @@ const nodeTypes = {
   apiCallNode: ApiCallNode,
   transformNode: TransformNode,
   linkNode: LinkNode,
+  registryComponentNode: RegistryComponentNode,
 };
 
 const edgeTypes = {
@@ -115,6 +121,7 @@ function FlowDiagramInner({
   onAddFromNode,
   onDropOnNode,
   onDropOnCanvas,
+  onDropRegistryItem,
   onNodeEditCode,
   onFlowUpdate,
 }: FlowDiagramProps) {
@@ -211,7 +218,8 @@ function FlowDiagramInner({
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const hasNodeType = e.dataTransfer.types.includes('application/x-node-type');
-    if (hasNodeType) {
+    const hasRegistryItem = e.dataTransfer.types.includes('application/x-registry-item');
+    if (hasNodeType || hasRegistryItem) {
       e.dataTransfer.dropEffect = 'copy';
     }
   }, []);
@@ -219,8 +227,6 @@ function FlowDiagramInner({
   // Handle drop on canvas
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const nodeType = e.dataTransfer.getData('application/x-node-type') as NodeType;
-    if (!nodeType || !onDropOnCanvas) return;
 
     // Convert screen coordinates to flow coordinates
     const position = screenToFlowPosition({
@@ -228,8 +234,19 @@ function FlowDiagramInner({
       y: e.clientY,
     });
 
-    onDropOnCanvas(nodeType, position);
-  }, [onDropOnCanvas, screenToFlowPosition]);
+    // Check for registry item first
+    const registryItemName = e.dataTransfer.getData('application/x-registry-item');
+    if (registryItemName && onDropRegistryItem) {
+      onDropRegistryItem(registryItemName, position);
+      return;
+    }
+
+    // Then check for regular node type
+    const nodeType = e.dataTransfer.getData('application/x-node-type') as NodeType;
+    if (nodeType && onDropOnCanvas) {
+      onDropOnCanvas(nodeType, position);
+    }
+  }, [onDropOnCanvas, onDropRegistryItem, screenToFlowPosition]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -294,7 +311,7 @@ function FlowDiagramInner({
   }, [connections]);
 
   // Node types that belong to the 'interface' category (UI nodes)
-  const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList'];
+  const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList', 'RegistryComponent'];
 
   // Validate connection - allow connections between any nodes with proper handles
   const isValidConnection = useCallback((connection: { source?: string | null; sourceHandle?: string | null; target?: string | null; targetHandle?: string | null }) => {
@@ -386,17 +403,19 @@ function FlowDiagramInner({
 
     // Show AddUserIntentNode placeholder if no UserIntent nodes exist
     if (!flowState.hasUserIntentNodes) {
-      // Centered placeholder for adding user intent
-      const centerX = Math.max(200, (dimensions.width - 200) / 2);
-      const centerY = Math.max(100, (dimensions.height - 100) / 2);
-      nodeList.push({
-        id: 'add-user-intent',
-        type: 'addUserIntentNode',
-        position: { x: centerX, y: centerY },
-        data: {
-          onClick: onAddStep,
-        },
-      });
+      // Centered placeholder for adding user intent (only if no other nodes exist)
+      if (!flowState.hasSteps) {
+        const centerX = Math.max(200, (dimensions.width - 200) / 2);
+        const centerY = Math.max(100, (dimensions.height - 100) / 2);
+        nodeList.push({
+          id: 'add-user-intent',
+          type: 'addUserIntentNode',
+          position: { x: centerX, y: centerY },
+          data: {
+            onClick: onAddStep,
+          },
+        });
+      }
     } else {
       // Add UserIntent nodes (trigger nodes)
       flowState.userIntentNodes.forEach((node) => {
@@ -418,154 +437,175 @@ function FlowDiagramInner({
 
         xPosition = Math.max(xPosition, nodePos.x) + 280;
       });
-
-      // Add StatCard nodes (no "+" button - UI nodes only have action handles)
-      flowState.statCardNodes.forEach((node) => {
-        // Use saved position or calculate based on order
-        const nodePos = node.position || { x: xPosition, y: 130 };
-
-        nodeList.push({
-          id: node.id,
-          type: 'viewNode',
-          position: nodePos,
-          data: {
-            node,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-            onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
-            // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
-          },
-        });
-
-        // Update xPosition for next node without saved position
-        xPosition = Math.max(xPosition, nodePos.x) + 280;
-      });
-
-      // Add PostList nodes (no "+" button - UI nodes only have action handles)
-      flowState.postListNodes.forEach((node) => {
-        const nodePos = node.position || { x: xPosition, y: 130 };
-
-        nodeList.push({
-          id: node.id,
-          type: 'viewNode',
-          position: nodePos,
-          data: {
-            node,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-            onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
-            // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
-          },
-        });
-
-        xPosition = Math.max(xPosition, nodePos.x) + 280;
-      });
-
-      // Add Return nodes
-      flowState.returnNodes.forEach((node) => {
-        const nodePos = node.position || { x: xPosition, y: 80 };
-        nodeList.push({
-          id: node.id,
-          type: 'returnValueNode',
-          position: nodePos,
-          data: {
-            node,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-          },
-        });
-
-        xPosition = Math.max(xPosition, nodePos.x) + 250;
-      });
-
-      // Add CallFlow nodes
-      flowState.callFlowNodes.forEach((node) => {
-        const params = node.parameters as { targetFlowId?: string | null };
-        const targetFlowId = params?.targetFlowId;
-        const nodePos = node.position || { x: xPosition, y: 80 };
-
-        nodeList.push({
-          id: node.id,
-          type: 'callFlowNode',
-          position: nodePos,
-          data: {
-            node,
-            targetFlowName: targetFlowId ? flowNameLookup[targetFlowId] : undefined,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-          },
-        });
-
-        xPosition = Math.max(xPosition, nodePos.x) + 250;
-      });
-
-      // Add ApiCall nodes
-      flowState.apiCallNodes.forEach((node) => {
-        const nodePos = node.position || { x: xPosition, y: 80 };
-        const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
-
-        nodeList.push({
-          id: node.id,
-          type: 'apiCallNode',
-          position: nodePos,
-          data: {
-            node,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-            onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'output', nodePos) : undefined,
-            onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'output', nodePos) : undefined,
-          },
-        });
-
-        xPosition = Math.max(xPosition, nodePos.x) + 250;
-      });
-
-      // Add Transform nodes (JavaScriptCodeTransform)
-      flowState.transformNodes.forEach((node) => {
-        const nodePos = node.position || { x: xPosition, y: 80 };
-        // Check if transform node has an input connection
-        const hasInputConnection = nodesWithIncomingConnections.has(node.id);
-        const validationError = hasInputConnection ? undefined : 'Transform node requires an input connection';
-
-        nodeList.push({
-          id: node.id,
-          type: 'transformNode',
-          position: nodePos,
-          data: {
-            node,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-            validationError,
-          },
-        });
-
-        xPosition = Math.max(xPosition, nodePos.x) + 150; // Smaller spacing for transform nodes
-      });
-
-      // Add Link nodes
-      flowState.linkNodes.forEach((node) => {
-        const nodePos = node.position || { x: xPosition, y: 80 };
-        nodeList.push({
-          id: node.id,
-          type: 'linkNode',
-          position: nodePos,
-          data: {
-            node,
-            canDelete,
-            onEdit: () => onNodeEdit(node),
-            onDelete: () => onNodeDelete(node),
-          },
-        });
-
-        xPosition = Math.max(xPosition, nodePos.x) + 250;
-      });
     }
+
+    // Always render UI and other nodes (regardless of whether triggers exist)
+    // Add StatCard nodes (no "+" button - UI nodes only have action handles)
+    flowState.statCardNodes.forEach((node) => {
+      // Use saved position or calculate based on order
+      const nodePos = node.position || { x: xPosition, y: 130 };
+
+      nodeList.push({
+        id: node.id,
+        type: 'viewNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+          onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
+          // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
+        },
+      });
+
+      // Update xPosition for next node without saved position
+      xPosition = Math.max(xPosition, nodePos.x) + 280;
+    });
+
+    // Add PostList nodes (no "+" button - UI nodes only have action handles)
+    flowState.postListNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 130 };
+
+      nodeList.push({
+        id: node.id,
+        type: 'viewNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+          onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
+          // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 280;
+    });
+
+    // Add RegistryComponent nodes (dynamic UI components from registry)
+    flowState.registryComponentNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 130 };
+
+      nodeList.push({
+        id: node.id,
+        type: 'registryComponentNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+          onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 280;
+    });
+
+    // Add Return nodes
+    flowState.returnNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 80 };
+      nodeList.push({
+        id: node.id,
+        type: 'returnValueNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 250;
+    });
+
+    // Add CallFlow nodes
+    flowState.callFlowNodes.forEach((node) => {
+      const params = node.parameters as { targetFlowId?: string | null };
+      const targetFlowId = params?.targetFlowId;
+      const nodePos = node.position || { x: xPosition, y: 80 };
+
+      nodeList.push({
+        id: node.id,
+        type: 'callFlowNode',
+        position: nodePos,
+        data: {
+          node,
+          targetFlowName: targetFlowId ? flowNameLookup[targetFlowId] : undefined,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 250;
+    });
+
+    // Add ApiCall nodes
+    flowState.apiCallNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 80 };
+      const hasOutgoingConnections = nodesWithOutgoingConnections.has(node.id);
+
+      nodeList.push({
+        id: node.id,
+        type: 'apiCallNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+          onAddFromNode: !hasOutgoingConnections && onAddFromNode ? () => onAddFromNode(node.id, 'output', nodePos) : undefined,
+          onDropOnNode: !hasOutgoingConnections && onDropOnNode ? (nodeType: NodeType) => onDropOnNode(nodeType, node.id, 'output', nodePos) : undefined,
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 250;
+    });
+
+    // Add Transform nodes (JavaScriptCodeTransform)
+    flowState.transformNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 80 };
+      // Check if transform node has an input connection
+      const hasInputConnection = nodesWithIncomingConnections.has(node.id);
+      const validationError = hasInputConnection ? undefined : 'Transform node requires an input connection';
+
+      nodeList.push({
+        id: node.id,
+        type: 'transformNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+          validationError,
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 150; // Smaller spacing for transform nodes
+    });
+
+    // Add Link nodes
+    flowState.linkNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 80 };
+      nodeList.push({
+        id: node.id,
+        type: 'linkNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 250;
+    });
 
     return nodeList;
   // Use specific dependencies instead of entire flow object to prevent unnecessary recalculations
@@ -608,12 +648,7 @@ function FlowDiagramInner({
   const edges = useMemo<Edge[]>(() => {
     const edgeList: Edge[] = [];
 
-    // Only show edges if we have UserIntent nodes
-    if (!flowState.hasUserIntentNodes) {
-      return edgeList;
-    }
-
-    // Only show user-created connections from flow.connections
+    // Show user-created connections from flow.connections
     connections.forEach((connection) => {
       // Verify source and target nodes exist using the stable nodeMap
       const sourceNode = nodeMap.get(connection.sourceNodeId);
@@ -633,7 +668,7 @@ function FlowDiagramInner({
         strokeColor = '#60a5fa'; // Default blue
         if (sourceNode.type === 'UserIntent') {
           strokeColor = '#60a5fa'; // Blue for user intent
-        } else if (sourceNode.type === 'StatCard' || sourceNode.type === 'PostList') {
+        } else if (sourceNode.type === 'StatCard' || sourceNode.type === 'PostList' || sourceNode.type === 'RegistryComponent') {
           strokeColor = '#60a5fa'; // Blue for interface
         } else if (sourceNode.type === 'Return') {
           strokeColor = '#22c55e'; // Green for return
@@ -670,7 +705,7 @@ function FlowDiagramInner({
     });
 
     return edgeList;
-  }, [flow.id, nodeMap, flowState.hasUserIntentNodes, connections, handleConnectionDelete, getValidationByConnection, handleShowConnectionDetails]);
+  }, [flow.id, nodeMap, connections, handleConnectionDelete, getValidationByConnection, handleShowConnectionDetails]);
 
   return (
     <>
