@@ -21,7 +21,8 @@
     "card-form": {
       "1.0.0": "Initial release with card number, expiry, CVV and name fields",
       "1.0.1": "Added security attributes (autocomplete, inputMode, spellCheck) and PCI compliance warning",
-      "1.0.2": "Added comprehensive JSDoc documentation"
+      "1.0.2": "Added comprehensive JSDoc documentation",
+      "1.0.3": "Security fix: Enhanced input validation and XSS prevention"
     },
     "pay-confirm": {
       "1.0.0": "Initial release with amount display and confirm actions",
@@ -44,7 +45,8 @@
     "bank-card-form": {
       "1.0.0": "Initial release with compact inline layout for chat",
       "1.0.1": "Added security attributes (autocomplete, inputMode, spellCheck), CVV masking, and PCI compliance warning",
-      "1.0.2": "Added comprehensive JSDoc documentation"
+      "1.0.2": "Added comprehensive JSDoc documentation",
+      "1.0.3": "Security fix: Enhanced input validation and XSS prevention"
     },
     "payment-methods": {
       "1.0.0": "Initial release with card brands and Apple Pay support",
@@ -170,7 +172,8 @@
       "1.0.0": "Initial release with playable video embed",
       "1.0.1": "Improved alt text to include video title",
       "1.0.2": "Security fix: Added YouTube video ID validation to prevent iframe injection",
-      "1.0.3": "Added comprehensive JSDoc documentation"
+      "1.0.3": "Added comprehensive JSDoc documentation",
+      "1.0.4": "Security fix: Stricter video ID validation to prevent XSS"
     },
     "map-carousel": {
       "1.0.0": "Initial release with interactive map and location cards",
