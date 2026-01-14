@@ -15,7 +15,9 @@ import type {
   VerifyEmailChangeResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  DefaultUserCheckResponse,
 } from '@chatgpt-app-builder/shared';
+import { DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
 import { auth } from './auth';
 import { UserAppRoleEntity } from './user-app-role.entity';
 import { PendingInvitationEntity } from './pending-invitation.entity';
@@ -519,6 +521,43 @@ export class UserManagementService {
       return user || null;
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Check if the default admin user exists in the database.
+   * Returns credentials only if the default user exists and can be authenticated.
+   */
+  async checkDefaultUserExists(): Promise<DefaultUserCheckResponse> {
+    try {
+      // Check if user with default email exists
+      const user = await this.getUserByEmail(DEFAULT_ADMIN_USER.email);
+
+      if (!user) {
+        return { exists: false };
+      }
+
+      // Verify the default password still works by attempting sign-in
+      const signInResult = await auth.api.signInEmail({
+        body: {
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
+        },
+      });
+
+      if (signInResult?.user) {
+        return {
+          exists: true,
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
+        };
+      }
+
+      // User exists but password doesn't match (was changed)
+      return { exists: false };
+    } catch {
+      // Sign-in failed - user either doesn't exist or password was changed
+      return { exists: false };
     }
   }
 }

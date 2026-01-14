@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from '../../lib/auth-client';
+import { api } from '../../lib/api';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -10,6 +11,24 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasDefaultUser, setHasDefaultUser] = useState(false);
+
+  // Check for default user on mount and pre-fill credentials
+  useEffect(() => {
+    async function checkDefaultUser() {
+      try {
+        const result = await api.checkDefaultUser();
+        if (result.exists && result.email && result.password) {
+          setEmail(result.email);
+          setPassword(result.password);
+          setHasDefaultUser(true);
+        }
+      } catch {
+        // Silently ignore errors - default user check is optional
+      }
+    }
+    checkDefaultUser();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +66,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {hasDefaultUser && (
+        <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+          Default credentials pre-filled. Click Sign In to continue.
+        </div>
+      )}
+
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}

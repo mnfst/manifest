@@ -27,6 +27,7 @@ describe('UserManagementController', () => {
     addUserToApp: jest.fn(),
     removeUserFromApp: jest.fn(),
     searchUserByEmail: jest.fn(),
+    checkDefaultUserExists: jest.fn(),
   };
 
   const mockAppAccessService = {
@@ -224,6 +225,41 @@ describe('UserManagementController', () => {
       await expect(
         controller.removeUserFromApp('app-1', 'user-2', mockUser),
       ).rejects.toThrow('App not found');
+    });
+  });
+
+  describe('checkDefaultUser', () => {
+    it('should return credentials when default user exists', async () => {
+      const defaultUserResponse = {
+        exists: true,
+        email: 'admin@manifest.build',
+        password: 'admin',
+      };
+      mockUserManagementService.checkDefaultUserExists.mockResolvedValue(defaultUserResponse);
+
+      const result = await controller.checkDefaultUser();
+
+      expect(result).toEqual(defaultUserResponse);
+      expect(mockUserManagementService.checkDefaultUserExists).toHaveBeenCalled();
+    });
+
+    it('should return exists: false when default user does not exist', async () => {
+      const defaultUserResponse = { exists: false };
+      mockUserManagementService.checkDefaultUserExists.mockResolvedValue(defaultUserResponse);
+
+      const result = await controller.checkDefaultUser();
+
+      expect(result).toEqual({ exists: false });
+      expect(mockUserManagementService.checkDefaultUserExists).toHaveBeenCalled();
+    });
+
+    it('should return exists: false when default user password was changed', async () => {
+      const defaultUserResponse = { exists: false };
+      mockUserManagementService.checkDefaultUserExists.mockResolvedValue(defaultUserResponse);
+
+      const result = await controller.checkDefaultUser();
+
+      expect(result).toEqual({ exists: false });
     });
   });
 });

@@ -33,17 +33,14 @@ export function AuthPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo and title */}
         <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center">
+          <div className="mx-auto flex h-12 items-center justify-center">
             <img
-              src="/favicon.svg"
+              src="https://manifest.build/assets/images/logo-transparent.svg"
               alt="Manifest"
-              className="h-16 w-16"
+              className="h-12"
             />
           </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Manifest
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-6 text-sm text-gray-600 dark:text-gray-400">
             Sign in to your account or create a new one
           </p>
         </div>
@@ -51,13 +48,6 @@ export function AuthPage() {
         {/* Auth tabs card */}
         <div className="rounded-lg bg-white p-8 shadow dark:bg-gray-800">
           <AuthTabs />
-        </div>
-
-        {/* Default credentials hint */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Default admin: admin@manifest.build / admin
-          </p>
         </div>
       </div>
     </div>

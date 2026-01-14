@@ -61,6 +61,7 @@ import type {
   VerifyEmailChangeResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  DefaultUserCheckResponse,
   // Analytics types
   AnalyticsTimeRange,
   AppAnalyticsResponse,
@@ -831,6 +832,19 @@ export const api = {
     const queryString = params.toString();
     const endpoint = `/apps/${appId}/analytics${queryString ? `?${queryString}` : ''}`;
     return fetchApi<AppAnalyticsResponse>(endpoint);
+  },
+
+  // ============================================
+  // Auth Helper APIs
+  // ============================================
+
+  /**
+   * Check if default admin user exists (public endpoint)
+   * Returns credentials if the default user exists with default password.
+   * GET /api/users/default-user
+   */
+  async checkDefaultUser(): Promise<DefaultUserCheckResponse> {
+    return fetchApi<DefaultUserCheckResponse>('/users/default-user');
   },
 
 };
