@@ -23,6 +23,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-06
 - TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React 18.3.1, TypeORM 0.3.20 (001-remove-connectors)
 - SQLite (better-sqlite3 11.7.0) via TypeORM - removing ConnectorEntity (001-remove-connectors)
 - SQLite via better-sqlite3 11.7.0 (user data managed by better-auth) (001-edit-account)
+- TypeScript 5.7.2 (strict mode), Node.js >=18.0.0 + React 18.3.1, NestJS 10.4.15, @uiw/react-codemirror 4.25.4, TailwindCSS 3.4.17 (001-app-theme-editor)
+- SQLite via better-sqlite3 11.7.0, TypeORM 0.3.20 (existing `themeVariables` JSON column on AppEntity) (001-app-theme-editor)
 
 - TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM) (001-trigger-node-refactor)
 
@@ -80,9 +82,9 @@ etc.]
 - **Never** create a PR without a description
 
 ## Recent Changes
+- 001-app-theme-editor: Added TypeScript 5.7.2 (strict mode), Node.js >=18.0.0 + React 18.3.1, NestJS 10.4.15, @uiw/react-codemirror 4.25.4, TailwindCSS 3.4.17
 - 001-edit-account: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-auth: Added TypeScript 5.7.2, Node.js >= 18.0.0
-- 001-email: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React Email (@react-email/components, @react-email/render), mailgun.js (or nestjs-mailgun), nodemailer
 
 
 <!-- MANUAL ADDITIONS START -->

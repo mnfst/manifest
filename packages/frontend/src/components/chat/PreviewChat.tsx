@@ -4,7 +4,9 @@ import { Send, Trash2, AlertCircle, Loader2, Wrench, ChevronDown, Check } from '
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../lib/api';
 import { useApiKey } from '../../hooks/useApiKey';
-import type { ChatMessage, ModelOption, ToolCall, ToolResult } from '@chatgpt-app-builder/shared';
+import type { ChatMessage, ModelOption, ToolCall, ToolResult, ThemeVariables } from '@chatgpt-app-builder/shared';
+import { ThemeProvider } from '../editor/ThemeProvider';
+import { Stats } from '../ui/stats';
 
 interface PreviewChatProps {
   flowId: string;
@@ -12,6 +14,8 @@ interface PreviewChatProps {
   messages: ChatMessage[];
   /** Callback to update messages */
   onMessagesChange: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
+  /** App theme variables for styling visual output */
+  themeVariables?: ThemeVariables;
 }
 
 /**
@@ -19,7 +23,7 @@ interface PreviewChatProps {
  * Displays a chat interface with model selection and tool calling support
  * Messages are managed externally to persist across tab switches
  */
-export function PreviewChat({ flowId, messages, onMessagesChange }: PreviewChatProps) {
+export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables }: PreviewChatProps) {
   const { apiKey, hasApiKey } = useApiKey();
   const [inputValue, setInputValue] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -248,7 +252,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange }: PreviewChatP
         )}
 
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble key={message.id} message={message} themeVariables={themeVariables} />
         ))}
 
         {error && (
@@ -294,11 +298,14 @@ export function PreviewChat({ flowId, messages, onMessagesChange }: PreviewChatP
 /**
  * Individual message bubble component
  */
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({ message, themeVariables }: { message: ChatMessage; themeVariables?: ThemeVariables }) {
   const isUser = message.role === 'user';
   const isTool = message.role === 'tool';
 
   if (isTool && message.toolResult) {
+    // Check if we have structured content with stats to render visually
+    const hasVisualContent = message.toolResult.structuredContent?.stats;
+
     return (
       <div className="flex justify-start">
         <div className="max-w-[85%] px-4 py-3 rounded-lg bg-muted border text-sm">
@@ -312,13 +319,34 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             )}
           </div>
           <div className="space-y-2">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Response:</div>
-              <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-64 overflow-y-auto">
-                {message.toolResult.content || message.toolResult.error || 'No output'}
-              </pre>
-            </div>
-            {message.toolResult.structuredContent && Object.keys(message.toolResult.structuredContent).length > 0 && (
+            {/* Visual output for stat cards */}
+            {hasVisualContent && themeVariables && (
+              <div className="rounded-lg overflow-hidden border">
+                <ThemeProvider themeVariables={themeVariables}>
+                  <Stats data={message.toolResult.structuredContent} />
+                </ThemeProvider>
+              </div>
+            )}
+            {/* Text response */}
+            {message.toolResult.content && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Response:</div>
+                <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-64 overflow-y-auto">
+                  {message.toolResult.content}
+                </pre>
+              </div>
+            )}
+            {/* Error message */}
+            {message.toolResult.error && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Error:</div>
+                <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-64 overflow-y-auto text-red-600">
+                  {message.toolResult.error}
+                </pre>
+              </div>
+            )}
+            {/* Structured content as JSON (only if no visual rendering or no theme) */}
+            {message.toolResult.structuredContent && Object.keys(message.toolResult.structuredContent).length > 0 && (!hasVisualContent || !themeVariables) && (
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Structured Content:</div>
                 <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-40 overflow-y-auto">

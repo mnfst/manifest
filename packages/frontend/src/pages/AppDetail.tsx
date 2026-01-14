@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Pencil, Users } from 'lucide-react';
-import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
+import { Pencil, Users, Palette } from 'lucide-react';
+import type { App, Flow, AppStatus, ThemeVariables } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
 import { CreateFlowModal } from '../components/flow/CreateFlowModal';
@@ -12,8 +12,9 @@ import { EditAppModal } from '../components/app/EditAppModal';
 import { UserManagement } from '../components/app/UserManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
 import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
+import { ThemeEditor } from '../components/theme-editor';
 
-type AppDetailTab = 'flows' | 'users' | 'analytics';
+type AppDetailTab = 'flows' | 'users' | 'analytics' | 'theme';
 
 /**
  * App detail page - Shows app info and flows list
@@ -159,6 +160,12 @@ function AppDetail() {
     } finally {
       setIsEditingApp(false);
     }
+  };
+
+  const handleSaveTheme = async (themeVariables: ThemeVariables) => {
+    if (!appId) return;
+    const updatedApp = await api.updateApp(appId, { themeVariables });
+    setApp(updatedApp);
   };
 
   if (isLoading) {
@@ -316,6 +323,16 @@ function AppDetail() {
             >
               Analytics
             </button>
+            <button
+              onClick={() => setActiveTab('theme')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'theme'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
+              }`}
+            >
+              Theme
+            </button>
           </nav>
         </div>
       </div>
@@ -358,6 +375,17 @@ function AppDetail() {
             >
               <Users className="w-4 h-4" />
               Users
+            </button>
+            <button
+              onClick={() => setActiveTab('theme')}
+              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'theme'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              Theme
             </button>
           </nav>
         </div>
@@ -430,6 +458,16 @@ function AppDetail() {
               </p>
             </div>
             <UserManagement appId={appId} />
+          </section>
+        )}
+
+        {/* Theme Section */}
+        {activeTab === 'theme' && app && (
+          <section>
+            <ThemeEditor
+              initialVariables={app.themeVariables}
+              onSave={handleSaveTheme}
+            />
           </section>
         )}
       </main>
