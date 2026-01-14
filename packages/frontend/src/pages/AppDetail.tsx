@@ -67,7 +67,7 @@ function AppDetail() {
     loadData();
   }, [appId]);
 
-  const handleCreateFlow = async (data: { name: string; description?: string; parameters?: import('@chatgpt-app-builder/shared').FlowParameter[] }) => {
+  const handleCreateFlow = async (data: { name: string; description?: string }) => {
     if (!appId) return;
 
     setIsCreatingFlow(true);
@@ -301,7 +301,7 @@ function AppDetail() {
               onClick={() => setActiveTab('flows')}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'flows'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
@@ -314,7 +314,7 @@ function AppDetail() {
               onClick={() => setActiveTab('analytics')}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'analytics'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
@@ -324,7 +324,7 @@ function AppDetail() {
               onClick={() => setActiveTab('collaborators')}
               className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'collaborators'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >

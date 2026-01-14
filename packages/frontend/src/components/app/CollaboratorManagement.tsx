@@ -221,19 +221,19 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="user@example.com"
             required
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           />
           <select
             value={newRole}
             onChange={(e) => setNewRole(e.target.value as AppRole)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           >
             <option value="admin">Admin</option>
           </select>
           <button
             type="submit"
             disabled={isAdding || !newEmail.trim()}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isAdding ? 'Adding...' : 'Add'}
           </button>
@@ -266,7 +266,7 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     user.status === 'pending'
                       ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                      : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400'
+                      : 'bg-primary/10 dark:bg-primary/20 text-primary'
                   }`}
                 >
                   {(user.name || user.email).charAt(0).toUpperCase()}
@@ -342,7 +342,7 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
                   <button
                     onClick={() => handleResendInvitation(user.id)}
                     disabled={resendingInvitationId === user.id}
-                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Resend invitation email"
                   >
                     {resendingInvitationId === user.id ? (
