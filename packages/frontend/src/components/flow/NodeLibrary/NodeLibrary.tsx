@@ -132,16 +132,19 @@ export function NodeLibrary({
   }, [isOpen, fetchRegistryItems]);
 
   // Extract registry categories from items (preserves registry order)
+  // Uses first category from each item's categories array
   const registryCategories = useMemo((): RegistryCategoryInfo[] => {
     const categoryMap = new Map<string, { count: number; order: number }>();
 
     registryItems.forEach((item, index) => {
-      const existing = categoryMap.get(item.category);
+      const category = item.categories[0];
+      if (!category) return;
+      const existing = categoryMap.get(category);
       if (existing) {
         existing.count++;
       } else {
         // First occurrence determines order
-        categoryMap.set(item.category, { count: 1, order: index });
+        categoryMap.set(category, { count: 1, order: index });
       }
     });
 
@@ -158,7 +161,7 @@ export function NodeLibrary({
   // Get registry items for selected category
   const registryItemsInCategory = useMemo(() => {
     if (!selectedRegistryCategoryId) return [];
-    return registryItems.filter(item => item.category === selectedRegistryCategoryId);
+    return registryItems.filter(item => item.categories[0] === selectedRegistryCategoryId);
   }, [registryItems, selectedRegistryCategoryId]);
 
   // Sort categories by order
@@ -189,7 +192,7 @@ export function NodeLibrary({
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.categories[0]?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
       )
     : [];
 
