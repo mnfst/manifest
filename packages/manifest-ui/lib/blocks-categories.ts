@@ -43,9 +43,12 @@ function buildBlockCategories(): BlockCategory[] {
   const categoryMap = new Map<string, { id: string; name: string }[]>()
 
   for (const item of registry.items) {
-    if (!item.category) continue
+    // Support both 'categories' array (new format) and 'category' string (old format)
+    const categories = item.categories
+    if (!categories || categories.length === 0) continue
 
-    const category = item.category
+    // Use the first category (primary category)
+    const category = categories[0]
     if (!categoryMap.has(category)) {
       categoryMap.set(category, [])
     }

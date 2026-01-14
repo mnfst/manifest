@@ -19,10 +19,16 @@ import { describe, it, expect } from 'vitest'
 const REGISTRY_JSON_PATH = resolve(__dirname, '..', 'registry.json')
 const CHANGELOG_JSON_PATH = resolve(__dirname, '..', 'changelog.json')
 
+interface RegistryMeta {
+  preview?: string
+  version?: string
+  changelog?: Record<string, string>
+}
+
 interface RegistryItem {
   name: string
-  version: string
-  category?: string
+  categories?: string[]
+  meta?: RegistryMeta
   files: Array<{ path: string }>
 }
 
@@ -32,6 +38,20 @@ interface Registry {
 
 interface Changelog {
   components: Record<string, Record<string, string>>
+}
+
+/**
+ * Helper to get version from registry item (now in meta.version)
+ */
+function getVersion(item: RegistryItem): string | undefined {
+  return item.meta?.version
+}
+
+/**
+ * Helper to get category from registry item (now categories array, take first)
+ */
+function getCategory(item: RegistryItem): string | undefined {
+  return item.categories?.[0]
 }
 
 /**
@@ -92,7 +112,10 @@ function loadCurrentRegistry(): Registry {
 function buildVersionMap(registry: Registry): Map<string, string> {
   const map = new Map<string, string>()
   for (const item of registry.items) {
-    map.set(item.name, item.version)
+    const version = getVersion(item)
+    if (version) {
+      map.set(item.name, version)
+    }
   }
   return map
 }
@@ -255,14 +278,16 @@ describe('Version Bump Enforcement', () => {
     const changelog = loadChangelog()
 
     for (const item of currentRegistry.items) {
-      const { name, version } = item
+      const name = item.name
+      const version = getVersion(item)
       const componentChangelog = changelog.components[name]
 
       it(`"${name}" v${version} should have a changelog entry`, () => {
+        expect(version).toBeDefined()
         expect(componentChangelog).toBeDefined()
-        expect(componentChangelog[version]).toBeDefined()
-        expect(typeof componentChangelog[version]).toBe('string')
-        expect(componentChangelog[version].length).toBeGreaterThan(0)
+        expect(componentChangelog[version!]).toBeDefined()
+        expect(typeof componentChangelog[version!]).toBe('string')
+        expect(componentChangelog[version!].length).toBeGreaterThan(0)
       })
     }
   })
@@ -270,7 +295,8 @@ describe('Version Bump Enforcement', () => {
   describe('Category validation', () => {
     it('should have valid categories for all components', () => {
       for (const item of currentRegistry.items) {
-        const { name, category, files } = item
+        const { name, files } = item
+        const category = getCategory(item)
 
         // Category must be present
         expect(category).toBeDefined()
@@ -286,7 +312,8 @@ describe('Version Bump Enforcement', () => {
     })
 
     for (const item of currentRegistry.items) {
-      const { name, category, files } = item
+      const { name, files } = item
+      const category = getCategory(item)
       const derivedCategory = files && files.length > 0
         ? extractCategoryFromPath(files[0].path)
         : null
@@ -302,7 +329,7 @@ describe('Version Bump Enforcement', () => {
               `  Category from file path: ${derivedCategory}\n` +
               `  File path: ${files[0].path}\n\n` +
               `The category is automatically derived from the folder name.\n` +
-              `Either update the category in registry.json to "${derivedCategory}"\n` +
+              `Either update the categories in registry.json to ["${derivedCategory}"]\n` +
               `or move the component to registry/${category}/`
             )
           }
