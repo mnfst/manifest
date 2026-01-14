@@ -34,6 +34,8 @@ export interface InterfaceEditorProps {
   initialAppearanceConfig?: AppearanceConfig;
   /** Custom appearance options (for registry components) - overrides static registry */
   appearanceOptions?: RegistryAppearanceOption[];
+  /** All files for the component (for registry components with multiple files) */
+  files?: Array<{ path: string; content: string }>;
   /** Callback when editor is closed */
   onClose: () => void;
   /** Callback when changes are saved */
@@ -50,6 +52,7 @@ export function InterfaceEditor({
   initialCode,
   initialAppearanceConfig,
   appearanceOptions,
+  files,
   onClose,
   onSave,
 }: InterfaceEditorProps) {
@@ -57,6 +60,12 @@ export function InterfaceEditor({
   const defaultCode = getTemplateDefaultCode('stat-card');
   const startingCode = initialCode ?? defaultCode;
   const startingAppearanceConfig = initialAppearanceConfig ?? getDefaultAppearanceConfig(componentType);
+
+  // Calculate sibling files (all except the main file being edited)
+  const siblingFiles = useMemo(() => {
+    if (!files || files.length <= 1) return undefined;
+    return files.slice(1); // Skip files[0] which is the main code
+  }, [files]);
 
   // Editor state - unified for all tabs
   const [name, setName] = useState(initialNodeName);
@@ -290,6 +299,7 @@ export function InterfaceEditor({
               sampleData={sampleData}
               renderKey={previewKey}
               appearanceConfig={appearanceConfig}
+              siblingFiles={siblingFiles}
             />
           </div>
         </TabsContent>

@@ -804,15 +804,17 @@ function FlowDetail() {
               {editingCodeNode && flowId && (() => {
                 const params = editingCodeNode.parameters as unknown as StatCardNodeParameters;
 
-                // For RegistryComponent, get code from files[0].content
+                // For RegistryComponent, get code from files[0].content and pass all files
                 // For StatCard/PostList, use customCode
                 let initialCode: string | undefined;
                 let componentType: string = editingCodeNode.type;
                 let appearanceOptions: RegistryNodeParameters['appearanceOptions'] = undefined;
+                let files: Array<{ path: string; content: string }> | undefined;
 
                 if (editingCodeNode.type === 'RegistryComponent') {
                   const registryParams = editingCodeNode.parameters as unknown as RegistryNodeParameters;
                   initialCode = registryParams?.files?.[0]?.content;
+                  files = registryParams?.files;
                   // Use the registry component name for appearance lookup (e.g., 'TicketTierSelect')
                   componentType = registryParams?.registryName ?? editingCodeNode.type;
                   // Get appearance options from registry params if available,
@@ -837,6 +839,7 @@ function FlowDetail() {
                     initialCode={initialCode}
                     initialAppearanceConfig={params.appearanceConfig}
                     appearanceOptions={appearanceOptions}
+                    files={files}
                     onClose={handleCloseCodeEditor}
                     onSave={handleSaveCode}
                   />
