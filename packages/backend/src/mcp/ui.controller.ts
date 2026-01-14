@@ -273,12 +273,16 @@ export class UiController {
     const host = res.req?.get('host') || 'localhost:3000';
     const mcpUrl = `${protocol}://${host}/servers/${slug}/mcp`;
 
+    // Convert theme variables to CSS
+    const cssVariables = this.themeToCss(app.themeVariables);
+
     // Inject variables into template (T019)
     const html = template
       .replace(/\{\{appName\}\}/g, app.name)
       .replace(/\{\{appDescription\}\}/g, app.description || 'A ChatGPT App Builder MCP Server')
       .replace(/\{\{mcpUrl\}\}/g, mcpUrl)
-      .replace(/\{\{toolsList\}\}/g, toolsListHtml);
+      .replace(/\{\{toolsList\}\}/g, toolsListHtml)
+      .replace(/\{\{themeVariables\}\}/g, cssVariables);
 
     res.setHeader('Content-Type', 'text/html');
     res.send(html);

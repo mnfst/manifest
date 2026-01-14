@@ -840,6 +840,7 @@ function FlowDetail() {
                     initialAppearanceConfig={params.appearanceConfig}
                     appearanceOptions={appearanceOptions}
                     files={files}
+                    themeVariables={app?.themeVariables}
                     onClose={handleCloseCodeEditor}
                     onSave={handleSaveCode}
                   />

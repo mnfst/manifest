@@ -1296,7 +1296,7 @@ export class McpToolService {
         }
       }
 
-      const widgetHtml = this.generateCallFlowWidgetHtml(trigger.name, targetToolName, targetFlowName);
+      const widgetHtml = this.generateCallFlowWidgetHtml(trigger.name, targetToolName, targetFlowName, app.themeVariables);
       return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
     } else if (viewMatch && viewMatch[1] === appSlug) {
       const toolName = viewMatch[2];
@@ -1427,7 +1427,17 @@ export class McpToolService {
 </html>`;
   }
 
-  private generateCallFlowWidgetHtml(flowName: string, targetToolName: string, targetFlowName: string): string {
+  private generateCallFlowWidgetHtml(
+    flowName: string,
+    targetToolName: string,
+    targetFlowName: string,
+    themeVariables: Record<string, string>
+  ): string {
+    const cssVariables = Object.entries(themeVariables)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => `${key}: ${value};`)
+      .join('\n      ');
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1435,9 +1445,15 @@ export class McpToolService {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${flowName} - Call Flow</title>
   <style>
+    :root {
+      ${cssVariables}
+      --primary: 222.2 47.4% 11.2%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; padding: 12px; }
-    .status { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
-    .spinner { width: 16px; height: 16px; border: 2px solid #e5e5e5; border-top-color: #10a37f; border-radius: 50%; animation: spin 1s linear infinite; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 14px; color: hsl(var(--muted-foreground)); }
+    .spinner { width: 16px; height: 16px; border: 2px solid hsl(var(--border)); border-top-color: hsl(var(--primary)); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
