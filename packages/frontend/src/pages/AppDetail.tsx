@@ -9,12 +9,12 @@ import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
-import { UserManagement } from '../components/app/UserManagement';
+import { CollaboratorManagement } from '../components/app/CollaboratorManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
 import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
 import { ThemeEditor } from '../components/theme-editor';
 
-type AppDetailTab = 'flows' | 'users' | 'analytics' | 'theme';
+type AppDetailTab = 'flows' | 'collaborators' | 'analytics' | 'theme';
 
 /**
  * App detail page - Shows app info and flows list
@@ -68,7 +68,7 @@ function AppDetail() {
     loadData();
   }, [appId]);
 
-  const handleCreateFlow = async (data: { name: string; description?: string; parameters?: import('@chatgpt-app-builder/shared').FlowParameter[] }) => {
+  const handleCreateFlow = async (data: { name: string; description?: string }) => {
     if (!appId) return;
 
     setIsCreatingFlow(true);
@@ -299,44 +299,6 @@ function AppDetail() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b">
-        <div className="max-w-4xl mx-auto px-4">
-          <nav className="flex gap-6" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('flows')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'flows'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Flows
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'analytics'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Analytics
-            </button>
-            <button
-              onClick={() => setActiveTab('theme')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'theme'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Theme
-            </button>
-          </nav>
-        </div>
-      </div>
-
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Tab Navigation */}
@@ -346,7 +308,7 @@ function AppDetail() {
               onClick={() => setActiveTab('flows')}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'flows'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
@@ -359,22 +321,22 @@ function AppDetail() {
               onClick={() => setActiveTab('analytics')}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'analytics'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
               Analytics
             </button>
             <button
-              onClick={() => setActiveTab('users')}
+              onClick={() => setActiveTab('collaborators')}
               className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'users'
-                  ? 'border-indigo-600 text-indigo-600'
+                activeTab === 'collaborators'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
               <Users className="w-4 h-4" />
-              Users
+              Collaborators
             </button>
             <button
               onClick={() => setActiveTab('theme')}
@@ -448,16 +410,16 @@ function AppDetail() {
           <AnalyticsDashboard appId={appId} />
         )}
 
-        {/* Users Section */}
-        {activeTab === 'users' && appId && (
+        {/* Collaborators Section */}
+        {activeTab === 'collaborators' && appId && (
           <section>
             <div className="mb-6">
-              <h2 className="text-lg font-semibold">User Management</h2>
+              <h2 className="text-lg font-semibold">Collaborator Management</h2>
               <p className="text-sm text-muted-foreground">
-                Manage who has access to this app
+                Manage who can work on this app
               </p>
             </div>
-            <UserManagement appId={appId} />
+            <CollaboratorManagement appId={appId} />
           </section>
         )}
 

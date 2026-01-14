@@ -6,6 +6,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { VerifyEmailChangePage } from './pages/VerifyEmailChangePage';
 import { Sidebar } from './components/layout/Sidebar';
 import { AuthPage } from './pages/AuthPage';
+import { AcceptInvitePage } from './pages/AcceptInvitePage';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { api } from './lib/api';
 import type { App } from '@chatgpt-app-builder/shared';
@@ -90,11 +91,30 @@ function ProtectedRoutes() {
  * Sidebar provides persistent navigation across all pages
  * Auth page is public, all other routes require authentication
  */
+/**
+ * Accept invite page wrapped with AuthProvider but without sidebar
+ * Needs auth context to check if user is logged in
+ */
+function AcceptInviteWrapper() {
+  return (
+    <AuthProvider>
+      <AcceptInvitePage />
+    </AuthProvider>
+  );
+}
+
+/**
+ * Root application component with routing
+ * Routes follow App -> Flow -> View hierarchy
+ * Sidebar provides persistent navigation across all pages
+ * Auth page is public, all other routes require authentication
+ */
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/accept-invite" element={<AcceptInviteWrapper />} />
         <Route path="/*" element={<ProtectedRoutes />} />
       </Routes>
     </BrowserRouter>

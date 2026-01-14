@@ -45,8 +45,14 @@ import type {
   FlowSchemasResponse,
   // Auth types
   AppUser,
+  AppUserListItem,
   AddUserRequest,
   UserProfile,
+  PendingInvitation,
+  CreateInvitationRequest,
+  AcceptInvitationRequest,
+  InvitationValidation,
+  AcceptInvitationResponse,
   UpdateProfileRequest,
   UpdateProfileResponse,
   ChangeEmailRequest,
@@ -55,6 +61,7 @@ import type {
   VerifyEmailChangeResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  DefaultUserCheckResponse,
   // Analytics types
   AnalyticsTimeRange,
   AppAnalyticsResponse,
@@ -716,11 +723,11 @@ export const api = {
   },
 
   /**
-   * List users with access to an app
+   * List users with access to an app (including pending invitations)
    * GET /api/apps/:appId/users
    */
-  async listAppUsers(appId: string): Promise<AppUser[]> {
-    return fetchApi<AppUser[]>(`/apps/${appId}/users`);
+  async listAppUsers(appId: string): Promise<AppUserListItem[]> {
+    return fetchApi<AppUserListItem[]>(`/apps/${appId}/users`);
   },
 
   /**
@@ -745,6 +752,68 @@ export const api = {
   },
 
   // ============================================
+  // Invitation APIs
+  // ============================================
+
+  /**
+   * Create an invitation for a non-registered user
+   * POST /api/apps/:appId/invitations
+   */
+  async createInvitation(appId: string, request: CreateInvitationRequest): Promise<PendingInvitation> {
+    return fetchApi<PendingInvitation>(`/apps/${appId}/invitations`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * List pending invitations for an app
+   * GET /api/apps/:appId/invitations
+   */
+  async listInvitations(appId: string): Promise<PendingInvitation[]> {
+    return fetchApi<PendingInvitation[]>(`/apps/${appId}/invitations`);
+  },
+
+  /**
+   * Revoke a pending invitation
+   * DELETE /api/apps/:appId/invitations/:invitationId
+   */
+  async revokeInvitation(appId: string, invitationId: string): Promise<void> {
+    await fetchApi<void>(`/apps/${appId}/invitations/${invitationId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Resend an invitation email
+   * POST /api/apps/:appId/invitations/:invitationId/resend
+   */
+  async resendInvitation(appId: string, invitationId: string): Promise<PendingInvitation> {
+    return fetchApi<PendingInvitation>(`/apps/${appId}/invitations/${invitationId}/resend`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Validate an invitation token (public endpoint)
+   * GET /api/invitations/validate?token=...
+   */
+  async validateInvitation(token: string): Promise<InvitationValidation> {
+    return fetchApi<InvitationValidation>(`/invitations/validate?token=${encodeURIComponent(token)}`);
+  },
+
+  /**
+   * Accept an invitation
+   * POST /api/invitations/accept
+   */
+  async acceptInvitation(request: AcceptInvitationRequest): Promise<AcceptInvitationResponse> {
+    return fetchApi<AcceptInvitationResponse>('/invitations/accept', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  // ============================================
   // Analytics APIs
   // ============================================
 
@@ -763,6 +832,19 @@ export const api = {
     const queryString = params.toString();
     const endpoint = `/apps/${appId}/analytics${queryString ? `?${queryString}` : ''}`;
     return fetchApi<AppAnalyticsResponse>(endpoint);
+  },
+
+  // ============================================
+  // Auth Helper APIs
+  // ============================================
+
+  /**
+   * Check if default admin user exists (public endpoint)
+   * Returns credentials if the default user exists with default password.
+   * GET /api/users/default-user
+   */
+  async checkDefaultUser(): Promise<DefaultUserCheckResponse> {
+    return fetchApi<DefaultUserCheckResponse>('/users/default-user');
   },
 
 };

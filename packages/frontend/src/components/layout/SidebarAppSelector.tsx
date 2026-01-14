@@ -149,11 +149,11 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
       {/* Dropdown */}
       {isOpen && (
         <div
-          className="absolute left-2 right-2 mt-1 bg-card border rounded-lg shadow-lg overflow-hidden z-50"
+          className="absolute left-2 right-2 mt-1 bg-nav border border-nav-foreground/20 rounded-lg shadow-lg overflow-hidden z-50"
           role="listbox"
         >
           {isLoading ? (
-            <div className="p-3 text-center text-muted-foreground text-sm">
+            <div className="p-3 text-center text-nav-foreground/60 text-sm">
               Loading apps...
             </div>
           ) : (
@@ -161,7 +161,7 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
               {/* Apps list */}
               <div className="max-h-48 overflow-y-auto">
                 {apps.length === 0 ? (
-                  <div className="p-3 text-center text-muted-foreground text-sm">
+                  <div className="p-3 text-center text-nav-foreground/60 text-sm">
                     No apps yet
                   </div>
                 ) : (
@@ -169,8 +169,8 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
                     <button
                       key={app.id}
                       onClick={() => handleAppSelect(app)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/50 transition-colors ${
-                        app.id === currentApp?.id ? 'bg-muted/30' : ''
+                      className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-nav-hover transition-colors text-nav-foreground ${
+                        app.id === currentApp?.id ? 'bg-nav-hover' : ''
                       }`}
                       role="option"
                       aria-selected={app.id === currentApp?.id}
@@ -195,7 +195,7 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
                       </span>
                       {/* Current indicator */}
                       {app.id === currentApp?.id && (
-                        <span className="text-xs text-muted-foreground">Current</span>
+                        <span className="text-xs text-nav-foreground/60">Current</span>
                       )}
                     </button>
                   ))
@@ -203,10 +203,10 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
               </div>
 
               {/* Create new app */}
-              <div className="border-t">
+              <div className="border-t border-nav-foreground/20">
                 <button
                   onClick={handleCreateApp}
-                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/50 transition-colors text-primary"
+                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-nav-hover transition-colors text-primary"
                 >
                   <Plus className="w-5 h-5" />
                   <span className="text-sm font-medium">Create new app</span>

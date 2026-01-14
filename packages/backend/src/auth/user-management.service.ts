@@ -7,6 +7,7 @@ import { randomBytes } from 'crypto';
 import type {
   AppRole,
   AppUser,
+  AppUserListItem,
   UpdateProfileRequest,
   UpdateProfileResponse,
   ChangeEmailRequest,
@@ -14,9 +15,12 @@ import type {
   VerifyEmailChangeResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  DefaultUserCheckResponse,
 } from '@chatgpt-app-builder/shared';
+import { DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
 import { auth } from './auth';
 import { UserAppRoleEntity } from './user-app-role.entity';
+import { PendingInvitationEntity } from './pending-invitation.entity';
 import { EmailVerificationTokenEntity } from './entities/email-verification-token.entity';
 import { AppAccessService } from './app-access.service';
 import { EmailService } from '../email/email.service';
@@ -29,6 +33,8 @@ export class UserManagementService {
   constructor(
     @InjectRepository(UserAppRoleEntity)
     private readonly userAppRoleRepository: Repository<UserAppRoleEntity>,
+    @InjectRepository(PendingInvitationEntity)
+    private readonly invitationRepository: Repository<PendingInvitationEntity>,
     @InjectRepository(EmailVerificationTokenEntity)
     private readonly emailVerificationTokenRepository: Repository<EmailVerificationTokenEntity>,
     private readonly appAccessService: AppAccessService,
@@ -71,13 +77,80 @@ export class UserManagementService {
   }
 
   /**
+   * Get all users with access to an app, including pending invitations
+   */
+  async getAppUsersWithPending(appId: string): Promise<AppUserListItem[]> {
+    // Get active users
+    const roles = await this.userAppRoleRepository.find({
+      where: { appId },
+      order: { createdAt: 'ASC' },
+    });
+
+    const activeUsers: AppUserListItem[] = [];
+
+    for (const role of roles) {
+      const user = await this.getUserById(role.userId);
+      if (user) {
+        activeUsers.push({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: role.role,
+          isOwner: role.role === 'owner',
+          createdAt: role.createdAt.toISOString(),
+          status: 'active',
+        });
+      }
+    }
+
+    // Get pending invitations
+    const invitations = await this.invitationRepository.find({
+      where: { appId },
+      order: { createdAt: 'DESC' },
+    });
+
+    // Get inviter names
+    const inviterIds = [...new Set(invitations.map(i => i.inviterId))];
+    const inviters = new Map<string, string>();
+    for (const id of inviterIds) {
+      const user = await this.getUserById(id);
+      if (user) {
+        inviters.set(id, user.name || user.email);
+      }
+    }
+
+    const pendingUsers: AppUserListItem[] = invitations.map(inv => ({
+      id: inv.id,
+      email: inv.email,
+      role: inv.role,
+      createdAt: inv.createdAt.toISOString(),
+      status: 'pending' as const,
+      invitedBy: inv.inviterId,
+      inviterName: inviters.get(inv.inviterId),
+    }));
+
+    // Combine and sort: owners first, then active users, then pending by email
+    const combined = [...activeUsers, ...pendingUsers];
+    return combined.sort((a, b) => {
+      // Owners first
+      if (a.isOwner && !b.isOwner) return -1;
+      if (!a.isOwner && b.isOwner) return 1;
+      // Active users before pending
+      if (a.status === 'active' && b.status === 'pending') return -1;
+      if (a.status === 'pending' && b.status === 'active') return 1;
+      // Then by email
+      return a.email.localeCompare(b.email);
+    });
+  }
+
+  /**
    * Add a user to an app by email
    */
   async addUserToApp(appId: string, email: string, role: AppRole): Promise<AppUser> {
     // Find user by email
     const user = await this.getUserByEmail(email);
     if (!user) {
-      throw new BadRequestException('User not found. They must sign up first.');
+      throw new NotFoundException('User not found. They must sign up first or be invited.');
     }
 
     // Check if user already has access
@@ -448,6 +521,43 @@ export class UserManagementService {
       return user || null;
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Check if the default admin user exists in the database.
+   * Returns credentials only if the default user exists and can be authenticated.
+   */
+  async checkDefaultUserExists(): Promise<DefaultUserCheckResponse> {
+    try {
+      // Check if user with default email exists
+      const user = await this.getUserByEmail(DEFAULT_ADMIN_USER.email);
+
+      if (!user) {
+        return { exists: false };
+      }
+
+      // Verify the default password still works by attempting sign-in
+      const signInResult = await auth.api.signInEmail({
+        body: {
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
+        },
+      });
+
+      if (signInResult?.user) {
+        return {
+          exists: true,
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
+        };
+      }
+
+      // User exists but password doesn't match (was changed)
+      return { exists: false };
+    } catch {
+      // Sign-in failed - user either doesn't exist or password was changed
+      return { exists: false };
     }
   }
 }

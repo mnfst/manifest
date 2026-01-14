@@ -16,16 +16,19 @@ import type { Request } from 'express';
 import type {
   AddUserRequest,
   AppUser,
+  AppUserListItem,
   UserProfile,
   UpdateProfileResponse,
   ChangeEmailResponse,
   VerifyEmailChangeResponse,
   ChangePasswordResponse,
+  DefaultUserCheckResponse,
 } from '@chatgpt-app-builder/shared';
 import { UserManagementService } from './user-management.service';
 import { AppAccessGuard } from './app-access.guard';
 import { AppAccessService } from './app-access.service';
 import { CurrentUser, type SessionUser } from './decorators/current-user.decorator';
+import { Public } from './decorators/public.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangeEmailDto } from './dto/change-email.dto';
 import { VerifyEmailChangeDto } from './dto/verify-email-change.dto';
@@ -124,13 +127,13 @@ export class UserManagementController {
   }
 
   /**
-   * List users with access to an app
+   * List users with access to an app, including pending invitations
    * Returns 404 if user doesn't have access to the app
    */
   @Get('apps/:appId/users')
   @UseGuards(AppAccessGuard)
-  async listAppUsers(@Param('appId') appId: string): Promise<AppUser[]> {
-    return this.userManagementService.getAppUsers(appId);
+  async listAppUsers(@Param('appId') appId: string): Promise<AppUserListItem[]> {
+    return this.userManagementService.getAppUsersWithPending(appId);
   }
 
   /**
@@ -173,5 +176,16 @@ export class UserManagementController {
     }
 
     await this.userManagementService.removeUserFromApp(appId, userId);
+  }
+
+  /**
+   * Check if default admin user exists (public - no auth required)
+   * Returns credentials if the default user exists with default password.
+   * Used to pre-fill login form for development convenience.
+   */
+  @Get('users/default-user')
+  @Public()
+  async checkDefaultUser(): Promise<DefaultUserCheckResponse> {
+    return this.userManagementService.checkDefaultUserExists();
   }
 }

@@ -23,9 +23,11 @@ describe('UserManagementController', () => {
 
   const mockUserManagementService = {
     getAppUsers: jest.fn(),
+    getAppUsersWithPending: jest.fn(),
     addUserToApp: jest.fn(),
     removeUserFromApp: jest.fn(),
     searchUserByEmail: jest.fn(),
+    checkDefaultUserExists: jest.fn(),
   };
 
   const mockAppAccessService = {
@@ -137,12 +139,12 @@ describe('UserManagementController', () => {
           createdAt: '2024-01-02T00:00:00.000Z',
         },
       ];
-      mockUserManagementService.getAppUsers.mockResolvedValue(appUsers);
+      mockUserManagementService.getAppUsersWithPending.mockResolvedValue(appUsers);
 
       const result = await controller.listAppUsers('app-1');
 
       expect(result).toEqual(appUsers);
-      expect(mockUserManagementService.getAppUsers).toHaveBeenCalledWith('app-1');
+      expect(mockUserManagementService.getAppUsersWithPending).toHaveBeenCalledWith('app-1');
     });
   });
 
@@ -223,6 +225,41 @@ describe('UserManagementController', () => {
       await expect(
         controller.removeUserFromApp('app-1', 'user-2', mockUser),
       ).rejects.toThrow('App not found');
+    });
+  });
+
+  describe('checkDefaultUser', () => {
+    it('should return credentials when default user exists', async () => {
+      const defaultUserResponse = {
+        exists: true,
+        email: 'admin@manifest.build',
+        password: 'admin',
+      };
+      mockUserManagementService.checkDefaultUserExists.mockResolvedValue(defaultUserResponse);
+
+      const result = await controller.checkDefaultUser();
+
+      expect(result).toEqual(defaultUserResponse);
+      expect(mockUserManagementService.checkDefaultUserExists).toHaveBeenCalled();
+    });
+
+    it('should return exists: false when default user does not exist', async () => {
+      const defaultUserResponse = { exists: false };
+      mockUserManagementService.checkDefaultUserExists.mockResolvedValue(defaultUserResponse);
+
+      const result = await controller.checkDefaultUser();
+
+      expect(result).toEqual({ exists: false });
+      expect(mockUserManagementService.checkDefaultUserExists).toHaveBeenCalled();
+    });
+
+    it('should return exists: false when default user password was changed', async () => {
+      const defaultUserResponse = { exists: false };
+      mockUserManagementService.checkDefaultUserExists.mockResolvedValue(defaultUserResponse);
+
+      const result = await controller.checkDefaultUser();
+
+      expect(result).toEqual({ exists: false });
     });
   });
 });

@@ -83,6 +83,7 @@ etc.]
 
 ## Recent Changes
 - 001-app-theme-editor: Added TypeScript 5.7.2 (strict mode), Node.js >=18.0.0 + React 18.3.1, NestJS 10.4.15, @uiw/react-codemirror 4.25.4, TailwindCSS 3.4.17
+- 001-app-invites: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-edit-account: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-auth: Added TypeScript 5.7.2, Node.js >= 18.0.0
 

@@ -60,17 +60,17 @@ export function UserAvatar() {
             onClick={() => setIsMenuOpen(false)}
           />
           {/* Menu */}
-          <div className="absolute bottom-full left-0 mb-2 w-48 rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 z-20">
+          <div className="absolute bottom-full left-0 mb-2 w-48 rounded-lg bg-nav border border-nav-foreground/20 shadow-lg z-20">
             <div className="py-1">
               <button
                 onClick={() => {
                   setIsMenuOpen(false);
                   navigate('/settings?tab=account');
                 }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center w-full px-4 py-2 text-sm text-nav-foreground hover:bg-nav-hover"
               >
                 <svg
-                  className="mr-3 h-4 w-4 text-gray-400"
+                  className="mr-3 h-4 w-4 text-nav-foreground/60"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -89,10 +89,10 @@ export function UserAvatar() {
                   setIsMenuOpen(false);
                   logout();
                 }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center w-full px-4 py-2 text-sm text-nav-foreground hover:bg-nav-hover"
               >
                 <svg
-                  className="mr-3 h-4 w-4 text-gray-400"
+                  className="mr-3 h-4 w-4 text-nav-foreground/60"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

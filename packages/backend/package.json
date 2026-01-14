@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nest build && pnpm run build:tsx",
-    "build:tsx": "swc src/email/templates/password-reset.tsx src/email/templates/invitation.tsx src/email/templates/components/*.tsx --out-dir dist --config-file .swcrc --strip-leading-paths",
+    "build:tsx": "swc src/email/templates/password-reset.tsx src/email/templates/invitation.tsx src/email/templates/email-change-verification.tsx src/email/templates/components/*.tsx --out-dir dist --config-file .swcrc --strip-leading-paths",
     "dev": "TS_NODE_TRANSPILE_ONLY=true node --env-file=.env --require ts-node/register src/main.ts",
     "start": "nest start",
     "start:prod": "node dist/main",
@@ -19,6 +19,7 @@
   "dependencies": {
     "@chatgpt-app-builder/nodes": "workspace:*",
     "@chatgpt-app-builder/shared": "workspace:*",
+    "bcrypt": "^5.1.1",
     "@langchain/core": "^0.3.26",
     "@langchain/openai": "^0.3.17",
     "@nestjs/common": "^10.4.15",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
+    "@types/bcrypt": "^5.0.2",
     "@nestjs/platform-socket.io": "^11.1.11",
     "@nestjs/testing": "^10.4.15",
     "@nestjs/websockets": "^11.1.11",
