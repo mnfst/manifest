@@ -19,6 +19,7 @@
   "dependencies": {
     "@chatgpt-app-builder/nodes": "workspace:*",
     "@chatgpt-app-builder/shared": "workspace:*",
+    "bcrypt": "^5.1.1",
     "@langchain/core": "^0.3.26",
     "@langchain/openai": "^0.3.17",
     "@nestjs/common": "^10.4.15",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
+    "@types/bcrypt": "^5.0.2",
     "@nestjs/platform-socket.io": "^11.1.11",
     "@nestjs/testing": "^10.4.15",
     "@nestjs/websockets": "^11.1.11",
