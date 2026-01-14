@@ -5,16 +5,19 @@
 @layer base {
   :root {
     /*
-     * Manifest Theme - Based on VS Code Manifest Theme
-     * https://github.com/mnfst/vscode-theme-manifest
+     * Manifest Theme - Based on manifest.build website
+     * https://manifest.build/
      *
-     * Core colors:
+     * Typography from manifest.build:
+     * - Font: Inter
+     * - Text colors: hsl(221, 14%, 21/29/48%)
+     * - Headings: letter-spacing -0.03em, line-height 1.05
+     * - Body: line-height 1.5
+     *
+     * Colors from VS Code Manifest Theme:
      * - Dark base: #1c1c24 (240° 15% 13%)
-     * - Peachy foreground: #f2c79c (30° 78% 78%)
      * - Teal accent: #2be1b7 (164° 75% 53%)
-     * - Magenta accent: #f280d0 (320° 83% 73%)
      * - Muted blue: #6688cc (222° 50% 60%)
-     * - Destructive red: #b2413f (1° 49% 47%)
      */
 
     /* Navigation/Sidebar colors - Dark Manifest theme */
@@ -23,35 +26,37 @@
     --nav-active: 164 75% 53%;
     --nav-foreground: 0 0% 100%;
 
-    /* Main content area - Light sand/beige background */
-    --background: 40 33% 96%;
-    --foreground: 240 15% 13%;
+    /* Main content area - Light background */
+    --background: 0 0% 98%;
+    --foreground: 221 14% 21%;
+    --foreground-muted: 221 14% 29%;
+    --foreground-weak: 221 14% 48%;
     --card: 0 0% 100%;
-    --card-foreground: 240 15% 13%;
+    --card-foreground: 221 14% 21%;
 
     /* Primary action color - Teal */
     --primary: 164 75% 40%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Subtle sand */
-    --secondary: 40 20% 92%;
-    --secondary-foreground: 240 15% 13%;
+    /* Secondary - Subtle gray */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 221 14% 21%;
 
     /* Muted elements */
-    --muted: 40 15% 94%;
-    --muted-foreground: 240 10% 45%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 221 14% 48%;
 
     /* Accent - Bright teal */
     --accent: 164 75% 53%;
-    --accent-foreground: 240 15% 13%;
+    --accent-foreground: 221 14% 21%;
 
-    /* Destructive - Manifest red */
+    /* Destructive - Red */
     --destructive: 1 49% 47%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders and inputs */
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 164 75% 40%;
     --radius: 0.375rem;
 
@@ -59,7 +64,7 @@
     --success: 164 75% 40%;
     --success-foreground: 0 0% 100%;
     --warning: 30 78% 60%;
-    --warning-foreground: 240 15% 13%;
+    --warning-foreground: 221 14% 21%;
     --info: 222 50% 60%;
     --info-foreground: 0 0% 100%;
   }
@@ -71,11 +76,13 @@
     --nav-active: 164 75% 53%;
     --nav-foreground: 0 0% 100%;
 
-    /* Main content - Dark Manifest background */
+    /* Main content - Dark background */
     --background: 240 15% 10%;
-    --foreground: 30 78% 85%;
+    --foreground: 0 0% 95%;
+    --foreground-muted: 0 0% 80%;
+    --foreground-weak: 0 0% 60%;
     --card: 240 15% 14%;
-    --card-foreground: 30 78% 85%;
+    --card-foreground: 0 0% 95%;
 
     /* Primary - Teal */
     --primary: 164 75% 53%;
@@ -83,11 +90,11 @@
 
     /* Secondary */
     --secondary: 240 15% 18%;
-    --secondary-foreground: 30 78% 85%;
+    --secondary-foreground: 0 0% 95%;
 
     /* Muted */
     --muted: 240 15% 18%;
-    --muted-foreground: 222 50% 60%;
+    --muted-foreground: 0 0% 60%;
 
     /* Accent - Bright teal */
     --accent: 164 75% 53%;
@@ -111,7 +118,7 @@
     --info-foreground: 0 0% 100%;
   }
 
-  /* Base typography with Inter font and responsive scaling */
+  /* Base typography - matching manifest.build */
   html {
     font-size: clamp(0.7rem, 0.5rem + 0.4vw, 1rem);
   }
@@ -120,12 +127,20 @@
     font-family: 'Inter', system-ui, sans-serif;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Headings - manifest.build style (letter-spacing only, sizes via Tailwind) */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  /* Code - manifest.build fonts */
   code, pre, .font-mono {
-    font-family: 'Fira Code', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
+    font-family: 'Inconsolata', 'Hack', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
   }
 }
 
