@@ -304,7 +304,7 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
 
   if (isTool && message.toolResult) {
     // Check if we have structured content with stats to render visually
-    const hasVisualContent = message.toolResult.structuredContent?.stats;
+    const hasVisualContent = Boolean(message.toolResult.structuredContent?.stats);
 
     return (
       <div className="flex justify-start">
