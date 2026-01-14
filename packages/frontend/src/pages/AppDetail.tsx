@@ -292,34 +292,6 @@ function AppDetail() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b">
-        <div className="max-w-4xl mx-auto px-4">
-          <nav className="flex gap-6" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('flows')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'flows'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Flows
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'analytics'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Analytics
-            </button>
-          </nav>
-        </div>
-      </div>
-
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Tab Navigation */}
