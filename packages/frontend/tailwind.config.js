@@ -6,7 +6,27 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['Fira Code', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', 'monospace'],
+        mono: ['Inconsolata', 'Hack', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', 'monospace'],
+      },
+      letterSpacing: {
+        tighter: '-0.03em',
+        tight: '-0.02em',
+        normal: '0',
+        wide: '0.05em',
+      },
+      lineHeight: {
+        tight: '1.05',
+        snug: '1.25',
+        normal: '1.5',
+        relaxed: '1.6',
+      },
+      fontSize: {
+        'display-1': ['4.768rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
+        'display-2': ['2.986rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
+        'display-3': ['2.488rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
+        'display-4': ['2.074rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
+        'display-5': ['1.728rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
+        'display-6': ['1.44rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -43,6 +63,18 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
         },
       },
       borderRadius: {

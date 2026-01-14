@@ -77,7 +77,7 @@ export function Sidebar() {
         {/* Logo/Brand */}
         <div className="h-14 px-4 flex items-center border-b border-nav-foreground/10">
           <img
-            src="https://manifest.build/assets/images/logo-transparent.svg"
+            src="/logotype-dark.svg"
             alt="Manifest"
             className="h-8"
           />

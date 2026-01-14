@@ -5,15 +5,16 @@ import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
 import { CreateFlowModal } from '../components/flow/CreateFlowModal';
+import { DeleteFlowModal } from '../components/flow/DeleteFlowModal';
 import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
-import { UserManagement } from '../components/app/UserManagement';
+import { CollaboratorManagement } from '../components/app/CollaboratorManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
 import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
 
-type AppDetailTab = 'flows' | 'users' | 'analytics';
+type AppDetailTab = 'flows' | 'collaborators' | 'analytics';
 
 /**
  * App detail page - Shows app info and flows list
@@ -28,8 +29,8 @@ function AppDetail() {
   const [isCreatingFlow, setIsCreatingFlow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [flowError, setFlowError] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [deletingFlowId, setDeletingFlowId] = useState<string | null>(null);
+  const [flowToDelete, setFlowToDelete] = useState<Flow | null>(null);
+  const [isDeletingFlow, setIsDeletingFlow] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -67,7 +68,7 @@ function AppDetail() {
     loadData();
   }, [appId]);
 
-  const handleCreateFlow = async (data: { name: string; description?: string; parameters?: import('@chatgpt-app-builder/shared').FlowParameter[] }) => {
+  const handleCreateFlow = async (data: { name: string; description?: string }) => {
     if (!appId) return;
 
     setIsCreatingFlow(true);
@@ -93,25 +94,22 @@ function AppDetail() {
     navigate(`/app/${appId}/flow/${flow.id}`);
   };
 
-  const handleFlowDelete = async (flow: Flow) => {
-    // Two-click confirmation
-    if (deleteConfirm !== flow.id) {
-      setDeleteConfirm(flow.id);
-      // Auto-clear confirmation after 3 seconds
-      setTimeout(() => setDeleteConfirm(null), 3000);
-      return;
-    }
+  const handleFlowDelete = (flow: Flow) => {
+    setFlowToDelete(flow);
+  };
 
-    setDeletingFlowId(flow.id);
-    setDeleteConfirm(null);
+  const confirmFlowDelete = async () => {
+    if (!flowToDelete) return;
 
+    setIsDeletingFlow(true);
     try {
-      await api.deleteFlow(flow.id);
-      setFlows((prev) => prev.filter((f) => f.id !== flow.id));
+      await api.deleteFlow(flowToDelete.id);
+      setFlows((prev) => prev.filter((f) => f.id !== flowToDelete.id));
+      setFlowToDelete(null);
     } catch (err) {
       console.error('Failed to delete flow:', err);
     } finally {
-      setDeletingFlowId(null);
+      setIsDeletingFlow(false);
     }
   };
 
@@ -292,34 +290,6 @@ function AppDetail() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b">
-        <div className="max-w-4xl mx-auto px-4">
-          <nav className="flex gap-6" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('flows')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'flows'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Flows
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'analytics'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
-              }`}
-            >
-              Analytics
-            </button>
-          </nav>
-        </div>
-      </div>
-
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Tab Navigation */}
@@ -329,7 +299,7 @@ function AppDetail() {
               onClick={() => setActiveTab('flows')}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'flows'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
@@ -342,22 +312,22 @@ function AppDetail() {
               onClick={() => setActiveTab('analytics')}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'analytics'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
               Analytics
             </button>
             <button
-              onClick={() => setActiveTab('users')}
+              onClick={() => setActiveTab('collaborators')}
               className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'users'
-                  ? 'border-indigo-600 text-indigo-600'
+                activeTab === 'collaborators'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
               }`}
             >
               <Users className="w-4 h-4" />
-              Users
+              Collaborators
             </button>
           </nav>
         </div>
@@ -396,22 +366,8 @@ function AppDetail() {
               flows={flows}
               onFlowClick={handleFlowClick}
               onFlowDelete={handleFlowDelete}
-              deletingFlowId={deletingFlowId}
               onCreateFlow={() => setIsFlowModalOpen(true)}
             />
-
-            {/* Delete confirmation message */}
-            {deleteConfirm && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-                Click delete again to confirm removal of this flow and all its views.
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="ml-2 underline hover:no-underline"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
           </section>
         )}
 
@@ -420,16 +376,16 @@ function AppDetail() {
           <AnalyticsDashboard appId={appId} />
         )}
 
-        {/* Users Section */}
-        {activeTab === 'users' && appId && (
+        {/* Collaborators Section */}
+        {activeTab === 'collaborators' && appId && (
           <section>
             <div className="mb-6">
-              <h2 className="text-lg font-semibold">User Management</h2>
+              <h2 className="text-lg font-semibold">Collaborator Management</h2>
               <p className="text-sm text-muted-foreground">
-                Manage who has access to this app
+                Manage who can work on this app
               </p>
             </div>
-            <UserManagement appId={appId} />
+            <CollaboratorManagement appId={appId} />
           </section>
         )}
       </main>
@@ -461,6 +417,15 @@ function AppDetail() {
         onSubmit={handleEditApp}
         isLoading={isEditingApp}
         error={editAppError}
+      />
+
+      {/* Delete Flow Modal */}
+      <DeleteFlowModal
+        isOpen={!!flowToDelete}
+        flow={flowToDelete}
+        onClose={() => setFlowToDelete(null)}
+        onConfirm={confirmFlowDelete}
+        isLoading={isDeletingFlow}
       />
     </div>
   );

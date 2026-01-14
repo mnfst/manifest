@@ -213,6 +213,12 @@ export type {
   AppUser,
   AddUserRequest,
   UserProfile,
+  PendingInvitation,
+  CreateInvitationRequest,
+  AcceptInvitationRequest,
+  AppUserListItem,
+  InvitationValidation,
+  AcceptInvitationResponse,
   UpdateProfileRequest,
   UpdateProfileResponse,
   ChangeEmailRequest,
@@ -221,7 +227,9 @@ export type {
   VerifyEmailChangeResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  DefaultUserCheckResponse,
 } from './types/auth.js';
+export { DEFAULT_ADMIN_USER } from './types/auth.js';
 
 // Email types
 export type {

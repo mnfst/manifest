@@ -82,6 +82,7 @@ etc.]
 
 ## Recent Changes
 - 091-registry-items: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
+- 001-app-invites: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-edit-account: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-auth: Added TypeScript 5.7.2, Node.js >= 18.0.0
 

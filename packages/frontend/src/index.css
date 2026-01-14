@@ -4,60 +4,121 @@
 
 @layer base {
   :root {
-    /* Navigation colors - Manifest peacock theme (light teal) */
-    --nav-bg: 164 75% 53%;
-    --nav-hover: 166 72% 45%;
-    --nav-active: 168 76% 36%;
-    --nav-foreground: 24 69% 6%;
+    /*
+     * Manifest Theme - Based on manifest.build website
+     * https://manifest.build/
+     *
+     * Typography from manifest.build:
+     * - Font: Inter
+     * - Text colors: hsl(221, 14%, 21/29/48%)
+     * - Headings: letter-spacing -0.03em, line-height 1.05
+     * - Body: line-height 1.5
+     *
+     * Colors from VS Code Manifest Theme:
+     * - Dark base: #1c1c24 (240° 15% 13%)
+     * - Teal accent: #2be1b7 (164° 75% 53%)
+     * - Muted blue: #6688cc (222° 50% 60%)
+     */
 
-    /* Manifest palette - sand/beige background */
-    --background: 30 33% 94%;
-    --foreground: 240 5% 11%;
+    /* Navigation/Sidebar colors - Dark Manifest theme */
+    --nav-bg: 240 15% 13%;
+    --nav-hover: 240 15% 18%;
+    --nav-active: 164 75% 53%;
+    --nav-foreground: 0 0% 100%;
+
+    /* Main content area - Light background */
+    --background: 0 0% 98%;
+    --foreground: 221 14% 21%;
+    --foreground-muted: 221 14% 29%;
+    --foreground-weak: 221 14% 48%;
     --card: 0 0% 100%;
-    --card-foreground: 240 5% 11%;
-    --primary: 168 76% 26%;
+    --card-foreground: 221 14% 21%;
+
+    /* Primary action color - Teal */
+    --primary: 164 75% 40%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 25% 90%;
-    --secondary-foreground: 240 5% 11%;
-    --muted: 30 20% 92%;
-    --muted-foreground: 30 10% 40%;
+
+    /* Secondary - Subtle gray */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 221 14% 21%;
+
+    /* Muted elements */
+    --muted: 220 14% 96%;
+    --muted-foreground: 221 14% 48%;
+
+    /* Accent - Bright teal */
     --accent: 164 75% 53%;
-    --accent-foreground: 240 5% 11%;
-    --destructive: 1 100% 68%;
+    --accent-foreground: 221 14% 21%;
+
+    /* Destructive - Red */
+    --destructive: 1 49% 47%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 15% 85%;
-    --input: 30 15% 85%;
-    --ring: 168 76% 26%;
+
+    /* Borders and inputs */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 164 75% 40%;
     --radius: 0.375rem;
+
+    /* Additional semantic colors */
+    --success: 164 75% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 30 78% 60%;
+    --warning-foreground: 221 14% 21%;
+    --info: 222 50% 60%;
+    --info-foreground: 0 0% 100%;
   }
 
   .dark {
-    /* Dark theme with peacock navigation colors */
-    --nav-bg: 164 75% 53%;
-    --nav-hover: 166 72% 45%;
-    --nav-active: 168 76% 36%;
-    --nav-foreground: 24 69% 6%;
+    /* Navigation/Sidebar colors - Same in dark mode */
+    --nav-bg: 240 15% 13%;
+    --nav-hover: 240 15% 18%;
+    --nav-active: 164 75% 53%;
+    --nav-foreground: 0 0% 100%;
 
-    --background: 222.2 47.4% 11.2%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 47.4% 15%;
-    --card-foreground: 210 40% 98%;
-    --primary: 168 76% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Main content - Dark background */
+    --background: 240 15% 10%;
+    --foreground: 0 0% 95%;
+    --foreground-muted: 0 0% 80%;
+    --foreground-weak: 0 0% 60%;
+    --card: 240 15% 14%;
+    --card-foreground: 0 0% 95%;
+
+    /* Primary - Teal */
+    --primary: 164 75% 53%;
+    --primary-foreground: 240 15% 10%;
+
+    /* Secondary */
+    --secondary: 240 15% 18%;
+    --secondary-foreground: 0 0% 95%;
+
+    /* Muted */
+    --muted: 240 15% 18%;
+    --muted-foreground: 0 0% 60%;
+
+    /* Accent - Bright teal */
     --accent: 164 75% 53%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 1 100% 68%;
+    --accent-foreground: 240 15% 10%;
+
+    /* Destructive */
+    --destructive: 1 60% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 168 76% 36%;
+
+    /* Borders and inputs */
+    --border: 240 15% 20%;
+    --input: 240 15% 20%;
+    --ring: 164 75% 53%;
+
+    /* Additional semantic colors */
+    --success: 164 75% 53%;
+    --success-foreground: 240 15% 10%;
+    --warning: 30 78% 60%;
+    --warning-foreground: 240 15% 10%;
+    --info: 222 50% 60%;
+    --info-foreground: 0 0% 100%;
   }
 
-  /* Base typography with Inter font and responsive scaling */
+  /* Base typography - matching manifest.build */
   html {
     font-size: clamp(0.7rem, 0.5rem + 0.4vw, 1rem);
   }
@@ -66,12 +127,20 @@
     font-family: 'Inter', system-ui, sans-serif;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Headings - manifest.build style (letter-spacing only, sizes via Tailwind) */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  /* Code - manifest.build fonts */
   code, pre, .font-mono {
-    font-family: 'Fira Code', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
+    font-family: 'Inconsolata', 'Hack', 'SF Mono', 'Roboto Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
   }
 }
 

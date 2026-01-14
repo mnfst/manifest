@@ -7,7 +7,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import { auth } from '../auth/auth';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
 import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatus } from '@chatgpt-app-builder/shared';
 
 /**
@@ -40,26 +40,23 @@ export class SeedService implements OnModuleInit {
 
   /**
    * Seed admin user if not exists.
-   * Creates admin@manifest.build with password "admin".
+   * Uses DEFAULT_ADMIN_USER from shared package for credentials.
    */
   private async seedAdminUser(): Promise<{ id: string; email: string } | null> {
-    const adminEmail = 'admin@manifest.build';
-    const adminPassword = 'admin';
-
     try {
       // Try to create admin user via better-auth signUp
       const result = await auth.api.signUpEmail({
         body: {
-          email: adminEmail,
-          password: adminPassword,
-          name: 'Admin User',
-          firstName: 'Admin',
-          lastName: 'User',
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
+          name: DEFAULT_ADMIN_USER.name,
+          firstName: DEFAULT_ADMIN_USER.firstName,
+          lastName: DEFAULT_ADMIN_USER.lastName,
         },
       });
 
       if (result?.user) {
-        this.logger.log(`Created admin user: ${adminEmail}`);
+        this.logger.log(`Created admin user: ${DEFAULT_ADMIN_USER.email}`);
         return { id: result.user.id, email: result.user.email };
       }
 
@@ -74,8 +71,8 @@ export class SeedService implements OnModuleInit {
         try {
           const signInResult = await auth.api.signInEmail({
             body: {
-              email: adminEmail,
-              password: adminPassword,
+              email: DEFAULT_ADMIN_USER.email,
+              password: DEFAULT_ADMIN_USER.password,
             },
           });
           if (signInResult?.user) {
