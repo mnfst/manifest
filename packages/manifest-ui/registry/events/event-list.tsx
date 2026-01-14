@@ -27,7 +27,8 @@ type LeafletTileLayerAttrs = {
 
 type LeafletMarkerAttrs = {
   position: [number, number]
-  icon?: unknown
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any
   zIndexOffset?: number
   eventHandlers?: {
     click?: () => void

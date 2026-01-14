@@ -45,7 +45,8 @@ type LeafletTileLayerAttrs = {
 
 type LeafletMarkerAttrs = {
   position: [number, number]
-  icon?: unknown
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any
 }
 
 // Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
