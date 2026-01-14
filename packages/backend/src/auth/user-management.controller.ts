@@ -16,6 +16,7 @@ import type { Request } from 'express';
 import type {
   AddUserRequest,
   AppUser,
+  AppUserListItem,
   UserProfile,
   UpdateProfileResponse,
   ChangeEmailResponse,
@@ -124,13 +125,13 @@ export class UserManagementController {
   }
 
   /**
-   * List users with access to an app
+   * List users with access to an app, including pending invitations
    * Returns 404 if user doesn't have access to the app
    */
   @Get('apps/:appId/users')
   @UseGuards(AppAccessGuard)
-  async listAppUsers(@Param('appId') appId: string): Promise<AppUser[]> {
-    return this.userManagementService.getAppUsers(appId);
+  async listAppUsers(@Param('appId') appId: string): Promise<AppUserListItem[]> {
+    return this.userManagementService.getAppUsersWithPending(appId);
   }
 
   /**

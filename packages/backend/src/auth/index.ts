@@ -6,7 +6,9 @@ export { AppAccessGuard } from './app-access.guard';
 export { FlowAccessGuard } from './flow-access.guard';
 export { AppAccessService } from './app-access.service';
 export { UserManagementService } from './user-management.service';
+export { InvitationService } from './invitation.service';
 export { UserAppRoleEntity } from './user-app-role.entity';
+export { PendingInvitationEntity } from './pending-invitation.entity';
 
 // Decorators
 export { Public, IS_PUBLIC_KEY } from './decorators/public.decorator';

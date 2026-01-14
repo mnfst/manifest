@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { AppUser, AppRole } from '@chatgpt-app-builder/shared';
+import type { AppUserListItem, AppRole } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../../lib/api';
+import { InviteUserModal } from './InviteUserModal';
 
 interface UserManagementProps {
   appId: string;
@@ -11,7 +12,7 @@ interface UserManagementProps {
  * Allows adding/removing users and managing their roles
  */
 export function UserManagement({ appId }: UserManagementProps) {
-  const [users, setUsers] = useState<AppUser[]>([]);
+  const [users, setUsers] = useState<AppUserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,21 @@ export function UserManagement({ appId }: UserManagementProps) {
   // Remove user state
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [removeConfirm, setRemoveConfirm] = useState<string | null>(null);
+
+  // Invitation modal state
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<AppRole>('admin');
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
+  // Revoke invitation state
+  const [revokingInvitationId, setRevokingInvitationId] = useState<string | null>(null);
+  const [revokeConfirm, setRevokeConfirm] = useState<string | null>(null);
+
+  // Resend invitation state
+  const [resendingInvitationId, setResendingInvitationId] = useState<string | null>(null);
+  const [resendSuccessId, setResendSuccessId] = useState<string | null>(null);
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -57,17 +73,59 @@ export function UserManagement({ appId }: UserManagementProps) {
         email: newEmail.trim(),
         role: newRole,
       });
-      setUsers((prev) => [...prev, newUser]);
+      // Convert AppUser to AppUserListItem format
+      setUsers((prev) => [...prev, { ...newUser, status: 'active' as const }]);
       setNewEmail('');
       setNewRole('admin');
     } catch (err) {
       if (err instanceof ApiClientError) {
-        setAddError(err.message);
+        // Check if the user doesn't exist - show invite modal
+        if (err.status === 404 && err.message.toLowerCase().includes('not found')) {
+          setInviteEmail(newEmail.trim());
+          setInviteRole(newRole);
+          setInviteError(null);
+          setShowInviteModal(true);
+        } else {
+          setAddError(err.message);
+        }
       } else {
         setAddError('Failed to add user');
       }
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  const handleSendInvitation = async () => {
+    setInviteError(null);
+    setIsInviting(true);
+
+    try {
+      await api.createInvitation(appId, {
+        email: inviteEmail,
+        role: inviteRole,
+      });
+      // Close modal and clear form
+      setShowInviteModal(false);
+      setNewEmail('');
+      setNewRole('admin');
+      // Reload users to show pending invitation
+      await loadUsers();
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setInviteError(err.message);
+      } else {
+        setInviteError('Failed to send invitation');
+      }
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const handleCloseInviteModal = () => {
+    if (!isInviting) {
+      setShowInviteModal(false);
+      setInviteError(null);
     }
   };
 
@@ -89,6 +147,43 @@ export function UserManagement({ appId }: UserManagementProps) {
       console.error('Failed to remove user:', err);
     } finally {
       setRemovingUserId(null);
+    }
+  };
+
+  const handleRevokeInvitation = async (invitationId: string) => {
+    // Two-click confirmation
+    if (revokeConfirm !== invitationId) {
+      setRevokeConfirm(invitationId);
+      setTimeout(() => setRevokeConfirm(null), 3000);
+      return;
+    }
+
+    setRevokingInvitationId(invitationId);
+    setRevokeConfirm(null);
+
+    try {
+      await api.revokeInvitation(appId, invitationId);
+      setUsers((prev) => prev.filter((u) => u.id !== invitationId));
+    } catch (err) {
+      console.error('Failed to revoke invitation:', err);
+    } finally {
+      setRevokingInvitationId(null);
+    }
+  };
+
+  const handleResendInvitation = async (invitationId: string) => {
+    setResendingInvitationId(invitationId);
+    setResendSuccessId(null);
+
+    try {
+      await api.resendInvitation(appId, invitationId);
+      setResendSuccessId(invitationId);
+      // Clear success message after 3 seconds
+      setTimeout(() => setResendSuccessId(null), 3000);
+    } catch (err) {
+      console.error('Failed to resend invitation:', err);
+    } finally {
+      setResendingInvitationId(null);
     }
   };
 
@@ -161,39 +256,61 @@ export function UserManagement({ appId }: UserManagementProps) {
           {users.map((user) => (
             <li
               key={user.id}
-              className="flex items-center justify-between px-4 py-3"
+              className={`flex items-center justify-between px-4 py-3 ${
+                user.status === 'pending' ? 'bg-gray-50 dark:bg-gray-800/50' : ''
+              }`}
             >
               <div className="flex items-center gap-3">
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    user.status === 'pending'
+                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                      : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400'
+                  }`}
+                >
                   {(user.name || user.email).charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
+                    <span
+                      className={`text-sm font-medium ${
+                        user.status === 'pending' ? 'text-muted-foreground' : ''
+                      }`}
+                    >
                       {user.name || user.email}
                     </span>
-                    {user.isOwner && (
+                    {user.status === 'pending' && (
+                      <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                        Pending Invite
+                      </span>
+                    )}
+                    {user.status === 'active' && user.isOwner && (
                       <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
                         Owner
                       </span>
                     )}
-                    {!user.isOwner && user.role === 'admin' && (
+                    {user.status === 'active' && !user.isOwner && user.role === 'admin' && (
                       <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                         Admin
                       </span>
                     )}
                   </div>
-                  {user.name && (
+                  {user.status === 'active' && user.name && (
                     <span className="text-xs text-muted-foreground">
                       {user.email}
+                    </span>
+                  )}
+                  {user.status === 'pending' && user.inviterName && (
+                    <span className="text-xs text-muted-foreground">
+                      Invited by {user.inviterName}
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Remove button - disabled for owners */}
-              {!user.isOwner && (
+              {user.status === 'active' && !user.isOwner && (
                 <button
                   onClick={() => handleRemoveUser(user.id)}
                   disabled={removingUserId === user.id}
@@ -209,6 +326,79 @@ export function UserManagement({ appId }: UserManagementProps) {
                     ? 'Click to confirm'
                     : 'Remove'}
                 </button>
+              )}
+
+              {/* Action buttons for pending invitations */}
+              {user.status === 'pending' && (
+                <div className="flex items-center gap-2">
+                  {/* Resend success indicator */}
+                  {resendSuccessId === user.id && (
+                    <span className="text-xs text-green-600 dark:text-green-400">
+                      Sent!
+                    </span>
+                  )}
+
+                  {/* Resend button */}
+                  <button
+                    onClick={() => handleResendInvitation(user.id)}
+                    disabled={resendingInvitationId === user.id}
+                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Resend invitation email"
+                  >
+                    {resendingInvitationId === user.id ? (
+                      <svg
+                        className="w-4 h-4 animate-spin"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Revoke button */}
+                  <button
+                    onClick={() => handleRevokeInvitation(user.id)}
+                    disabled={revokingInvitationId === user.id}
+                    className={`text-sm px-3 py-1 rounded-md transition-colors ${
+                      revokeConfirm === user.id
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {revokingInvitationId === user.id
+                      ? 'Revoking...'
+                      : revokeConfirm === user.id
+                      ? 'Click to confirm'
+                      : 'Revoke'}
+                  </button>
+                </div>
               )}
             </li>
           ))}
@@ -233,6 +423,17 @@ export function UserManagement({ appId }: UserManagementProps) {
           </button>
         </div>
       )}
+
+      {/* Invite User Modal */}
+      <InviteUserModal
+        isOpen={showInviteModal}
+        email={inviteEmail}
+        role={inviteRole}
+        onClose={handleCloseInviteModal}
+        onConfirm={handleSendInvitation}
+        isLoading={isInviting}
+        error={inviteError}
+      />
     </div>
   );
 }

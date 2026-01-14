@@ -43,6 +43,74 @@ export interface UserProfile {
 }
 
 /**
+ * Pending invitation to an app
+ */
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: AppRole;
+  appId: string;
+  invitedBy: string;
+  inviterName?: string;
+  createdAt: string;
+}
+
+/**
+ * Request to create an invitation
+ */
+export interface CreateInvitationRequest {
+  email: string;
+  role: AppRole;
+}
+
+/**
+ * Request to accept an invitation
+ */
+export interface AcceptInvitationRequest {
+  token: string;
+}
+
+/**
+ * Combined user list item (active user or pending invitation)
+ */
+export interface AppUserListItem {
+  id: string;
+  email: string;
+  role: AppRole;
+  createdAt: string;
+  status: 'active' | 'pending';
+  // Active user fields
+  name?: string | null;
+  isOwner?: boolean;
+  // Pending invitation fields
+  invitedBy?: string;
+  inviterName?: string;
+}
+
+/**
+ * Invitation validation response
+ */
+export interface InvitationValidation {
+  valid: boolean;
+  email: string;
+  appId: string;
+  appName: string;
+  inviterName: string;
+  role: AppRole;
+}
+
+/**
+ * Response after accepting an invitation
+ */
+export interface AcceptInvitationResponse {
+  success: boolean;
+  appId: string;
+  appName: string;
+  role: AppRole;
+  message: string;
+}
+
+/**
  * Request to update user profile
  */
 export interface UpdateProfileRequest {

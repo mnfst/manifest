@@ -29,7 +29,15 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
       // Success - redirect or call callback
       onSuccess?.();
-      window.location.href = '/';
+
+      // Check for pending invitation to redirect to
+      const pendingInvitation = sessionStorage.getItem('pendingInvitation');
+      if (pendingInvitation) {
+        const { token } = JSON.parse(pendingInvitation);
+        window.location.href = `/accept-invite?token=${encodeURIComponent(token)}`;
+      } else {
+        window.location.href = '/';
+      }
     } catch {
       setError('An error occurred. Please try again.');
     } finally {

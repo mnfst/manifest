@@ -80,6 +80,7 @@ etc.]
 - **Never** create a PR without a description
 
 ## Recent Changes
+- 001-app-invites: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-edit-account: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 - 001-auth: Added TypeScript 5.7.2, Node.js >= 18.0.0
 - 001-email: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React Email (@react-email/components, @react-email/render), mailgun.js (or nestjs-mailgun), nodemailer

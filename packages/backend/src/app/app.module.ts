@@ -13,7 +13,7 @@ import { McpModule } from '../mcp/mcp.module';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { SeedModule } from '../seed/seed.module';
 import { ChatModule } from '../chat/chat.module';
-import { AuthModule, AuthGuard, UserAppRoleEntity } from '../auth';
+import { AuthModule, AuthGuard, UserAppRoleEntity, PendingInvitationEntity } from '../auth';
 import { EmailVerificationTokenEntity } from '../auth/entities/email-verification-token.entity';
 import { EmailModule } from '../email/email.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
@@ -27,7 +27,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, FlowExecutionEntity, UserAppRoleEntity, EmailVerificationTokenEntity],
+      entities: [AppEntity, FlowEntity, FlowExecutionEntity, UserAppRoleEntity, PendingInvitationEntity, EmailVerificationTokenEntity],
       synchronize: true, // POC only - use migrations in production
     }),
     TypeOrmModule.forFeature([AppEntity, UserAppRoleEntity]),
