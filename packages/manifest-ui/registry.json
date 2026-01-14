@@ -6,7 +6,7 @@
     {
       "name": "contact-form",
       "version": "1.2.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
       "category": "form",
@@ -22,14 +22,14 @@
       "files": [
         {
           "path": "registry/form/contact-form.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "date-time-picker",
       "version": "1.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
       "category": "form",
@@ -42,14 +42,14 @@
       "files": [
         {
           "path": "registry/form/date-time-picker.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "issue-report-form",
       "version": "1.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
       "category": "form",
@@ -65,14 +65,14 @@
       "files": [
         {
           "path": "registry/form/issue-report-form.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "card-form",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
       "category": "payment",
@@ -88,14 +88,14 @@
       "files": [
         {
           "path": "registry/payment/card-form.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "pay-confirm",
       "version": "1.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Pay Confirm",
       "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
       "category": "payment",
@@ -110,14 +110,14 @@
       "files": [
         {
           "path": "registry/payment/pay-confirm.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "order-summary",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Order Summary",
       "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
       "category": "payment",
@@ -132,14 +132,14 @@
       "files": [
         {
           "path": "registry/payment/order-summary.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "saved-cards",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Saved Cards",
       "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
       "category": "payment",
@@ -153,14 +153,14 @@
       "files": [
         {
           "path": "registry/payment/saved-cards.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "payment-success",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Payment Success",
       "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
       "category": "payment",
@@ -175,14 +175,14 @@
       "files": [
         {
           "path": "registry/payment/payment-success.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "bank-card-form",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
       "category": "payment",
@@ -195,14 +195,14 @@
       "files": [
         {
           "path": "registry/payment/bank-card-form.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "payment-methods",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Payment Methods",
       "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
       "category": "payment",
@@ -215,14 +215,14 @@
       "files": [
         {
           "path": "registry/payment/payment-methods.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "order-confirm",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Order Confirm",
       "description": "Order confirmation with product image, delivery info, and confirm action.",
       "category": "payment",
@@ -235,14 +235,14 @@
       "files": [
         {
           "path": "registry/payment/order-confirm.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "payment-confirmed",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
       "category": "payment",
@@ -255,14 +255,14 @@
       "files": [
         {
           "path": "registry/payment/payment-confirmed.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "product-list",
       "version": "2.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
       "category": "list",
@@ -275,14 +275,14 @@
       "files": [
         {
           "path": "registry/list/product-list.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "option-list",
       "version": "2.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
       "category": "miscellaneous",
@@ -293,14 +293,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/option-list.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "amount-input",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
       "category": "payment",
@@ -313,14 +313,14 @@
       "files": [
         {
           "path": "registry/payment/amount-input.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "tag-select",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "category": "miscellaneous",
@@ -333,14 +333,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/tag-select.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "quick-reply",
       "version": "3.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
       "category": "miscellaneous",
@@ -349,14 +349,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/quick-reply.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "progress-steps",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
       "category": "miscellaneous",
@@ -367,14 +367,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/progress-steps.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "status-badge",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
       "category": "miscellaneous",
@@ -385,14 +385,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/status-badge.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "stats",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
       "category": "miscellaneous",
@@ -403,14 +403,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/stat-card.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "skeleton",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Skeleton Loaders",
       "description": "Skeleton placeholder components with pulse animation for loading states.",
       "category": "miscellaneous",
@@ -419,14 +419,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/skeleton.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "post-card",
       "version": "2.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
       "category": "blogging",
@@ -439,18 +439,18 @@
       "files": [
         {
           "path": "registry/blogging/post-card.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/blogging/post-detail.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "post-list",
       "version": "2.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
       "category": "blogging",
@@ -463,22 +463,22 @@
       "files": [
         {
           "path": "registry/blogging/post-list.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/blogging/post-card.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/blogging/post-detail.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "post-detail",
       "version": "2.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
       "category": "blogging",
@@ -491,18 +491,18 @@
       "files": [
         {
           "path": "registry/blogging/post-detail.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/blogging/post-card.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "table",
       "version": "1.0.4",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
       "category": "list",
@@ -519,14 +519,14 @@
       "files": [
         {
           "path": "registry/list/table.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "message-bubble",
       "version": "3.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
       "category": "messaging",
@@ -539,14 +539,14 @@
       "files": [
         {
           "path": "registry/messaging/message-bubble.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "chat-conversation",
       "version": "4.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
       "category": "messaging",
@@ -559,18 +559,18 @@
       "files": [
         {
           "path": "registry/messaging/chat-conversation.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/messaging/message-bubble.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "x-post",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
       "category": "miscellaneous",
@@ -581,14 +581,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/x-post.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "instagram-post",
       "version": "1.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
       "category": "miscellaneous",
@@ -601,14 +601,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/instagram-post.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "linkedin-post",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
       "category": "miscellaneous",
@@ -621,14 +621,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/linkedin-post.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "youtube-post",
       "version": "1.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
       "category": "miscellaneous",
@@ -641,14 +641,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/youtube-post.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "map-carousel",
       "version": "1.1.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
       "category": "miscellaneous",
@@ -661,14 +661,14 @@
       "files": [
         {
           "path": "registry/miscellaneous/map-carousel.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "event-card",
       "version": "5.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
       "category": "events",
@@ -681,7 +681,7 @@
       "files": [
         {
           "path": "registry/events/event-card.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/events/types.ts",
@@ -692,7 +692,7 @@
     {
       "name": "event-list",
       "version": "6.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
       "category": "events",
@@ -709,7 +709,7 @@
       "files": [
         {
           "path": "registry/events/event-list.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/events/types.ts",
@@ -720,7 +720,7 @@
     {
       "name": "event-detail",
       "version": "3.0.3",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
       "category": "events",
@@ -735,7 +735,7 @@
       "files": [
         {
           "path": "registry/events/event-detail.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         },
         {
           "path": "registry/events/types.ts",
@@ -746,7 +746,7 @@
     {
       "name": "ticket-tier-select",
       "version": "2.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
       "category": "events",
@@ -759,14 +759,14 @@
       "files": [
         {
           "path": "registry/events/ticket-tier-select.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "event-checkout",
       "version": "2.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Event Checkout",
       "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
       "category": "events",
@@ -780,14 +780,14 @@
       "files": [
         {
           "path": "registry/events/event-checkout.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     },
     {
       "name": "event-confirmation",
       "version": "1.0.2",
-      "type": "registry:component",
+      "type": "registry:block",
       "title": "Event Confirmation",
       "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
       "category": "events",
@@ -800,7 +800,7 @@
       "files": [
         {
           "path": "registry/events/event-confirmation.tsx",
-          "type": "registry:component"
+          "type": "registry:block"
         }
       ]
     }

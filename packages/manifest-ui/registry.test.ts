@@ -96,7 +96,7 @@ describe('Registry Component Versioning', () => {
         expect(item.name.length).toBeGreaterThan(0)
 
         expect(item.type).toBeDefined()
-        expect(item.type).toBe('registry:component')
+        expect(item.type).toBe('registry:block')
 
         expect(item.files).toBeDefined()
         expect(Array.isArray(item.files)).toBe(true)
