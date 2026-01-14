@@ -10,6 +10,7 @@ import type {
   NodeType,
   ChatMessage,
   StatCardNodeParameters,
+  RegistryNodeParameters,
 } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, BarChart3, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
@@ -26,6 +27,7 @@ import { ExecutionDetail } from '../components/execution/ExecutionDetail';
 import { ExecutionDetailPlaceholder } from '../components/execution/ExecutionDetailPlaceholder';
 import { PreviewChat } from '../components/chat/PreviewChat';
 import { InterfaceEditor } from '../components/editor/InterfaceEditor';
+import { fetchComponentDetail, transformToNodeParameters } from '../services/registry';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
@@ -59,6 +61,7 @@ function FlowDetail() {
   const [showNodeEditModal, setShowNodeEditModal] = useState(false);
   const [nodeToEdit, setNodeToEdit] = useState<NodeInstance | null>(null);
   const [nodeTypeToCreate, setNodeTypeToCreate] = useState<NodeType | null>(null);
+  const [registryParamsToCreate, setRegistryParamsToCreate] = useState<RegistryNodeParameters | null>(null);
   const [isSavingNode, setIsSavingNode] = useState(false);
   const [nodeEditError, setNodeEditError] = useState<string | null>(null);
 
@@ -417,6 +420,7 @@ function FlowDetail() {
       setShowNodeEditModal(false);
       setNodeToEdit(null);
       setNodeTypeToCreate(null);
+      setRegistryParamsToCreate(null); // Clear registry params on close
       setNodeEditError(null);
       setPendingConnection(null); // Clear pending connection on close
       setDropPosition(null); // Clear drop position on close
@@ -461,11 +465,16 @@ function FlowDetail() {
           };
         }
 
+        // For RegistryComponent, merge registry params with form parameters
+        const finalParameters = nodeTypeToCreate === 'RegistryComponent' && registryParamsToCreate
+          ? { ...registryParamsToCreate, ...data.parameters }
+          : data.parameters;
+
         const newNode = await api.createNode(flowId, {
           type: nodeTypeToCreate,
           name: data.name,
           position,
-          parameters: data.parameters,
+          parameters: finalParameters,
         });
         savedId = newNode.id;
 
@@ -491,6 +500,7 @@ function FlowDetail() {
       setShowNodeEditModal(false);
       setNodeToEdit(null);
       setNodeTypeToCreate(null);
+      setRegistryParamsToCreate(null); // Clear registry params after save
       setPendingConnection(null); // Clear pending connection after save
       setDropPosition(null); // Clear drop position after save
 
@@ -511,10 +521,41 @@ function FlowDetail() {
     }
   };
 
-  // Interface node code editor handlers (StatCard and PostList)
+  // Interface node code editor handlers (StatCard, PostList, and RegistryComponent)
   const handleNodeEditCode = useCallback((node: NodeInstance) => {
-    if (node.type === 'StatCard' || node.type === 'PostList') {
+    if (node.type === 'StatCard' || node.type === 'PostList' || node.type === 'RegistryComponent') {
       setEditingCodeNodeId(node.id);
+    }
+  }, []);
+
+  // Handler for registry component selection (click) - opens modal for naming the node
+  const handleSelectRegistryComponent = useCallback((params: RegistryNodeParameters) => {
+    // Store registry params and open the modal
+    setRegistryParamsToCreate(params);
+    setNodeToEdit(null);
+    setNodeTypeToCreate('RegistryComponent');
+    setNodeEditError(null);
+    setShowNodeEditModal(true);
+  }, []);
+
+  // Handler for registry item drop on canvas - fetches detail then opens modal
+  const handleDropRegistryItem = useCallback(async (registryItemName: string, position: { x: number; y: number }) => {
+    try {
+      // Fetch component detail
+      const detail = await fetchComponentDetail(registryItemName);
+      const params = transformToNodeParameters(detail);
+
+      // Store params, position and open modal
+      setRegistryParamsToCreate(params);
+      setDropPosition(position);
+      setPendingConnection(null);
+      setNodeToEdit(null);
+      setNodeTypeToCreate('RegistryComponent');
+      setNodeEditError(null);
+      setShowNodeEditModal(true);
+    } catch (err) {
+      console.error('Failed to fetch registry component:', err);
+      setError(`Failed to load component "${registryItemName}". Please try again.`);
     }
   }, []);
 
@@ -528,13 +569,32 @@ function FlowDetail() {
     const nodeToUpdate = (flow?.nodes ?? []).find(n => n.id === editingCodeNodeId);
     if (!nodeToUpdate) return;
 
-    await api.updateNode(flowId, editingCodeNodeId, {
-      name: data.name,
-      parameters: {
+    let updatedParameters: Record<string, unknown>;
+
+    if (nodeToUpdate.type === 'RegistryComponent') {
+      // For RegistryComponent, update the code in files[0].content
+      const existingParams = nodeToUpdate.parameters as unknown as RegistryNodeParameters;
+      const updatedFiles = existingParams?.files ? [...existingParams.files] : [];
+      if (updatedFiles.length > 0) {
+        updatedFiles[0] = { ...updatedFiles[0], content: data.code };
+      }
+      updatedParameters = {
+        ...nodeToUpdate.parameters,
+        files: updatedFiles,
+        appearanceConfig: data.appearanceConfig,
+      };
+    } else {
+      // For StatCard/PostList, use customCode
+      updatedParameters = {
         ...nodeToUpdate.parameters,
         customCode: data.code,
         appearanceConfig: data.appearanceConfig,
-      },
+      };
+    }
+
+    await api.updateNode(flowId, editingCodeNodeId, {
+      name: data.name,
+      parameters: updatedParameters,
     });
 
     // Refresh flow data
@@ -709,6 +769,7 @@ function FlowDetail() {
                   setPendingConnection(null); // Clear pending connection when library closes
                 }}
                 onSelectNode={pendingConnection ? handleNodeLibrarySelectWithConnection : handleNodeLibrarySelect}
+                onSelectRegistryComponent={handleSelectRegistryComponent}
               />
               {/* Canvas */}
               <div className="flex-1 relative">
@@ -724,6 +785,7 @@ function FlowDetail() {
                   onAddFromNode={handleAddFromNode}
                   onDropOnNode={handleDropOnNode}
                   onDropOnCanvas={handleDropOnCanvas}
+                  onDropRegistryItem={handleDropRegistryItem}
                   onNodeEditCode={handleNodeEditCode}
                   onFlowUpdate={handleFlowUpdate}
                 />
@@ -741,13 +803,24 @@ function FlowDetail() {
               {/* UI Node Editor - covers canvas and node library */}
               {editingCodeNode && flowId && (() => {
                 const params = editingCodeNode.parameters as unknown as StatCardNodeParameters;
+
+                // For RegistryComponent, get code from files[0].content
+                // For StatCard/PostList, use customCode
+                let initialCode: string | undefined;
+                if (editingCodeNode.type === 'RegistryComponent') {
+                  const registryParams = editingCodeNode.parameters as unknown as RegistryNodeParameters;
+                  initialCode = registryParams?.files?.[0]?.content;
+                } else {
+                  initialCode = params.customCode;
+                }
+
                 return (
                   <InterfaceEditor
                     flowId={flowId}
                     nodeId={editingCodeNode.id}
                     nodeName={editingCodeNode.name}
                     componentType={editingCodeNode.type}
-                    initialCode={params.customCode}
+                    initialCode={initialCode}
                     initialAppearanceConfig={params.appearanceConfig}
                     onClose={handleCloseCodeEditor}
                     onSave={handleSaveCode}
@@ -825,6 +898,7 @@ function FlowDetail() {
         currentFlowId={flowId || ''}
         isLoading={isSavingNode}
         error={nodeEditError}
+        registryComponentTitle={registryParamsToCreate?.title}
       />
     </div>
   );

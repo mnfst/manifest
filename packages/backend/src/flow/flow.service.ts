@@ -167,4 +167,26 @@ export class FlowService {
       updatedAt: entity.updatedAt?.toISOString(),
     };
   }
+
+  /**
+   * Migration: Delete all flows containing old interface nodes (StatCard, PostList).
+   * These node types have been removed in favor of registry-based UI components.
+   *
+   * @returns Number of flows deleted
+   */
+  async migrateDeleteOldInterfaceFlows(): Promise<number> {
+    // Find all flows that contain StatCard or PostList nodes
+    const allFlows = await this.flowRepository.find();
+
+    const flowsToDelete = allFlows.filter((flow) => {
+      const nodes = flow.nodes ?? [];
+      return nodes.some((node) => node.type === 'StatCard' || node.type === 'PostList');
+    });
+
+    if (flowsToDelete.length > 0) {
+      await this.flowRepository.remove(flowsToDelete);
+    }
+
+    return flowsToDelete.length;
+  }
 }

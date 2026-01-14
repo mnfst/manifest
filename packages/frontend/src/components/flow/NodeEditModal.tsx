@@ -41,6 +41,8 @@ interface NodeEditModalProps {
   connections?: Connection[];
   isLoading?: boolean;
   error?: string | null;
+  /** Optional title for RegistryComponent nodes (shown in modal header) */
+  registryComponentTitle?: string;
 }
 
 type TabType = 'config' | 'schema';
@@ -81,6 +83,7 @@ export function NodeEditModal({
   connections,
   isLoading = false,
   error = null,
+  registryComponentTitle,
 }: NodeEditModalProps) {
   const isEditMode = node !== null;
   const effectiveNodeType = node?.type ?? nodeType;
@@ -259,9 +262,9 @@ export function NodeEditModal({
 
     let parameters: Record<string, unknown> = {};
 
-    if (effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList') {
-      // UI nodes (StatCard, PostList) use the unified InterfaceEditor, not this modal
-      // No parameters needed here as creation is handled separately
+    if (effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList' || effectiveNodeType === 'RegistryComponent') {
+      // UI nodes use the unified InterfaceEditor for code editing, not this modal
+      // No parameters needed here - RegistryComponent params are merged in handleSaveNode
       parameters = {};
     } else if (effectiveNodeType === 'Return') {
       parameters = { text };
@@ -410,6 +413,17 @@ export function NodeEditModal({
           description: 'Open an external URL in the user\'s browser',
           color: 'green',
         };
+      case 'RegistryComponent':
+        return {
+          icon: <LayoutGrid className="w-5 h-5 text-gray-600" />,
+          title: isEditMode
+            ? `Edit ${registryComponentTitle || 'UI Component'}`
+            : `Add ${registryComponentTitle || 'UI Component'}`,
+          description: registryComponentTitle
+            ? `Add ${registryComponentTitle} to your flow`
+            : 'Add a UI component from the registry',
+          color: 'gray',
+        };
     }
   };
 
@@ -524,11 +538,14 @@ export function NodeEditModal({
               />
             </div>
 
-            {/* UI nodes (StatCard, PostList) use unified InterfaceEditor, not this modal */}
-            {(effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList') && (
+            {/* UI nodes use unified InterfaceEditor for code editing */}
+            {(effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList' || effectiveNodeType === 'RegistryComponent') && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-700">
-                  UI nodes are configured through the unified editor. Click the Edit button on the node to customize appearance and code.
+                  {effectiveNodeType === 'RegistryComponent'
+                    ? 'Registry components include their source code. After adding, click "Edit Code" on the node to customize.'
+                    : 'UI nodes are configured through the unified editor. Click the Edit button on the node to customize appearance and code.'
+                  }
                 </p>
               </div>
             )}

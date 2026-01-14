@@ -257,3 +257,18 @@ export type {
   AnalyticsQueryParams,
 } from './types/analytics.js';
 export { TIME_RANGE_LABELS } from './types/analytics.js';
+
+// Registry types (for UI component registry)
+export type {
+  RegistryResponse,
+  RegistryItem,
+  FileMetadata,
+  ComponentDetail,
+  ComponentFile,
+  RegistryCategory,
+  RegistryNodeParameters,
+  RegistryFetchState,
+  ComponentDetailFetchState,
+  RegistryCategoryInfo,
+  RegistryNodeTypeInfo,
+} from './types/registry.js';

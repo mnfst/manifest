@@ -7,33 +7,32 @@
  * Nodes are organized by category:
  * - trigger/: Entry point nodes (UserIntent)
  * - action/: Action nodes (ApiCall)
- * - interface/: UI display nodes (StatCard)
  * - return/: Flow termination nodes (Return, CallFlow)
  * - transform/: Data transformation nodes (JavaScriptCodeTransform)
+ *
+ * Note: Interface/UI nodes are now fetched from the registry at runtime.
  */
 
 // Re-export from category subfolders
 export { UserIntentNode } from './trigger/index.js';
 export { ApiCallNode } from './action/index.js';
-export { StatCardNode, PostListNode } from './interface/index.js';
 export { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 export { JavaScriptCodeTransform } from './transform/index.js';
 
 // Import for registry
 import { UserIntentNode } from './trigger/index.js';
 import { ApiCallNode } from './action/index.js';
-import { StatCardNode, PostListNode } from './interface/index.js';
 import { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 import { JavaScriptCodeTransform } from './transform/index.js';
 import type { NodeTypeDefinition } from '../types.js';
 
 /**
  * Map of all built-in node types by their type name.
+ * Note: Interface nodes (StatCard, PostList) have been removed.
+ * UI components are now fetched from the registry.
  */
 export const builtInNodes: Record<string, NodeTypeDefinition> = {
   UserIntent: UserIntentNode,
-  StatCard: StatCardNode,
-  PostList: PostListNode,
   Return: ReturnNode,
   CallFlow: CallFlowNode,
   ApiCall: ApiCallNode,
@@ -46,8 +45,6 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
  */
 export const builtInNodeList: NodeTypeDefinition[] = [
   UserIntentNode,
-  StatCardNode,
-  PostListNode,
   ReturnNode,
   CallFlowNode,
   ApiCallNode,
