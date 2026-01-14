@@ -1029,7 +1029,7 @@ export function NodeEditModal({
                     onChange={setTransformCode}
                     placeholder={`function transform(input: Input) {
   // Access data from connected nodes by their slug
-  // e.g., input.callPokemonApi.body, input.listPokemons.triggered
+  // e.g., input.callPokemonApi.body, input.userIntent.toolName
   return input;
 }`}
                     height="250px"

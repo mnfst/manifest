@@ -57,7 +57,6 @@ export const UserIntentNode: NodeTypeDefinition = {
       success: true,
       output: {
         type: 'trigger',
-        triggered: true,
         toolName: params.toolName,
         _execution: {
           success: true,

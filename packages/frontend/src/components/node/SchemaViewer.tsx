@@ -83,13 +83,17 @@ function FieldRow({ field, depth = 0 }: FieldRowProps) {
             (nested)
           </span>
         )}
-
-        {field.description && (
-          <span className="text-xs text-gray-400 truncate" title={field.description}>
-            {field.description}
-          </span>
-        )}
       </div>
+
+      {/* Description on its own line for better readability */}
+      {field.description && (
+        <div
+          className="text-xs text-gray-500 pl-6 pb-1"
+          style={{ paddingLeft: paddingLeft + 20 }}
+        >
+          {field.description}
+        </div>
+      )}
 
       {hasChildren && isExpanded && (
         <div>

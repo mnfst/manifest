@@ -333,12 +333,20 @@ export function createUserIntentOutputSchema(
 
   // Merge with static trigger fields (all marked as static)
   const staticProperties: Record<string, JSONSchema> = {
-    type: { type: 'string', const: 'trigger', 'x-field-source': 'static' } as JSONSchema,
-    triggered: { type: 'boolean', 'x-field-source': 'static' } as JSONSchema,
-    toolName: { type: 'string', 'x-field-source': 'static' } as JSONSchema,
+    type: {
+      type: 'string',
+      const: 'trigger',
+      'x-field-source': 'static',
+      description: 'Identifies this output as coming from a trigger node',
+    } as JSONSchema,
+    toolName: {
+      type: 'string',
+      'x-field-source': 'static',
+      description: 'The MCP tool name (auto-generated from node name in snake_case)',
+    } as JSONSchema,
   };
 
-  const staticRequired = ['type', 'triggered', 'toolName'];
+  const staticRequired = ['type', 'toolName'];
 
   return {
     type: 'object',
