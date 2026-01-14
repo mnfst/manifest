@@ -10,6 +10,9 @@
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
       "category": "form",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/contact-form.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -33,6 +36,9 @@
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
       "category": "form",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/date-time-picker.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -53,6 +59,9 @@
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
       "category": "form",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/issue-report-form.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -76,6 +85,9 @@
       "title": "Card Form",
       "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/card-form.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -99,6 +111,9 @@
       "title": "Pay Confirm",
       "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/pay-confirm.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -121,6 +136,9 @@
       "title": "Order Summary",
       "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/order-summary.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -143,6 +161,9 @@
       "title": "Saved Cards",
       "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/saved-cards.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -164,6 +185,9 @@
       "title": "Payment Success",
       "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/payment-success.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -186,6 +210,9 @@
       "title": "Bank Card Form",
       "description": "Compact bank card payment form with inline layout for chat interfaces.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/bank-card-form.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -206,6 +233,9 @@
       "title": "Payment Methods",
       "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/payment-methods.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -226,6 +256,9 @@
       "title": "Order Confirm",
       "description": "Order confirmation with product image, delivery info, and confirm action.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/order-confirm.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -246,6 +279,9 @@
       "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/payment-confirmed.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -266,6 +302,9 @@
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
       "category": "list",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/product-list.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -286,6 +325,9 @@
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/option-list.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -304,6 +346,9 @@
       "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
       "category": "payment",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/amount-input.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -324,6 +369,9 @@
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/tag-select.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -344,6 +392,9 @@
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/quick-reply.png"
+      },
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -360,6 +411,9 @@
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/progress-steps.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -378,6 +432,9 @@
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/status-badge.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -396,6 +453,9 @@
       "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/stats.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -414,6 +474,9 @@
       "title": "Skeleton Loaders",
       "description": "Skeleton placeholder components with pulse animation for loading states.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/skeleton.png"
+      },
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -430,6 +493,9 @@
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
       "category": "blogging",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/post-card.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -454,6 +520,9 @@
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
       "category": "blogging",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/post-list.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -482,6 +551,9 @@
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
       "category": "blogging",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/post-detail.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -506,6 +578,9 @@
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
       "category": "list",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/table.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -530,6 +605,9 @@
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
       "category": "messaging",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/message-bubble.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -550,6 +628,9 @@
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
       "category": "messaging",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/chat-conversation.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -574,6 +655,9 @@
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/x-post.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -592,6 +676,9 @@
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/instagram-post.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -612,6 +699,9 @@
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/linkedin-post.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -632,6 +722,9 @@
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/youtube-post.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -652,6 +745,9 @@
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
       "category": "miscellaneous",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/map-carousel.png"
+      },
       "dependencies": [
         "lucide-react",
         "leaflet",
@@ -672,6 +768,9 @@
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
       "category": "events",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/event-card.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -696,6 +795,9 @@
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
       "category": "events",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/event-list.png"
+      },
       "dependencies": [
         "lucide-react",
         "react-leaflet",
@@ -724,6 +826,9 @@
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
       "category": "events",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/event-detail.png"
+      },
       "dependencies": [
         "lucide-react",
         "react-leaflet",
@@ -750,6 +855,9 @@
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
       "category": "events",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/ticket-tier-select.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -770,6 +878,9 @@
       "title": "Event Checkout",
       "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
       "category": "events",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/event-checkout.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
@@ -791,6 +902,9 @@
       "title": "Event Confirmation",
       "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
       "category": "events",
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/event-confirmation.png"
+      },
       "dependencies": [
         "lucide-react"
       ],
