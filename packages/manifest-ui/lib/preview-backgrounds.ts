@@ -36,6 +36,22 @@ export const categoryBackgrounds: Record<string, PreviewBackground> = {
   miscellaneous: {
     gradient: 'linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%)',
     className: 'from-teal-400 to-emerald-600'
+  },
+  selection: {
+    gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)',
+    className: 'from-red-400 to-orange-400'
+  },
+  status: {
+    gradient: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+    className: 'from-blue-500 to-blue-700'
+  },
+  social: {
+    gradient: 'linear-gradient(135deg, #1DA1F2 0%, #0D8BD9 100%)',
+    className: 'from-sky-500 to-sky-600'
+  },
+  map: {
+    gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    className: 'from-emerald-600 to-emerald-700'
   }
 }
 

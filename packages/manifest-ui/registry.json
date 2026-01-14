@@ -344,22 +344,23 @@
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
-        "version": "2.0.2",
+        "version": "2.1.0",
         "changelog": {
           "1.0.0": "Initial release with single and multiple selection modes",
           "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
           "2.0.1": "Moved demo data to separate file for cleaner component code",
-          "2.0.2": "Added comprehensive JSDoc documentation"
+          "2.0.2": "Added comprehensive JSDoc documentation",
+          "2.1.0": "Moved to selection category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/option-list.tsx",
+          "path": "registry/selection/option-list.tsx",
           "type": "registry:block",
           "target": "components/ui/option-list.tsx"
         }
@@ -396,20 +397,21 @@
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
-        "version": "1.0.2",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with color variants and multi-select",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to selection category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": ["button"],
       "files": [
         {
-          "path": "registry/miscellaneous/tag-select.tsx",
+          "path": "registry/selection/tag-select.tsx",
           "type": "registry:block",
           "target": "components/ui/tag-select.tsx"
         }
@@ -421,22 +423,23 @@
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/quick-reply.png",
-        "version": "3.0.2",
+        "version": "3.1.0",
         "changelog": {
           "1.0.0": "Initial release with quick reply button options",
           "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
           "3.0.0": "BREAKING: Removed id from QuickReply interface. Use array index for key.",
-          "3.0.2": "Added comprehensive JSDoc documentation"
+          "3.0.2": "Added comprehensive JSDoc documentation",
+          "3.1.0": "Moved to selection category for better organization"
         }
       },
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/quick-reply.tsx",
+          "path": "registry/selection/quick-reply.tsx",
           "type": "registry:block",
           "target": "components/ui/quick-reply.tsx"
         }
@@ -448,20 +451,21 @@
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["status"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/progress-steps.png",
-        "version": "1.0.2",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with horizontal and vertical layouts",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to status category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/progress-steps.tsx",
+          "path": "registry/status/progress-steps.tsx",
           "type": "registry:block",
           "target": "components/ui/progress-steps.tsx"
         }
@@ -473,20 +477,21 @@
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["status"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/status-badge.png",
-        "version": "1.0.2",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with multiple status states",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to status category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/status-badge.tsx",
+          "path": "registry/status/status-badge.tsx",
           "type": "registry:block",
           "target": "components/ui/status-badge.tsx"
         }
@@ -748,20 +753,21 @@
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/x-post.png",
-        "version": "1.0.2",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with engagement metrics display",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to social category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/x-post.tsx",
+          "path": "registry/social/x-post.tsx",
           "type": "registry:block",
           "target": "components/ui/x-post.tsx"
         }
@@ -773,21 +779,22 @@
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/instagram-post.png",
-        "version": "1.0.3",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with image and engagement display",
           "1.0.1": "Improved alt text to include author name",
-          "1.0.3": "Added comprehensive JSDoc documentation"
+          "1.0.3": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to social category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": ["dropdown-menu"],
       "files": [
         {
-          "path": "registry/miscellaneous/instagram-post.tsx",
+          "path": "registry/social/instagram-post.tsx",
           "type": "registry:block",
           "target": "components/ui/instagram-post.tsx"
         }
@@ -799,20 +806,21 @@
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/linkedin-post.png",
-        "version": "1.0.2",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with professional styling",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to social category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": ["dropdown-menu"],
       "files": [
         {
-          "path": "registry/miscellaneous/linkedin-post.tsx",
+          "path": "registry/social/linkedin-post.tsx",
           "type": "registry:block",
           "target": "components/ui/linkedin-post.tsx"
         }
@@ -824,21 +832,22 @@
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/youtube-post.png",
-        "version": "1.0.3",
+        "version": "1.1.0",
         "changelog": {
           "1.0.0": "Initial release with playable video embed",
           "1.0.1": "Improved alt text to include video title",
-          "1.0.3": "Added comprehensive JSDoc documentation"
+          "1.0.3": "Added comprehensive JSDoc documentation",
+          "1.1.0": "Moved to social category for better organization"
         }
       },
       "dependencies": ["lucide-react"],
       "registryDependencies": ["dropdown-menu"],
       "files": [
         {
-          "path": "registry/miscellaneous/youtube-post.tsx",
+          "path": "registry/social/youtube-post.tsx",
           "type": "registry:block",
           "target": "components/ui/youtube-post.tsx"
         }
@@ -850,14 +859,15 @@
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": ["map"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "1.1.2",
+        "version": "1.2.0",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
-          "1.1.2": "Added comprehensive JSDoc documentation"
+          "1.1.2": "Added comprehensive JSDoc documentation",
+          "1.2.0": "Moved to map category for better organization"
         }
       },
       "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
@@ -865,7 +875,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/miscellaneous/map-carousel.tsx",
+          "path": "registry/map/map-carousel.tsx",
           "type": "registry:block",
           "target": "components/ui/map-carousel.tsx"
         }

@@ -1,113 +1,100 @@
+import registry from '@/registry.json'
+
 // Shared block categories for sidebar navigation
-// Each block can have multiple variants displayed on the same page
+// Categories and blocks are automatically derived from registry.json
 export interface BlockCategory {
   id: string
   name: string
   blocks: { id: string; name: string }[]
 }
 
-export const blockCategories: BlockCategory[] = [
-  {
-    id: 'blog',
-    name: 'Blogging',
-    blocks: [
-      { id: 'post-card', name: 'Post Card' },
-      { id: 'post-detail', name: 'Post Detail' },
-      { id: 'post-list', name: 'Post List' }
-    ]
-  },
-  {
-    id: 'events',
-    name: 'Events',
-    blocks: [
-      { id: 'event-card', name: 'Event Card' },
-      { id: 'event-detail', name: 'Event Detail' },
-      { id: 'event-list', name: 'Event List' }
-    ]
-  },
-  {
-    id: 'form',
-    name: 'Forms',
-    blocks: [
-      { id: 'contact-form', name: 'Contact Form' },
-      { id: 'date-time-picker', name: 'Date & Time Picker' },
-      { id: 'issue-report-form', name: 'Issue Report Form' }
-    ]
-  },
-  {
-    id: 'list',
-    name: 'Lists & Tables',
-    blocks: [{ id: 'table', name: 'Table' }]
-  },
-  {
-    id: 'map',
-    name: 'Map',
-    blocks: [{ id: 'map-carousel', name: 'Map Carousel' }]
-  },
-  {
-    id: 'messaging',
-    name: 'Messaging',
-    blocks: [
-      { id: 'chat-conversation', name: 'Chat Conversation' },
-      { id: 'message-bubble', name: 'Message Bubble' }
-    ]
-  },
-  {
-    id: 'misc',
-    name: 'Miscellaneous',
-    blocks: [
-      { id: 'stats-cards', name: 'Stats Cards' },
-      { id: 'weather-widget', name: 'Weather Widget' }
-    ]
-  },
-  {
-    id: 'payment',
-    name: 'Payment',
-    blocks: [
-      { id: 'amount-input', name: 'Amount Input' },
-      { id: 'card-form', name: 'Card Form' },
-      { id: 'order-confirm', name: 'Order Confirmation' },
-      { id: 'payment-confirmed', name: 'Payment Confirmed' },
-      { id: 'payment-methods', name: 'Payment Methods' },
-      { id: 'payment-success', name: 'Payment Success' }
-    ]
-  },
-  {
-    id: 'products',
-    name: 'Products',
-    blocks: [
-      { id: 'product-carousel', name: 'Product Carousel' },
-      { id: 'product-grid', name: 'Product Grid' },
-      { id: 'product-horizontal', name: 'Product Horizontal' },
-      { id: 'product-picker', name: 'Product Picker' }
-    ]
-  },
-  {
-    id: 'selection',
-    name: 'Selection',
-    blocks: [
-      { id: 'card-selection', name: 'Card Selection' },
-      { id: 'option-list', name: 'Option List' },
-      { id: 'quick-reply', name: 'Quick Reply' },
-      { id: 'tag-selection', name: 'Tag Selection' }
-    ]
-  },
-  {
-    id: 'social',
-    name: 'Social',
-    blocks: [
-      { id: 'instagram-post', name: 'Instagram Post' },
-      { id: 'linkedin-post', name: 'LinkedIn Post' },
-      { id: 'x-post', name: 'X Post' },
-      { id: 'youtube-post', name: 'YouTube Post' }
-    ]
-  },
-  {
-    id: 'status',
-    name: 'Status & Progress',
-    blocks: [
-      { id: 'progress-steps', name: 'Progress Steps' },
-      { id: 'status-badges', name: 'Status Badges' }
-    ]
-  }
+// Map category IDs to display names
+const categoryDisplayNames: Record<string, string> = {
+  blogging: 'Blogging',
+  events: 'Events',
+  form: 'Forms',
+  list: 'Lists & Tables',
+  map: 'Map',
+  messaging: 'Messaging',
+  miscellaneous: 'Miscellaneous',
+  payment: 'Payment',
+  selection: 'Selection',
+  social: 'Social',
+  status: 'Status & Progress',
+}
+
+// Define the order of categories in the sidebar
+const categoryOrder = [
+  'blogging',
+  'events',
+  'form',
+  'list',
+  'map',
+  'messaging',
+  'miscellaneous',
+  'payment',
+  'selection',
+  'social',
+  'status',
 ]
+
+// Group registry items by category
+function buildBlockCategories(): BlockCategory[] {
+  const categoryMap = new Map<string, { id: string; name: string }[]>()
+
+  for (const item of registry.items) {
+    // Support both 'categories' array (new format) and 'category' string (old format)
+    const categories = item.categories
+    if (!categories || categories.length === 0) continue
+
+    // Use the first category (primary category)
+    const category = categories[0]
+    if (!categoryMap.has(category)) {
+      categoryMap.set(category, [])
+    }
+
+    categoryMap.get(category)!.push({
+      id: item.name,
+      name: item.title,
+    })
+  }
+
+  // Sort blocks alphabetically within each category
+  for (const blocks of categoryMap.values()) {
+    blocks.sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  // Build the categories array in the defined order
+  const categories: BlockCategory[] = []
+
+  for (const categoryId of categoryOrder) {
+    const blocks = categoryMap.get(categoryId)
+    if (blocks && blocks.length > 0) {
+      categories.push({
+        id: categoryId,
+        name: categoryDisplayNames[categoryId] || categoryId,
+        blocks,
+      })
+    }
+  }
+
+  // Add any categories not in the defined order (sorted alphabetically)
+  const remainingCategories = Array.from(categoryMap.keys())
+    .filter((id) => !categoryOrder.includes(id))
+    .sort()
+
+  for (const categoryId of remainingCategories) {
+    const blocks = categoryMap.get(categoryId)
+    if (blocks && blocks.length > 0) {
+      categories.push({
+        id: categoryId,
+        name: categoryDisplayNames[categoryId] || categoryId,
+        blocks,
+      })
+    }
+  }
+
+  return categories
+}
+
+export const blockCategories: BlockCategory[] = buildBlockCategories()

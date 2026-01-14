@@ -28,18 +28,26 @@ import { AmountInput } from '@/registry/payment/amount-input'
 import { ProductList } from '@/registry/list/product-list'
 import { Table } from '@/registry/list/table'
 
+// Selection components
+import { OptionList } from '@/registry/selection/option-list'
+import { QuickReply } from '@/registry/selection/quick-reply'
+import { TagSelect } from '@/registry/selection/tag-select'
+
+// Status components
+import { ProgressSteps } from '@/registry/status/progress-steps'
+import { StatusBadge } from '@/registry/status/status-badge'
+
 // Miscellaneous components
-import { OptionList } from '@/registry/miscellaneous/option-list'
-import { TagSelect } from '@/registry/miscellaneous/tag-select'
-import { QuickReply } from '@/registry/miscellaneous/quick-reply'
-import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
-import { StatusBadge } from '@/registry/miscellaneous/status-badge'
 import { Stats } from '@/registry/miscellaneous/stat-card'
-import { XPost } from '@/registry/miscellaneous/x-post'
-import { InstagramPost } from '@/registry/miscellaneous/instagram-post'
-import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
-import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
-import { MapCarousel } from '@/registry/miscellaneous/map-carousel'
+
+// Social components
+import { InstagramPost } from '@/registry/social/instagram-post'
+import { LinkedInPost } from '@/registry/social/linkedin-post'
+import { XPost } from '@/registry/social/x-post'
+import { YouTubePost } from '@/registry/social/youtube-post'
+
+// Map components
+import { MapCarousel } from '@/registry/map/map-carousel'
 
 // Blogging components
 import { PostCard } from '@/registry/blogging/post-card'
@@ -194,27 +202,31 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'list'
   },
 
-  // Miscellaneous components
+  // Selection components
   'option-list': {
     component: <OptionList data={{ options: [{ label: 'Option A' }, { label: 'Option B' }, { label: 'Option C' }] }} />,
-    category: 'miscellaneous'
+    category: 'selection'
   },
   'tag-select': {
     component: <TagSelect data={{ tags: [{ id: '1', label: 'Important', color: 'red' }, { id: '2', label: 'In Progress', color: 'yellow' }, { id: '3', label: 'Done', color: 'green' }] }} />,
-    category: 'miscellaneous'
+    category: 'selection'
   },
   'quick-reply': {
     component: <QuickReply data={{ replies: [{ label: 'Yes, please' }, { label: 'No, thanks' }, { label: 'Tell me more' }] }} />,
-    category: 'miscellaneous'
+    category: 'selection'
   },
+
+  // Status components
   'progress-steps': {
     component: <ProgressSteps data={{ steps: [{ id: '1', label: 'Cart', status: 'completed' }, { id: '2', label: 'Shipping', status: 'current' }, { id: '3', label: 'Payment', status: 'pending' }, { id: '4', label: 'Confirm', status: 'pending' }] }} />,
-    category: 'miscellaneous'
+    category: 'status'
   },
   'status-badge': {
     component: <StatusBadge data={{ status: 'processing' }} appearance={{ label: 'Processing' }} />,
-    category: 'miscellaneous'
+    category: 'status'
   },
+
+  // Miscellaneous components
   'stats': {
     component: <Stats data={{ stats: [{ label: 'Revenue', value: '$12,345', change: 12.5 }, { label: 'Orders', value: '1,234', change: -3.2 }, { label: 'Customers', value: '567', change: 8.1 }] }} />,
     category: 'miscellaneous'
@@ -229,25 +241,29 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     ),
     category: 'miscellaneous'
   },
+
+  // Social components
   'x-post': {
     component: <XPost data={{ author: 'Elon Musk', username: 'elonmusk', avatar: 'https://i.pravatar.cc/150?u=elon', verified: true, content: 'The future of AI is here!', time: '2h', likes: '42K', retweets: '8.5K', replies: '3.2K' }} />,
-    category: 'miscellaneous'
+    category: 'social'
   },
   'instagram-post': {
     component: <InstagramPost data={{ author: 'National Geographic', avatar: 'https://i.pravatar.cc/150?u=natgeo', verified: true, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', caption: 'Nature at its finest', likes: '125K', time: '2h' }} />,
-    category: 'miscellaneous'
+    category: 'social'
   },
   'linkedin-post': {
     component: <LinkedInPost data={{ author: 'Satya Nadella', headline: 'CEO at Microsoft', avatar: 'https://i.pravatar.cc/150?u=satya', content: 'Excited to announce our latest AI innovations...', time: '1d', likes: '15K', comments: '890', reposts: '2.1K' }} />,
-    category: 'miscellaneous'
+    category: 'social'
   },
   'youtube-post': {
     component: <YouTubePost data={{ channel: 'TechTalks', avatar: 'https://i.pravatar.cc/150?u=techtalks', title: 'Building the Future of AI', views: '1.2M', time: '3 days ago', thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800', duration: '15:42' }} />,
-    category: 'miscellaneous'
+    category: 'social'
   },
+
+  // Map components
   'map-carousel': {
     component: <MapCarousel data={{ locations: demoMapLocations, center: [40.7128, -74.006] }} />,
-    category: 'miscellaneous'
+    category: 'map'
   },
 
   // Blogging components
