@@ -84,6 +84,25 @@ export type RegistryCategory =
 // ============================================
 
 /**
+ * Appearance option definition for registry components.
+ * Matches AppearanceOptionSchema from appearance.ts for compatibility.
+ */
+export interface RegistryAppearanceOption {
+  /** Option identifier (e.g., 'showOrderSummary', 'variant') */
+  key: string;
+  /** Display label for the form control */
+  label: string;
+  /** Type of form control to render */
+  type: 'enum' | 'boolean' | 'string' | 'number';
+  /** For enum type: available values to show in dropdown */
+  enumValues?: (string | number)[];
+  /** Default value if not configured */
+  defaultValue: string | number | boolean;
+  /** Optional description/help text shown below the control */
+  description?: string;
+}
+
+/**
  * Parameters stored in registry component nodes
  */
 export interface RegistryNodeParameters {
@@ -107,6 +126,10 @@ export interface RegistryNodeParameters {
   // Optional configuration
   variant?: string;
   customProps?: Record<string, unknown>;
+
+  // Appearance configuration schema (optional)
+  // If provided, these options will be shown in the Appearance tab
+  appearanceOptions?: RegistryAppearanceOption[];
 }
 
 // ============================================

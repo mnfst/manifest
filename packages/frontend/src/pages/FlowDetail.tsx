@@ -27,7 +27,7 @@ import { ExecutionDetail } from '../components/execution/ExecutionDetail';
 import { ExecutionDetailPlaceholder } from '../components/execution/ExecutionDetailPlaceholder';
 import { PreviewChat } from '../components/chat/PreviewChat';
 import { InterfaceEditor } from '../components/editor/InterfaceEditor';
-import { fetchComponentDetail, transformToNodeParameters } from '../services/registry';
+import { fetchComponentDetail, transformToNodeParameters, parseAppearanceOptions } from '../services/registry';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
@@ -807,9 +807,23 @@ function FlowDetail() {
                 // For RegistryComponent, get code from files[0].content
                 // For StatCard/PostList, use customCode
                 let initialCode: string | undefined;
+                let componentType: string = editingCodeNode.type;
+                let appearanceOptions: RegistryNodeParameters['appearanceOptions'] = undefined;
+
                 if (editingCodeNode.type === 'RegistryComponent') {
                   const registryParams = editingCodeNode.parameters as unknown as RegistryNodeParameters;
                   initialCode = registryParams?.files?.[0]?.content;
+                  // Use the registry component name for appearance lookup (e.g., 'TicketTierSelect')
+                  componentType = registryParams?.registryName ?? editingCodeNode.type;
+                  // Get appearance options from registry params if available,
+                  // otherwise parse from the stored component code (for existing nodes)
+                  appearanceOptions = registryParams?.appearanceOptions;
+                  if (!appearanceOptions && initialCode) {
+                    const parsedOptions = parseAppearanceOptions(initialCode);
+                    if (parsedOptions.length > 0) {
+                      appearanceOptions = parsedOptions;
+                    }
+                  }
                 } else {
                   initialCode = params.customCode;
                 }
@@ -819,9 +833,10 @@ function FlowDetail() {
                     flowId={flowId}
                     nodeId={editingCodeNode.id}
                     nodeName={editingCodeNode.name}
-                    componentType={editingCodeNode.type}
+                    componentType={componentType}
                     initialCode={initialCode}
                     initialAppearanceConfig={params.appearanceConfig}
+                    appearanceOptions={appearanceOptions}
                     onClose={handleCloseCodeEditor}
                     onSave={handleSaveCode}
                   />

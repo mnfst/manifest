@@ -267,6 +267,7 @@ export type {
   ComponentFile,
   RegistryCategory,
   RegistryNodeParameters,
+  RegistryAppearanceOption,
   RegistryFetchState,
   ComponentDetailFetchState,
   RegistryCategoryInfo,

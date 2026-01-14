@@ -6,6 +6,7 @@ import {
   type AppearanceConfig,
   type AppearanceOptionSchema,
   type ComponentAppearanceSchema,
+  type RegistryAppearanceOption,
   COMPONENT_APPEARANCE_REGISTRY,
   getDefaultAppearanceConfig,
 } from '@chatgpt-app-builder/shared';
@@ -21,6 +22,8 @@ interface AppearanceTabProps {
   onChange: (config: AppearanceConfig) => void;
   /** Whether the form is disabled */
   disabled?: boolean;
+  /** Custom appearance options (for registry components) - overrides static registry */
+  customOptions?: RegistryAppearanceOption[];
 }
 
 export function AppearanceTab({
@@ -28,8 +31,12 @@ export function AppearanceTab({
   config,
   onChange,
   disabled = false,
+  customOptions,
 }: AppearanceTabProps) {
-  const schema = COMPONENT_APPEARANCE_REGISTRY[componentType] as ComponentAppearanceSchema | undefined;
+  // Use custom options if provided (for registry components), otherwise fall back to static registry
+  const schema: ComponentAppearanceSchema | undefined = customOptions && customOptions.length > 0
+    ? { componentType, options: customOptions as AppearanceOptionSchema[] }
+    : COMPONENT_APPEARANCE_REGISTRY[componentType] as ComponentAppearanceSchema | undefined;
 
   // Handle empty state - no configurable options
   if (!schema || schema.options.length === 0) {

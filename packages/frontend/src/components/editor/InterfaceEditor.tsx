@@ -13,6 +13,7 @@ import {
   getTemplateDefaultCode,
   getTemplateSampleData,
   type AppearanceConfig,
+  type RegistryAppearanceOption,
   getDefaultAppearanceConfig,
 } from '@chatgpt-app-builder/shared';
 import { validateCode } from '../../lib/codeValidator';
@@ -31,6 +32,8 @@ export interface InterfaceEditorProps {
   initialCode?: string;
   /** Initial appearance configuration */
   initialAppearanceConfig?: AppearanceConfig;
+  /** Custom appearance options (for registry components) - overrides static registry */
+  appearanceOptions?: RegistryAppearanceOption[];
   /** Callback when editor is closed */
   onClose: () => void;
   /** Callback when changes are saved */
@@ -46,6 +49,7 @@ export function InterfaceEditor({
   componentType = 'StatCard',
   initialCode,
   initialAppearanceConfig,
+  appearanceOptions,
   onClose,
   onSave,
 }: InterfaceEditorProps) {
@@ -239,6 +243,7 @@ export function InterfaceEditor({
               config={appearanceConfig}
               onChange={handleAppearanceChange}
               disabled={isSaving}
+              customOptions={appearanceOptions}
             />
           </div>
         </TabsContent>
