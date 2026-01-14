@@ -5,6 +5,7 @@ import type { App, Flow, AppStatus } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
 import { CreateFlowModal } from '../components/flow/CreateFlowModal';
+import { DeleteFlowModal } from '../components/flow/DeleteFlowModal';
 import { PublishButton } from '../components/app/PublishButton';
 import { ShareModal } from '../components/app/ShareModal';
 import { AppIconUpload } from '../components/app/AppIconUpload';
@@ -28,8 +29,8 @@ function AppDetail() {
   const [isCreatingFlow, setIsCreatingFlow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [flowError, setFlowError] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [deletingFlowId, setDeletingFlowId] = useState<string | null>(null);
+  const [flowToDelete, setFlowToDelete] = useState<Flow | null>(null);
+  const [isDeletingFlow, setIsDeletingFlow] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -93,25 +94,22 @@ function AppDetail() {
     navigate(`/app/${appId}/flow/${flow.id}`);
   };
 
-  const handleFlowDelete = async (flow: Flow) => {
-    // Two-click confirmation
-    if (deleteConfirm !== flow.id) {
-      setDeleteConfirm(flow.id);
-      // Auto-clear confirmation after 3 seconds
-      setTimeout(() => setDeleteConfirm(null), 3000);
-      return;
-    }
+  const handleFlowDelete = (flow: Flow) => {
+    setFlowToDelete(flow);
+  };
 
-    setDeletingFlowId(flow.id);
-    setDeleteConfirm(null);
+  const confirmFlowDelete = async () => {
+    if (!flowToDelete) return;
 
+    setIsDeletingFlow(true);
     try {
-      await api.deleteFlow(flow.id);
-      setFlows((prev) => prev.filter((f) => f.id !== flow.id));
+      await api.deleteFlow(flowToDelete.id);
+      setFlows((prev) => prev.filter((f) => f.id !== flowToDelete.id));
+      setFlowToDelete(null);
     } catch (err) {
       console.error('Failed to delete flow:', err);
     } finally {
-      setDeletingFlowId(null);
+      setIsDeletingFlow(false);
     }
   };
 
@@ -368,22 +366,8 @@ function AppDetail() {
               flows={flows}
               onFlowClick={handleFlowClick}
               onFlowDelete={handleFlowDelete}
-              deletingFlowId={deletingFlowId}
               onCreateFlow={() => setIsFlowModalOpen(true)}
             />
-
-            {/* Delete confirmation message */}
-            {deleteConfirm && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-                Click delete again to confirm removal of this flow and all its views.
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="ml-2 underline hover:no-underline"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
           </section>
         )}
 
@@ -433,6 +417,15 @@ function AppDetail() {
         onSubmit={handleEditApp}
         isLoading={isEditingApp}
         error={editAppError}
+      />
+
+      {/* Delete Flow Modal */}
+      <DeleteFlowModal
+        isOpen={!!flowToDelete}
+        flow={flowToDelete}
+        onClose={() => setFlowToDelete(null)}
+        onConfirm={confirmFlowDelete}
+        isLoading={isDeletingFlow}
       />
     </div>
   );

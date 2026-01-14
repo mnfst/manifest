@@ -5,7 +5,6 @@ interface FlowListProps {
   flows: Flow[];
   onFlowClick: (flow: Flow) => void;
   onFlowDelete?: (flow: Flow) => void;
-  deletingFlowId?: string | null;
   onCreateFlow?: () => void;
 }
 
@@ -16,7 +15,6 @@ export function FlowList({
   flows,
   onFlowClick,
   onFlowDelete,
-  deletingFlowId,
   onCreateFlow,
 }: FlowListProps) {
   if (flows.length === 0) {
@@ -47,7 +45,6 @@ export function FlowList({
           flow={flow}
           onClick={() => onFlowClick(flow)}
           onDelete={onFlowDelete ? () => onFlowDelete(flow) : undefined}
-          isDeleting={deletingFlowId === flow.id}
         />
       ))}
     </div>
