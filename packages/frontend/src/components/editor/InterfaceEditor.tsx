@@ -49,6 +49,19 @@ export interface InterfaceEditorProps {
  * Full-screen editor for customizing UI node configuration.
  * Provides tabs for General (name), Appearance (visual options), Code (TSX), and Preview.
  */
+// Map component types to layout templates
+function getLayoutTemplate(componentType: string): 'stat-card' | 'post-list' | 'blank-component' {
+  switch (componentType) {
+    case 'PostList':
+      return 'post-list';
+    case 'BlankComponent':
+      return 'blank-component';
+    case 'StatCard':
+    default:
+      return 'stat-card';
+  }
+}
+
 export function InterfaceEditor({
   nodeName: initialNodeName,
   componentType = 'StatCard',
@@ -60,8 +73,11 @@ export function InterfaceEditor({
   onClose,
   onSave,
 }: InterfaceEditorProps) {
+  // Determine the layout template based on component type
+  const layoutTemplate = getLayoutTemplate(componentType);
+
   // Determine the initial code to display
-  const defaultCode = getTemplateDefaultCode('stat-card');
+  const defaultCode = getTemplateDefaultCode(layoutTemplate);
   const startingCode = initialCode ?? defaultCode;
   const startingAppearanceConfig = initialAppearanceConfig ?? getDefaultAppearanceConfig(componentType);
 

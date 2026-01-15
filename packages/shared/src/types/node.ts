@@ -31,7 +31,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | '
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'StatCard' | 'PostList' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link' | 'RegistryComponent';
+export type NodeType = 'BlankComponent' | 'StatCard' | 'PostList' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link' | 'RegistryComponent';
 
 // =============================================================================
 // API Call Node Types
@@ -151,6 +151,18 @@ export interface UINodeParameters {
   customCode?: string;
 
   /** Appearance configuration for visual options (variant, columns, showAuthor, etc.) */
+  appearanceConfig?: AppearanceConfig;
+}
+
+/**
+ * Parameters for BlankComponent nodes.
+ * Follows the same structure as UINodeParameters for consistency.
+ */
+export interface BlankComponentNodeParameters {
+  /** User-customized TSX source code. If undefined, BLANK_COMPONENT_DEFAULT_CODE is used. */
+  customCode?: string;
+
+  /** Visual configuration derived from the component's appearance prop interface. */
   appearanceConfig?: AppearanceConfig;
 }
 
@@ -461,4 +473,13 @@ export function isLinkNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: LinkNodeParameters } {
   return node.type === 'Link';
+}
+
+/**
+ * Check if a node is a BlankComponent node.
+ */
+export function isBlankComponentNode(
+  node: NodeInstance
+): node is NodeInstance & { parameters: BlankComponentNodeParameters } {
+  return node.type === 'BlankComponent';
 }

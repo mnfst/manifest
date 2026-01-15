@@ -8,7 +8,7 @@ export type AppStatus = 'draft' | 'published';
 /**
  * Layout template types
  */
-export type LayoutTemplate = 'stat-card' | 'post-list';
+export type LayoutTemplate = 'stat-card' | 'post-list' | 'blank-component';
 
 /**
  * Defines an action that can be triggered by a UI component
@@ -65,6 +65,12 @@ export const LAYOUT_REGISTRY: Record<LayoutTemplate, LayoutTemplateConfig> = {
         },
       ],
     },
+  },
+  'blank-component': {
+    manifestBlock: '@manifest/blank',
+    installCommand: '',
+    useCase: 'Custom UI components with 4-argument pattern (data, appearance, control, actions)',
+    actions: [],
   },
 };
 
