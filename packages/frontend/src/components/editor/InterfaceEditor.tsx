@@ -82,28 +82,22 @@ export function InterfaceEditor({
   const [previewKey, setPreviewKey] = useState(0);
 
   // Get sample data for preview
-  // Convert componentType to template format (StatCard → stat-card, PostList → post-list)
+  // Registry components (with siblingFiles including demo/data.ts) use their internal demo data
+  // Built-in templates (StatCard, PostList) use predefined sample data
   const sampleData = useMemo(() => {
+    // Registry components have siblingFiles with demo data - let them use their internal defaults
+    if (siblingFiles && siblingFiles.length > 0) {
+      return undefined;
+    }
+
+    // Built-in templates use predefined sample data
     const templateMap: Record<string, string> = {
       'StatCard': 'stat-card',
       'PostList': 'post-list',
     };
     const template = templateMap[componentType] || 'stat-card';
-    const data = getTemplateSampleData(template as 'stat-card' | 'post-list');
-    // For registry components without predefined templates, provide generic sample data
-    // that won't crash on common property access patterns
-    if (!data || Object.keys(data as object).length === 0) {
-      return {
-        title: 'Sample Title',
-        description: 'Sample description text',
-        name: 'Sample Name',
-        value: 'Sample Value',
-        items: [],
-        data: {},
-      };
-    }
-    return data;
-  }, [componentType]);
+    return getTemplateSampleData(template as 'stat-card' | 'post-list');
+  }, [componentType, siblingFiles]);
 
   // Validate code when it changes
   useEffect(() => {

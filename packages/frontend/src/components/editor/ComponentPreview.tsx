@@ -79,6 +79,61 @@ function buildFileMap(
 }
 
 /**
+ * Extract demo data from siblingFiles by finding and compiling the demo/data file.
+ * Returns the exports object or null if not found.
+ */
+function extractDemoData(
+  siblingFiles?: Array<{ path: string; content: string }>
+): Record<string, unknown> | null {
+  if (!siblingFiles) return null;
+
+  // Find the demo/data file
+  const demoFile = siblingFiles.find(f => f.path.includes('/demo/data'));
+  if (!demoFile) return null;
+
+  try {
+    // Strip Next.js directives
+    const processedCode = demoFile.content
+      .replace(/['"]use client['"]\s*;?/g, '')
+      .replace(/['"]use server['"]\s*;?/g, '');
+
+    // Transform with Sucrase
+    const result = transform(processedCode, {
+      transforms: ['jsx', 'typescript', 'imports'],
+      jsxRuntime: 'classic',
+      jsxPragma: 'React.createElement',
+      jsxFragmentPragma: 'React.Fragment',
+    });
+
+    // Create module wrapper
+    const moduleCode = `
+      var exports = {};
+      var module = { exports: exports };
+      ${result.code}
+      return exports;
+    `;
+
+    // Simple mock require that returns empty objects for any import
+    const mockRequire = () => ({});
+    const factory = new Function('React', 'require', moduleCode);
+    const exports = factory(React, mockRequire) as Record<string, unknown>;
+
+    // Filter to only include data exports (objects/arrays, not functions)
+    const dataExports: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(exports)) {
+      if (value && typeof value === 'object') {
+        dataExports[key] = value;
+      }
+    }
+
+    return Object.keys(dataExports).length > 0 ? dataExports : null;
+  } catch (err) {
+    console.warn('Failed to extract demo data:', err);
+    return null;
+  }
+}
+
+/**
  * Compile a sibling module and return its exports.
  */
 function compileSiblingModule(
@@ -316,6 +371,14 @@ export function ComponentPreview({
     return compileComponent(code, siblingFiles);
   }, [code, siblingFiles]);
 
+  // Extract demo data from siblingFiles for registry components
+  const demoData = useMemo(() => {
+    return extractDemoData(siblingFiles);
+  }, [siblingFiles]);
+
+  // Use demo data for registry components, or sampleData for built-in templates
+  const displayData = demoData ?? sampleData;
+
   // Short loading delay for UX
   useEffect(() => {
     setIsLoading(true);
@@ -333,7 +396,7 @@ export function ComponentPreview({
   // Copy sample data to clipboard
   const handleCopySampleData = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(sampleData, null, 2));
+      await navigator.clipboard.writeText(JSON.stringify(displayData, null, 2));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -400,30 +463,32 @@ export function ComponentPreview({
           )}
         </div>
 
-        {/* Sample data reference */}
-        <div className="mt-6 pt-4 border-t">
-          <details className="group">
-            <summary className="text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-700">
-              View sample data
-            </summary>
-            <div className="relative mt-2">
-              <button
-                onClick={handleCopySampleData}
-                className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                title={copied ? 'Copied!' : 'Copy sample data'}
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
-              <pre className="p-3 pr-10 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 overflow-auto max-h-48">
-                {JSON.stringify(sampleData, null, 2)}
-              </pre>
-            </div>
-          </details>
-        </div>
+        {/* Sample data reference - shows demo data for registry components or sample data for built-in templates */}
+        {displayData !== undefined && (
+          <div className="mt-6 pt-4 border-t">
+            <details className="group">
+              <summary className="text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-700">
+                {demoData ? 'View demo data' : 'View sample data'}
+              </summary>
+              <div className="relative mt-2">
+                <button
+                  onClick={handleCopySampleData}
+                  className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                  title={copied ? 'Copied!' : 'Copy data'}
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </button>
+                <pre className="p-3 pr-10 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 overflow-auto max-h-48">
+                  {JSON.stringify(displayData, null, 2)}
+                </pre>
+              </div>
+            </details>
+          </div>
+        )}
       </div>
     </PreviewErrorBoundary>
   );
