@@ -3,7 +3,7 @@ import type { ComponentType } from 'react';
 /**
  * Available tabs in the flow detail page
  */
-export type FlowDetailTab = 'build' | 'preview' | 'usage';
+export type FlowDetailTab = 'build' | 'preview' | 'logs' | 'analytics';
 
 /**
  * Available tabs in the settings page

@@ -35,8 +35,6 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Alias for easier migration - use onMessagesChange instead of setMessages
-  const setMessages = onMessagesChange;
 
   // Load available models on mount
   useEffect(() => {
@@ -70,7 +68,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    onMessagesChange((prev) => [...prev, userMessage]);
     setInputValue('');
     setError(null);
     setIsStreaming(true);
@@ -84,7 +82,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
       timestamp: new Date(),
       isStreaming: true,
     };
-    setMessages((prev) => [...prev, assistantMessage]);
+    onMessagesChange((prev) => [...prev, assistantMessage]);
 
     try {
       // Build messages array for API
@@ -109,7 +107,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
         switch (event.type) {
           case 'token':
             accumulatedContent += event.content;
-            setMessages((prev) =>
+            onMessagesChange((prev) =>
               prev.map((msg) =>
                 msg.id === assistantMessageId
                   ? { ...msg, content: accumulatedContent }
@@ -120,7 +118,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
 
           case 'tool_call':
             toolCalls.push(event.toolCall);
-            setMessages((prev) =>
+            onMessagesChange((prev) =>
               prev.map((msg) =>
                 msg.id === assistantMessageId
                   ? { ...msg, toolCalls: [...toolCalls] }
@@ -139,7 +137,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
               timestamp: new Date(),
               toolResult: event.toolResult,
             };
-            setMessages((prev) => [...prev, toolMessage]);
+            onMessagesChange((prev) => [...prev, toolMessage]);
             break;
           }
 
@@ -148,7 +146,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
             break;
 
           case 'end':
-            setMessages((prev) =>
+            onMessagesChange((prev) =>
               prev.map((msg) =>
                 msg.id === assistantMessageId
                   ? { ...msg, isStreaming: false }
@@ -161,11 +159,11 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
       // Remove the streaming assistant message on error
-      setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
+      onMessagesChange((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
     } finally {
       setIsStreaming(false);
     }
-  }, [inputValue, isStreaming, apiKey, messages, flowId, selectedModel]);
+  }, [inputValue, isStreaming, apiKey, messages, flowId, selectedModel, onMessagesChange]);
 
   // Handle key press (Enter to send, Shift+Enter for new line)
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -177,7 +175,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
 
   // Clear chat history
   const handleClear = () => {
-    setMessages([]);
+    onMessagesChange([]);
     setError(null);
   };
 

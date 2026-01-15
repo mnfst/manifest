@@ -218,7 +218,7 @@ export function InterfaceEditor({
           <div>
             <h1 className="text-lg font-semibold">{name || 'Untitled'}</h1>
             <p className="text-sm text-muted-foreground">
-              Edit UI Component
+              Edit {componentType}
               {isDirty && <span className="text-amber-500 ml-2">• Unsaved changes</span>}
             </p>
           </div>
@@ -271,6 +271,7 @@ export function InterfaceEditor({
             <GeneralTab
               name={name}
               onNameChange={handleNameChange}
+              componentType={componentType}
               disabled={isSaving}
             />
           </div>

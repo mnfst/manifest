@@ -63,7 +63,7 @@ export function LinkNode({ data }: NodeProps) {
   }, [isDropdownOpen]);
 
   return (
-    <div className="bg-white rounded-lg border-2 border-green-200 hover:border-green-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan relative">
+    <div className="bg-white rounded-lg border-2 border-green-200 hover:border-green-400 shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan relative">
       {/* Left handle for incoming connections - UI nodes only */}
       <UIHandle />
 

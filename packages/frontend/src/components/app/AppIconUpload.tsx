@@ -93,7 +93,7 @@ export function AppIconUpload({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         disabled={isLoading}
-        className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 transition-all hover:shadow-md"
+        className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 transition-shadow hover:shadow-md"
         aria-label="Upload app icon"
       >
         {/* Current icon */}

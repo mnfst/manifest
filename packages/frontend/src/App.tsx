@@ -1,15 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import AppDetail from './pages/AppDetail';
-import FlowDetail from './pages/FlowDetail';
-import { SettingsPage } from './pages/SettingsPage';
-import { VerifyEmailChangePage } from './pages/VerifyEmailChangePage';
 import { Sidebar } from './components/layout/Sidebar';
 import { AuthPage } from './pages/AuthPage';
-import { AcceptInvitePage } from './pages/AcceptInvitePage';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { api } from './lib/api';
 import type { App } from '@chatgpt-app-builder/shared';
+
+// Lazy-loaded page components for better initial bundle size
+const AppDetail = lazy(() => import('./pages/AppDetail'));
+const FlowDetail = lazy(() => import('./pages/FlowDetail'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const VerifyEmailChangePage = lazy(() => import('./pages/VerifyEmailChangePage').then(m => ({ default: m.VerifyEmailChangePage })));
+const AcceptInvitePage = lazy(() => import('./pages/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
+
+/**
+ * Loading fallback component for lazy-loaded routes
+ */
+function PageLoader() {
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        <span className="text-sm text-muted-foreground">Loading…</span>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Home redirect component
@@ -71,18 +87,20 @@ function ProtectedRoutes() {
       <div className="flex min-h-screen bg-background">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <Routes>
-            <Route path="/" element={<HomeRedirect />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
-            <Route path="/app/:appId" element={<AppDetail />} />
-            <Route path="/app/:appId/flows" element={<AppDetail />} />
-            <Route path="/app/:appId/analytics" element={<AppDetail />} />
-            <Route path="/app/:appId/collaborators" element={<AppDetail />} />
-            <Route path="/app/:appId/theme" element={<AppDetail />} />
-            <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomeRedirect />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
+              <Route path="/app/:appId" element={<AppDetail />} />
+              <Route path="/app/:appId/flows" element={<AppDetail />} />
+              <Route path="/app/:appId/analytics" element={<AppDetail />} />
+              <Route path="/app/:appId/collaborators" element={<AppDetail />} />
+              <Route path="/app/:appId/theme" element={<AppDetail />} />
+              <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </div>
       </div>
     </AuthProvider>
@@ -102,7 +120,9 @@ function ProtectedRoutes() {
 function AcceptInviteWrapper() {
   return (
     <AuthProvider>
-      <AcceptInvitePage />
+      <Suspense fallback={<PageLoader />}>
+        <AcceptInvitePage />
+      </Suspense>
     </AuthProvider>
   );
 }

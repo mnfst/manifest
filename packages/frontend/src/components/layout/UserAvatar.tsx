@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -10,6 +10,20 @@ export function UserAvatar() {
   const { user, isLoading, logout, getInitials } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Handle Escape key to close menu - must be declared before early returns
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsMenuOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isMenuOpen, handleKeyDown]);
 
   if (isLoading) {
     return (
@@ -58,6 +72,7 @@ export function UserAvatar() {
           <div
             className="fixed inset-0 z-10"
             onClick={() => setIsMenuOpen(false)}
+            aria-hidden="true"
           />
           {/* Menu */}
           <div className="absolute bottom-full left-0 mb-2 w-48 rounded-lg bg-nav border border-nav-foreground/20 shadow-lg z-20">
