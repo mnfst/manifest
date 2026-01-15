@@ -268,14 +268,14 @@ function FlowDetail() {
   }, []);
 
   const handleNodeLibrarySelect = useCallback(async (nodeType: NodeType) => {
-    // For StatCard and PostList, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId && flow) {
+    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId && flow) {
       const nodes = flow.nodes ?? [];
       const position = {
         x: nodes.length * 280 + 330,
         y: 100,
       };
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         await api.createNode(flowId, {
           type: nodeType,
@@ -307,13 +307,13 @@ function FlowDetail() {
 
   // Handler for node type selection (from "+" button click + library selection)
   const handleNodeLibrarySelectWithConnection = useCallback(async (nodeType: NodeType) => {
-    // For StatCard and PostList, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId && pendingConnection) {
+    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId && pendingConnection) {
       const position = {
         x: pendingConnection.sourcePosition.x + 280,
         y: pendingConnection.sourcePosition.y,
       };
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         const newNode = await api.createNode(flowId, {
           type: nodeType,
@@ -347,13 +347,13 @@ function FlowDetail() {
 
   // Handler for dropping node on a "+" button - creates node with connection
   const handleDropOnNode = useCallback(async (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
-    // For StatCard and PostList, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId) {
+    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId) {
       const position = {
         x: sourcePosition.x + 280,
         y: sourcePosition.y,
       };
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         const newNode = await api.createNode(flowId, {
           type: nodeType,
@@ -389,9 +389,9 @@ function FlowDetail() {
   const [dropPosition, setDropPosition] = useState<{ x: number; y: number } | null>(null);
 
   const handleDropOnCanvas = useCallback(async (nodeType: NodeType, position: { x: number; y: number }) => {
-    // For StatCard and PostList, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList') && flowId) {
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : 'Post List';
+    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
+    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId) {
+      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         await api.createNode(flowId, {
           type: nodeType,
@@ -521,9 +521,9 @@ function FlowDetail() {
     }
   };
 
-  // Interface node code editor handlers (StatCard, PostList, and RegistryComponent)
+  // Interface node code editor handlers (StatCard, PostList, RegistryComponent, and BlankComponent)
   const handleNodeEditCode = useCallback((node: NodeInstance) => {
-    if (node.type === 'StatCard' || node.type === 'PostList' || node.type === 'RegistryComponent') {
+    if (node.type === 'StatCard' || node.type === 'PostList' || node.type === 'RegistryComponent' || node.type === 'BlankComponent') {
       setEditingCodeNodeId(node.id);
     }
   }, []);
@@ -584,7 +584,7 @@ function FlowDetail() {
         appearanceConfig: data.appearanceConfig,
       };
     } else {
-      // For StatCard/PostList, use customCode
+      // For StatCard/PostList/BlankComponent, use customCode
       updatedParameters = {
         ...nodeToUpdate.parameters,
         customCode: data.code,
@@ -805,7 +805,7 @@ function FlowDetail() {
                 const params = editingCodeNode.parameters as unknown as StatCardNodeParameters;
 
                 // For RegistryComponent, get code from files[0].content and pass all files
-                // For StatCard/PostList, use customCode
+                // For BlankComponent/StatCard/PostList, use customCode
                 let initialCode: string | undefined;
                 let componentType: string = editingCodeNode.type;
                 let appearanceOptions: RegistryNodeParameters['appearanceOptions'] = undefined;
@@ -821,6 +821,16 @@ function FlowDetail() {
                   // otherwise parse from the stored component code (for existing nodes)
                   appearanceOptions = registryParams?.appearanceOptions;
                   if (!appearanceOptions && initialCode) {
+                    const parsedOptions = parseAppearanceOptions(initialCode);
+                    if (parsedOptions.length > 0) {
+                      appearanceOptions = parsedOptions;
+                    }
+                  }
+                } else if (editingCodeNode.type === 'BlankComponent') {
+                  // BlankComponent uses customCode, with auto-parsing for appearance options
+                  initialCode = params.customCode;
+                  componentType = 'BlankComponent';
+                  if (initialCode) {
                     const parsedOptions = parseAppearanceOptions(initialCode);
                     if (parsedOptions.length > 0) {
                       appearanceOptions = parsedOptions;

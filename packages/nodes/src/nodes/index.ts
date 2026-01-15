@@ -9,8 +9,7 @@
  * - action/: Action nodes (ApiCall)
  * - return/: Flow termination nodes (Return, CallFlow)
  * - transform/: Data transformation nodes (JavaScriptCodeTransform)
- *
- * Note: Interface/UI nodes are now fetched from the registry at runtime.
+ * - interface/: UI components (BlankComponent)
  */
 
 // Re-export from category subfolders
@@ -18,18 +17,18 @@ export { UserIntentNode } from './trigger/index.js';
 export { ApiCallNode } from './action/index.js';
 export { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 export { JavaScriptCodeTransform } from './transform/index.js';
+export { BlankComponentNode } from './interface/index.js';
 
 // Import for registry
 import { UserIntentNode } from './trigger/index.js';
 import { ApiCallNode } from './action/index.js';
 import { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 import { JavaScriptCodeTransform } from './transform/index.js';
+import { BlankComponentNode } from './interface/index.js';
 import type { NodeTypeDefinition } from '../types.js';
 
 /**
  * Map of all built-in node types by their type name.
- * Note: Interface nodes (StatCard, PostList) have been removed.
- * UI components are now fetched from the registry.
  */
 export const builtInNodes: Record<string, NodeTypeDefinition> = {
   UserIntent: UserIntentNode,
@@ -38,6 +37,7 @@ export const builtInNodes: Record<string, NodeTypeDefinition> = {
   ApiCall: ApiCallNode,
   JavaScriptCodeTransform: JavaScriptCodeTransform,
   Link: LinkNode,
+  BlankComponent: BlankComponentNode,
 };
 
 /**
@@ -50,4 +50,5 @@ export const builtInNodeList: NodeTypeDefinition[] = [
   ApiCallNode,
   JavaScriptCodeTransform,
   LinkNode,
+  BlankComponentNode,
 ];

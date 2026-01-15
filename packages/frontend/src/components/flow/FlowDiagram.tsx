@@ -33,6 +33,7 @@ import { ApiCallNode } from './ApiCallNode';
 import { TransformNode } from './TransformNode';
 import { LinkNode } from './LinkNode';
 import { RegistryComponentNode } from './RegistryComponentNode';
+import { BlankComponentNode } from './BlankComponentNode';
 import { DeletableEdge } from './DeletableEdge';
 import { CompatibilityDetailModal } from './CompatibilityDetailModal';
 import { useSchemaValidation } from '../../hooks/useSchemaValidation';
@@ -71,6 +72,7 @@ function getFlowState(flow: Flow) {
   const statCardNodes = nodes.filter(n => n.type === 'StatCard');
   const postListNodes = nodes.filter(n => n.type === 'PostList');
   const registryComponentNodes = nodes.filter(n => n.type === 'RegistryComponent');
+  const blankComponentNodes = nodes.filter(n => n.type === 'BlankComponent');
   const returnNodes = nodes.filter(n => n.type === 'Return');
   const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
   const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
@@ -80,13 +82,14 @@ function getFlowState(flow: Flow) {
   const hasStatCardNodes = statCardNodes.length > 0;
   const hasPostListNodes = postListNodes.length > 0;
   const hasRegistryComponentNodes = registryComponentNodes.length > 0;
+  const hasBlankComponentNodes = blankComponentNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
   const hasCallFlowNodes = callFlowNodes.length > 0;
   const hasApiCallNodes = apiCallNodes.length > 0;
   const hasTransformNodes = transformNodes.length > 0;
   const hasLinkNodes = linkNodes.length > 0;
-  const hasSteps = hasStatCardNodes || hasPostListNodes || hasRegistryComponentNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
-  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasRegistryComponentNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, registryComponentNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
+  const hasSteps = hasStatCardNodes || hasPostListNodes || hasRegistryComponentNodes || hasBlankComponentNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
+  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasRegistryComponentNodes, hasBlankComponentNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, registryComponentNodes, blankComponentNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
 }
 
 const nodeTypes = {
@@ -99,6 +102,7 @@ const nodeTypes = {
   transformNode: TransformNode,
   linkNode: LinkNode,
   registryComponentNode: RegistryComponentNode,
+  blankComponentNode: BlankComponentNode,
 };
 
 const edgeTypes = {
@@ -311,7 +315,7 @@ function FlowDiagramInner({
   }, [connections]);
 
   // Node types that belong to the 'interface' category (UI nodes)
-  const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList', 'RegistryComponent'];
+  const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList', 'RegistryComponent', 'BlankComponent'];
 
   // Validate connection - allow connections between any nodes with proper handles
   const isValidConnection = useCallback((connection: { source?: string | null; sourceHandle?: string | null; target?: string | null; targetHandle?: string | null }) => {
@@ -504,6 +508,26 @@ function FlowDiagramInner({
       xPosition = Math.max(xPosition, nodePos.x) + 280;
     });
 
+    // Add BlankComponent nodes (custom UI components with 4-argument pattern)
+    flowState.blankComponentNodes.forEach((node) => {
+      const nodePos = node.position || { x: xPosition, y: 130 };
+
+      nodeList.push({
+        id: node.id,
+        type: 'blankComponentNode',
+        position: nodePos,
+        data: {
+          node,
+          canDelete,
+          onEdit: () => onNodeEdit(node),
+          onDelete: () => onNodeDelete(node),
+          onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
+        },
+      });
+
+      xPosition = Math.max(xPosition, nodePos.x) + 280;
+    });
+
     // Add Return nodes
     flowState.returnNodes.forEach((node) => {
       const nodePos = node.position || { x: xPosition, y: 80 };
@@ -668,7 +692,7 @@ function FlowDiagramInner({
         strokeColor = '#60a5fa'; // Default blue
         if (sourceNode.type === 'UserIntent') {
           strokeColor = '#60a5fa'; // Blue for user intent
-        } else if (sourceNode.type === 'StatCard' || sourceNode.type === 'PostList' || sourceNode.type === 'RegistryComponent') {
+        } else if (sourceNode.type === 'StatCard' || sourceNode.type === 'PostList' || sourceNode.type === 'RegistryComponent' || sourceNode.type === 'BlankComponent') {
           strokeColor = '#60a5fa'; // Blue for interface
         } else if (sourceNode.type === 'Return') {
           strokeColor = '#22c55e'; // Green for return
