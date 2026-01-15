@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Pencil, Users, Palette } from 'lucide-react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Pencil } from 'lucide-react';
 import type { App, Flow, AppStatus, ThemeVariables } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
@@ -12,10 +12,19 @@ import { AppIconUpload } from '../components/app/AppIconUpload';
 import { EditAppModal } from '../components/app/EditAppModal';
 import { CollaboratorManagement } from '../components/app/CollaboratorManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
-import { AnalyticsPreview } from '../components/analytics/AnalyticsPreview';
 import { ThemeEditor } from '../components/theme-editor';
 
 type AppDetailTab = 'flows' | 'collaborators' | 'analytics' | 'theme';
+
+/**
+ * Determine active tab from URL pathname
+ */
+function getActiveTabFromPath(pathname: string): AppDetailTab {
+  if (pathname.endsWith('/analytics')) return 'analytics';
+  if (pathname.endsWith('/collaborators')) return 'collaborators';
+  if (pathname.endsWith('/theme')) return 'theme';
+  return 'flows';
+}
 
 /**
  * App detail page - Shows app info and flows list
@@ -24,6 +33,8 @@ type AppDetailTab = 'flows' | 'collaborators' | 'analytics' | 'theme';
 function AppDetail() {
   const { appId } = useParams<{ appId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const activeTab = getActiveTabFromPath(location.pathname);
   const [app, setApp] = useState<App | null>(null);
   const [flows, setFlows] = useState<Flow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +50,6 @@ function AppDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditingApp, setIsEditingApp] = useState(false);
   const [editAppError, setEditAppError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<AppDetailTab>('flows');
 
   useEffect(() => {
     async function loadData() {
@@ -299,68 +309,9 @@ function AppDetail() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Tab Navigation */}
-        <div className="border-b mb-6">
-          <nav className="flex gap-6" aria-label="App sections">
-            <button
-              onClick={() => setActiveTab('flows')}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'flows'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
-            >
-              Flows
-              <span className="ml-2 text-xs text-muted-foreground">
-                ({flows.length})
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'analytics'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
-            >
-              Analytics
-            </button>
-            <button
-              onClick={() => setActiveTab('collaborators')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'collaborators'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              Collaborators
-            </button>
-            <button
-              onClick={() => setActiveTab('theme')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'theme'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
-            >
-              <Palette className="w-4 h-4" />
-              Theme
-            </button>
-          </nav>
-        </div>
-
         {/* Flows Section */}
         {activeTab === 'flows' && (
           <section className="space-y-6">
-            {/* Analytics Preview */}
-            {appId && (
-              <AnalyticsPreview
-                appId={appId}
-                onViewMore={() => setActiveTab('analytics')}
-              />
-            )}
-
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold">Flows</h2>
