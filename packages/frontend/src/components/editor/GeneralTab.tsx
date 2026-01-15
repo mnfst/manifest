@@ -8,11 +8,13 @@ interface GeneralTabProps {
   name: string;
   /** Callback when name changes */
   onNameChange: (name: string) => void;
+  /** Component type for display */
+  componentType: string;
   /** Whether the form is disabled */
   disabled?: boolean;
 }
 
-export function GeneralTab({ name, onNameChange, disabled = false }: GeneralTabProps) {
+export function GeneralTab({ name, onNameChange, componentType, disabled = false }: GeneralTabProps) {
   return (
     <div className="space-y-6">
       {/* Name field */}
@@ -41,7 +43,7 @@ export function GeneralTab({ name, onNameChange, disabled = false }: GeneralTabP
           Component Type
         </label>
         <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 text-sm">
-          UI Component (StatCard)
+          {componentType}
         </div>
         <p className="text-xs text-gray-500 mt-1">
           This node renders a customizable UI component.
