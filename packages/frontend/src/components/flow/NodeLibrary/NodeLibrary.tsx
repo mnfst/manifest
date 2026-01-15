@@ -181,6 +181,12 @@ export function NodeLibrary({
       : [];
   }, [selectedCategoryId, nodeTypes]);
 
+  // Get built-in interface nodes (e.g., BlankComponent) to show in UIs section
+  const builtInInterfaceNodes = useMemo(() =>
+    nodeTypes.filter(node => node.category === 'interface'),
+    [nodeTypes]
+  );
+
   // Filter nodes based on search term
   const filteredNodes = useMemo(() => {
     if (!searchTerm) return [];
@@ -551,14 +557,36 @@ export function NodeLibrary({
                         No results in this folder
                       </div>
                     )
-                  ) : registryCategories.length > 0 ? (
-                    <CategoryList
-                      categories={registryCategories}
-                      onSelectCategory={handleRegistryCategoryClick}
-                    />
                   ) : (
-                    <div className="text-center text-muted-foreground py-8">
-                      No categories available
+                    <div className="space-y-4">
+                      {/* Built-in UI nodes (e.g., Blank Component) */}
+                      {builtInInterfaceNodes.length > 0 && (
+                        <div className="space-y-2">
+                          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Build Your Own
+                          </h3>
+                          {builtInInterfaceNodes.map((node) => (
+                            <NodeItem
+                              key={node.name}
+                              node={node}
+                              onClick={handleNodeSelect}
+                              disabled={disabledTypes.includes(node.name as NodeType)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {/* Registry categories */}
+                      {registryCategories.length > 0 && (
+                        <div className="space-y-2">
+                          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Pre-built Components
+                          </h3>
+                          <CategoryList
+                            categories={registryCategories}
+                            onSelectCategory={handleRegistryCategoryClick}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

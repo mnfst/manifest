@@ -180,6 +180,102 @@ export default function CustomPostList({ data, onAction }) {
 }`;
 
 /**
+ * Sample data for the blank-component template.
+ * Provides example data structure for preview rendering.
+ */
+export const BLANK_COMPONENT_SAMPLE_DATA = {
+  message: 'Sample data from flow',
+  items: ['Item 1', 'Item 2', 'Item 3'],
+  count: 42,
+};
+
+/**
+ * Default code for the blank-component template.
+ * Implements the Manifest UI 4-argument pattern with comprehensive comments.
+ */
+export const BLANK_COMPONENT_DEFAULT_CODE = `/**
+ * Blank Component Template
+ *
+ * This component follows the Manifest UI 4-argument pattern.
+ * Customize this template to create your own UI component.
+ */
+
+interface BlankComponentProps {
+  /**
+   * DATA: Input from the flow execution
+   * This is the primary data your component will display or process.
+   * Access nested properties safely: data?.property ?? defaultValue
+   */
+  data: unknown;
+
+  /**
+   * APPEARANCE: Visual customization options
+   * Define typed options here and they'll auto-appear in the Appearance panel.
+   * Supported types: boolean, string, number, or union literals ('a' | 'b')
+   *
+   * Example:
+   *   variant?: 'default' | 'outlined';
+   *   showBorder?: boolean;
+   *   padding?: number;
+   */
+  appearance?: {
+    // Add your appearance options here
+  };
+
+  /**
+   * CONTROL: Behavior and state control
+   * Use for component configuration that affects behavior, not visuals.
+   *
+   * Example:
+   *   disabled?: boolean;
+   *   readOnly?: boolean;
+   *   maxItems?: number;
+   */
+  control?: {
+    // Add your control options here
+  };
+
+  /**
+   * ACTIONS: Event callbacks
+   * Define functions the component can call to trigger flow actions.
+   * These connect your component to the broader flow.
+   *
+   * Example:
+   *   onClick?: () => void;
+   *   onSubmit?: (value: string) => void;
+   *   onItemSelect?: (item: unknown) => void;
+   */
+  actions?: {
+    // Add your action callbacks here
+  };
+}
+
+export default function BlankComponent({
+  data,
+  appearance = {},
+  control = {},
+  actions = {}
+}: BlankComponentProps) {
+  return (
+    <div className="p-4 border rounded-lg bg-white shadow-sm">
+      <h2 className="text-lg font-semibold text-gray-900">
+        Hello World
+      </h2>
+      <p className="mt-2 text-sm text-gray-500">
+        Edit this component to create your own UI.
+        Check the comments above for the 4-argument pattern.
+      </p>
+      {data && (
+        <pre className="mt-4 p-2 bg-gray-50 rounded text-xs overflow-auto">
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+`;
+
+/**
  * Registry of template definitions with default code and sample data.
  */
 export const TEMPLATE_DEFINITIONS: Record<LayoutTemplate, TemplateDefinition> = {
@@ -190,6 +286,10 @@ export const TEMPLATE_DEFINITIONS: Record<LayoutTemplate, TemplateDefinition> = 
   'post-list': {
     defaultCode: POST_LIST_DEFAULT_CODE_NEW,
     sampleData: POST_LIST_SAMPLE_DATA_NEW,
+  },
+  'blank-component': {
+    defaultCode: BLANK_COMPONENT_DEFAULT_CODE,
+    sampleData: BLANK_COMPONENT_SAMPLE_DATA,
   },
 };
 
