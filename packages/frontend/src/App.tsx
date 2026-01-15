@@ -93,6 +93,10 @@ function ProtectedRoutes() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
               <Route path="/app/:appId" element={<AppDetail />} />
+              <Route path="/app/:appId/flows" element={<AppDetail />} />
+              <Route path="/app/:appId/analytics" element={<AppDetail />} />
+              <Route path="/app/:appId/collaborators" element={<AppDetail />} />
+              <Route path="/app/:appId/theme" element={<AppDetail />} />
               <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
