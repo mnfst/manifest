@@ -43,18 +43,14 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
     <div className="space-y-6">
       {/* Filter Bar */}
       <div className="flex justify-end gap-3">
-        <FlowFilterSelect
-          value={flowId}
-          onChange={setFlowId}
-          flows={data?.flows ?? []}
-        />
+        <FlowFilterSelect value={flowId} onChange={setFlowId} flows={data?.flows ?? []} />
         <TimeRangeSelect value={timeRange} onChange={setTimeRange} />
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Total Executions"
+          title="Executions"
           metric={
             data?.metrics.totalExecutions ?? {
               value: 0,
@@ -65,7 +61,18 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
           isLoading={isLoading}
         />
         <MetricCard
-          title="Success Rate"
+          title="Unique Users"
+          metric={
+            data?.metrics.uniqueUsers ?? {
+              value: 0,
+              displayValue: '0',
+              trend: null,
+            }
+          }
+          isLoading={isLoading}
+        />
+        <MetricCard
+          title="Completion Rate"
           metric={
             data?.metrics.successRate ?? {
               value: 0,

@@ -48,6 +48,7 @@ export interface AnalyticsMetrics {
   totalExecutions: AnalyticsMetric;
   successRate: AnalyticsMetric;
   avgDuration: AnalyticsMetric;
+  uniqueUsers: AnalyticsMetric;
 }
 
 /** Flow option for filter dropdown */

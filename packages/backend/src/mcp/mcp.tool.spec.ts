@@ -441,6 +441,60 @@ describe('McpToolService', () => {
       // CallFlow with missing target returns error message, not throws
       expect(result.content[0].text).toContain('Error');
     });
+
+    // ============================================================
+    // Tests for userFingerprint parameter
+    // ============================================================
+    describe('userFingerprint handling', () => {
+      it('should pass userFingerprint to createExecution when provided', async () => {
+        const mockApp = createMockAppEntity();
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        const flow = createSimpleTriggerReturnFlow({ toolName: 'fp_tool' });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const fingerprint = 'abc123def456';
+        await service.executeTool('test-app', 'fp_tool', { message: 'test' }, fingerprint);
+
+        expect(mockFlowExecutionService.createExecution).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userFingerprint: fingerprint,
+          }),
+        );
+      });
+
+      it('should pass undefined userFingerprint when not provided', async () => {
+        const mockApp = createMockAppEntity();
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        const flow = createSimpleTriggerReturnFlow({ toolName: 'no_fp_tool' });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        await service.executeTool('test-app', 'no_fp_tool', { message: 'test' });
+
+        expect(mockFlowExecutionService.createExecution).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userFingerprint: undefined,
+          }),
+        );
+      });
+
+      it('should handle empty string userFingerprint', async () => {
+        const mockApp = createMockAppEntity();
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        const flow = createSimpleTriggerReturnFlow({ toolName: 'empty_fp_tool' });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        await service.executeTool('test-app', 'empty_fp_tool', { message: 'test' }, '');
+
+        expect(mockFlowExecutionService.createExecution).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userFingerprint: '',
+          }),
+        );
+      });
+    });
   });
 
   // ============================================================
@@ -561,6 +615,102 @@ describe('McpToolService', () => {
       });
 
       expect(result.content[0].text).toBe('Action executed!');
+    });
+
+    // ============================================================
+    // Tests for userFingerprint parameter in executeAction
+    // ============================================================
+    describe('userFingerprint handling', () => {
+      it('should pass userFingerprint to createExecution when provided', async () => {
+        const mockApp = createMockAppEntity();
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ toolName: 'test_tool' }),
+            createMockPostListNode({ id: 'postlist-1' }),
+            createMockReturnNode({ id: 'return-1', text: 'Action executed!' }),
+          ],
+          connections: [
+            createMockConnection({
+              id: 'conn-1',
+              sourceNodeId: 'trigger-1',
+              sourceHandle: 'output',
+              targetNodeId: 'postlist-1',
+              targetHandle: 'input',
+            }),
+            createMockConnection({
+              id: 'conn-2',
+              sourceNodeId: 'postlist-1',
+              sourceHandle: 'action:onReadMore',
+              targetNodeId: 'return-1',
+              targetHandle: 'input',
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const fingerprint = 'action_fingerprint_123';
+        await service.executeAction(
+          'test-app',
+          {
+            toolName: 'test_tool',
+            nodeId: 'postlist-1',
+            action: 'onReadMore',
+            data: { postId: '123' },
+          },
+          fingerprint,
+        );
+
+        expect(mockFlowExecutionService.createExecution).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userFingerprint: fingerprint,
+          }),
+        );
+      });
+
+      it('should pass undefined userFingerprint when not provided', async () => {
+        const mockApp = createMockAppEntity();
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ toolName: 'test_tool' }),
+            createMockPostListNode({ id: 'postlist-1' }),
+            createMockReturnNode({ id: 'return-1', text: 'Done!' }),
+          ],
+          connections: [
+            createMockConnection({
+              id: 'conn-1',
+              sourceNodeId: 'trigger-1',
+              sourceHandle: 'output',
+              targetNodeId: 'postlist-1',
+              targetHandle: 'input',
+            }),
+            createMockConnection({
+              id: 'conn-2',
+              sourceNodeId: 'postlist-1',
+              sourceHandle: 'action:onReadMore',
+              targetNodeId: 'return-1',
+              targetHandle: 'input',
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        await service.executeAction('test-app', {
+          toolName: 'test_tool',
+          nodeId: 'postlist-1',
+          action: 'onReadMore',
+          data: { postId: '123' },
+        });
+
+        expect(mockFlowExecutionService.createExecution).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userFingerprint: undefined,
+          }),
+        );
+      });
     });
   });
 

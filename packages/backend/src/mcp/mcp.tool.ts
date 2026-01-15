@@ -274,7 +274,8 @@ export class McpToolService {
   async executeTool(
     appSlug: string,
     toolName: string,
-    input: Record<string, unknown>
+    input: Record<string, unknown>,
+    userFingerprint?: string
   ): Promise<McpToolResponse> {
     const app = await this.getAppBySlug(appSlug);
     if (!app) {
@@ -305,6 +306,7 @@ export class McpToolService {
       flowName: flow.name,
       flowToolName: toolName, // Use trigger's toolName
       initialParams: validatedInput,
+      userFingerprint,
     });
 
     const nodeExecutions: NodeExecutionData[] = [];
@@ -916,7 +918,8 @@ export class McpToolService {
    */
   async executeAction(
     appSlug: string,
-    request: ExecuteActionRequest
+    request: ExecuteActionRequest,
+    userFingerprint?: string
   ): Promise<McpToolResponse> {
     const app = await this.getAppBySlug(appSlug);
     if (!app) {
@@ -956,6 +959,7 @@ export class McpToolService {
       flowName: flow.name,
       flowToolName: `${toolName}:${action}`,
       initialParams: data,
+      userFingerprint,
     });
 
     const nodeExecutions: NodeExecutionData[] = [];

@@ -97,9 +97,9 @@ export class AnalyticsService {
   private async getMetrics(
     flowIds: string[],
     timeRange: AnalyticsTimeRange
-  ): Promise<{ total: number; fulfilled: number; avgDuration: number }> {
+  ): Promise<{ total: number; fulfilled: number; avgDuration: number; uniqueUsers: number }> {
     if (flowIds.length === 0) {
-      return { total: 0, fulfilled: 0, avgDuration: 0 };
+      return { total: 0, fulfilled: 0, avgDuration: 0, uniqueUsers: 0 };
     }
 
     const config = TIME_RANGE_CONFIGS[timeRange];
@@ -115,6 +115,10 @@ export class AnalyticsService {
         "AVG(CASE WHEN e.endedAt IS NOT NULL THEN (julianday(e.endedAt) - julianday(e.startedAt)) * 86400000 ELSE NULL END)",
         'avgDuration'
       )
+      .addSelect(
+        'COUNT(DISTINCT e.userFingerprint)',
+        'uniqueUsers'
+      )
       .where('e.flowId IN (:...flowIds)', { flowIds })
       .andWhere('e.isPreview = :isPreview', { isPreview: false })
       .andWhere(`e.startedAt >= datetime('now', :modifier)`, {
@@ -126,6 +130,7 @@ export class AnalyticsService {
       total: parseInt(result?.total ?? '0', 10),
       fulfilled: parseInt(result?.fulfilled ?? '0', 10),
       avgDuration: parseFloat(result?.avgDuration ?? '0'),
+      uniqueUsers: parseInt(result?.uniqueUsers ?? '0', 10),
     };
   }
 
@@ -135,9 +140,9 @@ export class AnalyticsService {
   private async getPriorPeriodMetrics(
     flowIds: string[],
     timeRange: AnalyticsTimeRange
-  ): Promise<{ total: number; fulfilled: number; avgDuration: number }> {
+  ): Promise<{ total: number; fulfilled: number; avgDuration: number; uniqueUsers: number }> {
     if (flowIds.length === 0) {
-      return { total: 0, fulfilled: 0, avgDuration: 0 };
+      return { total: 0, fulfilled: 0, avgDuration: 0, uniqueUsers: 0 };
     }
 
     // Map time range to prior period modifiers
@@ -164,6 +169,10 @@ export class AnalyticsService {
         "AVG(CASE WHEN e.endedAt IS NOT NULL THEN (julianday(e.endedAt) - julianday(e.startedAt)) * 86400000 ELSE NULL END)",
         'avgDuration'
       )
+      .addSelect(
+        'COUNT(DISTINCT e.userFingerprint)',
+        'uniqueUsers'
+      )
       .where('e.flowId IN (:...flowIds)', { flowIds })
       .andWhere('e.isPreview = :isPreview', { isPreview: false })
       .andWhere(`e.startedAt >= datetime('now', :start)`, {
@@ -176,6 +185,7 @@ export class AnalyticsService {
       total: parseInt(result?.total ?? '0', 10),
       fulfilled: parseInt(result?.fulfilled ?? '0', 10),
       avgDuration: parseFloat(result?.avgDuration ?? '0'),
+      uniqueUsers: parseInt(result?.uniqueUsers ?? '0', 10),
     };
   }
 
@@ -183,12 +193,13 @@ export class AnalyticsService {
    * Calculate metrics with trend data
    */
   private calculateMetricsWithTrend(
-    current: { total: number; fulfilled: number; avgDuration: number },
-    prior: { total: number; fulfilled: number; avgDuration: number }
+    current: { total: number; fulfilled: number; avgDuration: number; uniqueUsers: number },
+    prior: { total: number; fulfilled: number; avgDuration: number; uniqueUsers: number }
   ): {
     totalExecutions: AnalyticsMetric;
     successRate: AnalyticsMetric;
     avgDuration: AnalyticsMetric;
+    uniqueUsers: AnalyticsMetric;
   } {
     const currentSuccessRate =
       current.total > 0 ? (current.fulfilled / current.total) * 100 : 0;
@@ -214,6 +225,11 @@ export class AnalyticsService {
           prior.avgDuration,
           false // Lower duration is better
         ),
+      },
+      uniqueUsers: {
+        value: current.uniqueUsers,
+        displayValue: this.formatNumber(current.uniqueUsers),
+        trend: this.calculateTrend(current.uniqueUsers, prior.uniqueUsers, true),
       },
     };
   }

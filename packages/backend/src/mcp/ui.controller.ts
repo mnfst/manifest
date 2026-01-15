@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, Res, NotFoundException } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Get, Post, Body, Param, Res, Req, NotFoundException } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { McpToolService } from './mcp.tool';
@@ -8,7 +8,21 @@ import { AppService } from '../app/app.service';
 import { Public } from '../auth';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import type { ThemeVariables, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
+
+/**
+ * Generate a unique user fingerprint from IP and User-Agent
+ */
+function generateUserFingerprint(req: Request): string {
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  const userAgent = req.get('user-agent') || 'unknown';
+  return crypto
+    .createHash('sha256')
+    .update(`${ip}:${userAgent}`)
+    .digest('hex')
+    .substring(0, 16);
+}
 
 /**
  * Controller for serving UI components for ChatGPT Apps SDK
@@ -118,6 +132,7 @@ export class UiController {
   async handleMcpRequest(
     @Param('slug') slug: string,
     @Body() body: { jsonrpc: string; id: number | string; method: string; params?: Record<string, unknown> },
+    @Req() req: Request,
     @Res() res: Response
   ) {
     const app = await this.mcpToolService.getAppBySlug(slug);
@@ -168,10 +183,12 @@ export class UiController {
               error: { code: -32602, message: 'Missing tool name' },
             });
           }
+          const userFingerprint = generateUserFingerprint(req);
           const toolResult = await this.mcpToolService.executeTool(
             slug,
             toolParams.name,
-            toolParams.arguments ?? {}
+            toolParams.arguments ?? {},
+            userFingerprint
           );
           result = toolResult;
           break;
@@ -295,14 +312,16 @@ export class UiController {
   @Post(':slug/actions')
   async executeAction(
     @Param('slug') slug: string,
-    @Body() request: ExecuteActionRequest
+    @Body() request: ExecuteActionRequest,
+    @Req() req: Request
   ) {
     const app = await this.mcpToolService.getAppBySlug(slug);
     if (!app) {
       throw new NotFoundException(`No published app found for slug: ${slug}`);
     }
 
-    return this.mcpToolService.executeAction(slug, request);
+    const userFingerprint = generateUserFingerprint(req);
+    return this.mcpToolService.executeAction(slug, request, userFingerprint);
   }
 
   /**

@@ -18,6 +18,8 @@ export interface CreateExecutionParams {
   initialParams: Record<string, unknown>;
   /** Whether this execution was triggered from preview chat (vs MCP) */
   isPreview?: boolean;
+  /** Unique user fingerprint (hash of IP + User-Agent) for analytics */
+  userFingerprint?: string;
 }
 
 export interface UpdateExecutionParams {
@@ -54,6 +56,7 @@ export class FlowExecutionService {
       status: 'pending',
       nodeExecutions: [],
       isPreview: params.isPreview ?? false,
+      userFingerprint: params.userFingerprint,
     });
 
     return this.executionRepository.save(execution);
