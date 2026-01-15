@@ -1,6 +1,6 @@
 import type { JSONSchema, FlowParameter, ExecutionMetadata } from '@chatgpt-app-builder/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import { createUserIntentOutputSchema } from '@chatgpt-app-builder/shared';
+import { createUserIntentOutputSchema, USER_QUERY_PARAMETER } from '@chatgpt-app-builder/shared';
 
 /**
  * UserIntent Node (Trigger)
@@ -33,7 +33,7 @@ export const UserIntentNode: NodeTypeDefinition = {
     whenNotToUse: '',
     toolName: '', // Auto-generated from node name
     toolDescription: '',
-    parameters: [],
+    parameters: [USER_QUERY_PARAMETER],
     isActive: true,
   },
 

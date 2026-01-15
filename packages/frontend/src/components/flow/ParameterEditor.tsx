@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { FlowParameter } from '@chatgpt-app-builder/shared';
+import { SYSTEM_PARAMETER_NAMES } from '@chatgpt-app-builder/shared';
 import { ParameterRow } from './ParameterRow';
 
 interface ParameterEditorProps {
@@ -19,6 +20,12 @@ function validateParameters(parameters: FlowParameter[]): Map<number, string> {
     const param = parameters[i];
     const trimmedName = param.name.trim();
 
+    // Skip validation for system parameters (they are pre-validated)
+    if (param.isSystem) {
+      seenNames.set(trimmedName.toLowerCase(), i);
+      continue;
+    }
+
     // Check for empty name
     if (trimmedName.length === 0) {
       errors.set(i, 'Name is required');
@@ -31,8 +38,14 @@ function validateParameters(parameters: FlowParameter[]): Map<number, string> {
       continue;
     }
 
-    // Check for duplicates (case-insensitive)
+    // Check for reserved system parameter names
     const normalizedName = trimmedName.toLowerCase();
+    if (SYSTEM_PARAMETER_NAMES.includes(normalizedName as typeof SYSTEM_PARAMETER_NAMES[number])) {
+      errors.set(i, `"${trimmedName}" is a reserved system parameter name`);
+      continue;
+    }
+
+    // Check for duplicates (case-insensitive)
     if (seenNames.has(normalizedName)) {
       const firstIndex = seenNames.get(normalizedName)!;
       errors.set(i, `Duplicate of parameter ${firstIndex + 1}`);
@@ -73,7 +86,10 @@ export function ParameterEditor({
       description: '',
       optional: false,
     };
-    onChange([...parameters, newParameter]);
+    // Add new parameter after system parameters to keep them first
+    const systemParams = parameters.filter((p) => p.isSystem);
+    const userParams = parameters.filter((p) => !p.isSystem);
+    onChange([...systemParams, ...userParams, newParameter]);
   };
 
   return (

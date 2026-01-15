@@ -16,6 +16,7 @@ import type {
   ParameterType,
   JSONSchema,
 } from '@chatgpt-app-builder/shared';
+import { USER_QUERY_PARAMETER } from '@chatgpt-app-builder/shared';
 import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
 import { UsePreviousOutputs } from '../common/UsePreviousOutputs';
@@ -247,7 +248,8 @@ export function NodeEditModal({
       setWhenNotToUse('');
       setToolName('');
       setToolDescription('');
-      setToolParameters([]);
+      // Initialize UserIntent with default system parameters
+      setToolParameters([USER_QUERY_PARAMETER]);
       setIsToolActive(true);
       setApiMethod('GET');
       setApiUrl('');
@@ -322,13 +324,16 @@ export function NodeEditModal({
 
   // Tool parameter management for UserIntent
   const addToolParameter = () => {
-    setToolParameters([
-      ...toolParameters,
-      { name: '', type: 'string', description: '', optional: false },
-    ]);
+    const newParam: FlowParameter = { name: '', type: 'string', description: '', optional: false };
+    // Keep system parameters at the start
+    const systemParams = toolParameters.filter((p) => p.isSystem);
+    const userParams = toolParameters.filter((p) => !p.isSystem);
+    setToolParameters([...systemParams, ...userParams, newParam]);
   };
 
   const removeToolParameter = (index: number) => {
+    // Prevent removing system parameters
+    if (toolParameters[index]?.isSystem) return;
     setToolParameters(toolParameters.filter((_, i) => i !== index));
   };
 
@@ -722,58 +727,97 @@ export function NodeEditModal({
                       </p>
                     ) : (
                       <div className="space-y-2">
-                        {toolParameters.map((param, index) => (
-                          <div key={index} className="bg-white rounded-lg p-3 border border-gray-200 space-y-2">
-                            <div className="flex gap-2">
+                        {toolParameters.map((param, index) => {
+                          const isSystemParam = param.isSystem === true;
+                          const isFieldDisabled = isLoading || isSystemParam;
+                          return (
+                            <div
+                              key={index}
+                              className={`rounded-lg p-3 border space-y-2 ${
+                                isSystemParam
+                                  ? 'bg-gray-50 border-gray-300 opacity-75'
+                                  : 'bg-white border-gray-200'
+                              }`}
+                            >
+                              <div className="flex gap-2 items-center">
+                                {/* Lock icon for system parameters */}
+                                {isSystemParam && (
+                                  <div className="flex-shrink-0" title="System parameter (cannot be modified)">
+                                    <svg
+                                      className="w-4 h-4 text-gray-500"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                      />
+                                    </svg>
+                                  </div>
+                                )}
+                                <input
+                                  type="text"
+                                  value={param.name}
+                                  onChange={(e) => updateToolParameter(index, 'name', e.target.value)}
+                                  placeholder="Parameter name"
+                                  className={`flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary ${
+                                    isSystemParam ? 'cursor-not-allowed bg-gray-100' : ''
+                                  }`}
+                                  disabled={isFieldDisabled}
+                                />
+                                <select
+                                  value={param.type}
+                                  onChange={(e) => updateToolParameter(index, 'type', e.target.value)}
+                                  className={`px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary ${
+                                    isSystemParam ? 'cursor-not-allowed bg-gray-100' : ''
+                                  }`}
+                                  disabled={isFieldDisabled}
+                                >
+                                  {PARAMETER_TYPES.map((t) => (
+                                    <option key={t.value} value={t.value}>
+                                      {t.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                {/* Hide remove button for system parameters */}
+                                {!isSystemParam && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeToolParameter(index)}
+                                    disabled={isLoading}
+                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
                               <input
                                 type="text"
-                                value={param.name}
-                                onChange={(e) => updateToolParameter(index, 'name', e.target.value)}
-                                placeholder="Parameter name"
-                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-                                disabled={isLoading}
+                                value={param.description}
+                                onChange={(e) => updateToolParameter(index, 'description', e.target.value)}
+                                placeholder="Parameter description"
+                                className={`w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary ${
+                                  isSystemParam ? 'cursor-not-allowed bg-gray-100' : ''
+                                }`}
+                                disabled={isFieldDisabled}
+                                maxLength={350}
                               />
-                              <select
-                                value={param.type}
-                                onChange={(e) => updateToolParameter(index, 'type', e.target.value)}
-                                className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-                                disabled={isLoading}
-                              >
-                                {PARAMETER_TYPES.map((t) => (
-                                  <option key={t.value} value={t.value}>
-                                    {t.label}
-                                  </option>
-                                ))}
-                              </select>
-                              <button
-                                type="button"
-                                onClick={() => removeToolParameter(index)}
-                                disabled={isLoading}
-                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <label className={`flex items-center gap-2 text-sm text-gray-600 ${isSystemParam ? 'cursor-not-allowed' : ''}`}>
+                                <input
+                                  type="checkbox"
+                                  checked={param.optional}
+                                  onChange={(e) => updateToolParameter(index, 'optional', e.target.checked)}
+                                  className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  disabled={isFieldDisabled}
+                                />
+                                Optional parameter
+                              </label>
                             </div>
-                            <input
-                              type="text"
-                              value={param.description}
-                              onChange={(e) => updateToolParameter(index, 'description', e.target.value)}
-                              placeholder="Parameter description"
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-                              disabled={isLoading}
-                            />
-                            <label className="flex items-center gap-2 text-sm text-gray-600">
-                              <input
-                                type="checkbox"
-                                checked={param.optional}
-                                onChange={(e) => updateToolParameter(index, 'optional', e.target.checked)}
-                                className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                disabled={isLoading}
-                              />
-                              Optional parameter
-                            </label>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

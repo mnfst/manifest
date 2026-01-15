@@ -84,9 +84,9 @@ etc.]
 - **Never** create a PR without a description
 
 ## Recent Changes
+- 001-trigger-user-query-param: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0
 - 001-blank-component: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas)
 - 001-app-theme-editor: Added TypeScript 5.7.2 (strict mode), Node.js >=18.0.0 + React 18.3.1, NestJS 10.4.15, @uiw/react-codemirror 4.25.4, TailwindCSS 3.4.17
-- 091-registry-items: Added TypeScript 5.7.2 (Node.js >= 18.0.0)
 
 
 <!-- MANUAL ADDITIONS START -->
