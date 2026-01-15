@@ -41,7 +41,7 @@ export function AppCard({ app, onClick, onEdit, onDelete }: AppCardProps) {
   return (
     <button
       onClick={() => onClick(app)}
-      className="w-full text-left bg-card border rounded-lg p-4 hover:border-primary/50 hover:shadow-sm transition-all group"
+      className="w-full text-left bg-card border rounded-lg p-4 hover:border-primary/50 hover:shadow-sm transition-colors transition-shadow group"
     >
       <div className="flex items-start justify-between gap-3">
         {/* App Icon */}

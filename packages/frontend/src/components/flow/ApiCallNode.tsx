@@ -37,7 +37,7 @@ export function ApiCallNode({ data }: NodeProps) {
 
   return (
     <div
-      className="bg-white rounded-lg border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan"
+      className="bg-white rounded-lg border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan"
       title={`Slug: ${slug}\nUse {{ ${slug}.fieldName }} to reference outputs`}
     >
       {/* Left handle for incoming connections */}

@@ -469,6 +469,7 @@ export function NodeEditModal({
           <button
             onClick={onClose}
             disabled={isLoading}
+            aria-label="Close modal"
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />

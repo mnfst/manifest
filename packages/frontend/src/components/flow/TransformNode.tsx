@@ -40,7 +40,7 @@ export function TransformNode({ data }: NodeProps) {
       {/* Diamond container - rotated 45 degrees */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div
-          className={`w-[70px] h-[70px] rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer ${
+          className={`w-[70px] h-[70px] rounded-lg shadow-sm hover:shadow-md transition-colors transition-shadow cursor-pointer ${
             hasError
               ? 'bg-red-50 border-2 border-red-400 hover:border-red-500'
               : 'bg-teal-50 border-2 border-teal-300 hover:border-teal-400'

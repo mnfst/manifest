@@ -44,7 +44,7 @@ export function UserIntentNode({ data }: NodeProps) {
 
   return (
     <div
-      className={`bg-white rounded-lg border-2 ${isActive ? 'border-blue-200 hover:border-blue-400' : 'border-gray-300 hover:border-gray-400 opacity-75'} shadow-sm hover:shadow-md transition-all w-[200px] nopan`}
+      className={`bg-white rounded-lg border-2 ${isActive ? 'border-blue-200 hover:border-blue-400' : 'border-gray-300 hover:border-gray-400 opacity-75'} shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan`}
       title={`Slug: ${slug}\nUse {{ ${slug}.fieldName }} to reference outputs`}
     >
       <div className="p-4">

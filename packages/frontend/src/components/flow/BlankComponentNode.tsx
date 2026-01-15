@@ -30,7 +30,7 @@ function BlankComponentNodeComponent({ data, selected }: NodeProps) {
   return (
     <div
       className={`
-        bg-white rounded-lg border-2 shadow-sm hover:shadow-md transition-all w-[200px] nopan
+        bg-white rounded-lg border-2 shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan
         ${selected ? 'border-primary shadow-md' : 'border-amber-200 hover:border-amber-400'}
       `}
     >

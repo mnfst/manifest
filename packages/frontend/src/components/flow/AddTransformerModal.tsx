@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Loader2, Shuffle, AlertCircle } from 'lucide-react';
 import type { NodeType, SuggestedTransformer } from '@chatgpt-app-builder/shared';
 import { api, type NodeTypeInfo } from '../../lib/api';
@@ -53,6 +53,20 @@ export function AddTransformerModal({
     fetchTransformNodes();
   }, [isOpen]);
 
+  // Handle Escape key to close modal
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape' && !isInserting) {
+      onClose();
+    }
+  }, [onClose, isInserting]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, handleKeyDown]);
+
   if (!isOpen) return null;
 
   // Get confidence badge color
@@ -70,7 +84,11 @@ export function AddTransformerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={isInserting ? undefined : onClose}
+        aria-hidden="true"
+      />
 
       {/* Modal */}
       <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
@@ -85,6 +103,7 @@ export function AddTransformerModal({
           <button
             onClick={onClose}
             disabled={isInserting}
+            aria-label="Close modal"
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
@@ -135,7 +154,7 @@ export function AddTransformerModal({
                           onSelect(transformer.nodeType as NodeType)
                         }
                         disabled={isInserting}
-                        className="w-full flex items-start gap-4 p-3 rounded-lg border-2 border-teal-200 hover:border-teal-400 transition-all hover:shadow-md text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex items-start gap-4 p-3 rounded-lg border-2 border-teal-200 hover:border-teal-400 transition-colors transition-shadow hover:shadow-md text-left disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
                           <Shuffle className="w-5 h-5 text-teal-600" />
@@ -184,7 +203,7 @@ export function AddTransformerModal({
                           key={node.name}
                           onClick={() => onSelect(node.name as NodeType)}
                           disabled={isInserting}
-                          className="w-full flex items-start gap-4 p-3 rounded-lg border-2 border-gray-200 hover:border-teal-400 transition-all hover:shadow-md text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full flex items-start gap-4 p-3 rounded-lg border-2 border-gray-200 hover:border-teal-400 transition-colors transition-shadow hover:shadow-md text-left disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
                             <Shuffle className="w-5 h-5 text-teal-600" />

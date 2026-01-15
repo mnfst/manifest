@@ -24,7 +24,7 @@ export function FlowCard({
   const hasTriggers = triggerNodes.length > 0;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
+    <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-colors transition-shadow">
       <button
         onClick={onClick}
         className="w-full p-4 text-left"

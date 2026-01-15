@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Loader2, Globe, Shuffle } from 'lucide-react';
 import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
 import { api, type NodeTypeInfo, type CategoryInfo } from '../../lib/api';
@@ -60,6 +60,20 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
     fetchNodeTypes();
   }, [isOpen]);
 
+  // Handle Escape key to close modal
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, handleKeyDown]);
+
   if (!isOpen) return null;
 
   // Sort categories by order
@@ -68,7 +82,11 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       {/* Modal */}
       <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
@@ -77,6 +95,7 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
           <h2 className="text-lg font-semibold">Add Node</h2>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
@@ -121,7 +140,7 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
                           <button
                             key={option.name}
                             onClick={() => onSelect(option.name as NodeType)}
-                            className={`w-full flex items-start gap-4 p-3 rounded-lg border-2 ${styles.borderColor} transition-all hover:shadow-md text-left`}
+                            className={`w-full flex items-start gap-4 p-3 rounded-lg border-2 ${styles.borderColor} transition-colors transition-shadow hover:shadow-md text-left`}
                           >
                             <div className={`w-10 h-10 rounded-lg ${styles.bgColor} flex items-center justify-center flex-shrink-0`}>
                               <Icon className={`w-5 h-5 ${styles.color}`} />

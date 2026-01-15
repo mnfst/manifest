@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { InvitationValidation } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
@@ -55,30 +55,8 @@ export function AcceptInvitePage() {
     validateToken();
   }, [token]);
 
-  // Accept the invitation when authenticated
-  useEffect(() => {
-    if (authLoading || isValidating || !validation || !token) return;
-
-    // If user is authenticated, accept the invitation
-    if (isAuthenticated && user) {
-      // Check if the email matches
-      if (user.email.toLowerCase() !== validation.email.toLowerCase()) {
-        setError(
-          `This invitation was sent to ${validation.email}, but you're signed in as ${user.email}. ` +
-          `Please sign out and sign in with the correct email address.`
-        );
-        return;
-      }
-
-      acceptInvitation();
-    } else {
-      // Store invitation context and redirect to auth
-      sessionStorage.setItem('pendingInvitation', JSON.stringify({ token, validation }));
-      navigate('/auth');
-    }
-  }, [isAuthenticated, authLoading, isValidating, validation, token, user, navigate]);
-
-  async function acceptInvitation() {
+  // Accept invitation function wrapped in useCallback for stable reference
+  const acceptInvitation = useCallback(async () => {
     if (!token) return;
 
     setIsAccepting(true);
@@ -102,7 +80,30 @@ export function AcceptInvitePage() {
     } finally {
       setIsAccepting(false);
     }
-  }
+  }, [token]);
+
+  // Accept the invitation when authenticated
+  useEffect(() => {
+    if (authLoading || isValidating || !validation || !token) return;
+
+    // If user is authenticated, accept the invitation
+    if (isAuthenticated && user) {
+      // Check if the email matches
+      if (user.email.toLowerCase() !== validation.email.toLowerCase()) {
+        setError(
+          `This invitation was sent to ${validation.email}, but you're signed in as ${user.email}. ` +
+          `Please sign out and sign in with the correct email address.`
+        );
+        return;
+      }
+
+      acceptInvitation();
+    } else {
+      // Store invitation context and redirect to auth
+      sessionStorage.setItem('pendingInvitation', JSON.stringify({ token, validation }));
+      navigate('/auth');
+    }
+  }, [isAuthenticated, authLoading, isValidating, validation, token, user, navigate, acceptInvitation]);
 
   function handleGoToApp() {
     if (success) {
