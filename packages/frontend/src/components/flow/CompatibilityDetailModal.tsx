@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Shuffle } from 'lucide-react';
 import type { Connection, NodeType } from '@chatgpt-app-builder/shared';
 import type { ConnectionValidationState } from '../../types/schema';
@@ -35,6 +35,20 @@ export function CompatibilityDetailModal({
   const [showAddTransformer, setShowAddTransformer] = useState(false);
   const { insertTransformer, isLoading, error, reset } = useInsertTransformer(flowId);
 
+  // Handle Escape key to close modal
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, handleKeyDown]);
+
   if (!isOpen) return null;
 
   // Show "Add a transformer" button for error or warning status
@@ -69,7 +83,11 @@ export function CompatibilityDetailModal({
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={onClose}
+          aria-hidden="true"
+        />
 
         {/* Modal */}
         <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -85,6 +103,7 @@ export function CompatibilityDetailModal({
             </div>
             <button
               onClick={onClose}
+              aria-label="Close modal"
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />

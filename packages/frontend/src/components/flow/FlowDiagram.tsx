@@ -109,6 +109,10 @@ const edgeTypes = {
   deletable: DeletableEdge,
 };
 
+// Node types that belong to the 'interface' category (UI nodes)
+// Defined outside component for stable reference in dependency arrays
+const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList', 'RegistryComponent', 'BlankComponent'];
+
 /**
  * Visual diagram of nodes using React Flow
  * Displays UserIntent trigger nodes followed by StatCard, Return, CallFlow, or ApiCall nodes
@@ -130,6 +134,7 @@ function FlowDiagramInner({
   onFlowUpdate,
 }: FlowDiagramProps) {
   // Memoize flow state to prevent recalculation on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend only on flow.nodes to avoid recalculation when other flow properties change
   const flowState = useMemo(() => getFlowState(flow), [flow.nodes]);
 
   // Create a stable node lookup map (used by callbacks and edge generation)
@@ -201,6 +206,18 @@ function FlowDiagramInner({
   const [showLinkConnectionError, setShowLinkConnectionError] = useState(false);
   // Ref to track if last rejected connection was due to Link node constraint
   const linkConnectionRejectedRef = useRef(false);
+
+  // Handle Escape key for Link connection error dialog
+  useEffect(() => {
+    if (!showLinkConnectionError) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowLinkConnectionError(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showLinkConnectionError]);
 
   // Handler for showing connection details
   const handleShowConnectionDetails = useCallback((connection: Connection, validation: ConnectionValidationState) => {
@@ -313,9 +330,6 @@ function FlowDiagramInner({
     }
     return false;
   }, [connections]);
-
-  // Node types that belong to the 'interface' category (UI nodes)
-  const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList', 'RegistryComponent', 'BlankComponent'];
 
   // Validate connection - allow connections between any nodes with proper handles
   const isValidConnection = useCallback((connection: { source?: string | null; sourceHandle?: string | null; target?: string | null; targetHandle?: string | null }) => {
@@ -789,7 +803,11 @@ function FlowDiagramInner({
     {/* Link Node Connection Error Dialog */}
     {showLinkConnectionError && (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/50" onClick={() => setShowLinkConnectionError(false)} />
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={() => setShowLinkConnectionError(false)}
+          aria-hidden="true"
+        />
         <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
             <div className="flex items-center gap-3">
@@ -800,6 +818,7 @@ function FlowDiagramInner({
             </div>
             <button
               onClick={() => setShowLinkConnectionError(false)}
+              aria-label="Close dialog"
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />

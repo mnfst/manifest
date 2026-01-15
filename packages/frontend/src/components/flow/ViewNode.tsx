@@ -45,7 +45,7 @@ export function ViewNode({ data, id }: NodeProps) {
   }, [id, actions, updateNodeInternals]);
 
   return (
-    <div className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md transition-all w-[200px] nopan">
+    <div className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan">
       {/* Left handle for incoming connections from UserIntent/other nodes */}
       <Handle
         type="target"

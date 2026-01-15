@@ -15,13 +15,14 @@ export function AddUserIntentNode({ data }: NodeProps) {
   const { onClick } = data as AddUserIntentNodeData;
 
   return (
-    <div
+    <button
+      type="button"
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-all w-[200px] cursor-pointer group nopan nodrag"
+      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-shadow transition-colors w-[200px] cursor-pointer group nopan nodrag text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
     >
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">
@@ -29,18 +30,18 @@ export function AddUserIntentNode({ data }: NodeProps) {
           <div className="w-12 h-12 rounded-full bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
             <div className="relative">
               <MessageCircle className="w-6 h-6 text-blue-400 group-hover:text-blue-500" />
-              <Plus className="w-3 h-3 text-blue-600 absolute -top-1 -right-1 bg-blue-100 rounded-full" />
+              <Plus className="w-3 h-3 text-blue-600 absolute -top-1 -right-1 bg-blue-100 rounded-full" aria-hidden="true" />
             </div>
           </div>
 
           {/* Text */}
           <div className="text-center">
-            <h3 className="font-medium text-gray-700 group-hover:text-blue-600 transition-colors">
+            <span className="font-medium text-gray-700 group-hover:text-blue-600 transition-colors block">
               Add user intent
-            </h3>
-            <p className="text-xs text-gray-400 mt-1">
+            </span>
+            <span className="text-xs text-gray-400 mt-1 block">
               Define what user intent detection will trigger this flow
-            </p>
+            </span>
           </div>
         </div>
       </div>
@@ -51,6 +52,6 @@ export function AddUserIntentNode({ data }: NodeProps) {
         position={Position.Right}
         className="!bg-blue-300 !w-2 !h-2 !border-0 opacity-0"
       />
-    </div>
+    </button>
   );
 }
