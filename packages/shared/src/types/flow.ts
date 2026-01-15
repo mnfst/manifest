@@ -14,6 +14,8 @@ export interface FlowParameter {
   type: ParameterType;
   description: string;
   optional: boolean;
+  /** When true, parameter cannot be removed or edited by users (system parameter) */
+  isSystem?: boolean;
 }
 
 /**
