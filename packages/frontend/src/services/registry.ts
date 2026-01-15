@@ -19,6 +19,40 @@ import type {
 const DEFAULT_REGISTRY_URL = 'https://ui.manifest.build/r';
 
 /**
+ * GitHub raw content base URL for fetching demo data
+ */
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/mnfst/manifest/main/packages/manifest-ui';
+
+/**
+ * Cache for demo data (5 minute TTL - demo data changes rarely)
+ */
+const demoDataCache = new Map<string, { content: string; timestamp: number }>();
+const DEMO_CACHE_TTL = 5 * 60 * 1000;
+
+/**
+ * Fetch demo data for a component category from GitHub.
+ * Returns null if fetch fails (graceful degradation).
+ */
+async function fetchDemoData(category: string): Promise<string | null> {
+  // Check cache first
+  const cached = demoDataCache.get(category);
+  if (cached && Date.now() - cached.timestamp < DEMO_CACHE_TTL) {
+    return cached.content;
+  }
+
+  const url = `${GITHUB_RAW_BASE}/registry/${category}/demo/data.ts`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const content = await response.text();
+    demoDataCache.set(category, { content, timestamp: Date.now() });
+    return content;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Get the registry base URL from environment or use default
  */
 function getRegistryBaseUrl(): string {
@@ -42,8 +76,8 @@ export async function fetchRegistry(): Promise<RegistryItem[]> {
 }
 
 /**
- * Fetch detailed component data including source code
- * Always fetches fresh data - no caching.
+ * Fetch detailed component data including source code.
+ * Also fetches demo data from GitHub and injects it into files array.
  */
 export async function fetchComponentDetail(name: string): Promise<ComponentDetail> {
   const baseUrl = getRegistryBaseUrl();
@@ -53,7 +87,25 @@ export async function fetchComponentDetail(name: string): Promise<ComponentDetai
     throw new Error(`Failed to fetch component "${name}": ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  const detail: ComponentDetail = await response.json();
+
+  // Fetch and inject demo data based on component category
+  const category = detail.categories?.[0];
+  if (category) {
+    const demoDataContent = await fetchDemoData(category);
+    if (demoDataContent) {
+      detail.files = [
+        ...(detail.files || []),
+        {
+          path: `registry/${category}/demo/data.ts`,
+          type: 'registry:demo',
+          content: demoDataContent,
+        },
+      ];
+    }
+  }
+
+  return detail;
 }
 
 /**
