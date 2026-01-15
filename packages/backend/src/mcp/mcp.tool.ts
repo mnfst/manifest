@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@chatgpt-app-builder/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
 
 /**
@@ -424,6 +424,12 @@ export class McpToolService {
               structuredContent: transformResult.output,
             };
           }
+        } else if (node.type === 'RegistryComponent') {
+          // Execute RegistryComponent node - return widget with component UI
+          result = this.executeRegistryComponentFlow(app, toolName, trigger.name, node, nodeInputData);
+          const structuredContent = result.structuredContent || {};
+          nodeOutputs.set(node.id, structuredContent);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
         }
       }
 
@@ -752,6 +758,45 @@ export class McpToolService {
         toolName: triggerToolName,
         nodeId: postListNode.id,
         availableActions: ['onReadMore'],
+      },
+    };
+  }
+
+  /**
+   * Execute RegistryComponent node - return widget with custom component UI
+   * The component files are embedded in the node parameters and rendered as a widget.
+   */
+  private executeRegistryComponentFlow(
+    app: AppEntity,
+    triggerToolName: string,
+    triggerName: string,
+    registryNode: NodeInstance,
+    input: Record<string, unknown>
+  ): McpToolResponse {
+    const params = registryNode.parameters as RegistryNodeParameters;
+
+    // Extract available actions from the component parameters
+    const availableActions = (params.actions || []).map(a => a.name);
+
+    const responseText = `Here is the ${params.title || registryNode.name} component:`;
+
+    return {
+      structuredContent: {
+        ...input,
+        nodeId: registryNode.id,
+        actions: availableActions,
+        registryName: params.registryName,
+        title: params.title,
+      },
+      content: [{ type: 'text', text: responseText }],
+      _meta: {
+        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}/${registryNode.id}.html`,
+        'openai/widgetPrefersBorder': true,
+        flowName: triggerName,
+        toolName: triggerToolName,
+        nodeId: registryNode.id,
+        registryName: params.registryName,
+        availableActions,
       },
     };
   }
@@ -1208,6 +1253,7 @@ export class McpToolService {
       const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
       const hasStatCard = nodes.some(n => n.type === 'StatCard');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
+      const registryComponents = nodes.filter(n => n.type === 'RegistryComponent');
 
       for (const triggerNode of triggerNodes) {
         const params = triggerNode.parameters as UserIntentNodeParameters;
@@ -1234,6 +1280,17 @@ export class McpToolService {
             mimeType: 'text/html+skybridge',
           });
         }
+
+        // Add RegistryComponent widgets
+        for (const registryNode of registryComponents) {
+          const regParams = registryNode.parameters as RegistryNodeParameters;
+          resources.push({
+            uri: `ui://widget/${appSlug}/${toolName}/${registryNode.id}.html`,
+            name: `${regParams.title || registryNode.name} Widget`,
+            description: `Custom component widget: ${regParams.description || regParams.title}`,
+            mimeType: 'text/html+skybridge',
+          });
+        }
       }
     }
 
@@ -1255,7 +1312,33 @@ export class McpToolService {
     }
 
     const callFlowMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^-]+)-callflow\.html$/);
+    const registryMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^/]+)\/([^.]+)\.html$/);
     const viewMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^.]+)\.html$/);
+
+    // Handle RegistryComponent widgets: ui://widget/{appSlug}/{toolName}/{nodeId}.html
+    if (registryMatch && registryMatch[1] === appSlug) {
+      const toolName = registryMatch[2];
+      const nodeId = registryMatch[3];
+
+      // Find the flow containing this tool
+      const triggerResult = await this.findTriggerByToolName(app.id, toolName);
+      if (!triggerResult) {
+        throw new NotFoundException(`No active trigger found for tool: ${toolName}`);
+      }
+
+      const { flow } = triggerResult;
+      const nodes = flow.nodes ?? [];
+      const registryNode = nodes.find(n => n.id === nodeId && n.type === 'RegistryComponent');
+
+      if (!registryNode) {
+        throw new NotFoundException(`No RegistryComponent node found with id: ${nodeId}`);
+      }
+
+      const params = registryNode.parameters as RegistryNodeParameters;
+      const widgetHtml = this.generateRegistryComponentWidgetHtml(registryNode.name, params, app.themeVariables, app.slug, toolName);
+
+      return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
+    }
 
     if (callFlowMatch && callFlowMatch[1] === appSlug) {
       const toolName = callFlowMatch[2];
@@ -1478,5 +1561,302 @@ export class McpToolService {
 
   private generateResponseText(flowName: string, _layoutTemplate: LayoutTemplate, _message: string): string {
     return `Here are the statistics from ${flowName}:`;
+  }
+
+  /**
+   * Generate widget HTML for a RegistryComponent.
+   * Renders the actual React component using Sucrase for runtime JSX transpilation.
+   */
+  private generateRegistryComponentWidgetHtml(
+    nodeName: string,
+    params: RegistryNodeParameters,
+    themeVariables: Record<string, string>,
+    appSlug: string,
+    toolName: string
+  ): string {
+    const cssVariables = Object.entries(themeVariables)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => `${key}: ${value};`)
+      .join('\n      ');
+
+    // Get the main component source code
+    const mainFile = params.files?.[0];
+    const componentCode = mainFile?.content || '';
+
+    // Escape the component code for embedding in JavaScript
+    const escapedCode = JSON.stringify(componentCode);
+
+    // Extract action names for callback handling
+    const actions = params.actions || [];
+    const actionNames = JSON.stringify(actions.map(a => a.name));
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${params.title || nodeName}</title>
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Sucrase for runtime JSX transpilation -->
+  <script src="https://unpkg.com/sucrase@3.35.0/dist/sucrase.min.js"></script>
+  <!-- Lucide React Icons -->
+  <script src="https://unpkg.com/lucide-react@0.344.0/dist/umd/lucide-react.min.js"></script>
+  <style>
+    :root {
+      ${cssVariables}
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+      --primary: 222.2 47.4% 11.2%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 222.2 84% 4.9%;
+      --radius: 0.5rem;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      padding: 16px;
+    }
+    #root { min-height: 100px; }
+    .error-container {
+      padding: 16px;
+      background: hsl(0 84.2% 60.2% / 0.1);
+      border: 1px solid hsl(0 84.2% 60.2%);
+      border-radius: 8px;
+      color: hsl(0 84.2% 60.2%);
+    }
+    .loading { text-align: center; padding: 24px; color: hsl(var(--muted-foreground)); }
+    /* shadcn/ui Button styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      border-radius: calc(var(--radius) - 2px);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    .btn:disabled { pointer-events: none; opacity: 0.5; }
+    .btn-default {
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      padding: 8px 16px;
+    }
+    .btn-default:hover { opacity: 0.9; }
+    .btn-outline {
+      border: 1px solid hsl(var(--input));
+      background: transparent;
+      padding: 8px 16px;
+    }
+    .btn-outline:hover { background: hsl(var(--accent)); }
+    .btn-ghost {
+      background: transparent;
+      padding: 8px 16px;
+    }
+    .btn-ghost:hover { background: hsl(var(--accent)); }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+    .btn-lg { padding: 12px 24px; font-size: 16px; }
+    .btn-icon { padding: 8px; }
+  </style>
+</head>
+<body>
+  <div id="root"><div class="loading">Loading component...</div></div>
+  <script>
+    (function() {
+      var nodeId = '${params.registryName}';
+      var toolData = {};
+      var currentData = null;
+      var appSlug = '${appSlug}';
+      var toolName = '${toolName}';
+      var actionNames = ${actionNames};
+
+      // cn utility function (clsx-like)
+      function cn() {
+        var classes = [];
+        for (var i = 0; i < arguments.length; i++) {
+          var arg = arguments[i];
+          if (!arg) continue;
+          if (typeof arg === 'string') classes.push(arg);
+          else if (Array.isArray(arg)) classes.push(cn.apply(null, arg));
+          else if (typeof arg === 'object') {
+            for (var key in arg) {
+              if (arg[key]) classes.push(key);
+            }
+          }
+        }
+        return classes.join(' ');
+      }
+
+      // Simple Button component
+      function Button(props) {
+        var variant = props.variant || 'default';
+        var size = props.size || 'default';
+        var className = props.className || '';
+
+        var variantClass = 'btn-' + variant;
+        var sizeClass = size !== 'default' ? 'btn-' + size : '';
+
+        return React.createElement('button', {
+          className: cn('btn', variantClass, sizeClass, className),
+          onClick: props.onClick,
+          disabled: props.disabled,
+          type: props.type || 'button',
+        }, props.children);
+      }
+
+      // Create action callback handlers
+      function createActionHandler(actionName) {
+        return function(data) {
+          console.log('Action triggered:', actionName, data);
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              type: 'mcp-action',
+              appSlug: appSlug,
+              toolName: toolName,
+              nodeId: nodeId,
+              action: actionName,
+              data: Object.assign({}, toolData, data || {})
+            }, '*');
+          }
+        };
+      }
+
+      // Build actions object for component
+      var actionsObj = {};
+      actionNames.forEach(function(name) {
+        actionsObj[name] = createActionHandler(name);
+      });
+
+      // Mock require function for imports
+      function mockRequire(moduleName) {
+        if (moduleName === 'react') return React;
+        if (moduleName === 'lucide-react') return window.lucideReact || {};
+        if (moduleName === '@/lib/utils') return { cn: cn };
+        if (moduleName === '@/components/ui/button' || moduleName.includes('button')) {
+          return { Button: Button };
+        }
+        console.warn('Unknown import:', moduleName);
+        return {};
+      }
+
+      // Compile and render component
+      function compileAndRender(code, data) {
+        try {
+          // Strip Next.js directives
+          var processedCode = code
+            .replace(/['"]use client['"]\\s*;?/g, '')
+            .replace(/['"]use server['"]\\s*;?/g, '');
+
+          // Transform with Sucrase
+          var result = window.sucrase.transform(processedCode, {
+            transforms: ['jsx', 'typescript', 'imports'],
+            jsxRuntime: 'classic',
+            jsxPragma: 'React.createElement',
+            jsxFragmentPragma: 'React.Fragment',
+          });
+
+          // Create module wrapper
+          var moduleCode = 'var exports = {}; var module = { exports: exports };' +
+            result.code +
+            '; if (module.exports.default) return module.exports.default;' +
+            'if (typeof module.exports === "function") return module.exports;' +
+            'for (var key in exports) { if (typeof exports[key] === "function") return exports[key]; }' +
+            'return null;';
+
+          var factory = new Function('React', 'require', moduleCode);
+          var Component = factory(React, mockRequire);
+
+          if (typeof Component !== 'function') {
+            throw new Error('Component must export a function');
+          }
+
+          // Render with data and actions
+          var root = ReactDOM.createRoot(document.getElementById('root'));
+          root.render(
+            React.createElement(Component, {
+              data: data || {},
+              actions: actionsObj,
+              appearance: {}
+            })
+          );
+        } catch (err) {
+          console.error('Compilation error:', err);
+          document.getElementById('root').innerHTML =
+            '<div class="error-container"><strong>Error:</strong> ' +
+            (err.message || 'Unknown error') + '</div>';
+        }
+      }
+
+      // Get component code
+      var componentCode = ${escapedCode};
+
+      function unwrap(d) {
+        return (d && d.structuredContent) ? d.structuredContent : d;
+      }
+
+      function getToolData() {
+        if (!window.openai) return null;
+        return window.openai.toolOutput || window.openai.structuredContent || null;
+      }
+
+      function renderComponent(data) {
+        toolData = data || {};
+        nodeId = data?.nodeId || nodeId;
+        currentData = data;
+        compileAndRender(componentCode, data);
+      }
+
+      function initWidget() {
+        var data = getToolData();
+        if (data) renderComponent(unwrap(data));
+        else compileAndRender(componentCode, {});
+      }
+
+      window.addEventListener('openai:set_globals', function(e) {
+        if (!e.detail) return;
+        var output = e.detail.toolOutput || e.detail.structuredContent ||
+                     (e.detail.globals && e.detail.globals.toolOutput);
+        if (output) renderComponent(unwrap(output));
+      });
+
+      window.addEventListener('message', function(e) {
+        if (!e.data) return;
+        var d = e.data.structuredContent || e.data;
+        if (d && (d.nodeId || d.registryName)) renderComponent(d);
+      });
+
+      // Wait for scripts to load then init
+      if (document.readyState === 'complete') {
+        setTimeout(initWidget, 100);
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(initWidget, 100);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>`;
   }
 }

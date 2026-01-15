@@ -26,6 +26,8 @@ export interface ToolResult {
   content: string;
   /** Structured content (for UI rendering) */
   structuredContent?: Record<string, unknown>;
+  /** MCP metadata including widget template URI */
+  _meta?: Record<string, unknown>;
   /** Whether execution succeeded */
   success: boolean;
   /** Error message if execution failed */

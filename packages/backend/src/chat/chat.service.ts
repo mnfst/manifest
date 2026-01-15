@@ -201,13 +201,32 @@ export class ChatService {
         const tool = tools.find(t => t.name === toolCall.name);
         if (tool) {
           const result = await tool.invoke(toolCall.arguments);
+
+          // Extract structured content and metadata from MCP response
+          const mcpResult = typeof result === 'object' && result !== null ? result as Record<string, unknown> : null;
+          const structuredContent = mcpResult?.structuredContent as Record<string, unknown> | undefined;
+          const _meta = mcpResult?._meta as Record<string, unknown> | undefined;
+
+          // Get content - prefer content array text, fall back to stringified result
+          let content: string;
+          if (mcpResult?.content && Array.isArray(mcpResult.content)) {
+            content = mcpResult.content
+              .filter((c: { type: string; text?: string }) => c.type === 'text' && c.text)
+              .map((c: { type: string; text?: string }) => c.text)
+              .join('\n');
+          } else {
+            content = typeof result === 'string' ? result : JSON.stringify(result);
+          }
+
           subject.next({
             type: 'tool_result',
             toolResult: {
               toolCallId: toolCall.id,
               name: toolCall.name,
-              content: typeof result === 'string' ? result : JSON.stringify(result),
+              content,
               success: true,
+              structuredContent,
+              _meta,
             },
           });
         }
