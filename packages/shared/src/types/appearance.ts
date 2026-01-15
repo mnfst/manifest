@@ -226,6 +226,12 @@ export const COMPONENT_APPEARANCE_REGISTRY: Record<string, ComponentAppearanceSc
     componentType: 'StatCard',
     options: [],
   },
+
+  // BlankComponent: appearance options are dynamically parsed from user's TypeScript interface
+  BlankComponent: {
+    componentType: 'BlankComponent',
+    options: [],
+  },
 };
 
 // =============================================================================

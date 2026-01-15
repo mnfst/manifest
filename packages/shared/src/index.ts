@@ -48,6 +48,7 @@ export type {
   Connection,
   UINodeParameters,
   StatCardNodeParameters,
+  BlankComponentNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
   UserIntentNodeParameters,
@@ -78,6 +79,7 @@ export {
   isApiCallNode,
   isJavaScriptCodeTransformNode,
   isLinkNode,
+  isBlankComponentNode,
 } from './types/node.js';
 
 // Appearance types (for UI component visual configuration)
@@ -203,6 +205,8 @@ export {
   POST_LIST_SAMPLE_DATA,
   TABLE_DEFAULT_CODE,
   POST_LIST_DEFAULT_CODE,
+  BLANK_COMPONENT_DEFAULT_CODE,
+  BLANK_COMPONENT_SAMPLE_DATA,
   getTemplateDefaultCode,
   getTemplateSampleData,
 } from './types/templates.js';
