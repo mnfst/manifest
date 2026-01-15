@@ -24,6 +24,7 @@ function DiscordIcon({ className }: { className?: string }) {
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/blocks', label: 'Blocks' },
+  { href: '/customize', label: 'Customize' },
   {
     href: 'https://manifest.build',
     label: 'Your App in ChatGPT',
