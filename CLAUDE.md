@@ -196,4 +196,38 @@ export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:384
 
 The Docker build sets `VITE_API_URL=""` so the frontend uses relative URLs. Using `||` would incorrectly fall back to localhost in production.
 
+## UI Components Structure
+
+### shadcn/ui Components (DO NOT MODIFY)
+
+**Location:** `packages/frontend/src/components/ui/shadcn/`
+
+These are pristine shadcn/ui components installed via `npx shadcn@latest add`.
+
+**Rules:**
+- **NEVER modify files in the `shadcn/` folder directly**
+- To update: `npx shadcn@latest add <component-name> --overwrite`
+- For customizations: Create a wrapper in the parent `ui/` folder
+- See `shadcn/README.md` for full documentation
+
+### Custom Components (CAN MODIFY)
+
+**Location:** `packages/frontend/src/components/ui/`
+
+These are project-specific components that can be freely modified:
+- `select.tsx` - Custom native select with `options` array prop
+- `stats.tsx` - Statistics display component
+
+### Import Patterns
+
+```typescript
+// shadcn components - import from shadcn subfolder
+import { Button } from '@/components/ui/shadcn/button';
+import { Dialog } from '@/components/ui/shadcn/dialog';
+
+// Custom components - import from ui folder directly
+import { Select } from '@/components/ui/select';
+import { Stats } from '@/components/ui/stats';
+```
+
 <!-- MANUAL ADDITIONS END -->

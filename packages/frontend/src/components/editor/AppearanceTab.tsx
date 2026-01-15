@@ -10,7 +10,7 @@ import {
   COMPONENT_APPEARANCE_REGISTRY,
   getDefaultAppearanceConfig,
 } from '@chatgpt-app-builder/shared';
-import { Switch } from '../ui/switch';
+import { Switch } from '../ui/shadcn/switch';
 import { Select } from '../ui/select';
 
 interface AppearanceTabProps {
