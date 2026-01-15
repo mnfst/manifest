@@ -47,19 +47,27 @@ import {
   MessageWithReactions,
   VoiceMessageBubble
 } from '@/registry/messaging/message-bubble'
-import { QuickReply } from '@/registry/miscellaneous/quick-reply'
+
+// Selection components
+import { OptionList } from '@/registry/selection/option-list'
+import { QuickReply } from '@/registry/selection/quick-reply'
+import { TagSelect } from '@/registry/selection/tag-select'
+
+// Social components
+import { InstagramPost } from '@/registry/social/instagram-post'
+import { LinkedInPost } from '@/registry/social/linkedin-post'
+import { XPost } from '@/registry/social/x-post'
+import { YouTubePost } from '@/registry/social/youtube-post'
+
+// Map components
+import { MapCarousel } from '@/registry/map/map-carousel'
+
+// Status components
+import { ProgressSteps } from '@/registry/status/progress-steps'
+import { StatusBadge } from '@/registry/status/status-badge'
 
 // Miscellaneous components
-import { InstagramPost } from '@/registry/miscellaneous/instagram-post'
-import { LinkedInPost } from '@/registry/miscellaneous/linkedin-post'
-import { MapCarousel } from '@/registry/miscellaneous/map-carousel'
-import { OptionList } from '@/registry/miscellaneous/option-list'
-import { ProgressSteps } from '@/registry/miscellaneous/progress-steps'
 import { Stats } from '@/registry/miscellaneous/stat-card'
-import { StatusBadge } from '@/registry/miscellaneous/status-badge'
-import { TagSelect } from '@/registry/miscellaneous/tag-select'
-import { XPost } from '@/registry/miscellaneous/x-post'
-import { YouTubePost } from '@/registry/miscellaneous/youtube-post'
 
 // UI components
 import {
@@ -101,7 +109,7 @@ interface Category {
 // In a production app, this would be in a shared file
 const categories: Category[] = [
   {
-    id: 'blog',
+    id: 'blogging',
     name: 'Blogging',
     blocks: [
       {
@@ -1993,8 +2001,37 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'misc',
+    id: 'miscellaneous',
     name: 'Miscellaneous',
+    blocks: [
+      {
+        id: 'stats',
+        name: 'Stats',
+        description: 'Display statistics and metrics',
+        registryName: 'stats',
+        layouts: ['inline', 'fullscreen', 'pip'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <Stats />,
+            usageCode: `<Stats
+  data={{
+    stats: [
+      { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
+      { label: "Orders", value: "342", change: -3.2, trend: "down" }
+    ]
+  }}
+/>`
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'selection',
+    name: 'Selection',
     blocks: [
       {
         id: 'option-list',
@@ -2018,31 +2055,6 @@ const categories: Category[] = [
   appearance={{ multiple: false }}
   actions={{
     onSelectOption: (option) => console.log("Selected:", option.label)
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'progress-steps',
-        name: 'Progress Steps',
-        description: 'Step-by-step progress indicator',
-        registryName: 'progress-steps',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <ProgressSteps />,
-            usageCode: `<ProgressSteps
-  data={{
-    steps: [
-      { id: "1", label: "Order received", status: "completed" },
-      { id: "2", label: "Processing", status: "completed" },
-      { id: "3", label: "Shipping", status: "current" },
-      { id: "4", label: "Delivery", status: "pending" }
-    ]
   }}
 />`
           }
@@ -2075,57 +2087,6 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'stats-cards',
-        name: 'Stats Cards',
-        description: 'Display statistics and metrics',
-        registryName: 'stats',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <Stats />,
-            usageCode: `<Stats
-  data={{
-    stats: [
-      { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
-      { label: "Orders", value: "342", change: -3.2, trend: "down" }
-    ]
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'status-badges',
-        name: 'Status Badge',
-        description: 'Various status indicators',
-        registryName: 'status-badge',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 0,
-        variants: [
-          {
-            id: 'default',
-            name: 'All Statuses',
-            component: (
-              <div className="flex flex-wrap gap-2 bg-white dark:bg-zinc-900 p-4 rounded-md">
-                <StatusBadge data={{ status: 'success' }} />
-                <StatusBadge data={{ status: 'pending' }} />
-                <StatusBadge data={{ status: 'processing' }} />
-                <StatusBadge data={{ status: 'shipped' }} />
-                <StatusBadge data={{ status: 'delivered' }} />
-                <StatusBadge data={{ status: 'error' }} />
-              </div>
-            ),
-            usageCode: `<StatusBadge data={{ status: "success" }} />
-<StatusBadge data={{ status: "pending" }} />
-<StatusBadge data={{ status: "processing" }} />
-<StatusBadge data={{ status: "error" }} />`
-          }
-        ]
-      },
-      {
         id: 'tag-select',
         name: 'Tag Select',
         description: 'Colored tag selector',
@@ -2154,6 +2115,65 @@ const categories: Category[] = [
     onValidate: (tagIds) => console.log("Validated:", tagIds)
   }}
 />`
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'status',
+    name: 'Status & Progress',
+    blocks: [
+      {
+        id: 'progress-steps',
+        name: 'Progress Steps',
+        description: 'Step-by-step progress indicator',
+        registryName: 'progress-steps',
+        layouts: ['inline', 'fullscreen', 'pip'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <ProgressSteps />,
+            usageCode: `<ProgressSteps
+  data={{
+    steps: [
+      { id: "1", label: "Order received", status: "completed" },
+      { id: "2", label: "Processing", status: "completed" },
+      { id: "3", label: "Shipping", status: "current" },
+      { id: "4", label: "Delivery", status: "pending" }
+    ]
+  }}
+/>`
+          }
+        ]
+      },
+      {
+        id: 'status-badge',
+        name: 'Status Badge',
+        description: 'Various status indicators',
+        registryName: 'status-badge',
+        layouts: ['inline', 'fullscreen', 'pip'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'default',
+            name: 'All Statuses',
+            component: (
+              <div className="flex flex-wrap gap-2 bg-white dark:bg-zinc-900 p-4 rounded-md">
+                <StatusBadge data={{ status: 'success' }} />
+                <StatusBadge data={{ status: 'pending' }} />
+                <StatusBadge data={{ status: 'processing' }} />
+                <StatusBadge data={{ status: 'shipped' }} />
+                <StatusBadge data={{ status: 'delivered' }} />
+                <StatusBadge data={{ status: 'error' }} />
+              </div>
+            ),
+            usageCode: `<StatusBadge data={{ status: "success" }} />
+<StatusBadge data={{ status: "pending" }} />
+<StatusBadge data={{ status: "processing" }} />
+<StatusBadge data={{ status: "error" }} />`
           }
         ]
       }

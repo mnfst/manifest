@@ -8,15 +8,25 @@ const SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
 interface RegistryFile {
   path: string
   type: string
+  target?: string
+}
+
+interface RegistryMeta {
+  preview?: string
+  version?: string
+  changelog?: Record<string, string>
 }
 
 interface RegistryItem {
   name: string
-  version?: string
   type: string
   title: string
   description: string
+  author?: string
+  categories?: string[]
+  meta?: RegistryMeta
   dependencies?: string[]
+  devDependencies?: string[]
   registryDependencies?: string[]
   files: RegistryFile[]
 }
@@ -26,6 +36,13 @@ interface Registry {
   name: string
   homepage: string
   items: RegistryItem[]
+}
+
+/**
+ * Helper to get version from registry item (now in meta.version)
+ */
+function getVersion(item: RegistryItem): string | undefined {
+  return item.meta?.version
 }
 
 function loadRegistry(): Registry {
@@ -40,7 +57,7 @@ describe('Registry Component Versioning', () => {
   describe('Version field presence', () => {
     it('all components should have a version field', () => {
       const componentsWithoutVersion = registry.items.filter(
-        (item) => !item.version
+        (item) => !getVersion(item)
       )
 
       if (componentsWithoutVersion.length > 0) {
@@ -57,8 +74,9 @@ describe('Registry Component Versioning', () => {
       const invalidVersions: { name: string; version: string }[] = []
 
       for (const item of registry.items) {
-        if (item.version && !SEMVER_REGEX.test(item.version)) {
-          invalidVersions.push({ name: item.name, version: item.version })
+        const version = getVersion(item)
+        if (version && !SEMVER_REGEX.test(version)) {
+          invalidVersions.push({ name: item.name, version: version })
         }
       }
 
@@ -74,9 +92,10 @@ describe('Registry Component Versioning', () => {
 
     it('version numbers should be non-negative integers', () => {
       for (const item of registry.items) {
-        if (!item.version) continue
+        const version = getVersion(item)
+        if (!version) continue
 
-        const parts = item.version.split('.')
+        const parts = version.split('.')
         expect(parts).toHaveLength(3)
 
         for (const part of parts) {
@@ -96,7 +115,7 @@ describe('Registry Component Versioning', () => {
         expect(item.name.length).toBeGreaterThan(0)
 
         expect(item.type).toBeDefined()
-        expect(item.type).toBe('registry:component')
+        expect(item.type).toBe('registry:block')
 
         expect(item.files).toBeDefined()
         expect(Array.isArray(item.files)).toBe(true)

@@ -1,4 +1,4 @@
-// Demo data for Miscellaneous category components
+// Demo data for Selection category components
 // This file contains sample data used for component previews and documentation
 
 import type { Option } from '../option-list'

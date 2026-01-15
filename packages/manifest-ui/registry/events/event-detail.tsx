@@ -23,24 +23,64 @@ import {
   Timer,
   DoorOpen
 } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
+import type { ComponentType } from 'react'
 import type { EventDetails, EventSignal } from './types'
 import { demoEventDetails } from './demo/data'
 
-// Dynamically import map components to avoid SSR issues with Leaflet
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-)
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-)
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-)
+// Internal types for react-leaflet component attributes (not exported component props)
+type LeafletMapContainerAttrs = {
+  center: [number, number]
+  zoom: number
+  style?: React.CSSProperties
+  zoomControl?: boolean
+  scrollWheelZoom?: boolean
+  children?: React.ReactNode
+}
+
+type LeafletTileLayerAttrs = {
+  attribution: string
+  url: string
+}
+
+type LeafletMarkerAttrs = {
+  position: [number, number]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any
+}
+
+// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
+interface ReactLeafletComponents {
+  MapContainer: ComponentType<LeafletMapContainerAttrs>
+  TileLayer: ComponentType<LeafletTileLayerAttrs>
+  Marker: ComponentType<LeafletMarkerAttrs>
+}
+
+/**
+ * Hook to lazy load react-leaflet components on client-side only.
+ * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
+ */
+function useReactLeaflet(): ReactLeafletComponents | null {
+  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    import('react-leaflet').then((mod) => {
+      if (mounted) {
+        setComponents({
+          MapContainer: mod.MapContainer,
+          TileLayer: mod.TileLayer,
+          Marker: mod.Marker,
+        })
+      }
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  return components
+}
 
 // Format date for display
 function formatEventDateTime(startDateTime: string, endDateTime?: string): string {
@@ -124,10 +164,12 @@ function MapPlaceholder() {
 // Venue marker component that uses Leaflet
 function VenueMapMarker({
   coordinates,
-  venueName
+  venueName,
+  MarkerComponent
 }: {
   coordinates: { lat: number; lng: number }
   venueName: string
+  MarkerComponent: ComponentType<LeafletMarkerAttrs>
 }) {
   const [L, setL] = useState<typeof import('leaflet') | null>(null)
 
@@ -183,7 +225,7 @@ function VenueMapMarker({
   })
 
   return (
-    <Marker
+    <MarkerComponent
       position={[coordinates.lat, coordinates.lng]}
       icon={icon}
     />
@@ -216,11 +258,9 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isSaved, setIsSaved] = useState(false)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
-  const [isMounted, setIsMounted] = useState(false)
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  // Lazy load react-leaflet components (React-only, no Next.js dependency)
+  const leafletComponents = useReactLeaflet()
 
   const images = event.images?.length ? event.images : (event.image ? [event.image] : [])
 
@@ -476,23 +516,24 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
 
             {showMap && event.venue_details.coordinates && (
               <div className="mt-4 aspect-video overflow-hidden rounded-lg bg-muted">
-                {isMounted ? (
-                  <MapContainer
+                {leafletComponents ? (
+                  <leafletComponents.MapContainer
                     center={[event.venue_details.coordinates.lat, event.venue_details.coordinates.lng]}
                     zoom={15}
                     style={{ height: '100%', width: '100%' }}
                     zoomControl={true}
                     scrollWheelZoom={false}
                   >
-                    <TileLayer
+                    <leafletComponents.TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
                       url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                     />
                     <VenueMapMarker
                       coordinates={event.venue_details.coordinates}
                       venueName={event.venue_details.name}
+                      MarkerComponent={leafletComponents.Marker}
                     />
-                  </MapContainer>
+                  </leafletComponents.MapContainer>
                 ) : (
                   <MapPlaceholder />
                 )}
