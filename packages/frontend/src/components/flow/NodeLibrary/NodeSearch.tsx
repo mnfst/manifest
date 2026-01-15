@@ -4,12 +4,13 @@ interface NodeSearchProps {
   value: string;
   onChange: (value: string) => void;
   onClear: () => void;
+  placeholder?: string;
 }
 
 /**
  * NodeSearch component - search input for filtering nodes
  */
-export function NodeSearch({ value, onChange, onClear }: NodeSearchProps) {
+export function NodeSearch({ value, onChange, onClear, placeholder = 'Search nodes...' }: NodeSearchProps) {
   return (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -17,7 +18,7 @@ export function NodeSearch({ value, onChange, onClear }: NodeSearchProps) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search nodes..."
+        placeholder={placeholder}
         className="
           w-full pl-10 pr-10 py-2
           border rounded-lg
