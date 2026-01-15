@@ -11,9 +11,8 @@ export interface DesignTokens {
   successColor: string
   // Typography
   fontFamily: 'system' | 'inter' | 'roboto' | 'poppins'
-  // Spacing & Layout
+  // Layout
   borderRadius: number
-  spacing: number
 }
 
 export const defaultTokens: DesignTokens = {
@@ -24,7 +23,6 @@ export const defaultTokens: DesignTokens = {
   successColor: '#16a34a',
   fontFamily: 'system',
   borderRadius: 8,
-  spacing: 16,
 }
 
 interface TokenContextValue {
@@ -151,9 +149,6 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
     // Font family
     root.style.setProperty('--font-sans', fontFamilies[tokens.fontFamily])
     document.body.style.fontFamily = fontFamilies[tokens.fontFamily]
-
-    // Spacing
-    root.style.setProperty('--spacing', `${tokens.spacing}px`)
   }, [tokens, isHydrated])
 
   // Load Google Fonts if needed
@@ -217,7 +212,6 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
       root.style.removeProperty('--radius-lg')
       root.style.removeProperty('--radius-xl')
       root.style.removeProperty('--font-sans')
-      root.style.removeProperty('--spacing')
       document.body.style.removeProperty('font-family')
     } catch (e) {
       console.error('Failed to reset design tokens:', e)

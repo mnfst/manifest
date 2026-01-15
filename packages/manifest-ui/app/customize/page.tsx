@@ -255,7 +255,7 @@ export default function CustomizePage() {
             <div>
               <h2 className="text-lg font-semibold mb-1">Layout</h2>
               <p className="text-sm text-muted-foreground">
-                Adjust spacing and border radius values.
+                Adjust border radius values.
               </p>
             </div>
 
@@ -267,16 +267,6 @@ export default function CustomizePage() {
                 min={0}
                 max={24}
                 description="Controls the roundness of corners on buttons, cards, and inputs"
-              />
-
-              <SliderInput
-                label="Base Spacing"
-                value={tokens.spacing}
-                onChange={(value) => updateToken('spacing', value)}
-                min={8}
-                max={32}
-                step={4}
-                description="Base spacing unit used for padding and margins"
               />
             </div>
           </section>
@@ -341,10 +331,6 @@ export default function CustomizePage() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">--font-family:</span>
                 <span>{tokens.fontFamily}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">--spacing:</span>
-                <span>{tokens.spacing}px</span>
               </div>
             </div>
           </div>
