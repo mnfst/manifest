@@ -5,6 +5,9 @@
 /** Time range options for filtering analytics data */
 export type AnalyticsTimeRange = '24h' | '7d' | '30d' | '3mo';
 
+/** Metric types for chart display selection */
+export type SelectedMetric = 'executions' | 'uniqueUsers' | 'completionRate' | 'avgDuration';
+
 /** Time range display labels */
 export const TIME_RANGE_LABELS: Record<AnalyticsTimeRange, string> = {
   '24h': 'Last 24 Hours',
@@ -21,6 +24,12 @@ export interface ChartDataPoint {
   label: string;
   /** Number of executions in this bucket */
   executions: number;
+  /** Number of unique users (distinct fingerprints) in this bucket */
+  uniqueUsers: number;
+  /** Completion rate percentage (0-100) in this bucket */
+  completionRate: number;
+  /** Average execution duration in milliseconds */
+  avgDuration: number;
 }
 
 /** Trend comparison data */
@@ -57,6 +66,26 @@ export interface FlowOption {
   name: string;
 }
 
+/** Per-flow analytics metrics for the flows table */
+export interface FlowAnalytics {
+  /** Flow ID */
+  id: string;
+  /** Flow name */
+  name: string;
+  /** Total executions in the time range */
+  executions: number;
+  /** Completion rate percentage (0-100) */
+  completionRate: number;
+  /** Average execution duration in milliseconds */
+  avgDuration: number;
+  /** Formatted display values */
+  displayValues: {
+    executions: string;
+    completionRate: string;
+    avgDuration: string;
+  };
+}
+
 /** Complete analytics response from API */
 export interface AppAnalyticsResponse {
   /** App ID */
@@ -71,6 +100,8 @@ export interface AppAnalyticsResponse {
   chartData: ChartDataPoint[];
   /** Available flows for filter dropdown */
   flows: FlowOption[];
+  /** Per-flow analytics for the flows table */
+  flowsWithMetrics: FlowAnalytics[];
 }
 
 /** Request parameters for analytics endpoint */

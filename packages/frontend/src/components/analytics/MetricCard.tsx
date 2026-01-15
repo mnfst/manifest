@@ -4,12 +4,22 @@ interface MetricCardProps {
   title: string;
   metric: AnalyticsMetric;
   isLoading?: boolean;
+  onClick?: () => void;
+  isSelected?: boolean;
 }
 
 /**
  * Metric card component displaying a value with optional trend indicator.
+ * Supports click-to-select behavior for chart switching.
  */
-export function MetricCard({ title, metric, isLoading }: MetricCardProps) {
+export function MetricCard({
+  title,
+  metric,
+  isLoading,
+  onClick,
+  isSelected,
+}: MetricCardProps) {
+  const isClickable = Boolean(onClick);
   if (isLoading) {
     return (
       <div className="bg-card border rounded-xl p-6 animate-pulse">
@@ -39,12 +49,22 @@ export function MetricCard({ title, metric, isLoading }: MetricCardProps) {
   };
 
   return (
-    <div className="bg-card border rounded-xl p-6">
+    <div
+      className={`bg-card border rounded-xl p-6 transition-all
+        ${isClickable ? 'cursor-pointer hover:border-primary/50' : ''}
+        ${isSelected ? 'ring-2 ring-primary border-primary' : ''}
+      `}
+      onClick={onClick}
+      role={isClickable ? 'button' : undefined}
+      aria-pressed={isSelected}
+    >
       <p className="text-sm text-muted-foreground font-medium mb-1">{title}</p>
       <p className="text-3xl font-semibold tracking-tight mb-2">
         {metric.displayValue}
       </p>
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${getTrendStyles()}`}>
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${getTrendStyles()}`}
+      >
         {getTrendArrow()}
         {formatTrendPercentage()}
       </span>
