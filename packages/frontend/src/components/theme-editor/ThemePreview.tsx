@@ -1,8 +1,8 @@
 import type { ThemeVariables } from '@chatgpt-app-builder/shared';
 import { ThemeProvider } from '../editor/ThemeProvider';
-import { Button } from '../ui/button';
-import { Switch } from '../ui/switch';
-import { Checkbox } from '../ui/checkbox';
+import { Button } from '../ui/shadcn/button';
+import { Switch } from '../ui/shadcn/switch';
+import { Checkbox } from '../ui/shadcn/checkbox';
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 

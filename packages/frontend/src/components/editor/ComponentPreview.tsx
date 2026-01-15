@@ -32,7 +32,8 @@ export interface ComponentPreviewProps {
 // ===========================================
 
 // Use Vite's import.meta.glob to auto-import all UI components
-const uiModules = import.meta.glob('../ui/*.tsx', { eager: true }) as Record<string, Record<string, unknown>>;
+// Custom components are in ../ui/, shadcn components are in ../ui/shadcn/
+const uiModules = import.meta.glob(['../ui/*.tsx', '../ui/shadcn/*.tsx'], { eager: true }) as Record<string, Record<string, unknown>>;
 
 // ===========================================
 // File Resolution for Multi-File Components
@@ -126,8 +127,19 @@ const availableImports: Record<string, unknown> = {
 // Auto-add all UI components from the glob import
 for (const [path, module] of Object.entries(uiModules)) {
   // Convert "../ui/button.tsx" → "@/components/ui/button"
+  // Convert "../ui/shadcn/button.tsx" → "@/components/ui/shadcn/button"
   const componentPath = path.replace('../ui/', '@/components/ui/').replace('.tsx', '');
   availableImports[componentPath] = module;
+
+  // For shadcn components, also register under the short path for backwards compatibility
+  // "../ui/shadcn/button.tsx" → also available as "@/components/ui/button"
+  if (path.includes('/shadcn/')) {
+    const shortPath = componentPath.replace('/shadcn/', '/');
+    // Only add if not already defined (custom components take precedence)
+    if (!availableImports[shortPath]) {
+      availableImports[shortPath] = module;
+    }
+  }
 }
 
 /**

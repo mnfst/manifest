@@ -1,4 +1,4 @@
-import { Button } from '../ui/button';
+import { Button } from '../ui/shadcn/button';
 import { AlertTriangle } from 'lucide-react';
 
 interface ResetConfirmDialogProps {

@@ -8,7 +8,7 @@ import { CodeEditor } from './CodeEditor';
 import { ComponentPreview } from './ComponentPreview';
 import { GeneralTab } from './GeneralTab';
 import { AppearanceTab } from './AppearanceTab';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/shadcn/tabs';
 import {
   getTemplateDefaultCode,
   getTemplateSampleData,
@@ -82,10 +82,28 @@ export function InterfaceEditor({
   const [previewKey, setPreviewKey] = useState(0);
 
   // Get sample data for preview
-  const sampleData = useMemo(
-    () => getTemplateSampleData('stat-card'),
-    []
-  );
+  // Convert componentType to template format (StatCard → stat-card, PostList → post-list)
+  const sampleData = useMemo(() => {
+    const templateMap: Record<string, string> = {
+      'StatCard': 'stat-card',
+      'PostList': 'post-list',
+    };
+    const template = templateMap[componentType] || 'stat-card';
+    const data = getTemplateSampleData(template as 'stat-card' | 'post-list');
+    // For registry components without predefined templates, provide generic sample data
+    // that won't crash on common property access patterns
+    if (!data || Object.keys(data as object).length === 0) {
+      return {
+        title: 'Sample Title',
+        description: 'Sample description text',
+        name: 'Sample Name',
+        value: 'Sample Value',
+        items: [],
+        data: {},
+      };
+    }
+    return data;
+  }, [componentType]);
 
   // Validate code when it changes
   useEffect(() => {

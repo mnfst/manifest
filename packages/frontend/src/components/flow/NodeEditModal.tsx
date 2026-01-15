@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type {
   NodeInstance,
   NodeType,
@@ -87,6 +87,7 @@ export function NodeEditModal({
 }: NodeEditModalProps) {
   const isEditMode = node !== null;
   const effectiveNodeType = node?.type ?? nodeType;
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Get upstream nodes for "Use Previous Outputs" component
   const { upstreamNodes, isLoading: upstreamLoading, error: upstreamError, refresh: refreshUpstream } = useUpstreamNodes({
@@ -196,6 +197,9 @@ export function NodeEditModal({
 
     // Reset to config tab when modal opens
     setActiveTab('config');
+
+    // Auto-focus the name input after a short delay to ensure modal is rendered
+    setTimeout(() => nameInputRef.current?.focus(), 100);
 
     if (node) {
       // Edit mode - populate from existing node
@@ -527,6 +531,7 @@ export function NodeEditModal({
                 Name
               </label>
               <input
+                ref={nameInputRef}
                 id="node-name"
                 type="text"
                 value={name}
