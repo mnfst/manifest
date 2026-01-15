@@ -1,16 +1,17 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
+import { AppearanceEditor } from '@/components/blocks/appearance-editor'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { PipModal } from '@/components/layout/pip-modal'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   ssr: false,
@@ -152,6 +153,30 @@ function FullwidthPlaceholder({ onOpen }: { onOpen: () => void }) {
   )
 }
 
+/**
+ * Extracts the initial appearance prop from a React element
+ */
+function extractInitialAppearance(component: React.ReactNode): Record<string, unknown> {
+  if (React.isValidElement(component)) {
+    const props = component.props as { appearance?: Record<string, unknown> }
+    return props.appearance ?? {}
+  }
+  return {}
+}
+
+/**
+ * Clones a React element with updated appearance props
+ */
+function cloneWithAppearance(
+  component: React.ReactNode,
+  appearance: Record<string, unknown>
+): React.ReactNode {
+  if (React.isValidElement(component)) {
+    return React.cloneElement(component, { appearance } as Record<string, unknown>)
+  }
+  return component
+}
+
 export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionProps>(function VariantSection({
   name,
   component,
@@ -177,6 +202,22 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   const sourceCode = useSourceCode(registryName)
   const timeoutRefs = useRef<NodeJS.Timeout[]>([])
   const contentRef = useRef<HTMLDivElement>(null)
+
+  // Appearance state for live editing
+  const [appearance, setAppearance] = useState<Record<string, unknown>>(() =>
+    extractInitialAppearance(component)
+  )
+
+  // Handler for appearance changes
+  const handleAppearanceChange = useCallback((key: string, value: unknown) => {
+    setAppearance((prev) => ({ ...prev, [key]: value }))
+  }, [])
+
+  // Clone component with current appearance
+  const componentWithAppearance = cloneWithAppearance(component, appearance)
+  const fullscreenComponentWithAppearance = fullscreenComponent
+    ? cloneWithAppearance(fullscreenComponent, appearance)
+    : componentWithAppearance
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -212,14 +253,15 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     }
   }), [])
 
-  // Reset view mode when navigating to a different component
+  // Reset view mode and appearance when navigating to a different component
   useEffect(() => {
     setViewMode(getDefaultViewMode())
     setIsFullscreenOpen(false)
     setIsPipOpen(false)
     setPipPosition(undefined)
     setHighlightCategory(null)
-  }, [registryName, layouts])
+    setAppearance(extractInitialAppearance(component))
+  }, [registryName, layouts, component])
 
   // Measure position and open PiP
   const openPip = () => {
@@ -357,22 +399,40 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 
       {/* Content based on view mode */}
       <div ref={contentRef}>
-        {viewMode === 'inline' && component}
+        {/* Preview modes with appearance editor */}
+        {(viewMode === 'inline' || viewMode === 'fullwidth' || viewMode === 'pip') && (
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Component preview area */}
+            <div className="flex-1 min-w-0">
+              {viewMode === 'inline' && componentWithAppearance}
 
-        {viewMode === 'fullwidth' && (
-          <FullwidthPlaceholder onOpen={() => setIsFullscreenOpen(true)} />
-        )}
+              {viewMode === 'fullwidth' && (
+                <FullwidthPlaceholder onOpen={() => setIsFullscreenOpen(true)} />
+              )}
 
-        {viewMode === 'pip' && (
-          <div className="flex items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border border-dashed">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={openPip}
-              className="px-8"
-            >
-              Open PiP
-            </Button>
+              {viewMode === 'pip' && (
+                <div className="flex items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border border-dashed">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={openPip}
+                    className="px-8"
+                  >
+                    Open PiP
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Appearance editor sidebar */}
+            <div className="lg:w-64 shrink-0">
+              <AppearanceEditor
+                sourceCode={sourceCode.code}
+                appearance={appearance}
+                onAppearanceChange={handleAppearanceChange}
+                loading={sourceCode.loading}
+              />
+            </div>
           </div>
         )}
 
@@ -407,7 +467,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           appName={name}
           onClose={() => setIsFullscreenOpen(false)}
         >
-          {fullscreenComponent || component}
+          {fullscreenComponentWithAppearance}
         </FullscreenModal>
       )}
 
@@ -418,7 +478,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           onClose={() => setIsPipOpen(false)}
           position={pipPosition}
         >
-          {component}
+          {componentWithAppearance}
         </PipModal>
       )}
     </div>
