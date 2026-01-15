@@ -9,28 +9,7 @@ interface CreateFlowModalProps {
 }
 
 /**
- * Converts a display name to a valid snake_case tool name.
- */
-function toSnakeCase(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .trim()
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '');
-}
-
-/**
- * Validates that a tool name is valid.
- */
-function isValidToolName(toolName: string): boolean {
-  return toolName.length > 0 && /^[a-z][a-z0-9_]*$/.test(toolName);
-}
-
-/**
  * Modal for creating a new flow with name and description
- * Tool name is auto-generated from the name using snake_case conversion
  */
 export function CreateFlowModal({
   isOpen,
@@ -44,9 +23,7 @@ export function CreateFlowModal({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
-  const toolName = toSnakeCase(name);
-  const isToolNameValid = name.trim().length === 0 || isValidToolName(toolName);
-  const canSubmit = name.trim().length > 0 && isValidToolName(toolName) && !isLoading;
+  const canSubmit = name.trim().length > 0 && !isLoading;
 
   // Reset form when modal opens
   useEffect(() => {
@@ -163,27 +140,6 @@ export function CreateFlowModal({
               <span>{name.length}/300 characters</span>
             </div>
           </div>
-
-          {/* Tool name preview */}
-          {name.trim().length > 0 && (
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-muted-foreground">
-                Tool Name (auto-generated)
-              </label>
-              <div className={`px-3 py-2 rounded-lg text-sm font-mono ${
-                isToolNameValid
-                  ? 'bg-muted text-foreground'
-                  : 'bg-destructive/10 text-destructive'
-              }`}>
-                {toolName || '(invalid - name must contain letters or numbers)'}
-              </div>
-              {!isToolNameValid && (
-                <p className="text-xs text-destructive">
-                  Name must contain at least one letter or number
-                </p>
-              )}
-            </div>
-          )}
 
           {/* Description field */}
           <div className="space-y-2">
