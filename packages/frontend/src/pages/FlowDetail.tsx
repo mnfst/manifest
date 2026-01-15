@@ -12,7 +12,7 @@ import type {
   StatCardNodeParameters,
   RegistryNodeParameters,
 } from '@chatgpt-app-builder/shared';
-import { Hammer, Eye, BarChart3, Edit, Trash2 } from 'lucide-react';
+import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
@@ -647,7 +647,8 @@ function FlowDetail() {
   const tabs: TabConfig[] = [
     { id: 'build', label: 'Build', icon: Hammer },
     { id: 'preview', label: 'Preview', icon: Eye, disabled: nodes.length === 0 },
-    { id: 'usage', label: 'Usage', icon: BarChart3 },
+    { id: 'logs', label: 'Logs', icon: ScrollText },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
   return (
@@ -871,8 +872,8 @@ function FlowDetail() {
             </div>
           )}
 
-          {/* Usage Tab - Two column layout */}
-          {activeTab === 'usage' && flowId && (
+          {/* Logs Tab - Two column layout */}
+          {activeTab === 'logs' && flowId && (
             <div className="flex-1 flex overflow-hidden">
               {/* Left panel - Execution list */}
               <div className="w-1/3 border-r border-gray-200 flex flex-col overflow-hidden">
@@ -889,6 +890,19 @@ function FlowDetail() {
                 ) : (
                   <ExecutionDetailPlaceholder />
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Analytics Tab - Coming Soon */}
+          {activeTab === 'analytics' && (
+            <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Analytics Coming Soon</h3>
+                <p className="text-gray-500 max-w-md">
+                  Track product usage metrics, user engagement, and flow performance insights.
+                </p>
               </div>
             </div>
           )}
@@ -927,7 +941,12 @@ function FlowDetail() {
         currentFlowId={flowId || ''}
         isLoading={isSavingNode}
         error={nodeEditError}
-        registryComponentTitle={registryParamsToCreate?.title}
+        registryComponentTitle={
+          registryParamsToCreate?.title ||
+          (nodeToEdit?.type === 'RegistryComponent'
+            ? (nodeToEdit.parameters as unknown as RegistryNodeParameters)?.title
+            : undefined)
+        }
       />
     </div>
   );
