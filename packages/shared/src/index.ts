@@ -277,3 +277,10 @@ export type {
   RegistryCategoryInfo,
   RegistryNodeTypeInfo,
 } from './types/registry.js';
+
+// Parameter constants (for system parameters on triggers)
+export {
+  USER_QUERY_PARAMETER,
+  SYSTEM_PARAMETER_NAMES,
+} from './constants/parameters.js';
+export type { SystemParameterName } from './constants/parameters.js';
