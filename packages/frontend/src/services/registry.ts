@@ -11,6 +11,7 @@ import type {
   ComponentDetail,
   RegistryNodeParameters,
   RegistryAppearanceOption,
+  LayoutAction,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -132,12 +133,56 @@ export function parseAppearanceOptions(sourceCode: string): RegistryAppearanceOp
 }
 
 /**
+ * Parse component actions from source code.
+ * Looks for actions?: { onXxx?: ... } in Props interface and JSDoc @property tags.
+ * Exported so it can be used to parse actions from existing nodes.
+ */
+export function parseComponentActions(sourceCode: string): LayoutAction[] {
+  const actions: LayoutAction[] = [];
+
+  // Pattern 1: Match actions?: { onXxx?: (data) => void } block in Props interface
+  const actionsMatch = sourceCode.match(/actions\?\s*:\s*\{([^}]+)\}/s);
+  if (actionsMatch) {
+    const actionsBlock = actionsMatch[1];
+    // Match: onActionName?: (params) => void
+    const actionRegex = /(on[A-Z]\w+)\?\s*:\s*\([^)]*\)\s*=>\s*void/g;
+    let match;
+    while ((match = actionRegex.exec(actionsBlock)) !== null) {
+      const name = match[1];
+      // Convert onSelectTags -> "Select Tags"
+      const label = name.replace(/^on/, '').replace(/([A-Z])/g, ' $1').trim();
+      actions.push({ name, label, description: `Triggered by ${label}` });
+    }
+  }
+
+  // Pattern 2: Match JSDoc @property {function} [actions.onXxx] - description
+  const jsdocRegex = /@property\s*\{function\}\s*\[actions\.(on[A-Z]\w+)\]\s*-\s*([^\n]+)/g;
+  let jsdocMatch;
+  while ((jsdocMatch = jsdocRegex.exec(sourceCode)) !== null) {
+    const name = jsdocMatch[1];
+    const description = jsdocMatch[2].trim();
+    // Convert onSelectTags -> "Select Tags"
+    const label = name.replace(/^on/, '').replace(/([A-Z])/g, ' $1').trim();
+    // Avoid duplicates - prefer JSDoc version for better description
+    const existingIndex = actions.findIndex((a) => a.name === name);
+    if (existingIndex >= 0) {
+      actions[existingIndex] = { name, label, description };
+    } else {
+      actions.push({ name, label, description });
+    }
+  }
+
+  return actions;
+}
+
+/**
  * Transform ComponentDetail to RegistryNodeParameters for storage in node data
  */
 export function transformToNodeParameters(detail: ComponentDetail): RegistryNodeParameters {
-  // Extract appearance options from the first file's source code
+  // Extract appearance options and actions from the first file's source code
   const sourceCode = detail.files?.[0]?.content || '';
   const appearanceOptions = parseAppearanceOptions(sourceCode);
+  const actions = parseComponentActions(sourceCode);
 
   return {
     registryName: detail.name,
@@ -150,5 +195,6 @@ export function transformToNodeParameters(detail: ComponentDetail): RegistryNode
     registryDependencies: detail.registryDependencies || [],
     files: detail.files || [],
     appearanceOptions: appearanceOptions.length > 0 ? appearanceOptions : undefined,
+    actions: actions.length > 0 ? actions : undefined,
   };
 }
