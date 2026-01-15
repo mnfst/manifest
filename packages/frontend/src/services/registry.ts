@@ -20,10 +20,102 @@ import type {
 const DEFAULT_REGISTRY_URL = 'https://ui.manifest.build/r';
 
 /**
+ * GitHub raw content base URL for fetching demo data
+ */
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/mnfst/manifest/main/packages/manifest-ui';
+
+/**
+ * Cache for demo data (5 minute TTL - demo data changes rarely)
+ */
+const demoDataCache = new Map<string, { content: string; timestamp: number }>();
+const DEMO_CACHE_TTL = 5 * 60 * 1000;
+
+/**
+ * Cache for component details to avoid re-fetching dependencies
+ */
+const componentDetailCache = new Map<string, { detail: ComponentDetail; timestamp: number }>();
+
+/**
+ * UI components that are already available via glob import (no need to fetch)
+ */
+const BUILTIN_UI_COMPONENTS = new Set([
+  'button', 'checkbox', 'input', 'label', 'select', 'textarea',
+  'card', 'dialog', 'dropdown-menu', 'popover', 'tooltip',
+  'tabs', 'accordion', 'avatar', 'badge', 'separator',
+  'scroll-area', 'skeleton', 'slider', 'switch', 'toggle',
+]);
+
+/**
  * Get the registry base URL from environment or use default
  */
 function getRegistryBaseUrl(): string {
   return import.meta.env.VITE_REGISTRY_URL ?? DEFAULT_REGISTRY_URL;
+}
+
+/**
+ * Extract component name from a registry dependency.
+ * Handles both simple names ("event-card") and full URLs.
+ */
+function extractComponentName(dep: string): string | null {
+  // Skip built-in UI components
+  if (BUILTIN_UI_COMPONENTS.has(dep)) {
+    return null;
+  }
+
+  // Handle full URLs like "https://ui.manifest.build/r/event-card.json"
+  if (dep.startsWith('http')) {
+    const match = dep.match(/\/([^/]+)\.json$/);
+    return match ? match[1] : null;
+  }
+
+  // Simple component name like "event-card"
+  return dep;
+}
+
+/**
+ * Fetch a component's raw detail without processing dependencies (to avoid recursion).
+ * Uses caching to avoid repeated fetches.
+ */
+async function fetchComponentDetailRaw(name: string): Promise<ComponentDetail | null> {
+  // Check cache first
+  const cached = componentDetailCache.get(name);
+  if (cached && Date.now() - cached.timestamp < DEMO_CACHE_TTL) {
+    return cached.detail;
+  }
+
+  const baseUrl = getRegistryBaseUrl();
+  try {
+    const response = await fetch(`${baseUrl}/${name}.json`);
+    if (!response.ok) return null;
+    const detail: ComponentDetail = await response.json();
+    componentDetailCache.set(name, { detail, timestamp: Date.now() });
+    return detail;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch demo data for a component category from GitHub.
+ * Returns null if fetch fails (graceful degradation).
+ */
+async function fetchDemoData(category: string): Promise<string | null> {
+  // Check cache first
+  const cached = demoDataCache.get(category);
+  if (cached && Date.now() - cached.timestamp < DEMO_CACHE_TTL) {
+    return cached.content;
+  }
+
+  const url = `${GITHUB_RAW_BASE}/registry/${category}/demo/data.ts`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const content = await response.text();
+    demoDataCache.set(category, { content, timestamp: Date.now() });
+    return content;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -43,8 +135,8 @@ export async function fetchRegistry(): Promise<RegistryItem[]> {
 }
 
 /**
- * Fetch detailed component data including source code
- * Always fetches fresh data - no caching.
+ * Fetch detailed component data including source code.
+ * Also fetches demo data and registry dependencies, injecting them into files array.
  */
 export async function fetchComponentDetail(name: string): Promise<ComponentDetail> {
   const baseUrl = getRegistryBaseUrl();
@@ -54,7 +146,58 @@ export async function fetchComponentDetail(name: string): Promise<ComponentDetai
     throw new Error(`Failed to fetch component "${name}": ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  const detail: ComponentDetail = await response.json();
+
+  // Fetch and inject demo data based on component category
+  const category = detail.categories?.[0];
+  if (category) {
+    const demoDataContent = await fetchDemoData(category);
+    if (demoDataContent) {
+      detail.files = [
+        ...(detail.files || []),
+        {
+          path: `registry/${category}/demo/data.ts`,
+          type: 'registry:demo',
+          content: demoDataContent,
+        },
+      ];
+    }
+  }
+
+  // Fetch and inject registry dependencies (other registry components this component imports)
+  const registryDeps = detail.registryDependencies || [];
+  if (registryDeps.length > 0) {
+    // Extract component names from dependencies (skip built-in UI components)
+    const componentNames = registryDeps
+      .map(extractComponentName)
+      .filter((n): n is string => n !== null);
+
+    // Fetch all dependency details in parallel
+    const depDetails = await Promise.all(
+      componentNames.map(depName => fetchComponentDetailRaw(depName))
+    );
+
+    // Collect all files from dependencies, avoiding duplicates
+    const existingPaths = new Set((detail.files || []).map(f => f.path));
+    const depFiles: ComponentDetail['files'] = [];
+
+    for (const depDetail of depDetails) {
+      if (depDetail?.files) {
+        for (const file of depDetail.files) {
+          if (!existingPaths.has(file.path)) {
+            depFiles.push(file);
+            existingPaths.add(file.path);
+          }
+        }
+      }
+    }
+
+    if (depFiles.length > 0) {
+      detail.files = [...(detail.files || []), ...depFiles];
+    }
+  }
+
+  return detail;
 }
 
 /**

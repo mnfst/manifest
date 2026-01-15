@@ -21,7 +21,7 @@ interface SelectProps {
 export function Select({
   value,
   onValueChange,
-  options,
+  options = [],
   placeholder,
   disabled = false,
   id,

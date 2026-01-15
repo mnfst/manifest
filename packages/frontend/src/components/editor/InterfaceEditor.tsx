@@ -8,7 +8,7 @@ import { CodeEditor } from './CodeEditor';
 import { ComponentPreview } from './ComponentPreview';
 import { GeneralTab } from './GeneralTab';
 import { AppearanceTab } from './AppearanceTab';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/shadcn/tabs';
 import {
   getTemplateDefaultCode,
   getTemplateSampleData,
@@ -98,10 +98,22 @@ export function InterfaceEditor({
   const [previewKey, setPreviewKey] = useState(0);
 
   // Get sample data for preview
-  const sampleData = useMemo(
-    () => getTemplateSampleData(layoutTemplate),
-    [layoutTemplate]
-  );
+  // Registry components (with siblingFiles including demo/data.ts) use their internal demo data
+  // Built-in templates (StatCard, PostList) use predefined sample data
+  const sampleData = useMemo(() => {
+    // Registry components have siblingFiles with demo data - let them use their internal defaults
+    if (siblingFiles && siblingFiles.length > 0) {
+      return undefined;
+    }
+
+    // Built-in templates use predefined sample data
+    const templateMap: Record<string, string> = {
+      'StatCard': 'stat-card',
+      'PostList': 'post-list',
+    };
+    const template = templateMap[componentType] || 'stat-card';
+    return getTemplateSampleData(template as 'stat-card' | 'post-list');
+  }, [componentType, siblingFiles]);
 
   // Validate code when it changes
   useEffect(() => {
