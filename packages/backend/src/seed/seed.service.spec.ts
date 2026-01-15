@@ -526,15 +526,15 @@ describe('SeedService', () => {
       expect(mockAppRepository.create).not.toHaveBeenCalled();
     });
 
-    it('should create Test App when no apps exist', async () => {
+    it('should create Eventbrite App when no apps exist', async () => {
       mockSignUpEmail.mockResolvedValue({
         user: { id: 'admin-id', email: 'admin@manifest.build' },
       });
       mockAppRepository.count.mockResolvedValue(0);
-      mockAppRepository.create.mockReturnValue({ id: 'new-app-id', name: 'Test App' });
-      mockAppRepository.save.mockResolvedValue({ id: 'new-app-id', name: 'Test App' });
+      mockAppRepository.create.mockReturnValue({ id: 'new-app-id', name: 'Eventbrite' });
+      mockAppRepository.save.mockResolvedValue({ id: 'new-app-id', name: 'Eventbrite' });
       mockFlowRepository.create.mockReturnValue({ id: 'new-flow-id' });
-      mockFlowRepository.save.mockResolvedValue({ id: 'new-flow-id', name: 'Test Flow' });
+      mockFlowRepository.save.mockResolvedValue({ id: 'new-flow-id', name: 'Search events in a city' });
       mockUserAppRoleRepository.create.mockReturnValue({});
       mockUserAppRoleRepository.save.mockResolvedValue({});
       mockExecutionRepository.save.mockResolvedValue([]);
@@ -543,15 +543,15 @@ describe('SeedService', () => {
 
       expect(mockAppRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Test App',
-          slug: 'test-app',
+          name: 'Eventbrite',
+          slug: 'eventbrite',
           status: 'published',
         }),
       );
       expect(mockAppRepository.save).toHaveBeenCalled();
     });
 
-    it('should create Test Flow with UserIntent and StatCard nodes', async () => {
+    it('should create Search events flow with UserIntent and StatCard nodes', async () => {
       mockSignUpEmail.mockResolvedValue({
         user: { id: 'admin-id', email: 'admin@manifest.build' },
       });
@@ -559,7 +559,7 @@ describe('SeedService', () => {
       mockAppRepository.create.mockReturnValue({ id: 'app-id' });
       mockAppRepository.save.mockResolvedValue({ id: 'app-id' });
       mockFlowRepository.create.mockReturnValue({ id: 'flow-id' });
-      mockFlowRepository.save.mockResolvedValue({ id: 'flow-id', name: 'Test Flow' });
+      mockFlowRepository.save.mockResolvedValue({ id: 'flow-id', name: 'Search events in a city' });
       mockUserAppRoleRepository.create.mockReturnValue({});
       mockUserAppRoleRepository.save.mockResolvedValue({});
       mockExecutionRepository.save.mockResolvedValue([]);
@@ -568,7 +568,7 @@ describe('SeedService', () => {
 
       expect(mockFlowRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Test Flow',
+          name: 'Search events in a city',
           isActive: true,
         }),
       );
@@ -578,7 +578,7 @@ describe('SeedService', () => {
 
       const userIntentNode = flowCreateCall.nodes.find((n: NodeInstance) => n.type === 'UserIntent');
       expect(userIntentNode).toBeDefined();
-      expect(userIntentNode.parameters.toolName).toBe('test_flow');
+      expect(userIntentNode.parameters.toolName).toBe('search_events_in_city');
 
       const statCardNode = flowCreateCall.nodes.find((n: NodeInstance) => n.type === 'StatCard');
       expect(statCardNode).toBeDefined();
@@ -695,7 +695,7 @@ describe('SeedService', () => {
       mockAppRepository.create.mockReturnValue({ id: 'app-id' });
       mockAppRepository.save.mockResolvedValue({ id: 'app-id' });
       mockFlowRepository.create.mockReturnValue({ id: 'flow-id' });
-      mockFlowRepository.save.mockResolvedValue({ id: 'flow-id', name: 'Test Flow' });
+      mockFlowRepository.save.mockResolvedValue({ id: 'flow-id', name: 'Search events in a city' });
       mockUserAppRoleRepository.create.mockReturnValue({});
       mockUserAppRoleRepository.save.mockResolvedValue({});
       mockExecutionRepository.save.mockResolvedValue([]);
@@ -705,8 +705,8 @@ describe('SeedService', () => {
       const savedExecutions = mockExecutionRepository.save.mock.calls[0][0];
       savedExecutions.forEach((execution: Partial<FlowExecutionEntity>) => {
         expect(execution.flowId).toBe('flow-id');
-        expect(execution.flowName).toBe('Test Flow');
-        expect(execution.flowToolName).toBe('test_flow');
+        expect(execution.flowName).toBe('Search events in a city');
+        expect(execution.flowToolName).toBe('search_events_in_city');
         expect(execution.isPreview).toBe(false);
       });
     });

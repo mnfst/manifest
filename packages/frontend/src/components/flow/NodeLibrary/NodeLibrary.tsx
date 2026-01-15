@@ -76,6 +76,7 @@ export function NodeLibrary({
   const [selectedCategoryId, setSelectedCategoryId] = useState<NodeTypeCategory | null>(null);
   const [selectedRegistryCategoryId, setSelectedRegistryCategoryId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [folderSearchTerm, setFolderSearchTerm] = useState('');
 
   // API data state
   const [nodeTypes, setNodeTypes] = useState<NodeTypeInfo[]>([]);
@@ -174,9 +175,11 @@ export function NodeLibrary({
   const selectedCategory = selectedCategoryId
     ? categories.find(c => c.id === selectedCategoryId)
     : null;
-  const nodesInCategory = selectedCategoryId
-    ? nodeTypes.filter(node => node.category === selectedCategoryId)
-    : [];
+  const nodesInCategory = useMemo(() => {
+    return selectedCategoryId
+      ? nodeTypes.filter(node => node.category === selectedCategoryId)
+      : [];
+  }, [selectedCategoryId, nodeTypes]);
 
   // Get built-in interface nodes (e.g., BlankComponent) to show in UIs section
   const builtInInterfaceNodes = useMemo(() =>
@@ -185,26 +188,103 @@ export function NodeLibrary({
   );
 
   // Filter nodes based on search term
-  const filteredNodes = searchTerm
-    ? nodeTypes.filter((node) =>
-        node.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        node.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const filteredNodes = useMemo(() => {
+    if (!searchTerm) return [];
+    const term = searchTerm.toLowerCase();
+    return nodeTypes.filter((node) =>
+      node.displayName.toLowerCase().includes(term) ||
+      node.description.toLowerCase().includes(term)
+    );
+  }, [searchTerm, nodeTypes]);
 
   // Filter registry items based on search term
-  const filteredRegistryItems = searchTerm
-    ? registryItems.filter((item) =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.categories[0]?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-      )
-    : [];
+  const filteredRegistryItems = useMemo(() => {
+    if (!searchTerm) return [];
+    const term = searchTerm.toLowerCase();
+    return registryItems.filter((item) =>
+      item.title.toLowerCase().includes(term) ||
+      item.name.toLowerCase().includes(term) ||
+      item.description.toLowerCase().includes(term) ||
+      (item.categories[0]?.toLowerCase().includes(term) ?? false)
+    );
+  }, [searchTerm, registryItems]);
 
   // Determine if we're showing search results
   const isSearching = searchTerm.length > 0;
   const hasSearchResults = filteredNodes.length > 0 || filteredRegistryItems.length > 0;
+
+  // Group search results by category for display
+  const groupedSearchResults = useMemo(() => {
+    if (!isSearching) return [];
+
+    // Group nodes by their category
+    const nodesByCategory = new Map<NodeTypeCategory, NodeTypeInfo[]>();
+    filteredNodes.forEach((node) => {
+      const existing = nodesByCategory.get(node.category) || [];
+      existing.push(node);
+      nodesByCategory.set(node.category, existing);
+    });
+
+    // Build results in category order: trigger, interface (with registry items), action, return, transform
+    const categoryOrder: NodeTypeCategory[] = ['trigger', 'interface', 'action', 'return', 'transform'];
+    const results: Array<{
+      categoryId: NodeTypeCategory;
+      displayName: string;
+      nodes: NodeTypeInfo[];
+      registryItems: RegistryItem[];
+    }> = [];
+
+    categoryOrder.forEach((categoryId) => {
+      const nodes = nodesByCategory.get(categoryId) || [];
+      const registryItems = categoryId === 'interface' ? filteredRegistryItems : [];
+
+      if (nodes.length > 0 || registryItems.length > 0) {
+        results.push({
+          categoryId,
+          displayName: CATEGORY_CONFIG[categoryId]?.displayName || categoryId,
+          nodes,
+          registryItems,
+        });
+      }
+    });
+
+    return results;
+  }, [isSearching, filteredNodes, filteredRegistryItems]);
+
+  // Folder-level filtering (for nested views)
+  const isFolderSearching = folderSearchTerm.length > 0;
+
+  // Filter nodes in category by folder search term
+  const filteredNodesInCategory = useMemo(() => {
+    if (!folderSearchTerm) return nodesInCategory;
+    const term = folderSearchTerm.toLowerCase();
+    return nodesInCategory.filter((node) =>
+      node.displayName.toLowerCase().includes(term) ||
+      node.description.toLowerCase().includes(term)
+    );
+  }, [nodesInCategory, folderSearchTerm]);
+
+  // Filter ALL registry items by folder search term (for UIs folder search)
+  const filteredAllRegistryItems = useMemo(() => {
+    if (!folderSearchTerm) return [];
+    const term = folderSearchTerm.toLowerCase();
+    return registryItems.filter((item) =>
+      item.title.toLowerCase().includes(term) ||
+      item.name.toLowerCase().includes(term) ||
+      item.description.toLowerCase().includes(term)
+    );
+  }, [registryItems, folderSearchTerm]);
+
+  // Filter registry items in category by folder search term
+  const filteredRegistryItemsInCategory = useMemo(() => {
+    if (!folderSearchTerm) return registryItemsInCategory;
+    const term = folderSearchTerm.toLowerCase();
+    return registryItemsInCategory.filter((item) =>
+      item.title.toLowerCase().includes(term) ||
+      item.name.toLowerCase().includes(term) ||
+      item.description.toLowerCase().includes(term)
+    );
+  }, [registryItemsInCategory, folderSearchTerm]);
 
   // Handle escape key to close
   useEffect(() => {
@@ -225,10 +305,12 @@ export function NodeLibrary({
       setSelectedCategoryId(null);
       setSelectedRegistryCategoryId(null);
       setSearchTerm('');
+      setFolderSearchTerm('');
     }
   }, [isOpen]);
 
   const handleGroupClick = (categoryId: NodeTypeCategory) => {
+    setFolderSearchTerm(''); // Clear folder search when navigating
     if (categoryId === 'interface') {
       // Navigate to registry categories for UIs
       setSelectedCategoryId(categoryId);
@@ -242,11 +324,13 @@ export function NodeLibrary({
   };
 
   const handleRegistryCategoryClick = (registryCategoryId: string) => {
+    setFolderSearchTerm(''); // Clear folder search when navigating
     setSelectedRegistryCategoryId(registryCategoryId);
     setCurrentView('registryItems');
   };
 
   const handleBack = () => {
+    setFolderSearchTerm(''); // Clear folder search when navigating back
     if (currentView === 'registryItems') {
       // Go back to registry categories
       setSelectedRegistryCategoryId(null);
@@ -280,6 +364,29 @@ export function NodeLibrary({
 
   const handleSearchClear = () => {
     setSearchTerm('');
+  };
+
+  const handleFolderSearchClear = () => {
+    setFolderSearchTerm('');
+  };
+
+  // Get search placeholder based on current view
+  const getSearchPlaceholder = () => {
+    if (currentView === 'groups') {
+      return 'Search all nodes...';
+    }
+    if (currentView === 'nodes' && selectedCategory) {
+      const displayName = CATEGORY_CONFIG[selectedCategory.id]?.displayName || selectedCategory.displayName;
+      return `Search in ${displayName}...`;
+    }
+    if (currentView === 'registryCategories') {
+      return 'Search in UIs...';
+    }
+    if (currentView === 'registryItems' && selectedRegistryCategoryId) {
+      const displayName = selectedRegistryCategoryId.charAt(0).toUpperCase() + selectedRegistryCategoryId.slice(1);
+      return `Search in ${displayName}...`;
+    }
+    return 'Search...';
   };
 
   // Handle registry item hover for preview
@@ -334,16 +441,15 @@ export function NodeLibrary({
             )}
           </div>
 
-          {/* Search - only show at root level */}
-          {currentView === 'groups' && (
-            <div className="p-4 border-b">
-              <NodeSearch
-                value={searchTerm}
-                onChange={setSearchTerm}
-                onClear={handleSearchClear}
-              />
-            </div>
-          )}
+          {/* Search - shows in all views with context-aware placeholder */}
+          <div className="p-4 border-b">
+            <NodeSearch
+              value={currentView === 'groups' ? searchTerm : folderSearchTerm}
+              onChange={currentView === 'groups' ? setSearchTerm : setFolderSearchTerm}
+              onClear={currentView === 'groups' ? handleSearchClear : handleFolderSearchClear}
+              placeholder={getSearchPlaceholder()}
+            />
+          </div>
 
           {/* Content with slide animation */}
           <div className="flex-1 overflow-hidden relative">
@@ -396,9 +502,9 @@ export function NodeLibrary({
                     ${currentView === 'nodes' ? 'translate-x-0' : 'translate-x-full'}
                   `}
                 >
-                  {nodesInCategory.length > 0 ? (
+                  {filteredNodesInCategory.length > 0 ? (
                     <div className="space-y-2">
-                      {nodesInCategory.map((node) => (
+                      {filteredNodesInCategory.map((node) => (
                         <NodeItem
                           key={node.name}
                           node={node}
@@ -406,6 +512,10 @@ export function NodeLibrary({
                           disabled={disabledTypes.includes(node.name as NodeType)}
                         />
                       ))}
+                    </div>
+                  ) : isFolderSearching ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      No results in this folder
                     </div>
                   ) : (
                     <div className="text-center text-muted-foreground py-8">
@@ -434,6 +544,19 @@ export function NodeLibrary({
                         Try again
                       </button>
                     </div>
+                  ) : isFolderSearching ? (
+                    // When searching in UIs folder, show matching components (not categories)
+                    filteredAllRegistryItems.length > 0 ? (
+                      <RegistryItemList
+                        items={filteredAllRegistryItems}
+                        onSelectItem={handleRegistryItemSelect}
+                        onHoverItem={handleRegistryItemHover}
+                      />
+                    ) : (
+                      <div className="text-center text-muted-foreground py-8">
+                        No results in this folder
+                      </div>
+                    )
                   ) : (
                     <div className="space-y-4">
                       {/* Built-in UI nodes (e.g., Blank Component) */}
@@ -476,11 +599,21 @@ export function NodeLibrary({
                     ${currentView === 'registryItems' ? 'translate-x-0' : 'translate-x-full'}
                   `}
                 >
-                  <RegistryItemList
-                    items={registryItemsInCategory}
-                    onSelectItem={handleRegistryItemSelect}
-                    onHoverItem={handleRegistryItemHover}
-                  />
+                  {filteredRegistryItemsInCategory.length > 0 ? (
+                    <RegistryItemList
+                      items={filteredRegistryItemsInCategory}
+                      onSelectItem={handleRegistryItemSelect}
+                      onHoverItem={handleRegistryItemHover}
+                    />
+                  ) : isFolderSearching ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      No results in this folder
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                      No items in this category
+                    </div>
+                  )}
                 </div>
 
                 {/* Search Results View */}
@@ -493,13 +626,13 @@ export function NodeLibrary({
                 >
                   {hasSearchResults ? (
                     <div className="space-y-4">
-                      {/* Standard nodes results */}
-                      {filteredNodes.length > 0 && (
-                        <div className="space-y-2">
+                      {groupedSearchResults.map((group) => (
+                        <div key={group.categoryId} className="space-y-2">
                           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Nodes ({filteredNodes.length})
+                            {group.displayName} ({group.nodes.length + group.registryItems.length})
                           </h3>
-                          {filteredNodes.map((node) => (
+                          {/* Render nodes in this category */}
+                          {group.nodes.map((node) => (
                             <NodeItem
                               key={node.name}
                               node={node}
@@ -507,21 +640,16 @@ export function NodeLibrary({
                               disabled={disabledTypes.includes(node.name as NodeType)}
                             />
                           ))}
+                          {/* Render registry items (only for interface category) */}
+                          {group.registryItems.length > 0 && (
+                            <RegistryItemList
+                              items={group.registryItems}
+                              onSelectItem={handleRegistryItemSelect}
+                              onHoverItem={handleRegistryItemHover}
+                            />
+                          )}
                         </div>
-                      )}
-                      {/* Registry items results */}
-                      {filteredRegistryItems.length > 0 && (
-                        <div className="space-y-2">
-                          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            UI Components ({filteredRegistryItems.length})
-                          </h3>
-                          <RegistryItemList
-                            items={filteredRegistryItems}
-                            onSelectItem={handleRegistryItemSelect}
-                            onHoverItem={handleRegistryItemHover}
-                          />
-                        </div>
-                      )}
+                      ))}
                     </div>
                   ) : (
                     <div className="text-center text-muted-foreground py-8">

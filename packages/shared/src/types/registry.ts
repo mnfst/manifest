@@ -3,6 +3,8 @@
  * Feature: 091-registry-items
  */
 
+import type { LayoutAction } from './app.js';
+
 // ============================================
 // External Registry Types (from API)
 // ============================================
@@ -130,6 +132,10 @@ export interface RegistryNodeParameters {
   // Appearance configuration schema (optional)
   // If provided, these options will be shown in the Appearance tab
   appearanceOptions?: RegistryAppearanceOption[];
+
+  // Component actions (extracted from source code)
+  // Creates action handles on the right side of the node
+  actions?: LayoutAction[];
 }
 
 // ============================================

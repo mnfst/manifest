@@ -12,7 +12,7 @@ import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatu
 
 /**
  * Seed service that creates default fixtures on application startup.
- * Creates a "Test App" with a "Test Flow" for PR testing if no apps exist.
+ * Creates an "Eventbrite" app with a "Search events in a city" flow if no apps exist.
  * Also creates admin user and assigns ownership.
  * Runs migration for existing flows to move tool properties to trigger nodes.
  */
@@ -238,8 +238,8 @@ export class SeedService implements OnModuleInit {
   /**
    * Seed default fixtures if no apps exist.
    * Creates:
-   * - Test App (slug: test-app) owned by admin user
-   * - Test Flow with UserIntent trigger and Interface node
+   * - Eventbrite app (slug: eventbrite) owned by admin user
+   * - "Search events in a city" flow with UserIntent trigger and StatCard node
    */
   private async seedDefaultFixtures(adminUserId: string | undefined): Promise<void> {
     // Check if any apps exist
@@ -252,33 +252,33 @@ export class SeedService implements OnModuleInit {
     this.logger.log('No apps found, seeding default fixtures...');
 
     try {
-      // Create Test App
+      // Create Eventbrite App
       const testApp = this.appRepository.create({
         id: uuidv4(),
-        name: 'Test App',
-        description: 'Default test application for PR testing',
-        slug: 'test-app',
+        name: 'Eventbrite',
+        description: 'ChatGPT app of Eventbrite',
+        slug: 'eventbrite',
         themeVariables: DEFAULT_THEME_VARIABLES,
         status: 'published',
-        logoUrl: '/icons/icon-blue.png',
+        logoUrl: '/logos/eventbrite.png',
       });
 
       const savedApp = await this.appRepository.save(testApp);
-      this.logger.log(`Created Test App with id: ${savedApp.id}`);
+      this.logger.log(`Created Eventbrite app with id: ${savedApp.id}`);
 
       // Create UserIntent trigger node with tool properties
       const triggerId = uuidv4();
       const triggerNode: NodeInstance = {
         id: triggerId,
         type: 'UserIntent',
-        name: 'Test Trigger',
-        slug: 'test-trigger',
+        name: 'Search Events Trigger',
+        slug: 'search-events-trigger',
         position: { x: 100, y: 100 },
         parameters: {
-          whenToUse: 'Use this flow to test the application',
-          whenNotToUse: 'Do not use in production',
-          toolName: 'test_flow',
-          toolDescription: 'A test flow that displays sample statistics',
+          whenToUse: 'Use this when the user wants to find events happening in a specific city',
+          whenNotToUse: 'Do not use for event booking or ticket purchases',
+          toolName: 'search_events_in_city',
+          toolDescription: 'Search for events happening in a specific city',
           parameters: [],
           isActive: true,
         },
@@ -309,17 +309,17 @@ export class SeedService implements OnModuleInit {
       const testFlow = this.flowRepository.create({
         id: uuidv4(),
         appId: savedApp.id,
-        name: 'Test Flow',
-        description: 'Default test flow for PR testing',
+        name: 'Search events in a city',
+        description: 'Find events happening in a specific city',
         isActive: true,
         nodes: [triggerNode, statCardNode],
         connections: [connection],
       });
 
       const savedFlow = await this.flowRepository.save(testFlow);
-      this.logger.log(`Created Test Flow with id: ${savedFlow.id}`);
+      this.logger.log(`Created flow "${savedFlow.name}" with id: ${savedFlow.id}`);
 
-      // Assign admin user as owner of Test App
+      // Assign admin user as owner of Eventbrite app
       if (adminUserId) {
         const ownerRole = this.userAppRoleRepository.create({
           userId: adminUserId,
@@ -327,11 +327,11 @@ export class SeedService implements OnModuleInit {
           role: 'owner',
         });
         await this.userAppRoleRepository.save(ownerRole);
-        this.logger.log(`Assigned admin as owner of Test App`);
+        this.logger.log(`Assigned admin as owner of Eventbrite app`);
       }
 
       // Seed execution data for analytics testing
-      await this.seedExecutionData(savedFlow.id, savedFlow.name, 'test_flow');
+      await this.seedExecutionData(savedFlow.id, savedFlow.name, 'search_events_in_city');
 
       this.logger.log('Default fixtures seeded successfully');
     } catch (error) {

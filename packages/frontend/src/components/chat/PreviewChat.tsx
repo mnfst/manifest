@@ -7,6 +7,7 @@ import { useApiKey } from '../../hooks/useApiKey';
 import type { ChatMessage, ModelOption, ToolCall, ToolResult, ThemeVariables } from '@chatgpt-app-builder/shared';
 import { ThemeProvider } from '../editor/ThemeProvider';
 import { Stats } from '../ui/stats';
+import { BACKEND_URL } from '../../lib/api';
 
 interface PreviewChatProps {
   flowId: string;
@@ -306,6 +307,11 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
     // Check if we have structured content with stats to render visually
     const hasVisualContent = Boolean(message.toolResult.structuredContent?.stats);
 
+    // Check if we have a custom widget template (RegistryComponent)
+    const meta = message.toolResult._meta as Record<string, unknown> | undefined;
+    const outputTemplate = meta?.['openai/outputTemplate'] as string | undefined;
+    const hasWidgetTemplate = Boolean(outputTemplate && outputTemplate.startsWith('ui://widget/'));
+
     return (
       <div className="flex justify-start">
         <div className="max-w-[85%] px-4 py-3 rounded-lg bg-muted border text-sm">
@@ -319,8 +325,15 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
             )}
           </div>
           <div className="space-y-2">
+            {/* Custom widget output via iframe */}
+            {hasWidgetTemplate && outputTemplate && (
+              <WidgetIframe
+                outputTemplate={outputTemplate}
+                structuredContent={message.toolResult.structuredContent}
+              />
+            )}
             {/* Visual output for stat cards */}
-            {hasVisualContent && themeVariables && (
+            {hasVisualContent && themeVariables && !hasWidgetTemplate && (
               <div className="rounded-lg overflow-hidden border">
                 <ThemeProvider themeVariables={themeVariables}>
                   <Stats data={message.toolResult.structuredContent} />
@@ -328,7 +341,7 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
               </div>
             )}
             {/* Text response */}
-            {message.toolResult.content && (
+            {message.toolResult.content && !hasWidgetTemplate && (
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Response:</div>
                 <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-64 overflow-y-auto">
@@ -346,7 +359,7 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
               </div>
             )}
             {/* Structured content as JSON (only if no visual rendering or no theme) */}
-            {message.toolResult.structuredContent && Object.keys(message.toolResult.structuredContent).length > 0 && (!hasVisualContent || !themeVariables) && (
+            {message.toolResult.structuredContent && Object.keys(message.toolResult.structuredContent).length > 0 && (!hasVisualContent || !themeVariables) && !hasWidgetTemplate && (
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Structured Content:</div>
                 <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-40 overflow-y-auto">
@@ -451,6 +464,133 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Widget iframe component for rendering custom widget HTML
+ * Fetches the widget HTML from the MCP server and renders it in an iframe
+ */
+function WidgetIframe({
+  outputTemplate,
+  structuredContent,
+}: {
+  outputTemplate: string;
+  structuredContent?: Record<string, unknown>;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [widgetHtml, setWidgetHtml] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Parse the outputTemplate URI to get the MCP resource path
+  // Format: ui://widget/{appSlug}/{toolName}/{nodeId}.html
+  useEffect(() => {
+    const match = outputTemplate.match(/^ui:\/\/widget\/([^/]+)\/(.+)$/);
+    if (!match) {
+      setError('Invalid widget template URI');
+      setLoading(false);
+      return;
+    }
+
+    const appSlug = match[1];
+    // resourcePath is match[2] but we use the full outputTemplate URI for the request
+
+    // Fetch the widget HTML via MCP resources/read
+    const fetchWidget = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/servers/${appSlug}/mcp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method: 'resources/read',
+            params: { uri: outputTemplate },
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.error) {
+          setError(result.error.message || 'Failed to fetch widget');
+          setLoading(false);
+          return;
+        }
+
+        const contents = result.result?.contents;
+        if (contents && contents.length > 0 && contents[0].text) {
+          setWidgetHtml(contents[0].text);
+        } else {
+          setError('Widget HTML not found');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch widget');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWidget();
+  }, [outputTemplate]);
+
+  // Send data to iframe when it loads
+  useEffect(() => {
+    if (widgetHtml && iframeRef.current && structuredContent) {
+      const sendData = () => {
+        iframeRef.current?.contentWindow?.postMessage(
+          { structuredContent },
+          '*'
+        );
+      };
+
+      // Send immediately and after a short delay (for slow-loading iframes)
+      sendData();
+      const timer = setTimeout(sendData, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [widgetHtml, structuredContent]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8 bg-background rounded-lg border">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
+        <AlertCircle className="w-4 h-4 inline mr-2" />
+        {error}
+      </div>
+    );
+  }
+
+  if (!widgetHtml) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg overflow-hidden border bg-white">
+      <iframe
+        ref={iframeRef}
+        srcDoc={widgetHtml}
+        className="w-full border-0"
+        style={{ minHeight: '200px', height: 'auto' }}
+        sandbox="allow-scripts allow-same-origin"
+        onLoad={() => {
+          // Send data to iframe after it loads
+          if (iframeRef.current && structuredContent) {
+            iframeRef.current.contentWindow?.postMessage(
+              { structuredContent },
+              '*'
+            );
+          }
+        }}
+      />
     </div>
   );
 }

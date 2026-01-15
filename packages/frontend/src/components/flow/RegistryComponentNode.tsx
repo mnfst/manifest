@@ -1,8 +1,9 @@
-import { memo } from 'react';
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { memo, useEffect, useMemo } from 'react';
+import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react';
 import { LayoutTemplate, Code2 } from 'lucide-react';
 import type { NodeInstance, RegistryNodeParameters } from '@chatgpt-app-builder/shared';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
+import { parseComponentActions } from '../../services/registry';
 
 interface RegistryComponentNodeData {
   node: NodeInstance;
@@ -15,10 +16,12 @@ interface RegistryComponentNodeData {
 /**
  * React Flow node component for registry UI components
  * Displays component metadata with edit/delete/editCode actions
+ * Renders action handles on the right side for components with actions
  */
-function RegistryComponentNodeComponent({ data, selected }: NodeProps) {
+function RegistryComponentNodeComponent({ data, selected, id }: NodeProps) {
   const nodeData = data as unknown as RegistryComponentNodeData;
   const { node, canDelete, onEdit, onDelete, onEditCode } = nodeData;
+  const updateNodeInternals = useUpdateNodeInternals();
 
   // Get parameters from the node
   const params = node?.parameters as unknown as RegistryNodeParameters | undefined;
@@ -29,6 +32,19 @@ function RegistryComponentNodeComponent({ data, selected }: NodeProps) {
 
   // Check if there's custom code (files with content)
   const hasCustomCode = params?.files && params.files.length > 0 && params.files[0]?.content;
+
+  // Get actions - from stored params or fallback to parsing from source code
+  const actions = useMemo(() => {
+    if (params?.actions) return params.actions;
+    // Fallback: parse from source code if not stored (for existing nodes)
+    const sourceCode = params?.files?.[0]?.content || '';
+    return parseComponentActions(sourceCode);
+  }, [params?.actions, params?.files]);
+
+  // Update node internals when actions change (handles may have changed)
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, actions, updateNodeInternals]);
 
   return (
     <div
@@ -103,13 +119,41 @@ function RegistryComponentNodeComponent({ data, selected }: NodeProps) {
         </div>
       </div>
 
-      {/* Output handle for potential connections */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="main"
-        className="!bg-gray-400 !w-3 !h-3 !border-2 !border-white"
-      />
+      {/* Action handles on the right side (purple themed) */}
+      {actions.map((action, index) => (
+        <div key={action.name}>
+          {/* Action source handle */}
+          <Handle
+            type="source"
+            position={Position.Right}
+            id={`action:${action.name}`}
+            className="!bg-purple-500 !w-2.5 !h-2.5 !border-2 !border-purple-300"
+            style={{ top: `${60 + index * 24}%` }}
+          />
+          {/* Action label outside the node */}
+          <span
+            className="absolute text-[10px] text-purple-600 font-medium bg-white/90 px-1 rounded whitespace-nowrap"
+            style={{
+              right: '-70px',
+              top: `${60 + index * 24}%`,
+              transform: 'translateY(-50%)',
+            }}
+            title={action.description}
+          >
+            {action.label}
+          </span>
+        </div>
+      ))}
+
+      {/* Output handle - only show if no actions (read-only component) */}
+      {actions.length === 0 && (
+        <Handle
+          type="source"
+          position={Position.Right}
+          id="main"
+          className="!bg-gray-400 !w-3 !h-3 !border-2 !border-white"
+        />
+      )}
     </div>
   );
 }
