@@ -288,21 +288,21 @@ export class SchemaService {
           status: result.status,
           issues: result.issues,
         });
-      }
 
-      switch (linkConstraintError ? 'error' : result.status) {
-        case 'compatible':
-          compatibleCount++;
-          break;
-        case 'warning':
-          warningsCount++;
-          break;
-        case 'error':
-          errorsCount++;
-          break;
-        case 'unknown':
-          unknownCount++;
-          break;
+        switch (result.status) {
+          case 'compatible':
+            compatibleCount++;
+            break;
+          case 'warning':
+            warningsCount++;
+            break;
+          case 'error':
+            errorsCount++;
+            break;
+          case 'unknown':
+            unknownCount++;
+            break;
+        }
       }
     }
 
