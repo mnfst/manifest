@@ -234,6 +234,20 @@ export function checkSchemaCompatibility(
     }
   }
 
+  // Check for zero field overlap (warning when source has none of target's expected fields)
+  const sourceProps = Object.keys(sourceProperties);
+  const targetProps = Object.keys(targetProperties);
+  const overlap = targetProps.filter(p => sourceProps.includes(p));
+
+  if (targetProps.length > 0 && overlap.length === 0) {
+    issues.push({
+      type: 'no_field_overlap',
+      severity: 'warning',
+      path: '',
+      message: `Source provides none of the fields expected by target (expected: ${targetProps.join(', ')})`,
+    });
+  }
+
   // Determine overall status
   let status: CompatibilityStatus = 'compatible';
   const hasErrors = issues.some((i) => i.severity === 'error');

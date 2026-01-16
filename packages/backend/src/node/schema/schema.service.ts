@@ -23,6 +23,7 @@ import {
   type NodeInstance,
   type UserIntentNodeParameters,
   type ApiCallNodeParameters,
+  type RegistryNodeParameters,
   type FlowParameter,
   type SuggestedTransformer,
   type CompatibilityStatus,
@@ -426,6 +427,21 @@ export class SchemaService {
    * Uses dynamic schema functions when available, falling back to static schemas.
    */
   private resolveNodeSchema(node: NodeInstance): NodeSchemaInfo {
+    // Special handling for RegistryComponent nodes - use stored inputSchema from demo data
+    // Handle this BEFORE the nodeDef check since RegistryComponent is not in the built-in node map
+    if (node.type === 'RegistryComponent') {
+      const params = node.parameters as RegistryNodeParameters;
+      return {
+        nodeId: node.id,
+        nodeType: node.type,
+        inputState: params.inputSchema ? 'defined' : 'unknown',
+        inputSchema: params.inputSchema ?? null,
+        // RegistryComponent outputs are typically the same as inputs (pass-through with UI rendering)
+        outputState: 'defined',
+        outputSchema: { type: 'object', additionalProperties: true },
+      };
+    }
+
     const nodeDef = this.nodeTypeMap.get(node.type);
 
     if (!nodeDef) {

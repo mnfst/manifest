@@ -30,8 +30,18 @@ function RegistryComponentNodeComponent({ data, selected, id }: NodeProps) {
   const version = params?.version;
   const previewUrl = params?.previewUrl;
 
-  // Check if there's custom code (files with content)
-  const hasCustomCode = params?.files && params.files.length > 0 && params.files[0]?.content;
+  // Check if user has customized the code (compare files with originalFiles)
+  const hasCustomCode = useMemo(() => {
+    if (!params?.files || !params?.originalFiles) return false;
+    if (params.files.length !== params.originalFiles.length) return true;
+
+    // Compare main component file content
+    const currentMain = params.files.find(f => f.path.endsWith('.tsx') && !f.path.includes('/demo/'));
+    const originalMain = params.originalFiles.find(f => f.path.endsWith('.tsx') && !f.path.includes('/demo/'));
+
+    if (!currentMain || !originalMain) return false;
+    return currentMain.content !== originalMain.content;
+  }, [params?.files, params?.originalFiles]);
 
   // Get actions - from stored params or fallback to parsing from source code
   const actions = useMemo(() => {
@@ -100,10 +110,11 @@ function RegistryComponentNodeComponent({ data, selected, id }: NodeProps) {
               )}
               {hasCustomCode && (
                 <span
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700"
-                  title="Has component code"
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px]"
+                  title="Code has been customized"
                 >
                   <Code2 className="w-2.5 h-2.5" />
+                  <span>custom</span>
                 </span>
               )}
             </div>

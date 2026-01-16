@@ -12,6 +12,7 @@ import type {
   RegistryNodeParameters,
   RegistryAppearanceOption,
   LayoutAction,
+  JSONSchema,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -200,29 +201,85 @@ export async function fetchComponentDetail(name: string): Promise<ComponentDetai
   return detail;
 }
 
+// ===========================================
+// Props Interface Parsing (Unified)
+// ===========================================
+
 /**
- * Parse appearance options from component source code.
- * Looks for appearance?: { ... } in the Props interface and extracts the options.
- * Exported so it can be used to parse options from existing nodes.
+ * Result of parsing a component's Props interface.
+ * Contains all extracted prop information in one place.
  */
-export function parseAppearanceOptions(sourceCode: string): RegistryAppearanceOption[] {
+interface ParsedProps {
+  inputSchema?: JSONSchema;
+  appearanceOptions: RegistryAppearanceOption[];
+  actions: LayoutAction[];
+}
+
+/**
+ * Parse the component's Props interface to extract data, appearance, and actions.
+ * This is the single source of truth for all prop-related information.
+ */
+function parsePropsInterface(sourceCode: string): ParsedProps {
+  const result: ParsedProps = {
+    appearanceOptions: [],
+    actions: [],
+  };
+
+  // Find the Props interface (e.g., "interface EventListProps {")
+  const propsMatch = sourceCode.match(/interface\s+\w+Props\s*\{/);
+  if (!propsMatch) return result;
+
+  // Extract the full Props interface body
+  const startIndex = propsMatch.index! + propsMatch[0].length;
+  const propsBody = extractBracketContent(sourceCode, startIndex - 1, '{', '}');
+  if (!propsBody) return result;
+
+  // Extract data prop -> inputSchema
+  result.inputSchema = extractDataSchema(propsBody);
+
+  // Extract appearance prop -> appearanceOptions
+  result.appearanceOptions = extractAppearanceOptions(propsBody);
+
+  // Extract actions prop -> actions
+  result.actions = extractActions(propsBody, sourceCode);
+
+  return result;
+}
+
+/**
+ * Extract the data prop type and convert to JSON Schema.
+ */
+function extractDataSchema(propsBody: string): JSONSchema | undefined {
+  // Find the data property: data?: { ... }
+  const dataMatch = propsBody.match(/data\??\s*:\s*\{/);
+  if (!dataMatch) return undefined;
+
+  const dataStartIndex = dataMatch.index! + dataMatch[0].length;
+  const dataBody = extractBracketContent(propsBody, dataStartIndex - 1, '{', '}');
+  if (!dataBody) return undefined;
+
+  return parseTypeScriptObjectToSchema(dataBody);
+}
+
+/**
+ * Extract appearance options from the Props interface.
+ */
+function extractAppearanceOptions(propsBody: string): RegistryAppearanceOption[] {
   const options: RegistryAppearanceOption[] = [];
 
-  // Match appearance?: { ... } block in the source code
-  // This regex captures the content inside the appearance object
-  const appearanceMatch = sourceCode.match(/appearance\?\s*:\s*\{([^}]+)\}/s);
-  if (!appearanceMatch) {
-    return options;
-  }
+  // Find the appearance property: appearance?: { ... }
+  const appearanceMatch = propsBody.match(/appearance\??\s*:\s*\{/);
+  if (!appearanceMatch) return options;
 
-  const appearanceBlock = appearanceMatch[1];
+  const startIndex = appearanceMatch.index! + appearanceMatch[0].length;
+  const appearanceBody = extractBracketContent(propsBody, startIndex - 1, '{', '}');
+  if (!appearanceBody) return options;
 
-  // Match each property: propertyName?: type pattern
-  // Supports: boolean, string, number, and string literal unions
-  const propertyRegex = /(\w+)\?\s*:\s*(boolean|string|number|'[^']+(?:'\s*\|\s*'[^']+')*)/g;
+  // Match each property: propertyName?: type
+  const propertyRegex = /(\w+)\??\s*:\s*(boolean|string|number|'[^']+(?:'\s*\|\s*'[^']+')*|\d+(?:\s*\|\s*\d+)*)/g;
   let match;
 
-  while ((match = propertyRegex.exec(appearanceBlock)) !== null) {
+  while ((match = propertyRegex.exec(appearanceBody)) !== null) {
     const key = match[1];
     const typeStr = match[2];
 
@@ -269,6 +326,17 @@ export function parseAppearanceOptions(sourceCode: string): RegistryAppearanceOp
           description: `Select ${label.toLowerCase()}`,
         });
       }
+    } else if (/^\d+(?:\s*\|\s*\d+)*$/.test(typeStr)) {
+      // Number literal union: 2 | 3 | 4
+      const enumValues = typeStr.split('|').map(v => parseInt(v.trim(), 10));
+      options.push({
+        key,
+        label,
+        type: 'enum',
+        enumValues,
+        defaultValue: enumValues[0],
+        description: `Select ${label.toLowerCase()}`,
+      });
     }
   }
 
@@ -276,37 +344,36 @@ export function parseAppearanceOptions(sourceCode: string): RegistryAppearanceOp
 }
 
 /**
- * Parse component actions from source code.
- * Looks for actions?: { onXxx?: ... } in Props interface and JSDoc @property tags.
- * Exported so it can be used to parse actions from existing nodes.
+ * Extract actions from the Props interface.
  */
-export function parseComponentActions(sourceCode: string): LayoutAction[] {
+function extractActions(propsBody: string, fullSourceCode: string): LayoutAction[] {
   const actions: LayoutAction[] = [];
 
-  // Pattern 1: Match actions?: { onXxx?: (data) => void } block in Props interface
-  const actionsMatch = sourceCode.match(/actions\?\s*:\s*\{([^}]+)\}/s);
+  // Find the actions property: actions?: { ... }
+  const actionsMatch = propsBody.match(/actions\??\s*:\s*\{/);
   if (actionsMatch) {
-    const actionsBlock = actionsMatch[1];
-    // Match: onActionName?: (params) => void
-    const actionRegex = /(on[A-Z]\w+)\?\s*:\s*\([^)]*\)\s*=>\s*void/g;
-    let match;
-    while ((match = actionRegex.exec(actionsBlock)) !== null) {
-      const name = match[1];
-      // Convert onSelectTags -> "Select Tags"
-      const label = name.replace(/^on/, '').replace(/([A-Z])/g, ' $1').trim();
-      actions.push({ name, label, description: `Triggered by ${label}` });
+    const startIndex = actionsMatch.index! + actionsMatch[0].length;
+    const actionsBody = extractBracketContent(propsBody, startIndex - 1, '{', '}');
+
+    if (actionsBody) {
+      // Match: onActionName?: (params) => void
+      const actionRegex = /(on[A-Z]\w+)\??\s*:\s*\([^)]*\)\s*=>\s*void/g;
+      let match;
+      while ((match = actionRegex.exec(actionsBody)) !== null) {
+        const name = match[1];
+        const label = name.replace(/^on/, '').replace(/([A-Z])/g, ' $1').trim();
+        actions.push({ name, label, description: `Triggered by ${label}` });
+      }
     }
   }
 
-  // Pattern 2: Match JSDoc @property {function} [actions.onXxx] - description
+  // Also check JSDoc @property tags for better descriptions
   const jsdocRegex = /@property\s*\{function\}\s*\[actions\.(on[A-Z]\w+)\]\s*-\s*([^\n]+)/g;
   let jsdocMatch;
-  while ((jsdocMatch = jsdocRegex.exec(sourceCode)) !== null) {
+  while ((jsdocMatch = jsdocRegex.exec(fullSourceCode)) !== null) {
     const name = jsdocMatch[1];
     const description = jsdocMatch[2].trim();
-    // Convert onSelectTags -> "Select Tags"
     const label = name.replace(/^on/, '').replace(/([A-Z])/g, ' $1').trim();
-    // Avoid duplicates - prefer JSDoc version for better description
     const existingIndex = actions.findIndex((a) => a.name === name);
     if (existingIndex >= 0) {
       actions[existingIndex] = { name, label, description };
@@ -318,14 +385,159 @@ export function parseComponentActions(sourceCode: string): LayoutAction[] {
   return actions;
 }
 
+// Legacy exports for backward compatibility (used by existing nodes)
+export function parseAppearanceOptions(sourceCode: string): RegistryAppearanceOption[] {
+  return parsePropsInterface(sourceCode).appearanceOptions;
+}
+
+export function parseComponentActions(sourceCode: string): LayoutAction[] {
+  return parsePropsInterface(sourceCode).actions;
+}
+
+/**
+ * Extract content within balanced brackets starting from a given position.
+ */
+function extractBracketContent(
+  content: string,
+  startIndex: number,
+  openBracket: string,
+  closeBracket: string
+): string | null {
+  let i = startIndex;
+  while (i < content.length && content[i] !== openBracket) i++;
+  if (i >= content.length) return null;
+
+  let depth = 1;
+  let j = i + 1;
+  let inString = false;
+  let stringChar = '';
+
+  while (j < content.length && depth > 0) {
+    const char = content[j];
+    const prevChar = content[j - 1];
+
+    if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\') {
+      if (!inString) {
+        inString = true;
+        stringChar = char;
+      } else if (char === stringChar) {
+        inString = false;
+      }
+    }
+
+    if (!inString) {
+      if (char === openBracket) depth++;
+      else if (char === closeBracket) depth--;
+    }
+
+    j++;
+  }
+
+  if (depth !== 0) return null;
+  return content.slice(i + 1, j - 1);
+}
+
+/**
+ * Parse a TypeScript object type definition into JSON Schema.
+ * Handles: string, number, boolean, arrays, nested objects, optional properties.
+ */
+function parseTypeScriptObjectToSchema(typeBody: string): JSONSchema {
+  const schema: JSONSchema = {
+    type: 'object',
+    properties: {},
+  };
+  const required: string[] = [];
+
+  // Match property definitions: propName?: Type or propName: Type
+  // Handle multi-line and nested types
+  const lines = typeBody.split('\n');
+  let currentProp = '';
+  let depth = 0;
+
+  for (const line of lines) {
+    currentProp += line + '\n';
+
+    // Count brackets to handle nested types
+    for (const char of line) {
+      if (char === '{' || char === '[' || char === '<') depth++;
+      if (char === '}' || char === ']' || char === '>') depth--;
+    }
+
+    // If we're at depth 0 and have accumulated content, try to parse it
+    if (depth === 0 && currentProp.trim()) {
+      const propMatch = currentProp.match(/^\s*(\w+)(\?)?:\s*(.+)/s);
+      if (propMatch) {
+        const [, propName, optional, typeStr] = propMatch;
+        const cleanType = typeStr.trim().replace(/;?\s*$/, '');
+
+        if (propName && cleanType) {
+          schema.properties![propName] = parseTypeToSchema(cleanType);
+          if (!optional) {
+            required.push(propName);
+          }
+        }
+      }
+      currentProp = '';
+    }
+  }
+
+  if (required.length > 0) {
+    schema.required = required;
+  }
+
+  return schema;
+}
+
+/**
+ * Convert a TypeScript type string to JSON Schema.
+ */
+function parseTypeToSchema(typeStr: string): JSONSchema {
+  const cleanType = typeStr.trim();
+
+  // Array type: Type[] or Array<Type>
+  if (cleanType.endsWith('[]')) {
+    const itemType = cleanType.slice(0, -2).trim();
+    return {
+      type: 'array',
+      items: parseTypeToSchema(itemType),
+    };
+  }
+
+  if (cleanType.startsWith('Array<') && cleanType.endsWith('>')) {
+    const itemType = cleanType.slice(6, -1).trim();
+    return {
+      type: 'array',
+      items: parseTypeToSchema(itemType),
+    };
+  }
+
+  // Primitive types
+  if (cleanType === 'string') return { type: 'string' };
+  if (cleanType === 'number') return { type: 'number' };
+  if (cleanType === 'boolean') return { type: 'boolean' };
+
+  // Inline object type: { ... }
+  if (cleanType.startsWith('{') && cleanType.endsWith('}')) {
+    const innerBody = cleanType.slice(1, -1).trim();
+    return parseTypeScriptObjectToSchema(innerBody);
+  }
+
+  // Type reference (e.g., Event, User) - treat as object since we don't have type definitions
+  return { type: 'object' };
+}
+
 /**
  * Transform ComponentDetail to RegistryNodeParameters for storage in node data
  */
 export function transformToNodeParameters(detail: ComponentDetail): RegistryNodeParameters {
-  // Extract appearance options and actions from the first file's source code
-  const sourceCode = detail.files?.[0]?.content || '';
-  const appearanceOptions = parseAppearanceOptions(sourceCode);
-  const actions = parseComponentActions(sourceCode);
+  // Find the main component file (first .tsx file, excluding demo files)
+  const componentFile = detail.files?.find(f => f.path.endsWith('.tsx') && !f.path.includes('/demo/'));
+  const sourceCode = componentFile?.content || '';
+
+  // Parse all props from the Props interface in one place
+  const { inputSchema, appearanceOptions, actions } = parsePropsInterface(sourceCode);
+
+  const files = detail.files || [];
 
   return {
     registryName: detail.name,
@@ -336,8 +548,11 @@ export function transformToNodeParameters(detail: ComponentDetail): RegistryNode
     previewUrl: detail.meta?.preview,
     dependencies: detail.dependencies || [],
     registryDependencies: detail.registryDependencies || [],
-    files: detail.files || [],
+    files,
+    // Store original files for detecting customizations
+    originalFiles: files.map(f => ({ ...f })),
     appearanceOptions: appearanceOptions.length > 0 ? appearanceOptions : undefined,
     actions: actions.length > 0 ? actions : undefined,
+    inputSchema,
   };
 }
