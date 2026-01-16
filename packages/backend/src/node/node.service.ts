@@ -606,14 +606,14 @@ export class NodeService {
       // Execute the transform with the sample input
       const rawOutput = transformFunction(sampleInput);
 
-      const durationMs = Math.round(performance.now() - startTime);
+      const executionTimeMs = Math.round(performance.now() - startTime);
 
       // Spread transformed data at root with _execution metadata (matches actual execution)
       const output = {
         ...(typeof rawOutput === 'object' && rawOutput !== null ? rawOutput : { _value: rawOutput }),
         _execution: {
           success: true,
-          durationMs,
+          durationMs: executionTimeMs,
         },
       };
 
