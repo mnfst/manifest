@@ -31,6 +31,26 @@ import { fetchComponentDetail, transformToNodeParameters, parseAppearanceOptions
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 
 /**
+ * Generate a unique name for a node based on existing nodes.
+ * If "Event List" exists, returns "Event List 2", then "Event List 3", etc.
+ */
+function generateUniqueName(baseName: string, existingNodes: NodeInstance[]): string {
+  const existingNames = new Set(existingNodes.map(n => n.name));
+
+  // If base name is available, use it
+  if (!existingNames.has(baseName)) {
+    return baseName;
+  }
+
+  // Find the next available number
+  let counter = 2;
+  while (existingNames.has(`${baseName} ${counter}`)) {
+    counter++;
+  }
+  return `${baseName} ${counter}`;
+}
+
+/**
  * Flow detail/editor page - Shows flow info and React Flow canvas
  * Updated to use new unified node architecture
  */
@@ -528,36 +548,73 @@ function FlowDetail() {
     }
   }, []);
 
-  // Handler for registry component selection (click) - opens modal for naming the node
-  const handleSelectRegistryComponent = useCallback((params: RegistryNodeParameters) => {
-    // Store registry params and open the modal
-    setRegistryParamsToCreate(params);
-    setNodeToEdit(null);
-    setNodeTypeToCreate('RegistryComponent');
-    setNodeEditError(null);
-    setShowNodeEditModal(true);
-  }, []);
+  // Handler for registry component selection (click) - creates node directly without modal
+  const handleSelectRegistryComponent = useCallback(async (params: RegistryNodeParameters) => {
+    if (!flowId || !flow) return;
 
-  // Handler for registry item drop on canvas - fetches detail then opens modal
+    const nodes = flow.nodes ?? [];
+    const baseName = params.title || 'UI Component';
+    const uniqueName = generateUniqueName(baseName, nodes);
+
+    // Calculate position - if pending connection, place next to source; otherwise at end
+    const position = pendingConnection
+      ? { x: pendingConnection.sourcePosition.x + 280, y: pendingConnection.sourcePosition.y }
+      : { x: nodes.length * 280 + 330, y: 100 };
+
+    try {
+      const newNode = await api.createNode(flowId, {
+        type: 'RegistryComponent',
+        name: uniqueName,
+        position,
+        parameters: params as unknown as Record<string, unknown>,
+      });
+
+      // If there's a pending connection, create it
+      if (pendingConnection) {
+        await api.createConnection(flowId, {
+          sourceNodeId: pendingConnection.sourceNodeId,
+          sourceHandle: pendingConnection.sourceHandle,
+          targetNodeId: newNode.id,
+          targetHandle: 'input',
+        });
+        setPendingConnection(null);
+      }
+
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
+    } catch (err) {
+      console.error('Failed to create registry component:', err);
+      setError(`Failed to create ${baseName}. Please try again.`);
+    }
+  }, [flowId, flow, pendingConnection]);
+
+  // Handler for registry item drop on canvas - creates node directly without modal
   const handleDropRegistryItem = useCallback(async (registryItemName: string, position: { x: number; y: number }) => {
+    if (!flowId || !flow) return;
+
     try {
       // Fetch component detail
       const detail = await fetchComponentDetail(registryItemName);
       const params = transformToNodeParameters(detail);
 
-      // Store params, position and open modal
-      setRegistryParamsToCreate(params);
-      setDropPosition(position);
-      setPendingConnection(null);
-      setNodeToEdit(null);
-      setNodeTypeToCreate('RegistryComponent');
-      setNodeEditError(null);
-      setShowNodeEditModal(true);
+      const nodes = flow.nodes ?? [];
+      const baseName = params.title || 'UI Component';
+      const uniqueName = generateUniqueName(baseName, nodes);
+
+      await api.createNode(flowId, {
+        type: 'RegistryComponent',
+        name: uniqueName,
+        position,
+        parameters: params as unknown as Record<string, unknown>,
+      });
+
+      const updatedFlow = await api.getFlow(flowId);
+      setFlow(updatedFlow);
     } catch (err) {
       console.error('Failed to fetch registry component:', err);
       setError(`Failed to load component "${registryItemName}". Please try again.`);
     }
-  }, []);
+  }, [flowId, flow]);
 
   const handleCloseCodeEditor = useCallback(() => {
     setEditingCodeNodeId(null);
