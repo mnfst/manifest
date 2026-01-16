@@ -12,7 +12,7 @@ import type {
   StatCardNodeParameters,
   RegistryNodeParameters,
 } from '@chatgpt-app-builder/shared';
-import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2 } from 'lucide-react';
+import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2, Share2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
@@ -29,6 +29,7 @@ import { PreviewChat } from '../components/chat/PreviewChat';
 import { InterfaceEditor } from '../components/editor/InterfaceEditor';
 import { fetchComponentDetail, transformToNodeParameters, parseAppearanceOptions } from '../services/registry';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
+import { ShareModal } from '../components/app/ShareModal';
 
 /**
  * Generate a unique name for a node based on existing nodes.
@@ -74,6 +75,9 @@ function FlowDetail() {
   const [deletionCheck, setDeletionCheck] = useState<FlowDeletionCheck | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCheckingDeletion, setIsCheckingDeletion] = useState(false);
+
+  // Share modal state
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Node library state (replaces AddStepModal and floating button)
   const [isNodeLibraryOpen, setIsNodeLibraryOpen] = useState(true);
@@ -782,6 +786,15 @@ function FlowDetail() {
                 })()}
                 <FlowActiveToggle flowId={flow.id} isActive={flow.isActive} onToggle={handleToggleActive} />
                 <div className="flex items-center gap-2 border-l pl-4">
+                  {app?.status === 'published' && (
+                    <button
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                      title="Share app"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => setIsEditing(true)}
                     className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
@@ -990,6 +1003,15 @@ function FlowDetail() {
         message={`Are you sure you want to delete "${nodeToDelete?.name}"? This will also remove any connections to this node.`}
         isLoading={isDeletingNode}
       />
+
+      {/* Share App Modal */}
+      {app && (
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          appSlug={app.slug}
+        />
+      )}
 
       {/* Node Edit Modal */}
       <NodeEditModal
