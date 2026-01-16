@@ -231,16 +231,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     component: <Stats data={{ stats: [{ label: 'Revenue', value: '$12,345', change: 12.5 }, { label: 'Orders', value: '1,234', change: -3.2 }, { label: 'Customers', value: '567', change: 8.1 }] }} />,
     category: 'miscellaneous'
   },
-  'skeleton': {
-    component: (
-      <div className="space-y-3">
-        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
-        <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
-        <div className="h-20 bg-muted rounded animate-pulse" />
-      </div>
-    ),
-    category: 'miscellaneous'
-  },
 
   // Social components
   'x-post': {

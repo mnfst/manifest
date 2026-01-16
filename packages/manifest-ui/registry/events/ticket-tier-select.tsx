@@ -104,36 +104,35 @@ const defaultEvent: TicketTierEvent = {
 }
 
 /**
- * Props for the TicketTierSelect component.
- * @interface TicketTierSelectProps
- * @property {object} [data] - Event and tier data
- * @property {TicketTierEvent} [data.event] - Event information
- * @property {TicketTier[]} [data.tiers] - Available ticket tiers
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onCheckout] - Called when checkout is clicked
- * @property {function} [actions.onSelectionChange] - Called when selection changes
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.showOrderSummary] - Whether to show order summary
- * @property {object} [control] - State control options
- * @property {Record<string, number>} [control.selections] - Initial selections
+ * ═══════════════════════════════════════════════════════════════════════════
+ * TicketTierSelectProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the TicketTierSelect component. Allows selection of multiple
+ * ticket tiers with quantity pickers and displays an order summary.
  */
 export interface TicketTierSelectProps {
-  /** Content and data to display */
   data?: {
+    /** Event information including title, date, and currency. */
     event?: TicketTierEvent
+    /** Available ticket tiers with pricing and availability. */
     tiers?: TicketTier[]
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when checkout button is clicked with selections and total. */
     onCheckout?: (selections: TicketSelection[], total: number) => void
+    /** Called when ticket selection changes. */
     onSelectionChange?: (selections: TicketSelection[]) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Whether to show the order summary sidebar.
+     * @default true
+     */
     showOrderSummary?: boolean
   }
-  /** State management */
   control?: {
+    /** Initial ticket selections as a map of tier ID to quantity. */
     selections?: Record<string, number>
   }
 }

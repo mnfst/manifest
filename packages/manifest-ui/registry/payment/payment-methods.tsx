@@ -23,40 +23,45 @@ export interface PaymentMethod {
 }
 
 /**
- * Props for the PaymentMethods component.
- * @interface PaymentMethodsProps
- * @property {object} [data] - Payment methods and amount data
- * @property {PaymentMethod[]} [data.methods] - Available payment methods
- * @property {number} [data.amount] - Amount to charge
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectMethod] - Called when a method is selected
- * @property {function} [actions.onAddCard] - Called when user wants to add a card
- * @property {function} [actions.onPay] - Called when user initiates payment
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {object} [control] - State control options
- * @property {string} [control.selectedMethodId] - Currently selected method ID
- * @property {boolean} [control.isLoading] - Shows loading state on pay button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PaymentMethodsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a payment method selector supporting cards (Visa, Mastercard, CB, Amex)
+ * and digital wallets. Displays methods as pill-shaped buttons with brand logos.
  */
 export interface PaymentMethodsProps {
-  /** Content and data to display */
   data?: {
+    /** Array of available payment methods (cards and digital wallets). */
     methods?: PaymentMethod[]
+    /**
+     * Amount to charge, displayed in the pay button.
+     * @default 279.0
+     */
     amount?: number
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when a payment method is selected. */
     onSelectMethod?: (methodId: string) => void
+    /** Called when the user clicks the add card button. */
     onAddCard?: () => void
+    /** Called when the user initiates payment with the selected method. */
     onPay?: (methodId: string) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Currency code for formatting the amount.
+     * @default "EUR"
+     */
     currency?: string
   }
-  /** State management */
   control?: {
+    /** ID of the currently selected payment method. */
     selectedMethodId?: string
+    /**
+     * Shows loading state on the pay button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }

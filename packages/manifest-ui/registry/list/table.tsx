@@ -93,72 +93,92 @@ export interface TableColumn<T = Record<string, unknown>> {
 }
 
 /**
- * Props for the Table component.
- * @interface TableProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ * TableProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a data table component with sorting, selection,
+ * pagination, and filtering capabilities.
+ *
  * @template T - The row data type
- * @property {object} [data] - Table data configuration
- * @property {TableColumn<T>[]} [data.columns] - Column definitions
- * @property {T[]} [data.rows] - Row data array
- * @property {string} [data.title] - Table title displayed in header
- * @property {string} [data.titleImage] - Icon/image URL for the title
- * @property {Date | string} [data.lastUpdated] - Last data update timestamp
- * @property {number} [data.totalRows] - Total rows for "more" indicator
- * @property {object} [actions] - Callback functions for table actions
- * @property {function} [actions.onSelectionChange] - Called when row selection changes
- * @property {function} [actions.onCopy] - Called when copy action is triggered
- * @property {function} [actions.onDownload] - Called when download action is triggered
- * @property {function} [actions.onShare] - Called when share action is triggered
- * @property {function} [actions.onRefresh] - Called when refresh is triggered
- * @property {function} [actions.onExpand] - Called when expand to fullscreen is triggered
- * @property {object} [appearance] - Visual customization options
- * @property {"none" | "single" | "multi"} [appearance.selectable] - Row selection mode
- * @property {string} [appearance.emptyMessage] - Message when table has no data
- * @property {boolean} [appearance.stickyHeader] - Whether to stick header on scroll
- * @property {boolean} [appearance.compact] - Use compact row height
- * @property {boolean} [appearance.showActions] - Show action buttons
- * @property {boolean} [appearance.showHeader] - Show table header
- * @property {boolean} [appearance.showFooter] - Show table footer
- * @property {number} [appearance.maxRows] - Maximum rows in inline mode
- * @property {DisplayMode} [appearance.displayMode] - Display mode (inline or fullscreen)
- * @property {object} [control] - State control options
- * @property {boolean} [control.loading] - Show loading skeleton
- * @property {T[]} [control.selectedRows] - Controlled selected rows
  */
 export interface TableProps<T = Record<string, unknown>> {
-  /** Content and data to display */
   data?: {
+    /** Column definitions specifying headers, accessors, and rendering. */
     columns?: TableColumn<T>[]
+    /** Array of row data objects to display. */
     rows?: T[]
+    /** Table title displayed in the header. */
     title?: string
+    /** Icon or image URL displayed next to the title. */
     titleImage?: string
+    /** Timestamp showing when the data was last updated. */
     lastUpdated?: Date | string
+    /** Total row count for displaying "+N more" indicator. */
     totalRows?: number
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when row selection changes with the selected rows. */
     onSelectionChange?: (selectedRows: T[]) => void
+    /** Called when the copy action is triggered with selected rows. */
     onCopy?: (selectedRows: T[]) => void
+    /** Called when the download action is triggered with selected rows. */
     onDownload?: (selectedRows: T[]) => void
+    /** Called when the share action is triggered with selected rows. */
     onShare?: (selectedRows: T[]) => void
+    /** Called when the refresh button is clicked. */
     onRefresh?: () => void
+    /** Called when the expand to fullscreen button is clicked. */
     onExpand?: () => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Row selection mode.
+     * @default "none"
+     */
     selectable?: 'none' | 'single' | 'multi'
+    /**
+     * Message displayed when the table has no data.
+     * @default "No data available"
+     */
     emptyMessage?: string
+    /**
+     * Whether to keep the header fixed when scrolling.
+     * @default false
+     */
     stickyHeader?: boolean
+    /**
+     * Whether to use compact row height.
+     * @default false
+     */
     compact?: boolean
+    /** Whether to show action buttons in the header. */
     showActions?: boolean
+    /**
+     * Whether to show the table header.
+     * @default true
+     */
     showHeader?: boolean
+    /**
+     * Whether to show the table footer.
+     * @default true
+     */
     showFooter?: boolean
+    /**
+     * Maximum number of rows to display in inline mode.
+     * @default 5
+     */
     maxRows?: number
-    /** Display mode: 'inline' (default) or 'fullscreen'. In fullscreen, shows pagination and filters. */
+    /**
+     * Display mode: 'inline' (compact card) or 'fullscreen' (paginated with filters).
+     * @default "inline"
+     */
     displayMode?: DisplayMode
   }
-  /** State management */
   control?: {
+    /** Whether to show loading skeleton state. */
     loading?: boolean
+    /** Controlled array of selected rows. */
     selectedRows?: T[]
   }
 }

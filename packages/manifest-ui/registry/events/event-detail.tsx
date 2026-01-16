@@ -232,23 +232,43 @@ function VenueMapMarker({
   )
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventDetailProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventDetail component. Displays comprehensive event information
+ * including image carousel, location map, organizer details, and ticket actions.
+ */
 export interface EventDetailProps {
-  /** Content and data to display */
   data?: {
+    /** The full event details object to display. */
     event?: EventDetails
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when "Get tickets" button is clicked. */
     onGetTickets?: (event: EventDetails) => void
+    /** Called when share button is clicked. */
     onShare?: (event: EventDetails) => void
+    /** Called when save/heart button is clicked. */
     onSave?: (event: EventDetails) => void
+    /** Called when back navigation button is clicked. */
     onBack?: () => void
+    /** Called when "Follow" organizer button is clicked. */
     onFollow?: (organizer: EventDetails['organizer']) => void
+    /** Called when "Contact" organizer button is clicked. */
     onContact?: (organizer: EventDetails['organizer']) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Whether to show the AI match explanation section.
+     * @default true
+     */
     showAiMatch?: boolean
+    /**
+     * Whether to show the interactive map.
+     * @default true
+     */
     showMap?: boolean
   }
 }

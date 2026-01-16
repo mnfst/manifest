@@ -4,34 +4,35 @@ import { Button } from '@/components/ui/button'
 import { Check, ExternalLink } from 'lucide-react'
 
 /**
- * Props for the PaymentSuccess component.
- * @interface PaymentSuccessProps
- * @property {object} [data] - Order and product data
- * @property {string} [data.orderId] - Order reference number
- * @property {string} [data.productName] - Name of the purchased product
- * @property {string} [data.productImage] - Product image URL
- * @property {number} [data.price] - Total price paid
- * @property {string} [data.deliveryDate] - Expected delivery date string
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onTrackOrder] - Called when user clicks track order
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PaymentSuccessProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a payment success confirmation component showing order details
+ * and tracking option. Displays responsive layouts for mobile and desktop.
  */
 export interface PaymentSuccessProps {
-  /** Content and data to display */
   data?: {
+    /** Order reference number displayed below the product name. */
     orderId?: string
+    /** Name of the purchased product. */
     productName?: string
+    /** URL to the product image. */
     productImage?: string
+    /** Total price paid for the order. */
     price?: number
+    /** Expected delivery date string (e.g., "Mon. Jan 15"). */
     deliveryDate?: string
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when the user clicks the track order button. */
     onTrackOrder?: () => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Currency code for formatting the price.
+     * @default "EUR"
+     */
     currency?: string
   }
 }

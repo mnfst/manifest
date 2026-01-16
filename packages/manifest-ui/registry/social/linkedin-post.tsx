@@ -10,28 +10,30 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 /**
- * Props for the LinkedInPost component.
- * @interface LinkedInPostProps
- * @property {object} [data] - Post content and metadata
- * @property {string} [data.author] - Author's name
- * @property {string} [data.headline] - Author's headline/title
- * @property {string} [data.avatar] - Avatar letter or URL
- * @property {string} [data.content] - Post text content (supports line breaks)
- * @property {string} [data.likes] - Like count (e.g., "1,234")
- * @property {string} [data.comments] - Comment count
- * @property {string} [data.reposts] - Repost count
- * @property {string} [data.time] - Time since posted (e.g., "2h")
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LinkedInPostProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the LinkedInPost component, which displays a LinkedIn-style
+ * post with professional author info and engagement metrics.
  */
 export interface LinkedInPostProps {
-  /** Content and data to display */
   data?: {
+    /** Author's display name. */
     author?: string
+    /** Author's professional headline or title. */
     headline?: string
+    /** Avatar letter fallback or image URL for the profile picture. */
     avatar?: string
+    /** Post text content (supports line breaks and hashtags). */
     content?: string
+    /** Formatted like count (e.g., "1,234"). */
     likes?: string
+    /** Number of comments on the post. */
     comments?: string
+    /** Number of reposts/shares. */
     reposts?: string
+    /** Time since posted (e.g., "2h"). */
     time?: string
   }
 }

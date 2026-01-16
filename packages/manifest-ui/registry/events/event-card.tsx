@@ -20,32 +20,42 @@ import { demoEvent } from './demo/data'
 import '@/lib/openai-types'
 
 /**
- * Props for the EventCard component.
- * @interface EventCardProps
- * @property {object} [data] - Event data
- * @property {Event} [data.event] - The event to display
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onClick] - Called when the card is clicked
- * @property {object} [appearance] - Visual customization
- * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
- * @property {boolean} [appearance.showSignal] - Whether to show event signal badge
- * @property {boolean} [appearance.showTags] - Whether to show vibe tags
- * @property {boolean} [appearance.showRating] - Whether to show organizer rating
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventCardProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventCard component. Displays event information with multiple
+ * layout variants, signal badges, vibe tags, and organizer ratings.
  */
 export interface EventCardProps {
-  /** Content and data to display */
   data?: {
+    /** The event object to display. */
     event?: Event
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when the card is clicked. */
     onClick?: (event: Event) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Card layout variant.
+     * @default "default"
+     */
     variant?: 'default' | 'compact' | 'horizontal' | 'covered'
+    /**
+     * Whether to show the event signal badge.
+     * @default true
+     */
     showSignal?: boolean
+    /**
+     * Whether to show vibe tags.
+     * @default true
+     */
     showTags?: boolean
+    /**
+     * Whether to show the organizer rating.
+     * @default true
+     */
     showRating?: boolean
   }
 }

@@ -1,8 +1,9 @@
 /**
  * Props Interface JSDoc Documentation Test
  *
- * Ensures all registry component Props interfaces have inline JSDoc comments
- * on their top-level properties (data, actions, appearance, control).
+ * Ensures all registry component Props interfaces follow the documentation convention:
+ * 1. A decorative header comment above the interface
+ * 2. JSDoc comments on sub-parameters inside data/actions/appearance/control
  *
  * This makes the documentation visible in IDE hover tooltips and improves
  * developer experience when using the components.
@@ -15,35 +16,10 @@ import * as path from 'path'
 const REGISTRY_DIR = path.join(__dirname, '..', 'registry')
 
 /**
- * Standard top-level props that should have JSDoc comments
- */
-const STANDARD_PROPS = ['data', 'actions', 'appearance', 'control'] as const
-
-/**
- * Components that are internal helpers and don't need JSDoc on props.
+ * Components that are internal helpers and don't need the decorative header.
  * These are typically pre-configured compositions of base components.
  */
-const INTERNAL_HELPER_COMPONENTS = new Set([
-  // Skeleton variants - pre-configured compositions of the base Skeleton component
-  'SkeletonWeather',
-  'SkeletonProductCard',
-  'SkeletonProductCarousel',
-  'SkeletonPricingPlan',
-  'SkeletonPricingPlans',
-  'SkeletonInlineForm',
-  'SkeletonOptionList',
-  'SkeletonTagSelect',
-  'SkeletonQuickReply',
-  'SkeletonProgressSteps',
-  'SkeletonStatusBadge',
-  'SkeletonStatCard',
-  'SkeletonStats',
-  'SkeletonPaymentMethods',
-  'SkeletonOrderConfirm',
-  'SkeletonAmountInput',
-  'SkeletonPaymentSuccess',
-  'SkeletonPaymentSuccessCompact',
-])
+const INTERNAL_HELPER_COMPONENTS = new Set<string>([])
 
 /**
  * Recursively find all .tsx files in a directory
@@ -101,7 +77,37 @@ function extractExportedPropsInterfaces(content: string): string[] {
 }
 
 /**
- * Extract the full Props interface definition with its properties
+ * Check if a Props interface has a decorative header comment above it.
+ * The header should contain the interface name and ═ characters.
+ */
+function hasDecorativeHeader(
+  content: string,
+  interfaceName: string
+): boolean {
+  // Find the interface declaration
+  const interfacePattern = new RegExp(
+    `export\\s+interface\\s+${interfaceName}(?:<[^>]*>)?\\s*\\{`
+  )
+  const interfaceMatch = interfacePattern.exec(content)
+
+  if (!interfaceMatch) return false
+
+  // Get the content before the interface (up to 500 chars should be enough)
+  const beforeInterface = content.substring(
+    Math.max(0, interfaceMatch.index - 500),
+    interfaceMatch.index
+  )
+
+  // Check for decorative header pattern with ═ characters and interface name
+  const hasDecorativeLine = beforeInterface.includes('═══')
+  const hasInterfaceNameInComment = beforeInterface.includes(interfaceName)
+  const hasCommentBlock = /\/\*\*[\s\S]*?\*\/\s*$/.test(beforeInterface)
+
+  return hasDecorativeLine && hasInterfaceNameInComment && hasCommentBlock
+}
+
+/**
+ * Extract the content inside a Props interface
  */
 function extractPropsInterfaceContent(
   content: string,
@@ -128,25 +134,32 @@ function extractPropsInterfaceContent(
 }
 
 /**
- * Check if top-level interface properties have inline JSDoc comments.
- * Only checks the standard props: data, actions, appearance, control.
- * Returns array of properties missing JSDoc.
+ * Extract sub-parameters from a category block (data, actions, appearance, control).
+ * Returns an array of parameter names that are missing JSDoc comments.
  */
-function getPropertiesMissingJSDoc(interfaceContent: string): string[] {
+function getSubParametersMissingJSDoc(interfaceContent: string): {
+  category: string
+  params: string[]
+}[] {
+  const results: { category: string; params: string[] }[] = []
   const lines = interfaceContent.split('\n')
-  const missingJSDoc: string[] = []
 
+  let currentCategory: string | null = null
   let braceDepth = 0
   let inInterface = false
+  let categoryStartDepth = 0
+  let justEnteredCategory = false
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const trimmedLine = line.trim()
 
+    // Skip empty lines and single-line comments
     if (!trimmedLine || trimmedLine.startsWith('//')) {
       continue
     }
 
+    // Detect interface start
     if (
       trimmedLine.includes('export interface') &&
       trimmedLine.includes('{')
@@ -158,13 +171,33 @@ function getPropertiesMissingJSDoc(interfaceContent: string): string[] {
 
     if (!inInterface) continue
 
-    // Check at depth 1 (directly inside the interface) BEFORE updating brace depth
+    // Check for category start at depth 1 (data, actions, appearance, control)
+    let isCategoryLine = false
     if (braceDepth === 1) {
-      const propertyMatch = trimmedLine.match(
-        /^(data|actions|appearance|control)\??\s*:\s*\{?/
+      const categoryMatch = trimmedLine.match(
+        /^(data|actions|appearance|control)\??\s*:\s*\{/
       )
-      if (propertyMatch) {
-        const propertyName = propertyMatch[1]
+      if (categoryMatch) {
+        currentCategory = categoryMatch[1]
+        categoryStartDepth = braceDepth
+        isCategoryLine = true
+        justEnteredCategory = true
+      }
+    }
+
+    // Update brace depth
+    for (const char of line) {
+      if (char === '{') braceDepth++
+      if (char === '}') braceDepth--
+    }
+
+    // Check for sub-parameters at depth 2 (inside data/actions/appearance/control)
+    // Skip the category line itself (data?: {, actions?: {, etc.)
+    if (currentCategory && braceDepth === 2 && !isCategoryLine) {
+      // Match property definitions like: propertyName?: Type or propertyName: Type
+      const paramMatch = trimmedLine.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\??:\s*/)
+      if (paramMatch) {
+        const paramName = paramMatch[1]
 
         // Check if the previous non-empty line(s) contain a JSDoc comment
         let hasJSDoc = false
@@ -178,23 +211,31 @@ function getPropertiesMissingJSDoc(interfaceContent: string): string[] {
           if (prevLine.startsWith('/*') || prevLine.startsWith('*')) {
             continue
           }
+          // Hit another line that's not a comment, stop looking
           break
         }
 
         if (!hasJSDoc) {
-          missingJSDoc.push(propertyName)
+          // Find or create the result entry for this category
+          let categoryResult = results.find(
+            (r) => r.category === currentCategory
+          )
+          if (!categoryResult) {
+            categoryResult = { category: currentCategory, params: [] }
+            results.push(categoryResult)
+          }
+          categoryResult.params.push(paramName)
         }
       }
     }
 
-    // Update brace depth AFTER checking properties
-    for (const char of line) {
-      if (char === '{') braceDepth++
-      if (char === '}') braceDepth--
+    // Reset category when we exit it
+    if (currentCategory && braceDepth <= categoryStartDepth) {
+      currentCategory = null
     }
   }
 
-  return missingJSDoc
+  return results
 }
 
 describe('Props Interface JSDoc Documentation', () => {
@@ -204,7 +245,7 @@ describe('Props Interface JSDoc Documentation', () => {
     expect(tsxFiles.length).toBeGreaterThan(0)
   })
 
-  describe('Inline JSDoc Comments', () => {
+  describe('Decorative Header Comments', () => {
     for (const filePath of tsxFiles) {
       const relativePath = path.relative(REGISTRY_DIR, filePath)
       const content = fs.readFileSync(filePath, 'utf-8')
@@ -226,7 +267,54 @@ describe('Props Interface JSDoc Documentation', () => {
 
       describe(`${relativePath}`, () => {
         for (const propsName of componentPropsInterfaces) {
-          it(`${propsName} should have inline JSDoc comments on top-level props`, () => {
+          it(`${propsName} should have a decorative header comment`, () => {
+            const hasHeader = hasDecorativeHeader(content, propsName)
+
+            if (!hasHeader) {
+              expect.fail(
+                `Props interface "${propsName}" is missing a decorative header comment.\n\n` +
+                  `Required format:\n` +
+                  `/**\n` +
+                  ` * ═══════════════════════════════════════════════════════════════════════════\n` +
+                  ` * ${propsName}\n` +
+                  ` * ═══════════════════════════════════════════════════════════════════════════\n` +
+                  ` *\n` +
+                  ` * Description of the Props interface.\n` +
+                  ` */\n` +
+                  `export interface ${propsName} { ... }`
+              )
+            }
+
+            expect(hasHeader).toBe(true)
+          })
+        }
+      })
+    }
+  })
+
+  describe('Sub-parameter JSDoc Comments', () => {
+    for (const filePath of tsxFiles) {
+      const relativePath = path.relative(REGISTRY_DIR, filePath)
+      const content = fs.readFileSync(filePath, 'utf-8')
+      const propsInterfaces = extractExportedPropsInterfaces(content)
+      const components = extractExportedComponents(content)
+
+      if (propsInterfaces.length === 0) continue
+
+      // Only check Props interfaces that have a corresponding component
+      const componentPropsInterfaces = propsInterfaces.filter((propsName) => {
+        const componentName = propsName.replace(/Props$/, '')
+        return (
+          components.includes(componentName) &&
+          !INTERNAL_HELPER_COMPONENTS.has(componentName)
+        )
+      })
+
+      if (componentPropsInterfaces.length === 0) continue
+
+      describe(`${relativePath}`, () => {
+        for (const propsName of componentPropsInterfaces) {
+          it(`${propsName} sub-parameters should have JSDoc comments`, () => {
             const interfaceContent = extractPropsInterfaceContent(
               content,
               propsName
@@ -235,31 +323,27 @@ describe('Props Interface JSDoc Documentation', () => {
             expect(interfaceContent).not.toBeNull()
 
             if (interfaceContent) {
-              const missingJSDoc = getPropertiesMissingJSDoc(interfaceContent)
+              const missingJSDoc =
+                getSubParametersMissingJSDoc(interfaceContent)
 
               if (missingJSDoc.length > 0) {
+                const missingDetails = missingJSDoc
+                  .map(
+                    ({ category, params }) =>
+                      `  ${category}: ${params.join(', ')}`
+                  )
+                  .join('\n')
+
                 expect.fail(
-                  `Props interface "${propsName}" is missing inline JSDoc comments:\n` +
-                    `Missing JSDoc for: ${missingJSDoc.join(', ')}\n\n` +
-                    `Each top-level property should have an inline JSDoc comment.\n` +
-                    `Example:\n` +
-                    `export interface ${propsName} {\n` +
-                    `  /** Content and data to display */\n` +
-                    `  data?: {\n` +
-                    `    // ...\n` +
-                    `  }\n` +
-                    `  /** User-triggerable callbacks */\n` +
-                    `  actions?: {\n` +
-                    `    // ...\n` +
-                    `  }\n` +
-                    `  /** Visual configuration options */\n` +
-                    `  appearance?: {\n` +
-                    `    // ...\n` +
-                    `  }\n` +
-                    `  /** State management */\n` +
-                    `  control?: {\n` +
-                    `    // ...\n` +
-                    `  }\n` +
+                  `Props interface "${propsName}" has sub-parameters missing JSDoc comments:\n` +
+                    `${missingDetails}\n\n` +
+                    `Each sub-parameter should have a JSDoc comment:\n` +
+                    `data?: {\n` +
+                    `  /** Description of the items array. */\n` +
+                    `  items?: Item[]\n` +
+                    `\n` +
+                    `  /** Optional title displayed above the list. */\n` +
+                    `  title?: string\n` +
                     `}`
                 )
               }

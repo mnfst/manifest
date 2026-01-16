@@ -11,32 +11,34 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 /**
- * Props for the YouTubePost component.
- * @interface YouTubePostProps
- * @property {object} [data] - Video content and metadata
- * @property {string} [data.channel] - Channel name
- * @property {string} [data.avatar] - Channel avatar letter or URL
- * @property {string} [data.title] - Video title
- * @property {string} [data.views] - View count (e.g., "1M views")
- * @property {string} [data.time] - Time since published (e.g., "2 weeks ago")
- * @property {string} [data.duration] - Video duration (e.g., "18:42")
- * @property {string} [data.thumbnail] - Video thumbnail URL
- * @property {string} [data.subscribers] - Subscriber count
- * @property {boolean} [data.verified] - Whether the channel is verified
- * @property {string} [data.videoId] - YouTube video ID for embedding
+ * ═══════════════════════════════════════════════════════════════════════════
+ * YouTubePostProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the YouTubePost component, which displays a YouTube video embed
+ * with thumbnail preview and click-to-play functionality.
  */
 export interface YouTubePostProps {
-  /** Content and data to display */
   data?: {
+    /** YouTube channel name. */
     channel?: string
+    /** Channel avatar letter fallback or image URL. */
     avatar?: string
+    /** Video title. */
     title?: string
+    /** Formatted view count (e.g., "1M views"). */
     views?: string
+    /** Time since video was published (e.g., "2 weeks ago"). */
     time?: string
+    /** Video duration in MM:SS or HH:MM:SS format. */
     duration?: string
+    /** URL of the video thumbnail image. */
     thumbnail?: string
+    /** Formatted subscriber count for the channel. */
     subscribers?: string
+    /** Whether the channel has a verified badge. */
     verified?: boolean
+    /** YouTube video ID used for embedding the player. */
     videoId?: string
   }
 }

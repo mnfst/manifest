@@ -90,36 +90,43 @@ const defaultEvent: CheckoutEvent = {
 }
 
 /**
- * Props for the EventCheckout component.
- * @interface EventCheckoutProps
- * @property {object} [data] - Checkout data
- * @property {CheckoutEvent} [data.event] - Event information
- * @property {CheckoutOrder} [data.order] - Order details
- * @property {PaymentMethod[]} [data.paymentMethods] - Available payment methods
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onBack] - Called when back button is clicked
- * @property {function} [actions.onPlaceOrder] - Called when order is placed
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.showTimer] - Whether to show countdown timer
- * @property {number} [appearance.timerMinutes] - Timer duration in minutes
- * @property {boolean} [appearance.showEventCard] - Whether to show event card
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventCheckoutProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventCheckout component. Handles billing information,
+ * payment method selection, and order summary with countdown timer.
  */
 export interface EventCheckoutProps {
-  /** Content and data to display */
   data?: {
+    /** Event information to display in checkout. */
     event?: CheckoutEvent
+    /** Order details with line items and fees. */
     order?: CheckoutOrder
+    /** Available payment methods to choose from. */
     paymentMethods?: PaymentMethod[]
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when the back button is clicked. */
     onBack?: () => void
+    /** Called when the order is placed. */
     onPlaceOrder?: () => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Whether to show the countdown timer.
+     * @default true
+     */
     showTimer?: boolean
+    /**
+     * Timer duration in minutes.
+     * @default 20
+     */
     timerMinutes?: number
+    /**
+     * Whether to show the event card section.
+     * @default true
+     */
     showEventCard?: boolean
   }
 }

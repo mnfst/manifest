@@ -23,14 +23,16 @@ export interface StatCard {
 }
 
 /**
- * Props for the Stats component.
- * @interface StatsProps
- * @property {object} [data] - Statistics data
- * @property {StatCard[]} [data.stats] - Array of stat cards to display
+ * ═══════════════════════════════════════════════════════════════════════════
+ * StatsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the Stats component, which displays a grid of statistic cards
+ * with values, trend indicators, and optional icons.
  */
 export interface StatsProps {
-  /** Content and data to display */
   data?: {
+    /** Array of stat cards to display in the grid. */
     stats?: StatCard[]
   }
 }

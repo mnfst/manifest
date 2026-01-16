@@ -102,32 +102,42 @@ export type MapStyle =
   | 'openstreetmap'
 
 /**
- * Props for the MapCarousel component.
- * @interface MapCarouselProps
- * @property {object} [data] - Map and location data
- * @property {Location[]} [data.locations] - Array of locations to display
- * @property {[number, number]} [data.center] - Map center coordinates [lat, lng]
- * @property {number} [data.zoom] - Initial zoom level
- * @property {MapStyle} [data.mapStyle] - Map tile style
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onSelectLocation] - Called when a location is selected
- * @property {object} [appearance] - Visual customization
- * @property {string} [appearance.mapHeight] - Map container height (e.g., "504px")
+ * ═══════════════════════════════════════════════════════════════════════════
+ * MapCarouselProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring an interactive map with a horizontal carousel of
+ * location cards. Clicking a marker or card selects that location.
  */
 export interface MapCarouselProps {
-  /** Content and data to display */
   data?: {
+    /** Array of locations to display on the map with price markers. */
     locations?: Location[]
+    /**
+     * Map center coordinates as [latitude, longitude].
+     * @default [37.7899, -122.4034]
+     */
     center?: [number, number]
+    /**
+     * Initial zoom level for the map.
+     * @default 14
+     */
     zoom?: number
+    /**
+     * Map tile style (voyager, positron, dark-matter, etc.).
+     * @default "voyager"
+     */
     mapStyle?: MapStyle
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when a user selects a location via marker or card click. */
     onSelectLocation?: (location: Location) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Height of the map container.
+     * @default "504px"
+     */
     mapHeight?: string
   }
 }

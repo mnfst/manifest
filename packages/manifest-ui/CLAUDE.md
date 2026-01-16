@@ -78,43 +78,68 @@ export function PaymentMethods(props: PaymentMethodsProps) { ... }
 
 ### Standard Props Structure
 
-All component Props interfaces should use the semantic 4-category structure with **inline JSDoc comments** on each top-level property:
+All component Props interfaces should use the semantic 4-category structure: `data`, `actions`, `appearance`, `control`.
+
+### JSDoc Requirements
+
+Props interfaces require two types of documentation:
+
+1. **Decorative header comment** above the interface with ═══ characters
+2. **JSDoc comments on each sub-parameter** inside data/actions/appearance/control
+
+**DO NOT** put comments on the category properties themselves (data, actions, appearance, control).
 
 ```typescript
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ComponentNameProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the ComponentName component.
+ * Brief description of what the component does.
+ */
 export interface ComponentNameProps {
-  /** Content and data to display */
   data?: {
+    /** Array of items to display in the list. */
     items?: Item[]
+    /** Optional title displayed above the list. */
     title?: string
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when a user selects an item from the list. */
     onSelect?: (item: Item) => void
+    /** Called when the form is submitted. */
     onSubmit?: () => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Layout variant for the component.
+     * @default "default"
+     */
     variant?: 'default' | 'compact'
+    /**
+     * Whether to show the header section.
+     * @default true
+     */
     showHeader?: boolean
   }
-  /** State management */
   control?: {
+    /** Whether the component is in loading state. */
     loading?: boolean
+    /** ID of the currently selected item for controlled selection. */
     selectedId?: string
   }
 }
 ```
 
-### JSDoc Requirements
+### JSDoc Best Practices
 
-Each top-level property (`data`, `actions`, `appearance`, `control`) **MUST** have an inline JSDoc comment:
+- Use `@default` tags for properties with default values
+- Keep descriptions concise but meaningful
+- For complex types, explain the expected structure
+- For callbacks, explain when they are triggered
 
-- `/** Content and data to display */` for `data`
-- `/** User-triggerable callbacks */` for `actions`
-- `/** Visual configuration options */` for `appearance`
-- `/** State management */` for `control`
-
-These inline comments make documentation visible in IDE hover tooltips, improving developer experience.
+These comments make documentation visible in IDE hover tooltips, improving developer experience.
 
 ### Running Tests
 

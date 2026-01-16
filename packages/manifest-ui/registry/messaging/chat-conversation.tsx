@@ -29,14 +29,16 @@ export interface ChatMessage {
 }
 
 /**
- * Props for the ChatConversation component.
- * @interface ChatConversationProps
- * @property {object} [data] - Conversation data
- * @property {ChatMessage[]} [data.messages] - Array of messages
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ChatConversationProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a chat conversation component that displays multiple
+ * messages with support for text and image message types.
  */
 export interface ChatConversationProps {
-  /** Content and data to display */
   data?: {
+    /** Array of chat messages to display in the conversation. */
     messages?: ChatMessage[]
   }
 }

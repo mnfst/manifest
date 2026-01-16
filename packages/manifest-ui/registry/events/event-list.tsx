@@ -386,29 +386,48 @@ function FilterPanel({
   )
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventList component. Supports list, grid, carousel, and
+ * fullwidth (split-screen with map) layout variants with filtering capabilities.
+ */
 export interface EventListProps {
-  /** Content and data to display */
   data?: {
+    /** Array of events to display. */
     events?: Event[]
+    /** Optional title displayed above the list. */
     title?: string
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when an event card is clicked. */
     onEventSelect?: (event: Event) => void
+    /** Called when page changes (for pagination). */
     onPageChange?: (page: number) => void
+    /** Called when "View more events" button is clicked. */
     onViewMore?: () => void
+    /** Called when expand/fullscreen button is clicked. */
     onExpand?: () => void
+    /** Called when the filter button is clicked. */
     onFilterClick?: () => void
+    /** Called when filters are applied. */
     onFiltersApply?: (filters: FilterState) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Layout variant for the event list.
+     * @default "list"
+     */
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
+    /** Number of columns for grid layout. */
     columns?: 2 | 3 | 4
+    /** Number of events to show per page. */
     eventsPerPage?: number
   }
-  /** State management */
   control?: {
+    /** Current page number for pagination. */
     currentPage?: number
   }
 }

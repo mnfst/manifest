@@ -30,32 +30,35 @@ export interface OrderItem {
 }
 
 /**
- * Props for the OrderSummary component.
- * @interface OrderSummaryProps
- * @property {object} [data] - Order data
- * @property {OrderItem[]} [data.items] - Order items
- * @property {number} [data.subtotal] - Subtotal amount
- * @property {number} [data.shipping] - Shipping cost
- * @property {number} [data.tax] - Tax amount
- * @property {number} [data.discount] - Discount amount
- * @property {string} [data.discountCode] - Applied discount code
- * @property {number} [data.total] - Total amount
- * @property {object} [appearance] - Visual customization
- * @property {string} [appearance.currency] - Currency code (default: USD)
+ * ═══════════════════════════════════════════════════════════════════════════
+ * OrderSummaryProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for an order summary component displaying items, totals, and discounts.
+ * Shows itemized breakdown with subtotal, shipping, tax, and total.
  */
 export interface OrderSummaryProps {
-  /** Content and data to display */
   data?: {
+    /** Array of items in the order with id, name, quantity, price, and optional image. */
     items?: OrderItem[]
+    /** Subtotal amount before shipping, tax, and discounts. */
     subtotal?: number
+    /** Shipping cost. Displays "Free" when set to 0. */
     shipping?: number
+    /** Tax amount to add to the order. */
     tax?: number
+    /** Discount amount to subtract from the order. */
     discount?: number
+    /** The discount code that was applied (displayed as a badge). */
     discountCode?: string
+    /** Final total amount after all adjustments. */
     total?: number
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Currency code for formatting all monetary values.
+     * @default "USD"
+     */
     currency?: string
   }
 }

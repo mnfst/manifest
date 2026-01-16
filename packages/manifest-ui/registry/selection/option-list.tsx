@@ -21,36 +21,35 @@ export interface Option {
 }
 
 /**
- * Props for the OptionList component.
- * @interface OptionListProps
- * @property {object} [data] - Option data
- * @property {Option[]} [data.options] - Array of options
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onSelectOption] - Called on single selection
- * @property {function} [actions.onSelectOptions] - Called on multiple selection
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.multiple] - Enable multiple selection
- * @property {object} [control] - State control
- * @property {number} [control.selectedOptionIndex] - Controlled selected index
- * @property {number[]} [control.selectedOptionIndexes] - Controlled selected indexes
+ * ═══════════════════════════════════════════════════════════════════════════
+ * OptionListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the OptionList component, which displays selectable options with
+ * support for single or multiple selection modes.
  */
 export interface OptionListProps {
-  /** Content and data to display */
   data?: {
+    /** Array of selectable options to display. */
     options?: Option[]
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when an option is selected in single selection mode. */
     onSelectOption?: (option: Option) => void
+    /** Called when options are selected in multiple selection mode. */
     onSelectOptions?: (options: Option[]) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Enable multiple selection mode.
+     * @default false
+     */
     multiple?: boolean
   }
-  /** State management */
   control?: {
+    /** Controlled selected index for single selection mode. */
     selectedOptionIndex?: number
+    /** Controlled selected indexes for multiple selection mode. */
     selectedOptionIndexes?: number[]
   }
 }

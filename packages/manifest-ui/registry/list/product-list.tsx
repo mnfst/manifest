@@ -31,40 +31,48 @@ export interface Product {
 }
 
 /**
- * Props for the ProductList component.
- * @interface ProductListProps
- * @property {object} [data] - Product data
- * @property {Product[]} [data.products] - Array of products to display
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectProduct] - Called when a product is selected
- * @property {function} [actions.onAddToCart] - Called when products are added to cart (picker variant)
- * @property {object} [appearance] - Visual customization options
- * @property {"list" | "grid" | "carousel" | "picker"} [appearance.variant] - Display variant
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {3 | 4} [appearance.columns] - Number of columns for grid variant
- * @property {string} [appearance.buttonLabel] - Custom label for add to cart button
- * @property {object} [control] - State control options
- * @property {string} [control.selectedProductId] - Currently selected product ID
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ProductListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a versatile product list component with list, grid,
+ * carousel, and picker variants.
  */
 export interface ProductListProps {
-  /** Content and data to display */
   data?: {
+    /** Array of products to display in the list. */
     products?: Product[]
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when a user selects a product from the list. */
     onSelectProduct?: (product: Product) => void
+    /** Called when products are added to cart (picker variant only). */
     onAddToCart?: (products: Product[]) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Layout variant for displaying products.
+     * @default "list"
+     */
     variant?: 'list' | 'grid' | 'carousel' | 'picker'
+    /**
+     * Currency code for price formatting (e.g., "USD", "EUR").
+     * @default "EUR"
+     */
     currency?: string
+    /**
+     * Number of columns for grid variant.
+     * @default 4
+     */
     columns?: 3 | 4
+    /**
+     * Custom label for the add to cart button (picker variant).
+     * @default "Add to cart"
+     */
     buttonLabel?: string
   }
-  /** State management */
   control?: {
+    /** Index of the currently selected product. */
     selectedProductIndex?: number
   }
 }

@@ -19,40 +19,48 @@ export interface Tag {
 }
 
 /**
- * Props for the TagSelect component.
- * @interface TagSelectProps
- * @property {object} [data] - Tags data
- * @property {Tag[]} [data.tags] - Array of tags to display
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectTags] - Called when tag selection changes
- * @property {function} [actions.onValidate] - Called when user clicks validate button
- * @property {object} [appearance] - Visual customization options
- * @property {"single" | "multiple"} [appearance.mode] - Selection mode
- * @property {boolean} [appearance.showClear] - Show clear selection button
- * @property {boolean} [appearance.showValidate] - Show validate button
- * @property {string} [appearance.validateLabel] - Custom label for validate button
- * @property {object} [control] - State control options
- * @property {string[]} [control.selectedTagIds] - Array of selected tag IDs
+ * ═══════════════════════════════════════════════════════════════════════════
+ * TagSelectProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the TagSelect component, which provides tag-based filtering with
+ * single or multiple selection modes and validation support.
  */
 export interface TagSelectProps {
-  /** Content and data to display */
   data?: {
+    /** Array of tags to display for selection. */
     tags?: Tag[]
   }
-  /** User-triggerable callbacks */
   actions?: {
+    /** Called when the tag selection changes with the array of selected tag IDs. */
     onSelectTags?: (tagIds: string[]) => void
+    /** Called when the user clicks the validate button with the selected tag IDs. */
     onValidate?: (tagIds: string[]) => void
   }
-  /** Visual configuration options */
   appearance?: {
+    /**
+     * Selection mode: single allows one tag, multiple allows many.
+     * @default "multiple"
+     */
     mode?: 'single' | 'multiple'
+    /**
+     * Whether to show the clear selection button.
+     * @default true
+     */
     showClear?: boolean
+    /**
+     * Whether to show the validate button.
+     * @default true
+     */
     showValidate?: boolean
+    /**
+     * Custom label for the validate button.
+     * @default "Validate selection"
+     */
     validateLabel?: string
   }
-  /** State management */
   control?: {
+    /** Array of pre-selected tag IDs for controlled mode. */
     selectedTagIds?: string[]
   }
 }
