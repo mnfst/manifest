@@ -50,7 +50,7 @@ describe('AnalyticsService', () => {
     let queryBuilderCallCount = 0;
     mockExecutionRepository.createQueryBuilder.mockImplementation(() => {
       queryBuilderCallCount++;
-      // First two calls are for current and prior metrics, third is for chart
+      // First two calls are for current and prior metrics, third+ are for chart/flows
       if (queryBuilderCallCount <= 2) {
         return mockExecutionQueryBuilder;
       }
@@ -93,7 +93,7 @@ describe('AnalyticsService', () => {
     beforeEach(() => {
       // Default mock setup for metrics and chart queries
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(100, 85, 1500),
+        createMockMetricsResult(100, 85, 1500, 50),
       );
       mockChartQueryBuilder.getRawMany.mockResolvedValue([]);
     });
@@ -206,7 +206,7 @@ describe('AnalyticsService', () => {
 
     it('should calculate total executions', async () => {
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(250, 200, 1000),
+        createMockMetricsResult(250, 200, 1000, 100),
       );
 
       const result = await service.getAppAnalytics('app-1');
@@ -217,7 +217,7 @@ describe('AnalyticsService', () => {
 
     it('should calculate success rate', async () => {
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(100, 85, 1000),
+        createMockMetricsResult(100, 85, 1000, 50),
       );
 
       const result = await service.getAppAnalytics('app-1');
@@ -228,7 +228,7 @@ describe('AnalyticsService', () => {
 
     it('should handle zero executions for success rate', async () => {
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(0, 0, 0),
+        createMockMetricsResult(0, 0, 0, 0),
       );
 
       const result = await service.getAppAnalytics('app-1');
@@ -239,7 +239,7 @@ describe('AnalyticsService', () => {
 
     it('should calculate average duration in ms', async () => {
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(100, 85, 2500),
+        createMockMetricsResult(100, 85, 2500, 50),
       );
 
       const result = await service.getAppAnalytics('app-1');
@@ -250,7 +250,7 @@ describe('AnalyticsService', () => {
 
     it('should format duration as ms for small values', async () => {
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(100, 85, 500),
+        createMockMetricsResult(100, 85, 500, 50),
       );
 
       const result = await service.getAppAnalytics('app-1');
@@ -260,12 +260,46 @@ describe('AnalyticsService', () => {
 
     it('should format large numbers with commas', async () => {
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(12345, 10000, 1000),
+        createMockMetricsResult(12345, 10000, 1000, 1234),
       );
 
       const result = await service.getAppAnalytics('app-1');
 
       expect(result.metrics.totalExecutions.displayValue).toBe('12,345');
+    });
+
+    it('should calculate unique users', async () => {
+      mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
+        createMockMetricsResult(100, 85, 1000, 42),
+      );
+
+      const result = await service.getAppAnalytics('app-1');
+
+      expect(result.metrics.uniqueUsers.value).toBe(42);
+      expect(result.metrics.uniqueUsers.displayValue).toBe('42');
+    });
+
+    it('should format large unique users with commas', async () => {
+      mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
+        createMockMetricsResult(10000, 9500, 100, 1234),
+      );
+
+      const result = await service.getAppAnalytics('app-1');
+
+      expect(result.metrics.uniqueUsers.displayValue).toBe('1,234');
+    });
+
+    it('should handle null uniqueUsers from database', async () => {
+      mockExecutionQueryBuilder.getRawOne.mockResolvedValue({
+        total: '10',
+        fulfilled: '10',
+        avgDuration: '100',
+        uniqueUsers: null,
+      });
+
+      const result = await service.getAppAnalytics('app-1');
+
+      expect(result.metrics.uniqueUsers.value).toBe(0);
     });
   });
 
@@ -285,8 +319,8 @@ describe('AnalyticsService', () => {
     it('should calculate upward trend', async () => {
       // Current: 100, Prior: 50 = 100% increase
       mockExecutionQueryBuilder.getRawOne
-        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000))
-        .mockResolvedValueOnce(createMockMetricsResult(50, 40, 1200));
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 50))
+        .mockResolvedValueOnce(createMockMetricsResult(50, 40, 1200, 25));
 
       const result = await service.getAppAnalytics('app-1');
 
@@ -299,8 +333,8 @@ describe('AnalyticsService', () => {
     it('should calculate downward trend', async () => {
       // Current: 50, Prior: 100 = 50% decrease
       mockExecutionQueryBuilder.getRawOne
-        .mockResolvedValueOnce(createMockMetricsResult(50, 40, 1000))
-        .mockResolvedValueOnce(createMockMetricsResult(100, 80, 1200));
+        .mockResolvedValueOnce(createMockMetricsResult(50, 40, 1000, 25))
+        .mockResolvedValueOnce(createMockMetricsResult(100, 80, 1200, 50));
 
       const result = await service.getAppAnalytics('app-1');
 
@@ -311,8 +345,8 @@ describe('AnalyticsService', () => {
 
     it('should return null trend when prior period has no data', async () => {
       mockExecutionQueryBuilder.getRawOne
-        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000))
-        .mockResolvedValueOnce(createMockMetricsResult(0, 0, 0));
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 50))
+        .mockResolvedValueOnce(createMockMetricsResult(0, 0, 0, 0));
 
       const result = await service.getAppAnalytics('app-1');
 
@@ -322,8 +356,8 @@ describe('AnalyticsService', () => {
     it('should treat duration decrease as positive', async () => {
       // Current: 1000ms, Prior: 2000ms = 50% decrease (faster is better)
       mockExecutionQueryBuilder.getRawOne
-        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000))
-        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 2000));
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 50))
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 2000, 50));
 
       const result = await service.getAppAnalytics('app-1');
 
@@ -334,13 +368,49 @@ describe('AnalyticsService', () => {
     it('should treat duration increase as negative', async () => {
       // Current: 2000ms, Prior: 1000ms = 100% increase (slower is worse)
       mockExecutionQueryBuilder.getRawOne
-        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 2000))
-        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000));
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 2000, 50))
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 50));
 
       const result = await service.getAppAnalytics('app-1');
 
       expect(result.metrics.avgDuration.trend?.direction).toBe('up');
       expect(result.metrics.avgDuration.trend?.isPositive).toBe(false);
+    });
+
+    it('should calculate trend for unique users', async () => {
+      // Current: 50, Prior: 40 = 25% increase
+      mockExecutionQueryBuilder.getRawOne
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 50))
+        .mockResolvedValueOnce(createMockMetricsResult(80, 70, 1000, 40));
+
+      const result = await service.getAppAnalytics('app-1');
+
+      expect(result.metrics.uniqueUsers.trend).toBeDefined();
+      expect(result.metrics.uniqueUsers.trend?.direction).toBe('up');
+      expect(result.metrics.uniqueUsers.trend?.isPositive).toBe(true);
+      expect(result.metrics.uniqueUsers.trend?.percentage).toBe(25);
+    });
+
+    it('should show negative trend when uniqueUsers decreases', async () => {
+      // Current: 30, Prior: 40 = 25% decrease
+      mockExecutionQueryBuilder.getRawOne
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 30))
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 40));
+
+      const result = await service.getAppAnalytics('app-1');
+
+      expect(result.metrics.uniqueUsers.trend?.direction).toBe('down');
+      expect(result.metrics.uniqueUsers.trend?.isPositive).toBe(false);
+    });
+
+    it('should return null trend when no prior uniqueUsers data', async () => {
+      mockExecutionQueryBuilder.getRawOne
+        .mockResolvedValueOnce(createMockMetricsResult(100, 85, 1000, 42))
+        .mockResolvedValueOnce(createMockMetricsResult(0, 0, 0, 0));
+
+      const result = await service.getAppAnalytics('app-1');
+
+      expect(result.metrics.uniqueUsers.trend).toBeNull();
     });
   });
 
@@ -355,7 +425,7 @@ describe('AnalyticsService', () => {
         createMockFlowEntity({ id: 'flow-1' }),
       ]);
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(100, 85, 1000),
+        createMockMetricsResult(100, 85, 1000, 50),
       );
     });
 
@@ -462,7 +532,7 @@ describe('AnalyticsService', () => {
         createMockFlowEntity({ id: 'flow-1' }),
       ]);
       mockExecutionQueryBuilder.getRawOne.mockResolvedValue(
-        createMockMetricsResult(100, 85, 1000),
+        createMockMetricsResult(100, 85, 1000, 50),
       );
       mockChartQueryBuilder.getRawMany.mockResolvedValue([]);
     });

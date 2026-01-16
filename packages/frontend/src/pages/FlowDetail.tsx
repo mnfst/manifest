@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type {
   App,
   Flow,
@@ -37,6 +37,7 @@ import type { FlowDetailTab, TabConfig } from '../types/tabs';
 function FlowDetail() {
   const { appId, flowId } = useParams<{ appId: string; flowId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [app, setApp] = useState<App | null>(null);
   const [flow, setFlow] = useState<Flow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,8 +73,11 @@ function FlowDetail() {
   // All flows for CallFlow node selection
   const [allFlows, setAllFlows] = useState<Flow[]>([]);
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<FlowDetailTab>('build');
+  // Tab state - read initial tab from URL query param (?tab=analytics)
+  const initialTab = searchParams.get('tab') as FlowDetailTab | null;
+  const [activeTab, setActiveTab] = useState<FlowDetailTab>(
+    initialTab && ['build', 'preview', 'logs', 'analytics'].includes(initialTab) ? initialTab : 'build'
+  );
 
   // Flow name lookup for CallFlow nodes
   const [flowNameLookup, setFlowNameLookup] = useState<Record<string, string>>({});

@@ -1,93 +1,54 @@
 # flows-and-nodes Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-01-06
-
 ## Active Technologies
-- SQLite (better-sqlite3 11.7.0) (088-dynamic-node-library)
-- SQLite (better-sqlite3 11.7.0) via TypeORM (001-io-schemas)
-- TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, CodeMirror 6 (to add), Vite 6.0.5 (001-edit-uis)
-- SQLite via TypeORM 0.3.20 (nodes stored as JSON in Flow entity) (001-edit-uis)
-- SQLite (better-sqlite3 11.7.0) via TypeORM - nodes stored as JSON arrays in Flow entity (089-transform-nodes)
-- TypeScript 5.7.2 + React 18.3.1, NestJS 10.4.15, @xyflow/react 12.10.0, TypeORM 0.3.20 (090-ui-node-actions)
-- SQLite (better-sqlite3 11.7.0) via TypeORM 0.3.20 - nodes stored as JSON in Flow entity (001-ui-edit-modal-merge)
-- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0, TypeORM 0.3.20 (001-execution-metadata-ui)
-- SQLite (better-sqlite3 11.7.0) via TypeORM - existing FlowExecution entity (001-execution-metadata-ui)
-- SQLite (better-sqlite3 11.7.0) via TypeORM - nodes stored as JSON in Flow entity (091-post-list-action-handle)
-- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, Jest, @nestjs/testing, TypeORM 0.3.20 (001-backend-test-suite)
-- SQLite (better-sqlite3 11.7.0) via TypeORM - mocked for unit tests (001-backend-test-suite)
-- TypeScript 5.7.2, Node.js >= 18.0.0 (001-auth)
-- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React Email (@react-email/components, @react-email/render), mailgun.js (or nestjs-mailgun), nodemailer (001-email)
-- N/A for email module (no persistence required; uses existing SQLite via TypeORM for user data) (001-email)
-- TypeScript 5.7.2, Node.js >=18.0.0 (001-analytics)
-- SQLite via better-sqlite3, existing FlowExecution entity (001-analytics)
-- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15, React 18.3.1, TypeORM 0.3.20 (001-remove-connectors)
-- SQLite (better-sqlite3 11.7.0) via TypeORM - removing ConnectorEntity (001-remove-connectors)
-- SQLite via better-sqlite3 11.7.0 (user data managed by better-auth) (001-edit-account)
-- TypeScript 5.7.2 (strict mode), Node.js >=18.0.0 + React 18.3.1, NestJS 10.4.15, @uiw/react-codemirror 4.25.4, TailwindCSS 3.4.17 (001-app-theme-editor)
-- SQLite via better-sqlite3 11.7.0, TypeORM 0.3.20 (existing `themeVariables` JSON column on AppEntity) (001-app-theme-editor)
-- SQLite via better-sqlite3 (nodes stored as JSON in Flow entity) (091-registry-items)
-- TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas) (001-blank-component)
 
-- TypeScript 5.7.2 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas), TypeORM 0.3.20 (ORM) (001-trigger-node-refactor)
+### Core Stack
+- **TypeScript** 5.7.2 (Node.js >= 18.0.0, strict mode)
+- **SQLite** via better-sqlite3 11.7.0, TypeORM 0.3.20
+
+### Backend
+- **NestJS** 10.4.15
+- **Jest** + @nestjs/testing (unit tests)
+- **React Email** (@react-email/components, @react-email/render)
+- **Mailgun** (mailgun.js, nodemailer)
+
+### Frontend
+- **React** 18.3.1
+- **Vite** 6.0.5
+- **TailwindCSS** 3.4.17
+- **@xyflow/react** 12.10.0 (canvas/flow editor)
+- **@tremor/react** 3.18.7 (charts/analytics)
+- **@uiw/react-codemirror** 4.25.4 (code editor)
+
+### Data Model
+- Nodes stored as JSON arrays in Flow entity
+- FlowExecution entity for execution tracking
+- ThemeVariables JSON column on AppEntity
 
 ## Project Structure
 
 ```text
-src/
-tests/
+packages/
+├── backend/    # NestJS API
+├── frontend/   # React SPA
+├── shared/     # Shared types and utilities
+└── nodes/      # Node type definitions
 ```
 
 ## Commands
 
-pnpm test && pnpm lint
+```bash
+pnpm test       # Run all tests
+pnpm lint       # Run linter
+pnpm dev        # Start dev servers
+pnpm build      # Production build
+```
 
 ## Code Style
 
-TypeScript 5.7.2: Follow standard conventions
-
-## Pull Request Guidelines
-
-**ALWAYS create PRs with detailed descriptions.** Every PR must include:
-
-### PR Description Template
-
-```markdown
-## Summary
-[2-3 sentences explaining what this PR does and why]
-
-## Changes
-[Bulleted list of key changes, organized by category if applicable:
-- Infrastructure changes
-- Code quality fixes
-- New features
-- Bug fixes
-- etc.]
-
-## Behavior
-[Describe how the system behaves after this change]
-
-## Test Plan
-[Checklist of what was tested:
-- [ ] Item 1
-- [ ] Item 2
-etc.]
-
-## Notes
-[Optional: Any additional context, trade-offs, or future considerations]
-```
-
-### Requirements
-- **Title**: Use conventional commit format (feat/fix/chore/docs/refactor)
-- **Summary**: Clear explanation of the "what" and "why"
-- **Changes**: Organized list of what was modified
-- **Test Plan**: Explicit verification steps taken
-- **Never** create a PR without a description
-
-## Recent Changes
-- 001-trigger-user-query-param: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0
-- 001-blank-component: Added TypeScript 5.7.2 (Node.js >= 18.0.0) + NestJS 10.4.15 (backend), React 18.3.1 (frontend), @xyflow/react 12.10.0 (canvas)
-- 001-app-theme-editor: Added TypeScript 5.7.2 (strict mode), Node.js >=18.0.0 + React 18.3.1, NestJS 10.4.15, @uiw/react-codemirror 4.25.4, TailwindCSS 3.4.17
-
+- TypeScript strict mode enabled
+- Follow standard conventions
+- Max 300 lines per file, 50 lines per function
 
 <!-- MANUAL ADDITIONS START -->
 

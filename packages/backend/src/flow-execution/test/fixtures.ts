@@ -40,6 +40,7 @@ export function createMockExecutionEntity(
     nodeExecutions: [],
     errorInfo: undefined,
     isPreview: false,
+    userFingerprint: undefined,
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -103,6 +104,7 @@ export function createMockCreateExecutionParams(
     flowToolName: 'test_tool',
     initialParams: { query: 'test query' },
     isPreview: false,
+    userFingerprint: undefined,
     ...overrides,
   };
 }

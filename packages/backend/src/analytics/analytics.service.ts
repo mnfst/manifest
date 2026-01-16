@@ -11,6 +11,7 @@ import type {
   AnalyticsMetric,
   TrendData,
   FlowOption,
+  FlowAnalytics,
 } from '@chatgpt-app-builder/shared';
 
 /** Time range configuration for aggregation */
@@ -81,6 +82,9 @@ export class AnalyticsService {
       name: f.name,
     }));
 
+    // Get per-flow metrics for the table
+    const flowsWithMetrics = await this.getFlowsWithMetrics(flows, timeRange);
+
     return {
       appId,
       timeRange,
@@ -88,6 +92,7 @@ export class AnalyticsService {
       metrics,
       chartData,
       flows: flowOptions,
+      flowsWithMetrics,
     };
   }
 
@@ -97,9 +102,9 @@ export class AnalyticsService {
   private async getMetrics(
     flowIds: string[],
     timeRange: AnalyticsTimeRange
-  ): Promise<{ total: number; fulfilled: number; avgDuration: number }> {
+  ): Promise<{ total: number; fulfilled: number; avgDuration: number; uniqueUsers: number }> {
     if (flowIds.length === 0) {
-      return { total: 0, fulfilled: 0, avgDuration: 0 };
+      return { total: 0, fulfilled: 0, avgDuration: 0, uniqueUsers: 0 };
     }
 
     const config = TIME_RANGE_CONFIGS[timeRange];
@@ -115,6 +120,10 @@ export class AnalyticsService {
         "AVG(CASE WHEN e.endedAt IS NOT NULL THEN (julianday(e.endedAt) - julianday(e.startedAt)) * 86400000 ELSE NULL END)",
         'avgDuration'
       )
+      .addSelect(
+        'COUNT(DISTINCT e.userFingerprint)',
+        'uniqueUsers'
+      )
       .where('e.flowId IN (:...flowIds)', { flowIds })
       .andWhere('e.isPreview = :isPreview', { isPreview: false })
       .andWhere(`e.startedAt >= datetime('now', :modifier)`, {
@@ -126,6 +135,7 @@ export class AnalyticsService {
       total: parseInt(result?.total ?? '0', 10),
       fulfilled: parseInt(result?.fulfilled ?? '0', 10),
       avgDuration: parseFloat(result?.avgDuration ?? '0'),
+      uniqueUsers: parseInt(result?.uniqueUsers ?? '0', 10),
     };
   }
 
@@ -135,9 +145,9 @@ export class AnalyticsService {
   private async getPriorPeriodMetrics(
     flowIds: string[],
     timeRange: AnalyticsTimeRange
-  ): Promise<{ total: number; fulfilled: number; avgDuration: number }> {
+  ): Promise<{ total: number; fulfilled: number; avgDuration: number; uniqueUsers: number }> {
     if (flowIds.length === 0) {
-      return { total: 0, fulfilled: 0, avgDuration: 0 };
+      return { total: 0, fulfilled: 0, avgDuration: 0, uniqueUsers: 0 };
     }
 
     // Map time range to prior period modifiers
@@ -164,6 +174,10 @@ export class AnalyticsService {
         "AVG(CASE WHEN e.endedAt IS NOT NULL THEN (julianday(e.endedAt) - julianday(e.startedAt)) * 86400000 ELSE NULL END)",
         'avgDuration'
       )
+      .addSelect(
+        'COUNT(DISTINCT e.userFingerprint)',
+        'uniqueUsers'
+      )
       .where('e.flowId IN (:...flowIds)', { flowIds })
       .andWhere('e.isPreview = :isPreview', { isPreview: false })
       .andWhere(`e.startedAt >= datetime('now', :start)`, {
@@ -176,6 +190,7 @@ export class AnalyticsService {
       total: parseInt(result?.total ?? '0', 10),
       fulfilled: parseInt(result?.fulfilled ?? '0', 10),
       avgDuration: parseFloat(result?.avgDuration ?? '0'),
+      uniqueUsers: parseInt(result?.uniqueUsers ?? '0', 10),
     };
   }
 
@@ -183,12 +198,13 @@ export class AnalyticsService {
    * Calculate metrics with trend data
    */
   private calculateMetricsWithTrend(
-    current: { total: number; fulfilled: number; avgDuration: number },
-    prior: { total: number; fulfilled: number; avgDuration: number }
+    current: { total: number; fulfilled: number; avgDuration: number; uniqueUsers: number },
+    prior: { total: number; fulfilled: number; avgDuration: number; uniqueUsers: number }
   ): {
     totalExecutions: AnalyticsMetric;
     successRate: AnalyticsMetric;
     avgDuration: AnalyticsMetric;
+    uniqueUsers: AnalyticsMetric;
   } {
     const currentSuccessRate =
       current.total > 0 ? (current.fulfilled / current.total) * 100 : 0;
@@ -214,6 +230,11 @@ export class AnalyticsService {
           prior.avgDuration,
           false // Lower duration is better
         ),
+      },
+      uniqueUsers: {
+        value: current.uniqueUsers,
+        displayValue: this.formatNumber(current.uniqueUsers),
+        trend: this.calculateTrend(current.uniqueUsers, prior.uniqueUsers, true),
       },
     };
   }
@@ -247,7 +268,7 @@ export class AnalyticsService {
   }
 
   /**
-   * Get time-bucketed chart data
+   * Get time-bucketed chart data with all 4 metrics
    */
   private async getChartData(
     flowIds: string[],
@@ -255,7 +276,7 @@ export class AnalyticsService {
   ): Promise<ChartDataPoint[]> {
     const config = TIME_RANGE_CONFIGS[timeRange];
 
-    // Generate all expected buckets with 0 executions
+    // Generate all expected buckets with 0 values for all metrics
     const allBuckets = this.generateAllBuckets(timeRange);
 
     if (flowIds.length === 0) {
@@ -266,6 +287,19 @@ export class AnalyticsService {
       .createQueryBuilder('e')
       .select(`strftime('${config.bucketFormat}', e.startedAt)`, 'bucket')
       .addSelect('COUNT(*)', 'executions')
+      .addSelect('COUNT(DISTINCT e.userFingerprint)', 'uniqueUsers')
+      .addSelect(
+        `CASE WHEN COUNT(*) = 0 THEN 0 ELSE
+         (SUM(CASE WHEN e.status = 'fulfilled' THEN 1 ELSE 0 END) * 100.0 / COUNT(*))
+         END`,
+        'completionRate'
+      )
+      .addSelect(
+        `AVG(CASE WHEN e.endedAt IS NOT NULL
+             THEN (julianday(e.endedAt) - julianday(e.startedAt)) * 86400000
+             ELSE NULL END)`,
+        'avgDuration'
+      )
       .where('e.flowId IN (:...flowIds)', { flowIds })
       .andWhere('e.isPreview = :isPreview', { isPreview: false })
       .andWhere(`e.startedAt >= datetime('now', :modifier)`, {
@@ -275,25 +309,124 @@ export class AnalyticsService {
       .orderBy('bucket', 'ASC')
       .getRawMany();
 
-    // Create a map of bucket -> executions from query results
-    const executionMap = new Map<string, number>();
+    // Create a map of bucket -> metrics from query results
+    const metricsMap = new Map<
+      string,
+      { executions: number; uniqueUsers: number; completionRate: number; avgDuration: number }
+    >();
     for (const row of results) {
-      executionMap.set(row.bucket, parseInt(row.executions, 10));
+      metricsMap.set(row.bucket, {
+        executions: parseInt(row.executions, 10),
+        uniqueUsers: parseInt(row.uniqueUsers ?? '0', 10),
+        completionRate: parseFloat(row.completionRate ?? '0'),
+        avgDuration: parseFloat(row.avgDuration ?? '0'),
+      });
     }
 
-    // Merge query results into all buckets
-    return allBuckets.map((bucket) => ({
-      ...bucket,
-      executions: executionMap.get(bucket.timestamp) ?? 0,
-    }));
+    // Merge query results into all buckets with 0 defaults
+    return allBuckets.map((bucket) => {
+      const metrics = metricsMap.get(bucket.timestamp);
+      return {
+        ...bucket,
+        executions: metrics?.executions ?? 0,
+        uniqueUsers: metrics?.uniqueUsers ?? 0,
+        completionRate: metrics?.completionRate ?? 0,
+        avgDuration: metrics?.avgDuration ?? 0,
+      };
+    });
   }
 
   /**
-   * Generate all expected time buckets for a time range
+   * Get per-flow metrics for the flows table
+   */
+  private async getFlowsWithMetrics(
+    flows: { id: string; name: string }[],
+    timeRange: AnalyticsTimeRange
+  ): Promise<FlowAnalytics[]> {
+    if (flows.length === 0) {
+      return [];
+    }
+
+    const config = TIME_RANGE_CONFIGS[timeRange];
+    const flowIds = flows.map((f) => f.id);
+
+    // Query metrics grouped by flow
+    const results = await this.executionRepository
+      .createQueryBuilder('e')
+      .select('e.flowId', 'flowId')
+      .addSelect('COUNT(*)', 'executions')
+      .addSelect(
+        `CASE WHEN COUNT(*) = 0 THEN 0 ELSE
+         (SUM(CASE WHEN e.status = 'fulfilled' THEN 1 ELSE 0 END) * 100.0 / COUNT(*))
+         END`,
+        'completionRate'
+      )
+      .addSelect(
+        `AVG(CASE WHEN e.endedAt IS NOT NULL
+             THEN (julianday(e.endedAt) - julianday(e.startedAt)) * 86400000
+             ELSE NULL END)`,
+        'avgDuration'
+      )
+      .where('e.flowId IN (:...flowIds)', { flowIds })
+      .andWhere('e.isPreview = :isPreview', { isPreview: false })
+      .andWhere(`e.startedAt >= datetime('now', :modifier)`, {
+        modifier: config.modifier,
+      })
+      .groupBy('e.flowId')
+      .getRawMany();
+
+    // Create a map of flowId -> metrics
+    const metricsMap = new Map<
+      string,
+      { executions: number; completionRate: number; avgDuration: number }
+    >();
+    for (const row of results) {
+      metricsMap.set(row.flowId, {
+        executions: parseInt(row.executions, 10),
+        completionRate: parseFloat(row.completionRate ?? '0'),
+        avgDuration: parseFloat(row.avgDuration ?? '0'),
+      });
+    }
+
+    // Map flows with their metrics, sorted by executions descending
+    return flows
+      .map((flow) => {
+        const metrics = metricsMap.get(flow.id);
+        const executions = metrics?.executions ?? 0;
+        const completionRate = metrics?.completionRate ?? 0;
+        const avgDuration = metrics?.avgDuration ?? 0;
+
+        return {
+          id: flow.id,
+          name: flow.name,
+          executions,
+          completionRate,
+          avgDuration,
+          displayValues: {
+            executions: this.formatNumber(executions),
+            completionRate: `${completionRate.toFixed(1)}%`,
+            avgDuration: this.formatDuration(avgDuration),
+          },
+        };
+      })
+      .sort((a, b) => b.executions - a.executions);
+  }
+
+  /**
+   * Generate all expected time buckets for a time range with 0 values for all metrics
    */
   private generateAllBuckets(timeRange: AnalyticsTimeRange): ChartDataPoint[] {
     const now = new Date();
     const buckets: ChartDataPoint[] = [];
+
+    const createBucket = (timestamp: string): ChartDataPoint => ({
+      timestamp,
+      label: this.formatBucketLabel(timestamp, timeRange),
+      executions: 0,
+      uniqueUsers: 0,
+      completionRate: 0,
+      avgDuration: 0,
+    });
 
     if (timeRange === '24h') {
       // Generate 24 hourly buckets
@@ -301,11 +434,7 @@ export class AnalyticsService {
         const date = new Date(now);
         date.setHours(date.getHours() - i, 0, 0, 0);
         const timestamp = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:00`;
-        buckets.push({
-          timestamp,
-          label: this.formatBucketLabel(timestamp, timeRange),
-          executions: 0,
-        });
+        buckets.push(createBucket(timestamp));
       }
     } else if (timeRange === '7d') {
       // Generate 7 daily buckets
@@ -313,11 +442,7 @@ export class AnalyticsService {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
         const timestamp = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        buckets.push({
-          timestamp,
-          label: this.formatBucketLabel(timestamp, timeRange),
-          executions: 0,
-        });
+        buckets.push(createBucket(timestamp));
       }
     } else if (timeRange === '30d') {
       // Generate 30 daily buckets
@@ -325,11 +450,7 @@ export class AnalyticsService {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
         const timestamp = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        buckets.push({
-          timestamp,
-          label: this.formatBucketLabel(timestamp, timeRange),
-          executions: 0,
-        });
+        buckets.push(createBucket(timestamp));
       }
     } else if (timeRange === '3mo') {
       // Generate 13 weekly buckets
@@ -338,11 +459,7 @@ export class AnalyticsService {
         date.setDate(date.getDate() - i * 7);
         const weekNum = this.getISOWeekNumber(date);
         const timestamp = `${date.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-        buckets.push({
-          timestamp,
-          label: this.formatBucketLabel(timestamp, timeRange),
-          executions: 0,
-        });
+        buckets.push(createBucket(timestamp));
       }
     }
 

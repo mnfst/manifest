@@ -81,6 +81,7 @@ describe('FlowExecutionService', () => {
         status: 'pending',
         nodeExecutions: [],
         isPreview: false,
+        userFingerprint: undefined,
       });
       expect(mockRepository.save).toHaveBeenCalledWith(mockEntity);
     });
@@ -149,6 +150,63 @@ describe('FlowExecutionService', () => {
       const result = await service.createExecution(params);
 
       expect(result.initialParams).toEqual({});
+    });
+
+    it('should save userFingerprint when provided', async () => {
+      const fingerprint = 'abc123def456';
+      const params = createMockCreateExecutionParams({ userFingerprint: fingerprint });
+      const mockEntity = createMockExecutionEntity({ userFingerprint: fingerprint });
+
+      mockRepository.create!.mockReturnValue(mockEntity);
+      mockRepository.save!.mockResolvedValue(mockEntity);
+
+      const result = await service.createExecution(params);
+
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ userFingerprint: fingerprint }),
+      );
+      expect(result.userFingerprint).toBe(fingerprint);
+    });
+
+    it('should have undefined userFingerprint when not provided', async () => {
+      const params = createMockCreateExecutionParams({ userFingerprint: undefined });
+      const mockEntity = createMockExecutionEntity({ userFingerprint: undefined });
+
+      mockRepository.create!.mockReturnValue(mockEntity);
+      mockRepository.save!.mockResolvedValue(mockEntity);
+
+      const result = await service.createExecution(params);
+
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ userFingerprint: undefined }),
+      );
+      expect(result.userFingerprint).toBeUndefined();
+    });
+
+    it('should save both userFingerprint and isPreview together', async () => {
+      const fingerprint = 'user_fp_123';
+      const params = createMockCreateExecutionParams({
+        userFingerprint: fingerprint,
+        isPreview: false,
+      });
+      const mockEntity = createMockExecutionEntity({
+        userFingerprint: fingerprint,
+        isPreview: false,
+      });
+
+      mockRepository.create!.mockReturnValue(mockEntity);
+      mockRepository.save!.mockResolvedValue(mockEntity);
+
+      const result = await service.createExecution(params);
+
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userFingerprint: fingerprint,
+          isPreview: false,
+        }),
+      );
+      expect(result.userFingerprint).toBe(fingerprint);
+      expect(result.isPreview).toBe(false);
     });
   });
 

@@ -57,6 +57,10 @@ export class FlowExecutionEntity {
   @Column({ type: 'boolean', default: false })
   isPreview!: boolean;
 
+  /** Unique user fingerprint (hash of IP + User-Agent) for analytics */
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  userFingerprint?: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 

@@ -102,11 +102,13 @@ export function createMockMetricsResult(
   total: number = 100,
   fulfilled: number = 85,
   avgDuration: number = 1500.5,
+  uniqueUsers: number = 50,
 ) {
   return {
     total: String(total),
     fulfilled: String(fulfilled),
     avgDuration: String(avgDuration),
+    uniqueUsers: String(uniqueUsers),
   };
 }
 

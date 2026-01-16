@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { AnalyticsTimeRange } from '@chatgpt-app-builder/shared';
+import type { AnalyticsTimeRange, SelectedMetric } from '@chatgpt-app-builder/shared';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { MetricCard } from './MetricCard';
-import { ExecutionChart } from './ExecutionChart';
+import { AnalyticsChart } from './AnalyticsChart';
 import { TimeRangeSelect } from './TimeRangeSelect';
-import { FlowFilterSelect } from './FlowFilterSelect';
+import { FlowsTable } from './FlowsTable';
 
 interface AnalyticsDashboardProps {
   appId: string;
@@ -16,12 +16,11 @@ interface AnalyticsDashboardProps {
  */
 export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
   const [timeRange, setTimeRange] = useState<AnalyticsTimeRange>('7d');
-  const [flowId, setFlowId] = useState<string | undefined>(undefined);
+  const [selectedMetric, setSelectedMetric] = useState<SelectedMetric>('executions');
 
   const { data, isLoading, error } = useAnalytics({
     appId,
     timeRange,
-    flowId,
   });
 
   if (error) {
@@ -42,19 +41,14 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
-      <div className="flex justify-end gap-3">
-        <FlowFilterSelect
-          value={flowId}
-          onChange={setFlowId}
-          flows={data?.flows ?? []}
-        />
+      <div className="flex justify-end">
         <TimeRangeSelect value={timeRange} onChange={setTimeRange} />
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Total Executions"
+          title="Executions"
           metric={
             data?.metrics.totalExecutions ?? {
               value: 0,
@@ -63,9 +57,24 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
             }
           }
           isLoading={isLoading}
+          onClick={() => setSelectedMetric('executions')}
+          isSelected={selectedMetric === 'executions'}
         />
         <MetricCard
-          title="Success Rate"
+          title="Unique Users"
+          metric={
+            data?.metrics.uniqueUsers ?? {
+              value: 0,
+              displayValue: '0',
+              trend: null,
+            }
+          }
+          isLoading={isLoading}
+          onClick={() => setSelectedMetric('uniqueUsers')}
+          isSelected={selectedMetric === 'uniqueUsers'}
+        />
+        <MetricCard
+          title="Completion Rate"
           metric={
             data?.metrics.successRate ?? {
               value: 0,
@@ -74,6 +83,8 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
             }
           }
           isLoading={isLoading}
+          onClick={() => setSelectedMetric('completionRate')}
+          isSelected={selectedMetric === 'completionRate'}
         />
         <MetricCard
           title="Avg. Execution Time"
@@ -85,11 +96,20 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
             }
           }
           isLoading={isLoading}
+          onClick={() => setSelectedMetric('avgDuration')}
+          isSelected={selectedMetric === 'avgDuration'}
         />
       </div>
 
-      {/* Execution Chart */}
-      <ExecutionChart data={data?.chartData ?? []} isLoading={isLoading} />
+      {/* Analytics Chart */}
+      <AnalyticsChart
+        data={data?.chartData ?? []}
+        selectedMetric={selectedMetric}
+        isLoading={isLoading}
+      />
+
+      {/* Flows Table */}
+      <FlowsTable appId={appId} flows={data?.flowsWithMetrics ?? []} isLoading={isLoading} />
     </div>
   );
 }
