@@ -363,6 +363,48 @@ export interface TestTransformResponse {
 }
 
 // =============================================================================
+// Test API Call Types
+// =============================================================================
+
+/**
+ * Request to test an API call node by executing the actual HTTP request.
+ */
+export interface TestApiCallRequest {
+  /** Mock values for template variables (keyed by node slug) */
+  mockValues?: Record<string, unknown>;
+  /** Whether to save the inferred schema to the node */
+  saveSchema?: boolean;
+}
+
+/**
+ * Response from testing an API call.
+ */
+export interface TestApiCallResponse {
+  /** Whether the HTTP request completed (may still have non-2xx status) */
+  success: boolean;
+  /** HTTP status code */
+  status?: number;
+  /** HTTP status text */
+  statusText?: string;
+  /** Response headers */
+  headers?: Record<string, string>;
+  /** Parsed response body (JSON or text) */
+  body?: unknown;
+  /** Inferred JSON Schema from the response body */
+  outputSchema?: JSONSchema;
+  /** Error message (if failed) */
+  error?: string;
+  /** Execution time in milliseconds */
+  executionTimeMs?: number;
+  /** Warning message (e.g., for POST/PUT/DELETE side effects) */
+  warning?: string;
+  /** Whether schema was saved to the node */
+  schemaSaved?: boolean;
+  /** The actual URL that was called (after template resolution) */
+  requestUrl?: string;
+}
+
+// =============================================================================
 // Type Guards
 // =============================================================================
 

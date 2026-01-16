@@ -70,6 +70,8 @@ export type {
   InsertTransformerResponse,
   TestTransformRequest,
   TestTransformResponse,
+  TestApiCallRequest,
+  TestApiCallResponse,
 } from './types/node.js';
 export {
   isStatCardNode,

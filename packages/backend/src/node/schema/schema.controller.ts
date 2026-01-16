@@ -15,6 +15,8 @@ import type {
   ResolveSchemaResponse,
   FlowValidationResponse,
   FlowSchemasResponse,
+  TestApiCallRequest,
+  TestApiCallResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -71,6 +73,20 @@ export class SchemaController {
     @Body() request: ResolveSchemaRequest
   ): Promise<ResolveSchemaResponse> {
     return this.schemaService.resolveSchema(flowId, nodeId, request);
+  }
+
+  /**
+   * POST /flows/:flowId/nodes/:nodeId/test-request
+   * Test an ApiCall node by executing the actual HTTP request.
+   * Returns full response with inferred schema.
+   */
+  @Post('flows/:flowId/nodes/:nodeId/test-request')
+  async testApiRequest(
+    @Param('flowId') flowId: string,
+    @Param('nodeId') nodeId: string,
+    @Body() request: TestApiCallRequest
+  ): Promise<TestApiCallResponse> {
+    return this.schemaService.testApiRequest(flowId, nodeId, request);
   }
 
   // ==========================================================================

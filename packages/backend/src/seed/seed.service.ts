@@ -7,7 +7,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import { auth } from '../auth/auth';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
-import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER, USER_QUERY_PARAMETER } from '@chatgpt-app-builder/shared';
 import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatus } from '@chatgpt-app-builder/shared';
 
 /**
@@ -280,6 +280,7 @@ export class SeedService implements OnModuleInit {
           toolName: 'search_events_in_city',
           toolDescription: 'Search for events happening in a specific city',
           parameters: [
+            USER_QUERY_PARAMETER,
             {
               name: 'city',
               type: 'string',

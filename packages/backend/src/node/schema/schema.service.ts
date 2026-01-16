@@ -23,10 +23,13 @@ import {
   type NodeInstance,
   type UserIntentNodeParameters,
   type ApiCallNodeParameters,
+  type HeaderEntry,
   type RegistryNodeParameters,
   type FlowParameter,
   type SuggestedTransformer,
   type CompatibilityStatus,
+  type TestApiCallRequest,
+  type TestApiCallResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -151,9 +154,9 @@ export class SchemaService {
         const outputSchema = inferSchemaFromSample(sampleData);
 
         // Store resolved schema in node parameters
-        const params = (node.parameters ?? {}) as ApiCallNodeParameters;
+        const params = (node.parameters ?? {}) as unknown as ApiCallNodeParameters;
         params.resolvedOutputSchema = outputSchema;
-        node.parameters = params;
+        node.parameters = params as unknown as Record<string, unknown>;
 
         // Save updated flow
         flow.nodes = nodes;
@@ -197,6 +200,231 @@ export class SchemaService {
       resolved: schemaInfo.outputState === 'defined',
       outputSchema: schemaInfo.outputSchema,
     };
+  }
+
+  /**
+   * Test an ApiCall node by executing the actual HTTP request.
+   * Returns full response with inferred schema.
+   */
+  async testApiRequest(
+    flowId: string,
+    nodeId: string,
+    request: TestApiCallRequest
+  ): Promise<TestApiCallResponse> {
+    const flow = await this.findFlow(flowId);
+    const nodes = flow.nodes ?? [];
+    const node = nodes.find((n) => n.id === nodeId);
+
+    if (!node) {
+      throw new NotFoundException(
+        `Node with id ${nodeId} not found in flow ${flowId}`
+      );
+    }
+
+    if (node.type !== 'ApiCall') {
+      throw new BadRequestException(
+        `Node ${nodeId} is not an ApiCall node (type: ${node.type})`
+      );
+    }
+
+    const params = node.parameters as unknown as ApiCallNodeParameters;
+    const method = params.method || 'GET';
+    const rawUrl = params.url || '';
+    const rawHeaders = (params.headers as HeaderEntry[]) || [];
+    const timeout = params.timeout || 30000;
+
+    // Validate URL
+    if (!rawUrl || !rawUrl.trim()) {
+      return {
+        success: false,
+        error: 'URL is required. Configure the URL in the node settings.',
+      };
+    }
+
+    // Resolve template variables in URL
+    const { resolved: resolvedUrl, unresolvedVars: urlVars } =
+      this.resolveTemplateVariables(rawUrl, request.mockValues);
+
+    // Resolve template variables in headers
+    const resolvedHeaders: Record<string, string> = {};
+    const headerUnresolvedVars: string[] = [];
+
+    for (const header of rawHeaders) {
+      if (header.key && header.value) {
+        const { resolved, unresolvedVars } =
+          this.resolveTemplateVariables(header.value, request.mockValues);
+        resolvedHeaders[header.key] = resolved;
+        headerUnresolvedVars.push(...unresolvedVars);
+      }
+    }
+
+    // Check for unresolved variables
+    const allUnresolvedVars = [...urlVars, ...headerUnresolvedVars];
+    if (allUnresolvedVars.length > 0) {
+      const uniqueVars = [...new Set(allUnresolvedVars)];
+      return {
+        success: false,
+        error: `Unresolved template variables: ${uniqueVars.join(', ')}. Provide mock values or configure upstream nodes.`,
+      };
+    }
+
+    // Validate URL format
+    try {
+      new URL(resolvedUrl);
+    } catch {
+      return {
+        success: false,
+        error: `Invalid URL: ${resolvedUrl}`,
+        requestUrl: resolvedUrl,
+      };
+    }
+
+    // Add warning for mutating methods
+    const mutatingMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
+    const warning = mutatingMethods.includes(method.toUpperCase())
+      ? `This is a ${method} request and may modify data on the external server.`
+      : undefined;
+
+    const startTime = Date.now();
+
+    try {
+      // Setup timeout with AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      // Execute the HTTP request
+      const response = await fetch(resolvedUrl, {
+        method,
+        headers: resolvedHeaders,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Parse response headers
+      const responseHeaders: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
+      // Parse response body
+      let body: unknown;
+      const contentType = response.headers.get('content-type') || '';
+      const responseText = await response.text();
+
+      if (contentType.includes('application/json') && responseText) {
+        try {
+          body = JSON.parse(responseText);
+        } catch {
+          body = responseText;
+        }
+      } else {
+        body = responseText;
+      }
+
+      // Build output structure with dynamic fields only
+      // (type, status, statusText are static and already defined in ApiCallNode schema)
+      const dynamicOutput = {
+        headers: responseHeaders,
+        body,
+      };
+
+      // Infer schema from the dynamic fields
+      const outputSchema = inferSchemaFromSample(dynamicOutput);
+
+      // Optionally save schema to node
+      let schemaSaved = false;
+      if (request.saveSchema) {
+        params.resolvedOutputSchema = outputSchema;
+        node.parameters = params as unknown as Record<string, unknown>;
+        flow.nodes = nodes;
+        await this.flowRepository.save(flow);
+        schemaSaved = true;
+      }
+
+      return {
+        success: true,
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+        body,
+        outputSchema,
+        executionTimeMs: Date.now() - startTime,
+        warning,
+        schemaSaved,
+        requestUrl: resolvedUrl,
+      };
+    } catch (error) {
+      const executionTimeMs = Date.now() - startTime;
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          return {
+            success: false,
+            error: `Request timed out after ${timeout}ms`,
+            executionTimeMs,
+            warning,
+            requestUrl: resolvedUrl,
+          };
+        }
+        return {
+          success: false,
+          error: `Network error: ${error.message}`,
+          executionTimeMs,
+          warning,
+          requestUrl: resolvedUrl,
+        };
+      }
+
+      return {
+        success: false,
+        error: 'An unknown error occurred',
+        executionTimeMs,
+        warning,
+        requestUrl: resolvedUrl,
+      };
+    }
+  }
+
+  /**
+   * Resolve template variables in a string using mock values.
+   * Returns the resolved string and list of unresolved variable names.
+   */
+  private resolveTemplateVariables(
+    template: string,
+    mockValues?: Record<string, unknown>
+  ): { resolved: string; unresolvedVars: string[] } {
+    const unresolvedVars: string[] = [];
+
+    // Match {{nodeSlug.path.to.field}} or {{nodeSlug}}
+    const resolved = template.replace(/\{\{([^}]+)\}\}/g, (match, varPath) => {
+      const parts = varPath.trim().split('.');
+      const rootKey = parts[0];
+
+      if (!mockValues || !(rootKey in mockValues)) {
+        unresolvedVars.push(varPath);
+        return match; // Keep original placeholder
+      }
+
+      // Navigate the path
+      let value: unknown = mockValues[rootKey];
+      for (let i = 1; i < parts.length && value != null; i++) {
+        if (typeof value === 'object' && value !== null) {
+          value = (value as Record<string, unknown>)[parts[i]];
+        } else {
+          value = undefined;
+        }
+      }
+
+      if (value === undefined || value === null) {
+        unresolvedVars.push(varPath);
+        return match;
+      }
+
+      return String(value);
+    });
+
+    return { resolved, unresolvedVars };
   }
 
   // ==========================================================================
@@ -489,9 +717,18 @@ export class SchemaService {
 
     // Special handling for ApiCall nodes with resolved schema
     if (node.type === 'ApiCall') {
-      const params = node.parameters as ApiCallNodeParameters;
+      const params = node.parameters as unknown as ApiCallNodeParameters;
       if (params.resolvedOutputSchema) {
-        outputSchema = params.resolvedOutputSchema;
+        // Merge resolved schema (headers, body) with base ApiCall schema (static fields)
+        const baseSchema = nodeDef?.getOutputSchema?.() ?? { type: 'object', properties: {} };
+        const resolvedProps = (params.resolvedOutputSchema as JSONSchema).properties ?? {};
+        outputSchema = {
+          ...baseSchema,
+          properties: {
+            ...((baseSchema as { properties?: Record<string, unknown> }).properties ?? {}),
+            ...resolvedProps,
+          },
+        } as JSONSchema;
         outputState = 'defined';
       } else {
         // No resolved schema yet - mark as pending (can be discovered)

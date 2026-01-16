@@ -160,14 +160,14 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
             {getSchemaStateLabel(schemaInfo.outputState)}
           </span>
 
-          {/* Discover Schema Button for ApiCall nodes with pending/unknown output */}
-          {isApiCallNode && (isPendingOutput || schemaInfo.outputState === 'unknown') && !showDiscoveryPanel && (
+          {/* Paste Sample Button for ApiCall nodes - always visible for re-discovery */}
+          {isApiCallNode && !showDiscoveryPanel && (
             <button
               onClick={() => setShowDiscoveryPanel(true)}
               className="ml-auto flex items-center gap-1.5 px-2 py-1 text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition-colors"
             >
               <Wand2 className="w-3 h-3" />
-              Discover Schema
+              Paste Sample
             </button>
           )}
         </div>
@@ -178,7 +178,11 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
           </div>
         ) : isPendingOutput && !showDiscoveryPanel ? (
           <div className="text-sm text-yellow-600 py-2 pl-6">
-            Output schema pending - click "Discover Schema" to infer from a sample API response
+            {isApiCallNode ? (
+              <>Output schema pending - use "Test Request" in the Configuration tab to auto-discover, or "Paste Sample" to provide sample JSON</>
+            ) : (
+              <>Output schema pending - click "Paste Sample" to infer from a sample response</>
+            )}
           </div>
         ) : (
           <div className="pl-6">
@@ -198,7 +202,7 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Wand2 className="w-4 h-4 text-blue-600" />
-              <h4 className="text-sm font-medium text-blue-800">Discover Output Schema</h4>
+              <h4 className="text-sm font-medium text-blue-800">Paste Sample JSON</h4>
             </div>
             <button
               onClick={() => {

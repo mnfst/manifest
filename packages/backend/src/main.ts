@@ -72,8 +72,9 @@ async function bootstrap() {
 
   // Enable body parsing for non-auth routes (auth routes handle their own parsing)
   // Use NestJS's built-in body parser methods
-  app.useBodyParser('json');
-  app.useBodyParser('urlencoded', { extended: true });
+  // Increase limit for large payloads (e.g., registry components with embedded file content)
+  app.useBodyParser('json', { limit: '10mb' });
+  app.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
 
   // Serve uploaded files from /uploads path
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });

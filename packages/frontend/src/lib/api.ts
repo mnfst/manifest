@@ -25,6 +25,8 @@ import type {
   InsertTransformerResponse,
   TestTransformRequest,
   TestTransformResponse,
+  TestApiCallRequest,
+  TestApiCallResponse,
   // Execution types
   ExecutionStatus,
   ExecutionListResponse,
@@ -624,6 +626,21 @@ export const api = {
    */
   async getFlowSchemas(flowId: string): Promise<FlowSchemasResponse> {
     return fetchApi<FlowSchemasResponse>(`/flows/${flowId}/schemas`);
+  },
+
+  /**
+   * Test an API call node by executing the actual HTTP request
+   * POST /api/flows/:flowId/nodes/:nodeId/test-request
+   */
+  async testApiRequest(
+    flowId: string,
+    nodeId: string,
+    request: TestApiCallRequest
+  ): Promise<TestApiCallResponse> {
+    return fetchApi<TestApiCallResponse>(
+      `/flows/${flowId}/nodes/${nodeId}/test-request`,
+      { method: 'POST', body: JSON.stringify(request) }
+    );
   },
 
   // ============================================
