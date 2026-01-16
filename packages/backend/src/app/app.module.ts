@@ -17,6 +17,8 @@ import { AuthModule, AuthGuard, UserAppRoleEntity, PendingInvitationEntity } fro
 import { EmailVerificationTokenEntity } from '../auth/entities/email-verification-token.entity';
 import { EmailModule } from '../email/email.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { SecretModule } from '../secret/secret.module';
+import { AppSecretEntity } from '../secret/secret.entity';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
-      entities: [AppEntity, FlowEntity, FlowExecutionEntity, UserAppRoleEntity, PendingInvitationEntity, EmailVerificationTokenEntity],
+      entities: [AppEntity, FlowEntity, FlowExecutionEntity, UserAppRoleEntity, PendingInvitationEntity, EmailVerificationTokenEntity, AppSecretEntity],
       synchronize: true, // POC only - use migrations in production
     }),
     TypeOrmModule.forFeature([AppEntity, UserAppRoleEntity]),
@@ -40,6 +42,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     ChatModule,
     EmailModule,
     AnalyticsModule,
+    SecretModule,
   ],
   controllers: [AppController],
   providers: [

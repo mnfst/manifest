@@ -1,6 +1,8 @@
 # flows-and-nodes Development Guidelines
 
 ## Active Technologies
+- TypeScript 5.7.2, Node.js >= 18.0.0 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), Vite 6.0.5, TailwindCSS 3.4.17 (001-app-secrets-vault)
+- SQLite via better-sqlite3 11.7.0, TypeORM 0.3.20 (001-app-secrets-vault)
 
 ### Core Stack
 - **TypeScript** 5.7.2 (Node.js >= 18.0.0, strict mode)
@@ -192,3 +194,6 @@ import { Stats } from '@/components/ui/stats';
 ```
 
 <!-- MANUAL ADDITIONS END -->
+
+## Recent Changes
+- 001-app-secrets-vault: Added TypeScript 5.7.2, Node.js >= 18.0.0 + NestJS 10.4.15 (backend), React 18.3.1 (frontend), Vite 6.0.5, TailwindCSS 3.4.17
