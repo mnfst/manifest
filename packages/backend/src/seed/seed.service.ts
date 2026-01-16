@@ -279,7 +279,20 @@ export class SeedService implements OnModuleInit {
           whenNotToUse: 'Do not use for event booking or ticket purchases',
           toolName: 'search_events_in_city',
           toolDescription: 'Search for events happening in a specific city',
-          parameters: [],
+          parameters: [
+            {
+              name: 'city',
+              type: 'string',
+              description: 'The city the user wants to search for events in',
+              optional: false,
+            },
+            {
+              name: 'freeEventsOnly',
+              type: 'boolean',
+              description: 'The user is looking for free events only',
+              optional: true,
+            },
+          ],
           isActive: true,
         },
       };

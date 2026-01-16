@@ -86,7 +86,8 @@ export type CompatibilityIssueType =
   | 'missing_field'
   | 'type_mismatch'
   | 'format_mismatch'
-  | 'constraint_violation';
+  | 'constraint_violation'
+  | 'no_field_overlap';
 
 /**
  * A single compatibility issue (error or warning).

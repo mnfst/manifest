@@ -125,6 +125,10 @@ export interface RegistryNodeParameters {
   // Source code
   files: ComponentFile[];
 
+  // Original source code from registry (for detecting customizations)
+  // If files differ from originalFiles, the component has been customized
+  originalFiles?: ComponentFile[];
+
   // Optional configuration
   variant?: string;
   customProps?: Record<string, unknown>;
@@ -136,6 +140,10 @@ export interface RegistryNodeParameters {
   // Component actions (extracted from source code)
   // Creates action handles on the right side of the node
   actions?: LayoutAction[];
+
+  // Input schema for the component (derived from demo data)
+  // Used for connection validation
+  inputSchema?: import('./schema.js').JSONSchema;
 }
 
 // ============================================
