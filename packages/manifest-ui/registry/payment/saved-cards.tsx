@@ -32,36 +32,45 @@ export interface SavedCard {
 }
 
 /**
- * Props for the SavedCards component.
- * @interface SavedCardsProps
- * @property {object} [data] - Card and payment data
- * @property {SavedCard[]} [data.cards] - List of saved payment cards
- * @property {number} [data.amount] - Amount to charge
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectCard] - Called when a card is selected
- * @property {function} [actions.onAddNewCard] - Called when user wants to add a new card
- * @property {function} [actions.onPay] - Called when user initiates payment
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {object} [control] - State control options
- * @property {string} [control.selectedCardId] - Currently selected card ID
- * @property {boolean} [control.isLoading] - Shows loading state on pay button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * SavedCardsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a card selector component for choosing a saved payment method.
+ * Supports multiple card brands with visual indicators and default card marking.
  */
 export interface SavedCardsProps {
   data?: {
+    /** Array of saved payment cards to display. */
     cards?: SavedCard[]
+    /**
+     * Amount to charge, displayed in the pay button.
+     * @default 279.0
+     */
     amount?: number
   }
   actions?: {
+    /** Called when a card is selected from the list. */
     onSelectCard?: (cardId: string) => void
+    /** Called when the user clicks the add new card option. */
     onAddNewCard?: () => void
+    /** Called when the user initiates payment with the selected card. */
     onPay?: (cardId: string) => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the amount.
+     * @default "EUR"
+     */
     currency?: string
   }
   control?: {
+    /** ID of the currently selected card. */
     selectedCardId?: string
+    /**
+     * Shows loading state on the pay button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }

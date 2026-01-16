@@ -10,41 +10,41 @@ import {
 } from 'lucide-react'
 
 /**
- * Props for the EventConfirmation component.
- * @interface EventConfirmationProps
- * @property {object} [data] - Confirmation data
- * @property {string} [data.orderNumber] - Order/confirmation number
- * @property {string} [data.eventTitle] - Event title
- * @property {number} [data.ticketCount] - Number of tickets purchased
- * @property {string} [data.recipientEmail] - Email where tickets were sent
- * @property {string} [data.eventDate] - Event date and time string
- * @property {string} [data.eventLocation] - Event location
- * @property {object} [data.organizer] - Event organizer info
- * @property {string} [data.organizer.name] - Organizer name
- * @property {string} [data.organizer.image] - Organizer image URL
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onViewTickets] - Called when view tickets is clicked
- * @property {function} [actions.onChangeEmail] - Called when change email is clicked
- * @property {function} [actions.onFollowOrganizer] - Called when follow is clicked
- * @property {function} [actions.onShare] - Called when a share button is clicked
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventConfirmationProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventConfirmation component. Displays booking success message,
+ * ticket delivery info, organizer follow card, and social sharing options.
  */
 export interface EventConfirmationProps {
   data?: {
+    /** Order/confirmation number. */
     orderNumber?: string
+    /** Event title. */
     eventTitle?: string
+    /** Number of tickets purchased. */
     ticketCount?: number
+    /** Email address where tickets were sent. */
     recipientEmail?: string
+    /** Event date and time string. */
     eventDate?: string
+    /** Event location. */
     eventLocation?: string
+    /** Event organizer information. */
     organizer?: {
       name: string
       image?: string
     }
   }
   actions?: {
+    /** Called when "Take me to my tickets" button is clicked. */
     onViewTickets?: () => void
+    /** Called when "Change" email link is clicked. */
     onChangeEmail?: () => void
+    /** Called when "Follow" organizer button is clicked. */
     onFollowOrganizer?: () => void
+    /** Called when a social share button is clicked. */
     onShare?: (platform: 'facebook' | 'twitter' | 'messenger' | 'email') => void
   }
 }

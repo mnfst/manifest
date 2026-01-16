@@ -222,7 +222,7 @@ describe('Registry components should have preview configurations', () => {
   const previewComponentNames = getPreviewComponentNames()
 
   // Components that may be difficult to render in isolation
-  const skippedComponents = ['skeleton'] // Skeleton is just a utility
+  const skippedComponents: string[] = []
 
   for (const item of registry.items) {
     const { name } = item

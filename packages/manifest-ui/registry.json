@@ -12,13 +12,14 @@
       "categories": ["form"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/contact-form.png",
-        "version": "1.2.3",
+        "version": "1.2.4",
         "changelog": {
           "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
           "1.1.0": "Made phone, email, and message fields optional with defaults",
           "1.2.0": "Added initialValues prop to pre-fill form fields",
           "1.2.1": "Added aria-label to file removal button for screen reader accessibility",
-          "1.2.3": "Added comprehensive JSDoc documentation"
+          "1.2.3": "Added comprehensive JSDoc documentation",
+          "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -40,11 +41,12 @@
       "categories": ["form"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/date-time-picker.png",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "changelog": {
           "1.0.0": "Initial release with calendar and time slot selection",
           "1.0.1": "Added aria-labels to navigation buttons for better screen reader accessibility",
-          "1.0.3": "Added comprehensive JSDoc documentation"
+          "1.0.3": "Added comprehensive JSDoc documentation",
+          "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -66,11 +68,12 @@
       "categories": ["form"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/issue-report-form.png",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "changelog": {
           "1.0.0": "Initial release with categories, impact levels and file attachments",
           "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
-          "1.0.3": "Added comprehensive JSDoc documentation"
+          "1.0.3": "Added comprehensive JSDoc documentation",
+          "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -92,10 +95,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/card-form.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with card number, expiry, CVV and name fields",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -117,11 +121,12 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/pay-confirm.png",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "changelog": {
           "1.0.0": "Initial release with amount display and confirm actions",
           "1.0.1": "Updated to show a more realistic default amount",
-          "1.0.3": "Added comprehensive JSDoc documentation"
+          "1.0.3": "Added comprehensive JSDoc documentation",
+          "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -143,11 +148,12 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/order-summary.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts",
           "1.0.1": "Moved demo data to separate file for cleaner component code",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -169,10 +175,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/saved-cards.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with support for multiple card brands",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -194,10 +201,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/payment-success.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with order details and tracking options",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -219,10 +227,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/bank-card-form.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with compact inline layout for chat",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -244,10 +253,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/payment-methods.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with card brands and Apple Pay support",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -269,10 +279,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/order-confirm.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with product image and delivery info",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -294,10 +305,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/payment-confirmed.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with product image and tracking button",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -319,13 +331,14 @@
       "categories": ["list"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/product-list.png",
-        "version": "2.0.3",
+        "version": "2.0.4",
         "changelog": {
           "1.0.0": "Initial release with list, grid, carousel and picker variants",
           "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
           "2.0.1": "Added aria-labels to carousel navigation buttons and dots for accessibility",
           "2.0.2": "Moved demo data to separate file for cleaner component code",
-          "2.0.3": "Added comprehensive JSDoc documentation"
+          "2.0.3": "Added comprehensive JSDoc documentation",
+          "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -347,13 +360,14 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
-        "version": "2.1.0",
+        "version": "2.1.1",
         "changelog": {
           "1.0.0": "Initial release with single and multiple selection modes",
           "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
           "2.0.1": "Moved demo data to separate file for cleaner component code",
           "2.0.2": "Added comprehensive JSDoc documentation",
-          "2.1.0": "Moved to selection category for better organization"
+          "2.1.0": "Moved to selection category for better organization",
+          "2.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -375,10 +389,11 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/amount-input.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with increment buttons and preset values",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -400,11 +415,12 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with color variants and multi-select",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to selection category for better organization"
+          "1.1.0": "Moved to selection category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -426,13 +442,14 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/quick-reply.png",
-        "version": "3.1.0",
+        "version": "3.1.1",
         "changelog": {
           "1.0.0": "Initial release with quick reply button options",
           "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
           "3.0.0": "BREAKING: Removed id from QuickReply interface. Use array index for key.",
           "3.0.2": "Added comprehensive JSDoc documentation",
-          "3.1.0": "Moved to selection category for better organization"
+          "3.1.0": "Moved to selection category for better organization",
+          "3.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": [],
@@ -454,11 +471,12 @@
       "categories": ["status"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/progress-steps.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with horizontal and vertical layouts",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to status category for better organization"
+          "1.1.0": "Moved to status category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -480,11 +498,12 @@
       "categories": ["status"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/status-badge.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with multiple status states",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to status category for better organization"
+          "1.1.0": "Moved to status category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -506,10 +525,11 @@
       "categories": ["miscellaneous"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/stats.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with scrollable stat cards and trends",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -523,31 +543,6 @@
       ]
     },
     {
-      "name": "skeleton",
-      "type": "registry:block",
-      "title": "Skeleton Loaders",
-      "description": "Skeleton placeholder components with pulse animation for loading states.",
-      "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/skeleton.png",
-        "version": "1.0.2",
-        "changelog": {
-          "1.0.0": "Initial release with pulse animation placeholders",
-          "1.0.2": "Added comprehensive JSDoc documentation"
-        }
-      },
-      "dependencies": [],
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "registry/miscellaneous/skeleton.tsx",
-          "type": "registry:block",
-          "target": "components/ui/skeleton.tsx"
-        }
-      ]
-    },
-    {
       "name": "post-card",
       "type": "registry:block",
       "title": "Post Card",
@@ -556,12 +551,13 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-card.png",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
           "2.0.1": "Moved demo data to separate file for cleaner component code",
-          "2.0.2": "Added comprehensive JSDoc documentation"
+          "2.0.2": "Added comprehensive JSDoc documentation",
+          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -588,14 +584,15 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
-        "version": "2.0.3",
+        "version": "2.0.4",
         "changelog": {
           "1.0.0": "Initial release with list, grid and carousel variants",
           "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
           "2.0.1": "Added aria-labels to pagination and carousel navigation buttons for accessibility",
           "2.0.2": "Moved demo data to separate file for cleaner component code",
-          "2.0.3": "Added comprehensive JSDoc documentation"
+          "2.0.3": "Added comprehensive JSDoc documentation",
+          "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -627,12 +624,13 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
           "2.0.1": "Updated post-card dependency with extracted demo data",
-          "2.0.2": "Added comprehensive JSDoc documentation"
+          "2.0.2": "Added comprehensive JSDoc documentation",
+          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -659,12 +657,13 @@
       "categories": ["list"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/table.png",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "changelog": {
           "1.0.0": "Initial release with single and multi-select modes",
           "1.0.1": "Added descriptive alt tags for title images",
           "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
-          "1.0.4": "Added comprehensive JSDoc documentation"
+          "1.0.4": "Added comprehensive JSDoc documentation",
+          "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -686,7 +685,7 @@
       "categories": ["messaging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/message-bubble.png",
-        "version": "3.0.3",
+        "version": "3.0.4",
         "changelog": {
           "1.0.0": "Initial release with text, image, voice and reaction variants",
           "1.0.1": "Added better image captions for accessibility",
@@ -695,7 +694,8 @@
           "2.0.0": "BREAKING: Renamed avatar prop to avatarFallback for clarity",
           "3.0.0": "BREAKING: Renamed caption prop to content in ImageMessageBubble",
           "3.0.1": "Added aria-labels to reaction buttons and voice message controls for accessibility",
-          "3.0.3": "Added comprehensive JSDoc documentation"
+          "3.0.3": "Added comprehensive JSDoc documentation",
+          "3.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -717,7 +717,7 @@
       "categories": ["messaging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/chat-conversation.png",
-        "version": "4.0.3",
+        "version": "4.0.4",
         "changelog": {
           "1.0.0": "Initial release with multiple message types",
           "1.0.1": "Updated to use improved message bubble styling",
@@ -729,7 +729,8 @@
           "4.0.0": "BREAKING: Removed id from ChatMessage interface. Use array index for key.",
           "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls",
           "4.0.2": "Moved demo data to separate file for cleaner component code",
-          "4.0.3": "Added comprehensive JSDoc documentation"
+          "4.0.3": "Added comprehensive JSDoc documentation",
+          "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -756,11 +757,12 @@
       "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/x-post.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with engagement metrics display",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to social category for better organization"
+          "1.1.0": "Moved to social category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -782,12 +784,13 @@
       "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/instagram-post.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with image and engagement display",
           "1.0.1": "Improved alt text to include author name",
           "1.0.3": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to social category for better organization"
+          "1.1.0": "Moved to social category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -809,11 +812,12 @@
       "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/linkedin-post.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with professional styling",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to social category for better organization"
+          "1.1.0": "Moved to social category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -835,12 +839,13 @@
       "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/youtube-post.png",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "changelog": {
           "1.0.0": "Initial release with playable video embed",
           "1.0.1": "Improved alt text to include video title",
           "1.0.3": "Added comprehensive JSDoc documentation",
-          "1.1.0": "Moved to social category for better organization"
+          "1.1.0": "Moved to social category for better organization",
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -862,13 +867,14 @@
       "categories": ["map"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "1.2.1",
+        "version": "1.2.2",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
           "1.1.2": "Added comprehensive JSDoc documentation",
           "1.2.0": "Moved to map category for better organization",
-          "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components"
+          "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components",
+          "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
@@ -891,7 +897,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
-        "version": "5.0.3",
+        "version": "5.0.4",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
           "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
@@ -901,7 +907,8 @@
           "5.0.0": "BREAKING: Removed id from Event interface. Use array index for key.",
           "5.0.1": "Added accessibility support with role, tabIndex, keyboard handlers, and aria-label for all card variants",
           "5.0.2": "Moved demo data to separate file for cleaner component code",
-          "5.0.3": "Added comprehensive JSDoc documentation"
+          "5.0.3": "Added comprehensive JSDoc documentation",
+          "5.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -928,7 +935,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
-        "version": "6.0.4",
+        "version": "6.0.5",
         "changelog": {
           "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
@@ -942,7 +949,8 @@
           "6.0.1": "Added aria-labels to navigation buttons, carousel dots, filter close, and expand buttons for accessibility",
           "6.0.2": "Moved demo data to separate file for cleaner component code",
           "6.0.3": "Added comprehensive JSDoc documentation",
-          "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components"
+          "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
+          "6.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
@@ -970,7 +978,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
-        "version": "3.0.4",
+        "version": "3.0.5",
         "changelog": {
           "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
@@ -980,7 +988,8 @@
           "3.0.1": "Added aria-labels to image navigation, share, save, and back buttons for accessibility",
           "3.0.2": "Moved demo data to separate file for cleaner component code",
           "3.0.3": "Added comprehensive JSDoc documentation",
-          "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components"
+          "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
+          "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
@@ -1008,12 +1017,13 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/ticket-tier-select.png",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "changelog": {
           "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
           "1.1.0": "Added optional event image above order summary. Order summary now always visible with fixed width.",
           "2.0.0": "BREAKING: Refactored to use nested event object (event.title, event.date, event.image, event.currency) instead of flat props",
-          "2.0.2": "Added comprehensive JSDoc documentation"
+          "2.0.2": "Added comprehensive JSDoc documentation",
+          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -1035,12 +1045,13 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-checkout.png",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "changelog": {
           "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary",
           "1.1.0": "Added event image display above order summary on right side",
           "2.0.0": "BREAKING: Refactored to use nested event and order objects. Simplified onPlaceOrder to () => void. Moved timerMinutes to appearance.",
-          "2.0.2": "Added comprehensive JSDoc documentation"
+          "2.0.2": "Added comprehensive JSDoc documentation",
+          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -1062,10 +1073,11 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-confirmation.png",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "changelog": {
           "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",
-          "1.0.2": "Added comprehensive JSDoc documentation"
+          "1.0.2": "Added comprehensive JSDoc documentation",
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
       "dependencies": ["lucide-react"],

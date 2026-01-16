@@ -58,6 +58,96 @@ Uses shadcn style with:
 4. Run `pnpm run registry:build` to generate the distributable JSON
 5. Import in `app/page.tsx` to preview
 
+## Component Props Interface Convention
+
+**IMPORTANT**: All registry block components MUST follow this Props interface naming and documentation convention. Tests enforce these rules (`__tests__/props-jsdoc.test.ts`, `__tests__/component-exports.test.ts`).
+
+### Naming Convention
+
+Every exported component must have a corresponding Props interface named `{ComponentName}Props`:
+
+```typescript
+// For a component named "Table"
+export interface TableProps { ... }
+export function Table(props: TableProps) { ... }
+
+// For a component named "PaymentMethods"
+export interface PaymentMethodsProps { ... }
+export function PaymentMethods(props: PaymentMethodsProps) { ... }
+```
+
+### Standard Props Structure
+
+All component Props interfaces should use the semantic 4-category structure: `data`, `actions`, `appearance`, `control`.
+
+### JSDoc Requirements
+
+Props interfaces require two types of documentation:
+
+1. **Decorative header comment** above the interface with ═══ characters
+2. **JSDoc comments on each sub-parameter** inside data/actions/appearance/control
+
+**DO NOT** put comments on the category properties themselves (data, actions, appearance, control).
+
+```typescript
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ComponentNameProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the ComponentName component.
+ * Brief description of what the component does.
+ */
+export interface ComponentNameProps {
+  data?: {
+    /** Array of items to display in the list. */
+    items?: Item[]
+    /** Optional title displayed above the list. */
+    title?: string
+  }
+  actions?: {
+    /** Called when a user selects an item from the list. */
+    onSelect?: (item: Item) => void
+    /** Called when the form is submitted. */
+    onSubmit?: () => void
+  }
+  appearance?: {
+    /**
+     * Layout variant for the component.
+     * @default "default"
+     */
+    variant?: 'default' | 'compact'
+    /**
+     * Whether to show the header section.
+     * @default true
+     */
+    showHeader?: boolean
+  }
+  control?: {
+    /** Whether the component is in loading state. */
+    loading?: boolean
+    /** ID of the currently selected item for controlled selection. */
+    selectedId?: string
+  }
+}
+```
+
+### JSDoc Best Practices
+
+- Use `@default` tags for properties with default values
+- Keep descriptions concise but meaningful
+- For complex types, explain the expected structure
+- For callbacks, explain when they are triggered
+
+These comments make documentation visible in IDE hover tooltips, improving developer experience.
+
+### Running Tests
+
+```bash
+# Run all tests including Props interface convention tests
+pnpm test
+```
+
 ## Component Versioning (Semver)
 
 **CRITICAL**: Every component in `registry.json` MUST have a `version` field following [Semantic Versioning](https://semver.org/) conventions.

@@ -24,7 +24,6 @@ export const blockNames: Record<string, string> = {
   'progress-steps': 'Progress Steps',
   'status-badge': 'Status Badge',
   stats: 'Stats Cards',
-  skeleton: 'Skeleton',
   'post-card': 'Post Card',
   'post-list': 'Post List',
   'post-detail': 'Post Detail',
@@ -92,7 +91,6 @@ export const blockDescriptions: Record<string, string> = {
   'progress-steps': 'Progress indicator with horizontal and vertical layout options.',
   'status-badge': 'Status badges with multiple states like success, pending, error.',
   stats: 'Scrollable stat cards with trends and metric displays.',
-  skeleton: 'Skeleton loading placeholders with pulse animation.',
   'post-card':
     'Blog post card with default, compact, horizontal, and covered variants.',
   'post-list': 'Blog post list with list, grid, carousel, and fullwidth variants.',

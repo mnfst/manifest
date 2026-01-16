@@ -13,34 +13,49 @@ import { Separator } from "@/components/ui/separator"
 import { Check, CreditCard, ShieldCheck } from "lucide-react"
 
 /**
- * Props for the PayConfirm component.
- * @interface PayConfirmProps
- * @property {object} [data] - Payment data to display
- * @property {number} data.amount - The amount to be charged
- * @property {string} [data.cardLast4] - Last 4 digits of the card
- * @property {string} [data.cardBrand] - Card brand name (e.g., 'Visa', 'Mastercard')
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onConfirm] - Called when user confirms the payment
- * @property {function} [actions.onCancel] - Called when user cancels the payment
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting (default: 'USD')
- * @property {object} [control] - State control options
- * @property {boolean} [control.isLoading] - Shows loading state on buttons
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PayConfirmProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a payment confirmation component displaying amount, card details,
+ * and confirm/cancel actions. Follows ChatGPT UI guidelines for clear visual hierarchy.
  */
 export interface PayConfirmProps {
   data?: {
+    /**
+     * The amount to be charged.
+     * @default 99.99
+     */
     amount: number
+    /**
+     * Last 4 digits of the card to display.
+     * @default "4242"
+     */
     cardLast4?: string
+    /**
+     * Card brand name (e.g., "Visa", "Mastercard").
+     * @default "Visa"
+     */
     cardBrand?: string
   }
   actions?: {
+    /** Called when the user confirms the payment. */
     onConfirm?: () => void
+    /** Called when the user cancels the payment. */
     onCancel?: () => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the amount.
+     * @default "USD"
+     */
     currency?: string
   }
   control?: {
+    /**
+     * Shows loading state on the confirm and cancel buttons.
+     * @default false
+     */
     isLoading?: boolean
   }
 }

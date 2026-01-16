@@ -15,18 +15,20 @@ export interface QuickReply {
 }
 
 /**
- * Props for the QuickReply component.
- * @interface QuickReplyProps
- * @property {object} [data] - Replies data
- * @property {QuickReply[]} [data.replies] - Array of quick reply options
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectReply] - Called when a reply is selected
+ * ═══════════════════════════════════════════════════════════════════════════
+ * QuickReplyProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the QuickReply component, which displays predefined response
+ * options as pill-shaped buttons for chat interfaces.
  */
 export interface QuickReplyProps {
   data?: {
+    /** Array of quick reply options to display as buttons. */
     replies?: QuickReply[]
   }
   actions?: {
+    /** Called when a user selects a quick reply option. */
     onSelectReply?: (reply: QuickReply) => void
   }
 }

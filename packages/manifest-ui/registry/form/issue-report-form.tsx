@@ -87,39 +87,46 @@ const defaultAttemptedActions = [
 ]
 
 /**
- * Props for the IssueReportForm component.
- * @interface IssueReportFormProps
- * @property {object} [data] - Configuration data for the form
- * @property {string} [data.title] - Form title displayed at the top
- * @property {string[]} [data.teams] - List of team options for the dropdown
- * @property {string[]} [data.locations] - List of location options
- * @property {Record<string, string[]>} [data.categories] - Category to subcategory mapping
- * @property {{ value: string; label: string }[]} [data.impacts] - Impact level options
- * @property {{ value: string; label: string }[]} [data.urgencies] - Urgency level options
- * @property {{ value: string; label: string }[]} [data.frequencies] - Frequency options
- * @property {string[]} [data.attemptedActions] - Pre-defined actions user may have tried
- * @property {object} [actions] - Callback functions for form events
- * @property {function} [actions.onSubmit] - Called when the form is submitted
- * @property {object} [appearance] - Visual customization options
- * @property {boolean} [appearance.showTitle] - Whether to display the title
- * @property {boolean} [appearance.compactMode] - Use compact layout
+ * ═══════════════════════════════════════════════════════════════════════════
+ * IssueReportFormProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the IssueReportForm component for IT support, help desk, or
+ * internal ticketing systems.
  */
 export interface IssueReportFormProps {
   data?: {
+    /** Form title displayed at the top. */
     title?: string
+    /** List of team options for the dropdown. */
     teams?: string[]
+    /** List of location options. */
     locations?: string[]
+    /** Category to subcategory mapping. */
     categories?: Record<string, string[]>
+    /** Impact level options. */
     impacts?: { value: string; label: string }[]
+    /** Urgency level options. */
     urgencies?: { value: string; label: string }[]
+    /** Frequency options. */
     frequencies?: { value: string; label: string }[]
+    /** Pre-defined actions user may have tried. */
     attemptedActions?: string[]
   }
   actions?: {
+    /** Called when the form is submitted. */
     onSubmit?: (formData: IssueFormData) => void
   }
   appearance?: {
+    /**
+     * Whether to display the title.
+     * @default true
+     */
     showTitle?: boolean
+    /**
+     * Use compact layout.
+     * @default true
+     */
     compactMode?: boolean
   }
 }

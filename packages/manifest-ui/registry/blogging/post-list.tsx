@@ -8,38 +8,52 @@ import { Post, PostCard } from './post-card'
 import { demoPosts } from './demo/data'
 
 /**
- * Props for the PostList component.
- * @interface PostListProps
- * @property {object} [data] - Post data
- * @property {Post[]} [data.posts] - Array of posts to display
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onReadMore] - Called when read more is clicked
- * @property {function} [actions.onPageChange] - Called when page changes (fullwidth variant)
- * @property {object} [appearance] - Visual customization
- * @property {"list" | "grid" | "carousel" | "fullwidth"} [appearance.variant] - Layout variant
- * @property {2 | 3 | 4} [appearance.columns] - Number of columns for grid/fullwidth
- * @property {boolean} [appearance.showAuthor] - Whether to show author info
- * @property {boolean} [appearance.showCategory] - Whether to show category
- * @property {number} [appearance.postsPerPage] - Posts per page (fullwidth variant)
- * @property {object} [control] - State control
- * @property {number} [control.currentPage] - Controlled current page
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PostListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the PostList component, a blog post list with multiple layout variants.
  */
 export interface PostListProps {
   data?: {
+    /** Array of blog posts to display. */
     posts?: Post[]
   }
   actions?: {
+    /** Called when the read more button is clicked on a post. */
     onReadMore?: (post: Post) => void
+    /** Called when the page changes (fullwidth variant only). */
     onPageChange?: (page: number) => void
   }
   appearance?: {
+    /**
+     * Layout variant for the post list.
+     * @default "list"
+     */
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
+    /**
+     * Number of columns for grid and fullwidth variants.
+     * @default 2
+     */
     columns?: 2 | 3 | 4
+    /**
+     * Whether to show author information on post cards.
+     * @default true
+     */
     showAuthor?: boolean
+    /**
+     * Whether to show category labels on post cards.
+     * @default true
+     */
     showCategory?: boolean
+    /**
+     * Number of posts per page (fullwidth variant only).
+     * @default 10
+     */
     postsPerPage?: number
   }
   control?: {
+    /** Controlled current page number for pagination. */
     currentPage?: number
   }
 }
