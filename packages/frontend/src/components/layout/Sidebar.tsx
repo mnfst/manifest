@@ -93,7 +93,8 @@ export function Sidebar() {
   const isAnalyticsActive = currentAppId && pathname === `/app/${currentAppId}/analytics`;
   const isCollaboratorsActive = currentAppId && pathname === `/app/${currentAppId}/collaborators`;
   const isThemeActive = currentAppId && pathname === `/app/${currentAppId}/theme`;
-  const isSettingsActive = pathname === '/settings' || pathname.startsWith('/settings/');
+  const isAppSettingsActive = currentAppId && pathname === `/app/${currentAppId}/settings`;
+  const isUserSettingsActive = pathname === '/settings' || pathname.startsWith('/settings/');
 
   // Handle app creation
   const handleCreateApp = async (data: { name: string; description?: string }) => {
@@ -154,10 +155,10 @@ export function Sidebar() {
             isActive={!!isThemeActive}
           />
           <SidebarItem
-            to="/settings"
+            to={currentAppId ? `/app/${currentAppId}/settings` : '/settings'}
             label="Settings"
             icon={<SettingsIcon />}
-            isActive={isSettingsActive}
+            isActive={!!isAppSettingsActive || isUserSettingsActive}
           />
         </nav>
 

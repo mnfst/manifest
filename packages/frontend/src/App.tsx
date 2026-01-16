@@ -12,6 +12,7 @@ const FlowDetail = lazy(() => import('./pages/FlowDetail'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const VerifyEmailChangePage = lazy(() => import('./pages/VerifyEmailChangePage').then(m => ({ default: m.VerifyEmailChangePage })));
 const AcceptInvitePage = lazy(() => import('./pages/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
+const AppSettingsPage = lazy(() => import('./pages/AppSettingsPage').then(m => ({ default: m.AppSettingsPage })));
 
 /**
  * Loading fallback component for lazy-loaded routes
@@ -97,6 +98,7 @@ function ProtectedRoutes() {
               <Route path="/app/:appId/analytics" element={<AppDetail />} />
               <Route path="/app/:appId/collaborators" element={<AppDetail />} />
               <Route path="/app/:appId/theme" element={<AppDetail />} />
+              <Route path="/app/:appId/settings" element={<AppSettingsPage />} />
               <Route path="/app/:appId/flow/:flowId" element={<FlowDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

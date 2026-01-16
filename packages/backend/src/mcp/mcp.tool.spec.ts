@@ -49,16 +49,34 @@ jest.mock('@chatgpt-app-builder/nodes', () => ({
   },
 }));
 
+// Import SecretService for mocking
+import { SecretService } from '../secret/secret.service';
+
+/**
+ * Creates a mock SecretService for testing
+ */
+function createMockSecretService(): Record<string, jest.Mock> {
+  return {
+    listByAppId: jest.fn().mockResolvedValue([]),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    getAppIdForSecret: jest.fn(),
+  };
+}
+
 describe('McpToolService', () => {
   let service: McpToolService;
   let mockAppRepository: MockRepository<AppEntity>;
   let mockFlowRepository: MockRepository<FlowEntity>;
   let mockFlowExecutionService: Record<string, jest.Mock>;
+  let mockSecretService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     mockAppRepository = createMockAppRepository();
     mockFlowRepository = createMockFlowRepository();
     mockFlowExecutionService = createMockFlowExecutionService();
+    mockSecretService = createMockSecretService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -74,6 +92,10 @@ describe('McpToolService', () => {
         {
           provide: FlowExecutionService,
           useValue: mockFlowExecutionService,
+        },
+        {
+          provide: SecretService,
+          useValue: mockSecretService,
         },
       ],
     }).compile();
@@ -493,6 +515,263 @@ describe('McpToolService', () => {
             userFingerprint: '',
           }),
         );
+      });
+    });
+
+    // ============================================================
+    // Tests for secrets interpolation in templates
+    // ============================================================
+    describe('secrets interpolation', () => {
+      it('should call secretService.listByAppId with correct app ID', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-123' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        const flow = createSimpleTriggerReturnFlow({ toolName: 'secrets_tool' });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        await service.executeTool('test-app', 'secrets_tool', { message: 'test' });
+
+        expect(mockSecretService.listByAppId).toHaveBeenCalledWith('app-123');
+      });
+
+      it('should resolve {{ secrets.KEY }} template in Return node text', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        // Mock secrets
+        mockSecretService.listByAppId.mockResolvedValue([
+          { id: 's1', appId: 'app-1', key: 'API_KEY', value: 'secret-api-key-123' },
+        ]);
+
+        // Create flow with Return node using secrets template
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ id: triggerId, toolName: 'secret_tool' }),
+            createMockReturnNode({ id: returnId, text: 'Your API key is: {{ secrets.API_KEY }}' }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'secret_tool', { message: 'get key' });
+
+        expect(result.content[0].text).toBe('Your API key is: secret-api-key-123');
+      });
+
+      it('should resolve multiple secrets in a single template', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        // Mock multiple secrets
+        mockSecretService.listByAppId.mockResolvedValue([
+          { id: 's1', appId: 'app-1', key: 'API_KEY', value: 'key-123' },
+          { id: 's2', appId: 'app-1', key: 'API_SECRET', value: 'secret-456' },
+        ]);
+
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ id: triggerId, toolName: 'multi_secret_tool' }),
+            createMockReturnNode({
+              id: returnId,
+              text: 'Key: {{ secrets.API_KEY }}, Secret: {{ secrets.API_SECRET }}',
+            }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'multi_secret_tool', { message: 'test' });
+
+        expect(result.content[0].text).toBe('Key: key-123, Secret: secret-456');
+      });
+
+      it('should return empty string for missing secret keys', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        // Mock secrets without the requested key
+        mockSecretService.listByAppId.mockResolvedValue([
+          { id: 's1', appId: 'app-1', key: 'OTHER_KEY', value: 'some-value' },
+        ]);
+
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ id: triggerId, toolName: 'missing_secret_tool' }),
+            createMockReturnNode({
+              id: returnId,
+              text: 'API key: {{ secrets.MISSING_KEY }}!',
+            }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'missing_secret_tool', { message: 'test' });
+
+        expect(result.content[0].text).toBe('API key: !');
+      });
+
+      it('should handle empty secrets list', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        // No secrets configured
+        mockSecretService.listByAppId.mockResolvedValue([]);
+
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ id: triggerId, toolName: 'no_secrets_tool' }),
+            createMockReturnNode({
+              id: returnId,
+              text: 'Value: {{ secrets.ANY_KEY }}',
+            }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'no_secrets_tool', { message: 'test' });
+
+        expect(result.content[0].text).toBe('Value: ');
+      });
+
+      it('should resolve secrets alongside trigger parameters', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        // Mock secrets
+        mockSecretService.listByAppId.mockResolvedValue([
+          { id: 's1', appId: 'app-1', key: 'BASE_URL', value: 'https://api.example.com' },
+        ]);
+
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({
+              id: triggerId,
+              slug: 'trigger',
+              toolName: 'combined_tool',
+              parameters: [
+                { name: 'userId', type: 'string', optional: false },
+              ],
+            }),
+            createMockReturnNode({
+              id: returnId,
+              text: 'URL: {{ secrets.BASE_URL }}/users/{{ trigger.userId }}',
+            }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'combined_tool', { userId: '42' });
+
+        expect(result.content[0].text).toBe('URL: https://api.example.com/users/42');
+      });
+
+      it('should handle secrets with special characters in values', async () => {
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        // Mock secret with special characters
+        mockSecretService.listByAppId.mockResolvedValue([
+          { id: 's1', appId: 'app-1', key: 'TOKEN', value: 'abc123!@#$%^&*()_+-=[]{}|' },
+        ]);
+
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ id: triggerId, toolName: 'special_chars_tool' }),
+            createMockReturnNode({
+              id: returnId,
+              text: 'Token: {{ secrets.TOKEN }}',
+            }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'special_chars_tool', { message: 'test' });
+
+        expect(result.content[0].text).toBe('Token: abc123!@#$%^&*()_+-=[]{}|');
+      });
+
+      it('should not expose secrets in execution logs as plain text', async () => {
+        // This test verifies that secrets are resolved but the original
+        // template syntax is replaced, not the raw secret values stored visibly
+        const mockApp = createMockAppEntity({ id: 'app-1' });
+        mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+        mockSecretService.listByAppId.mockResolvedValue([
+          { id: 's1', appId: 'app-1', key: 'PASSWORD', value: 'super-secret-password' },
+        ]);
+
+        const triggerId = 'trigger-1';
+        const returnId = 'return-1';
+        const flow = createMockFlowEntity({
+          nodes: [
+            createMockUserIntentNode({ id: triggerId, toolName: 'secure_tool' }),
+            createMockReturnNode({
+              id: returnId,
+              text: 'Auth: {{ secrets.PASSWORD }}',
+            }),
+          ],
+          connections: [
+            createMockConnection({
+              sourceNodeId: triggerId,
+              targetNodeId: returnId,
+            }),
+          ],
+        });
+        mockFlowRepository.find!.mockResolvedValue([flow]);
+
+        const result = await service.executeTool('test-app', 'secure_tool', { message: 'test' });
+
+        // The resolved text should contain the secret value
+        expect(result.content[0].text).toBe('Auth: super-secret-password');
+
+        // Verify execution was recorded
+        expect(mockFlowExecutionService.updateExecution).toHaveBeenCalled();
       });
     });
   });

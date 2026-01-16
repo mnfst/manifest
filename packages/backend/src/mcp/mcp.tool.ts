@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
+import { SecretService } from '../secret/secret.service';
 import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@chatgpt-app-builder/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
 
@@ -98,7 +99,8 @@ export class McpToolService {
     private readonly appRepository: Repository<AppEntity>,
     @InjectRepository(FlowEntity)
     private readonly flowRepository: Repository<FlowEntity>,
-    private readonly flowExecutionService: FlowExecutionService
+    private readonly flowExecutionService: FlowExecutionService,
+    private readonly secretService: SecretService
   ) {}
 
   /**
@@ -341,6 +343,15 @@ export class McpToolService {
 
       // Store outputs from executed nodes for chaining
       const nodeOutputs = new Map<string, unknown>();
+
+      // Load app secrets and add as virtual "secrets" namespace
+      // Allows templates like {{ secrets.API_KEY }} to resolve
+      const appSecrets = await this.secretService.listByAppId(app.id);
+      const secretsObj: Record<string, string> = {};
+      for (const secret of appSecrets) {
+        secretsObj[secret.key] = secret.value;
+      }
+      nodeOutputs.set('secrets', secretsObj);
 
       // Store the trigger node's output (validated input parameters)
       // This allows downstream nodes to reference trigger params like {{ trigger.pokemonName }}

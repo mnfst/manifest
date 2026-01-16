@@ -288,3 +288,11 @@ export {
   SYSTEM_PARAMETER_NAMES,
 } from './constants/parameters.js';
 export type { SystemParameterName } from './constants/parameters.js';
+
+// Secret types (for app secrets vault)
+export type {
+  AppSecret,
+  CreateSecretRequest,
+  UpdateSecretRequest,
+  SecretListResponse,
+} from './types/secret.js';

@@ -7,6 +7,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { AppService } from '../app/app.service';
 import { FlowExecutionModule } from '../flow-execution/flow-execution.module';
 import { AuthModule } from '../auth/auth.module';
+import { SecretModule } from '../secret/secret.module';
 
 /**
  * MCP module for Model Context Protocol server functionality
@@ -22,6 +23,7 @@ import { AuthModule } from '../auth/auth.module';
     TypeOrmModule.forFeature([AppEntity, FlowEntity]),
     FlowExecutionModule,
     AuthModule,
+    SecretModule,
   ],
   controllers: [UiController],
   providers: [McpToolService, AppService],

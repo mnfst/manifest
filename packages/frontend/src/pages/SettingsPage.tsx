@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Settings, Key, User } from 'lucide-react';
+import { Key, User } from 'lucide-react';
 import { Tabs } from '../components/common/Tabs';
 import { ApiKeysTab } from '../components/settings/ApiKeysTab';
-import { GeneralTab } from '../components/settings/GeneralTab';
 import { AccountTab } from '../components/settings/AccountTab';
 import type { SettingsTab, SettingsTabConfig } from '../types/tabs';
 
@@ -18,7 +17,7 @@ export function SettingsPage() {
 
   // Sync tab state with URL
   useEffect(() => {
-    if (tabFromUrl && ['general', 'api-keys', 'account'].includes(tabFromUrl)) {
+    if (tabFromUrl && ['api-keys', 'account'].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
   }, [tabFromUrl]);
@@ -30,7 +29,6 @@ export function SettingsPage() {
 
   const tabs: SettingsTabConfig[] = [
     { id: 'account', label: 'Account', icon: User },
-    { id: 'general', label: 'General', icon: Settings },
     { id: 'api-keys', label: 'API Keys', icon: Key },
   ];
 
@@ -57,14 +55,6 @@ export function SettingsPage() {
             <div className="max-w-2xl mx-auto">
               <div className="bg-card rounded-lg border">
                 <AccountTab />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'general' && (
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-card rounded-lg border">
-                <GeneralTab />
               </div>
             </div>
           )}

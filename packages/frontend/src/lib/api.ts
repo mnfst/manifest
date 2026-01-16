@@ -67,6 +67,11 @@ import type {
   // Analytics types
   AnalyticsTimeRange,
   AppAnalyticsResponse,
+  // Secret types
+  AppSecret,
+  CreateSecretRequest,
+  UpdateSecretRequest,
+  SecretListResponse,
 } from '@chatgpt-app-builder/shared';
 
 /**
@@ -862,6 +867,50 @@ export const api = {
    */
   async checkDefaultUser(): Promise<DefaultUserCheckResponse> {
     return fetchApi<DefaultUserCheckResponse>('/users/default-user');
+  },
+
+  // ============================================
+  // Secrets Management APIs
+  // ============================================
+
+  /**
+   * List all secrets for an app
+   * GET /api/apps/:appId/secrets
+   */
+  async listSecrets(appId: string): Promise<SecretListResponse> {
+    return fetchApi<SecretListResponse>(`/apps/${appId}/secrets`);
+  },
+
+  /**
+   * Create a new secret for an app
+   * POST /api/apps/:appId/secrets
+   */
+  async createSecret(appId: string, request: CreateSecretRequest): Promise<AppSecret> {
+    return fetchApi<AppSecret>(`/apps/${appId}/secrets`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Update an existing secret
+   * PATCH /api/secrets/:secretId
+   */
+  async updateSecret(secretId: string, request: UpdateSecretRequest): Promise<AppSecret> {
+    return fetchApi<AppSecret>(`/secrets/${secretId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(request),
+    });
+  },
+
+  /**
+   * Delete a secret
+   * DELETE /api/secrets/:secretId
+   */
+  async deleteSecret(secretId: string): Promise<void> {
+    await fetchApi<void>(`/secrets/${secretId}`, {
+      method: 'DELETE',
+    });
   },
 
 };
