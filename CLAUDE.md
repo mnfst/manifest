@@ -50,6 +50,28 @@ pnpm build      # Production build
 - Follow standard conventions
 - Max 300 lines per file, 50 lines per function
 
+## First-Time Setup
+
+Before running `pnpm dev` for the first time in a fresh clone/worktree:
+
+1. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+2. **Build shared packages** (backend depends on these):
+   ```bash
+   pnpm --filter @chatgpt-app-builder/shared build
+   pnpm --filter @chatgpt-app-builder/nodes build
+   ```
+
+3. **Create the database directory** (SQLite requires it to exist):
+   ```bash
+   mkdir -p packages/backend/data
+   ```
+
+The database file (`packages/backend/data/app.db`) is created automatically on first run. The seed service will create a default admin user (`admin@manifest.build`) and sample data.
+
 <!-- MANUAL ADDITIONS START -->
 
 ## Pull Request Guidelines
