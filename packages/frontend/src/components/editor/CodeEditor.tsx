@@ -95,7 +95,7 @@ export function CodeEditor({
           rectangularSelection: true,
           crosshairCursor: false,
           highlightSelectionMatches: true,
-          searchKeymap: true,
+          searchKeymap: false,
           tabSize: 2,
         }}
         style={{

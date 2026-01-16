@@ -102,6 +102,7 @@ export function JSONEditor({
           closeBrackets: true,
           autocompletion: true,
           highlightSelectionMatches: true,
+          searchKeymap: false,
           tabSize: 2,
         }}
       />
