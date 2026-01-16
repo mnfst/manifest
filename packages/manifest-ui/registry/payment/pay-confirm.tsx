@@ -28,18 +28,22 @@ import { Check, CreditCard, ShieldCheck } from "lucide-react"
  * @property {boolean} [control.isLoading] - Shows loading state on buttons
  */
 export interface PayConfirmProps {
+  /** Content and data to display */
   data?: {
     amount: number
     cardLast4?: string
     cardBrand?: string
   }
+  /** User-triggerable callbacks */
   actions?: {
     onConfirm?: () => void
     onCancel?: () => void
   }
+  /** Visual configuration options */
   appearance?: {
     currency?: string
   }
+  /** State management */
   control?: {
     isLoading?: boolean
   }

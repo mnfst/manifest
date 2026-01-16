@@ -29,6 +29,7 @@ export interface StatCard {
  * @property {StatCard[]} [data.stats] - Array of stat cards to display
  */
 export interface StatsProps {
+  /** Content and data to display */
   data?: {
     stats?: StatCard[]
   }

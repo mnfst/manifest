@@ -125,6 +125,7 @@ export interface TableColumn<T = Record<string, unknown>> {
  * @property {T[]} [control.selectedRows] - Controlled selected rows
  */
 export interface TableProps<T = Record<string, unknown>> {
+  /** Content and data to display */
   data?: {
     columns?: TableColumn<T>[]
     rows?: T[]
@@ -133,6 +134,7 @@ export interface TableProps<T = Record<string, unknown>> {
     lastUpdated?: Date | string
     totalRows?: number
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectionChange?: (selectedRows: T[]) => void
     onCopy?: (selectedRows: T[]) => void
@@ -141,6 +143,7 @@ export interface TableProps<T = Record<string, unknown>> {
     onRefresh?: () => void
     onExpand?: () => void
   }
+  /** Visual configuration options */
   appearance?: {
     selectable?: 'none' | 'single' | 'multi'
     emptyMessage?: string
@@ -153,6 +156,7 @@ export interface TableProps<T = Record<string, unknown>> {
     /** Display mode: 'inline' (default) or 'fullscreen'. In fullscreen, shows pagination and filters. */
     displayMode?: DisplayMode
   }
+  /** State management */
   control?: {
     loading?: boolean
     selectedRows?: T[]

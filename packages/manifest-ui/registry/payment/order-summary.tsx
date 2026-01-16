@@ -44,6 +44,7 @@ export interface OrderItem {
  * @property {string} [appearance.currency] - Currency code (default: USD)
  */
 export interface OrderSummaryProps {
+  /** Content and data to display */
   data?: {
     items?: OrderItem[]
     subtotal?: number
@@ -53,6 +54,7 @@ export interface OrderSummaryProps {
     discountCode?: string
     total?: number
   }
+  /** Visual configuration options */
   appearance?: {
     currency?: string
   }

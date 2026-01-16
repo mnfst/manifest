@@ -51,18 +51,22 @@ export interface ContactFormData {
  * @property {boolean} [control.isLoading] - Shows loading state on submit button
  */
 export interface ContactFormProps {
+  /** Content and data to display */
   data?: {
     title?: string
     subtitle?: string
     submitLabel?: string
     initialValues?: Partial<ContactFormData>
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSubmit?: (data: ContactFormData) => void
   }
+  /** Visual configuration options */
   appearance?: {
     showTitle?: boolean
   }
+  /** State management */
   control?: {
     isLoading?: boolean
   }

@@ -105,6 +105,7 @@ const defaultAttemptedActions = [
  * @property {boolean} [appearance.compactMode] - Use compact layout
  */
 export interface IssueReportFormProps {
+  /** Content and data to display */
   data?: {
     title?: string
     teams?: string[]
@@ -115,9 +116,11 @@ export interface IssueReportFormProps {
     frequencies?: { value: string; label: string }[]
     attemptedActions?: string[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSubmit?: (formData: IssueFormData) => void
   }
+  /** Visual configuration options */
   appearance?: {
     showTitle?: boolean
     compactMode?: boolean

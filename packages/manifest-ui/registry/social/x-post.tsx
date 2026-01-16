@@ -18,6 +18,7 @@ import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
  * @property {boolean} [data.verified] - Whether the author is verified
  */
 export interface XPostProps {
+  /** Content and data to display */
   data?: {
     author?: string
     username?: string

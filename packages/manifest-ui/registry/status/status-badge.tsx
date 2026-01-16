@@ -35,9 +35,11 @@ export type StatusType =
  * @property {"sm" | "md" | "lg"} [appearance.size] - Badge size variant
  */
 export interface StatusBadgeProps {
+  /** Content and data to display */
   data?: {
     status?: StatusType
   }
+  /** Visual configuration options */
   appearance?: {
     label?: string
     showIcon?: boolean

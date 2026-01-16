@@ -35,16 +35,20 @@ export interface Option {
  * @property {number[]} [control.selectedOptionIndexes] - Controlled selected indexes
  */
 export interface OptionListProps {
+  /** Content and data to display */
   data?: {
     options?: Option[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectOption?: (option: Option) => void
     onSelectOptions?: (options: Option[]) => void
   }
+  /** Visual configuration options */
   appearance?: {
     multiple?: boolean
   }
+  /** State management */
   control?: {
     selectedOptionIndex?: number
     selectedOptionIndexes?: number[]

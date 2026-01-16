@@ -48,18 +48,22 @@ export interface SavedCard {
  * @property {boolean} [control.isLoading] - Shows loading state on pay button
  */
 export interface SavedCardsProps {
+  /** Content and data to display */
   data?: {
     cards?: SavedCard[]
     amount?: number
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectCard?: (cardId: string) => void
     onAddNewCard?: () => void
     onPay?: (cardId: string) => void
   }
+  /** Visual configuration options */
   appearance?: {
     currency?: string
   }
+  /** State management */
   control?: {
     selectedCardId?: string
     isLoading?: boolean

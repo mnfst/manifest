@@ -23,6 +23,7 @@ export interface Step {
  * @property {Step[]} [data.steps] - Array of steps to display
  */
 export interface ProgressStepsProps {
+  /** Content and data to display */
   data?: {
     steps?: Step[]
   }

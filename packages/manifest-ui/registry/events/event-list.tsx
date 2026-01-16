@@ -387,10 +387,12 @@ function FilterPanel({
 }
 
 export interface EventListProps {
+  /** Content and data to display */
   data?: {
     events?: Event[]
     title?: string
   }
+  /** User-triggerable callbacks */
   actions?: {
     onEventSelect?: (event: Event) => void
     onPageChange?: (page: number) => void
@@ -399,11 +401,13 @@ export interface EventListProps {
     onFilterClick?: () => void
     onFiltersApply?: (filters: FilterState) => void
   }
+  /** Visual configuration options */
   appearance?: {
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
     columns?: 2 | 3 | 4
     eventsPerPage?: number
   }
+  /** State management */
   control?: {
     currentPage?: number
   }

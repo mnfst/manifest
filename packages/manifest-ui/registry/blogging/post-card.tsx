@@ -51,12 +51,15 @@ export interface Post {
  * @property {boolean} [appearance.showCategory] - Whether to show category
  */
 export interface PostCardProps {
+  /** Content and data to display */
   data?: {
     post?: Post
   }
+  /** User-triggerable callbacks */
   actions?: {
     onReadMore?: (post: Post) => void
   }
+  /** Visual configuration options */
   appearance?: {
     variant?: 'default' | 'compact' | 'horizontal' | 'covered'
     showImage?: boolean

@@ -164,16 +164,19 @@ const defaultRelatedPosts: Post[] = [
  * @property {"inline" | "fullscreen"} [appearance.displayMode] - Display mode
  */
 export interface PostDetailProps {
+  /** Content and data to display */
   data?: {
     post?: Post
     content?: string
     relatedPosts?: Post[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onBack?: () => void
     onReadMore?: () => void
     onReadRelated?: (post: Post) => void
   }
+  /** Visual configuration options */
   appearance?: {
     showCover?: boolean
     showAuthor?: boolean

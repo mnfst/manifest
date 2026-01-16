@@ -29,12 +29,15 @@ export interface BankCardFormData {
  * @property {string} [appearance.currency] - Currency code for formatting
  */
 export interface BankCardFormProps {
+  /** Content and data to display */
   data?: {
     amount?: number
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSubmit?: (data: BankCardFormData) => void
   }
+  /** Visual configuration options */
   appearance?: {
     submitLabel?: string
     currency?: string

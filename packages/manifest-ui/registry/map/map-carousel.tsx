@@ -115,15 +115,18 @@ export type MapStyle =
  * @property {string} [appearance.mapHeight] - Map container height (e.g., "504px")
  */
 export interface MapCarouselProps {
+  /** Content and data to display */
   data?: {
     locations?: Location[]
     center?: [number, number]
     zoom?: number
     mapStyle?: MapStyle
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectLocation?: (location: Location) => void
   }
+  /** Visual configuration options */
   appearance?: {
     mapHeight?: string
   }

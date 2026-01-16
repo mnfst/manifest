@@ -29,6 +29,7 @@ import {
  * @property {function} [actions.onShare] - Called when a share button is clicked
  */
 export interface EventConfirmationProps {
+  /** Content and data to display */
   data?: {
     orderNumber?: string
     eventTitle?: string
@@ -41,6 +42,7 @@ export interface EventConfirmationProps {
       image?: string
     }
   }
+  /** User-triggerable callbacks */
   actions?: {
     onViewTickets?: () => void
     onChangeEmail?: () => void

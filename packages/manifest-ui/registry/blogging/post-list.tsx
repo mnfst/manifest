@@ -25,13 +25,16 @@ import { demoPosts } from './demo/data'
  * @property {number} [control.currentPage] - Controlled current page
  */
 export interface PostListProps {
+  /** Content and data to display */
   data?: {
     posts?: Post[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onReadMore?: (post: Post) => void
     onPageChange?: (page: number) => void
   }
+  /** Visual configuration options */
   appearance?: {
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
     columns?: 2 | 3 | 4
@@ -39,6 +42,7 @@ export interface PostListProps {
     showCategory?: boolean
     postsPerPage?: number
   }
+  /** State management */
   control?: {
     currentPage?: number
   }

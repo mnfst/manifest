@@ -35,6 +35,7 @@ export interface ChatMessage {
  * @property {ChatMessage[]} [data.messages] - Array of messages
  */
 export interface ChatConversationProps {
+  /** Content and data to display */
   data?: {
     messages?: ChatMessage[]
   }

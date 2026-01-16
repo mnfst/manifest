@@ -18,6 +18,7 @@ import { Check, ExternalLink } from 'lucide-react'
  * @property {string} [appearance.currency] - Currency code for formatting
  */
 export interface PaymentSuccessProps {
+  /** Content and data to display */
   data?: {
     orderId?: string
     productName?: string
@@ -25,9 +26,11 @@ export interface PaymentSuccessProps {
     price?: number
     deliveryDate?: string
   }
+  /** User-triggerable callbacks */
   actions?: {
     onTrackOrder?: () => void
   }
+  /** Visual configuration options */
   appearance?: {
     currency?: string
   }

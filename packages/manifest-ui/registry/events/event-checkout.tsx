@@ -105,15 +105,18 @@ const defaultEvent: CheckoutEvent = {
  * @property {boolean} [appearance.showEventCard] - Whether to show event card
  */
 export interface EventCheckoutProps {
+  /** Content and data to display */
   data?: {
     event?: CheckoutEvent
     order?: CheckoutOrder
     paymentMethods?: PaymentMethod[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onBack?: () => void
     onPlaceOrder?: () => void
   }
+  /** Visual configuration options */
   appearance?: {
     showTimer?: boolean
     timerMinutes?: number

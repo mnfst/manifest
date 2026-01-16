@@ -26,6 +26,7 @@ import {
  * @property {string} [data.videoId] - YouTube video ID for embedding
  */
 export interface YouTubePostProps {
+  /** Content and data to display */
   data?: {
     channel?: string
     avatar?: string

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
  * @property {string} [appearance.className] - Additional CSS classes for sizing and styling
  */
 export interface SkeletonProps {
+  /** Visual configuration options */
   appearance?: {
     className?: string
   }
@@ -77,6 +78,7 @@ export function SkeletonProductCard() {
 }
 
 export interface SkeletonProductGridProps {
+  /** Visual configuration options */
   appearance?: {
     columns?: 3 | 4
   }

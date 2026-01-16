@@ -23,9 +23,11 @@ export interface QuickReply {
  * @property {function} [actions.onSelectReply] - Called when a reply is selected
  */
 export interface QuickReplyProps {
+  /** Content and data to display */
   data?: {
     replies?: QuickReply[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectReply?: (reply: QuickReply) => void
   }

@@ -63,6 +63,7 @@ function Avatar({ src, fallback, className }: InternalAvatarOptions) {
  * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
  */
 export interface MessageBubbleProps {
+  /** Content and data to display */
   data?: {
     content?: string
     avatarUrl?: string
@@ -70,9 +71,11 @@ export interface MessageBubbleProps {
     author?: string
     time?: string
   }
+  /** Visual configuration options */
   appearance?: {
     isOwn?: boolean
   }
+  /** State management */
   control?: {
     status?: 'sent' | 'delivered' | 'read'
   }
@@ -165,6 +168,7 @@ export function MessageBubble({
  * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
  */
 export interface ImageMessageBubbleProps {
+  /** Content and data to display */
   data?: {
     image?: string
     content?: string
@@ -173,9 +177,11 @@ export interface ImageMessageBubbleProps {
     author?: string
     time?: string
   }
+  /** Visual configuration options */
   appearance?: {
     isOwn?: boolean
   }
+  /** State management */
   control?: {
     status?: 'sent' | 'delivered' | 'read'
   }
@@ -280,6 +286,7 @@ export function ImageMessageBubble({
  * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
  */
 export interface MessageWithReactionsProps {
+  /** Content and data to display */
   data?: {
     content?: string
     avatarUrl?: string
@@ -288,9 +295,11 @@ export interface MessageWithReactionsProps {
     time?: string
     reactions?: { emoji: string; count: number }[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onReact?: (emoji: string) => void
   }
+  /** Visual configuration options */
   appearance?: {
     isOwn?: boolean
   }
@@ -504,6 +513,7 @@ export function MessageWithReactions({
  * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
  */
 export interface VoiceMessageBubbleProps {
+  /** Content and data to display */
   data?: {
     duration?: string
     avatarUrl?: string
@@ -512,9 +522,11 @@ export interface VoiceMessageBubbleProps {
     time?: string
     audioSrc?: string
   }
+  /** Visual configuration options */
   appearance?: {
     isOwn?: boolean
   }
+  /** State management */
   control?: {
     status?: 'sent' | 'delivered' | 'read'
   }

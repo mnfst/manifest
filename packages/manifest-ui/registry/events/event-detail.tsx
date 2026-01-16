@@ -233,9 +233,11 @@ function VenueMapMarker({
 }
 
 export interface EventDetailProps {
+  /** Content and data to display */
   data?: {
     event?: EventDetails
   }
+  /** User-triggerable callbacks */
   actions?: {
     onGetTickets?: (event: EventDetails) => void
     onShare?: (event: EventDetails) => void
@@ -244,6 +246,7 @@ export interface EventDetailProps {
     onFollow?: (organizer: EventDetails['organizer']) => void
     onContact?: (organizer: EventDetails['organizer']) => void
   }
+  /** Visual configuration options */
   appearance?: {
     showAiMatch?: boolean
     showMap?: boolean

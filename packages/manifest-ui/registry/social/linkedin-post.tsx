@@ -23,6 +23,7 @@ import {
  * @property {string} [data.time] - Time since posted (e.g., "2h")
  */
 export interface LinkedInPostProps {
+  /** Content and data to display */
   data?: {
     author?: string
     headline?: string

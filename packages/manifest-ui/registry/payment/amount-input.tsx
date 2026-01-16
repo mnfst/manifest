@@ -23,13 +23,16 @@ import { cn } from "@/lib/utils"
  * @property {number} [control.value] - Controlled value
  */
 export interface AmountInputProps {
+  /** Content and data to display */
   data?: {
     presets?: number[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onChange?: (value: number) => void
     onConfirm?: (value: number) => void
   }
+  /** Visual configuration options */
   appearance?: {
     min?: number
     max?: number
@@ -37,6 +40,7 @@ export interface AmountInputProps {
     currency?: string
     label?: string
   }
+  /** State management */
   control?: {
     value?: number
   }

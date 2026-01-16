@@ -118,17 +118,21 @@ const defaultEvent: TicketTierEvent = {
  * @property {Record<string, number>} [control.selections] - Initial selections
  */
 export interface TicketTierSelectProps {
+  /** Content and data to display */
   data?: {
     event?: TicketTierEvent
     tiers?: TicketTier[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onCheckout?: (selections: TicketSelection[], total: number) => void
     onSelectionChange?: (selections: TicketSelection[]) => void
   }
+  /** Visual configuration options */
   appearance?: {
     showOrderSummary?: boolean
   }
+  /** State management */
   control?: {
     selections?: Record<string, number>
   }

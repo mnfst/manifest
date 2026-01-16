@@ -62,20 +62,24 @@ const getTimeForOffset = (offset: number) => {
  * @property {string | null} [control.selectedTime] - Controlled selected time value
  */
 export interface DateTimePickerProps {
+  /** Content and data to display */
   data?: {
     title?: string
     availableDates?: Date[]
     availableTimeSlots?: string[]
     timezone?: string
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelect?: (date: Date, time: string) => void
     onNext?: (date: Date, time: string) => void
   }
+  /** Visual configuration options */
   appearance?: {
     showTitle?: boolean
     showTimezone?: boolean
   }
+  /** State management */
   control?: {
     selectedDate?: Date | null
     selectedTime?: string | null

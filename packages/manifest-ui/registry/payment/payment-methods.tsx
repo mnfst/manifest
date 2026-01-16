@@ -39,18 +39,22 @@ export interface PaymentMethod {
  * @property {boolean} [control.isLoading] - Shows loading state on pay button
  */
 export interface PaymentMethodsProps {
+  /** Content and data to display */
   data?: {
     methods?: PaymentMethod[]
     amount?: number
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectMethod?: (methodId: string) => void
     onAddCard?: () => void
     onPay?: (methodId: string) => void
   }
+  /** Visual configuration options */
   appearance?: {
     currency?: string
   }
+  /** State management */
   control?: {
     selectedMethodId?: string
     isLoading?: boolean

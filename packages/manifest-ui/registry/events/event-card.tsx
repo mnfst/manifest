@@ -33,12 +33,15 @@ import '@/lib/openai-types'
  * @property {boolean} [appearance.showRating] - Whether to show organizer rating
  */
 export interface EventCardProps {
+  /** Content and data to display */
   data?: {
     event?: Event
   }
+  /** User-triggerable callbacks */
   actions?: {
     onClick?: (event: Event) => void
   }
+  /** Visual configuration options */
   appearance?: {
     variant?: 'default' | 'compact' | 'horizontal' | 'covered'
     showSignal?: boolean

@@ -38,9 +38,11 @@ export interface CardFormData {
  * @property {boolean} [control.isLoading] - Shows loading state on submit button
  */
 export interface CardFormProps {
+  /** User-triggerable callbacks */
   actions?: {
     onSubmit?: (data: CardFormData) => void
   }
+  /** State management */
   control?: {
     isLoading?: boolean
   }

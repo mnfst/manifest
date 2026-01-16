@@ -47,19 +47,23 @@ export interface Product {
  * @property {string} [control.selectedProductId] - Currently selected product ID
  */
 export interface ProductListProps {
+  /** Content and data to display */
   data?: {
     products?: Product[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectProduct?: (product: Product) => void
     onAddToCart?: (products: Product[]) => void
   }
+  /** Visual configuration options */
   appearance?: {
     variant?: 'list' | 'grid' | 'carousel' | 'picker'
     currency?: string
     columns?: 3 | 4
     buttonLabel?: string
   }
+  /** State management */
   control?: {
     selectedProductIndex?: number
   }

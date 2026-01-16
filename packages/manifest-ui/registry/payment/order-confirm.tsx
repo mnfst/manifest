@@ -23,6 +23,7 @@ import { ArrowRight, Calendar, MapPin } from 'lucide-react'
  * @property {boolean} [control.isLoading] - Shows loading state on confirm button
  */
 export interface OrderConfirmProps {
+  /** Content and data to display */
   data?: {
     productName?: string
     productVariant?: string
@@ -33,12 +34,15 @@ export interface OrderConfirmProps {
     deliveryAddress?: string
     freeShipping?: boolean
   }
+  /** User-triggerable callbacks */
   actions?: {
     onConfirm?: () => void
   }
+  /** Visual configuration options */
   appearance?: {
     currency?: string
   }
+  /** State management */
   control?: {
     isLoading?: boolean
   }

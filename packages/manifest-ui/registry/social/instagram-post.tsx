@@ -22,6 +22,7 @@ import {
  * @property {boolean} [data.verified] - Whether the author is verified
  */
 export interface InstagramPostProps {
+  /** Content and data to display */
   data?: {
     author?: string
     avatar?: string

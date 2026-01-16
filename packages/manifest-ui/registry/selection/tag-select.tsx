@@ -35,19 +35,23 @@ export interface Tag {
  * @property {string[]} [control.selectedTagIds] - Array of selected tag IDs
  */
 export interface TagSelectProps {
+  /** Content and data to display */
   data?: {
     tags?: Tag[]
   }
+  /** User-triggerable callbacks */
   actions?: {
     onSelectTags?: (tagIds: string[]) => void
     onValidate?: (tagIds: string[]) => void
   }
+  /** Visual configuration options */
   appearance?: {
     mode?: 'single' | 'multiple'
     showClear?: boolean
     showValidate?: boolean
     validateLabel?: string
   }
+  /** State management */
   control?: {
     selectedTagIds?: string[]
   }
