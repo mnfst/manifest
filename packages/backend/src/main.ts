@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -9,15 +10,39 @@ import { auth, runAuthMigrations } from './auth/auth';
 
 /**
  * Validate required environment variables
+ * Throws an error for critical missing vars in production
  */
 function validateEnvironment() {
+  const errors: string[] = [];
   const warnings: string[] = [];
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // SECURITY: Auth secret is required in production
+  if (!process.env.BETTER_AUTH_SECRET) {
+    if (isProduction) {
+      errors.push(
+        'BETTER_AUTH_SECRET is required in production. Generate with: openssl rand -base64 32'
+      );
+    } else {
+      warnings.push(
+        'BETTER_AUTH_SECRET is not set. Using insecure default for development.'
+      );
+    }
+  }
 
   // Check for OpenAI API key (required for agent functionality)
   if (!process.env.OPENAI_API_KEY) {
     warnings.push(
       'OPENAI_API_KEY is not set. Agent functionality will use mock responses.'
     );
+  }
+
+  // Fail fast on critical errors in production
+  if (errors.length > 0) {
+    console.error('\n❌ Environment Configuration Errors:');
+    errors.forEach((e) => console.error(`   - ${e}`));
+    console.error('');
+    process.exit(1);
   }
 
   // Log warnings
@@ -41,24 +66,39 @@ async function bootstrap() {
     bodyParser: false, // Required for better-auth to handle raw body
   });
 
-  // Enable CORS
+  // Enable CORS with strict origin validation
+  // SECURITY: Explicit allowlist instead of permissive wildcards
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+    : [];
+
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or same-origin)
+      // Allow requests with no origin (same-origin, mobile apps, curl)
       if (!origin) return callback(null, true);
-      // Allow any localhost origin in development
-      if (origin.match(/^http:\/\/localhost:\d+$/)) {
+
+      // Development: allow localhost on any port
+      if (process.env.NODE_ENV !== 'production') {
+        if (origin.match(/^http:\/\/localhost:\d+$/)) {
+          return callback(null, true);
+        }
+      }
+
+      // Check against explicit allowlist (from ALLOWED_ORIGINS env var)
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      // Allow Railway and other production domains
-      if (origin.includes('.up.railway.app') || origin.includes('.railway.app')) {
-        return callback(null, true);
+
+      // Production: allow Railway domains if no explicit allowlist
+      if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+        if (origin.match(/^https:\/\/[\w-]+\.up\.railway\.app$/) ||
+            origin.match(/^https:\/\/[\w-]+\.railway\.app$/)) {
+          return callback(null, true);
+        }
       }
-      // In production, allow same-origin requests (frontend served by backend)
-      if (process.env.NODE_ENV === 'production') {
-        return callback(null, true);
-      }
-      callback(null, false);
+
+      // Reject all other origins
+      callback(new Error(`Origin ${origin} not allowed by CORS`), false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
@@ -98,6 +138,20 @@ async function bootstrap() {
   // Increase limit for large payloads (e.g., registry components with embedded file content)
   app.useBodyParser('json', { limit: '10mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
+
+  // Global validation pipe for input validation on all DTOs
+  // SECURITY: Validates and sanitizes incoming request data
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,           // Strip properties not in DTO
+      forbidNonWhitelisted: true, // Throw error for unknown properties
+      transform: true,           // Auto-transform payloads to DTO instances
+      transformOptions: {
+        enableImplicitConversion: true, // Convert primitive types
+      },
+    })
+  );
+  console.log('✅ Global validation pipe enabled');
 
   // Serve uploaded files from /uploads path
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });

@@ -3,6 +3,26 @@ import { getMigrations } from 'better-auth/db';
 import Database from 'better-sqlite3';
 
 /**
+ * Build trusted origins list for better-auth
+ * SECURITY: Explicit allowlist instead of wildcards
+ */
+function getTrustedOrigins(): string[] {
+  const origins: string[] = [];
+
+  // Add origins from ALLOWED_ORIGINS env var
+  if (process.env.ALLOWED_ORIGINS) {
+    origins.push(...process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()));
+  }
+
+  // In development, allow localhost
+  if (process.env.NODE_ENV !== 'production') {
+    origins.push('http://localhost:3847', 'http://localhost:5173', 'http://localhost:5174');
+  }
+
+  return origins;
+}
+
+/**
  * Better Auth instance configuration
  * This handles user authentication, sessions, and account management
  */
@@ -26,9 +46,8 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // 1 day
   },
 
-  // trustedOrigins handled by NestJS CORS in main.ts
-  // Using '*' here allows any origin since NestJS CORS does the actual filtering
-  trustedOrigins: ['*'],
+  // SECURITY: Explicit origin allowlist (no wildcards)
+  trustedOrigins: getTrustedOrigins(),
 
   // Custom user fields for first and last name
   user: {
