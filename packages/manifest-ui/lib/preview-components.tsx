@@ -85,9 +85,9 @@ const demoPosts = Array.from({ length: 6 }, (_, i) => ({
 }))
 
 const demoProducts = [
-  { name: 'Premium Headphones', price: 299, image: '/demo/shoe-1.png' },
-  { name: 'Wireless Earbuds', price: 149, image: '/demo/shoe-2.png' },
-  { name: 'Smart Speaker', price: 199, image: '/demo/shoe-3.png' }
+  { name: 'Premium Headphones', price: 299, image: 'https://ui.manifest.build/demo/shoe-1.png' },
+  { name: 'Wireless Earbuds', price: 149, image: 'https://ui.manifest.build/demo/shoe-2.png' },
+  { name: 'Smart Speaker', price: 199, image: 'https://ui.manifest.build/demo/shoe-3.png' }
 ]
 
 const demoOrderItems = [
@@ -165,11 +165,11 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'payment'
   },
   'order-confirm': {
-    component: <OrderConfirm data={{ productName: 'Premium Headphones', productImage: '/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
+    component: <OrderConfirm data={{ productName: 'Premium Headphones', productImage: 'https://ui.manifest.build/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'
   },
   'payment-confirmed': {
-    component: <PaymentConfirmed data={{ productName: 'Premium Headphones', productImage: '/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
+    component: <PaymentConfirmed data={{ productName: 'Premium Headphones', productImage: 'https://ui.manifest.build/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'
   },
   'amount-input': {
