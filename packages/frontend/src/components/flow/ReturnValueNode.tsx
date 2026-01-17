@@ -1,8 +1,8 @@
+import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, ReturnNodeParameters } from '@chatgpt-app-builder/shared';
 import { FileText, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
 
 export interface ReturnValueNodeData extends Record<string, unknown> {
   node: NodeInstance;
@@ -16,7 +16,7 @@ export interface ReturnValueNodeData extends Record<string, unknown> {
  * Green-themed card design to distinguish from Interface nodes
  * No right-side handle as it's a terminal/end action
  */
-export function ReturnValueNode({ data }: NodeProps) {
+export const ReturnValueNode = memo(function ReturnValueNode({ data }: NodeProps) {
   const { node, canDelete, onEdit, onDelete } = data as ReturnValueNodeData;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -133,4 +133,4 @@ export function ReturnValueNode({ data }: NodeProps) {
       {/* NO right handle - this is an end action */}
     </div>
   );
-}
+});
