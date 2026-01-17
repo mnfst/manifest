@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import type { Flow, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Textarea } from '@/components/ui/shadcn/textarea';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
 
 interface EditFlowFormProps {
   flow: Flow;
@@ -50,39 +55,32 @@ export function EditFlowForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label
-          htmlFor="flow-name"
-          className="block text-sm font-medium mb-1"
-        >
+      <div className="space-y-2">
+        <Label htmlFor="flow-name">
           Flow Name
-        </label>
-        <input
+        </Label>
+        <Input
           id="flow-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="My Flow"
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
           disabled={isLoading}
           maxLength={300}
           required
         />
       </div>
 
-      <div>
-        <label
-          htmlFor="flow-description"
-          className="block text-sm font-medium mb-1"
-        >
+      <div className="space-y-2">
+        <Label htmlFor="flow-description">
           Description (optional)
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="flow-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="A brief description of this flow..."
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background min-h-[60px] resize-y"
+          className="min-h-[60px] resize-y"
           disabled={isLoading}
           maxLength={500}
         />
@@ -93,25 +91,16 @@ export function EditFlowForm({
       </p>
 
       {(error || validationError) && (
-        <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-          {error || validationError}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error || validationError}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex justify-end gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          className="px-4 py-2 text-sm font-medium border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
-        >
+        <Button variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading || !name.trim()}
-          className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2"
-        >
+        </Button>
+        <Button type="submit" disabled={isLoading || !name.trim()}>
           {isLoading && (
             <svg
               className="w-4 h-4 animate-spin"
@@ -134,7 +123,7 @@ export function EditFlowForm({
             </svg>
           )}
           {isLoading ? 'Saving...' : 'Save Changes'}
-        </button>
+        </Button>
       </div>
     </form>
   );

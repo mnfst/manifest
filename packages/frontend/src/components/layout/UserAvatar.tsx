@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { Button } from '@/components/ui/shadcn/button';
 
 /**
  * User avatar component showing authenticated user info
@@ -43,9 +44,10 @@ export function UserAvatar() {
 
   return (
     <div className="relative">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="flex items-center gap-3 w-full text-left hover:bg-nav-hover rounded-lg p-1 -m-1 transition-colors"
+        className="flex items-center gap-3 w-full text-left text-nav-foreground hover:bg-nav-hover rounded-lg p-1 -m-1 h-auto"
       >
         <div
           className="w-9 h-9 rounded-full bg-nav-active flex items-center justify-center text-sm font-medium text-white"
@@ -63,7 +65,7 @@ export function UserAvatar() {
             </span>
           )}
         </div>
-      </button>
+      </Button>
 
       {/* Dropdown menu */}
       {isMenuOpen && (
@@ -77,12 +79,13 @@ export function UserAvatar() {
           {/* Menu */}
           <div className="absolute bottom-full left-0 mb-2 w-48 rounded-lg bg-nav border border-nav-foreground/20 shadow-lg z-20">
             <div className="py-1">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setIsMenuOpen(false);
                   navigate('/settings?tab=account');
                 }}
-                className="flex items-center w-full px-4 py-2 text-sm text-nav-foreground hover:bg-nav-hover"
+                className="flex items-center w-full px-4 py-2 text-sm text-nav-foreground hover:bg-nav-hover justify-start rounded-none h-auto"
               >
                 <svg
                   className="mr-3 h-4 w-4 text-nav-foreground/60"
@@ -98,13 +101,14 @@ export function UserAvatar() {
                   />
                 </svg>
                 User Settings
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setIsMenuOpen(false);
                   logout();
                 }}
-                className="flex items-center w-full px-4 py-2 text-sm text-nav-foreground hover:bg-nav-hover"
+                className="flex items-center w-full px-4 py-2 text-sm text-nav-foreground hover:bg-nav-hover justify-start rounded-none h-auto"
               >
                 <svg
                   className="mr-3 h-4 w-4 text-nav-foreground/60"
@@ -120,7 +124,7 @@ export function UserAvatar() {
                   />
                 </svg>
                 Sign Out
-              </button>
+              </Button>
             </div>
           </div>
         </>

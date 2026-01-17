@@ -6,6 +6,7 @@ import {
   getTypeColor,
   type SchemaFieldInfo,
 } from '../../lib/schemaUtils';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface SchemaViewerProps {
   schema: JSONSchema | null;
@@ -31,16 +32,18 @@ function FieldRow({ field, depth = 0 }: FieldRowProps) {
         style={{ paddingLeft }}
       >
         {hasChildren ? (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-0.5 hover:bg-gray-200 rounded transition-colors"
+            className="h-5 w-5 p-0"
           >
             {isExpanded ? (
               <ChevronDown className="w-3 h-3 text-gray-500" />
             ) : (
               <ChevronRight className="w-3 h-3 text-gray-500" />
             )}
-          </button>
+          </Button>
         ) : field.truncated ? (
           <span title="Nested content truncated (depth limit reached)">
             <MoreHorizontal className="w-3 h-3 text-gray-400" />
@@ -135,9 +138,10 @@ export function SchemaViewer({
   return (
     <div className="rounded-lg border border-gray-200 overflow-hidden bg-white">
       {title && (
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+          className="w-full flex items-center justify-start gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-none h-auto"
         >
           {isExpanded ? (
             <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -148,7 +152,7 @@ export function SchemaViewer({
           <span className="text-xs text-gray-400">
             ({fields.length} field{fields.length !== 1 ? 's' : ''})
           </span>
-        </button>
+        </Button>
       )}
 
       {(!title || isExpanded) && (

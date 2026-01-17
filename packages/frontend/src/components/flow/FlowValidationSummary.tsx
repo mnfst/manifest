@@ -14,6 +14,8 @@ import type {
   ConnectionValidationResult,
   CompatibilityStatus,
 } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 import { api } from '../../lib/api';
 
 interface FlowValidationSummaryProps {
@@ -90,9 +92,10 @@ function ConnectionItem({ result, nodeNames, onClick }: ConnectionItemProps) {
   const targetName = nodeNames?.get(result.targetNodeId) || result.targetNodeId.slice(0, 8);
 
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={onClick}
-      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded transition-colors"
+      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded transition-colors h-auto justify-start"
     >
       {getStatusIcon(result.status)}
       <div className="flex-1 min-w-0">
@@ -106,7 +109,7 @@ function ConnectionItem({ result, nodeNames, onClick }: ConnectionItemProps) {
         )}
       </div>
       <ChevronRight className="w-4 h-4 text-gray-400" />
-    </button>
+    </Button>
   );
 }
 
@@ -156,12 +159,14 @@ export function FlowValidationSummary({
       <div className="flex items-center gap-2 px-3 py-2 text-sm text-red-600">
         <AlertCircle className="w-4 h-4" />
         <span>{error}</span>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={handleRefresh}
-          className="ml-auto p-1 hover:bg-red-100 rounded"
+          className="ml-auto h-6 w-6 hover:bg-red-100"
         >
           <RefreshCw className="w-3 h-3" />
-        </button>
+        </Button>
       </div>
     );
   }
@@ -194,9 +199,9 @@ export function FlowValidationSummary({
             <span className="text-sm font-medium text-gray-800">
               Schema Validation
             </span>
-            <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusBgClass(status)}`}>
+            <Badge className={getStatusBgClass(status)}>
               {getStatusLabel(status)}
-            </span>
+            </Badge>
           </div>
 
           {/* Summary counts */}
@@ -229,17 +234,18 @@ export function FlowValidationSummary({
         </div>
 
         {/* Refresh button */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={(e) => {
             e.stopPropagation();
             handleRefresh();
           }}
           disabled={loading}
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
           title="Refresh validation"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+        </Button>
 
         {/* Expand indicator */}
         {hasIssues && (

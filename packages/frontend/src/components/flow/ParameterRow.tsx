@@ -1,4 +1,8 @@
+import { Trash2 } from 'lucide-react';
 import type { FlowParameter, ParameterType } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
 
 const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
   { value: 'string', label: 'String' },
@@ -80,14 +84,12 @@ export function ParameterRow({
 
         {/* Name input */}
         <div className="flex-1 min-w-0">
-          <input
+          <Input
             type="text"
             value={parameter.name}
             onChange={handleNameChange}
             placeholder="Parameter name"
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-sm ${
-              error ? 'border-destructive' : ''
-            } ${isSystem ? 'cursor-not-allowed' : ''}`}
+            className={`text-sm ${error ? 'border-destructive' : ''} ${isSystem ? 'cursor-not-allowed' : ''}`}
             disabled={isFieldDisabled}
             maxLength={50}
           />
@@ -113,8 +115,8 @@ export function ParameterRow({
         </select>
 
         {/* Optional checkbox */}
-        <label
-          className={`flex items-center gap-1.5 px-2 py-2 text-sm whitespace-nowrap ${
+        <Label
+          className={`flex items-center gap-1.5 px-2 py-2 text-sm whitespace-nowrap font-normal ${
             isSystem ? 'cursor-not-allowed' : 'cursor-pointer'
           }`}
         >
@@ -126,43 +128,31 @@ export function ParameterRow({
             disabled={isFieldDisabled}
           />
           <span className="text-muted-foreground">Optional</span>
-        </label>
+        </Label>
 
         {/* Remove button - hidden for system parameters */}
         {!isSystem && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             type="button"
             onClick={handleRemove}
             disabled={disabled}
-            className="p-2 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+            className="text-muted-foreground hover:text-destructive"
             aria-label={`Remove parameter ${parameter.name || index + 1}`}
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
+            <Trash2 className="w-5 h-5" />
+          </Button>
         )}
       </div>
 
       {/* Description input */}
-      <input
+      <Input
         type="text"
         value={parameter.description}
         onChange={handleDescriptionChange}
         placeholder="Description (e.g., The user's email address)"
-        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-sm ${
-          isSystem ? 'cursor-not-allowed' : ''
-        }`}
+        className={`text-sm ${isSystem ? 'cursor-not-allowed' : ''}`}
         disabled={isFieldDisabled}
         maxLength={350}
       />

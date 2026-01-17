@@ -1,5 +1,17 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { App } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Textarea } from '@/components/ui/shadcn/textarea';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 
 interface EditAppModalProps {
   isOpen: boolean;
@@ -22,7 +34,6 @@ export function EditAppModal({
   isLoading = false,
   error,
 }: EditAppModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -36,37 +47,13 @@ export function EditAppModal({
     }
   }, [app]);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isLoading) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, isLoading, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  if (!isOpen || !app) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
       onClose();
     }
   };
+
+  if (!app) return null;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -90,58 +77,24 @@ export function EditAppModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={handleBackdropClick}
-    >
-      <div
-        ref={modalRef}
-        className="bg-card border rounded-lg shadow-lg w-full max-w-md animate-in fade-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 id="modal-title" className="text-lg font-semibold">
-            Edit App
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
-            aria-label="Close modal"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit App</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="edit-name"
-              className="block text-sm font-medium mb-1"
-            >
+            <Label htmlFor="edit-name" className="mb-1">
               App Name
-            </label>
-            <input
+            </Label>
+            <Input
               id="edit-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome App"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="w-full"
               disabled={isLoading}
               maxLength={100}
               required
@@ -149,18 +102,15 @@ export function EditAppModal({
           </div>
 
           <div>
-            <label
-              htmlFor="edit-description"
-              className="block text-sm font-medium mb-1"
-            >
+            <Label htmlFor="edit-description" className="mb-1">
               Description (optional)
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               id="edit-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="A brief description of what your app does..."
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background min-h-[80px] resize-y"
+              className="w-full min-h-[80px] resize-y"
               disabled={isLoading}
               maxLength={500}
             />
@@ -173,28 +123,29 @@ export function EditAppModal({
           </div>
 
           {(error || validationError) && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-              {error || validationError}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{error || validationError}</AlertDescription>
+            </Alert>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <button
+          <DialogFooter className="gap-3">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-2 border rounded-lg font-medium hover:bg-muted transition-colors disabled:opacity-50"
+              className="flex-1"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isLoading || !name.trim()}
-              className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
+              className="flex-1"
             >
               {isLoading && (
                 <svg
-                  className="w-4 h-4 animate-spin"
+                  className="w-4 h-4 animate-spin mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -214,10 +165,10 @@ export function EditAppModal({
                 </svg>
               )}
               {isLoading ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

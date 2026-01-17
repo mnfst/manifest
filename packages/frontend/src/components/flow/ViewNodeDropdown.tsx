@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface ViewNodeDropdownProps {
   canDelete?: boolean;
@@ -47,14 +48,16 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
   return (
     <div ref={dropdownRef} className="relative">
       {/* Three-dot menu button */}
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         data-action="toggle-menu"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer nodrag"
+        className="h-8 w-8 nodrag"
         aria-label="View actions"
         type="button"
         title="Actions"
@@ -67,13 +70,14 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
         >
           <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
         </svg>
-      </button>
+      </Button>
 
       {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[120px] z-50">
           {/* For UI nodes (StatCard), onEditCode opens the unified editor. For other nodes, onEdit opens the modal. */}
-          <button
+          <Button
+            variant="ghost"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
@@ -85,7 +89,7 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
                 onEdit();
               }
             }}
-            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer nodrag"
+            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 nodrag h-auto justify-start rounded-none"
             type="button"
           >
             <svg
@@ -97,8 +101,9 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
               <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
             </svg>
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
@@ -108,10 +113,10 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
               }
             }}
             disabled={!canDelete}
-            className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 nodrag ${
+            className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 nodrag h-auto justify-start rounded-none ${
               canDelete
-                ? 'text-red-600 hover:bg-red-50 cursor-pointer'
-                : 'text-gray-400 cursor-not-allowed'
+                ? 'text-red-600 hover:bg-red-50'
+                : 'text-gray-400'
             }`}
             type="button"
             title={!canDelete ? "Cannot delete the last view" : undefined}
@@ -129,7 +134,7 @@ export function ViewNodeDropdown({ canDelete, onEdit, onDelete, onEditCode }: Vi
               />
             </svg>
             Delete
-          </button>
+          </Button>
         </div>
       )}
     </div>

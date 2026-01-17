@@ -1,4 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Textarea } from '@/components/ui/shadcn/textarea';
+import { Checkbox } from '@/components/ui/shadcn/checkbox';
 import type {
   NodeInstance,
   NodeType,
@@ -500,34 +505,37 @@ export function NodeEditModal({
               </div>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             disabled={isLoading}
             aria-label="Close modal"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Tab Navigation (only show in edit mode) */}
         {isEditMode && (
           <div className="flex border-b px-6">
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setActiveTab('config')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`rounded-none border-b-2 ${
                 activeTab === 'config'
                   ? 'text-primary border-primary'
                   : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               Configuration
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setActiveTab('schema')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+              className={`rounded-none border-b-2 ${
                 activeTab === 'schema'
                   ? 'text-primary border-primary'
                   : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
@@ -535,7 +543,7 @@ export function NodeEditModal({
             >
               <Code className="w-4 h-4" />
               Schema
-            </button>
+            </Button>
           </div>
         )}
 
@@ -562,17 +570,17 @@ export function NodeEditModal({
 
             {/* Name field (common to all) */}
             <div>
-              <label htmlFor="node-name" className="block text-sm font-medium text-gray-700 mb-1">
+              <Label htmlFor="node-name" className="block text-sm font-medium text-gray-700 mb-1">
                 Name
-              </label>
-              <input
+              </Label>
+              <Input
                 ref={nameInputRef}
                 id="node-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={`Enter ${effectiveNodeType.toLowerCase()} name`}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full"
                 required
                 disabled={isLoading}
               />
@@ -604,15 +612,15 @@ export function NodeEditModal({
                 )}
 
                 <div>
-                  <label htmlFor="return-text" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="return-text" className="block text-sm font-medium text-gray-700 mb-1">
                     Return Text
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
                     id="return-text"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder="Enter the text to return to the user... Use {{ nodeSlug.field }} for dynamic values"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                    className="w-full resize-none"
                     rows={4}
                     disabled={isLoading}
                   />
@@ -633,9 +641,9 @@ export function NodeEditModal({
             {/* CallFlow-specific fields */}
             {effectiveNodeType === 'CallFlow' && (
               <div>
-                <label htmlFor="target-flow" className="block text-sm font-medium text-gray-700 mb-1">
+                <Label htmlFor="target-flow" className="block text-sm font-medium text-gray-700 mb-1">
                   Target Flow
-                </label>
+                </Label>
                 <select
                   id="target-flow"
                   value={targetFlowId || ''}
@@ -671,9 +679,9 @@ export function NodeEditModal({
                   {/* Tool Name (read-only) */}
                   {isEditMode && toolName && (
                     <div className="mb-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Label className="block text-sm font-medium text-gray-700 mb-1">
                         Tool Name
-                      </label>
+                      </Label>
                       <div className="flex items-center gap-2">
                         <code className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm font-mono text-gray-700">
                           {toolName}
@@ -685,15 +693,15 @@ export function NodeEditModal({
 
                   {/* Tool Description */}
                   <div className="mb-3">
-                    <label htmlFor="tool-description" className="block text-sm font-medium text-gray-700 mb-1">
+                    <Label htmlFor="tool-description" className="block text-sm font-medium text-gray-700 mb-1">
                       Tool Description
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                       id="tool-description"
                       value={toolDescription}
                       onChange={(e) => setToolDescription(e.target.value)}
                       placeholder="Describe what this tool does for MCP clients..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                      className="w-full resize-none"
                       rows={2}
                       disabled={isLoading}
                     />
@@ -702,9 +710,9 @@ export function NodeEditModal({
                   {/* Active Toggle Switch (T030-T033) */}
                   <div className="flex items-center justify-between mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex flex-col">
-                      <label htmlFor="tool-active" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="tool-active" className="text-sm font-medium text-gray-700">
                         Active
-                      </label>
+                      </Label>
                       <span className="text-xs text-gray-500" title="Active triggers are exposed as MCP tools and can be invoked by AI assistants">
                         Active triggers are exposed as MCP tools
                       </span>
@@ -733,22 +741,24 @@ export function NodeEditModal({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <Label className="block text-sm font-medium text-gray-700">
                           Tool Parameters
-                        </label>
+                        </Label>
                         <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded" title="Parameters you define here become dynamic output fields that downstream nodes can reference">
                           become outputs
                         </span>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         type="button"
                         onClick={addToolParameter}
                         disabled={isLoading}
-                        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
                         <Plus className="w-4 h-4" />
                         Add Parameter
-                      </button>
+                      </Button>
                     </div>
                     {toolParameters.length === 0 ? (
                       <p className="text-sm text-gray-500 bg-white rounded-lg p-3 border border-gray-200">
@@ -787,12 +797,12 @@ export function NodeEditModal({
                                     </svg>
                                   </div>
                                 )}
-                                <input
+                                <Input
                                   type="text"
                                   value={param.name}
                                   onChange={(e) => updateToolParameter(index, 'name', e.target.value)}
                                   placeholder="Parameter name"
-                                  className={`flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary ${
+                                  className={`flex-1 h-8 text-sm ${
                                     isSystemParam ? 'cursor-not-allowed bg-gray-100' : ''
                                   }`}
                                   disabled={isFieldDisabled}
@@ -813,37 +823,38 @@ export function NodeEditModal({
                                 </select>
                                 {/* Hide remove button for system parameters */}
                                 {!isSystemParam && (
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     type="button"
                                     onClick={() => removeToolParameter(index)}
                                     disabled={isLoading}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                                   >
                                     <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  </Button>
                                 )}
                               </div>
-                              <input
+                              <Input
                                 type="text"
                                 value={param.description}
                                 onChange={(e) => updateToolParameter(index, 'description', e.target.value)}
                                 placeholder="Parameter description"
-                                className={`w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary focus:border-primary ${
+                                className={`w-full h-8 text-sm ${
                                   isSystemParam ? 'cursor-not-allowed bg-gray-100' : ''
                                 }`}
                                 disabled={isFieldDisabled}
                                 maxLength={350}
                               />
-                              <label className={`flex items-center gap-2 text-sm text-gray-600 ${isSystemParam ? 'cursor-not-allowed' : ''}`}>
-                                <input
-                                  type="checkbox"
+                              <Label className={`flex items-center gap-2 text-sm text-gray-600 ${isSystemParam ? 'cursor-not-allowed' : ''}`}>
+                                <Checkbox
                                   checked={param.optional}
-                                  onChange={(e) => updateToolParameter(index, 'optional', e.target.checked)}
-                                  className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  onCheckedChange={(checked) => updateToolParameter(index, 'optional', checked === true)}
+                                  className="w-3 h-3"
                                   disabled={isFieldDisabled}
                                 />
                                 Optional parameter
-                              </label>
+                              </Label>
                             </div>
                           );
                         })}
@@ -858,15 +869,15 @@ export function NodeEditModal({
                 </div>
 
                 <div>
-                  <label htmlFor="when-to-use" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="when-to-use" className="block text-sm font-medium text-gray-700 mb-1">
                     When to Use
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
                     id="when-to-use"
                     value={whenToUse}
                     onChange={(e) => setWhenToUse(e.target.value)}
                     placeholder="Describe scenarios when the AI should trigger this flow..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                    className="w-full resize-none"
                     rows={3}
                     disabled={isLoading}
                   />
@@ -876,15 +887,15 @@ export function NodeEditModal({
                 </div>
 
                 <div>
-                  <label htmlFor="when-not-to-use" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="when-not-to-use" className="block text-sm font-medium text-gray-700 mb-1">
                     When Not to Use
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
                     id="when-not-to-use"
                     value={whenNotToUse}
                     onChange={(e) => setWhenNotToUse(e.target.value)}
                     placeholder="Describe scenarios when the AI should NOT trigger this flow..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                    className="w-full resize-none"
                     rows={3}
                     disabled={isLoading}
                   />
@@ -910,9 +921,9 @@ export function NodeEditModal({
 
                 {/* Method dropdown */}
                 <div>
-                  <label htmlFor="api-method" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="api-method" className="block text-sm font-medium text-gray-700 mb-1">
                     HTTP Method
-                  </label>
+                  </Label>
                   <select
                     id="api-method"
                     value={apiMethod}
@@ -930,16 +941,16 @@ export function NodeEditModal({
 
                 {/* URL input */}
                 <div>
-                  <label htmlFor="api-url" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="api-url" className="block text-sm font-medium text-gray-700 mb-1">
                     URL
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="api-url"
                     type="text"
                     value={apiUrl}
                     onChange={(e) => setApiUrl(e.target.value)}
                     placeholder="https://api.example.com/endpoint"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full"
                     required
                     disabled={isLoading}
                   />
@@ -951,18 +962,20 @@ export function NodeEditModal({
                 {/* Headers editor */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <Label className="block text-sm font-medium text-gray-700">
                       Headers
-                    </label>
-                    <button
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       type="button"
                       onClick={addHeader}
                       disabled={isLoading}
-                      className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 disabled:opacity-50"
+                      className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                     >
                       <Plus className="w-4 h-4" />
                       Add Header
-                    </button>
+                    </Button>
                   </div>
                   {apiHeaders.length === 0 ? (
                     <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
@@ -972,30 +985,32 @@ export function NodeEditModal({
                     <div className="space-y-2">
                       {apiHeaders.map((header, index) => (
                         <div key={index} className="flex gap-2">
-                          <input
+                          <Input
                             type="text"
                             value={header.key}
                             onChange={(e) => updateHeader(index, 'key', e.target.value)}
                             placeholder="Header name"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                            className="flex-1 text-sm"
                             disabled={isLoading}
                           />
-                          <input
+                          <Input
                             type="text"
                             value={header.value}
                             onChange={(e) => updateHeader(index, 'value', e.target.value)}
                             placeholder="Header value"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                            className="flex-1 text-sm"
                             disabled={isLoading}
                           />
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             type="button"
                             onClick={() => removeHeader(index)}
                             disabled={isLoading}
-                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="w-4 h-4" />
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -1004,10 +1019,10 @@ export function NodeEditModal({
 
                 {/* Timeout input */}
                 <div>
-                  <label htmlFor="api-timeout" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="api-timeout" className="block text-sm font-medium text-gray-700 mb-1">
                     Timeout (ms)
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="api-timeout"
                     type="number"
                     value={apiTimeout}
@@ -1015,7 +1030,7 @@ export function NodeEditModal({
                     min={1000}
                     max={300000}
                     step={1000}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full"
                     disabled={isLoading}
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -1045,11 +1060,11 @@ export function NodeEditModal({
                     )}
 
                     {/* Test button */}
-                    <button
+                    <Button
                       type="button"
                       onClick={handleTestApiRequest}
                       disabled={isLoading || isApiTestLoading || !apiUrl.trim()}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="bg-orange-600 hover:bg-orange-700"
                     >
                       {isApiTestLoading ? (
                         <>
@@ -1062,7 +1077,7 @@ export function NodeEditModal({
                           Test Request
                         </>
                       )}
-                    </button>
+                    </Button>
 
                     {/* Test result */}
                     {apiTestResult && (
@@ -1202,9 +1217,9 @@ export function NodeEditModal({
 
                 {/* Code editor */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
                     Transform Function
-                  </label>
+                  </Label>
                   <p className="text-xs text-gray-500 mb-2">
                     Write a TypeScript function that transforms the input data. The function receives <code className="bg-gray-100 px-1 rounded">input</code> with data from all connected nodes keyed by slug (e.g., <code className="bg-gray-100 px-1 rounded">input.nodeSlug.field</code>).
                   </p>
@@ -1238,9 +1253,9 @@ export function NodeEditModal({
 
                   {/* Test input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <Label className="block text-sm font-medium text-gray-700 mb-1">
                       Sample Input (JSON)
-                    </label>
+                    </Label>
                     <JSONEditor
                       value={testInput}
                       onChange={setTestInput}
@@ -1251,11 +1266,11 @@ export function NodeEditModal({
                   </div>
 
                   {/* Test button */}
-                  <button
+                  <Button
                     type="button"
                     onClick={handleTestTransform}
                     disabled={isLoading || isTestLoading || !isCodeValid}
-                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="bg-teal-600 hover:bg-teal-700"
                   >
                     {isTestLoading ? (
                       <>
@@ -1268,7 +1283,7 @@ export function NodeEditModal({
                         Test Transform
                       </>
                     )}
-                  </button>
+                  </Button>
 
                   {/* Test result */}
                   {testResult && (
@@ -1326,16 +1341,16 @@ export function NodeEditModal({
                 )}
 
                 <div>
-                  <label htmlFor="link-href" className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label htmlFor="link-href" className="block text-sm font-medium text-gray-700 mb-1">
                     URL
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="text"
                     id="link-href"
                     value={linkHref}
                     onChange={(e) => setLinkHref(e.target.value)}
                     placeholder="https://example.com or {{ nodeSlug.field }}"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full"
                     disabled={isLoading}
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -1357,18 +1372,17 @@ export function NodeEditModal({
 
           {/* Footer */}
           <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isLoading || !name.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <>
@@ -1378,7 +1392,7 @@ export function NodeEditModal({
               ) : (
                 <>{isEditMode ? 'Save Changes' : 'Create'}</>
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

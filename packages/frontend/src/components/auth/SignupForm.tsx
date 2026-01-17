@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { signUp } from '../../lib/auth-client';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
 
 interface SignupFormProps {
   onSuccess?: () => void;
@@ -81,74 +84,58 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="signup-firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            First Name
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="signup-firstName">First Name</Label>
+          <Input
             id="signup-firstName"
             type="text"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             placeholder="John"
           />
         </div>
-        <div>
-          <label htmlFor="signup-lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Last Name
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="signup-lastName">Last Name</Label>
+          <Input
             id="signup-lastName"
             type="text"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             placeholder="Doe"
           />
         </div>
       </div>
 
-      <div>
-        <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Email
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="signup-email">Email</Label>
+        <Input
           id="signup-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           placeholder="you@example.com"
         />
       </div>
 
-      <div>
-        <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Password
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="signup-password">Password</Label>
+        <Input
           id="signup-password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={4}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           placeholder="At least 4 characters"
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? 'Creating account...' : 'Create Account'}
-      </button>
+      </Button>
     </form>
   );
 }

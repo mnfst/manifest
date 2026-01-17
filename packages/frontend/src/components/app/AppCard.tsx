@@ -1,5 +1,7 @@
 import type { App, AppWithFlowCount } from '@chatgpt-app-builder/shared';
 import { resolveIconUrl } from '../../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface AppCardProps {
   app: App | AppWithFlowCount;
@@ -85,9 +87,11 @@ export function AppCard({ app, onClick, onEdit, onDelete }: AppCardProps) {
         </div>
         <div className="flex items-start gap-2 shrink-0">
           {onEdit && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleEditClick}
-              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+              className="opacity-0 group-hover:opacity-100 h-8 w-8"
               aria-label={`Edit ${app.name}`}
               title="Edit app"
             >
@@ -104,12 +108,14 @@ export function AppCard({ app, onClick, onEdit, onDelete }: AppCardProps) {
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                 />
               </svg>
-            </button>
+            </Button>
           )}
           {onDelete && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleDeleteClick}
-              className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+              className="opacity-0 group-hover:opacity-100 h-8 w-8 hover:text-destructive hover:bg-destructive/10"
               aria-label={`Delete ${app.name}`}
               title="Delete app"
             >
@@ -126,17 +132,17 @@ export function AppCard({ app, onClick, onEdit, onDelete }: AppCardProps) {
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
-            </button>
+            </Button>
           )}
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
+          <Badge
+            className={
               app.status === 'published'
-                ? 'bg-green-500/20 text-green-600'
-                : 'bg-amber-500/20 text-amber-600'
-            }`}
+                ? 'bg-green-500/20 text-green-600 hover:bg-green-500/20'
+                : 'bg-amber-500/20 text-amber-600 hover:bg-amber-500/20'
+            }
           >
             {app.status}
-          </span>
+          </Badge>
         </div>
       </div>
     </button>

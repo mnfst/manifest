@@ -3,6 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, ReturnNodeParameters } from '@chatgpt-app-builder/shared';
 import { FileText, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 export interface ReturnValueNodeData extends Record<string, unknown> {
   node: NodeInstance;
@@ -84,45 +85,49 @@ export const ReturnValueNode = memo(function ReturnValueNode({ data }: NodeProps
 
           {/* Action dropdown */}
           <div className="relative" ref={dropdownRef}>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsDropdownOpen(!isDropdownOpen);
               }}
-              className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700 nodrag"
+              className="h-8 w-8 nodrag"
               aria-label="Actions"
             >
               <MoreHorizontal className="w-4 h-4" />
-            </button>
+            </Button>
 
             {isDropdownOpen && (
               <div className="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10">
-                <button
+                <Button
+                  variant="ghost"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsDropdownOpen(false);
                     onEdit();
                   }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 nodrag"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 nodrag h-auto justify-start rounded-none"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   Edit
-                </button>
+                </Button>
                 {canDelete && (
-                  <button
+                  <Button
+                    variant="ghost"
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsDropdownOpen(false);
                       onDelete();
                     }}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 nodrag"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 nodrag h-auto justify-start rounded-none"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Delete
-                  </button>
+                  </Button>
                 )}
               </div>
             )}

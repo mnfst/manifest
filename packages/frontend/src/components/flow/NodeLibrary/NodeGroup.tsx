@@ -1,6 +1,7 @@
 import { ChevronRight, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Shuffle } from 'lucide-react';
 import type { CategoryInfo } from '../../../lib/api';
 import type { NodeTypeCategory } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 
 // Map category IDs to Lucide React icons
 const categoryIconMap: Record<NodeTypeCategory, React.ElementType> = {
@@ -31,15 +32,12 @@ export function NodeGroup({ category, displayName, color, onClick }: NodeGroupPr
   const Icon = categoryIconMap[category.id] || HelpCircle;
 
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={onClick}
-      className={`
-        w-full p-3 rounded-lg border cursor-pointer
-        transition-all group text-left
-        hover:border-primary hover:bg-primary/5
-      `}
+      className="w-full p-3 h-auto rounded-lg border cursor-pointer transition-all group text-left justify-start hover:border-primary hover:bg-primary/5"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 w-full">
         <div
           className={`
             w-10 h-10 rounded-lg flex items-center justify-center
@@ -55,6 +53,6 @@ export function NodeGroup({ category, displayName, color, onClick }: NodeGroupPr
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
       </div>
-    </button>
+    </Button>
   );
 }

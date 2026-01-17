@@ -1,4 +1,5 @@
 import type { AnalyticsMetric } from '@chatgpt-app-builder/shared';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface MetricCardProps {
   title: string;
@@ -62,12 +63,10 @@ export function MetricCard({
       <p className="text-3xl font-semibold tracking-tight mb-2">
         {metric.displayValue}
       </p>
-      <span
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${getTrendStyles()}`}
-      >
+      <Badge className={getTrendStyles()}>
         {getTrendArrow()}
         {formatTrendPercentage()}
-      </span>
+      </Badge>
     </div>
   );
 }

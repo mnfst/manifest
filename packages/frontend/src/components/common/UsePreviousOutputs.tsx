@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Copy, Check, ChevronDown, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import type { UpstreamNodeInfo } from '../../types/schema';
 import { getTypeColor } from '../../lib/schemaUtils';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface UsePreviousOutputsProps {
   /** List of upstream nodes with their output schemas */
@@ -163,15 +164,16 @@ export function UsePreviousOutputs({
                   No output fields available. Schema may be pending.
                 </p>
                 {onRefresh && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onRefresh}
-                    className="flex items-center gap-1 text-xs text-yellow-700 hover:text-yellow-800 transition-colors"
+                    className="text-yellow-700 hover:text-yellow-800 hover:bg-yellow-100"
                     title="Refresh upstream node schemas"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Refresh
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -230,17 +232,10 @@ export function UsePreviousOutputs({
           <code className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono text-gray-700 truncate">
             {reference || '{{ ... }}'}
           </code>
-          <button
-            type="button"
+          <Button
             onClick={handleCopy}
             disabled={!canCopy}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              copied
-                ? 'bg-green-100 text-green-700'
-                : canCopy
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
+            className={copied ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
           >
             {copied ? (
               <>
@@ -253,7 +248,7 @@ export function UsePreviousOutputs({
                 Copy
               </>
             )}
-          </button>
+          </Button>
         </div>
       )}
 

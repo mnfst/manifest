@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle, HelpCircle, X, ChevronDown, ChevronRight } from 'lucide-react';
 import type { CompatibilityIssue, CompatibilityStatus, JSONSchema } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 import type { ConnectionValidationState } from '../../types/schema';
 import { getStatusLabel } from '../../types/schema';
 import { SchemaViewer } from '../node/SchemaViewer';
@@ -145,12 +146,14 @@ export function ConnectionValidator({
           </div>
         </div>
         {onClose && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1 hover:bg-white rounded transition-colors"
+            className="h-6 w-6"
           >
             <X className="w-4 h-4 text-gray-400" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -250,9 +253,10 @@ function SchemaComparison({
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-200">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 h-auto p-0"
       >
         {isExpanded ? (
           <ChevronDown className="w-4 h-4" />
@@ -260,7 +264,7 @@ function SchemaComparison({
           <ChevronRight className="w-4 h-4" />
         )}
         Compare Schemas
-      </button>
+      </Button>
 
       {isExpanded && (
         <div className="mt-3 grid grid-cols-2 gap-4">

@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 import { SchemaViewer } from './SchemaViewer';
 import { SchemaErrorBoundary } from '../common/SchemaErrorBoundary';
 import { getSchemaStateLabel, getSchemaStateColor } from '../../lib/schemaUtils';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface NodeSchemaPanelProps {
   flowId: string;
@@ -162,13 +163,15 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
 
           {/* Paste Sample Button for ApiCall nodes - always visible for re-discovery */}
           {isApiCallNode && !showDiscoveryPanel && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowDiscoveryPanel(true)}
-              className="ml-auto flex items-center gap-1.5 px-2 py-1 text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+              className="ml-auto h-7 px-2 text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
             >
-              <Wand2 className="w-3 h-3" />
+              <Wand2 className="w-3 h-3 mr-1.5" />
               Paste Sample
-            </button>
+            </Button>
           )}
         </div>
 
@@ -204,16 +207,18 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
               <Wand2 className="w-4 h-4 text-blue-600" />
               <h4 className="text-sm font-medium text-blue-800">Paste Sample JSON</h4>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => {
                 setShowDiscoveryPanel(false);
                 setSampleJson('');
                 setResolveError(null);
               }}
-              className="p-1 hover:bg-blue-100 rounded transition-colors"
+              className="h-6 w-6 hover:bg-blue-100"
             >
               <X className="w-4 h-4 text-blue-600" />
-            </button>
+            </Button>
           </div>
 
           <p className="text-xs text-blue-700 mb-3">
@@ -238,29 +243,32 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
           )}
 
           <div className="flex justify-end gap-2 mt-3">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setShowDiscoveryPanel(false);
                 setSampleJson('');
                 setResolveError(null);
               }}
               disabled={resolving}
-              className="px-3 py-1.5 text-sm text-gray-600 hover:bg-blue-100 rounded transition-colors disabled:opacity-50"
+              className="text-gray-600 hover:bg-blue-100"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              size="sm"
               onClick={handleDiscoverSchema}
               disabled={resolving || !sampleJson.trim()}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded transition-colors disabled:opacity-50"
+              className="bg-blue-600 text-white hover:bg-blue-700"
             >
               {resolving ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
+                <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
               ) : (
-                <Check className="w-3 h-3" />
+                <Check className="w-3 h-3 mr-1.5" />
               )}
               {resolving ? 'Discovering...' : 'Discover'}
-            </button>
+            </Button>
           </div>
         </div>
       )}

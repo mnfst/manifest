@@ -3,6 +3,8 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
 import { Zap, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 import { AddNodeButton } from './AddNodeButton';
 
 export interface UserIntentNodeData extends Record<string, unknown> {
@@ -60,44 +62,48 @@ export const UserIntentNode = memo(function UserIntentNode({ data }: NodeProps) 
             <h3 className="font-medium text-gray-900 text-sm">{node.name || 'User Intent'}</h3>
             {/* Tool name badge */}
             {toolName && (
-              <code className={`inline-block mt-1 px-2 py-0.5 text-xs font-mono rounded ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+              <Badge className={`mt-1 font-mono ${isActive ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-100'}`}>
                 {toolName}
-              </code>
+              </Badge>
             )}
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayDescription}</p>
             {!isActive && (
-              <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded">
+              <Badge variant="secondary" className="mt-1">
                 Inactive
-              </span>
+              </Badge>
             )}
           </div>
 
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               data-action="edit"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit();
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors nodrag"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 nodrag h-auto"
             >
               <Pencil className="w-3 h-3" />
               Edit
-            </button>
+            </Button>
             {canDelete && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 data-action="delete"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors nodrag"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 nodrag h-auto"
               >
                 Delete
-              </button>
+              </Button>
             )}
           </div>
         </div>

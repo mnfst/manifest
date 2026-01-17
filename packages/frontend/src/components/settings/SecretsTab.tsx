@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, KeyRound } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
 import type { AppSecret } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../../lib/api';
 import { SecretRow } from './SecretRow';
@@ -122,33 +124,29 @@ export function SecretsTab({ appId }: SecretsTabProps) {
       <form onSubmit={handleAddSecret} className="border border-border rounded-lg p-4 bg-muted/30">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
-            <input
+            <Input
               type="text"
               value={newKey}
               onChange={(e) => setNewKey(e.target.value.toUpperCase())}
               placeholder="SECRET_KEY"
-              className="w-full px-3 py-2 border border-input rounded-md bg-background font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="font-mono"
               disabled={isAdding}
             />
           </div>
           <div className="flex-1">
-            <input
+            <Input
               type="text"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               placeholder="secret_value"
-              className="w-full px-3 py-2 border border-input rounded-md bg-background font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="font-mono"
               disabled={isAdding}
             />
           </div>
-          <button
-            type="submit"
-            disabled={isAdding || !newKey.trim() || !newValue.trim()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 text-sm font-medium"
-          >
+          <Button type="submit" disabled={isAdding || !newKey.trim() || !newValue.trim()}>
             <Plus className="w-4 h-4" />
             {isAdding ? 'Adding...' : 'Add'}
-          </button>
+          </Button>
         </div>
         {addError && (
           <p className="text-destructive text-sm mt-2">{addError}</p>

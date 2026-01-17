@@ -1,5 +1,18 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Copy, Check, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/shadcn/alert-dialog';
 import type { AppSecret } from '@chatgpt-app-builder/shared';
 
 interface SecretRowProps {
@@ -68,44 +81,39 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
       <div className="border border-border rounded-lg p-4 bg-card">
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">
+            <Label className="text-muted-foreground">
               Key
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={editKey}
               onChange={(e) => setEditKey(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="SECRET_KEY"
+              className="mt-1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">
+            <Label className="text-muted-foreground">
               Value
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="secret_value"
+              className="mt-1"
             />
           </div>
           <div className="flex justify-end gap-2">
-            <button
-              onClick={handleCancelEdit}
-              disabled={isSaving}
-              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
-            >
+            <Button variant="ghost" onClick={handleCancelEdit} disabled={isSaving}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleSaveEdit}
               disabled={isSaving || !editKey.trim() || !editValue.trim()}
-              className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -128,9 +136,10 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
         {/* Action Icons */}
         <div className="flex items-center gap-1">
           {/* Reveal/Hide Toggle */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsRevealed(!isRevealed)}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
             title={isRevealed ? 'Hide value' : 'Reveal value'}
           >
             {isRevealed ? (
@@ -138,12 +147,13 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
             ) : (
               <Eye className="w-4 h-4" />
             )}
-          </button>
+          </Button>
 
           {/* Copy Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleCopy}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
             title={isCopied ? 'Copied!' : 'Copy value'}
           >
             {isCopied ? (
@@ -151,17 +161,18 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
             ) : (
               <Copy className="w-4 h-4" />
             )}
-          </button>
+          </Button>
 
           {/* Three-dot Menu */}
           <div className="relative">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               title="More actions"
             >
               <MoreVertical className="w-4 h-4" />
-            </button>
+            </Button>
 
             {isMenuOpen && (
               <>
@@ -200,32 +211,26 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold mb-2">Delete Secret</h3>
-            <p className="text-muted-foreground text-sm mb-4">
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Secret</AlertDialogTitle>
+            <AlertDialogDescription>
               Are you sure you want to delete <span className="font-mono font-medium text-foreground">{secret.key}</span>? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

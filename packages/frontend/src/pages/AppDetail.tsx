@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
+import { Pencil, Plus } from 'lucide-react';
 import type { App, Flow, AppStatus, ThemeVariables } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
@@ -13,6 +13,7 @@ import { EditAppModal } from '../components/app/EditAppModal';
 import { CollaboratorManagement } from '../components/app/CollaboratorManagement';
 import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard';
 import { ThemeEditor } from '../components/theme-editor';
+import { Button } from '@/components/ui/shadcn/button';
 
 type AppDetailTab = 'flows' | 'collaborators' | 'analytics' | 'theme';
 
@@ -227,13 +228,14 @@ function AppDetail() {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold">{app.name}</h1>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setIsEditModalOpen(true)}
-                    className="p-2 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Edit app"
                   >
                     <Pencil className="w-5 h-5" />
-                  </button>
+                  </Button>
                 </div>
                 {app.description && (
                   <p className="text-muted-foreground mt-1">{app.description}</p>
@@ -243,9 +245,10 @@ function AppDetail() {
             <div className="flex items-center gap-3">
               {/* Share button - only visible when published */}
               {app.status === 'published' && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setIsShareModalOpen(true)}
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                   title="Share app"
                   aria-label="Share app"
                 >
@@ -262,7 +265,7 @@ function AppDetail() {
                       d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                     />
                   </svg>
-                </button>
+                </Button>
               )}
               <PublishButton
                 appId={app.id}
@@ -275,12 +278,13 @@ function AppDetail() {
           {publishError && (
             <div className="mt-3 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
               {publishError}
-              <button
+              <Button
+                variant="link"
                 onClick={() => setPublishError(null)}
-                className="ml-2 underline hover:no-underline"
+                className="ml-2 p-0 h-auto text-red-700"
               >
                 Dismiss
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -319,15 +323,10 @@ function AppDetail() {
                   {flows.length} flow{flows.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <button
-                onClick={() => setIsFlowModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
+              <Button onClick={() => setIsFlowModalOpen(true)}>
+                <Plus className="w-5 h-5" />
                 Create New Flow
-              </button>
+              </Button>
             </div>
 
             {/* Existing flows list */}

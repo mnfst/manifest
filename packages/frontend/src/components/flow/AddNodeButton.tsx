@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import type { NodeType } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface AddNodeButtonProps {
   /** Click handler to open node library */
@@ -77,8 +78,10 @@ export function AddNodeButton({ onClick, color = 'blue', onDrop }: AddNodeButton
           Drop to connect
         </div>
       )}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={(e) => {
           e.stopPropagation();
           onClick();
@@ -97,7 +100,7 @@ export function AddNodeButton({ onClick, color = 'blue', onDrop }: AddNodeButton
         title="Add connected node"
       >
         <Plus className={`transition-all duration-150 ${isDragOver ? 'w-5 h-5' : 'w-4 h-4'}`} strokeWidth={2.5} />
-      </button>
+      </Button>
     </div>
   );
 }

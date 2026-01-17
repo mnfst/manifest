@@ -1,4 +1,17 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Textarea } from '@/components/ui/shadcn/textarea';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 
 interface CreateFlowModalProps {
   isOpen: boolean;
@@ -10,6 +23,7 @@ interface CreateFlowModalProps {
 
 /**
  * Modal for creating a new flow with name and description
+ * Uses shadcn Dialog with automatic backdrop click, escape key, and focus trapping
  */
 export function CreateFlowModal({
   isOpen,
@@ -18,8 +32,6 @@ export function CreateFlowModal({
   isLoading = false,
   error,
 }: CreateFlowModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
-  const nameInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -30,39 +42,11 @@ export function CreateFlowModal({
     if (isOpen) {
       setName('');
       setDescription('');
-      // Focus the name input after a short delay to ensure modal is rendered
-      setTimeout(() => nameInputRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isLoading) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, isLoading, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
       onClose();
     }
   };
@@ -77,63 +61,30 @@ export function CreateFlowModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={handleBackdropClick}
-    >
-      <div
-        ref={modalRef}
-        className="bg-card border rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="flow-modal-title"
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 id="flow-modal-title" className="text-lg font-semibold">
-            Create New Flow
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
-            aria-label="Close modal"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto flex-1">
-          <p className="text-muted-foreground text-sm">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Create New Flow</DialogTitle>
+          <DialogDescription>
             Give your flow a name and optional description.
-          </p>
+          </DialogDescription>
+        </DialogHeader>
 
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name field */}
           <div className="space-y-2">
-            <label htmlFor="flow-name" className="block text-sm font-medium">
+            <Label htmlFor="flow-name">
               Name <span className="text-destructive">*</span>
-            </label>
-            <input
-              ref={nameInputRef}
+            </Label>
+            <Input
               id="flow-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Product Catalog"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
               disabled={isLoading}
               maxLength={300}
+              autoFocus
               required
             />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -143,15 +94,15 @@ export function CreateFlowModal({
 
           {/* Description field */}
           <div className="space-y-2">
-            <label htmlFor="flow-description" className="block text-sm font-medium">
+            <Label htmlFor="flow-description">
               Description <span className="text-muted-foreground">(optional - internal usage only, not exposed)</span>
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               id="flow-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Briefly describe what this flow does..."
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background min-h-[80px] resize-y"
+              className="min-h-[80px] resize-y"
               disabled={isLoading}
               maxLength={500}
             />
@@ -161,31 +112,22 @@ export function CreateFlowModal({
           </div>
 
           {error && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-              {error}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-            >
+          <DialogFooter>
+            <Button variant="ghost" type="button" onClick={onClose} disabled={isLoading}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-            >
+            </Button>
+            <Button type="submit" disabled={!canSubmit}>
               {isLoading ? 'Creating...' : 'Create Flow'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

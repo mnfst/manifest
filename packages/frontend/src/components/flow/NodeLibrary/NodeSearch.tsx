@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface NodeSearchProps {
   value: string;
@@ -29,18 +30,15 @@ export function NodeSearch({ value, onChange, onClear, placeholder = 'Search nod
         "
       />
       {value && (
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onClear}
-          className="
-            absolute right-3 top-1/2 -translate-y-1/2
-            p-1 rounded-full
-            text-muted-foreground hover:text-foreground hover:bg-muted
-            transition-colors
-          "
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full"
           aria-label="Clear search"
         >
           <X className="w-4 h-4" />
-        </button>
+        </Button>
       )}
     </div>
   );

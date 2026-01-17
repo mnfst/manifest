@@ -15,6 +15,15 @@ import { AppearanceTab } from './AppearanceTab';
 import { DemoDataEditor } from './DemoDataEditor';
 import { InlineEditableField } from './InlineEditableField';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/shadcn/tabs';
+import { Button } from '../ui/shadcn/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '../ui/shadcn/dialog';
 import {
   getTemplateDefaultCode,
   getTemplateSampleData,
@@ -322,13 +331,14 @@ export function InterfaceEditor({
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b bg-card">
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleClose}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
             title="Close (Esc)"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
 
           <div className="flex items-center gap-3">
             <InlineEditableField
@@ -348,19 +358,14 @@ export function InterfaceEditor({
 
         <div className="flex items-center gap-3">
           {/* Save button */}
-          <button
+          <Button
             onClick={handleSave}
             disabled={!canSave}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              canSave
-                ? 'bg-gray-900 text-white hover:bg-gray-800'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
             title={hasErrors ? 'Fix errors before saving' : !name.trim() ? 'Name is required' : 'Save (Cmd+S)'}
           >
             <Save className="w-4 h-4" />
             {isSaving ? 'Saving...' : 'Save'}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -473,46 +478,45 @@ export function InterfaceEditor({
       </div>
 
       {/* Unsaved changes dialog */}
-      {showUnsavedDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
-          <div className="bg-card rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
-            <h2 className="text-lg font-semibold mb-2">Unsaved Changes</h2>
-            <p className="text-muted-foreground mb-6">
+      <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
               You have unsaved changes. Do you want to save them before closing?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowUnsavedDialog(false);
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowUnsavedDialog(false);
+                onClose();
+              }}
+            >
+              Discard
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowUnsavedDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                await handleSave();
+                setShowUnsavedDialog(false);
+                if (!hasErrors) {
                   onClose();
-                }}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Discard
-              </button>
-              <button
-                onClick={() => setShowUnsavedDialog(false)}
-                className="px-4 py-2 text-sm font-medium bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  await handleSave();
-                  setShowUnsavedDialog(false);
-                  if (!hasErrors) {
-                    onClose();
-                  }
-                }}
-                disabled={hasErrors || !name.trim()}
-                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Save & Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                }
+              }}
+              disabled={hasErrors || !name.trim()}
+            >
+              Save & Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Loader2, Globe, Shuffle } from 'lucide-react';
 import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
 import { api, type NodeTypeInfo, type CategoryInfo } from '../../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface AddStepModalProps {
   isOpen: boolean;
@@ -93,13 +94,9 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">Add Node</h2>
-          <button
-            onClick={onClose}
-            aria-label="Close modal"
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close modal">
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Content */}
@@ -162,12 +159,9 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-4 border-t">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

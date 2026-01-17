@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface Props {
   children: ReactNode;
@@ -70,12 +71,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 </pre>
               </details>
             )}
-            <button
-              onClick={this.handleReset}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90"
-            >
+            <Button onClick={this.handleReset}>
               Return to Home
-            </button>
+            </Button>
           </div>
         </div>
       );

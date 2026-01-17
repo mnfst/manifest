@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
 import { useApiKey } from '../../hooks/useApiKey';
 import { api } from '../../lib/api';
 
@@ -76,12 +80,9 @@ export function ApiKeysTab() {
               <div className="text-sm text-muted-foreground mb-1">Current API Key</div>
               <div className="font-mono text-sm">{getMaskedKey()}</div>
             </div>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md transition-colors"
-            >
+            <Button variant="ghost" onClick={handleDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
               Delete
-            </button>
+            </Button>
           </div>
           <div className="text-sm text-muted-foreground">
             To update your API key, delete the current one and enter a new key below.
@@ -91,34 +92,30 @@ export function ApiKeysTab() {
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="api-key-input" className="block text-sm font-medium mb-2">
+          <Label htmlFor="api-key-input">
             {hasApiKey ? 'Replace API Key' : 'API Key'}
-          </label>
-          <div className="flex gap-2">
-            <input
+          </Label>
+          <div className="flex gap-2 mt-2">
+            <Input
               id="api-key-input"
               type="password"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="sk-..."
-              className="flex-1 px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={isValidating}
+              className="flex-1"
             />
-            <button
-              onClick={handleSave}
-              disabled={isValidating || !inputValue.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            <Button onClick={handleSave} disabled={isValidating || !inputValue.trim()}>
               {isValidating ? 'Validating...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {successMessage && (

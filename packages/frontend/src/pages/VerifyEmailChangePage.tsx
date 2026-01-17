@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Mail, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 /**
  * Email verification callback page
@@ -67,12 +68,9 @@ export function VerifyEmailChangePage() {
                 Your email has been changed to <span className="font-medium text-foreground">{newEmail}</span>
               </p>
             )}
-            <button
-              onClick={handleContinue}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            >
+            <Button onClick={handleContinue}>
               Continue to Settings
-            </button>
+            </Button>
           </>
         )}
 
@@ -82,18 +80,12 @@ export function VerifyEmailChangePage() {
             <h1 className="text-xl font-semibold mb-2">Verification Failed</h1>
             <p className="text-muted-foreground mb-6">{message}</p>
             <div className="space-y-3">
-              <button
-                onClick={handleContinue}
-                className="w-full px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              >
+              <Button onClick={handleContinue} className="w-full">
                 Go to Account Settings
-              </button>
-              <button
-                onClick={() => navigate('/')}
-                className="w-full px-6 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
-              >
+              </Button>
+              <Button variant="secondary" onClick={() => navigate('/')} className="w-full">
                 Go to Dashboard
-              </button>
+              </Button>
             </div>
           </>
         )}

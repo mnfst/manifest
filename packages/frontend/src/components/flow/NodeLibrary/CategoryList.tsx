@@ -1,5 +1,6 @@
 import { ChevronRight, LayoutTemplate } from 'lucide-react';
 import type { RegistryCategoryInfo } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface CategoryListProps {
   categories: RegistryCategoryInfo[];
@@ -42,19 +43,13 @@ interface CategoryItemProps {
  */
 function CategoryItem({ category, onClick }: CategoryItemProps) {
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={onClick}
-      className="
-        w-full p-3 rounded-lg border cursor-pointer
-        transition-all group text-left
-        hover:border-primary hover:bg-primary/5
-      "
+      className="w-full p-3 h-auto rounded-lg border cursor-pointer transition-all group text-left justify-start hover:border-primary hover:bg-primary/5"
     >
-      <div className="flex items-center gap-3">
-        <div className="
-          w-10 h-10 rounded-lg flex items-center justify-center
-          transition-colors bg-gray-100 group-hover:bg-gray-200
-        ">
+      <div className="flex items-center gap-3 w-full">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-gray-100 group-hover:bg-gray-200">
           <LayoutTemplate className="w-5 h-5 text-gray-600" />
         </div>
         <div className="flex-1 min-w-0">
@@ -65,6 +60,6 @@ function CategoryItem({ category, onClick }: CategoryItemProps) {
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
       </div>
-    </button>
+    </Button>
   );
 }

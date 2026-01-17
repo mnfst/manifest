@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface PromptFormProps {
   onSubmit: (prompt: string) => void;
@@ -38,10 +39,10 @@ export function PromptForm({ onSubmit, isLoading = false }: PromptFormProps) {
         </p>
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={!prompt.trim() || isLoading}
-        className="w-full py-3 px-4 bg-primary text-primary-foreground font-medium rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        className="w-full py-3 px-4 h-auto font-medium"
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
@@ -66,7 +67,7 @@ export function PromptForm({ onSubmit, isLoading = false }: PromptFormProps) {
         ) : (
           'Generate App'
         )}
-      </button>
+      </Button>
     </form>
   );
 }

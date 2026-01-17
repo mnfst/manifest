@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
 import { useAuth } from '../../hooks/useAuth';
 import { api, ApiClientError } from '../../lib/api';
 
@@ -229,30 +233,30 @@ export function AccountTab() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+              <Label htmlFor="firstName">
                 First Name
-              </label>
-              <input
+              </Label>
+              <Input
                 type="text"
                 id="firstName"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your first name"
+                className="mt-1"
               />
             </div>
 
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+              <Label htmlFor="lastName">
                 Last Name
-              </label>
-              <input
+              </Label>
+              <Input
                 type="text"
                 id="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your last name"
+                className="mt-1"
               />
             </div>
           </div>
@@ -265,40 +269,40 @@ export function AccountTab() {
           </h3>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <Label htmlFor="email">
               Current Email
-            </label>
-            <input
+            </Label>
+            <Input
               type="email"
               id="email"
               value={email}
               disabled
-              className="w-full px-3 py-2 border rounded-md bg-muted text-muted-foreground cursor-not-allowed"
+              className="mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="newEmail" className="block text-sm font-medium mb-1">
+            <Label htmlFor="newEmail">
               New Email Address
-            </label>
-            <div className="flex gap-2">
-              <input
+            </Label>
+            <div className="flex gap-2 mt-1">
+              <Input
                 type="email"
                 id="newEmail"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter new email address"
                 disabled={isChangingEmail}
+                className="flex-1"
               />
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={handleEmailChange}
                 disabled={isChangingEmail || !newEmail.trim()}
-                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isChangingEmail ? 'Sending...' : 'Change Email'}
-              </button>
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               A verification link will be sent to your new email address.
@@ -306,9 +310,9 @@ export function AccountTab() {
           </div>
 
           {emailChangeError && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-              {emailChangeError}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{emailChangeError}</AlertDescription>
+            </Alert>
           )}
 
           {emailChangeSuccess && (
@@ -326,52 +330,52 @@ export function AccountTab() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
+              <Label htmlFor="currentPassword">
                 Current Password
-              </label>
-              <input
+              </Label>
+              <Input
                 type="password"
                 id="currentPassword"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 disabled={isChangingPassword}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
                 placeholder="Enter current password"
+                className="mt-1"
               />
             </div>
 
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
+              <Label htmlFor="newPassword">
                 New Password
-              </label>
-              <input
+              </Label>
+              <Input
                 type="password"
                 id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={isChangingPassword}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
                 placeholder="Enter new password (min 8 characters)"
+                className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Leave blank to keep current password.
               </p>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handlePasswordChange}
               disabled={isChangingPassword || (!currentPassword.trim() && !newPassword.trim())}
-              className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isChangingPassword ? 'Changing...' : 'Change Password'}
-            </button>
+            </Button>
           </div>
 
           {passwordChangeError && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-              {passwordChangeError}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{passwordChangeError}</AlertDescription>
+            </Alert>
           )}
 
           {passwordChangeSuccess && (
@@ -383,9 +387,9 @@ export function AccountTab() {
 
         {/* Error/Success Messages */}
         {error && (
-          <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {successMessage && (
@@ -396,13 +400,9 @@ export function AccountTab() {
 
         {/* Save Button */}
         <div className="pt-4 border-t">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

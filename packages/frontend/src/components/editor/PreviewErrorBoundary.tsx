@@ -4,6 +4,7 @@
  */
 import { Component, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '../ui/shadcn/button';
 
 export interface PreviewErrorBoundaryProps {
   /** Child components to render */
@@ -81,13 +82,13 @@ export class PreviewErrorBoundary extends Component<
               )}
             </div>
           )}
-          <button
+          <Button
+            variant="destructive"
             onClick={this.handleReset}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             Try Again
-          </button>
+          </Button>
         </div>
       );
     }

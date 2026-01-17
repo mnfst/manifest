@@ -1,5 +1,15 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import type { AppRole } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
+import { Label } from '@/components/ui/shadcn/label';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 
 interface InviteCollaboratorModalProps {
   isOpen: boolean;
@@ -24,7 +34,6 @@ export function InviteCollaboratorModal({
   isLoading = false,
   error,
 }: InviteCollaboratorModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
   const [hasConfirmed, setHasConfirmed] = useState(false);
 
   // Reset confirmation state when modal opens/closes
@@ -34,34 +43,8 @@ export function InviteCollaboratorModal({
     }
   }, [isOpen]);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isLoading) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, isLoading, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
       onClose();
     }
   };
@@ -73,44 +56,13 @@ export function InviteCollaboratorModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={handleBackdropClick}
-    >
-      <div
-        ref={modalRef}
-        className="bg-card border rounded-lg shadow-lg w-full max-w-md animate-in fade-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="invite-modal-title"
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 id="invite-modal-title" className="text-lg font-semibold">
-            Invite Collaborator
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
-            aria-label="Close modal"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite Collaborator</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Info message */}
           <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
             <svg
@@ -138,18 +90,18 @@ export function InviteCollaboratorModal({
           {/* Invitation details */}
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
+              <Label className="mb-1 text-muted-foreground">
                 Email
-              </label>
+              </Label>
               <div className="px-3 py-2 bg-muted rounded-md text-sm">
                 {email}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
+              <Label className="mb-1 text-muted-foreground">
                 Role
-              </label>
+              </Label>
               <div className="px-3 py-2 bg-muted rounded-md text-sm capitalize">
                 {role}
               </div>
@@ -167,28 +119,29 @@ export function InviteCollaboratorModal({
           </div>
 
           {error && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-              {error}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <button
+          <DialogFooter className="gap-3">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-2 border rounded-lg font-medium hover:bg-muted transition-colors disabled:opacity-50"
+              className="flex-1"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
+              className="flex-1"
             >
               {isLoading && (
                 <svg
-                  className="w-4 h-4 animate-spin"
+                  className="w-4 h-4 animate-spin mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -212,10 +165,10 @@ export function InviteCollaboratorModal({
                   ? 'Sending...'
                   : 'Sending...'
                 : 'Send Invitation'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

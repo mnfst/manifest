@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, Plus } from 'lucide-react';
 import type { App } from '@chatgpt-app-builder/shared';
 import { api, resolveIconUrl } from '../../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface SidebarAppSelectorProps {
   onCreateApp: () => void;
@@ -104,9 +105,10 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
 
   return (
     <div ref={dropdownRef} className="relative px-2">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-nav-hover transition-colors"
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-nav-foreground hover:bg-nav-hover h-auto"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
@@ -144,7 +146,7 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
             isOpen ? 'rotate-180' : ''
           }`}
         />
-      </button>
+      </Button>
 
       {/* Dropdown */}
       {isOpen && (
@@ -166,10 +168,11 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
                   </div>
                 ) : (
                   apps.map((app) => (
-                    <button
+                    <Button
                       key={app.id}
+                      variant="ghost"
                       onClick={() => handleAppSelect(app)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-nav-hover transition-colors text-nav-foreground ${
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-nav-foreground hover:bg-nav-hover h-auto justify-start rounded-none ${
                         app.id === currentApp?.id ? 'bg-nav-hover' : ''
                       }`}
                       role="option"
@@ -197,20 +200,21 @@ export function SidebarAppSelector({ onCreateApp }: SidebarAppSelectorProps) {
                       {app.id === currentApp?.id && (
                         <span className="text-xs text-nav-foreground/60">Current</span>
                       )}
-                    </button>
+                    </Button>
                   ))
                 )}
               </div>
 
               {/* Create new app */}
               <div className="border-t border-nav-foreground/20">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={handleCreateApp}
-                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-nav-hover transition-colors text-primary"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-primary hover:bg-nav-hover h-auto justify-start rounded-none"
                 >
                   <Plus className="w-5 h-5" />
                   <span className="text-sm font-medium">Create new app</span>
-                </button>
+                </Button>
               </div>
             </>
           )}

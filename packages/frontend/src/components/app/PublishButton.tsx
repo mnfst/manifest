@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { AppStatus } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface PublishButtonProps {
   appId: string;
@@ -41,15 +43,11 @@ export function PublishButton({
   return (
     <div className="flex items-center gap-4">
       <div className="relative group">
-        <button
+        <Button
           type="button"
+          variant={isPublished ? 'outline' : 'default'}
           onClick={handleClick}
           disabled={isDisabled || isUpdating}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            isPublished
-              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              : 'bg-primary text-primary-foreground hover:bg-primary/90'
-          } ${isDisabled || isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {isUpdating ? (
             <span className="flex items-center gap-2">
@@ -61,7 +59,7 @@ export function PublishButton({
           ) : (
             'Publish'
           )}
-        </button>
+        </Button>
         {cannotPublish && (
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             Add at least one flow to publish
@@ -70,12 +68,10 @@ export function PublishButton({
         )}
       </div>
       {isPublished && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-            <span className="w-2 h-2 bg-green-500 rounded-full" />
-            Published
-          </span>
-        </div>
+        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+          <span className="w-2 h-2 bg-green-500 rounded-full mr-1" />
+          Published
+        </Badge>
       )}
     </div>
   );

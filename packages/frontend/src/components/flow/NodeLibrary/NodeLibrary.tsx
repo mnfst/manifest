@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 import type {
   NodeType,
   NodeTypeCategory,
@@ -427,13 +428,15 @@ export function NodeLibrary({
           <div className="p-4 border-b">
             {showBackButton ? (
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleBack}
-                  className="p-1 rounded hover:bg-muted transition-colors"
+                  className="h-8 w-8"
                   aria-label="Go back"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                </button>
+                </Button>
                 <h2 className="text-lg font-semibold">{getHeaderTitle()}</h2>
               </div>
             ) : (
@@ -537,12 +540,13 @@ export function NodeLibrary({
                   ) : registryError ? (
                     <div className="text-center py-8">
                       <p className="text-sm text-red-600 mb-2">{registryError}</p>
-                      <button
+                      <Button
+                        variant="link"
                         onClick={fetchRegistryItems}
-                        className="text-sm text-primary hover:underline"
+                        className="text-sm"
                       >
                         Try again
-                      </button>
+                      </Button>
                     </div>
                   ) : isFolderSearching ? (
                     // When searching in UIs folder, show matching components (not categories)
@@ -664,13 +668,17 @@ export function NodeLibrary({
       </div>
 
       {/* Toggle Button - positioned at drawer edge */}
-      <button
+      <Button
+        variant="ghost"
         onClick={onToggle}
         className={`
-          absolute top-1/2 -translate-y-1/2 z-10 w-6 h-12 bg-card border rounded-r-lg
-          flex items-center justify-center hover:bg-muted
+          absolute top-1/2 -translate-y-1/2 z-10
+          w-6 h-12 bg-card border rounded-r-lg rounded-l-none
+          flex items-center justify-center
+          hover:bg-muted
           transition-all duration-300 ease-in-out motion-safe-override
           ${isOpen ? 'left-72' : 'left-0'}
+          p-0
         `}
         aria-label={isOpen ? 'Close node library' : 'Open node library'}
       >
@@ -679,7 +687,7 @@ export function NodeLibrary({
         ) : (
           <ChevronRight className="w-4 h-4" />
         )}
-      </button>
+      </Button>
 
       {/* Preview Panel - shows when hovering registry items with preview images */}
       {isOpen && hoveredItem?.meta?.preview && hoverRect && (
