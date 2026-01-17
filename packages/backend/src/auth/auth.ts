@@ -14,9 +14,9 @@ function getTrustedOrigins(): string[] {
     origins.push(...process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()));
   }
 
-  // In development, allow localhost
+  // In development, allow localhost on any port using wildcard pattern
   if (process.env.NODE_ENV !== 'production') {
-    origins.push('http://localhost:3847', 'http://localhost:5173', 'http://localhost:5174');
+    origins.push('http://localhost:*');
   }
 
   return origins;
