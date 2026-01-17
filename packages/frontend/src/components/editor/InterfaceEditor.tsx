@@ -11,6 +11,14 @@ import { AppearanceTab } from './AppearanceTab';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/shadcn/tabs';
 import { Button } from '../ui/shadcn/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '../ui/shadcn/dialog';
+import {
   getTemplateDefaultCode,
   getTemplateSampleData,
   type AppearanceConfig,
@@ -337,45 +345,45 @@ export function InterfaceEditor({
       </Tabs>
 
       {/* Unsaved changes dialog */}
-      {showUnsavedDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
-          <div className="bg-card rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
-            <h2 className="text-lg font-semibold mb-2">Unsaved Changes</h2>
-            <p className="text-muted-foreground mb-6">
+      <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
               You have unsaved changes. Do you want to save them before closing?
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowUnsavedDialog(false);
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowUnsavedDialog(false);
+                onClose();
+              }}
+            >
+              Discard
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowUnsavedDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                await handleSave();
+                setShowUnsavedDialog(false);
+                if (!hasErrors) {
                   onClose();
-                }}
-              >
-                Discard
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowUnsavedDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={async () => {
-                  await handleSave();
-                  setShowUnsavedDialog(false);
-                  if (!hasErrors) {
-                    onClose();
-                  }
-                }}
-                disabled={hasErrors || !name.trim()}
-              >
-                Save & Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+                }
+              }}
+              disabled={hasErrors || !name.trim()}
+            >
+              Save & Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
