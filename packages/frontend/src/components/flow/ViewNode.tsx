@@ -1,6 +1,6 @@
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, memo } from 'react';
 import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters, type NodeType } from '@chatgpt-app-builder/shared';
 import { LayoutGrid, Code2 } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
@@ -23,7 +23,7 @@ export interface ViewNodeData extends Record<string, unknown> {
  * Square card design matching placeholder nodes
  * Displays action handles on the right side for nodes with actions
  */
-export function ViewNode({ data, id }: NodeProps) {
+export const ViewNode = memo(function ViewNode({ data, id }: NodeProps) {
   const { node, canDelete, onEdit, onDelete, onEditCode, onAddFromNode, onDropOnNode } = data as ViewNodeData;
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -126,4 +126,4 @@ export function ViewNode({ data, id }: NodeProps) {
       ))}
     </div>
   );
-}
+});

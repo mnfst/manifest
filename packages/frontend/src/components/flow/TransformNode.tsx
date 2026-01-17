@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, JavaScriptCodeTransformParameters } from '@chatgpt-app-builder/shared';
@@ -18,7 +19,7 @@ export interface TransformNodeData extends Record<string, unknown> {
  * Diamond-shaped (45-degree rotated square) with teal color scheme.
  * Smaller than standard nodes to visually distinguish transformer nodes.
  */
-export function TransformNode({ data }: NodeProps) {
+export const TransformNode = memo(function TransformNode({ data }: NodeProps) {
   const { node, canDelete, onEdit, onDelete, validationError } = data as TransformNodeData;
 
   // Get parameters with type safety
@@ -98,4 +99,4 @@ export function TransformNode({ data }: NodeProps) {
       />
     </div>
   );
-}
+});
