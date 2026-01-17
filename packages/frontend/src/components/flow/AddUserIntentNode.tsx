@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Plus, MessageCircle } from 'lucide-react';
@@ -12,7 +13,7 @@ export interface AddUserIntentNodeData extends Record<string, unknown> {
  * Displayed when a flow has no toolDescription set
  * Centered in the canvas with "+" icon and "Add user intent" text
  */
-export function AddUserIntentNode({ data }: NodeProps) {
+export const AddUserIntentNode = memo(function AddUserIntentNode({ data }: NodeProps) {
   const { onClick } = data as AddUserIntentNodeData;
 
   return (
@@ -56,4 +57,4 @@ export function AddUserIntentNode({ data }: NodeProps) {
       />
     </Button>
   );
-}
+});

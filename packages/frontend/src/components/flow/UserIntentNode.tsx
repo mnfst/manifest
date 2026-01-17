@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
@@ -22,7 +23,7 @@ export interface UserIntentNodeData extends Record<string, unknown> {
  * Shows the trigger that initiates the flow with zap icon and blue accent
  * Trigger nodes only have output handles (no incoming connections)
  */
-export function UserIntentNode({ data }: NodeProps) {
+export const UserIntentNode = memo(function UserIntentNode({ data }: NodeProps) {
   const { node, canDelete, onEdit, onDelete, onAddFromNode, onDropOnNode } = data as UserIntentNodeData;
   const params = node.parameters as unknown as UserIntentNodeParameters | undefined;
 
@@ -126,4 +127,4 @@ export function UserIntentNode({ data }: NodeProps) {
       )}
     </div>
   );
-}
+});

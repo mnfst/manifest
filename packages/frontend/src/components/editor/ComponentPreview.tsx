@@ -7,11 +7,10 @@ import React from 'react';
 import { transform } from 'sucrase';
 import { PreviewErrorBoundary } from './PreviewErrorBoundary';
 import * as LucideIcons from 'lucide-react';
-import { Loader2, AlertCircle, Copy, Check } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ThemeProvider } from './ThemeProvider';
 import type { ThemeVariables } from '@chatgpt-app-builder/shared';
-import { Button } from '../ui/shadcn/button';
 
 export interface ComponentPreviewProps {
   /** TSX code string to render */
@@ -77,61 +76,6 @@ function buildFileMap(
   }
 
   return fileMap;
-}
-
-/**
- * Extract demo data from siblingFiles by finding and compiling the demo/data file.
- * Returns the exports object or null if not found.
- */
-function extractDemoData(
-  siblingFiles?: Array<{ path: string; content: string }>
-): Record<string, unknown> | null {
-  if (!siblingFiles) return null;
-
-  // Find the demo/data file
-  const demoFile = siblingFiles.find(f => f.path.includes('/demo/data'));
-  if (!demoFile) return null;
-
-  try {
-    // Strip Next.js directives
-    const processedCode = demoFile.content
-      .replace(/['"]use client['"]\s*;?/g, '')
-      .replace(/['"]use server['"]\s*;?/g, '');
-
-    // Transform with Sucrase
-    const result = transform(processedCode, {
-      transforms: ['jsx', 'typescript', 'imports'],
-      jsxRuntime: 'classic',
-      jsxPragma: 'React.createElement',
-      jsxFragmentPragma: 'React.Fragment',
-    });
-
-    // Create module wrapper
-    const moduleCode = `
-      var exports = {};
-      var module = { exports: exports };
-      ${result.code}
-      return exports;
-    `;
-
-    // Simple mock require that returns empty objects for any import
-    const mockRequire = () => ({});
-    const factory = new Function('React', 'require', moduleCode);
-    const exports = factory(React, mockRequire) as Record<string, unknown>;
-
-    // Filter to only include data exports (objects/arrays, not functions)
-    const dataExports: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(exports)) {
-      if (value && typeof value === 'object') {
-        dataExports[key] = value;
-      }
-    }
-
-    return Object.keys(dataExports).length > 0 ? dataExports : null;
-  } catch (err) {
-    console.warn('Failed to extract demo data:', err);
-    return null;
-  }
 }
 
 /**
@@ -365,20 +309,11 @@ export function ComponentPreview({
 }: ComponentPreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [resetKey, setResetKey] = useState(0);
-  const [copied, setCopied] = useState(false);
 
   // Compile the component when code or sibling files change
   const { Component, error } = useMemo(() => {
     return compileComponent(code, siblingFiles);
   }, [code, siblingFiles]);
-
-  // Extract demo data from siblingFiles for registry components
-  const demoData = useMemo(() => {
-    return extractDemoData(siblingFiles);
-  }, [siblingFiles]);
-
-  // Use demo data for registry components, or sampleData for built-in templates
-  const displayData = demoData ?? sampleData;
 
   // Short loading delay for UX
   useEffect(() => {
@@ -392,17 +327,6 @@ export function ComponentPreview({
   // Handle error boundary reset
   const handleReset = () => {
     setResetKey((prev) => prev + 1);
-  };
-
-  // Copy sample data to clipboard
-  const handleCopySampleData = async () => {
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(displayData, null, 2));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      console.warn('Clipboard API not available');
-    }
   };
 
   if (isLoading) {
@@ -464,34 +388,6 @@ export function ComponentPreview({
           )}
         </div>
 
-        {/* Sample data reference - shows demo data for registry components or sample data for built-in templates */}
-        {displayData !== undefined && (
-          <div className="mt-6 pt-4 border-t">
-            <details className="group">
-              <summary className="text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-700">
-                {demoData ? 'View demo data' : 'View sample data'}
-              </summary>
-              <div className="relative mt-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopySampleData}
-                  className="absolute top-2 right-2 h-8 w-8"
-                  title={copied ? 'Copied!' : 'Copy data'}
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
-                <pre className="p-3 pr-10 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 overflow-auto max-h-48">
-                  {JSON.stringify(displayData, null, 2)}
-                </pre>
-              </div>
-            </details>
-          </div>
-        )}
       </div>
     </PreviewErrorBoundary>
   );

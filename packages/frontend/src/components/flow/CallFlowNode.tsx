@@ -1,8 +1,8 @@
+import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, CallFlowNodeParameters } from '@chatgpt-app-builder/shared';
 import { PhoneForwarded, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/shadcn/button';
 
 export interface CallFlowNodeData extends Record<string, unknown> {
@@ -18,7 +18,7 @@ export interface CallFlowNodeData extends Record<string, unknown> {
  * Purple-themed card design to distinguish from Interface and Return nodes
  * No right-side handle as it's a terminal/end action
  */
-export function CallFlowNode({ data }: NodeProps) {
+export const CallFlowNode = memo(function CallFlowNode({ data }: NodeProps) {
   const { node, targetFlowName, canDelete, onEdit, onDelete } = data as CallFlowNodeData;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -137,4 +137,4 @@ export function CallFlowNode({ data }: NodeProps) {
       {/* NO right handle - this is an end action */}
     </div>
   );
-}
+});

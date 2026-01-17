@@ -658,9 +658,15 @@ function FlowDiagramInner({
   // State for draggable nodes - initialized from computedNodes and updated on drag
   const [nodes, setNodes] = useState<Node[]>(computedNodes);
 
+  // Track if user is currently dragging to avoid sync interference
+  const isDraggingRef = useRef(false);
+
   // Sync nodes state when computed nodes change (e.g., new node added, flow data changed)
+  // Skip sync during drag to prevent jerky movement
   useEffect(() => {
-    setNodes(computedNodes);
+    if (!isDraggingRef.current) {
+      setNodes(computedNodes);
+    }
   }, [computedNodes]);
 
   // Handle node changes (position updates during drag)
@@ -668,8 +674,14 @@ function FlowDiagramInner({
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
+  // Track drag start
+  const onNodeDragStart = useCallback(() => {
+    isDraggingRef.current = true;
+  }, []);
+
   // Persist node position when drag ends
   const onNodeDragStop = useCallback(async (_event: React.MouseEvent, node: Node) => {
+    isDraggingRef.current = false;
     // Skip virtual nodes (user-intent, add-step)
     if (node.id === 'user-intent' || node.id === 'add-step') {
       return;
@@ -764,6 +776,7 @@ function FlowDiagramInner({
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
+          onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onNodeClick={onNodeClick}
           onConnect={onConnect}

@@ -1,13 +1,19 @@
 /**
  * InterfaceEditor - Full-screen editor for UI nodes.
- * Provides a unified interface with tabs for General, Appearance, Code, and Preview.
+ * Features a 75%/25% split-panel layout with:
+ * - Left panel (75%): Preview and Code tabs
+ * - Right panel (25%): Appearance and Demo Data tabs
+ * Enables live preview updates when adjusting appearance or demo data.
  */
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { X, Save, Code, Eye, Settings, Palette } from 'lucide-react';
+import React from 'react';
+import { X, Save, Code, Eye, Palette, Database } from 'lucide-react';
+import { transform } from 'sucrase';
 import { CodeEditor } from './CodeEditor';
 import { ComponentPreview } from './ComponentPreview';
-import { GeneralTab } from './GeneralTab';
 import { AppearanceTab } from './AppearanceTab';
+import { DemoDataEditor } from './DemoDataEditor';
+import { InlineEditableField } from './InlineEditableField';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/shadcn/tabs';
 import { Button } from '../ui/shadcn/button';
 import {
@@ -27,6 +33,7 @@ import {
   getDefaultAppearanceConfig,
 } from '@chatgpt-app-builder/shared';
 import { validateCode } from '../../lib/codeValidator';
+import { parseAppearanceOptions } from '../../services/registry';
 import type { ValidationError } from '@chatgpt-app-builder/shared';
 
 export interface InterfaceEditorProps {
@@ -54,10 +61,6 @@ export interface InterfaceEditorProps {
   onSave: (data: { name: string; code: string; appearanceConfig: AppearanceConfig }) => Promise<void>;
 }
 
-/**
- * Full-screen editor for customizing UI node configuration.
- * Provides tabs for General (name), Appearance (visual options), Code (TSX), and Preview.
- */
 // Map component types to layout templates
 function getLayoutTemplate(componentType: string): 'stat-card' | 'post-list' | 'blank-component' {
   switch (componentType) {
@@ -71,6 +74,72 @@ function getLayoutTemplate(componentType: string): 'stat-card' | 'post-list' | '
   }
 }
 
+/**
+ * Extract demo data from siblingFiles by compiling the demo/data file with Sucrase.
+ * Transforms export names from "demoX" to "x" to match component data prop format.
+ * Returns the data object formatted for the component's data prop.
+ */
+function extractDemoDataFromFiles(
+  siblingFiles?: Array<{ path: string; content: string }>
+): Record<string, unknown> | null {
+  if (!siblingFiles) return null;
+
+  // Find the demo/data file
+  const demoFile = siblingFiles.find(f => f.path.includes('/demo/data'));
+  if (!demoFile) return null;
+
+  try {
+    // Strip Next.js directives
+    const processedCode = demoFile.content
+      .replace(/['"]use client['"]\s*;?/g, '')
+      .replace(/['"]use server['"]\s*;?/g, '');
+
+    // Transform with Sucrase
+    const result = transform(processedCode, {
+      transforms: ['jsx', 'typescript', 'imports'],
+      jsxRuntime: 'classic',
+      jsxPragma: 'React.createElement',
+      jsxFragmentPragma: 'React.Fragment',
+    });
+
+    // Create module wrapper
+    const moduleCode = `
+      var exports = {};
+      var module = { exports: exports };
+      ${result.code}
+      return exports;
+    `;
+
+    // Simple mock require that returns empty objects for any import
+    const mockRequire = () => ({});
+    const factory = new Function('React', 'require', moduleCode);
+    const exports = factory(React, mockRequire) as Record<string, unknown>;
+
+    // Transform exports: "demoProducts" -> "products", "demoPost" -> "post"
+    // This matches the component's data prop format
+    const dataExports: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(exports)) {
+      if (value && typeof value === 'object') {
+        // Remove "demo" prefix and lowercase first char to match prop name
+        let propKey = key;
+        if (key.startsWith('demo') && key.length > 4) {
+          propKey = key.charAt(4).toLowerCase() + key.slice(5);
+        }
+        dataExports[propKey] = value;
+      }
+    }
+
+    return Object.keys(dataExports).length > 0 ? dataExports : null;
+  } catch (err) {
+    console.warn('Failed to extract demo data:', err);
+    return null;
+  }
+}
+
+/**
+ * Full-screen editor for customizing UI node configuration.
+ * Split-panel layout: Preview/Code (75%) | Appearance/Demo Data (25%)
+ */
 export function InterfaceEditor({
   nodeName: initialNodeName,
   componentType = 'StatCard',
@@ -96,23 +165,30 @@ export function InterfaceEditor({
     return files.slice(1); // Skip files[0] which is the main code
   }, [files]);
 
-  // Editor state - unified for all tabs
-  const [name, setName] = useState(initialNodeName);
-  const [code, setCode] = useState(startingCode);
-  const [appearanceConfig, setAppearanceConfig] = useState<AppearanceConfig>(startingAppearanceConfig);
-  const [isDirty, setIsDirty] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [errors, setErrors] = useState<ValidationError[]>([]);
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [previewKey, setPreviewKey] = useState(0);
+  // Re-parse appearance options from source code to get fresh JSDoc descriptions
+  // This ensures existing nodes get updated descriptions when the parsing logic improves
+  const freshAppearanceOptions = useMemo((): RegistryAppearanceOption[] | undefined => {
+    if (!files || files.length === 0) return appearanceOptions;
 
-  // Get sample data for preview
-  // Registry components (with siblingFiles including demo/data.ts) use their internal demo data
-  // Built-in templates (StatCard, PostList) use predefined sample data
-  const sampleData = useMemo(() => {
-    // Registry components have siblingFiles with demo data - let them use their internal defaults
+    // Find the main component file (.tsx, not demo files)
+    const componentFile = files.find(f => f.path.endsWith('.tsx') && !f.path.includes('/demo/'));
+    if (!componentFile) return appearanceOptions;
+
+    // Re-parse appearance options from source code
+    const parsed = parseAppearanceOptions(componentFile.content);
+    return parsed.length > 0 ? parsed : appearanceOptions;
+  }, [files, appearanceOptions]);
+
+  // Calculate initial demo data
+  const initialDemoData = useMemo(() => {
+    // Registry components have siblingFiles with demo data - extract it
     if (siblingFiles && siblingFiles.length > 0) {
-      return undefined;
+      const extractedData = extractDemoDataFromFiles(siblingFiles);
+      if (extractedData) {
+        return extractedData;
+      }
+      // Fallback to empty object if extraction fails
+      return {};
     }
 
     // Built-in templates use predefined sample data
@@ -123,6 +199,32 @@ export function InterfaceEditor({
     const template = templateMap[componentType] || 'stat-card';
     return getTemplateSampleData(template as 'stat-card' | 'post-list');
   }, [componentType, siblingFiles]);
+
+  // Editor state - unified for all tabs
+  const [name, setName] = useState(initialNodeName);
+  const [code, setCode] = useState(startingCode);
+  const [appearanceConfig, setAppearanceConfig] = useState<AppearanceConfig>(startingAppearanceConfig);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
+
+  // Demo data state (for live preview editing)
+  const [demoData, setDemoData] = useState<unknown>(initialDemoData);
+  const [demoDataString, setDemoDataString] = useState(
+    initialDemoData ? JSON.stringify(initialDemoData, null, 2) : '{}'
+  );
+  const [demoDataError, setDemoDataError] = useState<string | null>(null);
+
+  // Sync demo data state when initialDemoData changes (e.g., when files load)
+  useEffect(() => {
+    if (initialDemoData && Object.keys(initialDemoData).length > 0) {
+      setDemoData(initialDemoData);
+      setDemoDataString(JSON.stringify(initialDemoData, null, 2));
+      setDemoDataError(null);
+    }
+  }, [initialDemoData]);
 
   // Validate code when it changes
   useEffect(() => {
@@ -142,7 +244,7 @@ export function InterfaceEditor({
     updateDirtyState();
   }, [updateDirtyState]);
 
-  // Handle name change
+  // Handle name change (from inline editable field)
   const handleNameChange = useCallback((newName: string) => {
     setName(newName);
   }, []);
@@ -157,6 +259,19 @@ export function InterfaceEditor({
   const handleAppearanceChange = useCallback((newConfig: AppearanceConfig) => {
     setAppearanceConfig(newConfig);
     setPreviewKey((prev) => prev + 1);
+  }, []);
+
+  // Handle demo data change with JSON parsing
+  const handleDemoDataChange = useCallback((jsonString: string) => {
+    setDemoDataString(jsonString);
+    try {
+      const parsed = JSON.parse(jsonString);
+      setDemoData(parsed);
+      setDemoDataError(null);
+      setPreviewKey((prev) => prev + 1);
+    } catch (e) {
+      setDemoDataError(e instanceof Error ? e.message : 'Invalid JSON');
+    }
   }, []);
 
   // Handle save
@@ -225,12 +340,19 @@ export function InterfaceEditor({
             <X className="w-5 h-5" />
           </Button>
 
-          <div>
-            <h1 className="text-lg font-semibold">{name || 'Untitled'}</h1>
-            <p className="text-sm text-muted-foreground">
-              Edit {componentType}
-              {isDirty && <span className="text-amber-500 ml-2">• Unsaved changes</span>}
-            </p>
+          <div className="flex items-center gap-3">
+            <InlineEditableField
+              value={name}
+              onChange={handleNameChange}
+              placeholder="Untitled"
+              disabled={isSaving}
+            />
+            <span className="text-sm text-muted-foreground">
+              {componentType}
+            </span>
+            {isDirty && (
+              <span className="text-sm text-amber-500">• Unsaved changes</span>
+            )}
           </div>
         </div>
 
@@ -247,102 +369,113 @@ export function InterfaceEditor({
         </div>
       </header>
 
-      {/* Main content with tabs */}
-      <Tabs defaultValue="general" className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-4 bg-card">
-          <TabsList>
-            <TabsTrigger value="general" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              General
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="flex items-center gap-2">
-              <Palette className="w-4 h-4" />
-              Appearance
-            </TabsTrigger>
-            <TabsTrigger value="code" className="flex items-center gap-2">
-              <Code className="w-4 h-4" />
-              Code
-            </TabsTrigger>
-            <TabsTrigger value="preview" className="flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              Preview
-            </TabsTrigger>
-          </TabsList>
+      {/* Main content - Split panel layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - 75% - Preview/Code */}
+        <div className="w-3/4 border-r flex flex-col overflow-hidden">
+          <Tabs defaultValue="preview" className="flex-1 flex flex-col overflow-hidden">
+            <div className="px-4 bg-card border-b">
+              <TabsList>
+                <TabsTrigger value="preview" className="flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  Preview
+                </TabsTrigger>
+                <TabsTrigger value="code" className="flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  Code
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Preview Tab */}
+            <TabsContent value="preview" className="flex-1 overflow-auto bg-muted/30 p-8">
+              <div className="bg-card rounded-xl shadow-lg p-6 max-w-4xl mx-auto min-h-[400px]">
+                <ComponentPreview
+                  code={code}
+                  sampleData={demoData}
+                  renderKey={previewKey}
+                  appearanceConfig={appearanceConfig}
+                  siblingFiles={siblingFiles}
+                  themeVariables={themeVariables}
+                />
+              </div>
+            </TabsContent>
+
+            {/* Code Tab */}
+            <TabsContent value="code" className="flex-1 overflow-auto p-4">
+              <CodeEditor
+                value={code}
+                onChange={handleCodeChange}
+                showLintErrors={true}
+                minHeight="400px"
+              />
+
+              {/* Error summary panel */}
+              {hasErrors && (
+                <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-red-800 mb-2">
+                    {errors.length} error{errors.length !== 1 ? 's' : ''} found
+                  </h3>
+                  <ul className="space-y-1">
+                    {errors.slice(0, 5).map((error, index) => (
+                      <li key={index} className="text-sm text-red-700">
+                        <span className="font-mono text-red-500">
+                          Line {error.line}:{error.column}
+                        </span>{' '}
+                        {error.message}
+                      </li>
+                    ))}
+                    {errors.length > 5 && (
+                      <li className="text-sm text-red-600 italic">
+                        ...and {errors.length - 5} more errors
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* General Tab */}
-        <TabsContent value="general" className="flex-1 overflow-auto p-6">
-          <div className="max-w-xl">
-            <GeneralTab
-              name={name}
-              onNameChange={handleNameChange}
-              componentType={componentType}
-              disabled={isSaving}
-            />
-          </div>
-        </TabsContent>
-
-        {/* Appearance Tab */}
-        <TabsContent value="appearance" className="flex-1 overflow-auto p-6">
-          <div className="max-w-xl">
-            <AppearanceTab
-              componentType={componentType}
-              config={appearanceConfig}
-              onChange={handleAppearanceChange}
-              disabled={isSaving}
-              customOptions={appearanceOptions}
-            />
-          </div>
-        </TabsContent>
-
-        {/* Code Tab */}
-        <TabsContent value="code" className="flex-1 overflow-auto p-4">
-          <CodeEditor
-            value={code}
-            onChange={handleCodeChange}
-            showLintErrors={true}
-            minHeight="400px"
-          />
-
-          {/* Error summary panel */}
-          {hasErrors && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-red-800 mb-2">
-                {errors.length} error{errors.length !== 1 ? 's' : ''} found
-              </h3>
-              <ul className="space-y-1">
-                {errors.slice(0, 5).map((error, index) => (
-                  <li key={index} className="text-sm text-red-700">
-                    <span className="font-mono text-red-500">
-                      Line {error.line}:{error.column}
-                    </span>{' '}
-                    {error.message}
-                  </li>
-                ))}
-                {errors.length > 5 && (
-                  <li className="text-sm text-red-600 italic">
-                    ...and {errors.length - 5} more errors
-                  </li>
-                )}
-              </ul>
+        {/* Right Panel - 25% - Appearance/Demo Data */}
+        <div className="w-1/4 flex flex-col overflow-hidden">
+          <Tabs defaultValue="appearance" className="flex-1 flex flex-col overflow-hidden">
+            <div className="px-4 bg-card border-b">
+              <TabsList>
+                <TabsTrigger value="appearance" className="flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Appearance
+                </TabsTrigger>
+                <TabsTrigger value="demo-data" className="flex items-center gap-2">
+                  <Database className="w-4 h-4" />
+                  Demo Data
+                </TabsTrigger>
+              </TabsList>
             </div>
-          )}
-        </TabsContent>
 
-        {/* Preview Tab */}
-        <TabsContent value="preview" className="flex-1 overflow-auto bg-muted/30 p-8">
-          <div className="bg-card rounded-xl shadow-lg p-6 max-w-4xl mx-auto min-h-[400px]">
-            <ComponentPreview
-              code={code}
-              sampleData={sampleData}
-              renderKey={previewKey}
-              appearanceConfig={appearanceConfig}
-              siblingFiles={siblingFiles}
-              themeVariables={themeVariables}
-            />
-          </div>
-        </TabsContent>
-      </Tabs>
+            {/* Appearance Tab */}
+            <TabsContent value="appearance" className="flex-1 overflow-auto p-4">
+              <AppearanceTab
+                componentType={componentType}
+                config={appearanceConfig}
+                onChange={handleAppearanceChange}
+                disabled={isSaving}
+                customOptions={freshAppearanceOptions}
+              />
+            </TabsContent>
+
+            {/* Demo Data Tab */}
+            <TabsContent value="demo-data" className="flex-1 overflow-auto p-4">
+              <DemoDataEditor
+                value={demoDataString}
+                onChange={handleDemoDataChange}
+                error={demoDataError}
+                disabled={isSaving}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
 
       {/* Unsaved changes dialog */}
       <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>

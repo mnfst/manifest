@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, ApiCallNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
@@ -21,7 +22,7 @@ export interface ApiCallNodeData extends Record<string, unknown> {
  * Orange-themed card design with left input handle and right output handle.
  * Displays the HTTP method and URL in a compact format.
  */
-export function ApiCallNode({ data }: NodeProps) {
+export const ApiCallNode = memo(function ApiCallNode({ data }: NodeProps) {
   const { node, canDelete, onEdit, onDelete, onAddFromNode, onDropOnNode } = data as ApiCallNodeData;
 
   // Get parameters with type safety
@@ -93,4 +94,4 @@ export function ApiCallNode({ data }: NodeProps) {
       )}
     </div>
   );
-}
+});

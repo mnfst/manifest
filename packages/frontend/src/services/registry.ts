@@ -262,7 +262,36 @@ function extractDataSchema(propsBody: string): JSONSchema | undefined {
 }
 
 /**
+ * Extract JSDoc description from a comment block.
+ * Returns the first paragraph of the JSDoc, excluding @tags.
+ */
+function extractJSDocDescription(comment: string): string | undefined {
+  // Remove /** and */ markers (handle various formats)
+  const cleaned = comment
+    .replace(/^\/\*\*\s*/, '')  // Remove opening /**
+    .replace(/\*\/\s*$/, '')     // Remove closing */
+    .replace(/\*\//g, '')        // Remove any remaining */
+    .split('\n')
+    .map(line => line.replace(/^\s*\*\s?/, '').trim())
+    .filter(line => !line.startsWith('@') && line !== '/')
+    .join(' ')
+    .trim()
+    .replace(/\s*\/\s*$/, '');   // Remove trailing slash if any
+
+  return cleaned || undefined;
+}
+
+/**
+ * Extract default value from JSDoc @default tag.
+ */
+function extractJSDocDefault(comment: string): string | undefined {
+  const defaultMatch = comment.match(/@default\s+(\S+)/);
+  return defaultMatch?.[1];
+}
+
+/**
  * Extract appearance options from the Props interface.
+ * Parses JSDoc comments for descriptions.
  */
 function extractAppearanceOptions(propsBody: string): RegistryAppearanceOption[] {
   const options: RegistryAppearanceOption[] = [];
@@ -275,13 +304,14 @@ function extractAppearanceOptions(propsBody: string): RegistryAppearanceOption[]
   const appearanceBody = extractBracketContent(propsBody, startIndex - 1, '{', '}');
   if (!appearanceBody) return options;
 
-  // Match each property: propertyName?: type
-  const propertyRegex = /(\w+)\??\s*:\s*(boolean|string|number|'[^']+(?:'\s*\|\s*'[^']+')*|\d+(?:\s*\|\s*\d+)*)/g;
+  // Match each property with optional JSDoc: /** ... */ propertyName?: type
+  const propertyRegex = /(\/\*\*[\s\S]*?\*\/\s*)?(\w+)\??\s*:\s*(boolean|string|number|'[^']+(?:'\s*\|\s*'[^']+')*|\d+(?:\s*\|\s*\d+)*)/g;
   let match;
 
   while ((match = propertyRegex.exec(appearanceBody)) !== null) {
-    const key = match[1];
-    const typeStr = match[2];
+    const jsdocComment = match[1] || '';
+    const key = match[2];
+    const typeStr = match[3];
 
     // Convert camelCase to Title Case for label
     const label = key
@@ -289,53 +319,60 @@ function extractAppearanceOptions(propsBody: string): RegistryAppearanceOption[]
       .replace(/^./, (str) => str.toUpperCase())
       .trim();
 
+    // Extract JSDoc description if present
+    const jsdocDescription = extractJSDocDescription(jsdocComment);
+    const jsdocDefault = extractJSDocDefault(jsdocComment);
+
     if (typeStr === 'boolean') {
+      const defaultValue = jsdocDefault === 'true' ? true : jsdocDefault === 'false' ? false : false;
       options.push({
         key,
         label,
         type: 'boolean',
-        defaultValue: false,
-        description: `Toggle ${label.toLowerCase()}`,
+        defaultValue,
+        description: jsdocDescription,
       });
     } else if (typeStr === 'string') {
       options.push({
         key,
         label,
         type: 'string',
-        defaultValue: '',
-        description: `Set ${label.toLowerCase()}`,
+        defaultValue: jsdocDefault?.replace(/['"]/g, '') || '',
+        description: jsdocDescription,
       });
     } else if (typeStr === 'number') {
       options.push({
         key,
         label,
         type: 'number',
-        defaultValue: 0,
-        description: `Set ${label.toLowerCase()}`,
+        defaultValue: jsdocDefault ? parseFloat(jsdocDefault) : 0,
+        description: jsdocDescription,
       });
     } else if (typeStr.startsWith("'")) {
       // String literal union: 'value1' | 'value2' | 'value3'
       const enumValues = typeStr.match(/'([^']+)'/g)?.map((v) => v.replace(/'/g, '')) || [];
       if (enumValues.length > 0) {
+        const defaultEnumValue = jsdocDefault?.replace(/['"]/g, '');
         options.push({
           key,
           label,
           type: 'enum',
           enumValues,
-          defaultValue: enumValues[0],
-          description: `Select ${label.toLowerCase()}`,
+          defaultValue: defaultEnumValue && enumValues.includes(defaultEnumValue) ? defaultEnumValue : enumValues[0],
+          description: jsdocDescription,
         });
       }
     } else if (/^\d+(?:\s*\|\s*\d+)*$/.test(typeStr)) {
       // Number literal union: 2 | 3 | 4
       const enumValues = typeStr.split('|').map(v => parseInt(v.trim(), 10));
+      const defaultEnumValue = jsdocDefault ? parseInt(jsdocDefault, 10) : enumValues[0];
       options.push({
         key,
         label,
         type: 'enum',
         enumValues,
-        defaultValue: enumValues[0],
-        description: `Select ${label.toLowerCase()}`,
+        defaultValue: enumValues.includes(defaultEnumValue) ? defaultEnumValue : enumValues[0],
+        description: jsdocDescription,
       });
     }
   }

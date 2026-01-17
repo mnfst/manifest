@@ -1,8 +1,8 @@
+import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, LinkNodeParameters } from '@chatgpt-app-builder/shared';
 import { ExternalLink, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/shadcn/button';
 
 export interface LinkNodeData extends Record<string, unknown> {
@@ -39,7 +39,7 @@ function UIHandle() {
  * Green-themed card design (output category)
  * No right-side handle as it's a terminal/end action
  */
-export function LinkNode({ data }: NodeProps) {
+export const LinkNode = memo(function LinkNode({ data }: NodeProps) {
   const { node, canDelete, onEdit, onDelete } = data as LinkNodeData;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -150,4 +150,4 @@ export function LinkNode({ data }: NodeProps) {
       {/* NO right handle - this is a terminal/end action */}
     </div>
   );
-}
+});
