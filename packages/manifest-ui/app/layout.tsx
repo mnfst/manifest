@@ -1,6 +1,7 @@
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { ThemeProvider } from '@/components/theme/theme-provider'
+import { TokenProvider } from '@/lib/token-context'
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import Script from 'next/script'
@@ -144,9 +145,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <TokenProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </TokenProvider>
         </ThemeProvider>
         <Analytics />
         <Script
