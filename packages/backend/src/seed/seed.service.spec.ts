@@ -18,6 +18,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
 import type { NodeInstance, Connection } from '@chatgpt-app-builder/shared';
+import { DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
 
 // ============================================================
 // Mock External Dependencies
@@ -219,18 +220,18 @@ describe('SeedService', () => {
 
     it('should create admin user when not exists', async () => {
       mockSignUpEmail.mockResolvedValue({
-        user: { id: 'new-admin-id', email: 'admin@manifest.build' },
+        user: { id: 'new-admin-id', email: DEFAULT_ADMIN_USER.email },
       });
 
       await service.onModuleInit();
 
       expect(mockSignUpEmail).toHaveBeenCalledWith({
         body: {
-          email: 'admin@manifest.build',
-          password: 'admin',
-          name: 'Admin User',
-          firstName: 'Admin',
-          lastName: 'User',
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
+          name: DEFAULT_ADMIN_USER.name,
+          firstName: DEFAULT_ADMIN_USER.firstName,
+          lastName: DEFAULT_ADMIN_USER.lastName,
         },
       });
     });
@@ -240,15 +241,15 @@ describe('SeedService', () => {
       existsError.message = 'User already exists';
       mockSignUpEmail.mockRejectedValue(existsError);
       mockSignInEmail.mockResolvedValue({
-        user: { id: 'existing-admin-id', email: 'admin@manifest.build' },
+        user: { id: 'existing-admin-id', email: DEFAULT_ADMIN_USER.email },
       });
 
       await service.onModuleInit();
 
       expect(mockSignInEmail).toHaveBeenCalledWith({
         body: {
-          email: 'admin@manifest.build',
-          password: 'admin',
+          email: DEFAULT_ADMIN_USER.email,
+          password: DEFAULT_ADMIN_USER.password,
         },
       });
     });

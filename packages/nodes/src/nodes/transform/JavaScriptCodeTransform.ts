@@ -1,5 +1,62 @@
+import vm from 'node:vm';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 import type { JavaScriptCodeTransformParameters, JSONSchema, TransformExecutionMetadata } from '@chatgpt-app-builder/shared';
+
+/** Maximum execution time for user code (ms) */
+const EXECUTION_TIMEOUT_MS = 5000;
+
+/**
+ * Creates a sandboxed context for executing user JavaScript code.
+ * Blocks access to dangerous Node.js globals and provides only safe utilities.
+ */
+function createSandboxContext(input: unknown): vm.Context {
+  // Create a minimal context with only safe globals
+  const sandbox = {
+    // User's input data
+    input,
+    // Safe built-ins for data transformation
+    JSON: {
+      parse: JSON.parse,
+      stringify: JSON.stringify,
+    },
+    Object: {
+      keys: Object.keys,
+      values: Object.values,
+      entries: Object.entries,
+      assign: Object.assign,
+      fromEntries: Object.fromEntries,
+    },
+    Array: {
+      isArray: Array.isArray,
+      from: Array.from,
+    },
+    String,
+    Number,
+    Boolean,
+    Date,
+    Math,
+    parseInt,
+    parseFloat,
+    isNaN,
+    isFinite,
+    // Console for debugging (safe - just logs)
+    console: {
+      log: () => {}, // Silently ignore in production
+      warn: () => {},
+      error: () => {},
+    },
+    // Result placeholder
+    __result: undefined as unknown,
+  };
+
+  // Create VM context with no prototype chain to global
+  return vm.createContext(sandbox, {
+    codeGeneration: {
+      strings: false, // Block eval() and new Function()
+      wasm: false,    // Block WebAssembly
+    },
+  });
+}
 
 /**
  * Extract executable JavaScript from TypeScript transform code.
@@ -130,11 +187,25 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
       // Extract executable JavaScript from potentially TypeScript code
       const executableCode = extractExecutableCode(rawCode);
 
-      // Execute the user's JavaScript code using Function constructor
-      // This creates an isolated scope where only 'input' is accessible
+      // Execute user code in a sandboxed VM context
+      // This blocks access to Node.js globals (process, require, etc.)
       try {
-        const transformFunction = new Function('input', executableCode);
-        const result = transformFunction(input);
+        const context = createSandboxContext(input);
+
+        // Wrap code in a function that assigns result to __result
+        const wrappedCode = `__result = (function(input) { ${executableCode} })(input);`;
+
+        // Compile and run with timeout
+        const script = new vm.Script(wrappedCode, {
+          filename: 'user-transform.js',
+        });
+
+        script.runInContext(context, {
+          timeout: EXECUTION_TIMEOUT_MS,
+          displayErrors: true,
+        });
+
+        const result = context.__result;
         const durationMs = Math.round(performance.now() - startTime);
 
         // Spread transformed data at root with _execution metadata
@@ -151,9 +222,23 @@ export const JavaScriptCodeTransform: NodeTypeDefinition = {
           output,
         };
       } catch (err) {
-        // Handle JavaScript execution errors (syntax errors, runtime errors)
-        const message = err instanceof Error ? err.message : 'Unknown JavaScript error';
+        // Handle JavaScript execution errors (syntax, runtime, timeout)
         const durationMs = Math.round(performance.now() - startTime);
+        let message: string;
+
+        if (err instanceof Error) {
+          if (err.message.includes('Script execution timed out')) {
+            message = `Execution timeout after ${EXECUTION_TIMEOUT_MS}ms`;
+          } else if (err.message.includes('is not defined')) {
+            // Blocked global access attempt
+            message = `Blocked access: ${err.message}. Only safe utilities are available.`;
+          } else {
+            message = err.message;
+          }
+        } else {
+          message = 'Unknown JavaScript error';
+        }
+
         const output = {
           _execution: {
             success: false,
