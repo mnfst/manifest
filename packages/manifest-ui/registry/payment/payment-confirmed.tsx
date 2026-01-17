@@ -75,7 +75,7 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
     orderId = 'ORD-2024-7842',
     productName = "Air Force 1 '07",
     productDescription = 'Nike · Size 42 · White',
-    productImage = '/demo/shoe-1.png',
+    productImage = 'https://ui.manifest.build/demo/shoe-1.png',
     price = 119,
     deliveryDate = 'Tue. Dec 10',
   } = data ?? {}

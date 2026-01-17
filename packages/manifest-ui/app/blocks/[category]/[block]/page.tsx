@@ -1590,7 +1590,7 @@ const categories: Category[] = [
         name: "Air Force 1 '07",
         description: "Nike",
         price: 119,
-        image: "/demo/shoe-1.png",
+        image: "https://ui.manifest.build/demo/shoe-1.png",
         rating: 4.9
       }
     ]
@@ -2312,7 +2312,7 @@ const categories: Category[] = [
   data={{
     orderId: "ORD-2024-7842",
     productName: "Air Force 1 '07",
-    productImage: "/demo/shoe-1.png",
+    productImage: "https://ui.manifest.build/demo/shoe-1.png",
     price: 119,
     deliveryDate: "Tue. Dec 10"
   }}
@@ -2340,7 +2340,7 @@ const categories: Category[] = [
     orderId: "ORD-2024-7842",
     productName: "Air Force 1 '07",
     productDescription: "Nike - Size 42 - White",
-    productImage: "/demo/shoe-1.png",
+    productImage: "https://ui.manifest.build/demo/shoe-1.png",
     price: 119,
     deliveryDate: "Tue. Dec 10"
   }}
