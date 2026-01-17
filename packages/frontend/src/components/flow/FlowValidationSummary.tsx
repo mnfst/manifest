@@ -15,6 +15,7 @@ import type {
   CompatibilityStatus,
 } from '@chatgpt-app-builder/shared';
 import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 import { api } from '../../lib/api';
 
 interface FlowValidationSummaryProps {
@@ -198,9 +199,9 @@ export function FlowValidationSummary({
             <span className="text-sm font-medium text-gray-800">
               Schema Validation
             </span>
-            <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusBgClass(status)}`}>
+            <Badge className={getStatusBgClass(status)}>
               {getStatusLabel(status)}
-            </span>
+            </Badge>
           </div>
 
           {/* Summary counts */}

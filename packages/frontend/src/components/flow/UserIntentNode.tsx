@@ -3,6 +3,7 @@ import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
 import { Zap, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 import { AddNodeButton } from './AddNodeButton';
 
 export interface UserIntentNodeData extends Record<string, unknown> {
@@ -60,15 +61,15 @@ export function UserIntentNode({ data }: NodeProps) {
             <h3 className="font-medium text-gray-900 text-sm">{node.name || 'User Intent'}</h3>
             {/* Tool name badge */}
             {toolName && (
-              <code className={`inline-block mt-1 px-2 py-0.5 text-xs font-mono rounded ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+              <Badge className={`mt-1 font-mono ${isActive ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-100'}`}>
                 {toolName}
-              </code>
+              </Badge>
             )}
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayDescription}</p>
             {!isActive && (
-              <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded">
+              <Badge variant="secondary" className="mt-1">
                 Inactive
-              </span>
+              </Badge>
             )}
           </div>
 

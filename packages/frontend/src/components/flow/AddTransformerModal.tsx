@@ -1,8 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
-import { X, Loader2, Shuffle, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2, Shuffle, AlertCircle } from 'lucide-react';
 import type { NodeType, SuggestedTransformer } from '@chatgpt-app-builder/shared';
 import { api, type NodeTypeInfo } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 
 interface AddTransformerModalProps {
   isOpen: boolean;
@@ -54,66 +64,41 @@ export function AddTransformerModal({
     fetchTransformNodes();
   }, [isOpen]);
 
-  // Handle Escape key to close modal
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape' && !isInserting) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isInserting) {
       onClose();
     }
-  }, [onClose, isInserting]);
+  };
 
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, handleKeyDown]);
-
-  if (!isOpen) return null;
-
-  // Get confidence badge color
-  const getConfidenceBadge = (confidence: 'high' | 'medium' | 'low') => {
+  // Get confidence badge styling
+  const getConfidenceBadgeClass = (confidence: 'high' | 'medium' | 'low') => {
     switch (confidence) {
       case 'high':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 text-green-700 hover:bg-green-100';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100';
       case 'low':
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-100 text-gray-600 hover:bg-gray-100';
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={isInserting ? undefined : onClose}
-        aria-hidden="true"
-      />
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Add Transformer</DialogTitle>
+          <DialogDescription>
+            Select a transformer to convert data between nodes
+          </DialogDescription>
+        </DialogHeader>
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <div>
-            <h2 className="text-lg font-semibold">Add Transformer</h2>
-            <p className="text-sm text-gray-500">
-              Select a transformer to convert data between nodes
-            </p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose} disabled={isInserting} aria-label="Close modal">
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 py-4">
           {/* Error from insertion */}
           {insertError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{insertError}</p>
-            </div>
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{insertError}</AlertDescription>
+            </Alert>
           )}
 
           {/* Loading state */}
@@ -160,13 +145,9 @@ export function AddTransformerModal({
                             <h4 className="font-medium text-gray-900 text-sm">
                               {transformer.displayName}
                             </h4>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceBadge(
-                                transformer.confidence
-                              )}`}
-                            >
+                            <Badge className={getConfidenceBadgeClass(transformer.confidence)}>
                               {transformer.confidence} confidence
-                            </span>
+                            </Badge>
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
                             {transformer.description}
@@ -230,13 +211,12 @@ export function AddTransformerModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-4 border-t">
+        <DialogFooter>
           <Button variant="ghost" onClick={onClose} disabled={isInserting}>
             Cancel
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

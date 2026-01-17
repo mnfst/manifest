@@ -5,6 +5,7 @@ import { ErrorBanner } from './ErrorBanner';
 import { Duration } from './Duration';
 import { extractStatusInfo, extractOutputDataForDisplay } from './executionUtils';
 import { Box, Shuffle, Globe, GitBranch, CornerDownLeft, LayoutTemplate, Zap } from 'lucide-react';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface NodeExecutionCardProps {
   nodeExecution: NodeExecutionData;
@@ -71,9 +72,9 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900">{nodeExecution.nodeName}</span>
-            <span className={`text-xs px-2 py-0.5 rounded ${styles.badge}`}>
+            <Badge className={`${styles.badge} hover:${styles.badge}`}>
               {nodeExecution.nodeType}
-            </span>
+            </Badge>
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
             <span>{formatTime(nodeExecution.executedAt)}</span>

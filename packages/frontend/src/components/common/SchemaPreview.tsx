@@ -1,6 +1,7 @@
 import type { JSONSchema } from '@chatgpt-app-builder/shared';
 import { ChevronDown, ChevronRight, Hash, ToggleLeft, Type, List, Braces, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface SchemaPreviewProps {
   /** The JSON Schema to preview */
@@ -96,9 +97,9 @@ function SchemaProperty({ name, schema, required = false, depth = 0 }: SchemaPro
           <span className="text-xs text-red-500 font-medium">required</span>
         )}
         {schema.format && (
-          <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">
+          <Badge className="bg-blue-50 text-blue-500 hover:bg-blue-50">
             {schema.format}
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -163,9 +164,9 @@ export function SchemaPreview({
           )}
           <span className="font-medium text-gray-700">{title}</span>
         </div>
-        <span className="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded">
+        <Badge variant="secondary">
           {getTypeLabel(schema)}
-        </span>
+        </Badge>
       </button>
 
       {isExpanded && (

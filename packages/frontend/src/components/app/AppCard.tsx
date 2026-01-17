@@ -1,6 +1,7 @@
 import type { App, AppWithFlowCount } from '@chatgpt-app-builder/shared';
 import { resolveIconUrl } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface AppCardProps {
   app: App | AppWithFlowCount;
@@ -133,15 +134,15 @@ export function AppCard({ app, onClick, onEdit, onDelete }: AppCardProps) {
               </svg>
             </Button>
           )}
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
+          <Badge
+            className={
               app.status === 'published'
-                ? 'bg-green-500/20 text-green-600'
-                : 'bg-amber-500/20 text-amber-600'
-            }`}
+                ? 'bg-green-500/20 text-green-600 hover:bg-green-500/20'
+                : 'bg-amber-500/20 text-amber-600 hover:bg-amber-500/20'
+            }
           >
             {app.status}
-          </span>
+          </Badge>
         </div>
       </div>
     </button>

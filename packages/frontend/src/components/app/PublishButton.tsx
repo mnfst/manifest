@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AppStatus } from '@chatgpt-app-builder/shared';
 import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
 
 interface PublishButtonProps {
   appId: string;
@@ -67,12 +68,10 @@ export function PublishButton({
         )}
       </div>
       {isPublished && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-            <span className="w-2 h-2 bg-green-500 rounded-full" />
-            Published
-          </span>
-        </div>
+        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+          <span className="w-2 h-2 bg-green-500 rounded-full mr-1" />
+          Published
+        </Badge>
       )}
     </div>
   );

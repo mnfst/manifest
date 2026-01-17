@@ -3,6 +3,9 @@ import type { AppUserListItem, AppRole } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../../lib/api';
 import { InviteCollaboratorModal } from './InviteCollaboratorModal';
 import { Button } from '@/components/ui/shadcn/button';
+import { Badge } from '@/components/ui/shadcn/badge';
+import { Input } from '@/components/ui/shadcn/input';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
 
 interface CollaboratorManagementProps {
   appId: string;
@@ -198,16 +201,18 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
 
   if (error) {
     return (
-      <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-        {error}
-        <Button
-          variant="link"
-          onClick={loadUsers}
-          className="ml-2 p-0 h-auto text-red-700 dark:text-red-400 underline hover:no-underline"
-        >
-          Retry
-        </Button>
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>
+          {error}
+          <Button
+            variant="link"
+            onClick={loadUsers}
+            className="ml-2 p-0 h-auto text-destructive underline hover:no-underline"
+          >
+            Retry
+          </Button>
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -217,18 +222,18 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
       <div className="rounded-lg border bg-card p-4">
         <h3 className="text-sm font-medium mb-3">Add Collaborator</h3>
         <form onSubmit={handleAddUser} className="flex gap-3">
-          <input
+          <Input
             type="email"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="user@example.com"
             required
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="flex-1"
           />
           <select
             value={newRole}
             onChange={(e) => setNewRole(e.target.value as AppRole)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             <option value="admin">Admin</option>
           </select>
@@ -240,9 +245,9 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
           </Button>
         </form>
         {addError && (
-          <div className="mt-2 text-sm text-red-600 dark:text-red-400">
-            {addError}
-          </div>
+          <Alert variant="destructive" className="mt-2">
+            <AlertDescription>{addError}</AlertDescription>
+          </Alert>
         )}
       </div>
 
@@ -282,19 +287,17 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
                       {user.name || user.email}
                     </span>
                     {user.status === 'pending' && (
-                      <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                        Pending Invite
-                      </span>
+                      <Badge variant="secondary">Pending Invite</Badge>
                     )}
                     {user.status === 'active' && user.isOwner && (
-                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                      <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400">
                         Owner
-                      </span>
+                      </Badge>
                     )}
                     {user.status === 'active' && !user.isOwner && user.role === 'admin' && (
-                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400">
                         Admin
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   {user.status === 'active' && user.name && (
@@ -412,16 +415,18 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
 
       {/* Confirmation message */}
       {removeConfirm && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-3 text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
-          Click remove again to confirm. This action cannot be undone.
-          <Button
-            variant="link"
-            onClick={() => setRemoveConfirm(null)}
-            className="ml-2 p-0 h-auto text-amber-700 dark:text-amber-400 underline hover:no-underline"
-          >
-            Cancel
-          </Button>
-        </div>
+        <Alert className="bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
+          <AlertDescription>
+            Click remove again to confirm. This action cannot be undone.
+            <Button
+              variant="link"
+              onClick={() => setRemoveConfirm(null)}
+              className="ml-2 p-0 h-auto text-amber-700 dark:text-amber-400 underline hover:no-underline"
+            >
+              Cancel
+            </Button>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Invite Collaborator Modal */}
