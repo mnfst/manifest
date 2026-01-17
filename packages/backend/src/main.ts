@@ -99,10 +99,23 @@ async function bootstrap() {
         return callback(null, true);
       }
 
-      // Production: allow Railway domains if no explicit allowlist
-      if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+      // Production: allow same-origin requests and common deployment patterns
+      if (process.env.NODE_ENV === 'production') {
+        // Allow Railway domains
         if (origin.match(/^https:\/\/[\w-]+\.up\.railway\.app$/) ||
             origin.match(/^https:\/\/[\w-]+\.railway\.app$/)) {
+          return callback(null, true);
+        }
+
+        // Allow if origin matches BETTER_AUTH_URL (custom domain configured)
+        const authUrl = process.env.BETTER_AUTH_URL;
+        if (authUrl && origin === authUrl.replace(/\/$/, '')) {
+          return callback(null, true);
+        }
+
+        // Allow HTTPS origins when no explicit allowlist (for custom domains)
+        // This is safe because cookies have SameSite=Lax protection
+        if (allowedOrigins.length === 0 && origin.startsWith('https://')) {
           return callback(null, true);
         }
       }
@@ -120,10 +133,10 @@ async function bootstrap() {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for React
-          styleSrc: ["'self'", "'unsafe-inline'"], // Required for inline styles
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://unpkg.com'], // React + CDN libs
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'], // Inline styles + Google Fonts
           imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
-          fontSrc: ["'self'", 'data:'],
+          fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'], // Google Fonts
           connectSrc: ["'self'", 'https:', 'wss:'],
           frameSrc: ["'self'"],
           objectSrc: ["'none'"],
