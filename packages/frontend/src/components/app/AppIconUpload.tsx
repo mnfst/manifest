@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface AppIconUploadProps {
   currentIconUrl?: string;
@@ -165,13 +166,15 @@ export function AppIconUpload({
       {error && (
         <div className="absolute left-0 top-full mt-2 z-10 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 whitespace-nowrap shadow-lg">
           {error}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setError(null)}
-            className="ml-2 text-red-500 hover:text-red-700"
+            className="ml-2 p-0 h-auto text-red-500 hover:text-red-700 hover:bg-transparent"
             aria-label="Dismiss error"
           >
             &times;
-          </button>
+          </Button>
         </div>
       )}
     </div>

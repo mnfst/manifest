@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Flow } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface DeleteFlowModalProps {
   isOpen: boolean;
@@ -69,12 +70,7 @@ export function DeleteFlowModal({
           <h2 id="delete-modal-title" className="text-lg font-semibold">
             Delete Flow
           </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
-            aria-label="Close modal"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} disabled={isLoading} aria-label="Close modal">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -88,7 +84,7 @@ export function DeleteFlowModal({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <div className="p-4 space-y-4">
@@ -121,20 +117,10 @@ export function DeleteFlowModal({
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="flex-1 py-2 border rounded-lg font-medium hover:bg-muted transition-colors disabled:opacity-50"
-            >
+            <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={isLoading}
-              className="flex-1 py-2 bg-destructive text-destructive-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
-            >
+            </Button>
+            <Button variant="destructive" onClick={onConfirm} disabled={isLoading} className="flex-1">
               {isLoading && (
                 <svg
                   className="w-4 h-4 animate-spin"
@@ -157,7 +143,7 @@ export function DeleteFlowModal({
                 </svg>
               )}
               {isLoading ? 'Deleting...' : 'Delete Flow'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

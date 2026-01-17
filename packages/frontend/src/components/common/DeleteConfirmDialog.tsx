@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -78,10 +79,11 @@ export function DeleteConfirmDialog({
           <h2 id="dialog-title" className="text-lg font-semibold text-destructive">
             {title}
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
             aria-label="Close dialog"
           >
             <svg
@@ -97,7 +99,7 @@ export function DeleteConfirmDialog({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <div className="p-4 space-y-4">
@@ -127,18 +129,10 @@ export function DeleteConfirmDialog({
           )}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
-            >
+            <Button variant="outline" onClick={onClose} disabled={isLoading}>
               {cancelLabel}
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
+            </Button>
+            <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
               {isLoading && (
                 <svg
                   className="w-4 h-4 animate-spin"
@@ -161,7 +155,7 @@ export function DeleteConfirmDialog({
                 </svg>
               )}
               {confirmLabel}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

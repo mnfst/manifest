@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface PaginationProps {
   page: number;
@@ -60,14 +61,15 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
 
   return (
     <div className="flex items-center justify-center gap-1 py-3 px-4 border-t border-gray-200">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => onPageChange(page - 1)}
         disabled={!hasPrev}
-        className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Previous page"
       >
         <ChevronLeft className="w-5 h-5" />
-      </button>
+      </Button>
 
       {pageNumbers.map((p, index) =>
         p === 'ellipsis' ? (
@@ -75,28 +77,27 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
             ...
           </span>
         ) : (
-          <button
+          <Button
             key={p}
+            variant={p === page ? 'default' : 'ghost'}
+            size="sm"
             onClick={() => onPageChange(p)}
-            className={`min-w-[32px] h-8 px-2 rounded text-sm font-medium transition-colors ${
-              p === page
-                ? 'bg-blue-500 text-white'
-                : 'hover:bg-gray-100 text-gray-700'
-            }`}
+            className="min-w-[32px]"
           >
             {p}
-          </button>
+          </Button>
         )
       )}
 
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => onPageChange(page + 1)}
         disabled={!hasNext}
-        className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Next page"
       >
         <ChevronRight className="w-5 h-5" />
-      </button>
+      </Button>
     </div>
   );
 }

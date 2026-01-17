@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface AppFormProps {
   onSubmit: (data: { name: string; description?: string }) => void;
@@ -66,13 +67,13 @@ export function AppForm({ onSubmit, isLoading = false }: AppFormProps) {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={isLoading || !name.trim()}
-        className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        className="w-full py-3"
       >
         {isLoading ? 'Creating...' : 'Create App'}
-      </button>
+      </Button>
     </form>
   );
 }

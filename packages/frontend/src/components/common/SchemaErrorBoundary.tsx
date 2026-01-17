@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface Props {
   children: ReactNode;
@@ -48,13 +49,15 @@ export class SchemaErrorBoundary extends Component<Props, State> {
               {this.state.error.message}
             </p>
           )}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={this.handleReset}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-amber-700 hover:bg-amber-100 rounded transition-colors"
+            className="text-amber-700 hover:bg-amber-100 hover:text-amber-700"
           >
             <RefreshCw className="w-3 h-3" />
             Retry
-          </button>
+          </Button>
         </div>
       );
     }

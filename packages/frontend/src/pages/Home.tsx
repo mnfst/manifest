@@ -6,6 +6,7 @@ import { CreateAppModal } from '../components/app/CreateAppModal';
 import { EditAppModal } from '../components/app/EditAppModal';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { api, ApiClientError } from '../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 /**
  * Home page - App list and creation
@@ -165,12 +166,9 @@ function Home() {
                 {apps.length} app{apps.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <button
-              onClick={handleOpenModal}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
-            >
+            <Button onClick={handleOpenModal}>
               Create new app
-            </button>
+            </Button>
           </div>
 
           {/* Loading state */}
@@ -187,12 +185,13 @@ function Home() {
           {error && !isLoading && (
             <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
               <p>{error}</p>
-              <button
+              <Button
+                variant="link"
                 onClick={() => window.location.reload()}
-                className="mt-2 text-sm underline hover:no-underline"
+                className="mt-2 p-0 h-auto text-destructive"
               >
                 Try again
-              </button>
+              </Button>
             </div>
           )}
 

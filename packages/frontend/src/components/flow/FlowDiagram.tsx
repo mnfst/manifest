@@ -23,6 +23,7 @@ import type {
   NodeType,
 } from '@chatgpt-app-builder/shared';
 import { X, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 import { api } from '../../lib/api';
 import { ViewNode } from './ViewNode';
 import { UserIntentNode } from './UserIntentNode';
@@ -816,13 +817,14 @@ function FlowDiagramInner({
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Connection Not Allowed</h2>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setShowLinkConnectionError(false)}
               aria-label="Close dialog"
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
           <div className="p-6">
             <p className="text-gray-700 mb-4">
@@ -833,12 +835,11 @@ function FlowDiagramInner({
             </p>
           </div>
           <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
-            <button
+            <Button
               onClick={() => setShowLinkConnectionError(false)}
-              className="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
             >
               Got it
-            </button>
+            </Button>
           </div>
         </div>
       </div>

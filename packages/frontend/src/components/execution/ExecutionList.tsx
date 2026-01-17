@@ -6,6 +6,7 @@ import { ExecutionEmptyState } from './ExecutionEmptyState';
 import { Pagination } from '../common/Pagination';
 import { useExecutionPolling } from '../../hooks/useExecutionPolling';
 import { Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface ExecutionListProps {
   flowId: string;
@@ -85,12 +86,13 @@ export function ExecutionList({ flowId, selectedId, onSelect }: ExecutionListPro
       <div className="flex flex-col items-center justify-center h-64 text-center px-4">
         <p className="text-red-500 mb-2">Error loading executions</p>
         <p className="text-sm text-gray-500">{error}</p>
-        <button
+        <Button
+          variant="ghost"
           onClick={fetchExecutions}
-          className="mt-4 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
+          className="mt-4"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }

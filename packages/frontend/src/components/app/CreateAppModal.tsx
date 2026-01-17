@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { AppForm } from './AppForm';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface CreateAppModalProps {
   isOpen: boolean;
@@ -70,10 +71,11 @@ export function CreateAppModal({
           <h2 id="modal-title" className="text-lg font-semibold">
             Create New App
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
             aria-label="Close modal"
           >
             <svg
@@ -89,7 +91,7 @@ export function CreateAppModal({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <div className="p-4">

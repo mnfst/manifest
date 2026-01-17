@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AppRole } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface InviteCollaboratorModalProps {
   isOpen: boolean;
@@ -88,10 +89,11 @@ export function InviteCollaboratorModal({
           <h2 id="invite-modal-title" className="text-lg font-semibold">
             Invite Collaborator
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
             aria-label="Close modal"
           >
             <svg
@@ -107,7 +109,7 @@ export function InviteCollaboratorModal({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -173,22 +175,23 @@ export function InviteCollaboratorModal({
           )}
 
           <div className="flex gap-3 pt-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-2 border rounded-lg font-medium hover:bg-muted transition-colors disabled:opacity-50"
+              className="flex-1"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
+              className="flex-1"
             >
               {isLoading && (
                 <svg
-                  className="w-4 h-4 animate-spin"
+                  className="w-4 h-4 animate-spin mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -212,7 +215,7 @@ export function InviteCollaboratorModal({
                   ? 'Sending...'
                   : 'Sending...'
                 : 'Send Invitation'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

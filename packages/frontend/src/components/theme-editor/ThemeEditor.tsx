@@ -82,28 +82,24 @@ export function ThemeEditor({
         <div className="flex items-center gap-3">
           {/* Mode toggle */}
           <div className="flex rounded-lg border border-input overflow-hidden">
-            <button
+            <Button
               type="button"
+              variant={editorMode === 'visual' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setEditorMode('visual')}
-              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                editorMode === 'visual'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background text-foreground hover:bg-accent'
-              }`}
+              className="rounded-none px-3"
             >
               Visual
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={editorMode === 'code' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setEditorMode('code')}
-              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                editorMode === 'code'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background text-foreground hover:bg-accent'
-              }`}
+              className="rounded-none px-3"
             >
               Code
-            </button>
+            </Button>
           </div>
           {/* Status indicators */}
           {isDirty && !saveSuccess && (
@@ -144,13 +140,15 @@ export function ThemeEditor({
       {saveError && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center justify-between">
           <p className="text-sm text-destructive font-medium">{saveError}</p>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setSaveError(null)}
-            className="text-destructive hover:text-destructive/80 text-sm"
+            className="text-destructive hover:text-destructive/80 p-0 h-auto hover:bg-transparent"
           >
             Dismiss
-          </button>
+          </Button>
         </div>
       )}
 

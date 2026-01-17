@@ -2,6 +2,7 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
 import { Zap, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 import { AddNodeButton } from './AddNodeButton';
 
 export interface UserIntentNodeData extends Record<string, unknown> {
@@ -73,30 +74,34 @@ export function UserIntentNode({ data }: NodeProps) {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               data-action="edit"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit();
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors nodrag"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 nodrag h-auto"
             >
               <Pencil className="w-3 h-3" />
               Edit
-            </button>
+            </Button>
             {canDelete && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 data-action="delete"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors nodrag"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 nodrag h-auto"
               >
                 Delete
-              </button>
+              </Button>
             )}
           </div>
         </div>

@@ -11,6 +11,7 @@ import { Loader2, AlertCircle, Copy, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ThemeProvider } from './ThemeProvider';
 import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import { Button } from '../ui/shadcn/button';
 
 export interface ComponentPreviewProps {
   /** TSX code string to render */
@@ -471,9 +472,11 @@ export function ComponentPreview({
                 {demoData ? 'View demo data' : 'View sample data'}
               </summary>
               <div className="relative mt-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleCopySampleData}
-                  className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                  className="absolute top-2 right-2 h-8 w-8"
                   title={copied ? 'Copied!' : 'Copy data'}
                 >
                   {copied ? (
@@ -481,7 +484,7 @@ export function ComponentPreview({
                   ) : (
                     <Copy className="w-4 h-4" />
                   )}
-                </button>
+                </Button>
                 <pre className="p-3 pr-10 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 overflow-auto max-h-48">
                   {JSON.stringify(displayData, null, 2)}
                 </pre>

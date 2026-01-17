@@ -1,6 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Plus, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 export interface AddUserIntentNodeData extends Record<string, unknown> {
   onClick: () => void;
@@ -15,14 +16,15 @@ export function AddUserIntentNode({ data }: NodeProps) {
   const { onClick } = data as AddUserIntentNodeData;
 
   return (
-    <button
+    <Button
+      variant="outline"
       type="button"
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-shadow transition-colors w-[200px] cursor-pointer group nopan nodrag text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      className="bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-white shadow-sm hover:shadow-md transition-shadow transition-colors w-[200px] cursor-pointer group nopan nodrag text-left h-auto p-0 block"
     >
       <div className="p-4">
         <div className="flex flex-col items-center gap-3">
@@ -52,6 +54,6 @@ export function AddUserIntentNode({ data }: NodeProps) {
         position={Position.Right}
         className="!bg-blue-300 !w-2 !h-2 !border-0 opacity-0"
       />
-    </button>
+    </Button>
   );
 }

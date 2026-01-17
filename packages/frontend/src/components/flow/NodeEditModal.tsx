@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 import type {
   NodeInstance,
   NodeType,
@@ -500,34 +501,37 @@ export function NodeEditModal({
               </div>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             disabled={isLoading}
             aria-label="Close modal"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Tab Navigation (only show in edit mode) */}
         {isEditMode && (
           <div className="flex border-b px-6">
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setActiveTab('config')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`rounded-none border-b-2 ${
                 activeTab === 'config'
                   ? 'text-primary border-primary'
                   : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               Configuration
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setActiveTab('schema')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+              className={`rounded-none border-b-2 ${
                 activeTab === 'schema'
                   ? 'text-primary border-primary'
                   : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
@@ -535,7 +539,7 @@ export function NodeEditModal({
             >
               <Code className="w-4 h-4" />
               Schema
-            </button>
+            </Button>
           </div>
         )}
 
@@ -740,15 +744,17 @@ export function NodeEditModal({
                           become outputs
                         </span>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         type="button"
                         onClick={addToolParameter}
                         disabled={isLoading}
-                        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
                         <Plus className="w-4 h-4" />
                         Add Parameter
-                      </button>
+                      </Button>
                     </div>
                     {toolParameters.length === 0 ? (
                       <p className="text-sm text-gray-500 bg-white rounded-lg p-3 border border-gray-200">
@@ -813,14 +819,16 @@ export function NodeEditModal({
                                 </select>
                                 {/* Hide remove button for system parameters */}
                                 {!isSystemParam && (
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     type="button"
                                     onClick={() => removeToolParameter(index)}
                                     disabled={isLoading}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                                   >
                                     <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  </Button>
                                 )}
                               </div>
                               <input
@@ -954,15 +962,17 @@ export function NodeEditModal({
                     <label className="block text-sm font-medium text-gray-700">
                       Headers
                     </label>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       type="button"
                       onClick={addHeader}
                       disabled={isLoading}
-                      className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 disabled:opacity-50"
+                      className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                     >
                       <Plus className="w-4 h-4" />
                       Add Header
-                    </button>
+                    </Button>
                   </div>
                   {apiHeaders.length === 0 ? (
                     <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
@@ -988,14 +998,16 @@ export function NodeEditModal({
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
                             disabled={isLoading}
                           />
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             type="button"
                             onClick={() => removeHeader(index)}
                             disabled={isLoading}
-                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="w-4 h-4" />
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -1045,11 +1057,11 @@ export function NodeEditModal({
                     )}
 
                     {/* Test button */}
-                    <button
+                    <Button
                       type="button"
                       onClick={handleTestApiRequest}
                       disabled={isLoading || isApiTestLoading || !apiUrl.trim()}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="bg-orange-600 hover:bg-orange-700"
                     >
                       {isApiTestLoading ? (
                         <>
@@ -1062,7 +1074,7 @@ export function NodeEditModal({
                           Test Request
                         </>
                       )}
-                    </button>
+                    </Button>
 
                     {/* Test result */}
                     {apiTestResult && (
@@ -1251,11 +1263,11 @@ export function NodeEditModal({
                   </div>
 
                   {/* Test button */}
-                  <button
+                  <Button
                     type="button"
                     onClick={handleTestTransform}
                     disabled={isLoading || isTestLoading || !isCodeValid}
-                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="bg-teal-600 hover:bg-teal-700"
                   >
                     {isTestLoading ? (
                       <>
@@ -1268,7 +1280,7 @@ export function NodeEditModal({
                         Test Transform
                       </>
                     )}
-                  </button>
+                  </Button>
 
                   {/* Test result */}
                   {testResult && (
@@ -1357,18 +1369,17 @@ export function NodeEditModal({
 
           {/* Footer */}
           <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isLoading || !name.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <>
@@ -1378,7 +1389,7 @@ export function NodeEditModal({
               ) : (
                 <>{isEditMode ? 'Save Changes' : 'Create'}</>
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

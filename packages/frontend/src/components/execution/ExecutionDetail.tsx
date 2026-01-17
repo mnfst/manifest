@@ -5,6 +5,7 @@ import { ExecutionStatusBadge } from './ExecutionStatusBadge';
 import { ExecutionDataViewer } from './ExecutionDataViewer';
 import { NodeExecutionCard } from './NodeExecutionCard';
 import { Loader2, Clock, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface ExecutionDetailProps {
   flowId: string;
@@ -101,9 +102,9 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
               {execution.flowName} ({execution.flowToolName})
             </span>
           </div>
-          <button
+          <Button
+            variant="ghost"
             onClick={handleCopyJson}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
             title="Copy execution log as JSON"
           >
             {copied ? (
@@ -117,7 +118,7 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
                 <span>Copy JSON</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Timestamps */}

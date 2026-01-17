@@ -7,6 +7,7 @@ import {
 } from '@xyflow/react';
 import { Trash2, AlertTriangle, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
 import type { Connection, CompatibilityStatus } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 import { api } from '../../lib/api';
 import { STATUS_COLORS, getStatusLabel, type ConnectionValidationState } from '../../types/schema';
 
@@ -143,7 +144,9 @@ export function DeletableEdge({
       {/* Persistent incompatibility indicator for error status */}
       {validation && (validation.status === 'error' || validation.status === 'warning') && !isHovered && (
         <EdgeLabelRenderer>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={(e) => {
               e.stopPropagation();
               if (edgeData?.onShowDetails && edgeData.connection) {
@@ -159,7 +162,7 @@ export function DeletableEdge({
             title={`${tooltipText}${edgeData?.onShowDetails ? ' (Click for details)' : ''}`}
           >
             {getStatusIcon(validation.status)}
-          </button>
+          </Button>
         </EdgeLabelRenderer>
       )}
 
@@ -179,30 +182,34 @@ export function DeletableEdge({
         >
           {/* Validation status badge - clickable to show details */}
           {validation && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
                 if (edgeData?.onShowDetails && edgeData.connection) {
                   edgeData.onShowDetails(edgeData.connection, validation);
                 }
               }}
-              className={`flex items-center gap-1 px-2 py-1 rounded-full text-white text-xs shadow-md hover:opacity-90 transition-opacity ${getStatusBgClass(validation.status)}`}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-white text-xs shadow-md hover:opacity-90 transition-opacity h-auto ${getStatusBgClass(validation.status)}`}
               title={`${tooltipText}${edgeData?.onShowDetails ? ' (Click for details)' : ''}`}
             >
               {getStatusIcon(validation.status)}
               <span>{getStatusLabel(validation.status)}</span>
-            </button>
+            </Button>
           )}
 
           {/* Delete button */}
-          <button
+          <Button
+            variant="destructive"
+            size="icon"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-md transition-colors disabled:opacity-50"
+            className="flex items-center justify-center w-6 h-6 rounded-full shadow-md"
             title="Delete connection"
           >
             <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          </Button>
         </div>
       </EdgeLabelRenderer>
     </>

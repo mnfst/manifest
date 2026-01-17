@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Copy, Check, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 import type { AppSecret } from '@chatgpt-app-builder/shared';
 
 interface SecretRowProps {
@@ -92,20 +93,15 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <button
-              onClick={handleCancelEdit}
-              disabled={isSaving}
-              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
-            >
+            <Button variant="ghost" onClick={handleCancelEdit} disabled={isSaving}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleSaveEdit}
               disabled={isSaving || !editKey.trim() || !editValue.trim()}
-              className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -128,9 +124,10 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
         {/* Action Icons */}
         <div className="flex items-center gap-1">
           {/* Reveal/Hide Toggle */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsRevealed(!isRevealed)}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
             title={isRevealed ? 'Hide value' : 'Reveal value'}
           >
             {isRevealed ? (
@@ -138,12 +135,13 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
             ) : (
               <Eye className="w-4 h-4" />
             )}
-          </button>
+          </Button>
 
           {/* Copy Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleCopy}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
             title={isCopied ? 'Copied!' : 'Copy value'}
           >
             {isCopied ? (
@@ -151,17 +149,18 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
             ) : (
               <Copy className="w-4 h-4" />
             )}
-          </button>
+          </Button>
 
           {/* Three-dot Menu */}
           <div className="relative">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               title="More actions"
             >
               <MoreVertical className="w-4 h-4" />
-            </button>
+            </Button>
 
             {isMenuOpen && (
               <>
@@ -208,20 +207,16 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
               Are you sure you want to delete <span className="font-mono font-medium text-foreground">{secret.key}</span>? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
-                className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
               >
                 Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50"
-              >
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

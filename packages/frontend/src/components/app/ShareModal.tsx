@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BACKEND_URL } from '../../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -97,9 +98,10 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
           <h2 id="share-modal-title" className="text-lg font-semibold">
             Share Your App
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors"
             aria-label="Close modal"
           >
             <svg
@@ -115,7 +117,7 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <div className="p-4 space-y-4">
@@ -132,12 +134,12 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
                 className="flex-1 text-sm bg-white px-3 py-2 rounded border font-mono text-green-700 truncate"
                 onClick={(e) => (e.target as HTMLInputElement).select()}
               />
-              <button
+              <Button
                 onClick={copyMcpEndpoint}
-                className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors min-w-[70px]"
+                className="bg-green-600 hover:bg-green-700 min-w-[70px]"
               >
                 {copiedMcp ? 'Copied!' : 'Copy'}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -154,14 +156,18 @@ export function ShareModal({ isOpen, onClose, appSlug }: ShareModalProps) {
                 className="flex-1 text-sm bg-white px-3 py-2 rounded border text-blue-600 truncate"
                 onClick={(e) => (e.target as HTMLInputElement).select()}
               />
-              <a
-                href={landingPageUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors min-w-[70px] text-center"
+              <Button
+                asChild
+                className="bg-blue-600 hover:bg-blue-700 min-w-[70px]"
               >
-                Open
-              </a>
+                <a
+                  href={landingPageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open
+                </a>
+              </Button>
             </div>
           </div>
 

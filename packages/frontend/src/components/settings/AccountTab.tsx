@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 import { useAuth } from '../../hooks/useAuth';
 import { api, ApiClientError } from '../../lib/api';
 
@@ -291,14 +292,14 @@ export function AccountTab() {
                 placeholder="Enter new email address"
                 disabled={isChangingEmail}
               />
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={handleEmailChange}
                 disabled={isChangingEmail || !newEmail.trim()}
-                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isChangingEmail ? 'Sending...' : 'Change Email'}
-              </button>
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               A verification link will be sent to your new email address.
@@ -358,14 +359,14 @@ export function AccountTab() {
               </p>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handlePasswordChange}
               disabled={isChangingPassword || (!currentPassword.trim() && !newPassword.trim())}
-              className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isChangingPassword ? 'Changing...' : 'Change Password'}
-            </button>
+            </Button>
           </div>
 
           {passwordChangeError && (
@@ -396,13 +397,9 @@ export function AccountTab() {
 
         {/* Save Button */}
         <div className="pt-4 border-t">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

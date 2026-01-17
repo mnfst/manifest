@@ -14,6 +14,7 @@ import type {
 } from '@chatgpt-app-builder/shared';
 import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2, Share2 } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
 import { EditFlowForm } from '../components/flow/EditFlowForm';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
@@ -723,13 +724,13 @@ function FlowDetail() {
         <div className="px-6 py-4">
           {isEditing ? (
             <div className="max-w-4xl mx-auto">
-              <button
-                type="button"
+              <Button
+                variant="link"
                 onClick={() => navigate(`/app/${appId}`)}
-                className="text-sm text-muted-foreground hover:text-foreground"
+                className="p-0 h-auto text-muted-foreground hover:text-foreground"
               >
                 ← Back to App
-              </button>
+              </Button>
               <h1 className="text-2xl font-bold mt-1 mb-4">{flow.name}</h1>
               <EditFlowForm
                 flow={flow}
@@ -742,13 +743,13 @@ function FlowDetail() {
           ) : (
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
-                <button
-                  type="button"
+                <Button
+                  variant="link"
                   onClick={() => navigate(`/app/${appId}`)}
-                  className="text-sm text-muted-foreground hover:text-foreground"
+                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
                 >
                   ← Back to App
-                </button>
+                </Button>
                 <h1 className="text-2xl font-bold mt-1">{flow.name}</h1>
                 {flow.description && <p className="text-muted-foreground mt-1">{flow.description}</p>}
               </div>
@@ -787,29 +788,33 @@ function FlowDetail() {
                 <FlowActiveToggle flowId={flow.id} isActive={flow.isActive} onToggle={handleToggleActive} />
                 <div className="flex items-center gap-2 border-l pl-4">
                   {app?.status === 'published' && (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setIsShareModalOpen(true)}
-                      className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                       title="Share app"
                     >
                       <Share2 className="w-4 h-4" />
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setIsEditing(true)}
-                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                     title="Edit flow"
                   >
                     <Edit className="w-4 h-4" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={handleDeleteClick}
                     disabled={isCheckingDeletion}
-                    className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50"
+                    className="hover:text-destructive hover:bg-destructive/10"
                     title="Delete flow"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -817,9 +822,9 @@ function FlowDetail() {
           {toggleError && (
             <div className="mt-4 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
               {toggleError}
-              <button onClick={() => setToggleError(null)} className="ml-2 underline hover:no-underline">
+              <Button variant="link" onClick={() => setToggleError(null)} className="ml-2 p-0 h-auto text-red-700">
                 Dismiss
-              </button>
+              </Button>
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import type { PublishResult } from '@chatgpt-app-builder/shared';
+import { Button } from '../ui/shadcn/button';
 
 interface PublishDialogProps {
   result: PublishResult | null;
@@ -99,12 +100,9 @@ export function PublishDialog({ result, error, onClose }: PublishDialogProps) {
         ) : null}
 
         <div className="flex justify-end pt-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90"
-          >
+          <Button onClick={onClose}>
             {error ? 'Try Again' : 'Done'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

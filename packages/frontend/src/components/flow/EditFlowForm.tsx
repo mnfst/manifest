@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { Flow, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface EditFlowFormProps {
   flow: Flow;
@@ -99,19 +100,10 @@ export function EditFlowForm({
       )}
 
       <div className="flex justify-end gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          className="px-4 py-2 text-sm font-medium border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
-        >
+        <Button variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading || !name.trim()}
-          className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2"
-        >
+        </Button>
+        <Button type="submit" disabled={isLoading || !name.trim()}>
           {isLoading && (
             <svg
               className="w-4 h-4 animate-spin"
@@ -134,7 +126,7 @@ export function EditFlowForm({
             </svg>
           )}
           {isLoading ? 'Saving...' : 'Save Changes'}
-        </button>
+        </Button>
       </div>
     </form>
   );

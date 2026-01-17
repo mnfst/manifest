@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { InvitationValidation } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { Button } from '@/components/ui/shadcn/button';
 
 /**
  * Page for accepting an app invitation via email link.
@@ -151,12 +152,9 @@ export function AcceptInvitePage() {
             </h2>
             <p className="mt-2 text-gray-600 dark:text-gray-400">{error}</p>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
+          <Button onClick={() => navigate('/')}>
             Go to Home
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -190,12 +188,9 @@ export function AcceptInvitePage() {
               {success.message}
             </p>
           </div>
-          <button
-            onClick={handleGoToApp}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
+          <Button onClick={handleGoToApp}>
             Open App
-          </button>
+          </Button>
         </div>
       </div>
     );

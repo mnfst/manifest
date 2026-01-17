@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Shuffle } from 'lucide-react';
 import type { Connection, NodeType } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 import type { ConnectionValidationState } from '../../types/schema';
 import { ConnectionValidator } from './ConnectionValidator';
 import { AddTransformerModal } from './AddTransformerModal';
@@ -101,13 +102,14 @@ export function CompatibilityDetailModal({
                 {sourceName || 'Source'} → {targetName || 'Target'}
               </p>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
               aria-label="Close modal"
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
 
           {/* Content */}
@@ -133,12 +135,12 @@ export function CompatibilityDetailModal({
                       Add a transformer node between these two nodes to convert
                       the data format and resolve the compatibility issues.
                     </p>
-                    <button
+                    <Button
                       onClick={handleAddTransformerClick}
-                      className="mt-3 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                      className="mt-3 bg-teal-600 hover:bg-teal-700"
                     >
                       Add a Transformer
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -147,12 +149,12 @@ export function CompatibilityDetailModal({
 
           {/* Footer */}
           <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
-            <button
+            <Button
+              variant="outline"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       </div>

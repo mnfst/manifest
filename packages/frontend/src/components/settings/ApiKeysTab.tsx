@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 import { useApiKey } from '../../hooks/useApiKey';
 import { api } from '../../lib/api';
 
@@ -76,12 +77,9 @@ export function ApiKeysTab() {
               <div className="text-sm text-muted-foreground mb-1">Current API Key</div>
               <div className="font-mono text-sm">{getMaskedKey()}</div>
             </div>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md transition-colors"
-            >
+            <Button variant="ghost" onClick={handleDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
               Delete
-            </button>
+            </Button>
           </div>
           <div className="text-sm text-muted-foreground">
             To update your API key, delete the current one and enter a new key below.
@@ -105,13 +103,9 @@ export function ApiKeysTab() {
               className="flex-1 px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={isValidating}
             />
-            <button
-              onClick={handleSave}
-              disabled={isValidating || !inputValue.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            <Button onClick={handleSave} disabled={isValidating || !inputValue.trim()}>
               {isValidating ? 'Validating...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </div>
 

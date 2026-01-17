@@ -5,6 +5,7 @@ import { MetricCard } from './MetricCard';
 import { AnalyticsChart } from './AnalyticsChart';
 import { TimeRangeSelect } from './TimeRangeSelect';
 import { FlowsTable } from './FlowsTable';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface AnalyticsDashboardProps {
   appId: string;
@@ -28,12 +29,14 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
       <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
         <p className="font-medium">Failed to load analytics</p>
         <p className="text-sm mt-1">{error}</p>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => window.location.reload()}
-          className="mt-3 text-sm underline hover:no-underline"
+          className="mt-3 text-sm underline hover:no-underline p-0 h-auto text-red-700 hover:text-red-700 hover:bg-transparent"
         >
           Refresh page
-        </button>
+        </Button>
       </div>
     );
   }

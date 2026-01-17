@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface CreateFlowModalProps {
   isOpen: boolean;
@@ -92,12 +93,7 @@ export function CreateFlowModal({
           <h2 id="flow-modal-title" className="text-lg font-semibold">
             Create New Flow
           </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors disabled:opacity-50"
-            aria-label="Close modal"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} disabled={isLoading} aria-label="Close modal">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -111,7 +107,7 @@ export function CreateFlowModal({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto flex-1">
@@ -168,21 +164,12 @@ export function CreateFlowModal({
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-            >
+            <Button variant="ghost" onClick={onClose} disabled={isLoading}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-            >
+            </Button>
+            <Button type="submit" disabled={!canSubmit}>
               {isLoading ? 'Creating...' : 'Create Flow'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

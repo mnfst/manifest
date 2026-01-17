@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, Loader2, Shuffle, AlertCircle } from 'lucide-react';
 import type { NodeType, SuggestedTransformer } from '@chatgpt-app-builder/shared';
 import { api, type NodeTypeInfo } from '../../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface AddTransformerModalProps {
   isOpen: boolean;
@@ -100,14 +101,9 @@ export function AddTransformerModal({
               Select a transformer to convert data between nodes
             </p>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isInserting}
-            aria-label="Close modal"
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} disabled={isInserting} aria-label="Close modal">
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Content */}
@@ -236,13 +232,9 @@ export function AddTransformerModal({
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-4 border-t">
-          <button
-            onClick={onClose}
-            disabled={isInserting}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-          >
+          <Button variant="ghost" onClick={onClose} disabled={isInserting}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import type { Flow } from '@chatgpt-app-builder/shared';
 import { FlowCard } from './FlowCard';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface FlowListProps {
   flows: Flow[];
@@ -26,12 +27,9 @@ export function FlowList({
         <h3 className="text-lg font-medium text-foreground mb-1">No flows yet</h3>
         <p className="text-muted-foreground mb-4">Create your first flow by describing what you want to build.</p>
         {onCreateFlow && (
-          <button
-            onClick={onCreateFlow}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
-          >
+          <Button onClick={onCreateFlow}>
             Create New Flow
-          </button>
+          </Button>
         )}
       </div>
     );

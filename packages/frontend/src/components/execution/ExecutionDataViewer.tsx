@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface ExecutionDataViewerProps {
   data: Record<string, unknown>;
@@ -40,9 +41,10 @@ export function ExecutionDataViewer({
     <div className="rounded-lg border border-gray-200 overflow-hidden">
       {title && (
         <div className="w-full flex items-center justify-between px-3 py-2 bg-gray-50">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 hover:bg-gray-100 -ml-1 px-1 py-0.5 rounded transition-colors"
+            className="-ml-1 px-1 py-0.5 h-auto"
           >
             {isExpanded ? (
               <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -50,18 +52,20 @@ export function ExecutionDataViewer({
               <ChevronRight className="w-4 h-4 text-gray-500" />
             )}
             <span className="text-sm font-medium text-gray-700">{title}</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleCopy}
-            className="p-1 hover:bg-gray-200 rounded transition-colors"
             title="Copy JSON"
+            className="h-8 w-8"
           >
             {copied ? (
               <Check className="w-4 h-4 text-green-500" />
             ) : (
               <Copy className="w-4 h-4 text-gray-400" />
             )}
-          </button>
+          </Button>
         </div>
       )}
       {isExpanded && (

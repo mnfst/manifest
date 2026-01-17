@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import type { FlowParameter } from '@chatgpt-app-builder/shared';
 import { SYSTEM_PARAMETER_NAMES } from '@chatgpt-app-builder/shared';
+import { Button } from '@/components/ui/shadcn/button';
 import { ParameterRow } from './ParameterRow';
 
 interface ParameterEditorProps {
@@ -98,27 +100,17 @@ export function ParameterEditor({
         <label className="block text-sm font-medium">
           Parameters <span className="text-muted-foreground">(optional)</span>
         </label>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           onClick={handleAddParameter}
           disabled={disabled}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-1 text-sm text-primary hover:bg-primary/10"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+          <Plus className="w-4 h-4" />
           Add Parameter
-        </button>
+        </Button>
       </div>
 
       {parameters.length === 0 ? (

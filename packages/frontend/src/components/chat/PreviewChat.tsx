@@ -8,6 +8,7 @@ import type { ChatMessage, ModelOption, ToolCall, ToolResult, ThemeVariables } f
 import { ThemeProvider } from '../editor/ThemeProvider';
 import { Stats } from '../ui/stats';
 import { BACKEND_URL } from '../../lib/api';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface PreviewChatProps {
   flowId: string;
@@ -205,40 +206,45 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium">Model:</span>
           <div className="relative">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-background border rounded-md hover:bg-muted transition-colors"
+              className="flex items-center gap-2"
             >
               {models.find((m) => m.id === selectedModel)?.name || selectedModel}
               <ChevronDown className="w-4 h-4" />
-            </button>
+            </Button>
             {isModelDropdownOpen && (
               <div className="absolute top-full left-0 mt-1 w-48 bg-card border rounded-md shadow-lg z-10">
                 {models.map((model) => (
-                  <button
+                  <Button
                     key={model.id}
+                    variant="ghost"
                     onClick={() => {
                       setSelectedModel(model.id);
                       setIsModelDropdownOpen(false);
                     }}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted text-left"
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm rounded-none h-auto"
                   >
                     <span>{model.name}</span>
                     {selectedModel === model.id && <Check className="w-4 h-4 text-primary" />}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
           </div>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleClear}
           disabled={messages.length === 0 || isStreaming}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-muted-foreground hover:text-foreground"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-4 h-4 mr-1" />
           Clear
-        </button>
+        </Button>
       </div>
 
       {/* Messages area */}
@@ -277,17 +283,17 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
             className="flex-1 px-3 py-2 border rounded-lg bg-background resize-none text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] max-h-32"
             rows={1}
           />
-          <button
+          <Button
             onClick={handleSend}
             disabled={!inputValue.trim() || isStreaming}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2"
           >
             {isStreaming ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Send className="w-5 h-5" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AppUserListItem, AppRole } from '@chatgpt-app-builder/shared';
 import { api, ApiClientError } from '../../lib/api';
 import { InviteCollaboratorModal } from './InviteCollaboratorModal';
+import { Button } from '@/components/ui/shadcn/button';
 
 interface CollaboratorManagementProps {
   appId: string;
@@ -199,12 +200,13 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
     return (
       <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
         {error}
-        <button
+        <Button
+          variant="link"
           onClick={loadUsers}
-          className="ml-2 underline hover:no-underline"
+          className="ml-2 p-0 h-auto text-red-700 dark:text-red-400 underline hover:no-underline"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -230,13 +232,12 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
           >
             <option value="admin">Admin</option>
           </select>
-          <button
+          <Button
             type="submit"
             disabled={isAdding || !newEmail.trim()}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isAdding ? 'Adding...' : 'Add'}
-          </button>
+          </Button>
         </form>
         {addError && (
           <div className="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -311,21 +312,19 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
 
               {/* Remove button - disabled for owners */}
               {user.status === 'active' && !user.isOwner && (
-                <button
+                <Button
+                  variant={removeConfirm === user.id ? 'destructive' : 'ghost'}
+                  size="sm"
                   onClick={() => handleRemoveUser(user.id)}
                   disabled={removingUserId === user.id}
-                  className={`text-sm px-3 py-1 rounded-md transition-colors ${
-                    removeConfirm === user.id
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={removeConfirm === user.id ? '' : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'}
                 >
                   {removingUserId === user.id
                     ? 'Removing...'
                     : removeConfirm === user.id
                     ? 'Click to confirm'
                     : 'Remove'}
-                </button>
+                </Button>
               )}
 
               {/* Action buttons for pending invitations */}
@@ -339,10 +338,12 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
                   )}
 
                   {/* Resend button */}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleResendInvitation(user.id)}
                     disabled={resendingInvitationId === user.id}
-                    className="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-8 w-8 text-gray-500 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20"
                     title="Resend invitation email"
                   >
                     {resendingInvitationId === user.id ? (
@@ -380,24 +381,22 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
                         />
                       </svg>
                     )}
-                  </button>
+                  </Button>
 
                   {/* Revoke button */}
-                  <button
+                  <Button
+                    variant={revokeConfirm === user.id ? 'destructive' : 'ghost'}
+                    size="sm"
                     onClick={() => handleRevokeInvitation(user.id)}
                     disabled={revokingInvitationId === user.id}
-                    className={`text-sm px-3 py-1 rounded-md transition-colors ${
-                      revokeConfirm === user.id
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={revokeConfirm === user.id ? '' : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'}
                   >
                     {revokingInvitationId === user.id
                       ? 'Revoking...'
                       : revokeConfirm === user.id
                       ? 'Click to confirm'
                       : 'Revoke'}
-                  </button>
+                  </Button>
                 </div>
               )}
             </li>
@@ -415,12 +414,13 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
       {removeConfirm && (
         <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-3 text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
           Click remove again to confirm. This action cannot be undone.
-          <button
+          <Button
+            variant="link"
             onClick={() => setRemoveConfirm(null)}
-            className="ml-2 underline hover:no-underline"
+            className="ml-2 p-0 h-auto text-amber-700 dark:text-amber-400 underline hover:no-underline"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       )}
 

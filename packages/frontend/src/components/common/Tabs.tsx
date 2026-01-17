@@ -1,4 +1,9 @@
 import type { TabConfig } from '../../types/tabs';
+import {
+  Tabs as ShadcnTabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/shadcn/tabs';
 
 interface TabsProps<T extends string> {
   /** Currently active tab */
@@ -12,8 +17,8 @@ interface TabsProps<T extends string> {
 }
 
 /**
- * Reusable tabs component with support for disabled tabs
- * Uses controlled state pattern - parent manages activeTab
+ * @deprecated Use shadcn Tabs directly from '@/components/ui/shadcn/tabs'
+ * This wrapper is kept for backward compatibility.
  */
 export function Tabs<T extends string>({
   activeTab,
@@ -22,39 +27,28 @@ export function Tabs<T extends string>({
   className = '',
 }: TabsProps<T>) {
   return (
-    <div className={`flex border-b ${className}`}>
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.id;
-        const isDisabled = tab.disabled === true;
-        const Icon = tab.icon;
+    <ShadcnTabs
+      value={activeTab}
+      onValueChange={(value) => onTabChange(value as T)}
+      className={className}
+    >
+      <TabsList className="bg-transparent border-b rounded-none w-full justify-start h-auto p-0">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
 
-        return (
-          <button
-            key={tab.id}
-            onClick={() => !isDisabled && onTabChange(tab.id as T)}
-            disabled={isDisabled}
-            className={`
-              relative px-4 py-2 text-sm font-medium transition-colors
-              flex items-center gap-2
-              ${isActive
-                ? 'text-foreground'
-                : isDisabled
-                  ? 'text-muted-foreground/50 cursor-not-allowed'
-                  : 'text-muted-foreground hover:text-foreground'
-              }
-            `}
-            aria-selected={isActive}
-            role="tab"
-          >
-            {Icon && <Icon className="w-4 h-4" />}
-            {tab.label}
-            {/* Active indicator */}
-            {isActive && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-            )}
-          </button>
-        );
-      })}
-    </div>
+          return (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              disabled={tab.disabled}
+              className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2"
+            >
+              {Icon && <Icon className="w-4 h-4 mr-2" />}
+              {tab.label}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </ShadcnTabs>
   );
 }
