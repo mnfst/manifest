@@ -33,6 +33,13 @@ export function AddNodeButton({ onClick, color = 'blue', onDrop }: AddNodeButton
     purple: 'bg-purple-300 border-purple-500 scale-125',
   };
 
+  const lineColorClasses = {
+    blue: 'bg-blue-300',
+    orange: 'bg-orange-300',
+    gray: 'bg-gray-300',
+    purple: 'bg-purple-300',
+  };
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -61,7 +68,9 @@ export function AddNodeButton({ onClick, color = 'blue', onDrop }: AddNodeButton
   }, [onDrop]);
 
   return (
-    <div className="absolute right-[-32px] top-1/2 -translate-y-1/2 nodrag nopan">
+    <div className="absolute right-[-52px] top-1/2 -translate-y-1/2 nodrag nopan flex items-center">
+      {/* Connecting line between handle and button */}
+      <div className={`w-5 h-0.5 ${lineColorClasses[color]}`} />
       {/* Tooltip shown during drag */}
       {isDragOver && (
         <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-50">

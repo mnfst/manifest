@@ -61,6 +61,8 @@ interface FlowDiagramProps {
   onNodeEditCode?: (node: NodeInstance) => void;
   /** Callback when flow data needs to be refreshed (e.g., after transformer insertion) */
   onFlowUpdate?: () => void;
+  /** Callback when clicking on empty canvas area */
+  onPaneClick?: () => void;
 }
 
 /**
@@ -132,6 +134,7 @@ function FlowDiagramInner({
   onDropRegistryItem,
   onNodeEditCode,
   onFlowUpdate,
+  onPaneClick,
 }: FlowDiagramProps) {
   // Memoize flow state to prevent recalculation on every render
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend only on flow.nodes to avoid recalculation when other flow properties change
@@ -775,6 +778,7 @@ function FlowDiagramInner({
           minZoom={0.3}
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
+          onPaneClick={onPaneClick}
         >
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d1d5db" />
         </ReactFlow>

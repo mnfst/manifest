@@ -330,6 +330,16 @@ export class McpToolService {
     // Validate input against trigger's parameter schema
     const validatedInput = this.validateTriggerInput(triggerParams, input);
 
+    // Build trigger output with _execution metadata
+    const triggerOutput = {
+      ...validatedInput,
+      _execution: {
+        success: true,
+        type: 'trigger' as const,
+        toolName,
+      },
+    };
+
     // Create execution record
     const execution = await this.flowExecutionService.createExecution({
       flowId: flow.id,
@@ -345,7 +355,7 @@ export class McpToolService {
     nodeExecutions.push(this.createNodeExecution(
       trigger,
       {}, // Trigger has no input from other nodes
-      validatedInput, // Output is the validated input parameters
+      triggerOutput, // Output includes validated params + _execution metadata
       'completed'
     ));
 
@@ -381,9 +391,9 @@ export class McpToolService {
       }
       nodeOutputs.set('secrets', secretsObj);
 
-      // Store the trigger node's output (validated input parameters)
+      // Store the trigger node's output (validated input parameters + _execution metadata)
       // This allows downstream nodes to reference trigger params like {{ trigger.pokemonName }}
-      nodeOutputs.set(trigger.id, validatedInput);
+      nodeOutputs.set(trigger.id, triggerOutput);
 
       let result: McpToolResponse | null = null;
 

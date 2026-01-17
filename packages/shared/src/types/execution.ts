@@ -167,6 +167,23 @@ export interface TransformExecutionMetadata extends ExecutionMetadata {
 }
 
 /**
+ * Extended metadata for trigger nodes.
+ * Includes trigger-specific context about how the flow was invoked.
+ */
+export interface TriggerExecutionMetadata extends ExecutionMetadata {
+  /**
+   * Identifies this as a trigger node output.
+   */
+  type: 'trigger';
+
+  /**
+   * The MCP tool name that was invoked.
+   * Auto-generated from the node name in snake_case.
+   */
+  toolName: string;
+}
+
+/**
  * Standard node output structure.
  * All node outputs follow this pattern: data at root with _execution metadata.
  */

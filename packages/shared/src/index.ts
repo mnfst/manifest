@@ -111,6 +111,7 @@ export type {
   ExecutionMetadata,
   ApiExecutionMetadata,
   TransformExecutionMetadata,
+  TriggerExecutionMetadata,
   NodeOutput,
   PrimitiveOutput,
 } from './types/execution.js';
