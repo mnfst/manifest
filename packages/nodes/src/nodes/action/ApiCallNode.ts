@@ -2,6 +2,69 @@ import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../.
 import type { ApiCallNodeParameters, HeaderEntry, JSONSchema, ApiExecutionMetadata } from '@chatgpt-app-builder/shared';
 
 /**
+ * SSRF Protection: Validates URLs to prevent Server-Side Request Forgery attacks.
+ * Blocks access to internal networks, localhost, and cloud metadata endpoints.
+ */
+function validateUrlForSSRF(url: string): { valid: boolean; error?: string } {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { valid: false, error: 'Invalid URL format' };
+  }
+
+  // Only allow http and https protocols
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    return { valid: false, error: `Protocol '${parsed.protocol}' is not allowed. Use http or https.` };
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // Block localhost and loopback addresses
+  const localhostPatterns = [
+    'localhost',
+    '127.0.0.1',
+    '::1',
+    '[::1]',
+    '0.0.0.0',
+  ];
+  if (localhostPatterns.some(p => hostname === p || hostname.startsWith(p + ':'))) {
+    return { valid: false, error: 'Requests to localhost are not allowed' };
+  }
+
+  // Block private IP ranges (RFC 1918)
+  const privateIpPatterns = [
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,           // 10.0.0.0/8
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
+    /^192\.168\.\d{1,3}\.\d{1,3}$/,              // 192.168.0.0/16
+    /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,          // 127.0.0.0/8
+    /^0\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,            // 0.0.0.0/8
+  ];
+  if (privateIpPatterns.some(pattern => pattern.test(hostname))) {
+    return { valid: false, error: 'Requests to private IP addresses are not allowed' };
+  }
+
+  // Block cloud metadata endpoints (AWS, GCP, Azure, etc.)
+  const metadataEndpoints = [
+    '169.254.169.254',  // AWS, GCP, Azure metadata
+    'metadata.google.internal',
+    'metadata.google',
+    '169.254.170.2',    // AWS ECS task metadata
+  ];
+  if (metadataEndpoints.some(endpoint => hostname === endpoint)) {
+    return { valid: false, error: 'Requests to cloud metadata endpoints are not allowed' };
+  }
+
+  // Block link-local addresses (169.254.0.0/16)
+  if (/^169\.254\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+    return { valid: false, error: 'Requests to link-local addresses are not allowed' };
+  }
+
+  return { valid: true };
+}
+
+/**
  * Execution metadata for API call nodes.
  */
 interface ApiCallExecutionMetadata extends ApiExecutionMetadata {
@@ -206,6 +269,25 @@ export const ApiCallNode: NodeTypeDefinition = {
     try {
       // Resolve template variables in URL
       const url = await resolveTemplate(rawUrl, getNodeValue);
+
+      // SSRF Protection: Validate URL before making request
+      const urlValidation = validateUrlForSSRF(url);
+      if (!urlValidation.valid) {
+        const output: ApiCallOutput = {
+          type: 'apiCall',
+          _execution: {
+            success: false,
+            error: `SSRF Protection: ${urlValidation.error}`,
+            durationMs: Date.now() - startTime,
+            requestUrl: url,
+          },
+        };
+        return {
+          success: false,
+          error: `SSRF Protection: ${urlValidation.error}`,
+          output,
+        };
+      }
 
       // Resolve template variables in header values
       const resolvedHeaders: HeaderEntry[] = [];

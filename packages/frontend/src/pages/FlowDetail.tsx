@@ -12,7 +12,7 @@ import type {
   StatCardNodeParameters,
   RegistryNodeParameters,
 } from '@chatgpt-app-builder/shared';
-import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2, Share2 } from 'lucide-react';
+import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2, Share2, Plus } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 import { FlowActiveToggle } from '../components/flow/FlowActiveToggle';
@@ -81,7 +81,7 @@ function FlowDetail() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Node library state (replaces AddStepModal and floating button)
-  const [isNodeLibraryOpen, setIsNodeLibraryOpen] = useState(true);
+  const [isNodeLibraryOpen, setIsNodeLibraryOpen] = useState(false);
 
   // Node edit modal state
   const [showNodeEditModal, setShowNodeEditModal] = useState(false);
@@ -868,7 +868,18 @@ function FlowDetail() {
                   onDropRegistryItem={handleDropRegistryItem}
                   onNodeEditCode={handleNodeEditCode}
                   onFlowUpdate={handleFlowUpdate}
+                  onPaneClick={() => setIsNodeLibraryOpen(false)}
                 />
+                {/* Add Node Button - top right of canvas */}
+                {!isNodeLibraryOpen && (
+                  <button
+                    onClick={() => setIsNodeLibraryOpen(true)}
+                    className="absolute top-4 right-4 z-10 w-10 h-10 bg-primary text-primary-foreground rounded-lg shadow-md hover:bg-primary/90 flex items-center justify-center transition-colors"
+                    title="Add node"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                )}
                 {/* Flow Validation Summary - positioned at bottom-right of canvas */}
                 {flowId && (
                   <div className="absolute bottom-4 right-4 w-80 z-10">

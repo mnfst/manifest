@@ -337,38 +337,45 @@ export function flowParametersToSchema(
 }
 
 /**
- * Create a complete UserIntent output schema including static fields and dynamic parameters.
- * Static fields have x-field-source: 'static', dynamic fields have x-field-source: 'dynamic'.
+ * Create a complete UserIntent output schema including dynamic parameters and _execution metadata.
+ * Dynamic fields have x-field-source: 'dynamic'.
+ * Trigger metadata (type, toolName) is in _execution, following the standard pattern.
  */
 export function createUserIntentOutputSchema(
   parameters: FlowParameter[] = []
 ): JSONSchema {
   const paramSchema = flowParametersToSchema(parameters);
 
-  // Merge with static trigger fields (all marked as static)
-  const staticProperties: Record<string, JSONSchema> = {
-    type: {
-      type: 'string',
-      const: 'trigger',
-      'x-field-source': 'static',
-      description: 'Identifies this output as coming from a trigger node',
-    } as JSONSchema,
-    toolName: {
-      type: 'string',
-      'x-field-source': 'static',
-      description: 'The MCP tool name (auto-generated from node name in snake_case)',
-    } as JSONSchema,
-  };
-
-  const staticRequired = ['type', 'toolName'];
+  // _execution schema with trigger-specific metadata
+  const executionSchema: JSONSchema = {
+    type: 'object',
+    'x-field-source': 'static',
+    description: 'Execution metadata including trigger context',
+    properties: {
+      success: {
+        type: 'boolean',
+        description: 'Whether the node execution completed successfully',
+      },
+      type: {
+        type: 'string',
+        const: 'trigger',
+        description: 'Identifies this output as coming from a trigger node',
+      },
+      toolName: {
+        type: 'string',
+        description: 'The MCP tool name (auto-generated from node name in snake_case)',
+      },
+    },
+    required: ['success', 'type', 'toolName'],
+  } as JSONSchema;
 
   return {
     type: 'object',
     properties: {
-      ...staticProperties,
       ...(paramSchema.properties ?? {}),
+      _execution: executionSchema,
     },
-    required: [...staticRequired, ...(paramSchema.required ?? [])],
+    required: [...(paramSchema.required ?? []), '_execution'],
   };
 }
 

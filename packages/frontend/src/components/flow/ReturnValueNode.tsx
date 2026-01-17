@@ -45,7 +45,7 @@ export function ReturnValueNode({ data }: NodeProps) {
   }, [isDropdownOpen]);
 
   return (
-    <div className="bg-white rounded-lg border-2 border-green-200 hover:border-green-400 shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan">
+    <div className="bg-white rounded-l-lg rounded-r-[40px] border-2 border-green-200 hover:border-green-400 shadow-sm hover:shadow-md transition-colors transition-shadow w-[200px] nopan">
       {/* Left handle for incoming connections from UserIntent/other nodes */}
       <Handle
         type="target"
