@@ -369,6 +369,30 @@ describe('McpToolService', () => {
       expect(mockFlowExecutionService.updateExecution).toHaveBeenCalled();
     });
 
+    it('should include _execution metadata in trigger output', async () => {
+      const mockApp = createMockAppEntity();
+      mockAppRepository.findOne!.mockResolvedValue(mockApp);
+
+      const flow = createSimpleTriggerReturnFlow({
+        toolName: 'metadata_tool',
+        returnText: 'Done',
+      });
+      mockFlowRepository.find!.mockResolvedValue([flow]);
+
+      await service.executeTool('test-app', 'metadata_tool', { message: 'test' });
+
+      // Verify the trigger node execution includes _execution metadata
+      const updateCall = mockFlowExecutionService.updateExecution.mock.calls[0];
+      const updateData = updateCall[1];
+      const triggerExecution = updateData.nodeExecutions[0];
+
+      expect(triggerExecution.nodeType).toBe('UserIntent');
+      expect(triggerExecution.outputData._execution).toBeDefined();
+      expect(triggerExecution.outputData._execution.success).toBe(true);
+      expect(triggerExecution.outputData._execution.type).toBe('trigger');
+      expect(triggerExecution.outputData._execution.toolName).toBe('metadata_tool');
+    });
+
     it('should return message when trigger has no connected nodes', async () => {
       const mockApp = createMockAppEntity();
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
