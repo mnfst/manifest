@@ -141,7 +141,8 @@
       "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
       "2.0.1": "Updated post-card dependency with extracted demo data",
       "2.0.2": "Added comprehensive JSDoc documentation",
-      "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "2.0.4": "Replaced external image URLs with local assets"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
@@ -173,7 +174,8 @@
       "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls",
       "4.0.2": "Moved demo data to separate file for cleaner component code",
       "4.0.3": "Added comprehensive JSDoc documentation",
-      "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "4.0.5": "Replaced external image URLs with local assets"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display",
@@ -186,7 +188,8 @@
       "1.0.1": "Improved alt text to include author name",
       "1.0.3": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to social category for better organization",
-      "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.1.2": "Replaced external image URLs with local assets"
     },
     "linkedin-post": {
       "1.0.0": "Initial release with professional styling",
@@ -207,7 +210,8 @@
       "1.1.2": "Added comprehensive JSDoc documentation",
       "1.2.0": "Moved to map category for better organization",
       "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components",
-      "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.2.3": "Replaced external image URLs with local assets"
     },
     "event-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",

@@ -26,7 +26,7 @@ export const demoMessages: ChatMessage[] = [
     type: 'image',
     content: "Here's a preview of the dashboard",
     image:
-      'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop',
+      '/demo/images/thumbnail-1.jpg',
     author: 'Sarah',
     avatarFallback: 'S',
     time: '10:32 AM',

@@ -149,7 +149,7 @@ const defaultLocations: Location[] = [
     name: 'FOUND Hotel Carlton, Nob Hill',
     subtitle: 'Downtown San Francisco',
     image:
-      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop',
+      '/demo/images/hotel-1.jpg',
     price: 284,
     priceLabel: '$284 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -162,7 +162,7 @@ const defaultLocations: Location[] = [
     name: 'Hotel Nikko San Francisco',
     subtitle: 'Union Square',
     image:
-      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop',
+      '/demo/images/hotel-2.jpg',
     price: 299,
     priceLabel: '$299 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -175,7 +175,7 @@ const defaultLocations: Location[] = [
     name: 'The Ritz-Carlton',
     subtitle: 'Nob Hill',
     image:
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop',
+      '/demo/images/hotel-3.jpg',
     price: 527,
     priceLabel: '$527 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -188,7 +188,7 @@ const defaultLocations: Location[] = [
     name: 'Fairmont San Francisco',
     subtitle: 'Nob Hill',
     image:
-      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=200&h=200&fit=crop',
+      '/demo/images/hotel-4.jpg',
     price: 438,
     priceLabel: '$438 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -201,7 +201,7 @@ const defaultLocations: Location[] = [
     name: 'Hotel Vitale',
     subtitle: 'Embarcadero',
     image:
-      'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=200&h=200&fit=crop',
+      '/demo/images/hotel-5.jpg',
     price: 358,
     priceLabel: '$358 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -214,7 +214,7 @@ const defaultLocations: Location[] = [
     name: 'Palace Hotel',
     subtitle: 'SoMa',
     image:
-      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=200&fit=crop',
+      '/demo/images/hotel-6.jpg',
     price: 308,
     priceLabel: '$308 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -227,7 +227,7 @@ const defaultLocations: Location[] = [
     name: 'Omni San Francisco',
     subtitle: 'Financial District',
     image:
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=200&h=200&fit=crop',
+      '/demo/images/hotel-7.jpg',
     price: 227,
     priceLabel: '$227 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',
@@ -240,7 +240,7 @@ const defaultLocations: Location[] = [
     name: 'The Marker San Francisco',
     subtitle: 'Union Square',
     image:
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=200&h=200&fit=crop',
+      '/demo/images/hotel-8.jpg',
     price: 166,
     priceLabel: '$166 total Jan 29 - Feb 1',
     priceSubtext: 'USD • Includes taxes and fees',

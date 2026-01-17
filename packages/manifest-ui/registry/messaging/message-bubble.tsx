@@ -219,7 +219,7 @@ export function ImageMessageBubble({
   control
 }: ImageMessageBubbleProps) {
   const {
-    image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
+    image = '/demo/images/thumbnail-2.jpg',
     content,
     avatarFallback = 'J',
     avatarUrl,

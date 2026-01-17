@@ -70,10 +70,10 @@ const defaultPost: Post = {
   excerpt:
     'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
   coverImage:
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
+    '/demo/images/tech-react.jpg',
   author: {
     name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
+    avatar: '/demo/avatars/sarah-150.jpg'
   },
   publishedAt: '2024-01-15',
   readTime: '5 min read',
@@ -102,10 +102,10 @@ const defaultRelatedPosts: Post[] = [
     excerpt:
       'Best practices for creating intuitive UI components that work within chat environments.',
     coverImage:
-      'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800',
+      '/demo/images/tech-ux.jpg',
     author: {
       name: 'Alex Rivera',
-      avatar: 'https://i.pravatar.cc/150?u=alex'
+      avatar: '/demo/avatars/alex-150.jpg'
     },
     publishedAt: '2024-01-12',
     readTime: '8 min read',
@@ -118,10 +118,10 @@ const defaultRelatedPosts: Post[] = [
     excerpt:
       'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
     coverImage:
-      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
+      '/demo/images/tech-cloud.jpg',
     author: {
       name: 'Jordan Kim',
-      avatar: 'https://i.pravatar.cc/150?u=jordan'
+      avatar: '/demo/avatars/jordan-150.jpg'
     },
     publishedAt: '2024-01-10',
     readTime: '12 min read',
@@ -134,10 +134,10 @@ const defaultRelatedPosts: Post[] = [
     excerpt:
       'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
     coverImage:
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800',
+      '/demo/images/tech-ecommerce.jpg',
     author: {
       name: 'Morgan Lee',
-      avatar: 'https://i.pravatar.cc/150?u=morgan'
+      avatar: '/demo/avatars/morgan-150.jpg'
     },
     publishedAt: '2024-01-08',
     readTime: '10 min read',
