@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppEntity } from './app.entity';
@@ -26,6 +27,26 @@ import { AppSecretEntity } from '../secret/secret.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // Rate limiting: 100 requests per minute per IP (global)
+    // Use @SkipThrottle() to exempt specific routes
+    // Use @Throttle({ default: { limit: 5, ttl: 60000 } }) for stricter limits on auth routes
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,   // 1 second
+        limit: 10,   // 10 requests per second
+      },
+      {
+        name: 'medium',
+        ttl: 10000,  // 10 seconds
+        limit: 50,   // 50 requests per 10 seconds
+      },
+      {
+        name: 'long',
+        ttl: 60000,  // 1 minute
+        limit: 100,  // 100 requests per minute
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './data/app.db',
@@ -51,6 +72,11 @@ import { AppSecretEntity } from '../secret/secret.entity';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    // Apply rate limiting globally - use @SkipThrottle() to exempt routes
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
   exports: [AppService],

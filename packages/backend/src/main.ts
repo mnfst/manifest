@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import helmet from 'helmet';
 import { toNodeHandler } from 'better-auth/node';
 import { AppModule } from './app/app.module';
 import { auth, runAuthMigrations } from './auth/auth';
@@ -62,6 +63,28 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
+
+  // Security headers via helmet
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for React
+          styleSrc: ["'self'", "'unsafe-inline'"], // Required for inline styles
+          imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+          fontSrc: ["'self'", 'data:'],
+          connectSrc: ["'self'", 'https:', 'wss:'],
+          frameSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+        },
+      },
+      crossOriginEmbedderPolicy: false, // Required for loading external resources
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin resource loading
+    })
+  );
+  console.log('🛡️  Security headers enabled via helmet');
 
   // Register better-auth handler manually (Express 4 compatible)
   // The @thallesp/nestjs-better-auth module uses /*path pattern which requires Express 5
