@@ -1,6 +1,8 @@
 import { Trash2 } from 'lucide-react';
 import type { FlowParameter, ParameterType } from '@chatgpt-app-builder/shared';
 import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
 
 const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
   { value: 'string', label: 'String' },
@@ -82,14 +84,12 @@ export function ParameterRow({
 
         {/* Name input */}
         <div className="flex-1 min-w-0">
-          <input
+          <Input
             type="text"
             value={parameter.name}
             onChange={handleNameChange}
             placeholder="Parameter name"
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-sm ${
-              error ? 'border-destructive' : ''
-            } ${isSystem ? 'cursor-not-allowed' : ''}`}
+            className={`text-sm ${error ? 'border-destructive' : ''} ${isSystem ? 'cursor-not-allowed' : ''}`}
             disabled={isFieldDisabled}
             maxLength={50}
           />
@@ -115,8 +115,8 @@ export function ParameterRow({
         </select>
 
         {/* Optional checkbox */}
-        <label
-          className={`flex items-center gap-1.5 px-2 py-2 text-sm whitespace-nowrap ${
+        <Label
+          className={`flex items-center gap-1.5 px-2 py-2 text-sm whitespace-nowrap font-normal ${
             isSystem ? 'cursor-not-allowed' : 'cursor-pointer'
           }`}
         >
@@ -128,7 +128,7 @@ export function ParameterRow({
             disabled={isFieldDisabled}
           />
           <span className="text-muted-foreground">Optional</span>
-        </label>
+        </Label>
 
         {/* Remove button - hidden for system parameters */}
         {!isSystem && (
@@ -147,14 +147,12 @@ export function ParameterRow({
       </div>
 
       {/* Description input */}
-      <input
+      <Input
         type="text"
         value={parameter.description}
         onChange={handleDescriptionChange}
         placeholder="Description (e.g., The user's email address)"
-        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-sm ${
-          isSystem ? 'cursor-not-allowed' : ''
-        }`}
+        className={`text-sm ${isSystem ? 'cursor-not-allowed' : ''}`}
         disabled={isFieldDisabled}
         maxLength={350}
       />

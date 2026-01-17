@@ -215,6 +215,59 @@ import { Select } from '@/components/ui/select';
 import { Stats } from '@/components/ui/stats';
 ```
 
+### UI Component Standards
+
+**ALWAYS use shadcn/ui components for these UI elements:**
+
+| Element | shadcn Component | Import |
+|---------|------------------|--------|
+| Buttons | `Button` | `@/components/ui/shadcn/button` |
+| Form inputs | `Input` | `@/components/ui/shadcn/input` |
+| Labels | `Label` | `@/components/ui/shadcn/label` |
+| Textareas | `Textarea` | `@/components/ui/shadcn/textarea` |
+| Checkboxes | `Checkbox` | `@/components/ui/shadcn/checkbox` |
+| Dialogs/Modals | `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter` | `@/components/ui/shadcn/dialog` |
+| Error alerts | `Alert variant="destructive"`, `AlertDescription` | `@/components/ui/shadcn/alert` |
+| Tabs | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` | `@/components/ui/shadcn/tabs` |
+
+**Button variants:**
+- `default` - Primary actions (Save, Submit, Create)
+- `destructive` - Delete/remove actions
+- `outline` - Secondary actions (Cancel)
+- `ghost` - Tertiary/icon buttons
+- `link` - Text links styled as buttons
+
+**Dialog pattern:**
+```tsx
+<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Title</DialogTitle>
+      <DialogDescription>Optional description</DialogDescription>
+    </DialogHeader>
+    {/* Content */}
+    <DialogFooter>
+      <Button variant="outline" onClick={onClose}>Cancel</Button>
+      <Button onClick={onSubmit}>Submit</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+**Alert pattern:**
+```tsx
+{error && (
+  <Alert variant="destructive">
+    <AlertDescription>{error}</AlertDescription>
+  </Alert>
+)}
+```
+
+**DO NOT create custom implementations for:**
+- Modal overlays with manual escape key/backdrop click handling
+- Custom styled input/textarea/checkbox elements
+- Custom error message divs (use Alert)
+
 <!-- MANUAL ADDITIONS END -->
 
 ## Recent Changes

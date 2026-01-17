@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Copy, Check, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
 import type { AppSecret } from '@chatgpt-app-builder/shared';
 
 interface SecretRowProps {
@@ -69,27 +71,27 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
       <div className="border border-border rounded-lg p-4 bg-card">
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">
+            <Label className="text-muted-foreground">
               Key
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={editKey}
               onChange={(e) => setEditKey(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="SECRET_KEY"
+              className="mt-1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">
+            <Label className="text-muted-foreground">
               Value
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="secret_value"
+              className="mt-1"
             />
           </div>
           <div className="flex justify-end gap-2">

@@ -7,6 +7,7 @@ import { EditAppModal } from '../components/app/EditAppModal';
 import { DeleteConfirmDialog } from '../components/common/DeleteConfirmDialog';
 import { api, ApiClientError } from '../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
 
 /**
  * Home page - App list and creation
@@ -183,16 +184,18 @@ function Home() {
 
           {/* Error state */}
           {error && !isLoading && (
-            <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
-              <p>{error}</p>
-              <Button
-                variant="link"
-                onClick={() => window.location.reload()}
-                className="mt-2 p-0 h-auto text-destructive"
-              >
-                Try again
-              </Button>
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>
+                {error}
+                <Button
+                  variant="link"
+                  onClick={() => window.location.reload()}
+                  className="mt-2 p-0 h-auto text-destructive block"
+                >
+                  Try again
+                </Button>
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* App list */}

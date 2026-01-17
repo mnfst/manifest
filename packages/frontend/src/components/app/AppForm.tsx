@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/shadcn/button';
+import { Input } from '@/components/ui/shadcn/input';
+import { Label } from '@/components/ui/shadcn/label';
+import { Textarea } from '@/components/ui/shadcn/textarea';
 
 interface AppFormProps {
   onSubmit: (data: { name: string; description?: string }) => void;
@@ -27,19 +30,16 @@ export function AppForm({ onSubmit, isLoading = false }: AppFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium mb-1"
-        >
+        <Label htmlFor="name" className="mb-1">
           App Name
-        </label>
-        <input
+        </Label>
+        <Input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="My Awesome App"
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+          className="w-full"
           disabled={isLoading}
           maxLength={100}
           required
@@ -50,18 +50,15 @@ export function AppForm({ onSubmit, isLoading = false }: AppFormProps) {
       </div>
 
       <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium mb-1"
-        >
+        <Label htmlFor="description" className="mb-1">
           Description (optional)
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="A brief description of what your app does..."
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background min-h-[80px] resize-y"
+          className="w-full min-h-[80px] resize-y"
           disabled={isLoading}
           maxLength={500}
         />

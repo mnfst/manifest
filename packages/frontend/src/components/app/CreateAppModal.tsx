@@ -1,6 +1,11 @@
-import { useEffect, useRef } from 'react';
 import { AppForm } from './AppForm';
-import { Button } from '@/components/ui/shadcn/button';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 
 interface CreateAppModalProps {
   isOpen: boolean;
@@ -12,7 +17,7 @@ interface CreateAppModalProps {
 
 /**
  * Modal wrapper for AppForm
- * Provides backdrop click to close and escape key handling
+ * Uses shadcn Dialog with automatic backdrop click, escape key, and focus trapping
  */
 export function CreateAppModal({
   isOpen,
@@ -21,89 +26,27 @@ export function CreateAppModal({
   isLoading = false,
   error,
 }: CreateAppModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isLoading) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, isLoading, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
       onClose();
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={handleBackdropClick}
-    >
-      <div
-        ref={modalRef}
-        className="bg-card border rounded-lg shadow-lg w-full max-w-md animate-in fade-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 id="modal-title" className="text-lg font-semibold">
-            Create New App
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            disabled={isLoading}
-            aria-label="Close modal"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </Button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New App</DialogTitle>
+        </DialogHeader>
 
-        <div className="p-4">
-          <AppForm onSubmit={onSubmit} isLoading={isLoading} />
+        <AppForm onSubmit={onSubmit} isLoading={isLoading} />
 
-          {error && (
-            <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

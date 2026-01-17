@@ -9,6 +9,7 @@ import { ThemeProvider } from '../editor/ThemeProvider';
 import { Stats } from '../ui/stats';
 import { BACKEND_URL } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
 
 interface PreviewChatProps {
   flowId: string;
@@ -261,10 +262,10 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
         ))}
 
         {error && (
-          <div className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
-            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         <div ref={messagesEndRef} />
@@ -566,10 +567,10 @@ function WidgetIframe({
 
   if (error) {
     return (
-      <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
-        <AlertCircle className="w-4 h-4 inline mr-2" />
-        {error}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 

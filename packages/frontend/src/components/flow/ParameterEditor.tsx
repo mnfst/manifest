@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import type { FlowParameter } from '@chatgpt-app-builder/shared';
 import { SYSTEM_PARAMETER_NAMES } from '@chatgpt-app-builder/shared';
 import { Button } from '@/components/ui/shadcn/button';
+import { Label } from '@/components/ui/shadcn/label';
 import { ParameterRow } from './ParameterRow';
 
 interface ParameterEditorProps {
@@ -97,9 +98,9 @@ export function ParameterEditor({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium">
-          Parameters <span className="text-muted-foreground">(optional)</span>
-        </label>
+        <Label>
+          Parameters <span className="text-muted-foreground font-normal">(optional)</span>
+        </Label>
         <Button
           variant="ghost"
           size="sm"
