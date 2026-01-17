@@ -624,13 +624,14 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.0.3",
+        "version": "2.0.4",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
           "2.0.1": "Updated post-card dependency with extracted demo data",
           "2.0.2": "Added comprehensive JSDoc documentation",
-          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "2.0.4": "Replaced external image URLs with local assets"
         }
       },
       "dependencies": ["lucide-react"],
@@ -717,7 +718,7 @@
       "categories": ["messaging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/chat-conversation.png",
-        "version": "4.0.4",
+        "version": "4.0.5",
         "changelog": {
           "1.0.0": "Initial release with multiple message types",
           "1.0.1": "Updated to use improved message bubble styling",
@@ -730,7 +731,8 @@
           "4.0.1": "Updated message-bubble dependency with improved accessibility for reaction buttons and voice controls",
           "4.0.2": "Moved demo data to separate file for cleaner component code",
           "4.0.3": "Added comprehensive JSDoc documentation",
-          "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "4.0.5": "Replaced external image URLs with local assets"
         }
       },
       "dependencies": ["lucide-react"],
@@ -784,13 +786,14 @@
       "categories": ["social"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/instagram-post.png",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "changelog": {
           "1.0.0": "Initial release with image and engagement display",
           "1.0.1": "Improved alt text to include author name",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to social category for better organization",
-          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.1.2": "Replaced external image URLs with local assets"
         }
       },
       "dependencies": ["lucide-react"],
@@ -867,14 +870,15 @@
       "categories": ["map"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "1.2.2",
+        "version": "1.2.3",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
           "1.1.2": "Added comprehensive JSDoc documentation",
           "1.2.0": "Moved to map category for better organization",
           "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components",
-          "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.2.3": "Replaced external image URLs with local assets"
         }
       },
       "dependencies": ["lucide-react", "leaflet", "react-leaflet"],

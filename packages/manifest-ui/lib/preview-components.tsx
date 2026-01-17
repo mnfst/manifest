@@ -70,8 +70,8 @@ import { EventConfirmation } from '@/registry/events/event-confirmation'
 const demoPost = {
   title: 'Getting Started with Agentic UI',
   excerpt: 'Learn how to build conversational interfaces with our component library.',
-  coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: { name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?u=sarah' },
+  coverImage: '/demo/images/tech-react.jpg',
+  author: { name: 'Sarah Chen', avatar: '/demo/avatars/sarah-150.jpg' },
   publishedAt: '2024-01-15',
   readTime: '5 min read',
   tags: ['Tutorial', 'Components'],
@@ -234,19 +234,19 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
 
   // Social components
   'x-post': {
-    component: <XPost data={{ author: 'Elon Musk', username: 'elonmusk', avatar: 'https://i.pravatar.cc/150?u=elon', verified: true, content: 'The future of AI is here!', time: '2h', likes: '42K', retweets: '8.5K', replies: '3.2K' }} />,
+    component: <XPost data={{ author: 'Elon Musk', username: 'elonmusk', avatar: '/demo/avatars/elon-150.jpg', verified: true, content: 'The future of AI is here!', time: '2h', likes: '42K', retweets: '8.5K', replies: '3.2K' }} />,
     category: 'social'
   },
   'instagram-post': {
-    component: <InstagramPost data={{ author: 'National Geographic', avatar: 'https://i.pravatar.cc/150?u=natgeo', verified: true, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', caption: 'Nature at its finest', likes: '125K', time: '2h' }} />,
+    component: <InstagramPost data={{ author: 'National Geographic', avatar: '/demo/avatars/natgeo-150.jpg', verified: true, image: '/demo/images/nature-mountain.jpg', caption: 'Nature at its finest', likes: '125K', time: '2h' }} />,
     category: 'social'
   },
   'linkedin-post': {
-    component: <LinkedInPost data={{ author: 'Satya Nadella', headline: 'CEO at Microsoft', avatar: 'https://i.pravatar.cc/150?u=satya', content: 'Excited to announce our latest AI innovations...', time: '1d', likes: '15K', comments: '890', reposts: '2.1K' }} />,
+    component: <LinkedInPost data={{ author: 'Satya Nadella', headline: 'CEO at Microsoft', avatar: '/demo/avatars/satya-150.jpg', content: 'Excited to announce our latest AI innovations...', time: '1d', likes: '15K', comments: '890', reposts: '2.1K' }} />,
     category: 'social'
   },
   'youtube-post': {
-    component: <YouTubePost data={{ channel: 'TechTalks', avatar: 'https://i.pravatar.cc/150?u=techtalks', title: 'Building the Future of AI', views: '1.2M', time: '3 days ago', thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800', duration: '15:42' }} />,
+    component: <YouTubePost data={{ channel: 'TechTalks', avatar: '/demo/avatars/techtalks-150.jpg', title: 'Building the Future of AI', views: '1.2M', time: '3 days ago', thumbnail: '/demo/images/tech-ai-2.jpg', duration: '15:42' }} />,
     category: 'social'
   },
 
@@ -307,7 +307,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
             city: 'New York',
             dateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
             priceRange: '$45 - $150',
-            image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
+            image: '/demo/images/event-summer.jpg',
             vibeTags: ['High energy', 'Outdoor', 'Social'],
             eventSignal: 'popular'
           }
@@ -321,7 +321,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
       <EventList
         data={{
           events: [
-            { title: 'Summer Music Festival', category: 'Music', venue: 'Central Park', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 7).toISOString(), priceRange: '$45 - $150', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800' },
+            { title: 'Summer Music Festival', category: 'Music', venue: 'Central Park', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 7).toISOString(), priceRange: '$45 - $150', image: '/demo/images/event-summer.jpg' },
             { title: 'Jazz Night', category: 'Music', venue: 'Blue Note', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 14).toISOString(), priceRange: '$30 - $80' },
             { title: 'Comedy Show', category: 'Comedy', venue: 'Comedy Cellar', city: 'New York', dateTime: new Date(Date.now() + 86400000 * 3).toISOString(), priceRange: '$25 - $50' }
           ]
@@ -342,9 +342,9 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
             city: 'New York',
             startDateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
             priceRange: '$45 - $150',
-            image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
+            image: '/demo/images/event-summer.jpg',
             description: 'Join us for an amazing summer music festival!',
-            organizer: { name: 'Live Events Co', image: 'https://i.pravatar.cc/150?u=live', rating: 4.8, reviewCount: 120, verified: true }
+            organizer: { name: 'Live Events Co', image: '/demo/avatars/live-150.jpg', rating: 4.8, reviewCount: 120, verified: true }
           }
         }}
       />
@@ -366,7 +366,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     component: (
       <EventCheckout
         data={{
-          event: { title: 'Summer Music Festival', date: 'Jan 20, 2024', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800' },
+          event: { title: 'Summer Music Festival', date: 'Jan 20, 2024', image: '/demo/images/event-summer.jpg' },
           order: { items: [{ name: 'General Admission', quantity: 2, price: 90 }], fees: 10 }
         }}
       />

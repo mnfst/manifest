@@ -9,10 +9,10 @@ export const demoPost: Post = {
   excerpt:
     'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
   coverImage:
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
+    '/demo/images/tech-react.jpg',
   author: {
     name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
+    avatar: '/demo/avatars/sarah-150.jpg'
   },
   publishedAt: '2024-01-15',
   readTime: '5 min read',
@@ -27,10 +27,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
     coverImage:
-      'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
+      '/demo/images/tech-react.jpg',
     author: {
       name: 'Sarah Chen',
-      avatar: 'https://i.pravatar.cc/150?u=sarah'
+      avatar: '/demo/avatars/sarah-150.jpg'
     },
     publishedAt: '2024-01-15',
     readTime: '5 min read',
@@ -42,10 +42,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Best practices for creating intuitive UI components that work within chat environments.',
     coverImage:
-      'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800',
+      '/demo/images/tech-ux.jpg',
     author: {
       name: 'Alex Rivera',
-      avatar: 'https://i.pravatar.cc/150?u=alex'
+      avatar: '/demo/avatars/alex-150.jpg'
     },
     publishedAt: '2024-01-12',
     readTime: '8 min read',
@@ -57,10 +57,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
     coverImage:
-      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
+      '/demo/images/tech-cloud.jpg',
     author: {
       name: 'Jordan Kim',
-      avatar: 'https://i.pravatar.cc/150?u=jordan'
+      avatar: '/demo/avatars/jordan-150.jpg'
     },
     publishedAt: '2024-01-10',
     readTime: '12 min read',
@@ -72,10 +72,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
     coverImage:
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800',
+      '/demo/images/tech-ecommerce.jpg',
     author: {
       name: 'Morgan Lee',
-      avatar: 'https://i.pravatar.cc/150?u=morgan'
+      avatar: '/demo/avatars/morgan-150.jpg'
     },
     publishedAt: '2024-01-08',
     readTime: '10 min read',
@@ -87,10 +87,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Implementing WebSocket connections and real-time updates for collaborative agentic experiences.',
     coverImage:
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
+      '/demo/images/tech-team.jpg',
     author: {
       name: 'Casey Taylor',
-      avatar: 'https://i.pravatar.cc/150?u=casey'
+      avatar: '/demo/avatars/casey-150.jpg'
     },
     publishedAt: '2024-01-06',
     readTime: '15 min read',
@@ -102,10 +102,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Making your conversational UI accessible to all users with screen readers and keyboard navigation.',
     coverImage:
-      'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800',
+      '/demo/images/tech-women.jpg',
     author: {
       name: 'Jamie Park',
-      avatar: 'https://i.pravatar.cc/150?u=jamie'
+      avatar: '/demo/avatars/jamie-150.jpg'
     },
     publishedAt: '2024-01-04',
     readTime: '9 min read',
@@ -117,10 +117,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Managing complex multi-step workflows in agentic applications using modern state patterns.',
     coverImage:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
+      '/demo/images/tech-dashboard.jpg',
     author: {
       name: 'Drew Martinez',
-      avatar: 'https://i.pravatar.cc/150?u=drew'
+      avatar: '/demo/avatars/drew-150.jpg'
     },
     publishedAt: '2024-01-02',
     readTime: '11 min read',
@@ -132,10 +132,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Strategies for unit testing and integration testing of chat-based UI components.',
     coverImage:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800',
+      '/demo/images/tech-remote.jpg',
     author: {
       name: 'Riley Johnson',
-      avatar: 'https://i.pravatar.cc/150?u=riley'
+      avatar: '/demo/avatars/riley-150.jpg'
     },
     publishedAt: '2023-12-30',
     readTime: '8 min read',
@@ -147,10 +147,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Implementing flexible theming systems with dark mode for agentic UI components.',
     coverImage:
-      'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800',
+      '/demo/images/tech-code.jpg',
     author: {
       name: 'Avery Williams',
-      avatar: 'https://i.pravatar.cc/150?u=avery'
+      avatar: '/demo/avatars/avery-150.jpg'
     },
     publishedAt: '2023-12-28',
     readTime: '7 min read',
@@ -162,10 +162,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Optimizing render performance and reducing bundle size in chat applications.',
     coverImage:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
+      '/demo/images/tech-seo.jpg',
     author: {
       name: 'Quinn Anderson',
-      avatar: 'https://i.pravatar.cc/150?u=quinn'
+      avatar: '/demo/avatars/quinn-150.jpg'
     },
     publishedAt: '2023-12-25',
     readTime: '13 min read',
@@ -177,10 +177,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Graceful error handling patterns and user-friendly recovery flows in conversational UIs.',
     coverImage:
-      'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800',
+      '/demo/images/tech-debug.jpg',
     author: {
       name: 'Sage Thompson',
-      avatar: 'https://i.pravatar.cc/150?u=sage'
+      avatar: '/demo/avatars/sage-150.jpg'
     },
     publishedAt: '2023-12-22',
     readTime: '10 min read',
@@ -192,10 +192,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Making your agentic UI components work across languages and locales.',
     coverImage:
-      'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800',
+      '/demo/images/tech-marketing.jpg',
     author: {
       name: 'Blake Garcia',
-      avatar: 'https://i.pravatar.cc/150?u=blake'
+      avatar: '/demo/avatars/blake-150.jpg'
     },
     publishedAt: '2023-12-20',
     readTime: '9 min read',
@@ -207,10 +207,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Designing conversational interfaces that work beautifully on mobile devices.',
     coverImage:
-      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800',
+      '/demo/images/tech-mobile.jpg',
     author: {
       name: 'Charlie Brown',
-      avatar: 'https://i.pravatar.cc/150?u=charlie'
+      avatar: '/demo/avatars/charlie-150.jpg'
     },
     publishedAt: '2023-12-18',
     readTime: '8 min read',
@@ -222,10 +222,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Tracking user interactions and deriving insights from conversational UI usage.',
     coverImage:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
+      '/demo/images/tech-dashboard.jpg',
     author: {
       name: 'Sydney Chen',
-      avatar: 'https://i.pravatar.cc/150?u=sydney'
+      avatar: '/demo/avatars/sydney-150.jpg'
     },
     publishedAt: '2023-12-15',
     readTime: '11 min read',
@@ -237,10 +237,10 @@ export const demoPosts: Post[] = [
     excerpt:
       'Creating a scalable component library for agentic UIs that teams can share.',
     coverImage:
-      'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800',
+      '/demo/images/tech-design.jpg',
     author: {
       name: 'Taylor Swift',
-      avatar: 'https://i.pravatar.cc/150?u=taylor'
+      avatar: '/demo/avatars/taylor-150.jpg'
     },
     publishedAt: '2023-12-12',
     readTime: '14 min read',

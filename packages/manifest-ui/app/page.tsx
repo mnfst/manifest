@@ -86,10 +86,10 @@ const techCrunchArticles = [
     excerpt:
       'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer.',
     coverImage:
-      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
+      '/demo/images/blog-cover-1.jpg',
     author: {
       name: 'Kirsten Korosec',
-      avatar: 'https://i.pravatar.cc/150?u=kirsten'
+      avatar: '/demo/avatars/kirsten-150.jpg'
     },
     publishedAt: '2025-12-07',
     readTime: '5 min read',
@@ -100,10 +100,10 @@ const techCrunchArticles = [
     excerpt:
       "The social media platform has suspended the EU institution's advertising capabilities following the recent penalty.",
     coverImage:
-      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=450&fit=crop',
+      '/demo/images/blog-cover-2.jpg',
     author: {
       name: 'Anthony Ha',
-      avatar: 'https://i.pravatar.cc/150?u=anthony'
+      avatar: '/demo/avatars/anthony-150.jpg'
     },
     publishedAt: '2025-12-07',
     readTime: '4 min read',
@@ -114,8 +114,8 @@ const techCrunchArticles = [
     excerpt:
       'The crypto exchange plans to introduce fiat on-ramp capabilities in the region by next year.',
     coverImage:
-      'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&h=450&fit=crop',
-    author: { name: 'Ivan Mehta', avatar: 'https://i.pravatar.cc/150?u=ivan' },
+      '/demo/images/blog-cover-3.jpg',
+    author: { name: 'Ivan Mehta', avatar: '/demo/avatars/ivan-150.jpg' },
     publishedAt: '2025-12-07',
     readTime: '6 min read',
     category: 'Fintech'
@@ -128,7 +128,7 @@ const audioProducts: Product[] = [
     description: 'Premium Earbuds',
     price: 299,
     image:
-      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop',
+      '/demo/images/product-1.jpg',
     rating: 4.9,
     badge: 'Best Seller',
     inStock: true
@@ -138,7 +138,7 @@ const audioProducts: Product[] = [
     description: 'Wireless Earbuds',
     price: 149,
     image:
-      'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop',
+      '/demo/images/product-2.jpg',
     rating: 4.8,
     badge: 'New',
     inStock: true
@@ -149,7 +149,7 @@ const audioProducts: Product[] = [
     price: 349,
     originalPrice: 399,
     image:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+      '/demo/images/product-3.jpg',
     rating: 4.7,
     badge: '-12%',
     inStock: true
@@ -159,7 +159,7 @@ const audioProducts: Product[] = [
     description: 'Active Earbuds',
     price: 199,
     image:
-      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop',
+      '/demo/images/product-4.jpg',
     rating: 4.8,
     inStock: true
   },
@@ -169,7 +169,7 @@ const audioProducts: Product[] = [
     price: 99,
     originalPrice: 129,
     image:
-      'https://images.unsplash.com/photo-1631867675167-90a456a90863?w=400&h=400&fit=crop',
+      '/demo/images/product-5.jpg',
     rating: 4.6,
     badge: '-23%',
     inStock: true
@@ -179,7 +179,7 @@ const audioProducts: Product[] = [
     description: 'Premium Headphones',
     price: 449,
     image:
-      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
+      '/demo/images/product-6.jpg',
     rating: 4.9,
     inStock: true
   }
@@ -190,10 +190,10 @@ const featuredArticle = {
   excerpt:
     'Major automakers are ramping up investments in self-driving technology as regulatory frameworks become clearer and consumer acceptance grows.',
   coverImage:
-    'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=450&fit=crop',
+    '/demo/images/blog-cover-1.jpg',
   author: {
     name: 'Kirsten Korosec',
-    avatar: 'https://i.pravatar.cc/150?u=kirsten'
+    avatar: '/demo/avatars/kirsten-150.jpg'
   },
   publishedAt: '2025-12-07',
   readTime: '5 min read',

@@ -39,7 +39,7 @@ export interface InstagramPostProps {
 const defaultData = {
   author: "manifest.ai",
   avatar: "M",
-  image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&h=600&fit=crop",
+  image: "/demo/images/tech-ai.jpg",
   likes: "2,847",
   caption: "Building the future of agentic UIs. What component would you love to see next?",
   time: "2 hours ago",
