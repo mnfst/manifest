@@ -414,11 +414,11 @@ export function NodeLibrary({
 
   return (
     <div className="relative flex h-full">
-      {/* Sidedrawer */}
+      {/* Sidedrawer - uses Tailwind transition classes for reliable animation */}
       <div
         className={`
-          h-full bg-card border-r overflow-hidden
-          transition-all duration-300 ease-out
+          h-full border-r flex-shrink-0 overflow-hidden bg-card
+          transition-all duration-300 ease-in-out motion-safe-override
           ${isOpen ? 'w-72' : 'w-0'}
         `}
       >
@@ -663,16 +663,14 @@ export function NodeLibrary({
         </div>
       </div>
 
-      {/* Toggle Button */}
+      {/* Toggle Button - positioned at drawer edge */}
       <button
         onClick={onToggle}
         className={`
-          absolute top-1/2 -translate-y-1/2 z-10
-          w-6 h-12 bg-card border rounded-r-lg
-          flex items-center justify-center
-          hover:bg-muted transition-colors
+          absolute top-1/2 -translate-y-1/2 z-10 w-6 h-12 bg-card border rounded-r-lg
+          flex items-center justify-center hover:bg-muted
+          transition-all duration-300 ease-in-out motion-safe-override
           ${isOpen ? 'left-72' : 'left-0'}
-          transition-all duration-300 ease-out
         `}
         aria-label={isOpen ? 'Close node library' : 'Open node library'}
       >
