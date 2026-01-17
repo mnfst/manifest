@@ -9,6 +9,34 @@ import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParamet
 import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
 
 /**
+ * SECURITY: HTML escape function to prevent XSS in widget templates
+ */
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * SECURITY: Escape for JavaScript string context
+ */
+function escapeJs(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/</g, '\\x3c')
+    .replace(/>/g, '\\x3e');
+}
+
+/**
  * Resolves template variables in a string using upstream node outputs.
  * Template syntax: {{ nodeSlug.path }} where path can be dot-notation like 'data.userId'
  * Supports both slug-based and ID-based lookups.
@@ -1439,12 +1467,13 @@ export class McpToolService {
   }
 
   private generateStatsWidgetHtml(flowName: string, cssVariables: string): string {
+    const safeFlowName = escapeHtml(flowName);
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${flowName}</title>
+  <title>${safeFlowName}</title>
   <style>
     :root {
       ${cssVariables}
@@ -1531,6 +1560,11 @@ export class McpToolService {
     targetFlowName: string,
     themeVariables: Record<string, string>
   ): string {
+    // SECURITY: Escape user inputs to prevent XSS
+    const safeFlowName = escapeHtml(flowName);
+    const safeTargetFlowName = escapeHtml(targetFlowName);
+    const safeTargetToolName = escapeJs(targetToolName);
+
     const cssVariables = Object.entries(themeVariables)
       .filter(([, value]) => value !== undefined)
       .map(([key, value]) => `${key}: ${value};`)
@@ -1541,7 +1575,7 @@ export class McpToolService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${flowName} - Call Flow</title>
+  <title>${safeFlowName} - Call Flow</title>
   <style>
     :root {
       ${cssVariables}
@@ -1556,14 +1590,14 @@ export class McpToolService {
   </style>
 </head>
 <body>
-  <div class="status"><div class="spinner"></div><span>Triggering ${targetFlowName}...</span></div>
+  <div class="status"><div class="spinner"></div><span>Triggering ${safeTargetFlowName}...</span></div>
   <script>
     (function() {
       var triggered = false;
       function triggerFlow() {
         if (triggered) return; triggered = true;
         if (window.openai && window.openai.callTool) {
-          window.openai.callTool('${targetToolName}', { message: 'Triggered from call flow' });
+          window.openai.callTool('${safeTargetToolName}', { message: 'Triggered from call flow' });
         }
       }
       window.addEventListener('openai:set_globals', triggerFlow);
@@ -1589,6 +1623,9 @@ export class McpToolService {
     appSlug: string,
     toolName: string
   ): string {
+    // SECURITY: Escape user inputs to prevent XSS
+    const safeTitle = escapeHtml(params.title || nodeName);
+
     const cssVariables = Object.entries(themeVariables)
       .filter(([, value]) => value !== undefined)
       .map(([key, value]) => `${key}: ${value};`)
@@ -1610,7 +1647,7 @@ export class McpToolService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${params.title || nodeName}</title>
+  <title>${safeTitle}</title>
   <!-- React and ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>

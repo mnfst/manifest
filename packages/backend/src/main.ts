@@ -62,9 +62,19 @@ async function bootstrap() {
   await runAuthMigrations();
   console.log('✅ Better Auth migrations complete');
 
+  // Configure log levels based on environment
+  // In production: only log warnings and errors to reduce noise and prevent info leakage
+  // In development: log everything for debugging
+  const logLevels: ('log' | 'error' | 'warn' | 'debug' | 'verbose')[] =
+    process.env.NODE_ENV === 'production'
+      ? ['error', 'warn']
+      : ['log', 'error', 'warn', 'debug', 'verbose'];
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false, // Required for better-auth to handle raw body
+    logger: logLevels,
   });
+  console.log(`📋 Log level: ${process.env.NODE_ENV === 'production' ? 'warn+error only' : 'all'}`);
 
   // Enable CORS with strict origin validation
   // SECURITY: Explicit allowlist instead of permissive wildcards
