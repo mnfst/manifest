@@ -12,7 +12,7 @@ import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatu
 
 /**
  * Seed service that creates default fixtures on application startup.
- * Creates an "Eventbrite" app with a "Search events in a city" flow if no apps exist.
+ * Creates an "EventHub" app with a "Search events in a city" flow if no apps exist.
  * Also creates admin user and assigns ownership.
  * Runs migration for existing flows to move tool properties to trigger nodes.
  */
@@ -238,7 +238,7 @@ export class SeedService implements OnModuleInit {
   /**
    * Seed default fixtures if no apps exist.
    * Creates:
-   * - Eventbrite app (slug: eventbrite) owned by admin user
+   * - EventHub app (slug: eventhub) owned by admin user
    * - "Search events in a city" flow with UserIntent trigger and StatCard node
    */
   private async seedDefaultFixtures(adminUserId: string | undefined): Promise<void> {
@@ -252,19 +252,19 @@ export class SeedService implements OnModuleInit {
     this.logger.log('No apps found, seeding default fixtures...');
 
     try {
-      // Create Eventbrite App
+      // Create demo app for local events
       const testApp = this.appRepository.create({
         id: uuidv4(),
-        name: 'Eventbrite',
-        description: 'ChatGPT app of Eventbrite',
-        slug: 'eventbrite',
+        name: 'EventHub',
+        description: 'Discover local events in your city',
+        slug: 'eventhub',
         themeVariables: DEFAULT_THEME_VARIABLES,
         status: 'published',
-        logoUrl: '/logos/eventbrite.png',
+        logoUrl: null,
       });
 
       const savedApp = await this.appRepository.save(testApp);
-      this.logger.log(`Created Eventbrite app with id: ${savedApp.id}`);
+      this.logger.log(`Created EventHub app with id: ${savedApp.id}`);
 
       // Create UserIntent trigger node with tool properties
       const triggerId = uuidv4();
@@ -298,27 +298,88 @@ export class SeedService implements OnModuleInit {
         },
       };
 
-      // Create StatCard node
-      const statCardId = uuidv4();
-      const statCardNode: NodeInstance = {
-        id: statCardId,
-        type: 'StatCard',
-        name: 'Test StatCard',
-        slug: 'test-stat-card',
-        position: { x: 330, y: 100 },
+      // Create ApiCall node to fetch events from EventHub
+      const apiCallId = uuidv4();
+      const apiCallNode: NodeInstance = {
+        id: apiCallId,
+        type: 'ApiCall',
+        name: 'Fetch EventHub Events',
+        slug: 'fetch-events',
+        position: { x: 350, y: 100 },
         parameters: {
-          layoutTemplate: 'stat-card',
+          method: 'GET',
+          url: 'https://api.example.com/v1/events/search?city={{trigger.city}}&q={{trigger.userQuery}}',
+          headers: [
+            { key: 'Authorization', value: 'Bearer {{secrets.EVENTS_API_KEY}}' },
+            { key: 'Content-Type', value: 'application/json' },
+          ],
+          timeout: 30000,
         },
       };
 
-      // Create connection from trigger to StatCard
-      const connection: Connection = {
-        id: uuidv4(),
-        sourceNodeId: triggerId,
-        sourceHandle: 'main',
-        targetNodeId: statCardId,
-        targetHandle: 'main',
+      // Create JavaScriptCodeTransform to format the response
+      const transformId = uuidv4();
+      const transformNode: NodeInstance = {
+        id: transformId,
+        type: 'JavaScriptCodeTransform',
+        name: 'Format Events',
+        slug: 'format-events',
+        position: { x: 600, y: 100 },
+        parameters: {
+          code: `const events = input.body?.events || [];
+return {
+  totalFound: events.length,
+  events: events.slice(0, 10).map(event => ({
+    name: event.name?.text || 'Untitled Event',
+    description: event.description?.text?.substring(0, 200) || '',
+    startDate: event.start?.local || null,
+    endDate: event.end?.local || null,
+    url: event.url || null,
+    isFree: event.is_free || false,
+    venue: event.venue?.name || 'Online'
+  }))
+};`,
+        },
       };
+
+      // Create Return node to output the formatted events
+      const returnId = uuidv4();
+      const returnNode: NodeInstance = {
+        id: returnId,
+        type: 'Return',
+        name: 'Return Events',
+        slug: 'return-events',
+        position: { x: 850, y: 100 },
+        parameters: {
+          text: 'Found {{transform.totalFound}} events in your area.',
+        },
+      };
+
+      // Create connections: trigger -> apiCall -> transform -> return
+      // Handle IDs must match what the frontend node components define
+      const connections: Connection[] = [
+        {
+          id: uuidv4(),
+          sourceNodeId: triggerId,
+          sourceHandle: 'main', // UserIntentNode uses 'main' for output
+          targetNodeId: apiCallId,
+          targetHandle: 'input', // ApiCallNode uses 'input' for input
+        },
+        {
+          id: uuidv4(),
+          sourceNodeId: apiCallId,
+          sourceHandle: 'output', // ApiCallNode uses 'output' for output
+          targetNodeId: transformId,
+          targetHandle: 'input', // TransformNode uses 'input' for input
+        },
+        {
+          id: uuidv4(),
+          sourceNodeId: transformId,
+          sourceHandle: 'output', // TransformNode uses 'output' for output
+          targetNodeId: returnId,
+          targetHandle: 'input', // ReturnValueNode uses 'input' for input
+        },
+      ];
 
       const testFlow = this.flowRepository.create({
         id: uuidv4(),
@@ -326,14 +387,14 @@ export class SeedService implements OnModuleInit {
         name: 'Search events in a city',
         description: 'Find events happening in a specific city',
         isActive: true,
-        nodes: [triggerNode, statCardNode],
-        connections: [connection],
+        nodes: [triggerNode, apiCallNode, transformNode, returnNode],
+        connections,
       });
 
       const savedFlow = await this.flowRepository.save(testFlow);
       this.logger.log(`Created flow "${savedFlow.name}" with id: ${savedFlow.id}`);
 
-      // Assign admin user as owner of Eventbrite app
+      // Assign admin user as owner of EventHub app
       if (adminUserId) {
         const ownerRole = this.userAppRoleRepository.create({
           userId: adminUserId,
@@ -341,7 +402,7 @@ export class SeedService implements OnModuleInit {
           role: 'owner',
         });
         await this.userAppRoleRepository.save(ownerRole);
-        this.logger.log(`Assigned admin as owner of Eventbrite app`);
+        this.logger.log(`Assigned admin as owner of EventHub app`);
       }
 
       // Seed execution data for analytics testing

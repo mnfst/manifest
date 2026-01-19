@@ -527,13 +527,13 @@ describe('SeedService', () => {
       expect(mockAppRepository.create).not.toHaveBeenCalled();
     });
 
-    it('should create Eventbrite App when no apps exist', async () => {
+    it('should create EventHub App when no apps exist', async () => {
       mockSignUpEmail.mockResolvedValue({
         user: { id: 'admin-id', email: 'admin@manifest.build' },
       });
       mockAppRepository.count.mockResolvedValue(0);
-      mockAppRepository.create.mockReturnValue({ id: 'new-app-id', name: 'Eventbrite' });
-      mockAppRepository.save.mockResolvedValue({ id: 'new-app-id', name: 'Eventbrite' });
+      mockAppRepository.create.mockReturnValue({ id: 'new-app-id', name: 'EventHub' });
+      mockAppRepository.save.mockResolvedValue({ id: 'new-app-id', name: 'EventHub' });
       mockFlowRepository.create.mockReturnValue({ id: 'new-flow-id' });
       mockFlowRepository.save.mockResolvedValue({ id: 'new-flow-id', name: 'Search events in a city' });
       mockUserAppRoleRepository.create.mockReturnValue({});
@@ -544,15 +544,15 @@ describe('SeedService', () => {
 
       expect(mockAppRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Eventbrite',
-          slug: 'eventbrite',
+          name: 'EventHub',
+          slug: 'eventhub',
           status: 'published',
         }),
       );
       expect(mockAppRepository.save).toHaveBeenCalled();
     });
 
-    it('should create Search events flow with UserIntent and StatCard nodes', async () => {
+    it('should create Search events flow with 4 node pipeline', async () => {
       mockSignUpEmail.mockResolvedValue({
         user: { id: 'admin-id', email: 'admin@manifest.build' },
       });
@@ -575,17 +575,25 @@ describe('SeedService', () => {
       );
 
       const flowCreateCall = mockFlowRepository.create.mock.calls[0][0];
-      expect(flowCreateCall.nodes).toHaveLength(2);
+      expect(flowCreateCall.nodes).toHaveLength(4);
 
       const userIntentNode = flowCreateCall.nodes.find((n: NodeInstance) => n.type === 'UserIntent');
       expect(userIntentNode).toBeDefined();
       expect(userIntentNode.parameters.toolName).toBe('search_events_in_city');
 
-      const statCardNode = flowCreateCall.nodes.find((n: NodeInstance) => n.type === 'StatCard');
-      expect(statCardNode).toBeDefined();
+      const apiCallNode = flowCreateCall.nodes.find((n: NodeInstance) => n.type === 'ApiCall');
+      expect(apiCallNode).toBeDefined();
+
+      const transformNode = flowCreateCall.nodes.find(
+        (n: NodeInstance) => n.type === 'JavaScriptCodeTransform',
+      );
+      expect(transformNode).toBeDefined();
+
+      const returnNode = flowCreateCall.nodes.find((n: NodeInstance) => n.type === 'Return');
+      expect(returnNode).toBeDefined();
     });
 
-    it('should create connection between trigger and StatCard', async () => {
+    it('should create 3 connections between pipeline nodes', async () => {
       mockSignUpEmail.mockResolvedValue({
         user: { id: 'admin-id', email: 'admin@manifest.build' },
       });
@@ -601,11 +609,29 @@ describe('SeedService', () => {
       await service.onModuleInit();
 
       const flowCreateCall = mockFlowRepository.create.mock.calls[0][0];
-      expect(flowCreateCall.connections).toHaveLength(1);
+      expect(flowCreateCall.connections).toHaveLength(3);
+
+      // First connection: UserIntent -> ApiCall
       expect(flowCreateCall.connections[0]).toEqual(
         expect.objectContaining({
           sourceHandle: 'main',
-          targetHandle: 'main',
+          targetHandle: 'input',
+        }),
+      );
+
+      // Second connection: ApiCall -> JavaScriptCodeTransform
+      expect(flowCreateCall.connections[1]).toEqual(
+        expect.objectContaining({
+          sourceHandle: 'output',
+          targetHandle: 'input',
+        }),
+      );
+
+      // Third connection: JavaScriptCodeTransform -> Return
+      expect(flowCreateCall.connections[2]).toEqual(
+        expect.objectContaining({
+          sourceHandle: 'output',
+          targetHandle: 'input',
         }),
       );
     });
