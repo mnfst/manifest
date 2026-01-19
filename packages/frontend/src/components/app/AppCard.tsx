@@ -1,4 +1,4 @@
-import type { App, AppWithFlowCount } from '@chatgpt-app-builder/shared';
+import type { App, AppWithFlowCount } from '@manifest/shared';
 import { resolveIconUrl } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';

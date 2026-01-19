@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import type { FlowAnalytics } from '@chatgpt-app-builder/shared';
+import type { FlowAnalytics } from '@manifest/shared';
 import { ChevronRight } from 'lucide-react';
 
 interface FlowsTableProps {

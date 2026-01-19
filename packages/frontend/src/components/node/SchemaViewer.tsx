@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react';
-import type { JSONSchema } from '@chatgpt-app-builder/shared';
+import type { JSONSchema } from '@manifest/shared';
 import {
   formatSchemaForDisplay,
   getTypeColor,

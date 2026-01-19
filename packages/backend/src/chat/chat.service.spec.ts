@@ -20,7 +20,7 @@ import {
   createMockFlowWithInactiveTrigger,
   createMockChatRequest,
 } from './test/fixtures';
-import type { ChatStreamEvent } from '@chatgpt-app-builder/shared';
+import type { ChatStreamEvent } from '@manifest/shared';
 
 // Mock ChatOpenAI from LangChain
 jest.mock('@langchain/openai', () => ({

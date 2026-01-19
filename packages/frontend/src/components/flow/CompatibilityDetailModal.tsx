@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Shuffle } from 'lucide-react';
-import type { Connection, NodeType } from '@chatgpt-app-builder/shared';
+import type { Connection, NodeType } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import type { ConnectionValidationState } from '../../types/schema';
 import { ConnectionValidator } from './ConnectionValidator';

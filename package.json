@@ -1,8 +1,8 @@
 {
-  "name": "chatgpt-app-builder",
+  "name": "manifest-flows",
   "version": "1.0.0",
   "private": true,
-  "description": "ChatGPT App Builder - Create ChatGPT apps from natural language prompts",
+  "description": "Manifest Flows - Visual flow builder for creating AI-powered applications",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -33,5 +33,5 @@
     "url": "git+https://github.com/mnfst/generator.git"
   },
   "author": "MNFST, Inc",
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

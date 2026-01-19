@@ -1,4 +1,4 @@
-import type { ExecutionListItem as ExecutionListItemType } from '@chatgpt-app-builder/shared';
+import type { ExecutionListItem as ExecutionListItemType } from '@manifest/shared';
 import { ExecutionStatusBadge } from './ExecutionStatusBadge';
 import { AlertTriangle } from 'lucide-react';
 

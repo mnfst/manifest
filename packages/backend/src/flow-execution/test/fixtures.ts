@@ -14,7 +14,7 @@ import type {
   ExecutionErrorInfo,
   FlowExecution,
   ExecutionListItem,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import type { FlowExecutionEntity } from '../flow-execution.entity';
 import type {
   CreateExecutionParams,

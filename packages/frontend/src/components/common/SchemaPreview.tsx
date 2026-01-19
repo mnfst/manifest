@@ -1,4 +1,4 @@
-import type { JSONSchema } from '@chatgpt-app-builder/shared';
+import type { JSONSchema } from '@manifest/shared';
 import { ChevronDown, ChevronRight, Hash, ToggleLeft, Type, List, Braces, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/shadcn/badge';

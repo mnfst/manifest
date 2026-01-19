@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
 import { Input } from '@/components/ui/shadcn/input';
-import type { AppSecret } from '@chatgpt-app-builder/shared';
+import type { AppSecret } from '@manifest/shared';
 import { api, ApiClientError } from '../../lib/api';
 import { SecretRow } from './SecretRow';
 

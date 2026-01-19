@@ -1,5 +1,5 @@
 {
-  "name": "@chatgpt-app-builder/shared",
+  "name": "@manifest/shared",
   "version": "1.0.0",
   "private": true,
   "type": "module",

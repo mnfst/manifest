@@ -17,8 +17,8 @@ import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
-import type { NodeInstance, Connection } from '@chatgpt-app-builder/shared';
-import { DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, Connection } from '@manifest/shared';
+import { DEFAULT_ADMIN_USER } from '@manifest/shared';
 
 // ============================================================
 // Mock External Dependencies

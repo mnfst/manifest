@@ -72,7 +72,7 @@ import type {
   CreateSecretRequest,
   UpdateSecretRequest,
   SecretListResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Node type info returned by GET /api/node-types

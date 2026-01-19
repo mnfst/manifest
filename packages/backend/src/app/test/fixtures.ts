@@ -17,8 +17,8 @@ import type {
   PublishResult,
   ThemeVariables,
   AppStatus,
-} from '@chatgpt-app-builder/shared';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
+import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 import type { AppEntity } from '../app.entity';
 
 /**

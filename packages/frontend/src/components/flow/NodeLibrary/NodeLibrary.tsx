@@ -7,7 +7,7 @@ import type {
   RegistryItem,
   RegistryCategoryInfo,
   RegistryNodeParameters,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { api, type NodeTypeInfo, type CategoryInfo } from '../../../lib/api';
 import { fetchRegistry, fetchComponentDetail, transformToNodeParameters } from '../../../services/registry';
 import { NodeGroup } from './NodeGroup';

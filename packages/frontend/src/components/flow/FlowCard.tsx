@@ -1,4 +1,4 @@
-import type { Flow, UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
+import type { Flow, UserIntentNodeParameters } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 
 interface FlowCardProps {

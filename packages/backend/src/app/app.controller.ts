@@ -30,7 +30,7 @@ import type {
   PublishResult,
   DeleteAppResponse,
   IconUploadResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * App controller with endpoints for app management

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
-import type { AppAnalyticsResponse, AnalyticsTimeRange } from '@chatgpt-app-builder/shared';
+import type { AppAnalyticsResponse, AnalyticsTimeRange } from '@manifest/shared';
 
 @Controller('api/apps')
 export class AnalyticsController {

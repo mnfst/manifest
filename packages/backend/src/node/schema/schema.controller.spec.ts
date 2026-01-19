@@ -12,7 +12,7 @@ import type {
   FlowValidationResponse,
   ResolveSchemaResponse,
   ValidateConnectionResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 describe('SchemaController', () => {
   let controller: SchemaController;

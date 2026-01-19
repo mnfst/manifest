@@ -4,7 +4,7 @@
  * from both old and new node output formats.
  */
 
-import type { ExecutionMetadata, NodeExecutionData } from '@chatgpt-app-builder/shared';
+import type { ExecutionMetadata, NodeExecutionData } from '@manifest/shared';
 
 /**
  * Execution status for UI display

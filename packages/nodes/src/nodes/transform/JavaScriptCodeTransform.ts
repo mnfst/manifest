@@ -1,6 +1,6 @@
 import vm from 'node:vm';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import type { JavaScriptCodeTransformParameters, JSONSchema, TransformExecutionMetadata } from '@chatgpt-app-builder/shared';
+import type { JavaScriptCodeTransformParameters, JSONSchema, TransformExecutionMetadata } from '@manifest/shared';
 
 /** Maximum execution time for user code (ms) */
 const EXECUTION_TIMEOUT_MS = 5000;

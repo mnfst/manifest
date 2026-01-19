@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { App, AppWithFlowCount } from '@chatgpt-app-builder/shared';
+import type { App, AppWithFlowCount } from '@manifest/shared';
 import { AppList } from '../components/app/AppList';
 import { CreateAppModal } from '../components/app/CreateAppModal';
 import { EditAppModal } from '../components/app/EditAppModal';

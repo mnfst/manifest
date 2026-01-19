@@ -4,7 +4,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { AuthPage } from './pages/AuthPage';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { api } from './lib/api';
-import type { App } from '@chatgpt-app-builder/shared';
+import type { App } from '@manifest/shared';
 
 // Lazy-loaded page components for better initial bundle size
 const AppDetail = lazy(() => import('./pages/AppDetail'));

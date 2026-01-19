@@ -16,10 +16,10 @@ import type {
   DeleteFlowResponse,
   CreateFlowRequest,
   UpdateFlowRequest,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import type { FlowEntity } from '../flow.entity';
 import type { AppEntity } from '../../app/app.entity';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 
 /**
  * Creates a mock NodeInstance for testing

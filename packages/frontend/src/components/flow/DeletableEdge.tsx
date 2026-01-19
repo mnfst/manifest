@@ -6,7 +6,7 @@ import {
   type EdgeProps,
 } from '@xyflow/react';
 import { Trash2, AlertTriangle, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
-import type { Connection, CompatibilityStatus } from '@chatgpt-app-builder/shared';
+import type { Connection, CompatibilityStatus } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { api } from '../../lib/api';
 import { STATUS_COLORS, getStatusLabel, type ConnectionValidationState } from '../../types/schema';

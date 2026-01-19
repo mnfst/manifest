@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Square, Code2 } from 'lucide-react';
-import type { NodeInstance, BlankComponentNodeParameters } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, BlankComponentNodeParameters } from '@manifest/shared';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 
 interface BlankComponentNodeData {

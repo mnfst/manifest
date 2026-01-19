@@ -7,7 +7,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
-import type { AppAnalyticsResponse } from '@chatgpt-app-builder/shared';
+import type { AppAnalyticsResponse } from '@manifest/shared';
 
 describe('AnalyticsController', () => {
   let controller: AnalyticsController;

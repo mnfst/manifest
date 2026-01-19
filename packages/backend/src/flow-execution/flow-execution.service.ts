@@ -9,7 +9,7 @@ import type {
   ExecutionListItem,
   ExecutionListResponse,
   FlowExecution,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 export interface CreateExecutionParams {
   flowId: string;

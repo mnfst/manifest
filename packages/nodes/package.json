@@ -1,5 +1,5 @@
 {
-  "name": "@chatgpt-app-builder/nodes",
+  "name": "@manifest/nodes",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -35,7 +35,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@chatgpt-app-builder/shared": "workspace:*"
+    "@manifest/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

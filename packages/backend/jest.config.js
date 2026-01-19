@@ -17,8 +17,8 @@ module.exports = {
   testEnvironment: 'node',
   moduleNameMapper: {
     // Map workspace packages to their TypeScript sources
-    '^@chatgpt-app-builder/shared$': '<rootDir>/../../shared/src/index.ts',
-    '^@chatgpt-app-builder/nodes$': '<rootDir>/../../nodes/src/index.ts',
+    '^@manifest/shared$': '<rootDir>/../../shared/src/index.ts',
+    '^@manifest/nodes$': '<rootDir>/../../nodes/src/index.ts',
     // Handle .js extensions in imports (ESM style) - strip .js and resolve to .ts
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },

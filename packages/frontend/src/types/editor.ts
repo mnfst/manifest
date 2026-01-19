@@ -1,4 +1,4 @@
-import type { ValidationError } from '@chatgpt-app-builder/shared';
+import type { ValidationError } from '@manifest/shared';
 
 /**
  * State for the Interface node code editor.

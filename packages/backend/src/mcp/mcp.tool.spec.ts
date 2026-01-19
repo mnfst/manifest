@@ -37,7 +37,7 @@ import {
 } from './test/fixtures';
 
 // Mock the node modules that make actual HTTP calls
-jest.mock('@chatgpt-app-builder/nodes', () => ({
+jest.mock('@manifest/nodes', () => ({
   ApiCallNode: {
     execute: jest.fn().mockResolvedValue({ success: true, output: { data: 'test' } }),
   },

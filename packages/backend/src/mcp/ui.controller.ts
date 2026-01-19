@@ -9,7 +9,7 @@ import { Public } from '../auth';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import type { ThemeVariables, ExecuteActionRequest } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables, ExecuteActionRequest } from '@manifest/shared';
 
 /**
  * Generate a unique user fingerprint from IP and User-Agent
@@ -117,7 +117,7 @@ export class UiController {
     const tools = await this.mcpToolService.listTools(slug);
 
     return {
-      name: 'chatgpt-app-builder',
+      name: 'manifest-flows',
       version: '1.0.0',
       description: `MCP server for ${app.name}`,
       tools,

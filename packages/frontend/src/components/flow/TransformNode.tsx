@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { NodeInstance, JavaScriptCodeTransformParameters } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, JavaScriptCodeTransformParameters } from '@manifest/shared';
 import { Shuffle, AlertTriangle } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 

@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
-import { EmailTemplateType } from '@chatgpt-app-builder/shared';
+import { EmailTemplateType } from '@manifest/shared';
 
 /**
  * DTO for sending emails via the API

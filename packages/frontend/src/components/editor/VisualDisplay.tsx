@@ -1,4 +1,4 @@
-import type { App, LayoutTemplate } from '@chatgpt-app-builder/shared';
+import type { App, LayoutTemplate } from '@manifest/shared';
 import { ThemeProvider } from './ThemeProvider';
 import { LayoutRenderer } from './LayoutRenderer';
 

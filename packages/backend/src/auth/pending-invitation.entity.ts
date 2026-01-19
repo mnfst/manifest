@@ -7,7 +7,7 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
-import type { AppRole } from '@chatgpt-app-builder/shared';
+import type { AppRole } from '@manifest/shared';
 import { AppEntity } from '../app/app.entity';
 
 /**

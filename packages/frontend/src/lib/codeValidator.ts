@@ -2,7 +2,7 @@
  * Code validation utilities using Babel parser for TSX syntax validation.
  */
 import { parse } from '@babel/parser';
-import type { ValidationError, ValidationResult } from '@chatgpt-app-builder/shared';
+import type { ValidationError, ValidationResult } from '@manifest/shared';
 
 /**
  * Babel parser options for TSX code.

@@ -2,7 +2,7 @@
  * Test fixtures for Auth module tests (InvitationService and UserManagementService)
  */
 
-import type { AppRole } from '@chatgpt-app-builder/shared';
+import type { AppRole } from '@manifest/shared';
 import type { PendingInvitationEntity } from '../pending-invitation.entity';
 import type { UserAppRoleEntity } from '../user-app-role.entity';
 import type { AppEntity } from '../../app/app.entity';

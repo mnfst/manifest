@@ -23,7 +23,7 @@ import type {
   VerifyEmailChangeResponse,
   ChangePasswordResponse,
   DefaultUserCheckResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { UserManagementService } from './user-management.service';
 import { AppAccessGuard } from './app-access.guard';
 import { AppAccessService } from './app-access.service';

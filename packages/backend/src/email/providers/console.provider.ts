@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EmailMessage, EmailSendResult } from '@chatgpt-app-builder/shared';
+import { EmailMessage, EmailSendResult } from '@manifest/shared';
 import { EmailProvider } from './email-provider.interface';
 
 /**

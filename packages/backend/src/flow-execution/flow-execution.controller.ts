@@ -11,7 +11,7 @@ import type {
   ExecutionStatus,
   ExecutionListResponse,
   FlowExecution,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 @Controller('api/flows/:flowId/executions')
 export class FlowExecutionController {

@@ -1,5 +1,5 @@
 import { ChevronRight, LayoutTemplate } from 'lucide-react';
-import type { RegistryCategoryInfo } from '@chatgpt-app-builder/shared';
+import type { RegistryCategoryInfo } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 
 interface CategoryListProps {

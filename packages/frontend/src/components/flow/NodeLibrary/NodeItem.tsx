@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import type { NodeType, NodeTypeCategory, LayoutTemplate as LayoutTemplateType } from '@chatgpt-app-builder/shared';
-import { LAYOUT_REGISTRY } from '@chatgpt-app-builder/shared';
+import type { NodeType, NodeTypeCategory, LayoutTemplate as LayoutTemplateType } from '@manifest/shared';
+import { LAYOUT_REGISTRY } from '@manifest/shared';
 import type { NodeTypeInfo } from '../../../lib/api';
 import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, GripVertical, Shuffle, LayoutList, ExternalLink, Square } from 'lucide-react';
 

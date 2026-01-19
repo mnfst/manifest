@@ -1,6 +1,6 @@
 import { ChevronRight, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Shuffle } from 'lucide-react';
 import type { CategoryInfo } from '../../../lib/api';
-import type { NodeTypeCategory } from '@chatgpt-app-builder/shared';
+import type { NodeTypeCategory } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 
 // Map category IDs to Lucide React icons

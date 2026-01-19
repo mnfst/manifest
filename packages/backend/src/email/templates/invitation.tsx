@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Section, Text, Heading } from '@react-email/components';
-import { InvitationEmailProps } from '@chatgpt-app-builder/shared';
+import { InvitationEmailProps } from '@manifest/shared';
 import { BaseLayout, Header, Footer, Button, typography, colors } from './components';
 
 interface InvitationTemplateProps extends InvitationEmailProps {

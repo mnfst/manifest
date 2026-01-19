@@ -1,4 +1,4 @@
-import type { RegistryItem as RegistryItemType } from '@chatgpt-app-builder/shared';
+import type { RegistryItem as RegistryItemType } from '@manifest/shared';
 import { RegistryItem } from './RegistryItem';
 
 interface RegistryItemListProps {

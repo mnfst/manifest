@@ -1,4 +1,4 @@
-import type { App } from '@chatgpt-app-builder/shared';
+import type { App } from '@manifest/shared';
 import { AppCard } from './AppCard';
 
 interface AppListProps {

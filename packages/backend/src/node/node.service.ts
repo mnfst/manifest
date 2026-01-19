@@ -16,10 +16,10 @@ import {
   type InsertTransformerResponse,
   type TestTransformRequest,
   type TestTransformResponse,
-} from '@chatgpt-app-builder/shared';
-import { generateUniqueSlug } from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
+import { generateUniqueSlug } from '@manifest/shared';
 import { v4 as uuidv4 } from 'uuid';
-import { builtInNodeList, builtInNodes, toNodeTypeInfo, type NodeTypeInfo } from '@chatgpt-app-builder/nodes';
+import { builtInNodeList, builtInNodes, toNodeTypeInfo, type NodeTypeInfo } from '@manifest/nodes';
 import { generateUniqueToolName } from '../utils/tool-name';
 
 /**

@@ -8,7 +8,7 @@ import type {
   Connection,
   ValidateConnectionRequest,
   ResolveSchemaRequest,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Creates a mock FlowEntity

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Plus } from 'lucide-react';
-import type { NodeType } from '@chatgpt-app-builder/shared';
+import type { NodeType } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 
 interface AddNodeButtonProps {

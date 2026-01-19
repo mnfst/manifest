@@ -25,7 +25,7 @@ import {
   createMockAppEntity,
   createMockCreateAppRequest,
 } from './test/fixtures';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 
 describe('AppService', () => {
   let service: AppService;

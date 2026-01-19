@@ -9,7 +9,7 @@ import { NotFoundException } from '@nestjs/common';
 import { InvitationController } from './invitation.controller';
 import { InvitationService } from './invitation.service';
 import { AppAccessService } from './app-access.service';
-import type { PendingInvitation, InvitationValidation, AcceptInvitationResponse } from '@chatgpt-app-builder/shared';
+import type { PendingInvitation, InvitationValidation, AcceptInvitationResponse } from '@manifest/shared';
 
 describe('InvitationController', () => {
   let controller: InvitationController;

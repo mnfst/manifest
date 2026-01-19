@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { AppUserListItem, AppRole } from '@chatgpt-app-builder/shared';
+import type { AppUserListItem, AppRole } from '@manifest/shared';
 import { api, ApiClientError } from '../../lib/api';
 import { InviteCollaboratorModal } from './InviteCollaboratorModal';
 import { Button } from '@/components/ui/shadcn/button';

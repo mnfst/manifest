@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
-import type { App } from '@chatgpt-app-builder/shared';
+import type { App } from '@manifest/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { Tabs } from '../components/common/Tabs';
 import { SecretsTab } from '../components/settings/SecretsTab';

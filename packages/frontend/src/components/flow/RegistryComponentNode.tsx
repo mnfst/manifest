@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo } from 'react';
 import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react';
 import { LayoutTemplate, Code2 } from 'lucide-react';
-import type { NodeInstance, RegistryNodeParameters } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, RegistryNodeParameters } from '@manifest/shared';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 import { parseComponentActions } from '../../services/registry';
 

@@ -20,8 +20,8 @@ import type {
   FlowParameter,
   ParameterType,
   JSONSchema,
-} from '@chatgpt-app-builder/shared';
-import { USER_QUERY_PARAMETER } from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
+import { USER_QUERY_PARAMETER } from '@manifest/shared';
 import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
 import { UsePreviousOutputs } from '../common/UsePreviousOutputs';

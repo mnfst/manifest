@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { AlertTriangle, CheckCircle, Link2 } from 'lucide-react';
-import { parseTemplateReferences, groupReferencesByNode, type TemplateReference } from '@chatgpt-app-builder/shared';
+import { parseTemplateReferences, groupReferencesByNode, type TemplateReference } from '@manifest/shared';
 import type { UpstreamNodeInfo } from '../../types/schema';
 
 interface TemplateReferencesDisplayProps {

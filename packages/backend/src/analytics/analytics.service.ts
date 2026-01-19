@@ -12,7 +12,7 @@ import type {
   TrendData,
   FlowOption,
   FlowAnalytics,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /** Time range configuration for aggregation */
 interface TimeRangeConfig {

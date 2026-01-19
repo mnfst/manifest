@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import slugify from 'slugify';
 import { AppEntity } from './app.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
-import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@chatgpt-app-builder/shared';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@manifest/shared';
+import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 
 /**
  * Default app icons - 8 distinct pixel art icons assigned randomly on app creation

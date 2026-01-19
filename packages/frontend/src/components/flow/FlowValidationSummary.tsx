@@ -13,7 +13,7 @@ import type {
   FlowValidationResponse,
   ConnectionValidationResult,
   CompatibilityStatus,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';
 import { api } from '../../lib/api';

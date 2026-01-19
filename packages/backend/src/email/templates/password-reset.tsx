@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Section, Text, Heading } from '@react-email/components';
-import { PasswordResetEmailProps } from '@chatgpt-app-builder/shared';
+import { PasswordResetEmailProps } from '@manifest/shared';
 import { BaseLayout, Header, Footer, Button, typography, colors } from './components';
 
 interface PasswordResetTemplateProps extends PasswordResetEmailProps {

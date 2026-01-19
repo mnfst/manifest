@@ -1,4 +1,4 @@
-import type { CompatibilityStatus, SchemaCompatibilityResult, JSONSchema, FlattenedSchemaField, SuggestedTransformer } from '@chatgpt-app-builder/shared';
+import type { CompatibilityStatus, SchemaCompatibilityResult, JSONSchema, FlattenedSchemaField, SuggestedTransformer } from '@manifest/shared';
 
 /**
  * Validation state for a connection edge (frontend only).

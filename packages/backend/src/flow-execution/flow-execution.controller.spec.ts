@@ -18,7 +18,7 @@ import {
   createMockFlowExecution,
   createMockExecutionListItem,
 } from './test/fixtures';
-import type { ExecutionListResponse } from '@chatgpt-app-builder/shared';
+import type { ExecutionListResponse } from '@manifest/shared';
 
 describe('FlowExecutionController', () => {
   let controller: FlowExecutionController;

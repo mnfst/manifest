@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { SecretService } from './secret.service';
 import { AppAccessGuard, AppAccessService, CurrentUser, type SessionUser } from '../auth';
-import type { AppSecret, CreateSecretRequest, UpdateSecretRequest, SecretListResponse } from '@chatgpt-app-builder/shared';
+import type { AppSecret, CreateSecretRequest, UpdateSecretRequest, SecretListResponse } from '@manifest/shared';
 
 /**
  * Secret controller with endpoints for secret management

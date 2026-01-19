@@ -1,5 +1,5 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import type { JSONSchema, LinkNodeParameters } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, LinkNodeParameters } from '@manifest/shared';
 
 /**
  * Normalizes a URL by ensuring it has a protocol.

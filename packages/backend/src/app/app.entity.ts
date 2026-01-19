@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import type { AppStatus, ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { AppStatus, ThemeVariables } from '@manifest/shared';
 import type { UserAppRoleEntity } from '../auth/user-app-role.entity';
 
 /**

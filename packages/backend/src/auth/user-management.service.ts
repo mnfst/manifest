@@ -16,8 +16,8 @@ import type {
   ChangePasswordRequest,
   ChangePasswordResponse,
   DefaultUserCheckResponse,
-} from '@chatgpt-app-builder/shared';
-import { DEFAULT_ADMIN_USER } from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
+import { DEFAULT_ADMIN_USER } from '@manifest/shared';
 import { auth } from './auth';
 import { UserAppRoleEntity } from './user-app-role.entity';
 import { PendingInvitationEntity } from './pending-invitation.entity';

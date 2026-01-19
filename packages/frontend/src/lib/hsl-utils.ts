@@ -1,4 +1,4 @@
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 
 /**
  * HSL color representation for react-colorful picker

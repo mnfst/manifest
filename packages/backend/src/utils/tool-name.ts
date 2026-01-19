@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { FlowEntity } from '../flow/flow.entity';
-import { toSnakeCase } from '@chatgpt-app-builder/shared';
-import type { UserIntentNodeParameters } from '@chatgpt-app-builder/shared';
+import { toSnakeCase } from '@manifest/shared';
+import type { UserIntentNodeParameters } from '@manifest/shared';
 
 /**
  * Generate a unique tool name for a UserIntent node within an app.

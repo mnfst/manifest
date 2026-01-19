@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { TestTransformResponse, JSONSchema } from '@chatgpt-app-builder/shared';
+import type { TestTransformResponse, JSONSchema } from '@manifest/shared';
 import { api } from '../lib/api';
 
 /**

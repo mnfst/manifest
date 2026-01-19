@@ -3,7 +3,7 @@
  */
 
 import type { FlowEntity } from '../../flow/flow.entity';
-import type { PreviewChatRequest } from '@chatgpt-app-builder/shared';
+import type { PreviewChatRequest } from '@manifest/shared';
 
 /**
  * Creates a mock FlowEntity for chat tests

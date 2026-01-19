@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Plus } from 'lucide-react';
-import type { FlowParameter } from '@chatgpt-app-builder/shared';
-import { SYSTEM_PARAMETER_NAMES } from '@chatgpt-app-builder/shared';
+import type { FlowParameter } from '@manifest/shared';
+import { SYSTEM_PARAMETER_NAMES } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { Label } from '@/components/ui/shadcn/label';
 import { ParameterRow } from './ParameterRow';

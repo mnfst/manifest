@@ -17,7 +17,7 @@ import type {
   FlowSchemasResponse,
   TestApiCallRequest,
   TestApiCallResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Controller for Schema REST endpoints.

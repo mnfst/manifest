@@ -1,4 +1,4 @@
-import type { FlowOption } from '@chatgpt-app-builder/shared';
+import type { FlowOption } from '@manifest/shared';
 
 interface FlowFilterSelectProps {
   value: string | undefined;

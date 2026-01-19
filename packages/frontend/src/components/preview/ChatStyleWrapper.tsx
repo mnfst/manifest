@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { PlatformStyle, ThemeMode } from '@chatgpt-app-builder/shared';
+import type { PlatformStyle, ThemeMode } from '@manifest/shared';
 import { AppAvatar } from './AppAvatar';
 import { chatgptClasses } from './styles/chatgpt';
 import { claudeClasses } from './styles/claude';

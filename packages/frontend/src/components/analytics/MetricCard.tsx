@@ -1,4 +1,4 @@
-import type { AnalyticsMetric } from '@chatgpt-app-builder/shared';
+import type { AnalyticsMetric } from '@manifest/shared';
 import { Badge } from '@/components/ui/shadcn/badge';
 
 interface MetricCardProps {

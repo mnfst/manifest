@@ -13,7 +13,7 @@ import type {
   ExecutionStatus,
   NodeExecutionData,
   ExecutionErrorInfo,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * FlowExecution entity representing a single invocation of a flow via MCP.

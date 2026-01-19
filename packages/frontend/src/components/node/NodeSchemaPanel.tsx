@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ArrowRight, ArrowDown, Loader2, AlertCircle, Wand2, X, Check } from 'lucide-react';
-import type { NodeSchemaInfo } from '@chatgpt-app-builder/shared';
+import type { NodeSchemaInfo } from '@manifest/shared';
 import { api } from '../../lib/api';
 import { SchemaViewer } from './SchemaViewer';
 import { SchemaErrorBoundary } from '../common/SchemaErrorBoundary';

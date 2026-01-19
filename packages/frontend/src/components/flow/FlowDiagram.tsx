@@ -21,7 +21,7 @@ import type {
   Connection,
   CreateConnectionRequest,
   NodeType,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { X, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
 import { api } from '../../lib/api';

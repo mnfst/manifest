@@ -21,7 +21,7 @@ import type {
   InsertTransformerResponse,
   TestTransformRequest,
   TestTransformResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Controller for Node and Connection REST endpoints.

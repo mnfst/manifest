@@ -1,5 +1,5 @@
 import { LineChart } from '@tremor/react';
-import type { ChartDataPoint, SelectedMetric } from '@chatgpt-app-builder/shared';
+import type { ChartDataPoint, SelectedMetric } from '@manifest/shared';
 
 /** Configuration for each metric type */
 const METRIC_CONFIG: Record<

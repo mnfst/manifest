@@ -6,7 +6,7 @@ import {
   PasswordResetEmailProps,
   InvitationEmailProps,
   EmailChangeVerificationEmailProps,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { TemplateEngine, RenderResult } from './template-engine.interface';
 import { PasswordResetEmail, getPasswordResetSubject } from '../password-reset';
 import { InvitationEmail, getInvitationSubject } from '../invitation';

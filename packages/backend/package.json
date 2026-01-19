@@ -1,5 +1,5 @@
 {
-  "name": "@chatgpt-app-builder/backend",
+  "name": "@manifest/backend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -17,8 +17,8 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
-    "@chatgpt-app-builder/nodes": "workspace:*",
-    "@chatgpt-app-builder/shared": "workspace:*",
+    "@manifest/nodes": "workspace:*",
+    "@manifest/shared": "workspace:*",
     "@langchain/core": "^0.3.26",
     "@langchain/openai": "^0.3.17",
     "@nestjs/common": "^10.4.15",

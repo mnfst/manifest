@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { FlowExecution } from '@chatgpt-app-builder/shared';
+import type { FlowExecution } from '@manifest/shared';
 import { api } from '../../lib/api';
 import { ExecutionStatusBadge } from './ExecutionStatusBadge';
 import { ExecutionDataViewer } from './ExecutionDataViewer';

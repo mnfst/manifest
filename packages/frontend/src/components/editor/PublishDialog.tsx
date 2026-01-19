@@ -1,4 +1,4 @@
-import type { PublishResult } from '@chatgpt-app-builder/shared';
+import type { PublishResult } from '@manifest/shared';
 import { Button } from '../ui/shadcn/button';
 import { Alert, AlertDescription } from '../ui/shadcn/alert';
 import {

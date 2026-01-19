@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { NodeInstance, Connection, JSONSchema } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, Connection, JSONSchema } from '@manifest/shared';
 import { api } from '../lib/api';
 import { flattenSchemaProperties } from '../lib/schemaUtils';
 import type { UpstreamNodeInfo } from '../types/schema';

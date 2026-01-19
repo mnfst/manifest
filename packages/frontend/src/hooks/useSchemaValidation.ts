@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { ValidateConnectionResponse, Connection } from '@chatgpt-app-builder/shared';
+import type { ValidateConnectionResponse, Connection } from '@manifest/shared';
 import { api } from '../lib/api';
 import type { ConnectionValidationState } from '../types/schema';
 

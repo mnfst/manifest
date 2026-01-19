@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { StoredApiKey } from '@chatgpt-app-builder/shared';
+import type { StoredApiKey } from '@manifest/shared';
 
 const STORAGE_KEY = 'openai-api-key';
 

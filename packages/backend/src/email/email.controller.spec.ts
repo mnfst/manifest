@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
-import { EmailTemplateType } from '@chatgpt-app-builder/shared';
+import { EmailTemplateType } from '@manifest/shared';
 
 describe('EmailController', () => {
   let controller: EmailController;

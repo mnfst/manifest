@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AppStatus } from '@chatgpt-app-builder/shared';
+import type { AppStatus } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { LayoutTemplate, GripVertical, Loader2 } from 'lucide-react';
-import type { RegistryItem as RegistryItemType } from '@chatgpt-app-builder/shared';
+import type { RegistryItem as RegistryItemType } from '@manifest/shared';
 
 interface RegistryItemProps {
   item: RegistryItemType;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AnalyticsTimeRange, SelectedMetric } from '@chatgpt-app-builder/shared';
+import type { AnalyticsTimeRange, SelectedMetric } from '@manifest/shared';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { MetricCard } from './MetricCard';
 import { AnalyticsChart } from './AnalyticsChart';

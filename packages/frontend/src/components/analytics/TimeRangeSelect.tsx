@@ -1,5 +1,5 @@
-import type { AnalyticsTimeRange } from '@chatgpt-app-builder/shared';
-import { TIME_RANGE_LABELS } from '@chatgpt-app-builder/shared';
+import type { AnalyticsTimeRange } from '@manifest/shared';
+import { TIME_RANGE_LABELS } from '@manifest/shared';
 
 interface TimeRangeSelectProps {
   value: AnalyticsTimeRange;

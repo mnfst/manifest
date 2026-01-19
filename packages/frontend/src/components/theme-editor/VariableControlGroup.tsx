@@ -1,4 +1,4 @@
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 import { ColorPickerControl } from './ColorPickerControl';
 import { RadiusControl } from './RadiusControl';
 import type { ThemeVariableGroup } from './types';

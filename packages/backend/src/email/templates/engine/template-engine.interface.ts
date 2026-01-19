@@ -1,4 +1,4 @@
-import { EmailTemplateType } from '@chatgpt-app-builder/shared';
+import { EmailTemplateType } from '@manifest/shared';
 
 /**
  * Result of template rendering

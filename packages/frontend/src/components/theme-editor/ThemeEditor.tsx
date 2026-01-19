@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 import { useThemeEditor } from './hooks/useThemeEditor';
 import { VariableControlGroup } from './VariableControlGroup';
 import { ThemePreview } from './ThemePreview';

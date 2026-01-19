@@ -8,8 +8,8 @@
  * SECURITY: Password meets 12-character minimum requirement.
  */
 export const DEFAULT_ADMIN_USER = {
-  email: 'admin@manifest.build',
-  password: 'Admin123!@#Dev',
+  email: 'admin@example.com',
+  password: 'changeme123',
   firstName: 'Admin',
   lastName: 'User',
   name: 'Admin User',

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { NodeInstance, ApiCallNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, ApiCallNodeParameters, NodeType } from '@manifest/shared';
 import { Globe } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 import { AddNodeButton } from './AddNodeButton';

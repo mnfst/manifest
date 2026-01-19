@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import type { InvitationValidation } from '@chatgpt-app-builder/shared';
+import type { InvitationValidation } from '@manifest/shared';
 import { api, ApiClientError } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '@/components/ui/shadcn/button';

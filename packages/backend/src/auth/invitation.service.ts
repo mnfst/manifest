@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import Database from 'better-sqlite3';
-import type { AppRole, PendingInvitation, InvitationValidation, AcceptInvitationResponse } from '@chatgpt-app-builder/shared';
+import type { AppRole, PendingInvitation, InvitationValidation, AcceptInvitationResponse } from '@manifest/shared';
 import { PendingInvitationEntity } from './pending-invitation.entity';
 import { UserAppRoleEntity } from './user-app-role.entity';
 import { AppEntity } from '../app/app.entity';

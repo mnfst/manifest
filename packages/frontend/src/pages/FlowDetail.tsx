@@ -11,7 +11,7 @@ import type {
   ChatMessage,
   StatCardNodeParameters,
   RegistryNodeParameters,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2, Share2, Plus } from 'lucide-react';
 import { api, ApiClientError } from '../lib/api';
 import { Button } from '@/components/ui/shadcn/button';

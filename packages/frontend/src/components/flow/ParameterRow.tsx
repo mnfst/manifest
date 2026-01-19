@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import type { FlowParameter, ParameterType } from '@chatgpt-app-builder/shared';
+import type { FlowParameter, ParameterType } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';

@@ -11,7 +11,7 @@
 
 import type { Repository } from 'typeorm';
 import type { FlowEntity } from '../flow/flow.entity';
-import type { NodeInstance } from '@chatgpt-app-builder/shared';
+import type { NodeInstance } from '@manifest/shared';
 import { generateUniqueToolName, toolNameExists } from './tool-name';
 
 // ============================================================

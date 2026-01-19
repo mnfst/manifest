@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Pencil, Plus } from 'lucide-react';
-import type { App, Flow, AppStatus, ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { App, Flow, AppStatus, ThemeVariables } from '@manifest/shared';
 import { api, ApiClientError, resolveIconUrl } from '../lib/api';
 import { FlowList } from '../components/flow/FlowList';
 import { CreateFlowModal } from '../components/flow/CreateFlowModal';

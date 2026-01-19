@@ -1,5 +1,5 @@
 /**
- * @chatgpt-app-builder/nodes
+ * @manifest/nodes
  *
  * Node type definitions and execution logic for the flow builder.
  * This package provides:

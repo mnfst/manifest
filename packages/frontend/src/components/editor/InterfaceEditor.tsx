@@ -31,10 +31,10 @@ import {
   type RegistryAppearanceOption,
   type ThemeVariables,
   getDefaultAppearanceConfig,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { validateCode } from '../../lib/codeValidator';
 import { parseAppearanceOptions } from '../../services/registry';
-import type { ValidationError } from '@chatgpt-app-builder/shared';
+import type { ValidationError } from '@manifest/shared';
 
 export interface InterfaceEditorProps {
   /** Flow ID containing the node */

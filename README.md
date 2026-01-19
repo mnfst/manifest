@@ -130,10 +130,10 @@ docker compose down
 ### Standalone Docker
 
 ```bash
-docker build -t chatgpt-app-builder .
+docker build -t manifest-flows .
 docker run -p 3001:3001 \
   -e OPENAI_API_KEY=sk-... \
-  chatgpt-app-builder
+  manifest-flows
 ```
 
 ## API Endpoints
@@ -226,4 +226,4 @@ await emailService.sendInvitation('invitee@example.com', {
 
 ## License
 
-UNLICENSED - Proprietary software by MNFST, Inc.
+MIT License - see [LICENSE](./LICENSE) for details.

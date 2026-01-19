@@ -1,4 +1,4 @@
-import type { JSONSchema, JSONSchemaType, FlattenedSchemaField, FieldSource } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, JSONSchemaType, FlattenedSchemaField, FieldSource } from '@manifest/shared';
 
 /**
  * Schema field display information for UI rendering.

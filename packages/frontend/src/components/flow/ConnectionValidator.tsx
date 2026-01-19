@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle, HelpCircle, X, ChevronDown, ChevronRight } from 'lucide-react';
-import type { CompatibilityIssue, CompatibilityStatus, JSONSchema } from '@chatgpt-app-builder/shared';
+import type { CompatibilityIssue, CompatibilityStatus, JSONSchema } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import type { ConnectionValidationState } from '../../types/schema';
 import { getStatusLabel } from '../../types/schema';

@@ -1,7 +1,7 @@
 import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { NodeInstance, LinkNodeParameters } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, LinkNodeParameters } from '@manifest/shared';
 import { ExternalLink, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
 

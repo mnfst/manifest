@@ -1,4 +1,4 @@
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 import { ThemeProvider } from '../editor/ThemeProvider';
 import { Button } from '../ui/shadcn/button';
 import { Switch } from '../ui/shadcn/switch';

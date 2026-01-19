@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import type { AppRole } from '@chatgpt-app-builder/shared';
+import type { AppRole } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { Label } from '@/components/ui/shadcn/label';
 import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';

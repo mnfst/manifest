@@ -13,7 +13,7 @@ import type {
   RegistryAppearanceOption,
   LayoutAction,
   JSONSchema,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Default registry URL

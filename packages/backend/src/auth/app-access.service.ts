@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AppRole } from '@chatgpt-app-builder/shared';
+import type { AppRole } from '@manifest/shared';
 import { UserAppRoleEntity } from './user-app-role.entity';
 
 /**

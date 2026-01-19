@@ -1,4 +1,4 @@
-import type { Flow } from '@chatgpt-app-builder/shared';
+import type { Flow } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import {
   Dialog,

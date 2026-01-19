@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { AppEntity } from '../app/app.entity';
-import type { NodeInstance, Connection } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, Connection } from '@manifest/shared';
 
 /**
  * Flow entity representing a workflow belonging to an app.

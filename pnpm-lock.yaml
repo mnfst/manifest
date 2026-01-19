@@ -41,18 +41,18 @@ importers:
 
   packages/backend:
     dependencies:
-      '@chatgpt-app-builder/nodes':
-        specifier: workspace:*
-        version: link:../nodes
-      '@chatgpt-app-builder/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@langchain/core':
         specifier: ^0.3.26
         version: 0.3.80(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.76))
       '@langchain/openai':
         specifier: ^0.3.17
         version: 0.3.17(@langchain/core@0.3.80(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.76)))(encoding@0.1.13)(ws@8.18.3)
+      '@manifest/nodes':
+        specifier: workspace:*
+        version: link:../nodes
+      '@manifest/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@nestjs/common':
         specifier: ^10.4.15
         version: 10.4.20(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -222,9 +222,6 @@ importers:
       '@babel/parser':
         specifier: ^7.28.5
         version: 7.28.5
-      '@chatgpt-app-builder/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@codemirror/lang-css':
         specifier: ^6.3.1
         version: 6.3.1
@@ -249,6 +246,9 @@ importers:
       '@lezer/highlight':
         specifier: ^1.2.3
         version: 1.2.3
+      '@manifest/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -436,7 +436,7 @@ importers:
 
   packages/nodes:
     dependencies:
-      '@chatgpt-app-builder/shared':
+      '@manifest/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:

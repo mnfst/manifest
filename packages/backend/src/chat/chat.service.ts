@@ -15,7 +15,7 @@ import type {
   PreviewChatRequest,
   ChatStreamEvent,
   UserIntentNodeParameters,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Chat service for LLM preview functionality

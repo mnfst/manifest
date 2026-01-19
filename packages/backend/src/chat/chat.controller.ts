@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Headers, HttpException, HttpStatus, Sse, MessageEvent } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 import { ChatService } from './chat.service';
-import type { ModelListResponse, ValidateKeyRequest, ValidateKeyResponse, PreviewChatRequest } from '@chatgpt-app-builder/shared';
+import type { ModelListResponse, ValidateKeyRequest, ValidateKeyResponse, PreviewChatRequest } from '@manifest/shared';
 
 /**
  * Chat controller for LLM preview functionality

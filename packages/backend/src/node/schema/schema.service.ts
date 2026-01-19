@@ -5,7 +5,7 @@ import { FlowEntity } from '../../flow/flow.entity';
 import {
   builtInNodeList,
   type NodeTypeDefinition,
-} from '@chatgpt-app-builder/nodes';
+} from '@manifest/nodes';
 import {
   checkSchemaCompatibility,
   createUserIntentOutputSchema,
@@ -30,7 +30,7 @@ import {
   type CompatibilityStatus,
   type TestApiCallRequest,
   type TestApiCallResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Service for schema-related operations.

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@chatgpt-app-builder/shared';
+import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@manifest/shared';
 import { Zap, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';

@@ -5,7 +5,7 @@ import {
   Query,
   BadRequestException,
 } from '@nestjs/common';
-import { EmailTemplateType } from '@chatgpt-app-builder/shared';
+import { EmailTemplateType } from '@manifest/shared';
 import { EmailService } from './email.service';
 
 @Controller('email')

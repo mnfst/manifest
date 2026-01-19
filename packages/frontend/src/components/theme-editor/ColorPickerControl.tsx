@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { HslColorPicker } from 'react-colorful';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 import {
   parseHslString,
   formatHslObject,

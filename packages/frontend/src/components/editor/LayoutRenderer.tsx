@@ -1,4 +1,4 @@
-import type { LayoutTemplate } from '@chatgpt-app-builder/shared';
+import type { LayoutTemplate } from '@manifest/shared';
 import { Stats } from '../ui/stats';
 
 interface LayoutRendererProps {

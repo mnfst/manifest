@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { InsertTransformerResponse, NodeType } from '@chatgpt-app-builder/shared';
+import type { InsertTransformerResponse, NodeType } from '@manifest/shared';
 import { api } from '../lib/api';
 
 /**

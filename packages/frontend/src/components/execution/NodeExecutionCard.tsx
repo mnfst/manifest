@@ -1,4 +1,4 @@
-import type { NodeExecutionData } from '@chatgpt-app-builder/shared';
+import type { NodeExecutionData } from '@manifest/shared';
 import { ExecutionDataViewer } from './ExecutionDataViewer';
 import { StatusIcon } from './StatusIcon';
 import { ErrorBanner } from './ErrorBanner';

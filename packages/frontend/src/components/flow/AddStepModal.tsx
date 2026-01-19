@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Loader2, Globe, Shuffle } from 'lucide-react';
-import type { NodeType, NodeTypeCategory } from '@chatgpt-app-builder/shared';
+import type { NodeType, NodeTypeCategory } from '@manifest/shared';
 import { api, type NodeTypeInfo, type CategoryInfo } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 

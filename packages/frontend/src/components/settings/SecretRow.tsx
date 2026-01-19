@@ -13,7 +13,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/shadcn/alert-dialog';
-import type { AppSecret } from '@chatgpt-app-builder/shared';
+import type { AppSecret } from '@manifest/shared';
 
 interface SecretRowProps {
   secret: AppSecret;

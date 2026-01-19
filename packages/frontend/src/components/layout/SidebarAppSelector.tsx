@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, Plus } from 'lucide-react';
-import type { App } from '@chatgpt-app-builder/shared';
+import type { App } from '@manifest/shared';
 import { api, resolveIconUrl } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 

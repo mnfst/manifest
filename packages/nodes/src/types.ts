@@ -1,4 +1,4 @@
-import type { NodeTypeCategory, JSONSchema } from '@chatgpt-app-builder/shared';
+import type { NodeTypeCategory, JSONSchema } from '@manifest/shared';
 
 /**
  * Context provided to a node's execute function during flow execution.

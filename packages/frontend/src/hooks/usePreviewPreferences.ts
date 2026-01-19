@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { PlatformStyle, ThemeMode, PreviewPreferences } from '@chatgpt-app-builder/shared';
+import type { PlatformStyle, ThemeMode, PreviewPreferences } from '@manifest/shared';
 
 const STORAGE_KEYS = {
   platformStyle: 'generator:platformStyle',

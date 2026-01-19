@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AppAccessService } from './app-access.service';
 import type { SessionUser } from './decorators/current-user.decorator';
-import type { AppUser } from '@chatgpt-app-builder/shared';
+import type { AppUser } from '@manifest/shared';
 
 // Mock the auth module to avoid better-auth ESM import issues
 jest.mock('./auth', () => ({

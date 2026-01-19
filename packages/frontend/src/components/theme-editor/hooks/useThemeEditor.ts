@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
+import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 import {
   validateHslString,
   validateRadius,

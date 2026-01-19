@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FlowEntity } from './flow.entity';
-import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest } from '@chatgpt-app-builder/shared';
+import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest } from '@manifest/shared';
 import { AppEntity } from '../app/app.entity';
 
 /**

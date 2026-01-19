@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 
 interface ThemeProviderProps {
   themeVariables: ThemeVariables;

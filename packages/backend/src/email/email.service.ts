@@ -6,7 +6,7 @@ import {
   PasswordResetEmailProps,
   InvitationEmailProps,
   EmailChangeVerificationEmailProps,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import { EmailProvider, EMAIL_PROVIDER } from './providers/email-provider.interface';
 import { TemplateEngine, TEMPLATE_ENGINE } from './templates/engine/template-engine.interface';
 import { ReactEmailEngine } from './templates/engine/react-email.engine';

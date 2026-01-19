@@ -63,8 +63,8 @@ Before running `pnpm dev` for the first time in a fresh clone/worktree:
 
 2. **Build shared packages** (backend depends on these):
    ```bash
-   pnpm --filter @chatgpt-app-builder/shared build
-   pnpm --filter @chatgpt-app-builder/nodes build
+   pnpm --filter @manifest/shared build
+   pnpm --filter @manifest/nodes build
    ```
 
 3. **Create the database directory** (SQLite requires it to exist):
@@ -72,7 +72,7 @@ Before running `pnpm dev` for the first time in a fresh clone/worktree:
    mkdir -p packages/backend/data
    ```
 
-The database file (`packages/backend/data/app.db`) is created automatically on first run. The seed service will create a default admin user (`admin@manifest.build`) and sample data.
+The database file (`packages/backend/data/app.db`) is created automatically on first run. The seed service will create a default admin user (`admin@example.com`) and sample data.
 
 <!-- MANUAL ADDITIONS START -->
 

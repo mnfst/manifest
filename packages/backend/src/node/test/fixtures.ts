@@ -16,7 +16,7 @@ import type {
   CreateConnectionRequest,
   InsertTransformerRequest,
   TestTransformRequest,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import type { FlowEntity } from '../../flow/flow.entity';
 
 /**

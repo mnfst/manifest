@@ -21,7 +21,7 @@ import type {
   GenerateFlowResponse,
   FlowDeletionCheck,
   DeleteFlowResponse,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 
 /**
  * Flow controller with endpoints for flow management

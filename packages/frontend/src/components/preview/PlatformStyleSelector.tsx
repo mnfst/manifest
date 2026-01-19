@@ -1,4 +1,4 @@
-import type { PlatformStyle } from '@chatgpt-app-builder/shared';
+import type { PlatformStyle } from '@manifest/shared';
 
 interface PlatformStyleSelectorProps {
   value: PlatformStyle;

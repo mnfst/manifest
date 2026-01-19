@@ -4,7 +4,7 @@ import { Send, Trash2, AlertCircle, Loader2, Wrench, ChevronDown, Check } from '
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../lib/api';
 import { useApiKey } from '../../hooks/useApiKey';
-import type { ChatMessage, ModelOption, ToolCall, ToolResult, ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ChatMessage, ModelOption, ToolCall, ToolResult, ThemeVariables } from '@manifest/shared';
 import { ThemeProvider } from '../editor/ThemeProvider';
 import { Stats } from '../ui/stats';
 import { BACKEND_URL } from '../../lib/api';

@@ -7,8 +7,8 @@ import { FlowEntity } from '../flow/flow.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import { auth } from '../auth/auth';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
-import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER, USER_QUERY_PARAMETER } from '@chatgpt-app-builder/shared';
-import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatus } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER, USER_QUERY_PARAMETER } from '@manifest/shared';
+import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatus } from '@manifest/shared';
 
 /**
  * Seed service that creates default fixtures on application startup.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Shuffle, AlertCircle } from 'lucide-react';
-import type { NodeType, SuggestedTransformer } from '@chatgpt-app-builder/shared';
+import type { NodeType, SuggestedTransformer } from '@manifest/shared';
 import { api, type NodeTypeInfo } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';

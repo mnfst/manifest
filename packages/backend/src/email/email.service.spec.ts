@@ -4,7 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { EMAIL_PROVIDER } from './providers/email-provider.interface';
 import { TEMPLATE_ENGINE } from './templates/engine/template-engine.interface';
-import { EmailTemplateType } from '@chatgpt-app-builder/shared';
+import { EmailTemplateType } from '@manifest/shared';
 
 describe('EmailService', () => {
   let service: EmailService;

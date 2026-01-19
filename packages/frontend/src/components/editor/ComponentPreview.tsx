@@ -10,7 +10,7 @@ import * as LucideIcons from 'lucide-react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ThemeProvider } from './ThemeProvider';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 
 export interface ComponentPreviewProps {
   /** TSX code string to render */

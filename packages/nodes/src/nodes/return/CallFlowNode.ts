@@ -1,4 +1,4 @@
-import type { JSONSchema, ExecutionMetadata } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, ExecutionMetadata } from '@manifest/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
 
 /**

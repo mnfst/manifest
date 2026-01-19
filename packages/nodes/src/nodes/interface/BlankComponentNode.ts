@@ -1,5 +1,5 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import { BLANK_COMPONENT_DEFAULT_CODE } from '@chatgpt-app-builder/shared';
+import { BLANK_COMPONENT_DEFAULT_CODE } from '@manifest/shared';
 
 /**
  * BlankComponent Node

@@ -1,5 +1,5 @@
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import type { ApiCallNodeParameters, HeaderEntry, JSONSchema, ApiExecutionMetadata } from '@chatgpt-app-builder/shared';
+import type { ApiCallNodeParameters, HeaderEntry, JSONSchema, ApiExecutionMetadata } from '@manifest/shared';
 
 /**
  * SSRF Protection: Validates URLs to prevent Server-Side Request Forgery attacks.

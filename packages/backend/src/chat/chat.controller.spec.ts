@@ -9,7 +9,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { of, Subject } from 'rxjs';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-import type { ModelListResponse, ChatStreamEvent } from '@chatgpt-app-builder/shared';
+import type { ModelListResponse, ChatStreamEvent } from '@manifest/shared';
 
 describe('ChatController', () => {
   let controller: ChatController;

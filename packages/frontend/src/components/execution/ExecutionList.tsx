@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ExecutionListResponse } from '@chatgpt-app-builder/shared';
+import type { ExecutionListResponse } from '@manifest/shared';
 import { api } from '../../lib/api';
 import { ExecutionListItem } from './ExecutionListItem';
 import { ExecutionEmptyState } from './ExecutionEmptyState';

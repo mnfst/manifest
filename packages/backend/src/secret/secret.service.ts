@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 import { AppSecretEntity } from './secret.entity';
-import type { AppSecret, CreateSecretRequest, UpdateSecretRequest } from '@chatgpt-app-builder/shared';
+import type { AppSecret, CreateSecretRequest, UpdateSecretRequest } from '@manifest/shared';
 
 /**
  * SECURITY: Encryption utilities for secrets at rest

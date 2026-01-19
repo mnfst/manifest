@@ -1,4 +1,4 @@
-import type { ExecutionStatus } from '@chatgpt-app-builder/shared';
+import type { ExecutionStatus } from '@manifest/shared';
 
 interface ExecutionStatusBadgeProps {
   status: ExecutionStatus;

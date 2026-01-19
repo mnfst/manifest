@@ -5,8 +5,8 @@ import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
 import { SecretService } from '../secret/secret.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@chatgpt-app-builder/shared';
-import { ApiCallNode, JavaScriptCodeTransform } from '@chatgpt-app-builder/nodes';
+import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@manifest/shared';
+import { ApiCallNode, JavaScriptCodeTransform } from '@manifest/nodes';
 
 /**
  * SECURITY: HTML escape function to prevent XSS in widget templates

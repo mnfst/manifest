@@ -10,10 +10,10 @@ import type {
   Connection,
   McpToolResponse,
   ExecuteActionRequest,
-} from '@chatgpt-app-builder/shared';
+} from '@manifest/shared';
 import type { AppEntity } from '../../app/app.entity';
 import type { FlowEntity } from '../../flow/flow.entity';
-import { DEFAULT_THEME_VARIABLES } from '@chatgpt-app-builder/shared';
+import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 
 /**
  * Creates a mock AppEntity for MCP tests

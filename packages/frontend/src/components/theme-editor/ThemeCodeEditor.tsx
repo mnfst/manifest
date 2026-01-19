@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { css } from '@codemirror/lang-css';
 import { EditorView } from '@codemirror/view';
-import type { ThemeVariables } from '@chatgpt-app-builder/shared';
+import type { ThemeVariables } from '@manifest/shared';
 import { formatCssVariables, parseCssVariables } from '../../lib/hsl-utils';
 
 interface ThemeCodeEditorProps {

@@ -1,4 +1,4 @@
-import { EmailMessage, EmailSendResult } from '@chatgpt-app-builder/shared';
+import { EmailMessage, EmailSendResult } from '@manifest/shared';
 
 /**
  * Interface for email sending providers.

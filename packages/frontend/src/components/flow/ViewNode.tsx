@@ -1,7 +1,7 @@
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { useEffect, useMemo, memo } from 'react';
-import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters, type NodeType } from '@chatgpt-app-builder/shared';
+import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters, type NodeType } from '@manifest/shared';
 import { LayoutGrid, Code2 } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 import { AddNodeButton } from './AddNodeButton';

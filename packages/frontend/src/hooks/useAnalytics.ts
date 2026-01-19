@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { AnalyticsTimeRange, AppAnalyticsResponse } from '@chatgpt-app-builder/shared';
+import type { AnalyticsTimeRange, AppAnalyticsResponse } from '@manifest/shared';
 import { api, ApiClientError } from '../lib/api';
 
 interface UseAnalyticsOptions {

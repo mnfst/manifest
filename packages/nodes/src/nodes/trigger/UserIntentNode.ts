@@ -1,6 +1,6 @@
-import type { JSONSchema, FlowParameter, TriggerExecutionMetadata } from '@chatgpt-app-builder/shared';
+import type { JSONSchema, FlowParameter, TriggerExecutionMetadata } from '@manifest/shared';
 import type { NodeTypeDefinition, ExecutionContext, ExecutionResult } from '../../types.js';
-import { createUserIntentOutputSchema, USER_QUERY_PARAMETER } from '@chatgpt-app-builder/shared';
+import { createUserIntentOutputSchema, USER_QUERY_PARAMETER } from '@manifest/shared';
 
 /**
  * UserIntent Node (Trigger)
