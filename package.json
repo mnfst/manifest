@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mnfst/generator.git"
+    "url": "git+https://github.com/mnfst/manifest.git"
   },
   "author": "MNFST, Inc",
   "license": "MIT"
