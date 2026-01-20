@@ -37,8 +37,8 @@ function stripTypeAnnotations(code: string): string {
     .replace(/interface\s+\w+\s*\{[^}]*\}/g, '')
     // Remove type declarations
     .replace(/type\s+\w+\s*=\s*[^;]+;/g, '')
-    // Remove generic type parameters: <T> or <T, U>
-    .replace(/<[A-Za-z_$][\w$,\s]*>/g, '');
+    // Remove generic type parameters directly after identifiers: foo<T> or foo<T, U>
+    .replace(/\b([A-Za-z_$][\w$]*)\s*<\s*[A-Za-z_$][\w$]*(\s*,\s*[A-Za-z_$][\w$]*)*\s*>/g, '$1');
 }
 
 /**
