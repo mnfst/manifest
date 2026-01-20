@@ -27,7 +27,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ['packages/frontend/**/*.tsx'],
+    files: ['packages/**/frontend/**/*.tsx', 'packages/manifest-ui/**/*.tsx'],
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin

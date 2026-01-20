@@ -10,6 +10,11 @@ Manifest is a monorepo containing tools for building MCP (Model Context Protocol
 
 ```
 packages/
+├── manifest/      # Flow editor application (NestJS + React)
+│   ├── backend/   # NestJS API
+│   ├── frontend/  # React SPA
+│   ├── shared/    # Shared types and utilities
+│   └── nodes/     # Node type definitions
 └── manifest-ui/   # Component registry (Next.js) - port 3001
 ```
 
@@ -41,7 +46,7 @@ pnpm run test
 
 ## Pull Request Guidelines
 
-**CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/pull_request_template.md`.
+**CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/PULL_REQUEST_TEMPLATE.md`.
 
 ### Required PR Body Format
 
@@ -105,12 +110,12 @@ EOF
 
 **CRITICAL**: The following files must NEVER be committed to the repository:
 
-| File | Reason |
-|------|--------|
-| `settings.local.json` | Local settings file with personal configurations |
-| `.claude/settings.local.json` | Claude Code local settings |
-| `.claude/commands/**` | Claude Code custom commands (except speckit commands) |
-| `specs/**` | Generated specs from speckit (auto-generated, not source-controlled) |
+| File                          | Reason                                                               |
+| ----------------------------- | -------------------------------------------------------------------- |
+| `settings.local.json`         | Local settings file with personal configurations                     |
+| `.claude/settings.local.json` | Claude Code local settings                                           |
+| `.claude/commands/**`         | Claude Code custom commands (except speckit commands)                |
+| `specs/**`                    | Generated specs from speckit (auto-generated, not source-controlled) |
 
 ### Exception: Speckit Commands
 
@@ -119,6 +124,7 @@ Speckit-related Claude commands ARE allowed to be committed. These are commands 
 ### Before Committing
 
 Always check that staged files do not include:
+
 - Any `settings.local.json` files
 - Claude settings or command files (unless they are speckit-related)
 
@@ -132,12 +138,12 @@ Always check that staged files do not include:
 
 A block modification is NOT complete until you have updated:
 
-| Location | What to Update |
-|----------|----------------|
-| `registry/<category>/<block>.tsx` | Component code, interfaces, props, default values |
-| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data |
-| `registry.json` | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
-| `changelog.json` | Changelog entry for the new version |
+| Location                                 | What to Update                                                              |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| `registry/<category>/<block>.tsx`        | Component code, interfaces, props, default values                           |
+| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data                |
+| `registry.json`                          | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
+| `changelog.json`                         | Changelog entry for the new version                                         |
 
 **Note**: The `category` field in `registry.json` is automatically derived from the folder name (e.g., `registry/form/` → `category: "form"`). When adding a new component, place it in the correct folder and the category will be set automatically.
 
@@ -162,6 +168,7 @@ The block detail page (`app/blocks/[category]/[block]/page.tsx`) contains:
 #### Verification Steps
 
 After ANY component change:
+
 1. Read the component `.tsx` file to understand the current interface
 2. Read the `page.tsx` block definition to see current `usageCode`
 3. Ensure `usageCode` exactly matches the component's interface
@@ -195,16 +202,18 @@ data?: {
 ```
 
 **Implementation:**
+
 - If `avatarUrl` is provided and loads successfully → show the image
 - If `avatarUrl` fails to load OR is not provided → show letter in a colored circle
 - Always require `avatarFallback` (letter) as the fallback
 
 **usageCode example:**
+
 ```tsx
 <MessageBubble
   data={{
-    avatarUrl: "https://i.pravatar.cc/150?u=sarah",  // Optional image URL
-    avatarFallback: "S",  // Letter fallback (required)
+    avatarUrl: 'https://i.pravatar.cc/150?u=sarah', // Optional image URL
+    avatarFallback: 'S', // Letter fallback (required)
     // ...
   }}
 />
@@ -229,16 +238,16 @@ All blocks follow this consistent props pattern:
 export interface BlockProps {
   data?: {
     // Content/configuration - titles, items, amounts, etc.
-  }
+  };
   actions?: {
     // Event handlers - onSubmit, onClick, onSelect, etc.
-  }
+  };
   appearance?: {
     // Visual/styling - variant, currency, columns, theme, etc.
-  }
+  };
   control?: {
     // State/loading - isLoading, value, disabled, etc.
-  }
+  };
 }
 ```
 
@@ -315,16 +324,17 @@ When adding a block to `app/blocks/page.tsx`, follow this pattern:
 **Every modification to a block's source files MUST include a version bump in `registry.json`.**
 
 This is enforced by automated tests that will fail if:
+
 1. You modified any file in `registry/**/*.tsx`
 2. But did NOT update the corresponding component's `version` in `registry.json`
 
 #### Semantic Versioning Guide
 
-| Change Type | Version Bump | Examples |
-|-------------|--------------|----------|
-| **PATCH** | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, refactoring without API changes |
-| **MINOR** | `1.0.0` → `1.1.0` | New features, new optional props, new variants |
-| **MAJOR** | `1.0.0` → `2.0.0` | Breaking changes: removing/renaming props, changing behavior |
+| Change Type | Version Bump      | Examples                                                     |
+| ----------- | ----------------- | ------------------------------------------------------------ |
+| **PATCH**   | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, refactoring without API changes    |
+| **MINOR**   | `1.0.0` → `1.1.0` | New features, new optional props, new variants               |
+| **MAJOR**   | `1.0.0` → `2.0.0` | Breaking changes: removing/renaming props, changing behavior |
 
 #### Example
 
@@ -341,6 +351,7 @@ This is enforced by automated tests that will fail if:
 **Every version MUST have a corresponding changelog entry in `changelog.json`.**
 
 This is enforced by automated tests that will fail if:
+
 1. A component has a version in `registry.json`
 2. But does NOT have a changelog entry for that version in `changelog.json`
 
@@ -367,12 +378,14 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 3. **Be specific** - Avoid vague descriptions like "bug fixes"
 
 **Good examples:**
+
 - "Initial release with text, image, and voice message support"
 - "Fixed images not loading on slow connections"
 - "Added dark mode support"
 - "Improved accessibility with better screen reader support"
 
 **Bad examples:**
+
 - "Bug fixes" (too vague)
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
@@ -382,10 +395,12 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 **Every component MUST have a `category` field in `registry.json`.**
 
 The category is automatically derived from the folder structure:
+
 - File path: `registry/form/date-time-picker.tsx`
 - Category: `form`
 
 This is enforced by automated tests that will fail if:
+
 1. A component is missing a `category` field
 2. The `category` doesn't match the folder name in the file path
 
@@ -397,15 +412,15 @@ This is enforced by automated tests that will fail if:
 
 #### Available Categories
 
-| Folder | Category | URL Example |
-|--------|----------|-------------|
-| `registry/blogging/` | `blogging` | `/blocks/blogging/post-card` |
-| `registry/events/` | `events` | `/blocks/events/event-card` |
-| `registry/form/` | `form` | `/blocks/form/contact-form` |
-| `registry/list/` | `list` | `/blocks/list/table` |
-| `registry/messaging/` | `messaging` | `/blocks/messaging/message-bubble` |
+| Folder                    | Category        | URL Example                         |
+| ------------------------- | --------------- | ----------------------------------- |
+| `registry/blogging/`      | `blogging`      | `/blocks/blogging/post-card`        |
+| `registry/events/`        | `events`        | `/blocks/events/event-card`         |
+| `registry/form/`          | `form`          | `/blocks/form/contact-form`         |
+| `registry/list/`          | `list`          | `/blocks/list/table`                |
+| `registry/messaging/`     | `messaging`     | `/blocks/messaging/message-bubble`  |
 | `registry/miscellaneous/` | `miscellaneous` | `/blocks/miscellaneous/quick-reply` |
-| `registry/payment/` | `payment` | `/blocks/payment/card-form` |
+| `registry/payment/`       | `payment`       | `/blocks/payment/card-form`         |
 
 #### Adding a New Category
 
@@ -423,37 +438,38 @@ This is enforced by automated tests that will fail if:
 All event components use a shared `Event` interface:
 
 ```typescript
-type EventLocationType = "physical" | "online" | "hybrid"
+type EventLocationType = 'physical' | 'online' | 'hybrid';
 
 interface Event {
-  id: string
-  title: string
-  category: string             // "Music", "Comedy", "Classes", "Nightlife", "Sports"
-  locationType?: EventLocationType // defaults to "physical"
-  venue?: string               // Optional for online events
-  neighborhood?: string
-  city?: string                // Optional for online events
-  onlineUrl?: string           // For online/hybrid events
-  startDateTime: string        // ISO format: "2025-01-11T21:00:00Z"
-  endDateTime?: string         // ISO format: "2025-01-12T03:00:00Z"
-  priceRange: string           // "$45 - $150", "Free"
-  image?: string
-  vibeTags?: VibeTag[]         // ["High energy", "Late night", "Dressy"]
-  vibeDescription?: string
-  aiSummary?: string           // AI-generated match explanation
-  lineup?: string[]
-  eventSignal?: EventSignal
-  ticketSignal?: TicketSignal
-  organizerRating?: number
-  reviewCount?: number
-  hasMultipleDates?: boolean
-  discount?: string
+  id: string;
+  title: string;
+  category: string; // "Music", "Comedy", "Classes", "Nightlife", "Sports"
+  locationType?: EventLocationType; // defaults to "physical"
+  venue?: string; // Optional for online events
+  neighborhood?: string;
+  city?: string; // Optional for online events
+  onlineUrl?: string; // For online/hybrid events
+  startDateTime: string; // ISO format: "2025-01-11T21:00:00Z"
+  endDateTime?: string; // ISO format: "2025-01-12T03:00:00Z"
+  priceRange: string; // "$45 - $150", "Free"
+  image?: string;
+  vibeTags?: VibeTag[]; // ["High energy", "Late night", "Dressy"]
+  vibeDescription?: string;
+  aiSummary?: string; // AI-generated match explanation
+  lineup?: string[];
+  eventSignal?: EventSignal;
+  ticketSignal?: TicketSignal;
+  organizerRating?: number;
+  reviewCount?: number;
+  hasMultipleDates?: boolean;
+  discount?: string;
 }
 ```
 
 #### Event Location Types
 
 Events can be physical, online, or hybrid:
+
 - `physical` - In-person event with venue and city (default)
 - `online` - Virtual event with `onlineUrl`, no venue/city required
 - `hybrid` - Both in-person and online, has venue/city AND `onlineUrl`
@@ -461,14 +477,15 @@ Events can be physical, online, or hybrid:
 #### Date/Time Formatting
 
 Store dates as ISO 8601 strings. The component automatically formats for display:
+
 - **Today**: "Tonight 9:00 PM - 3:00 AM"
 - **Tomorrow**: "Tomorrow 8:00 PM"
 - **Future dates**: "Jan 15 7:00 PM"
 
 ```typescript
 // Example usage
-startDateTime: "2025-01-11T21:00:00Z"  // 9 PM UTC
-endDateTime: "2025-01-12T03:00:00Z"    // 3 AM UTC next day
+startDateTime: '2025-01-11T21:00:00Z'; // 9 PM UTC
+endDateTime: '2025-01-12T03:00:00Z'; // 3 AM UTC next day
 ```
 
 #### Signal Types
@@ -477,45 +494,63 @@ endDateTime: "2025-01-12T03:00:00Z"    // 3 AM UTC next day
 
 ```typescript
 type EventSignal =
-  | "going-fast"       // Orange - "Going Fast"
-  | "popular"          // Pink - "Popular"
-  | "just-added"       // Blue - "Just Added"
-  | "sales-end-soon"   // Red - "Sales End Soon"
-  | "few-tickets-left" // Orange - "Few Tickets Left"
-  | "canceled"         // Gray - "Canceled"
-  | "ended"            // Gray - "Ended"
-  | "postponed"        // Yellow - "Postponed"
+  | 'going-fast' // Orange - "Going Fast"
+  | 'popular' // Pink - "Popular"
+  | 'just-added' // Blue - "Just Added"
+  | 'sales-end-soon' // Red - "Sales End Soon"
+  | 'few-tickets-left' // Orange - "Few Tickets Left"
+  | 'canceled' // Gray - "Canceled"
+  | 'ended' // Gray - "Ended"
+  | 'postponed'; // Yellow - "Postponed"
 ```
 
 **Ticket Signals** - Status indicators for ticket availability:
 
 ```typescript
 type TicketSignal =
-  | "discount-applied"       // Green - "Discount Applied"
-  | "few-tickets-left"       // Orange - "Few Tickets Left"
-  | "less-than-10-remaining" // Orange - "Less than 10 Remaining"
-  | "more-than-11-remaining" // Gray - "More than 11 Remaining"
-  | "not-yet-on-sale"        // Blue - "Not Yet On Sale"
-  | "sales-end-soon"         // Red - "Sales End Soon"
-  | "sales-ended"            // Gray - "Sales Ended"
-  | "sold-out"               // Red - "Sold Out"
-  | "unavailable"            // Gray - "Unavailable"
-  | "unlocked"               // Green - "Unlocked"
+  | 'discount-applied' // Green - "Discount Applied"
+  | 'few-tickets-left' // Orange - "Few Tickets Left"
+  | 'less-than-10-remaining' // Orange - "Less than 10 Remaining"
+  | 'more-than-11-remaining' // Gray - "More than 11 Remaining"
+  | 'not-yet-on-sale' // Blue - "Not Yet On Sale"
+  | 'sales-end-soon' // Red - "Sales End Soon"
+  | 'sales-ended' // Gray - "Sales Ended"
+  | 'sold-out' // Red - "Sold Out"
+  | 'unavailable' // Gray - "Unavailable"
+  | 'unlocked'; // Green - "Unlocked"
 ```
 
 **Vibe Tags** - Descriptive tags for event atmosphere (multiple selection):
 
 ```typescript
 type VibeTag =
-  | "All night"        | "Beginner-friendly" | "Casual"
-  | "Classic"          | "Cocktails"         | "Creative"
-  | "Date night"       | "Discover"          | "Dressy"
-  | "Educational"      | "Exciting"          | "Family-friendly"
-  | "Fun"              | "Hands-on"          | "High energy"
-  | "Interactive"      | "Intimate"          | "Late night"
-  | "Outdoor"          | "Relaxing"          | "Social"
-  | "Sophisticated"    | "Tasting"           | "Underground"
-  | "Upscale"          | "Views"             | "Wellness"
+  | 'All night'
+  | 'Beginner-friendly'
+  | 'Casual'
+  | 'Classic'
+  | 'Cocktails'
+  | 'Creative'
+  | 'Date night'
+  | 'Discover'
+  | 'Dressy'
+  | 'Educational'
+  | 'Exciting'
+  | 'Family-friendly'
+  | 'Fun'
+  | 'Hands-on'
+  | 'High energy'
+  | 'Interactive'
+  | 'Intimate'
+  | 'Late night'
+  | 'Outdoor'
+  | 'Relaxing'
+  | 'Social'
+  | 'Sophisticated'
+  | 'Tasting'
+  | 'Underground'
+  | 'Upscale'
+  | 'Views'
+  | 'Wellness';
 ```
 
 #### Event Card UI Layout
@@ -535,6 +570,7 @@ type VibeTag =
 #### Event Detail Sections
 
 The `event-detail` component has 11 sections in this order:
+
 1. Image header with title overlay
 2. Event basics (date, time, price, location)
 3. AI match explanation (optional, personalized recommendation)
@@ -550,6 +586,7 @@ The `event-detail` component has 11 sections in this order:
 #### EventList Requirements
 
 Like PostList, the `EventList` component requires sufficient demo data:
+
 - Include at least 10 events in `usageCode` for grid/carousel demos
 - Use diverse categories and price ranges
 - Include various event signals to show all badge types
@@ -557,6 +594,7 @@ Like PostList, the `EventList` component requires sufficient demo data:
 #### Ticket Selection Flow
 
 The ticket selection follows this pattern:
+
 1. `ticket-select` - Simple quantity picker for single ticket type
 2. `tier-select` - Multiple tiers with individual quantities
 3. `event-checkout` - Order summary with fees breakdown
@@ -567,11 +605,13 @@ The ticket selection follows this pattern:
 **The PostList block MUST always have exactly 15 posts in its `usageCode` data.**
 
 This is required because:
+
 1. The PostList component does NOT have default posts - it requires data to be passed
 2. Users copy-paste the usage code to test in MCP Jam - they need complete data
 3. 15 posts provides a realistic dataset for pagination and scrolling demos
 
 When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[category]/[block]/page.tsx`:
+
 - Always include all 15 posts in the `data.posts` array
 - Use the standard 15 demo posts (Sarah Chen, Alex Rivera, Jordan Kim, etc.)
 - Never use placeholders like `[...]` or truncated arrays
@@ -581,16 +621,19 @@ When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[categor
 Before submitting a PR with block changes:
 
 **Synchronization (CRITICAL):**
+
 - [ ] **Component interface matches `usageCode`** - Every prop in the interface is shown in usageCode
 - [ ] **`usageCode` uses correct prop names** - No stale/renamed props in usageCode
 - [ ] **Preview component uses current props** - The `<Component />` in variants uses the right props
 - [ ] **Default values are consistent** - Defaults in component match what's shown in preview
 
 **Versioning (REQUIRED):**
+
 - [ ] **Version bumped in `registry.json`** (tests will fail otherwise)
 - [ ] **Changelog entry added in `changelog.json`** (tests will fail otherwise)
 
 **Quality:**
+
 - [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
 - [ ] Block is registered in `registry.json` with correct dependencies
 - [ ] EVERY variant has a `usageCode` field with comprehensive example
@@ -602,6 +645,8 @@ Before submitting a PR with block changes:
 ## Package-Specific Guidance
 
 See individual package `CLAUDE.md` files for package-specific guidance:
+
+- `packages/manifest/CLAUDE.md` - Flow editor application guidelines
 - `packages/manifest-ui/CLAUDE.md` - UI toolkit development guidelines
 
 ## SEO Guidelines for ui.manifest.build
@@ -611,6 +656,7 @@ The manifest-ui package powers https://ui.manifest.build. Follow these SEO best 
 ### Automated SEO Tests
 
 SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm test` to verify:
+
 - Meta tags configuration
 - Sitemap and robots.txt presence
 - Structured data (JSON-LD)
@@ -619,12 +665,12 @@ SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm tes
 
 ### Key SEO Files
 
-| File | Purpose |
-|------|---------|
-| `app/layout.tsx` | Global metadata, JSON-LD structured data |
-| `app/sitemap.ts` | Dynamic sitemap generation |
-| `app/robots.ts` | Crawler directives |
-| `app/blocks/layout.tsx` | /blocks page metadata |
+| File                    | Purpose                                  |
+| ----------------------- | ---------------------------------------- |
+| `app/layout.tsx`        | Global metadata, JSON-LD structured data |
+| `app/sitemap.ts`        | Dynamic sitemap generation               |
+| `app/robots.ts`         | Crawler directives                       |
+| `app/blocks/layout.tsx` | /blocks page metadata                    |
 
 ### When Adding New Pages
 
@@ -644,4 +690,3 @@ SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm tes
 - Always include descriptive `alt` attributes
 - Use Next.js `Image` component when possible for optimization
 - Keep OG images under 100KB
-
