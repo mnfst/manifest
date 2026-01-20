@@ -38,7 +38,7 @@ on:
       - 'packages/manifest/**'
 
 env:
-  DOCKER_IMAGE: mnfst/manifest
+  DOCKER_IMAGE: manifestdotbuild/manifest
 
 jobs:
   publish:
