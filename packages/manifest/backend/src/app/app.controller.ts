@@ -211,7 +211,8 @@ export class AppController {
 
     // Generate filename and save
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = `${appId}-${uniqueSuffix}.png`;
+    const safeAppId = appId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `${safeAppId}-${uniqueSuffix}.png`;
     const filepath = join(uploadDir, filename);
     await writeFile(filepath, processedBuffer);
 
