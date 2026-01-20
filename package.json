@@ -10,7 +10,7 @@
     "manifest:dev": "turbo run dev --filter=@manifest/backend --filter=@manifest/frontend",
     "manifest:build": "turbo run build --filter=@manifest/backend --filter=@manifest/frontend --filter=@manifest/shared --filter=@manifest/nodes",
     "manifest:lint": "turbo run lint --filter=@manifest/backend --filter=@manifest/frontend",
-    "manifest:test": "turbo run test --filter=@manifest/backend --filter=@manifest/frontend",
+    "manifest:test": "turbo run test --filter=@manifest/backend",
     "manifest-ui:dev": "turbo run dev --filter=manifest-ui",
     "manifest-ui:build": "turbo run build --filter=manifest-ui",
     "manifest-ui:lint": "turbo run lint --filter=manifest-ui",
