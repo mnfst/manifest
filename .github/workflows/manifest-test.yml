@@ -1,3 +1,14 @@
+# ============================================================================
+# Manifest Package Tests Workflow
+# ============================================================================
+# Runs tests for the manifest package when changes are detected.
+#
+# Note: Uses pull_request_target in addition to pull_request to handle
+# automated changeset PRs (created by github-actions[bot]). Workflows
+# triggered by GITHUB_TOKEN don't trigger other workflows, so we need
+# pull_request_target which runs even for bot-created PRs.
+# ============================================================================
+
 name: Manifest Package Tests
 
 permissions:
@@ -8,17 +19,32 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # pull_request_target runs for bot-created PRs (like changeset PRs)
+  pull_request_target:
+    branches: [main]
 
 jobs:
   test:
     name: test
     runs-on: ubuntu-latest
+    # For pull_request_target: only run for changeset PRs (avoid duplicate runs for regular PRs)
+    # For other events: always run
+    if: |
+      github.event_name != 'pull_request_target' ||
+      github.event.pull_request.title == 'chore: version packages'
 
     steps:
+      # For changeset PRs, skip tests entirely (they only change version numbers)
+      - name: Skip tests for version packages PR
+        if: github.event.pull_request.title == 'chore: version packages'
+        run: echo "Skipping tests - changeset PR only changes version numbers"
+
       - name: Checkout repository
+        if: github.event.pull_request.title != 'chore: version packages'
         uses: actions/checkout@v4
 
       - name: Check for changes in manifest package
+        if: github.event.pull_request.title != 'chore: version packages'
         uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -27,24 +53,24 @@ jobs:
               - 'packages/manifest/**'
 
       - name: Setup pnpm
-        if: steps.filter.outputs.manifest == 'true'
+        if: github.event.pull_request.title != 'chore: version packages' && steps.filter.outputs.manifest == 'true'
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        if: steps.filter.outputs.manifest == 'true'
+        if: github.event.pull_request.title != 'chore: version packages' && steps.filter.outputs.manifest == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
-        if: steps.filter.outputs.manifest == 'true'
+        if: github.event.pull_request.title != 'chore: version packages' && steps.filter.outputs.manifest == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Run manifest package tests
-        if: steps.filter.outputs.manifest == 'true'
+        if: github.event.pull_request.title != 'chore: version packages' && steps.filter.outputs.manifest == 'true'
         run: pnpm run manifest:test
 
       - name: Skip tests (no manifest changes)
-        if: steps.filter.outputs.manifest == 'false'
+        if: github.event.pull_request.title != 'chore: version packages' && steps.filter.outputs.manifest == 'false'
         run: echo "No changes in packages/manifest - skipping tests"
