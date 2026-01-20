@@ -21,6 +21,7 @@ import { generateUniqueSlug } from '@manifest/shared';
 import { v4 as uuidv4 } from 'uuid';
 import { builtInNodeList, builtInNodes, toNodeTypeInfo, type NodeTypeInfo } from '@manifest/nodes';
 import { generateUniqueToolName } from '../utils/tool-name';
+import { VM } from 'vm2';
 
 /**
  * Category info for grouping nodes in the UI
@@ -587,7 +588,7 @@ export class NodeService {
 
   /**
    * Test a JavaScript transform with sample input.
-   * Executes the provided code using Function constructor in a sandboxed manner
+   * Executes the provided code in a sandboxed manner
    * and infers the output schema from the result.
    */
   testTransform(request: TestTransformRequest): TestTransformResponse {
@@ -599,12 +600,22 @@ export class NodeService {
       // Extract executable JavaScript from potentially TypeScript code
       const executableCode = this.extractExecutableCode(code);
 
-      // Create a sandboxed function from the code
-      // The code is expected to use `input` as the parameter and return a value
-      const transformFunction = new Function('input', executableCode);
+      // Wrap the executable code in a transform function and immediately invoke it with `input`.
+      // The user-provided code is expected to operate on `input` and return a value.
+      const wrappedCode = `
+        const transform = (input) => {
+          ${executableCode}
+        };
+        transform(input);
+      `;
 
-      // Execute the transform with the sample input
-      const rawOutput = transformFunction(sampleInput);
+      // Execute the transform code inside a vm2 sandbox with only `input` exposed.
+      const vm = new VM({
+        timeout: 1000, // 1 second timeout to prevent long-running scripts
+        sandbox: { input: sampleInput },
+      });
+
+      const rawOutput = vm.run(wrappedCode);
 
       const executionTimeMs = Math.round(performance.now() - startTime);
 
