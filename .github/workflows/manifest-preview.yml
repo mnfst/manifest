@@ -18,6 +18,8 @@ jobs:
     if: github.event.action != 'closed'
     name: Docker Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
