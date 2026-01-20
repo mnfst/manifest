@@ -10,23 +10,7 @@ Manifest is a monorepo containing tools for building MCP (Model Context Protocol
 
 ```
 packages/
-├── manifest-ui/   # Component registry (Next.js) - port 3001
-├── create-manifest/      # CLI for scaffolding new projects
-└── starter/              # Starter template (nested pnpm workspace) - port 3000
-    ├── server/           # MCP server (Express + TypeScript)
-    └── web/              # Web client (Next.js)
-```
-
-## Important: Nested Workspace
-
-The `packages/starter` directory is a **nested pnpm workspace** with its own `pnpm-lock.yaml`. You must install dependencies in both locations:
-
-```bash
-# Root dependencies
-pnpm install
-
-# Starter package dependencies (required!)
-cd packages/starter && pnpm install
+└── manifest-ui/   # Component registry (Next.js) - port 3001
 ```
 
 ## Common Commands
@@ -48,22 +32,10 @@ pnpm run test
 ## Development Workflow
 
 1. Run `pnpm install` at the root
-2. Run `pnpm install` in `packages/starter`
-3. Run `pnpm run dev` to start both the registry (port 3001) and starter server (port 3000)
-
-## Testing with ChatGPT
-
-Use ngrok to expose the local MCP server:
-
-```bash
-ngrok http 3000
-```
-
-Connect using: `https://xxxx.ngrok-free.app/mcp`
+2. Run `pnpm run dev` to start the registry on port 3001
 
 ## Key Files
 
-- `/packages/starter/server/src/index.ts` - Main MCP server entry point
 - `/packages/manifest-ui/registry.json` - Component registry definitions
 - `/turbo.json` - Turborepo configuration
 

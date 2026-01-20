@@ -1,6 +1,0 @@
-packages:
-  - 'web'
-  - 'server'
-
-catalog:
-  skybridge: ^0.13.1

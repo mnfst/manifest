@@ -2,7 +2,7 @@
   "name": "manifest",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --filter=manifest-ui --filter=manifest-starter",
+    "dev": "turbo run dev --filter=manifest-ui",
     "lint": "turbo run lint",
     "test": "turbo run test"
   },

@@ -12,11 +12,17 @@
     "lint": {
       "dependsOn": ["^build"]
     },
+    "type-check": {
+      "dependsOn": ["^build"]
+    },
     "test": {
       "dependsOn": ["build"]
     },
     "registry:build": {
       "outputs": ["public/r/**"]
+    },
+    "clean": {
+      "cache": false
     }
   }
 }

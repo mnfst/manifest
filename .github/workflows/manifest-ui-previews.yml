@@ -120,9 +120,6 @@ jobs:
           fi
 
       # Run tests and report status (needed because bot commits don't trigger CI)
-      - name: Install nested workspace dependencies
-        run: cd packages/starter && pnpm install
-
       - name: Build App
         run: pnpm run build
 
