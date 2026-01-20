@@ -150,6 +150,10 @@
 
     // Receive data from parent frame (ChatGPT)
     window.addEventListener('message', function(event) {
+      // Only accept messages from the parent frame to reduce XSS risk
+      if (event.source !== window.parent) {
+        return;
+      }
       const data = event.data;
       if (data && data.structuredContent) {
         renderStats(data.structuredContent);
@@ -171,6 +175,8 @@
 
       grid.innerHTML = data.stats.map(stat => {
         const trend = stat.trend || determineTrend(stat.change);
+        const allowedTrends = ['up', 'down', 'neutral'];
+        const safeTrend = allowedTrends.includes(trend) ? trend : 'neutral';
         const changeValue = stat.change !== undefined ? formatChange(stat.change) : '';
         const changeLabel = stat.changeLabel || '';
 
@@ -179,8 +185,8 @@
             <div class="stat-label">${escapeHtml(stat.label)}</div>
             <div class="stat-value">${escapeHtml(String(stat.value))}</div>
             ${changeValue ? `
-              <div class="stat-change ${trend}">
-                ${icons[trend]}
+              <div class="stat-change ${safeTrend}">
+                ${icons[safeTrend]}
                 <span>${changeValue}</span>
                 ${changeLabel ? `<span class="change-label">${escapeHtml(changeLabel)}</span>` : ''}
               </div>
