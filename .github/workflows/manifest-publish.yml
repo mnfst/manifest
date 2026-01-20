@@ -27,6 +27,9 @@
 
 name: Docker Publish
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
