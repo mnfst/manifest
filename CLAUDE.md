@@ -44,6 +44,55 @@ pnpm run test
 - `/packages/manifest-ui/registry.json` - Component registry definitions
 - `/turbo.json` - Turborepo configuration
 
+## Changesets (CRITICAL)
+
+This project uses [changesets](https://github.com/changesets/changesets) for versioning and changelog generation.
+
+### When to Create a Changeset
+
+**You MUST create a changeset when modifying code in:**
+- `packages/manifest/**` → select **manifest** package
+- `packages/manifest-ui/**` → select **manifest-ui** package
+
+### How to Create a Changeset
+
+After making changes, create a changeset file:
+
+```bash
+pnpm changeset
+```
+
+This will prompt you to:
+1. Select the affected package(s): `manifest` or `manifest-ui`
+2. Choose version bump type: `patch`, `minor`, or `major`
+3. Write a summary of the changes
+
+### Changeset File Format
+
+Changesets are stored in `.changeset/` as markdown files:
+
+```markdown
+---
+"manifest": patch
+---
+
+Fixed authentication bug in login flow
+```
+
+### Version Bump Guidelines
+
+| Change Type | Bump | Examples |
+|-------------|------|----------|
+| **patch** | Bug fixes, small improvements | Fix typo, fix styling issue |
+| **minor** | New features, non-breaking | Add new component, add optional prop |
+| **major** | Breaking changes | Remove prop, change API, rename component |
+
+### Important Notes
+
+- PRs modifying `manifest` or `manifest-ui` without a changeset will **fail CI**
+- The changeset summary should be user-facing (what changed, not how)
+- One changeset can include multiple packages if a change affects both
+
 ## Pull Request Guidelines
 
 **CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/PULL_REQUEST_TEMPLATE.md`.

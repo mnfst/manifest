@@ -1,0 +1,12 @@
+{
+  "name": "manifest",
+  "version": "5.0.0-alpha",
+  "description": "Flow editor application with NestJS backend and React frontend",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnfst/manifest.git",
+    "directory": "packages/manifest"
+  },
+  "author": "MNFST, Inc",
+  "license": "MIT"
+}
