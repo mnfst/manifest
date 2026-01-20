@@ -6,33 +6,45 @@ permissions:
 on:
   push:
     branches: [main]
-    paths:
-      - 'packages/manifest/**'
   pull_request:
     branches: [main]
-    paths:
-      - 'packages/manifest/**'
 
 jobs:
   test:
-    name: Run Tests for Manifest Package
+    name: test
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check for changes in manifest package
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            manifest:
+              - 'packages/manifest/**'
+
       - name: Setup pnpm
+        if: steps.filter.outputs.manifest == 'true'
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
+        if: steps.filter.outputs.manifest == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
+        if: steps.filter.outputs.manifest == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Run manifest package tests
+        if: steps.filter.outputs.manifest == 'true'
         run: pnpm run manifest:test
+
+      - name: Skip tests (no manifest changes)
+        if: steps.filter.outputs.manifest == 'false'
+        run: echo "No changes in packages/manifest - skipping tests"
