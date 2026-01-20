@@ -37,9 +37,11 @@ export function toSlug(input: string): string {
     // Remove any character that's not alphanumeric or underscore
     .replace(/[^a-z0-9_]/g, '')
     // Replace multiple underscores with single underscore
-    .replace(/_+/g, '_')
-    // Remove leading/trailing underscores
-    .replace(/^_+|_+$/g, '');
+    .replace(/_+/g, '_');
+
+  // Remove leading/trailing underscores using string methods (avoids ReDoS)
+  while (slug.startsWith('_')) slug = slug.slice(1);
+  while (slug.endsWith('_')) slug = slug.slice(0, -1);
 
   // Ensure it starts with a letter
   if (!slug || !/^[a-z]/.test(slug)) {

@@ -35,7 +35,8 @@ async function resolveTemplate(
   template: string,
   getNodeValue: (nodeId: string) => Promise<unknown>
 ): Promise<string> {
-  const templatePattern = /\{\{([^}]+)\}\}/g;
+  // Use [^{}]+ instead of [^}]+ to prevent ReDoS (polynomial regex)
+  const templatePattern = /\{\{([^{}]+)\}\}/g;
   const matches = [...template.matchAll(templatePattern)];
 
   if (matches.length === 0) {

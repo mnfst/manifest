@@ -471,6 +471,17 @@ function inferSchemaRecursive(
 }
 
 /**
+ * Simple linear-time email format check to avoid ReDoS.
+ */
+function looksLikeEmail(value: string): boolean {
+  if (value.length > 254 || /\s/.test(value)) return false;
+  const atIndex = value.indexOf('@');
+  if (atIndex < 1 || atIndex !== value.lastIndexOf('@')) return false;
+  const domain = value.slice(atIndex + 1);
+  return domain.length > 0 && domain.includes('.');
+}
+
+/**
  * Infer schema for a string value, detecting common formats.
  */
 function inferStringSchema(value: string): JSONSchema {
@@ -481,7 +492,7 @@ function inferStringSchema(value: string): JSONSchema {
     schema.format = 'date-time';
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     schema.format = 'date';
-  } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+  } else if (looksLikeEmail(value)) {
     schema.format = 'email';
   } else if (/^https?:\/\//.test(value)) {
     schema.format = 'uri';

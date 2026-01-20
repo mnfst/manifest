@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 import sharp from 'sharp';
 import { AppService } from './app.service';
@@ -210,9 +210,13 @@ export class AppController {
     await mkdir(uploadDir, { recursive: true });
 
     // Generate filename and save
+    // Validate appId is a valid UUID to prevent path traversal
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(appId)) {
+      throw new BadRequestException('Invalid app ID format');
+    }
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const safeAppId = appId.replace(/[^a-zA-Z0-9_-]/g, '_');
-    const filename = `${safeAppId}-${uniqueSuffix}.png`;
+    const filename = basename(`${appId}-${uniqueSuffix}.png`);
     const filepath = join(uploadDir, filename);
     await writeFile(filepath, processedBuffer);
 

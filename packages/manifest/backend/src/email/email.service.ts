@@ -191,13 +191,25 @@ export class EmailService {
   }
 
   /**
-   * Validate email address format
+   * Validate email address format using linear-time safe algorithm.
+   * Avoids ReDoS by not using complex regex patterns.
    */
   private validateEmail(email: string): void {
-    // Basic email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || email.length > 254) {
+      throw new BadRequestException(`Invalid email address: ${email}`);
+    }
 
-    if (!email || !emailRegex.test(email)) {
+    const atIndex = email.indexOf('@');
+    if (atIndex < 1 || atIndex !== email.lastIndexOf('@')) {
+      throw new BadRequestException(`Invalid email address: ${email}`);
+    }
+
+    const local = email.slice(0, atIndex);
+    const domain = email.slice(atIndex + 1);
+
+    if (local.length < 1 || local.length > 64 ||
+        domain.length < 1 || domain.length > 253 ||
+        domain.indexOf('.') < 1 || /\s/.test(email)) {
       throw new BadRequestException(`Invalid email address: ${email}`);
     }
   }
