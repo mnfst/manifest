@@ -44,40 +44,46 @@ const getTimeForOffset = (offset: number) => {
 }
 
 /**
- * Props for the DateTimePicker component.
- * @interface DateTimePickerProps
- * @property {object} [data] - Configuration data for the picker
- * @property {string} [data.title] - Title displayed at the top of the picker
- * @property {Date[]} [data.availableDates] - Array of dates that can be selected
- * @property {string[]} [data.availableTimeSlots] - Array of time slot strings (e.g., '11:30am')
- * @property {string} [data.timezone] - Default timezone name to display
- * @property {object} [actions] - Callback functions for picker events
- * @property {function} [actions.onSelect] - Called when a date and time are selected
- * @property {function} [actions.onNext] - Called when the user clicks the Next button
- * @property {object} [appearance] - Visual customization options
- * @property {boolean} [appearance.showTitle] - Whether to display the title
- * @property {boolean} [appearance.showTimezone] - Whether to show timezone selector
- * @property {object} [control] - Controlled state options
- * @property {Date | null} [control.selectedDate] - Controlled selected date value
- * @property {string | null} [control.selectedTime] - Controlled selected time value
+ * ═══════════════════════════════════════════════════════════════════════════
+ * DateTimePickerProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the DateTimePicker component with calendar view, available time
+ * slots, and timezone selection.
  */
 export interface DateTimePickerProps {
   data?: {
+    /** Title displayed at the top of the picker. */
     title?: string
+    /** Array of dates that can be selected. */
     availableDates?: Date[]
+    /** Array of time slot strings (e.g., '11:30am'). */
     availableTimeSlots?: string[]
+    /** Default timezone name to display. */
     timezone?: string
   }
   actions?: {
+    /** Called when a date and time are selected. */
     onSelect?: (date: Date, time: string) => void
+    /** Called when the user clicks the Next button. */
     onNext?: (date: Date, time: string) => void
   }
   appearance?: {
+    /**
+     * Whether to display the title.
+     * @default true
+     */
     showTitle?: boolean
+    /**
+     * Whether to show timezone selector.
+     * @default true
+     */
     showTimezone?: boolean
   }
   control?: {
+    /** Controlled selected date value. */
     selectedDate?: Date | null
+    /** Controlled selected time value. */
     selectedTime?: string | null
   }
 }

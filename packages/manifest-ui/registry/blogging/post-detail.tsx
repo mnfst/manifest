@@ -148,35 +148,44 @@ const defaultRelatedPosts: Post[] = [
 ]
 
 /**
- * Props for the PostDetail component.
- * @interface PostDetailProps
- * @property {object} [data] - Post detail data
- * @property {Post} [data.post] - The main post to display
- * @property {string} [data.content] - HTML content of the post body
- * @property {Post[]} [data.relatedPosts] - Related posts to show at the bottom
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onBack] - Called when back is clicked
- * @property {function} [actions.onReadMore] - Called when read more is clicked (inline mode)
- * @property {function} [actions.onReadRelated] - Called when a related post is clicked
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.showCover] - Whether to show cover image
- * @property {boolean} [appearance.showAuthor] - Whether to show author info
- * @property {"inline" | "fullscreen"} [appearance.displayMode] - Display mode
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PostDetailProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the PostDetail component, a full post detail view with Medium-style typography.
  */
 export interface PostDetailProps {
   data?: {
+    /** The main blog post to display. */
     post?: Post
+    /** HTML content of the post body. */
     content?: string
+    /** Related posts to show at the bottom of the article. */
     relatedPosts?: Post[]
   }
   actions?: {
+    /** Called when the back button is clicked. */
     onBack?: () => void
+    /** Called when the read more button is clicked (inline mode). */
     onReadMore?: () => void
+    /** Called when a related post is clicked. */
     onReadRelated?: (post: Post) => void
   }
   appearance?: {
+    /**
+     * Whether to show the cover image.
+     * @default true
+     */
     showCover?: boolean
+    /**
+     * Whether to show author information.
+     * @default true
+     */
     showAuthor?: boolean
+    /**
+     * Display mode for the component.
+     * @default "fullscreen"
+     */
     displayMode?: 'inline' | 'fullscreen'
   }
 }

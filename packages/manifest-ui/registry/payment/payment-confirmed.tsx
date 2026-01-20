@@ -4,33 +4,37 @@ import { Button } from '@/components/ui/button'
 import { Check, ExternalLink } from 'lucide-react'
 
 /**
- * Props for the PaymentConfirmed component.
- * @interface PaymentConfirmedProps
- * @property {object} [data] - Order and product data
- * @property {string} [data.orderId] - Order reference number
- * @property {string} [data.productName] - Name of the purchased product
- * @property {string} [data.productDescription] - Product description/details
- * @property {string} [data.productImage] - Product image URL
- * @property {number} [data.price] - Total price paid
- * @property {string} [data.deliveryDate] - Expected delivery date
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onTrackOrder] - Called when user clicks track order
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PaymentConfirmedProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a payment confirmation card with product image, price, delivery info,
+ * and tracking button. Shows a header with success indicator and order ID.
  */
 export interface PaymentConfirmedProps {
   data?: {
+    /** Order reference number displayed in the header. */
     orderId?: string
+    /** Name of the purchased product. */
     productName?: string
+    /** Product description or variant details (e.g., "Nike - Size 42 - White"). */
     productDescription?: string
+    /** URL to the product image. */
     productImage?: string
+    /** Total price paid for the order. */
     price?: number
+    /** Expected delivery date string (e.g., "Tue. Dec 10"). */
     deliveryDate?: string
   }
   actions?: {
+    /** Called when the user clicks the track order button. */
     onTrackOrder?: () => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the price.
+     * @default "EUR"
+     */
     currency?: string
   }
 }
@@ -71,7 +75,7 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
     orderId = 'ORD-2024-7842',
     productName = "Air Force 1 '07",
     productDescription = 'Nike · Size 42 · White',
-    productImage = '/demo/shoe-1.png',
+    productImage = 'https://ui.manifest.build/demo/shoe-1.png',
     price = 119,
     deliveryDate = 'Tue. Dec 10',
   } = data ?? {}

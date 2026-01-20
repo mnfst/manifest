@@ -38,29 +38,41 @@ export interface Post {
 }
 
 /**
- * Props for the PostCard component.
- * @interface PostCardProps
- * @property {object} [data] - Post data
- * @property {Post} [data.post] - The post to display
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onReadMore] - Called when read more is clicked
- * @property {object} [appearance] - Visual customization
- * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
- * @property {boolean} [appearance.showImage] - Whether to show cover image
- * @property {boolean} [appearance.showAuthor] - Whether to show author info
- * @property {boolean} [appearance.showCategory] - Whether to show category
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PostCardProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the PostCard component, a blog post card with multiple layout variants.
  */
 export interface PostCardProps {
   data?: {
+    /** The blog post to display. */
     post?: Post
   }
   actions?: {
+    /** Called when the read more button is clicked. */
     onReadMore?: (post: Post) => void
   }
   appearance?: {
+    /**
+     * Card layout variant.
+     * @default "default"
+     */
     variant?: 'default' | 'compact' | 'horizontal' | 'covered'
+    /**
+     * Whether to show the cover image.
+     * @default true
+     */
     showImage?: boolean
+    /**
+     * Whether to show author information.
+     * @default true
+     */
     showAuthor?: boolean
+    /**
+     * Whether to show the category label.
+     * @default true
+     */
     showCategory?: boolean
   }
 }

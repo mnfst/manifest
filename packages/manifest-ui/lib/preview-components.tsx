@@ -85,9 +85,9 @@ const demoPosts = Array.from({ length: 6 }, (_, i) => ({
 }))
 
 const demoProducts = [
-  { name: 'Premium Headphones', price: 299, image: '/demo/shoe-1.png' },
-  { name: 'Wireless Earbuds', price: 149, image: '/demo/shoe-2.png' },
-  { name: 'Smart Speaker', price: 199, image: '/demo/shoe-3.png' }
+  { name: 'Premium Headphones', price: 299, image: 'https://ui.manifest.build/demo/shoe-1.png' },
+  { name: 'Wireless Earbuds', price: 149, image: 'https://ui.manifest.build/demo/shoe-2.png' },
+  { name: 'Smart Speaker', price: 199, image: 'https://ui.manifest.build/demo/shoe-3.png' }
 ]
 
 const demoOrderItems = [
@@ -165,11 +165,11 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'payment'
   },
   'order-confirm': {
-    component: <OrderConfirm data={{ productName: 'Premium Headphones', productImage: '/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
+    component: <OrderConfirm data={{ productName: 'Premium Headphones', productImage: 'https://ui.manifest.build/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'
   },
   'payment-confirmed': {
-    component: <PaymentConfirmed data={{ productName: 'Premium Headphones', productImage: '/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
+    component: <PaymentConfirmed data={{ productName: 'Premium Headphones', productImage: 'https://ui.manifest.build/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'
   },
   'amount-input': {
@@ -229,16 +229,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   // Miscellaneous components
   'stats': {
     component: <Stats data={{ stats: [{ label: 'Revenue', value: '$12,345', change: 12.5 }, { label: 'Orders', value: '1,234', change: -3.2 }, { label: 'Customers', value: '567', change: 8.1 }] }} />,
-    category: 'miscellaneous'
-  },
-  'skeleton': {
-    component: (
-      <div className="space-y-3">
-        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
-        <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
-        <div className="h-20 bg-muted rounded animate-pulse" />
-      </div>
-    ),
     category: 'miscellaneous'
   },
 

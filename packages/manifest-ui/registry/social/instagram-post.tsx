@@ -10,25 +10,28 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 /**
- * Props for the InstagramPost component.
- * @interface InstagramPostProps
- * @property {object} [data] - Post content and metadata
- * @property {string} [data.author] - Author's username
- * @property {string} [data.avatar] - Avatar letter or URL
- * @property {string} [data.image] - Post image URL
- * @property {string} [data.likes] - Like count (e.g., "2,847")
- * @property {string} [data.caption] - Post caption text
- * @property {string} [data.time] - Time since posted (e.g., "2 hours ago")
- * @property {boolean} [data.verified] - Whether the author is verified
+ * ═══════════════════════════════════════════════════════════════════════════
+ * InstagramPostProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the InstagramPost component, which displays an Instagram-style
+ * post with image, caption, and engagement actions.
  */
 export interface InstagramPostProps {
   data?: {
+    /** Author's Instagram username. */
     author?: string
+    /** Avatar letter fallback or image URL for the profile picture. */
     avatar?: string
+    /** URL of the post image to display. */
     image?: string
+    /** Formatted like count (e.g., "2,847"). */
     likes?: string
+    /** Post caption text content. */
     caption?: string
+    /** Time since posted (e.g., "2 hours ago"). */
     time?: string
+    /** Whether the author has a verified badge. */
     verified?: boolean
   }
 }

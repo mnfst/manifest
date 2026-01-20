@@ -30,18 +30,23 @@ export interface CardFormData {
 }
 
 /**
- * Props for the CardForm component.
- * @interface CardFormProps
- * @property {object} [actions] - Callback functions for form events
- * @property {function} [actions.onSubmit] - Called when the form is submitted with card data
- * @property {object} [control] - State control options
- * @property {boolean} [control.isLoading] - Shows loading state on submit button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CardFormProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a credit card payment form with card number, expiry date, CVV,
+ * and cardholder name fields. Includes automatic formatting for inputs.
  */
 export interface CardFormProps {
   actions?: {
+    /** Called when the form is submitted with complete card data. */
     onSubmit?: (data: CardFormData) => void
   }
   control?: {
+    /**
+     * Shows loading state on the submit button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }

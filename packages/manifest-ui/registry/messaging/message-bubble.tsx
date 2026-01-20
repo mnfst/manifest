@@ -49,31 +49,35 @@ function Avatar({ src, fallback, className }: InternalAvatarOptions) {
 }
 
 /**
- * Props for the MessageBubble component.
- * @interface MessageBubbleProps
- * @property {object} [data] - Message content and metadata
- * @property {string} [data.content] - Message text content
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
- * @property {object} [control] - State control options
- * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ * ═══════════════════════════════════════════════════════════════════════════
+ * MessageBubbleProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a text message bubble in chat interfaces with avatar,
+ * delivery status, and own/other message styling.
  */
 export interface MessageBubbleProps {
   data?: {
+    /** Message text content to display. */
     content?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "10:30 AM"). */
     time?: string
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
   control?: {
+    /** Message delivery status indicator. */
     status?: 'sent' | 'delivered' | 'read'
   }
 }
@@ -150,33 +154,37 @@ export function MessageBubble({
 }
 
 /**
- * Props for the ImageMessageBubble component.
- * @interface ImageMessageBubbleProps
- * @property {object} [data] - Image message content and metadata
- * @property {string} [data.image] - Image URL to display
- * @property {string} [data.content] - Optional caption text
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
- * @property {object} [control] - State control options
- * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ImageMessageBubbleProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring an image message bubble that displays a shared photo
+ * with optional caption and message metadata.
  */
 export interface ImageMessageBubbleProps {
   data?: {
+    /** URL of the image to display. */
     image?: string
+    /** Optional caption text below the image. */
     content?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "10:32 AM"). */
     time?: string
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
   control?: {
+    /** Message delivery status indicator. */
     status?: 'sent' | 'delivered' | 'read'
   }
 }
@@ -265,33 +273,37 @@ export function ImageMessageBubble({
 }
 
 /**
- * Props for the MessageWithReactions component.
- * @interface MessageWithReactionsProps
- * @property {object} [data] - Message content and metadata
- * @property {string} [data.content] - Message text content
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {{ emoji: string; count: number }[]} [data.reactions] - Reaction counts
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onReact] - Called when user reacts with an emoji
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
+ * ═══════════════════════════════════════════════════════════════════════════
+ * MessageWithReactionsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a message bubble with emoji reaction support,
+ * allowing users to add, toggle, and view reactions on messages.
  */
 export interface MessageWithReactionsProps {
   data?: {
+    /** Message text content to display. */
     content?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "2:45 PM"). */
     time?: string
+    /** Array of reactions with emoji and count. */
     reactions?: { emoji: string; count: number }[]
   }
   actions?: {
+    /** Called when the user adds or toggles a reaction emoji. */
     onReact?: (emoji: string) => void
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
 }
@@ -489,33 +501,37 @@ export function MessageWithReactions({
 }
 
 /**
- * Props for the VoiceMessageBubble component.
- * @interface VoiceMessageBubbleProps
- * @property {object} [data] - Voice message content and metadata
- * @property {string} [data.duration] - Total duration display (e.g., "0:42")
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {string} [data.audioSrc] - Audio file URL
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
- * @property {object} [control] - State control options
- * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ * ═══════════════════════════════════════════════════════════════════════════
+ * VoiceMessageBubbleProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a voice/audio message bubble with playback controls,
+ * progress bar, and duration display.
  */
 export interface VoiceMessageBubbleProps {
   data?: {
+    /** Total duration display string (e.g., "0:42"). */
     duration?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "3:15 PM"). */
     time?: string
+    /** URL of the audio file to play. */
     audioSrc?: string
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
   control?: {
+    /** Message delivery status indicator. */
     status?: 'sent' | 'delivered' | 'read'
   }
 }

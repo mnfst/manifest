@@ -4,42 +4,54 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
 
 /**
- * Props for the OrderConfirm component.
- * @interface OrderConfirmProps
- * @property {object} [data] - Product and delivery data
- * @property {string} [data.productName] - Name of the product
- * @property {string} [data.productVariant] - Product variant/color
- * @property {string} [data.productImage] - Product image URL
- * @property {number} [data.quantity] - Number of items
- * @property {number} [data.price] - Total price
- * @property {string} [data.deliveryDate] - Expected delivery date
- * @property {string} [data.deliveryAddress] - Delivery address
- * @property {boolean} [data.freeShipping] - Whether shipping is free
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onConfirm] - Called when user confirms the order
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {object} [control] - State control options
- * @property {boolean} [control.isLoading] - Shows loading state on confirm button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * OrderConfirmProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for an order confirmation component with product image, delivery info,
+ * and confirm action. Displays responsive layouts for mobile and desktop.
  */
 export interface OrderConfirmProps {
   data?: {
+    /** Name of the product being ordered. */
     productName?: string
+    /** Product variant such as color or size. */
     productVariant?: string
+    /** URL to the product image. */
     productImage?: string
+    /**
+     * Quantity of items being ordered.
+     * @default 1
+     */
     quantity?: number
+    /** Total price for the order. */
     price?: number
+    /** Expected delivery date string (e.g., "Tue. Dec 10"). */
     deliveryDate?: string
+    /** Delivery address for the order. */
     deliveryAddress?: string
+    /**
+     * Whether shipping is free for this order.
+     * @default true
+     */
     freeShipping?: boolean
   }
   actions?: {
+    /** Called when the user confirms the order. */
     onConfirm?: () => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the price.
+     * @default "USD"
+     */
     currency?: string
   }
   control?: {
+    /**
+     * Shows loading state on the confirm button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }

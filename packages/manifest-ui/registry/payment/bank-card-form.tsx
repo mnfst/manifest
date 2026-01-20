@@ -18,25 +18,32 @@ export interface BankCardFormData {
 }
 
 /**
- * Props for the BankCardForm component.
- * @interface BankCardFormProps
- * @property {object} [data] - Payment amount data
- * @property {number} [data.amount] - Amount to charge
- * @property {object} [actions] - Callback functions for form events
- * @property {function} [actions.onSubmit] - Called when the form is submitted
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.submitLabel] - Custom label for submit button
- * @property {string} [appearance.currency] - Currency code for formatting
+ * ═══════════════════════════════════════════════════════════════════════════
+ * BankCardFormProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a compact bank card payment form with inline layout optimized
+ * for chat interfaces. All inputs appear in a single row on desktop.
  */
 export interface BankCardFormProps {
   data?: {
+    /**
+     * Amount to charge, displayed in the submit button.
+     * @default 279
+     */
     amount?: number
   }
   actions?: {
+    /** Called when the form is submitted with card number, expiry, and CVV. */
     onSubmit?: (data: BankCardFormData) => void
   }
   appearance?: {
+    /** Custom label for the submit button. Overrides the default "Pay {amount}" label. */
     submitLabel?: string
+    /**
+     * Currency code for formatting the amount.
+     * @default "EUR"
+     */
     currency?: string
   }
 }

@@ -17,13 +17,16 @@ export interface Step {
 }
 
 /**
- * Props for the ProgressSteps component.
- * @interface ProgressStepsProps
- * @property {object} [data] - Steps data
- * @property {Step[]} [data.steps] - Array of steps to display
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ProgressStepsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the ProgressSteps component, which displays a visual progress
+ * tracker showing sequential steps with completion states.
  */
 export interface ProgressStepsProps {
   data?: {
+    /** Array of steps to display with their labels and status. */
     steps?: Step[]
   }
 }

@@ -3,31 +3,34 @@
 import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
 
 /**
- * Props for the XPost component.
- * @interface XPostProps
- * @property {object} [data] - Post content and metadata
- * @property {string} [data.author] - Author's display name
- * @property {string} [data.username] - Author's handle (without @)
- * @property {string} [data.avatar] - Avatar letter or URL
- * @property {string} [data.content] - Post text content
- * @property {string} [data.time] - Time since posted (e.g., "2h")
- * @property {string} [data.likes] - Like count (e.g., "1.2K")
- * @property {string} [data.retweets] - Retweet count
- * @property {string} [data.replies] - Reply count
- * @property {string} [data.views] - View count
- * @property {boolean} [data.verified] - Whether the author is verified
+ * ═══════════════════════════════════════════════════════════════════════════
+ * XPostProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the XPost component, which displays an X (Twitter)-style post
+ * with author info, content, and engagement metrics.
  */
 export interface XPostProps {
   data?: {
+    /** Author's display name. */
     author?: string
+    /** Author's handle/username (without the @ symbol). */
     username?: string
+    /** Avatar letter fallback or image URL for the profile picture. */
     avatar?: string
+    /** Post text content. */
     content?: string
+    /** Time since posted (e.g., "2h"). */
     time?: string
+    /** Formatted like count (e.g., "1.2K"). */
     likes?: string
+    /** Formatted retweet/repost count. */
     retweets?: string
+    /** Formatted reply count. */
     replies?: string
+    /** Formatted view count (e.g., "45.2K"). */
     views?: string
+    /** Whether the author has a verified badge. */
     verified?: boolean
   }
 }

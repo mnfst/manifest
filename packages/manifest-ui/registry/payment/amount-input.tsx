@@ -6,38 +6,56 @@ import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /**
- * Props for the AmountInput component.
- * @interface AmountInputProps
- * @property {object} [data] - Configuration data
- * @property {number[]} [data.presets] - Quick-select preset amounts
- * @property {object} [actions] - Callback functions for value changes
- * @property {function} [actions.onChange] - Called when the amount changes
- * @property {function} [actions.onConfirm] - Called when user confirms the amount
- * @property {object} [appearance] - Visual and behavior customization
- * @property {number} [appearance.min] - Minimum allowed value
- * @property {number} [appearance.max] - Maximum allowed value
- * @property {number} [appearance.step] - Increment/decrement step size
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {string} [appearance.label] - Label text above the input
- * @property {object} [control] - Controlled state options
- * @property {number} [control.value] - Controlled value
+ * ═══════════════════════════════════════════════════════════════════════════
+ * AmountInputProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for an amount input with increment/decrement buttons and preset values.
+ * Supports direct text editing by clicking on the amount.
  */
 export interface AmountInputProps {
   data?: {
+    /** Quick-select preset amounts displayed as buttons. */
     presets?: number[]
   }
   actions?: {
+    /** Called when the amount changes via buttons, presets, or direct input. */
     onChange?: (value: number) => void
+    /** Called when user confirms the selected amount. */
     onConfirm?: (value: number) => void
   }
   appearance?: {
+    /**
+     * Minimum allowed value.
+     * @default 0
+     */
     min?: number
+    /**
+     * Maximum allowed value.
+     * @default 10000
+     */
     max?: number
+    /**
+     * Increment/decrement step size for the +/- buttons.
+     * @default 10
+     */
     step?: number
+    /**
+     * Currency code for formatting the amount display.
+     * @default "EUR"
+     */
     currency?: string
+    /**
+     * Label text displayed above the input.
+     * @default "Amount"
+     */
     label?: string
   }
   control?: {
+    /**
+     * Controlled value for the amount input.
+     * @default 50
+     */
     value?: number
   }
 }

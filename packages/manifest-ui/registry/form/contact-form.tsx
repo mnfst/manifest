@@ -36,34 +36,40 @@ export interface ContactFormData {
 }
 
 /**
- * Props for the ContactForm component.
- * @interface ContactFormProps
- * @property {object} [data] - Configuration data for the form
- * @property {string} [data.title] - The form title displayed at the top
- * @property {string} [data.subtitle] - Descriptive text below the title
- * @property {string} [data.submitLabel] - Custom label for the submit button
- * @property {Partial<ContactFormData>} [data.initialValues] - Pre-filled form values
- * @property {object} [actions] - Callback functions for form events
- * @property {function} [actions.onSubmit] - Called when the form is submitted with form data
- * @property {object} [appearance] - Visual customization options
- * @property {boolean} [appearance.showTitle] - Whether to display the title section
- * @property {object} [control] - State control options
- * @property {boolean} [control.isLoading] - Shows loading state on submit button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ContactFormProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the ContactForm component with name fields, phone number with
+ * country selector, email input, message textarea, and file attachment support.
  */
 export interface ContactFormProps {
   data?: {
+    /** The form title displayed at the top. */
     title?: string
+    /** Descriptive text below the title. */
     subtitle?: string
+    /** Custom label for the submit button. */
     submitLabel?: string
+    /** Pre-filled form values. */
     initialValues?: Partial<ContactFormData>
   }
   actions?: {
+    /** Called when the form is submitted with form data. */
     onSubmit?: (data: ContactFormData) => void
   }
   appearance?: {
+    /**
+     * Whether to display the title section.
+     * @default true
+     */
     showTitle?: boolean
   }
   control?: {
+    /**
+     * Shows loading state on submit button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }
