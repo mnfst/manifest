@@ -1,7 +1,6 @@
 {
   "name": "@manifest/backend",
   "version": "1.0.0",
-  "private": true,
   "scripts": {
     "build": "nest build && pnpm run build:tsx",
     "build:tsx": "swc src/email/templates/password-reset.tsx src/email/templates/invitation.tsx src/email/templates/email-change-verification.tsx src/email/templates/components/*.tsx --out-dir dist --config-file .swcrc --strip-leading-paths",

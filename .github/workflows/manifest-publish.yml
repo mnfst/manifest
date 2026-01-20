@@ -4,26 +4,22 @@
 # Builds and publishes Docker images to Docker Hub.
 #
 # Triggers:
-#   - Push to main branch (development builds)
-#   - Push of version tags (v1.0.0, v1.2.3, etc.)
+#   - Push of version tags (v1.0.0, v1.2.3, etc.) - created by release workflow
 #   - Manual trigger via workflow_dispatch
 #
 # Versioning Strategy:
 #   On version tag (v1.2.3):
 #     - 1.2.3, 1.2, 1, latest
 #
-#   On main branch push:
-#     - edge (latest development)
-#     - sha-<short> (immutable commit reference)
-#     - main-<date> (chronological ordering)
-#
 # Required Secrets:
 #   - DOCKERHUB_USERNAME  : Docker Hub username
 #   - DOCKERHUB_TOKEN     : Docker Hub access token (read/write)
 #
-# Creating a Release:
-#   git tag v1.0.0
-#   git push origin v1.0.0
+# Release Flow:
+#   1. PR with changeset merged to main
+#   2. Release workflow creates "Version Packages" PR
+#   3. Version PR merged creates GitHub release + tag
+#   4. This workflow triggers on the tag to publish Docker image
 # ============================================================================
 
 name: Docker Publish
@@ -33,10 +29,7 @@ permissions:
 
 on:
   push:
-    branches: [main]
     tags: ['v*.*.*']
-    paths:
-      - 'packages/manifest/**'
   workflow_dispatch:
 
 env:
@@ -63,21 +56,19 @@ jobs:
       - name: Generate version metadata
         id: version
         run: |
-          SHORT_SHA="${GITHUB_SHA::7}"
           BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          DATE_TAG=$(date -u +'%Y%m%d')
+          SHORT_SHA="${GITHUB_SHA::7}"
 
-          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
-          echo "date_tag=${DATE_TAG}" >> "$GITHUB_OUTPUT"
-
-          # Determine version string
+          # Extract version from tag or use sha for manual dispatch
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF#refs/tags/v}"
           else
-            VERSION="sha-${SHORT_SHA}"
+            VERSION="dev-${SHORT_SHA}"
           fi
+
+          echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Generate Docker metadata
         id: meta
@@ -85,15 +76,13 @@ jobs:
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
-            # On version tag: 1.2.3, 1.2, 1, latest
+            # Semver tags: 1.2.3, 1.2, 1, latest (only on version tags)
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            # On main branch: edge, sha-xxx, main-date
-            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=sha-${{ steps.version.outputs.short_sha }},enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=main-${{ steps.version.outputs.date_tag }},enable=${{ github.ref == 'refs/heads/main' }}
+            # Manual dispatch tag
+            type=raw,value=dev-${{ steps.version.outputs.short_sha }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -116,13 +105,7 @@ jobs:
         run: |
           echo "## Docker Image Published" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "### Release: ${GITHUB_REF#refs/tags/}" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "### Development Build" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
+          echo "### Release: ${GITHUB_REF#refs/tags/}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Property | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
@@ -139,9 +122,5 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Pull Command" >> "$GITHUB_STEP_SUMMARY"
           echo "\`\`\`bash" >> "$GITHUB_STEP_SUMMARY"
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "docker pull ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "docker pull ${{ env.DOCKER_IMAGE }}:edge" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          echo "docker pull ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
           echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
