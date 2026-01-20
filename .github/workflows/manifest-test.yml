@@ -10,11 +10,10 @@ on:
     branches: [main]
 
 jobs:
-  changes:
-    name: Check for manifest changes
+  test:
+    name: test
     runs-on: ubuntu-latest
-    outputs:
-      manifest: ${{ steps.filter.outputs.manifest }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,36 +26,25 @@ jobs:
             manifest:
               - 'packages/manifest/**'
 
-  test:
-    name: Run Tests for Manifest Package
-    needs: changes
-    if: needs.changes.outputs.manifest == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Setup pnpm
+        if: steps.filter.outputs.manifest == 'true'
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
+        if: steps.filter.outputs.manifest == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
+        if: steps.filter.outputs.manifest == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Run manifest package tests
+        if: steps.filter.outputs.manifest == 'true'
         run: pnpm run manifest:test
 
-  test-skip:
-    name: Run Tests for Manifest Package
-    needs: changes
-    if: needs.changes.outputs.manifest == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Skip tests
+      - name: Skip tests (no manifest changes)
+        if: steps.filter.outputs.manifest == 'false'
         run: echo "No changes in packages/manifest - skipping tests"
