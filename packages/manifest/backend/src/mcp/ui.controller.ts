@@ -297,7 +297,7 @@ export class UiController {
     const html = template
       .replace(/\{\{appName\}\}/g, app.name)
       .replace(/\{\{appDescription\}\}/g, app.description || 'A ChatGPT App Builder MCP Server')
-      .replace(/\{\{mcpUrl\}\}/g, mcpUrl)
+      .replace(/\{\{mcpUrl\}\}/g, this.escapeHtml(mcpUrl))
       .replace(/\{\{toolsList\}\}/g, toolsListHtml)
       .replace(/\{\{themeVariables\}\}/g, cssVariables);
 
@@ -332,5 +332,18 @@ export class UiController {
       .filter(([, value]) => value !== undefined)
       .map(([key, value]) => `${key}: ${value};`)
       .join('\n      ');
+  }
+
+  /**
+   * HTML-escape a string to prevent XSS when injecting into HTML templates
+   */
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\//g, '&#x2F;');
   }
 }
