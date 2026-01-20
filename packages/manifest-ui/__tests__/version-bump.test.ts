@@ -295,7 +295,7 @@ describe('Version Bump Enforcement', () => {
   describe('Category validation', () => {
     it('should have valid categories for all components', () => {
       for (const item of currentRegistry.items) {
-        const { name, files } = item
+        const { files } = item
         const category = getCategory(item)
 
         // Category must be present

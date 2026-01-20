@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   ssr: false,
@@ -163,12 +163,12 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   variantId
 }, ref) {
   // Determine default view mode based on available layouts
-  const getDefaultViewMode = (): ViewMode => {
+  const getDefaultViewMode = useCallback((): ViewMode => {
     if (layouts.includes('inline')) return 'inline'
     if (layouts.includes('fullscreen')) return 'fullwidth'
     if (layouts.includes('pip')) return 'pip'
     return 'inline'
-  }
+  }, [layouts])
   const [viewMode, setViewMode] = useState<ViewMode>(getDefaultViewMode)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [isPipOpen, setIsPipOpen] = useState(false)
@@ -219,7 +219,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     setIsPipOpen(false)
     setPipPosition(undefined)
     setHighlightCategory(null)
-  }, [registryName, layouts])
+  }, [registryName, layouts, getDefaultViewMode])
 
   // Measure position and open PiP
   const openPip = () => {

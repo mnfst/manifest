@@ -39,7 +39,6 @@ body:
       options:
         - New UI component
         - Existing component enhancement
-        - CLI tooling (create-manifest)
         - Developer experience
         - Documentation
         - Other

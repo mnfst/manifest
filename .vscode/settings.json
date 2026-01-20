@@ -30,7 +30,6 @@
   },
   "material-icon-theme.folders.associations": {
     "dtos": "interface",
-    "create-manifest": "scripts",
     "manifest": "server",
     "core/manifest": "meta",
     "js-sdk": "javascript",

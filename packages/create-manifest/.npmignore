@@ -1,5 +1,0 @@
-node_modules
-starter/node_modules
-starter/dist
-starter/.env
-*.log

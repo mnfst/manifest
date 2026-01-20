@@ -6,15 +6,6 @@ import { Minus, Plus, Info } from 'lucide-react'
 import { useState } from 'react'
 
 /**
- * Formats a number with comma separators.
- * @param {number} num - Number to format
- * @returns {string} Formatted number string
- */
-function formatNumber(num: number): string {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-/**
  * Formats a currency amount.
  * @param {number} amount - Amount to format
  * @param {string} currency - Currency code

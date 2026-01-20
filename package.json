@@ -1,19 +1,45 @@
 {
   "name": "manifest",
   "scripts": {
+    "dev": "turbo run dev",
     "build": "turbo run build",
-    "dev": "turbo run dev --filter=manifest-ui --filter=manifest-starter",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "manifest:dev": "turbo run dev --filter=@manifest/backend --filter=@manifest/frontend",
+    "manifest:build": "turbo run build --filter=@manifest/backend --filter=@manifest/frontend --filter=@manifest/shared --filter=@manifest/nodes",
+    "manifest:lint": "turbo run lint --filter=@manifest/backend --filter=@manifest/frontend",
+    "manifest:test": "turbo run test --filter=@manifest/backend",
+    "manifest-ui:dev": "turbo run dev --filter=manifest-ui",
+    "manifest-ui:build": "turbo run build --filter=manifest-ui",
+    "manifest-ui:lint": "turbo run lint --filter=manifest-ui",
+    "manifest-ui:test": "turbo run test --filter=manifest-ui",
+    "prepare": "husky",
+    "changeset": "changeset"
   },
   "devDependencies": {
-    "@eslint/js": "^9.14.0",
-    "eslint": "^8.57.1",
+    "@changesets/cli": "^2.27.0",
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.12.0",
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.4.2",
     "turbo": "^2.3.3",
-    "typescript-eslint": "^8.14.0"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2"
   },
-  "packageManager": "pnpm@9.15.1"
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnfst/manifest.git"
+  },
+  "author": "MNFST, Inc",
+  "license": "MIT"
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
