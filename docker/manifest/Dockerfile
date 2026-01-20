@@ -26,7 +26,7 @@ ARG VERSION="unknown"
 # Stage 1: Dependencies
 # Install all pnpm dependencies (cached layer for faster rebuilds)
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
@@ -90,12 +90,12 @@ RUN echo "Building frontend package..." && \
 # Stage 3: Production
 # Minimal runtime image with only production artifacts
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Install runtime dependencies for native modules
-RUN apk add --no-cache vips
+# Update Alpine packages (security fixes) and install runtime dependencies
+RUN apk update && apk upgrade --no-cache && apk add --no-cache vips
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -118,7 +118,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/manifest/shared/node_modules ./packages/manifest/shared/node_modules
 COPY --from=deps /app/packages/manifest/nodes/node_modules ./packages/manifest/nodes/node_modules
 COPY --from=deps /app/packages/manifest/backend/node_modules ./packages/manifest/backend/node_modules
-RUN pnpm prune --prod
+RUN CI=true HUSKY=0 pnpm prune --prod --ignore-scripts
 
 # Copy built artifacts from build stage
 COPY --chown=appuser:nodejs --from=build /app/packages/manifest/shared/dist ./packages/manifest/shared/dist
