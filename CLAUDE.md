@@ -129,6 +129,27 @@ EOF
 )"
 ```
 
+## Files to Never Commit
+
+**CRITICAL**: The following files must NEVER be committed to the repository:
+
+| File | Reason |
+|------|--------|
+| `settings.local.json` | Local settings file with personal configurations |
+| `.claude/settings.local.json` | Claude Code local settings |
+| `.claude/commands/**` | Claude Code custom commands (except speckit commands) |
+| `specs/**` | Generated specs from speckit (auto-generated, not source-controlled) |
+
+### Exception: Speckit Commands
+
+Speckit-related Claude commands ARE allowed to be committed. These are commands that are part of the project's shared tooling and should be version controlled.
+
+### Before Committing
+
+Always check that staged files do not include:
+- Any `settings.local.json` files
+- Claude settings or command files (unless they are speckit-related)
+
 ## Block Development Guidelines
 
 **CRITICAL**: When adding or editing a block, you MUST update ALL related code across the codebase.
