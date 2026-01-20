@@ -303,8 +303,8 @@ export class SchemaService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      // Execute the HTTP request
-      const response = await fetch(resolvedUrl, {
+      // Execute the HTTP request using the validated URL
+      const response = await fetch(parsedUrl.href, {
         method,
         headers: resolvedHeaders,
         signal: controller.signal,
