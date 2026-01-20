@@ -15,7 +15,7 @@ on:
 
 jobs:
   test:
-    name: Run Tests
+    name: Run Tests for Manifest Package
     runs-on: ubuntu-latest
 
     steps:

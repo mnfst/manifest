@@ -23,6 +23,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: docker/manifest/Dockerfile
           push: false
           tags: chatgpt-app-builder:test
           cache-from: type=gha
