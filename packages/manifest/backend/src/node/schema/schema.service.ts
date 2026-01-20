@@ -269,26 +269,17 @@ export class SchemaService {
     }
 
     // Validate URL format and block SSRF attacks
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(resolvedUrl);
-    } catch {
+    // This is a security barrier - only validated URLs pass through
+    const urlValidation = this.parseAndValidateUrl(resolvedUrl);
+    if (!urlValidation.valid) {
       return {
         success: false,
-        error: `Invalid URL: ${resolvedUrl}`,
+        error: urlValidation.error,
         requestUrl: resolvedUrl,
       };
     }
-
-    // Block requests to internal/private networks (SSRF protection)
-    const ssrfError = this.validateUrlForSsrf(parsedUrl);
-    if (ssrfError) {
-      return {
-        success: false,
-        error: ssrfError,
-        requestUrl: resolvedUrl,
-      };
-    }
+    // urlValidation.url is now a validated, SSRF-safe URL string
+    const validatedUrl = urlValidation.url;
 
     // Add warning for mutating methods
     const mutatingMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
@@ -304,7 +295,8 @@ export class SchemaService {
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
       // Execute the HTTP request using the validated URL
-      const response = await fetch(parsedUrl.href, {
+      // SECURITY: validatedUrl has passed SSRF validation in parseAndValidateUrl()
+      const response = await fetch(validatedUrl, {
         method,
         headers: resolvedHeaders,
         signal: controller.signal,
@@ -398,8 +390,30 @@ export class SchemaService {
   }
 
   /**
+   * Sanitizes a mock value to prevent SSRF through URL injection.
+   * Blocks values that could be used to manipulate the target URL.
+   */
+  private sanitizeMockValue(value: unknown): string {
+    const str = String(value);
+
+    // Block values that look like full URLs (could override the base URL)
+    // This prevents injection of http://, https://, file://, etc.
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(str)) {
+      return '[blocked-url]';
+    }
+
+    // Block protocol-relative URLs (//example.com)
+    if (str.startsWith('//')) {
+      return '[blocked-url]';
+    }
+
+    return str;
+  }
+
+  /**
    * Resolve template variables in a string using mock values.
    * Returns the resolved string and list of unresolved variable names.
+   * All mock values are sanitized to prevent SSRF through URL injection.
    */
   private resolveTemplateVariables(
     template: string,
@@ -432,7 +446,8 @@ export class SchemaService {
         return match;
       }
 
-      return String(value);
+      // Sanitize the value to prevent SSRF through URL injection
+      return this.sanitizeMockValue(value);
     });
 
     return { resolved, unresolvedVars };
@@ -769,10 +784,34 @@ export class SchemaService {
   }
 
   /**
-   * Validates a URL for SSRF vulnerabilities.
+   * Parses and validates a URL for SSRF vulnerabilities.
+   * Returns either a validated URL string (safe to fetch) or an error.
+   * This method acts as a security barrier - the returned URL is explicitly
+   * validated against SSRF attacks.
+   */
+  private parseAndValidateUrl(urlString: string): { valid: true; url: string } | { valid: false; error: string } {
+    let url: URL;
+    try {
+      url = new URL(urlString);
+    } catch {
+      return { valid: false, error: `Invalid URL format: ${urlString}` };
+    }
+
+    const ssrfError = this.checkSsrfVulnerability(url);
+    if (ssrfError) {
+      return { valid: false, error: ssrfError };
+    }
+
+    // Return a freshly constructed URL string from validated components
+    // This ensures only safe URLs pass through this security barrier
+    return { valid: true, url: url.href };
+  }
+
+  /**
+   * Checks a URL for SSRF vulnerabilities.
    * Returns an error message if the URL is unsafe, or null if it's allowed.
    */
-  private validateUrlForSsrf(url: URL): string | null {
+  private checkSsrfVulnerability(url: URL): string | null {
     const hostname = url.hostname.toLowerCase();
 
     // Block non-HTTP(S) protocols
