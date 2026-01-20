@@ -1,6 +1,6 @@
 {
   "name": "manifest-ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "dev": "pnpm run registry:build && next dev --turbopack -p 3001",
     "build": "pnpm run registry:build && next build",
