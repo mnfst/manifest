@@ -6,6 +6,7 @@
 # Triggers:
 #   - Push to main branch (development builds)
 #   - Push of version tags (v1.0.0, v1.2.3, etc.)
+#   - Manual trigger via workflow_dispatch
 #
 # Versioning Strategy:
 #   On version tag (v1.2.3):
@@ -36,6 +37,7 @@ on:
     tags: ['v*.*.*']
     paths:
       - 'packages/manifest/**'
+  workflow_dispatch:
 
 env:
   DOCKER_IMAGE: manifestdotbuild/manifest
