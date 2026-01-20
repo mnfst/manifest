@@ -120,11 +120,12 @@ jobs:
           fi
 
       # Run tests and report status (needed because bot commits don't trigger CI)
+      # Only build and test manifest-ui, not the entire monorepo
       - name: Build App
-        run: pnpm run build
+        run: pnpm run manifest-ui:build
 
       - name: Run tests
-        run: pnpm run test
+        run: pnpm run manifest-ui:test
 
       - name: Set success status
         if: success()
