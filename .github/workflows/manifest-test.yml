@@ -1,4 +1,4 @@
-name: Test
+name: Manifest Package Tests
 
 permissions:
   contents: read
