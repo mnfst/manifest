@@ -253,7 +253,7 @@ function TableHeader({
         {titleImage && (
           <img
             src={titleImage}
-            alt={title ? `${title} icon` : "Table icon"}
+            alt={title ? `${title} icon` : 'Table icon'}
             className="h-5 w-5 rounded object-cover"
           />
         )}
@@ -514,8 +514,8 @@ export function Table<T extends Record<string, unknown>>({
   const moreCount = totalRows
     ? totalRows - maxRows
     : sortedData.length > maxRows
-    ? sortedData.length - maxRows
-    : 0
+      ? sortedData.length - maxRows
+      : 0
 
   // Filter helpers
   const addFilter = () => {
@@ -645,7 +645,7 @@ export function Table<T extends Record<string, unknown>>({
             {titleImage && (
               <img
                 src={titleImage}
-                alt={title ? `${title} icon` : "Table icon"}
+                alt={title ? `${title} icon` : 'Table icon'}
                 className="h-5 w-5 rounded object-cover"
               />
             )}

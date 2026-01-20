@@ -214,7 +214,7 @@ export function IssueReportForm({
     attemptedActions = defaultAttemptedActions
   } = data ?? {}
   const { onSubmit } = actions ?? {}
-  const { showTitle = true, compactMode: _compactMode = true } = appearance ?? {}
+  const { showTitle = true } = appearance ?? {}
 
   const [formData, setFormData] = useState<IssueFormData>({
     declarantName: '',

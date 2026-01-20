@@ -4,24 +4,19 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
   MapPin,
-  Clock,
   Star,
   Share2,
   Heart,
   ChevronLeft,
   ChevronRight,
-  Users,
-  Calendar,
   CheckCircle,
   Car,
   Train,
   Bike,
   Footprints,
   Flag,
-  Shield,
   BadgeCheck,
-  Timer,
-  DoorOpen
+  Timer
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { ComponentType } from 'react'
@@ -109,19 +104,6 @@ function formatEventDateTime(startDateTime: string, endDateTime?: string): strin
   }
 
   return `${datePrefix} · ${startTime}`
-}
-
-function formatFullDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZoneName: 'short'
-  })
 }
 
 // Format number with commas (consistent across server/client)
@@ -257,7 +239,6 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isSaved, setIsSaved] = useState(false)
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
 
   // Lazy load react-leaflet components (React-only, no Next.js dependency)
   const leafletComponents = useReactLeaflet()
