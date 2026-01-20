@@ -38,10 +38,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files for dependency installation
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/nodes/package.json ./packages/nodes/
-COPY packages/backend/package.json ./packages/backend/
-COPY packages/frontend/package.json ./packages/frontend/
+COPY packages/manifest/shared/package.json ./packages/manifest/shared/
+COPY packages/manifest/nodes/package.json ./packages/manifest/nodes/
+COPY packages/manifest/backend/package.json ./packages/manifest/backend/
+COPY packages/manifest/frontend/package.json ./packages/manifest/frontend/
 
 # Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile
@@ -55,10 +55,10 @@ FROM deps AS build
 WORKDIR /app
 
 # Copy source code
-COPY packages/shared/ ./packages/shared/
-COPY packages/nodes/ ./packages/nodes/
-COPY packages/backend/ ./packages/backend/
-COPY packages/frontend/ ./packages/frontend/
+COPY packages/manifest/shared/ ./packages/manifest/shared/
+COPY packages/manifest/nodes/ ./packages/manifest/nodes/
+COPY packages/manifest/backend/ ./packages/manifest/backend/
+COPY packages/manifest/frontend/ ./packages/manifest/frontend/
 COPY tsconfig.base.json ./
 
 # Set Node.js memory limit for TypeScript compilation
@@ -69,22 +69,22 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # 1. Build shared package first (dependency of nodes, backend, and frontend)
 RUN echo "Building shared package..." && \
-    cd packages/shared && pnpm run build
+    cd packages/manifest/shared && pnpm run build
 
 # 2. Build nodes package (depends on shared, required by backend)
 RUN echo "Building nodes package..." && \
-    cd packages/nodes && pnpm run build
+    cd packages/manifest/nodes && pnpm run build
 
 # 3. Build backend (depends on shared and nodes)
 RUN echo "Building backend package..." && \
-    cd packages/backend && pnpm run build
+    cd packages/manifest/backend && pnpm run build
 
 # 4. Build frontend (depends on shared)
 # Note: For production builds in this image, VITE_API_URL is set to empty
 #       so the frontend uses relative URLs to a same-origin backend API.
 ENV VITE_API_URL=""
 RUN echo "Building frontend package..." && \
-    cd packages/frontend && pnpm run build
+    cd packages/manifest/frontend && pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 3: Production
@@ -106,32 +106,32 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files (for runtime metadata and tooling)
 # Note: frontend package.json is intentionally not copied here. The frontend is
-# built as static assets in /packages/frontend/dist and has no Node runtime
+# built as static assets in /packages/manifest/frontend/dist and has no Node runtime
 # dependencies in the production image.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/nodes/package.json ./packages/nodes/
-COPY packages/backend/package.json ./packages/backend/
+COPY packages/manifest/shared/package.json ./packages/manifest/shared/
+COPY packages/manifest/nodes/package.json ./packages/manifest/nodes/
+COPY packages/manifest/backend/package.json ./packages/manifest/backend/
 
 # Copy node_modules from deps stage and prune devDependencies for production
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=deps /app/packages/nodes/node_modules ./packages/nodes/node_modules
-COPY --from=deps /app/packages/backend/node_modules ./packages/backend/node_modules
+COPY --from=deps /app/packages/manifest/shared/node_modules ./packages/manifest/shared/node_modules
+COPY --from=deps /app/packages/manifest/nodes/node_modules ./packages/manifest/nodes/node_modules
+COPY --from=deps /app/packages/manifest/backend/node_modules ./packages/manifest/backend/node_modules
 RUN pnpm prune --prod
 
 # Copy built artifacts from build stage
-COPY --chown=appuser:nodejs --from=build /app/packages/shared/dist ./packages/shared/dist
-COPY --chown=appuser:nodejs --from=build /app/packages/nodes/dist ./packages/nodes/dist
-COPY --chown=appuser:nodejs --from=build /app/packages/backend/dist ./packages/backend/dist
-COPY --chown=appuser:nodejs --from=build /app/packages/frontend/dist ./packages/frontend/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/manifest/shared/dist ./packages/manifest/shared/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/manifest/nodes/dist ./packages/manifest/nodes/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/manifest/backend/dist ./packages/manifest/backend/dist
+COPY --chown=appuser:nodejs --from=build /app/packages/manifest/frontend/dist ./packages/manifest/frontend/dist
 
 # Copy backend templates (required for MCP functionality)
-COPY --chown=appuser:nodejs packages/backend/src/mcp/templates ./packages/backend/dist/mcp/templates
+COPY --chown=appuser:nodejs packages/manifest/backend/src/mcp/templates ./packages/manifest/backend/dist/mcp/templates
 
 # Create directories for runtime data
-RUN mkdir -p /app/data /app/packages/backend/uploads && \
-    chown -R appuser:nodejs /app/data /app/packages/backend/uploads
+RUN mkdir -p /app/data /app/packages/manifest/backend/uploads && \
+    chown -R appuser:nodejs /app/data /app/packages/manifest/backend/uploads
 
 # Switch to non-root user
 USER appuser
@@ -139,7 +139,7 @@ USER appuser
 # Environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV FRONTEND_DIST_PATH=/app/packages/frontend/dist
+ENV FRONTEND_DIST_PATH=/app/packages/manifest/frontend/dist
 
 # Re-declare build args for use in labels (ARGs are stage-scoped)
 ARG BUILD_DATE
@@ -167,4 +167,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD node -e "const port = process.env.PORT || 3001; require('http').get('http://localhost:' + port + '/api/apps', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"
 
 # Start the application
-CMD ["node", "packages/backend/dist/main.js"]
+CMD ["node", "packages/manifest/backend/dist/main.js"]
