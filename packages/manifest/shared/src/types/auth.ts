@@ -9,7 +9,7 @@
  */
 export const DEFAULT_ADMIN_USER = {
   email: 'admin@example.com',
-  password: 'changeme123',
+  password: 'changeme1234',
   firstName: 'Admin',
   lastName: 'User',
   name: 'Admin User',
