@@ -45,6 +45,8 @@ importers:
         specifier: ^8.18.2
         version: 8.51.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  packages/manifest: {}
+
   packages/manifest-ui:
     dependencies:
       '@openai/apps-sdk-ui':
