@@ -6,16 +6,31 @@ permissions:
 on:
   push:
     branches: [main]
-    paths:
-      - 'packages/manifest/**'
   pull_request:
     branches: [main]
-    paths:
-      - 'packages/manifest/**'
 
 jobs:
+  changes:
+    name: Check for manifest changes
+    runs-on: ubuntu-latest
+    outputs:
+      manifest: ${{ steps.filter.outputs.manifest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for changes in manifest package
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            manifest:
+              - 'packages/manifest/**'
+
   test:
     name: Run Tests for Manifest Package
+    needs: changes
+    if: needs.changes.outputs.manifest == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -36,3 +51,12 @@ jobs:
 
       - name: Run manifest package tests
         run: pnpm run manifest:test
+
+  test-skip:
+    name: Run Tests for Manifest Package
+    needs: changes
+    if: needs.changes.outputs.manifest == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip tests
+        run: echo "No changes in packages/manifest - skipping tests"
