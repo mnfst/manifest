@@ -1,3 +1,12 @@
+# ============================================================================
+# Manifest Package Tests Workflow
+# ============================================================================
+# Runs tests for the manifest package when changes are detected.
+#
+# Note: For automated changeset PRs (created by github-actions[bot]), see
+# changeset-pr-check.yml which handles those separately.
+# ============================================================================
+
 name: Manifest Package Tests
 
 permissions:
@@ -8,6 +17,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Allow manual triggering to unblock PRs when needed
+  workflow_dispatch:
 
 jobs:
   test:
