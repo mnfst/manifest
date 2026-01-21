@@ -25,7 +25,7 @@ interface Category {
 
 const categories: Category[] = [
   {
-    id: 'blog',
+    id: 'blogging',
     name: 'Blogging',
     blocks: [
       { id: 'post-card', name: 'Post Card' },
