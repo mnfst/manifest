@@ -52,7 +52,6 @@ This project uses [changesets](https://github.com/changesets/changesets) for ver
 
 **You MUST create a changeset when modifying code in:**
 - `packages/manifest/**` → select **manifest** package
-- `packages/manifest-ui/**` → select **manifest-ui** package
 
 ### How to Create a Changeset
 
@@ -63,7 +62,7 @@ pnpm changeset
 ```
 
 This will prompt you to:
-1. Select the affected package(s): `manifest` or `manifest-ui`
+1. Select the affected package: `manifest`
 2. Choose version bump type: `patch`, `minor`, or `major`
 3. Write a summary of the changes
 
@@ -89,9 +88,8 @@ Fixed authentication bug in login flow
 
 ### Important Notes
 
-- PRs modifying `manifest` or `manifest-ui` without a changeset will **fail CI**
+- PRs modifying `manifest` without a changeset will **fail CI**
 - The changeset summary should be user-facing (what changed, not how)
-- One changeset can include multiple packages if a change affects both
 
 ## Pull Request Guidelines
 
