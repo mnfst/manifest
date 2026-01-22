@@ -9,6 +9,12 @@ import Database from 'better-sqlite3';
 function getTrustedOrigins(): string[] {
   const origins: string[] = [];
 
+  // Add BETTER_AUTH_URL to trusted origins (the app's own URL should always be trusted)
+  if (process.env.BETTER_AUTH_URL) {
+    // Remove trailing slash if present for consistency
+    origins.push(process.env.BETTER_AUTH_URL.replace(/\/$/, ''));
+  }
+
   // Add origins from ALLOWED_ORIGINS env var
   if (process.env.ALLOWED_ORIGINS) {
     origins.push(...process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()));
