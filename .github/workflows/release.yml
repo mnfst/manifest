@@ -92,3 +92,19 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    outputs:
+      should_release: ${{ steps.version.outputs.should_release }}
+      version: ${{ steps.version.outputs.version }}
+
+  # Publish Docker image after release
+  # This is called directly instead of relying on tag push events
+  # because GITHUB_TOKEN pushes don't trigger other workflows
+  docker-publish:
+    name: Docker Publish
+    needs: release
+    if: needs.release.outputs.should_release == 'true'
+    uses: ./.github/workflows/manifest-publish.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+    secrets: inherit
