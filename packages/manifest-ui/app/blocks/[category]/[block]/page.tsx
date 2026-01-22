@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { blockCategories } from '@/lib/blocks-categories'
 import { ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -2475,7 +2476,7 @@ function BlockPageContent() {
   const blockSlug = params.block as string
 
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
-    categories.map((c) => c.id)
+    blockCategories.map((c) => c.id)
   )
 
   const toggleCategory = (categoryId: string) => {
@@ -2486,9 +2487,12 @@ function BlockPageContent() {
     )
   }
 
-  // Find the selected block
+  // Find the selected block (from hardcoded categories for content/variants)
   const selectedCategory = categories.find((c) => c.id === categorySlug)
   const selectedBlock = selectedCategory?.blocks.find((b) => b.id === blockSlug)
+
+  // Find the category from blockCategories for sidebar and related blocks
+  const sidebarCategory = blockCategories.find((c) => c.id === categorySlug)
 
   // Ref for the first variant section
   const firstVariantRef = useRef<VariantSectionHandle>(null)
@@ -2539,7 +2543,7 @@ function BlockPageContent() {
           >
             Getting Started
           </Link>
-          {categories.map((category) => (
+          {blockCategories.map((category) => (
             <div key={category.id}>
               <button
                 onClick={() => toggleCategory(category.id)}
@@ -2585,7 +2589,7 @@ function BlockPageContent() {
             <Breadcrumb
               items={[
                 { name: 'Blocks', href: '/blocks' },
-                { name: selectedCategory?.name || categorySlug },
+                { name: sidebarCategory?.name || categorySlug },
                 { name: selectedBlock.name }
               ]}
             />
@@ -2628,20 +2632,20 @@ function BlockPageContent() {
           ))}
 
           {/* Related Blocks in Same Category */}
-          {selectedCategory &&
-            selectedCategory.blocks.filter((b) => b.id !== blockSlug).length >
+          {sidebarCategory &&
+            sidebarCategory.blocks.filter((b) => b.id !== blockSlug).length >
               0 && (
               <div className="mt-16 pt-8 border-t border-border/50">
                 <h2 className="text-base font-medium text-muted-foreground mb-4">
-                  Other blocks in the {selectedCategory.name} category
+                  Other blocks in the {sidebarCategory.name} category
                 </h2>
                 <div className="grid grid-cols-2 gap-2">
-                  {selectedCategory.blocks
+                  {sidebarCategory.blocks
                     .filter((b) => b.id !== blockSlug)
                     .map((block) => (
                       <Link
                         key={block.id}
-                        href={`/blocks/${selectedCategory.id}/${block.id}`}
+                        href={`/blocks/${sidebarCategory.id}/${block.id}`}
                         className="px-3 py-2 text-sm rounded-md border border-border/50 bg-background/50 hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
                       >
                         {block.name}
