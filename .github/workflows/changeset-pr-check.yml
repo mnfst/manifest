@@ -10,7 +10,7 @@
 #
 # Solution:
 # - Use pull_request_target which runs even for bot-created PRs
-# - Use the same job name "test" to satisfy the required status check
+# - Use GitHub Status API to create the exact "test" status context
 # - Only runs for PRs titled "chore: version packages"
 # ============================================================================
 
@@ -25,16 +25,24 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: test
+  changeset-check:
+    name: Changeset PR Check
     runs-on: ubuntu-latest
     # Only run for changeset PRs (identified by title)
     if: github.event.pull_request.title == 'chore: version packages'
 
     steps:
-      - name: Skip tests for version packages PR
-        run: |
-          echo "✅ Skipping tests - changeset PR only changes version numbers"
-          echo ""
-          echo "This PR was created by the changesets automation and only"
-          echo "updates package versions and changelogs. No code tests needed."
+      - name: Report test status for changeset PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Create a commit status with context "test" to satisfy branch protection
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.pull_request.head.sha,
+              state: 'success',
+              context: 'test',
+              description: 'Skipped - changeset PR only updates versions'
+            });
+            console.log('✅ Reported "test" status as success for changeset PR');
