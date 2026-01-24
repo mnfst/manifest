@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Flow editor application with NestJS backend and React frontend",
   "repository": {
     "type": "git",
