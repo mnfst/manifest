@@ -142,7 +142,7 @@ function extractDemoDataFromFiles(
  */
 export function InterfaceEditor({
   nodeName: initialNodeName,
-  componentType = 'StatCard',
+  componentType = 'BlankComponent',
   initialCode,
   initialAppearanceConfig,
   appearanceOptions,

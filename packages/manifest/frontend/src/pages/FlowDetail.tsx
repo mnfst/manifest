@@ -9,7 +9,7 @@ import type {
   Connection,
   NodeType,
   ChatMessage,
-  StatCardNodeParameters,
+  UINodeParameters,
   RegistryNodeParameters,
 } from '@manifest/shared';
 import { Hammer, Eye, ScrollText, BarChart3, Edit, Trash2, Share2, Plus } from 'lucide-react';
@@ -297,18 +297,17 @@ function FlowDetail() {
   }, []);
 
   const handleNodeLibrarySelect = useCallback(async (nodeType: NodeType) => {
-    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId && flow) {
+    // For BlankComponent, skip the modal and create directly with defaults
+    if (nodeType === 'BlankComponent' && flowId && flow) {
       const nodes = flow.nodes ?? [];
       const position = {
         x: nodes.length * 280 + 330,
         y: 100,
       };
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         await api.createNode(flowId, {
           type: nodeType,
-          name: displayName,
+          name: 'Blank Component',
           position,
           parameters: {},
         });
@@ -317,7 +316,7 @@ function FlowDetail() {
         // Node is added to canvas without opening editor (US3: non-disruptive add)
       } catch (err) {
         console.error(`Failed to create ${nodeType}:`, err);
-        setError(`Failed to create ${displayName} node. Please try again.`);
+        setError('Failed to create Blank Component node. Please try again.');
       }
       return;
     }
@@ -336,17 +335,16 @@ function FlowDetail() {
 
   // Handler for node type selection (from "+" button click + library selection)
   const handleNodeLibrarySelectWithConnection = useCallback(async (nodeType: NodeType) => {
-    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId && pendingConnection) {
+    // For BlankComponent, skip the modal and create directly with defaults
+    if (nodeType === 'BlankComponent' && flowId && pendingConnection) {
       const position = {
         x: pendingConnection.sourcePosition.x + 280,
         y: pendingConnection.sourcePosition.y,
       };
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         const newNode = await api.createNode(flowId, {
           type: nodeType,
-          name: displayName,
+          name: 'Blank Component',
           position,
           parameters: {},
         });
@@ -363,7 +361,7 @@ function FlowDetail() {
         // Node is added to canvas without opening editor (US3: non-disruptive add)
       } catch (err) {
         console.error(`Failed to create ${nodeType}:`, err);
-        setError(`Failed to create ${displayName} node. Please try again.`);
+        setError('Failed to create Blank Component node. Please try again.');
       }
       return;
     }
@@ -376,17 +374,16 @@ function FlowDetail() {
 
   // Handler for dropping node on a "+" button - creates node with connection
   const handleDropOnNode = useCallback(async (nodeType: NodeType, sourceNodeId: string, sourceHandle: string, sourcePosition: { x: number; y: number }) => {
-    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId) {
+    // For BlankComponent, skip the modal and create directly with defaults
+    if (nodeType === 'BlankComponent' && flowId) {
       const position = {
         x: sourcePosition.x + 280,
         y: sourcePosition.y,
       };
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
       try {
         const newNode = await api.createNode(flowId, {
           type: nodeType,
-          name: displayName,
+          name: 'Blank Component',
           position,
           parameters: {},
         });
@@ -402,7 +399,7 @@ function FlowDetail() {
         // Node is added to canvas without opening editor (US3: non-disruptive add)
       } catch (err) {
         console.error(`Failed to create ${nodeType}:`, err);
-        setError(`Failed to create ${displayName} node. Please try again.`);
+        setError('Failed to create Blank Component node. Please try again.');
       }
       return;
     }
@@ -418,13 +415,12 @@ function FlowDetail() {
   const [dropPosition, setDropPosition] = useState<{ x: number; y: number } | null>(null);
 
   const handleDropOnCanvas = useCallback(async (nodeType: NodeType, position: { x: number; y: number }) => {
-    // For StatCard, PostList, and BlankComponent, skip the modal and create directly with defaults
-    if ((nodeType === 'StatCard' || nodeType === 'PostList' || nodeType === 'BlankComponent') && flowId) {
-      const displayName = nodeType === 'StatCard' ? 'Stat Card' : nodeType === 'PostList' ? 'Post List' : 'Blank Component';
+    // For BlankComponent, skip the modal and create directly with defaults
+    if (nodeType === 'BlankComponent' && flowId) {
       try {
         await api.createNode(flowId, {
           type: nodeType,
-          name: displayName,
+          name: 'Blank Component',
           position,
           parameters: {},
         });
@@ -550,9 +546,9 @@ function FlowDetail() {
     }
   };
 
-  // Interface node code editor handlers (StatCard, PostList, RegistryComponent, and BlankComponent)
+  // Interface node code editor handlers (RegistryComponent and BlankComponent)
   const handleNodeEditCode = useCallback((node: NodeInstance) => {
-    if (node.type === 'StatCard' || node.type === 'PostList' || node.type === 'RegistryComponent' || node.type === 'BlankComponent') {
+    if (node.type === 'RegistryComponent' || node.type === 'BlankComponent') {
       setEditingCodeNodeId(node.id);
     }
   }, []);
@@ -650,7 +646,7 @@ function FlowDetail() {
         appearanceConfig: data.appearanceConfig,
       };
     } else {
-      // For StatCard/PostList/BlankComponent, use customCode
+      // For BlankComponent, use customCode
       updatedParameters = {
         ...nodeToUpdate.parameters,
         customCode: data.code,
@@ -893,10 +889,10 @@ function FlowDetail() {
 
               {/* UI Node Editor - covers canvas and node library */}
               {editingCodeNode && flowId && (() => {
-                const params = editingCodeNode.parameters as unknown as StatCardNodeParameters;
+                const params = editingCodeNode.parameters as unknown as UINodeParameters;
 
                 // For RegistryComponent, get code from files[0].content and pass all files
-                // For BlankComponent/StatCard/PostList, use customCode
+                // For BlankComponent, use customCode
                 let initialCode: string | undefined;
                 let componentType: string = editingCodeNode.type;
                 let appearanceOptions: RegistryNodeParameters['appearanceOptions'] = undefined;

@@ -1,7 +1,7 @@
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { useEffect, useMemo, memo } from 'react';
-import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type StatCardNodeParameters, type NodeType } from '@manifest/shared';
+import { LAYOUT_REGISTRY, type NodeInstance, type LayoutTemplate, type NodeType } from '@manifest/shared';
 import { LayoutGrid, Code2 } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 import { AddNodeButton } from './AddNodeButton';
@@ -27,9 +27,9 @@ export const ViewNode = memo(function ViewNode({ data, id }: NodeProps) {
   const { node, canDelete, onEdit, onDelete, onEditCode, onAddFromNode, onDropOnNode } = data as ViewNodeData;
   const updateNodeInternals = useUpdateNodeInternals();
 
-  // Get parameters with type safety
-  const params = node.parameters as unknown as StatCardNodeParameters;
-  const layoutTemplate = params?.layoutTemplate || 'stat-card';
+  // Get parameters (used for legacy StatCard/PostList nodes if any exist in DB)
+  const params = node.parameters as Record<string, unknown>;
+  const layoutTemplate = (params?.layoutTemplate as string) || 'stat-card';
   const hasCustomCode = Boolean((params as unknown as Record<string, unknown>)?.customCode);
 
   // Look up actions for this node's layout template
