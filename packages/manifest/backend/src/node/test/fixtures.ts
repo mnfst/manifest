@@ -99,18 +99,22 @@ export function createMockApiCallNode(
 }
 
 /**
- * Creates a mock StatCard UI node
+ * Creates a mock RegistryComponent UI node
  */
-export function createMockStatCardNode(
+export function createMockRegistryComponentNode(
   overrides: Partial<NodeInstance> = {},
 ): NodeInstance {
   return createMockNodeInstance({
-    id: 'statcard-1',
-    type: 'StatCard',
-    name: 'Stat Card',
-    slug: 'stat-card',
+    id: 'registry-1',
+    type: 'RegistryComponent',
+    name: 'Registry Component',
+    slug: 'registry-component',
     parameters: {
-      layoutTemplate: 'stat-card',
+      registryName: 'event-list',
+      title: 'Event List',
+      description: 'Display events',
+      files: [],
+      actions: [],
     },
     ...overrides,
   });

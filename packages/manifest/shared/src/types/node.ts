@@ -1,7 +1,6 @@
 import type { FlowParameter } from './flow.js';
 import type { JSONSchema } from './schema.js';
 import type { AppearanceConfig } from './appearance.js';
-import type { LayoutTemplate } from './app.js';
 
 // =============================================================================
 // Position
@@ -31,7 +30,7 @@ export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | '
 /**
  * Supported node types in the system.
  */
-export type NodeType = 'BlankComponent' | 'StatCard' | 'PostList' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link' | 'RegistryComponent';
+export type NodeType = 'BlankComponent' | 'Return' | 'CallFlow' | 'UserIntent' | 'ApiCall' | 'JavaScriptCodeTransform' | 'Link' | 'RegistryComponent';
 
 // =============================================================================
 // API Call Node Types
@@ -163,21 +162,6 @@ export interface BlankComponentNodeParameters {
   customCode?: string;
 
   /** Visual configuration derived from the component's appearance prop interface. */
-  appearanceConfig?: AppearanceConfig;
-}
-
-/**
- * Parameters for a StatCard node.
- * @deprecated Use UINodeParameters instead. This type is kept for backward compatibility.
- */
-export interface StatCardNodeParameters {
-  /** @deprecated Layout template is no longer used. Field is ignored. */
-  layoutTemplate?: string;
-
-  /** Custom component code (TSX). If present, overrides the default template rendering */
-  customCode?: string;
-
-  /** Appearance configuration for visual options */
   appearanceConfig?: AppearanceConfig;
 }
 
@@ -409,15 +393,6 @@ export interface TestApiCallResponse {
 // =============================================================================
 
 /**
- * Check if a node is a StatCard node.
- */
-export function isStatCardNode(
-  node: NodeInstance
-): node is NodeInstance & { parameters: StatCardNodeParameters } {
-  return node.type === 'StatCard';
-}
-
-/**
  * Check if a node is a Return node.
  */
 export function isReturnNode(
@@ -460,30 +435,6 @@ export function isJavaScriptCodeTransformNode(
   node: NodeInstance
 ): node is NodeInstance & { parameters: JavaScriptCodeTransformParameters } {
   return node.type === 'JavaScriptCodeTransform';
-}
-
-/**
- * Check if a node is a PostList node.
- */
-export function isPostListNode(
-  node: NodeInstance
-): node is NodeInstance & { parameters: PostListNodeParameters } {
-  return node.type === 'PostList';
-}
-
-// =============================================================================
-// PostList Node Types
-// =============================================================================
-
-/**
- * Parameters for a PostList node.
- */
-export interface PostListNodeParameters {
-  /** Layout template type */
-  layoutTemplate: LayoutTemplate;
-
-  /** Custom component code (TSX). If present, overrides the default template rendering */
-  customCode?: string;
 }
 
 // =============================================================================

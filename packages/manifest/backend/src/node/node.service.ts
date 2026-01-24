@@ -385,9 +385,9 @@ export class NodeService {
     // Link nodes can only receive connections from interface (UI) nodes
     if (targetNode.type === 'Link') {
       const sourceNode = nodes.find((n) => n.id === request.sourceNodeId);
-      const INTERFACE_NODE_TYPES = ['StatCard', 'PostList'];
+      const INTERFACE_NODE_TYPES = ['RegistryComponent', 'BlankComponent'];
       if (!sourceNode || !INTERFACE_NODE_TYPES.includes(sourceNode.type)) {
-        throw new BadRequestException('Link nodes can only be connected after UI nodes (like StatCard or PostList).');
+        throw new BadRequestException('Link nodes can only be connected after UI nodes (like RegistryComponent).');
       }
     }
 

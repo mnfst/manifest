@@ -24,7 +24,7 @@ import {
 import {
   createMockFlowEntity,
   createMockAppEntity,
-  createMockStatCardNode,
+  createMockRegistryComponentNode,
 } from './test/fixtures';
 
 describe('FlowService', () => {
@@ -415,13 +415,13 @@ describe('FlowService', () => {
       expect(mockFlowRepository.remove).toHaveBeenCalledWith(mockEntity);
     });
 
-    it('should return correct view count when deleting flow with StatCard nodes', async () => {
+    it('should return correct view count when deleting flow with UI nodes', async () => {
       const mockEntity = createMockFlowEntity({
         id: 'with-views',
         nodes: [
-          createMockStatCardNode({ id: '1' }),
-          createMockStatCardNode({ id: '2' }),
-          createMockStatCardNode({ id: '3' }),
+          createMockRegistryComponentNode({ id: '1' }),
+          createMockRegistryComponentNode({ id: '2' }),
+          createMockRegistryComponentNode({ id: '3' }),
         ],
       });
       mockFlowRepository.findOne!.mockResolvedValue(mockEntity);
@@ -432,11 +432,11 @@ describe('FlowService', () => {
       expect(result.deletedViewCount).toBe(3);
     });
 
-    it('should only count StatCard nodes in deletedViewCount', async () => {
+    it('should only count UI component nodes in deletedViewCount', async () => {
       const mockEntity = createMockFlowEntity({
         id: 'mixed-nodes',
         nodes: [
-          createMockStatCardNode({ id: '1' }),
+          createMockRegistryComponentNode({ id: '1' }),
           { id: '2', type: 'UserIntent', name: 'Trigger', slug: 'trigger', position: { x: 0, y: 0 }, parameters: {} },
           { id: '3', type: 'Return', name: 'Return', slug: 'return', position: { x: 0, y: 0 }, parameters: {} },
         ],

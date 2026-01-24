@@ -5,7 +5,7 @@ import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
 import { SecretService } from '../secret/secret.service';
-import type { McpToolResponse, LayoutTemplate, NodeInstance, StatCardNodeParameters, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@manifest/shared';
+import type { McpToolResponse, NodeInstance, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@manifest/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@manifest/nodes';
 
 /**
@@ -115,8 +115,8 @@ export class McpInactiveToolError extends BadRequestException {
  * Implements ChatGPT Apps SDK response format
  * Each flow in an app becomes an MCP tool
  *
- * Updated to use new unified node architecture:
- * - StatCard nodes contain UI layouts for displaying statistics
+ * Node architecture:
+ * - RegistryComponent nodes contain UI components from the registry
  * - Return nodes contain text content for LLM
  * - CallFlow nodes trigger other flows
  */
@@ -439,18 +439,6 @@ export class McpToolService {
           result = await this.executeCallFlowNode(app, toolName, trigger.name, node);
           nodeOutputs.set(node.id, result.structuredContent);
           nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
-        } else if (node.type === 'StatCard') {
-          result = this.executeStatCardFlow(app, toolName, trigger.name, node, nodeInputData);
-          // StatCard nodes output their structured content (populated from upstream data)
-          const structuredContent = result.structuredContent || {};
-          nodeOutputs.set(node.id, structuredContent);
-          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
-        } else if (node.type === 'PostList') {
-          result = this.executePostListFlow(app, toolName, trigger.name, node, nodeInputData);
-          // PostList nodes output their structured content with action metadata
-          const structuredContent = result.structuredContent || {};
-          nodeOutputs.set(node.id, structuredContent);
-          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
         } else if (node.type === 'JavaScriptCodeTransform') {
           // Execute JavaScript transform node
           const transformResult = await this.executeTransformNode(flow.id, node, nodeOutputs, allNodes, connections);
@@ -739,78 +727,6 @@ export class McpToolService {
         error: error instanceof Error ? error.message : String(error),
       };
     }
-  }
-
-  /**
-   * Execute StatCard node - return widget with structured content
-   */
-  private executeStatCardFlow(
-    app: AppEntity,
-    triggerToolName: string,
-    triggerName: string,
-    statCardNode: NodeInstance,
-    input: Record<string, unknown>
-  ): McpToolResponse {
-    const params = statCardNode.parameters as StatCardNodeParameters;
-    const message = typeof input.message === 'string' ? input.message : '';
-    const responseText = this.generateResponseText(triggerName, params.layoutTemplate, message);
-
-    // Extract stats from upstream node outputs (nested under source node ID)
-    // or from top-level if directly provided
-    let stats: unknown[] = [];
-    if (Array.isArray(input.stats)) {
-      stats = input.stats;
-    } else {
-      for (const key of Object.keys(input)) {
-        const value = input[key];
-        if (value && typeof value === 'object' && 'stats' in value) {
-          stats = (value as { stats: unknown[] }).stats;
-          break;
-        }
-      }
-    }
-
-    return {
-      structuredContent: { stats },
-      content: [{ type: 'text', text: responseText }],
-      _meta: {
-        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}.html`,
-        'openai/widgetPrefersBorder': true,
-        flowName: triggerName,
-        toolName: triggerToolName,
-      },
-    };
-  }
-
-  /**
-   * Execute PostList node - return widget with structured content and action metadata
-   */
-  private executePostListFlow(
-    app: AppEntity,
-    triggerToolName: string,
-    triggerName: string,
-    postListNode: NodeInstance,
-    input: Record<string, unknown>
-  ): McpToolResponse {
-    // PostList uses post-list layout template
-    const responseText = `Here are the posts from ${triggerName}:`;
-
-    return {
-      structuredContent: {
-        posts: input.posts || [],
-        nodeId: postListNode.id,
-        actions: ['onReadMore'],
-      },
-      content: [{ type: 'text', text: responseText }],
-      _meta: {
-        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}.html`,
-        'openai/widgetPrefersBorder': true,
-        flowName: triggerName,
-        toolName: triggerToolName,
-        nodeId: postListNode.id,
-        availableActions: ['onReadMore'],
-      },
-    };
   }
 
   /**
@@ -1162,8 +1078,8 @@ export class McpToolService {
     for (const flow of flows) {
       const nodes = flow.nodes ?? [];
       const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
-      const hasStatCard = nodes.some(n => n.type === 'StatCard');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
+      const registryComponents = nodes.filter(n => n.type === 'RegistryComponent');
 
       for (const triggerNode of triggerNodes) {
         const params = triggerNode.parameters as UserIntentNodeParameters;
@@ -1187,17 +1103,19 @@ export class McpToolService {
           inputSchema,
         };
 
-        if (hasStatCard) {
-          toolDef._meta = {
-            'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}.html`,
-            'openai/toolInvocation/invoking': `Loading ${triggerNode.name}...`,
-            'openai/toolInvocation/invoked': `Loaded ${triggerNode.name}`,
-          };
-        } else if (hasCallFlow) {
+        if (hasCallFlow) {
           toolDef._meta = {
             'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}-callflow.html`,
             'openai/toolInvocation/invoking': `Triggering ${triggerNode.name}...`,
             'openai/toolInvocation/invoked': `Triggered ${triggerNode.name}`,
+          };
+        } else if (registryComponents.length > 0) {
+          // Use the first RegistryComponent for the tool definition
+          const firstRegistry = registryComponents[0];
+          toolDef._meta = {
+            'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}/${firstRegistry.id}.html`,
+            'openai/toolInvocation/invoking': `Loading ${triggerNode.name}...`,
+            'openai/toolInvocation/invoked': `Loaded ${triggerNode.name}`,
           };
         }
 
@@ -1304,7 +1222,6 @@ export class McpToolService {
     for (const flow of flows) {
       const nodes = flow.nodes ?? [];
       const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
-      const hasStatCard = nodes.some(n => n.type === 'StatCard');
       const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
       const registryComponents = nodes.filter(n => n.type === 'RegistryComponent');
 
@@ -1318,14 +1235,7 @@ export class McpToolService {
 
         const toolName = params.toolName;
 
-        if (hasStatCard) {
-          resources.push({
-            uri: `ui://widget/${appSlug}/${toolName}.html`,
-            name: `${triggerNode.name} Widget`,
-            description: `UI widget for ${toolName}`,
-            mimeType: 'text/html+skybridge',
-          });
-        } else if (hasCallFlow) {
+        if (hasCallFlow) {
           resources.push({
             uri: `ui://widget/${appSlug}/${toolName}-callflow.html`,
             name: `${triggerNode.name} Call Flow Widget`,
@@ -1366,7 +1276,6 @@ export class McpToolService {
 
     const callFlowMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^-]+)-callflow\.html$/);
     const registryMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^/]+)\/([^.]+)\.html$/);
-    const viewMatch = uri.match(/^ui:\/\/widget\/([^/]+)\/([^.]+)\.html$/);
 
     // Handle RegistryComponent widgets: ui://widget/{appSlug}/{toolName}/{nodeId}.html
     if (registryMatch && registryMatch[1] === appSlug) {
@@ -1434,134 +1343,9 @@ export class McpToolService {
 
       const widgetHtml = this.generateCallFlowWidgetHtml(trigger.name, targetToolName, targetFlowName, app.themeVariables);
       return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
-    } else if (viewMatch && viewMatch[1] === appSlug) {
-      const toolName = viewMatch[2];
-
-      // Find trigger by toolName
-      const triggerResult = await this.findTriggerByToolName(app.id, toolName);
-      if (!triggerResult) {
-        throw new NotFoundException(`No active trigger found for tool: ${toolName}`);
-      }
-
-      const { trigger, flow } = triggerResult;
-      const nodes = flow.nodes ?? [];
-      const statCardNode = nodes.find(n => n.type === 'StatCard');
-
-      if (!statCardNode) throw new NotFoundException(`No StatCard node found for tool: ${toolName}`);
-
-      const params = statCardNode.parameters as StatCardNodeParameters;
-      const widgetHtml = this.generateWidgetHtml(trigger.name, params.layoutTemplate, app.themeVariables);
-
-      return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
     }
 
     throw new NotFoundException(`Invalid resource URI: ${uri}`);
-  }
-
-  /**
-   * Generate widget HTML with ChatGPT Apps SDK bridge
-   * Currently only supports stat-card layout
-   */
-  private generateWidgetHtml(
-    flowName: string,
-    _layoutTemplate: LayoutTemplate,
-    themeVariables: Record<string, string>
-  ): string {
-    const cssVariables = Object.entries(themeVariables)
-      .filter(([, value]) => value !== undefined)
-      .map(([key, value]) => `${key}: ${value};`)
-      .join('\n      ');
-
-    // All layouts currently use stat-card
-    return this.generateStatsWidgetHtml(flowName, cssVariables);
-  }
-
-  private generateStatsWidgetHtml(flowName: string, cssVariables: string): string {
-    const safeFlowName = escapeHtml(flowName);
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${safeFlowName}</title>
-  <style>
-    :root {
-      ${cssVariables}
-      --background: 0 0% 100%;
-      --foreground: 222.2 84% 4.9%;
-      --card: 0 0% 100%;
-      --card-foreground: 222.2 84% 4.9%;
-      --muted-foreground: 215.4 16.3% 46.9%;
-      --border: 214.3 31.8% 91.4%;
-      --success: 142.1 76.2% 36.3%;
-      --destructive: 0 84.2% 60.2%;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: hsl(var(--background)); color: hsl(var(--foreground)); padding: 16px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
-    .stat-card { padding: 16px; border-radius: 8px; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); }
-    .stat-label { font-size: 12px; font-weight: 500; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .stat-value { font-size: 24px; font-weight: 600; color: hsl(var(--card-foreground)); margin-bottom: 4px; }
-    @media (min-width: 768px) { .stat-value { font-size: 28px; } }
-    .stat-change { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
-    .stat-change.up { color: hsl(var(--success)); }
-    .stat-change.down { color: hsl(var(--destructive)); }
-    .stat-change.neutral { color: hsl(var(--muted-foreground)); }
-    .trend-icon { width: 16px; height: 16px; }
-    .change-label { font-size: 11px; color: hsl(var(--muted-foreground)); margin-left: 4px; }
-    .empty-message { padding: 32px; text-align: center; color: hsl(var(--muted-foreground)); }
-  </style>
-</head>
-<body>
-  <div class="stats-grid" id="stats-grid"></div>
-  <div class="empty-message" id="empty-message" style="display: none;">No statistics available</div>
-  <script>
-    (function() {
-      var icons = {
-        up: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
-        down: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>',
-        neutral: '<svg class="trend-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
-      };
-      function unwrap(d) { return (d && d.structuredContent) ? d.structuredContent : d; }
-      function getToolData() {
-        if (!window.openai) return null;
-        // Check multiple possible locations for tool output
-        return window.openai.toolOutput || window.openai.structuredContent || null;
-      }
-      function initWidget() { var data = getToolData(); if (data) renderStats(unwrap(data)); }
-      window.addEventListener('openai:set_globals', function(e) {
-        if (!e.detail) return;
-        var output = e.detail.toolOutput || e.detail.structuredContent || (e.detail.globals && e.detail.globals.toolOutput);
-        if (output) renderStats(unwrap(output));
-      });
-      window.addEventListener('message', function(e) {
-        if (!e.data) return;
-        // Only handle messages that look like tool output data
-        var d = e.data.structuredContent || e.data;
-        if (d && d.stats) renderStats(d);
-      });
-      function renderStats(data) {
-        var grid = document.getElementById('stats-grid');
-        var empty = document.getElementById('empty-message');
-        var stats = (data && data.stats) || [];
-        if (stats.length === 0) { grid.style.display = 'none'; empty.style.display = 'block'; return; }
-        grid.style.display = 'grid'; empty.style.display = 'none';
-        grid.innerHTML = stats.map(function(s) {
-          var trend = s.trend || determineTrend(s.change);
-          var changeVal = formatChange(s.change);
-          var changeLabel = s.changeLabel || '';
-          return '<div class="stat-card"><div class="stat-label">' + escapeHtml(s.label) + '</div><div class="stat-value">' + escapeHtml(String(s.value)) + '</div>' + (changeVal ? '<div class="stat-change ' + trend + '">' + icons[trend] + '<span>' + changeVal + '</span>' + (changeLabel ? '<span class="change-label">' + escapeHtml(changeLabel) + '</span>' : '') + '</div>' : '') + '</div>';
-        }).join('');
-      }
-      function determineTrend(c) { if (c === undefined || c === null || c === 0) return 'neutral'; return c > 0 ? 'up' : 'down'; }
-      function formatChange(c) { if (c === undefined || c === null) return ''; var sign = c > 0 ? '+' : ''; return sign + c.toFixed(1) + '%'; }
-      function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-      if (document.readyState === 'complete') initWidget(); else window.addEventListener('DOMContentLoaded', initWidget);
-    })();
-  </script>
-</body>
-</html>`;
   }
 
   private generateCallFlowWidgetHtml(
@@ -1618,10 +1402,6 @@ export class McpToolService {
 </html>`;
   }
 
-  private generateResponseText(flowName: string, _layoutTemplate: LayoutTemplate, _message: string): string {
-    return `Here are the statistics from ${flowName}:`;
-  }
-
   /**
    * Generate widget HTML for a RegistryComponent.
    * Renders the actual React component using Sucrase for runtime JSX transpilation.
@@ -1661,8 +1441,8 @@ export class McpToolService {
   <!-- React and ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <!-- Sucrase for runtime JSX transpilation -->
-  <script src="https://unpkg.com/sucrase@3.35.0/dist/sucrase.min.js"></script>
+  <!-- Babel Standalone for runtime JSX transpilation -->
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
   <!-- Lucide React Icons -->
   <script src="https://unpkg.com/lucide-react@0.344.0/dist/umd/lucide-react.min.js"></script>
   <style>
@@ -1830,12 +1610,11 @@ export class McpToolService {
             .replace(/['"]use client['"]\\s*;?/g, '')
             .replace(/['"]use server['"]\\s*;?/g, '');
 
-          // Transform with Sucrase
-          var result = window.sucrase.transform(processedCode, {
-            transforms: ['jsx', 'typescript', 'imports'],
-            jsxRuntime: 'classic',
-            jsxPragma: 'React.createElement',
-            jsxFragmentPragma: 'React.Fragment',
+          // Transform with Babel
+          var result = Babel.transform(processedCode, {
+            presets: ['react', 'typescript'],
+            plugins: ['transform-modules-commonjs'],
+            filename: 'component.tsx'
           });
 
           // Create module wrapper

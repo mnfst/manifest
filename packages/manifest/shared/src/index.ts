@@ -47,7 +47,6 @@ export type {
   NodeInstance,
   Connection,
   UINodeParameters,
-  StatCardNodeParameters,
   BlankComponentNodeParameters,
   ReturnNodeParameters,
   CallFlowNodeParameters,
@@ -74,7 +73,6 @@ export type {
   TestApiCallResponse,
 } from './types/node.js';
 export {
-  isStatCardNode,
   isReturnNode,
   isCallFlowNode,
   isUserIntentNode,

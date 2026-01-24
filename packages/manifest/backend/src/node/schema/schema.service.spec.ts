@@ -24,7 +24,7 @@ import {
   createMockUserIntentNode,
   createMockApiCallNode,
   createMockApiCallNodeWithSchema,
-  createMockStatCardNode,
+  createMockRegistryComponentNode,
   createMockReturnNode,
   createMockLinkNode,
   createMockTransformNode,
@@ -344,7 +344,7 @@ describe('SchemaService', () => {
 
     it('should allow Link node from interface node', async () => {
       const nodes = [
-        createMockStatCardNode({ id: 'statcard' }),
+        createMockRegistryComponentNode({ id: 'statcard' }),
         createMockLinkNode({ id: 'link' }),
       ];
       const connections = [

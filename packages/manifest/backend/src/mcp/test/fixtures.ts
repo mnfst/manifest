@@ -108,19 +108,23 @@ export function createMockUserIntentNode(
 }
 
 /**
- * Creates a mock StatCard node
+ * Creates a mock RegistryComponent node
  * @param overrides - Optional partial to override defaults
  */
-export function createMockStatCardNode(
+export function createMockRegistryComponentNode(
   overrides: Partial<NodeInstance> = {},
 ): NodeInstance {
   return createMockNodeInstance({
-    id: 'statcard-1',
-    type: 'StatCard',
-    name: 'Test StatCard',
-    slug: 'test-statcard',
+    id: 'registry-1',
+    type: 'RegistryComponent',
+    name: 'Test Registry Component',
+    slug: 'test-registry-component',
     parameters: {
-      layoutTemplate: 'stat-card',
+      registryName: 'event-list',
+      title: 'Event List',
+      description: 'Display events',
+      files: [],
+      actions: [],
     },
     ...overrides,
   });
@@ -181,23 +185,6 @@ export function createMockCallFlowNode(
     parameters: {
       targetFlowId: overrides.targetFlowId ?? 'target-flow-id',
     },
-    ...overrides,
-  });
-}
-
-/**
- * Creates a mock PostList node
- * @param overrides - Optional partial to override defaults
- */
-export function createMockPostListNode(
-  overrides: Partial<NodeInstance> = {},
-): NodeInstance {
-  return createMockNodeInstance({
-    id: 'postlist-1',
-    type: 'PostList',
-    name: 'Test Post List',
-    slug: 'test-post-list',
-    parameters: {},
     ...overrides,
   });
 }
@@ -368,31 +355,31 @@ export function createSimpleTriggerReturnFlow(options: {
 }
 
 /**
- * Creates a trigger -> statcard flow for testing UI widgets
+ * Creates a trigger -> registry component flow for testing UI widgets
  */
-export function createTriggerStatCardFlow(options: {
+export function createTriggerRegistryComponentFlow(options: {
   toolName?: string;
 } = {}): FlowEntity {
   const triggerId = 'trigger-1';
-  const statCardId = 'statcard-1';
+  const registryId = 'registry-1';
 
   const trigger = createMockUserIntentNode({
     id: triggerId,
-    toolName: options.toolName ?? 'stats_tool',
+    toolName: options.toolName ?? 'ui_tool',
   });
 
-  const statCard = createMockStatCardNode({ id: statCardId });
+  const registryComponent = createMockRegistryComponentNode({ id: registryId });
 
   const connection = createMockConnection({
     id: 'conn-1',
     sourceNodeId: triggerId,
     sourceHandle: 'output',
-    targetNodeId: statCardId,
+    targetNodeId: registryId,
     targetHandle: 'input',
   });
 
   return createMockFlowEntity({
-    nodes: [trigger, statCard],
+    nodes: [trigger, registryComponent],
     connections: [connection],
   });
 }
