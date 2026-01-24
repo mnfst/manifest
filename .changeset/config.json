@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["manifest-ui"]
+  "ignore": ["@manifest/backend", "@manifest/frontend", "@manifest/shared", "@manifest/nodes", "manifest-ui"]
 }
