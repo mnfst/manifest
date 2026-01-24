@@ -22,7 +22,17 @@ import type {
   JSONSchema,
 } from '@manifest/shared';
 import { USER_QUERY_PARAMETER } from '@manifest/shared';
-import { X, Loader2, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Lock, LayoutGrid, FileText, PhoneForwarded, Zap, Globe, Plus, Trash2, Wrench, Code, Shuffle, Play, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
+import { Switch } from '@/components/ui/shadcn/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 import { NodeSchemaPanel } from '../node/NodeSchemaPanel';
 import { UsePreviousOutputs } from '../common/UsePreviousOutputs';
 import { TemplateReferencesDisplay } from '../common/TemplateReferencesDisplay';
@@ -472,27 +482,28 @@ export function NodeEditModal({
 
   const nodeInfo = getNodeTypeInfo();
 
-  if (!isOpen || !nodeInfo) return null;
+  if (!nodeInfo) return null;
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
+      onClose();
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-
-      {/* Modal - wider for transform nodes */}
-      <div className={`relative bg-white rounded-lg shadow-xl w-full max-h-[85vh] overflow-hidden flex flex-col ${
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className={`max-h-[85vh] flex flex-col ${
         effectiveNodeType === 'JavaScriptCodeTransform' ? 'max-w-3xl' : 'max-w-lg'
       }`}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <DialogHeader>
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg bg-${nodeInfo.color}-100 flex items-center justify-center`}>
               {nodeInfo.icon}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{nodeInfo.title}</h2>
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-500">{nodeInfo.description}</p>
+              <DialogTitle>{nodeInfo.title}</DialogTitle>
+              <DialogDescription className="flex items-center gap-2">
+                {nodeInfo.description}
                 {/* Show slug in edit mode (T035) */}
                 {isEditMode && node?.slug && (
                   <code
@@ -502,19 +513,10 @@ export function NodeEditModal({
                     {node.slug}
                   </code>
                 )}
-              </div>
+              </DialogDescription>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            disabled={isLoading}
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+        </DialogHeader>
 
         {/* Tab Navigation (only show in edit mode) */}
         {isEditMode && (
@@ -717,24 +719,12 @@ export function NodeEditModal({
                         Active triggers are exposed as MCP tools
                       </span>
                     </div>
-                    <button
+                    <Switch
                       id="tool-active"
-                      type="button"
-                      role="switch"
-                      aria-checked={isToolActive}
-                      onClick={() => setIsToolActive(!isToolActive)}
+                      checked={isToolActive}
+                      onCheckedChange={setIsToolActive}
                       disabled={isLoading}
-                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                        isToolActive ? 'bg-blue-600' : 'bg-gray-200'
-                      }`}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isToolActive ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
+                    />
                   </div>
 
                   {/* Tool Parameters */}
@@ -782,19 +772,7 @@ export function NodeEditModal({
                                 {/* Lock icon for system parameters */}
                                 {isSystemParam && (
                                   <div className="flex-shrink-0" title="System parameter (cannot be modified)">
-                                    <svg
-                                      className="w-4 h-4 text-gray-500"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                      />
-                                    </svg>
+                                    <Lock className="w-4 h-4 text-gray-500" />
                                   </div>
                                 )}
                                 <Input
@@ -1068,7 +1046,7 @@ export function NodeEditModal({
                     >
                       {isApiTestLoading ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Spinner className="w-4 h-4" />
                           Sending...
                         </>
                       ) : (
@@ -1274,7 +1252,7 @@ export function NodeEditModal({
                   >
                     {isTestLoading ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Spinner className="w-4 h-4" />
                         Testing...
                       </>
                     ) : (
@@ -1370,8 +1348,7 @@ export function NodeEditModal({
             )}
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+          <DialogFooter>
             <Button
               variant="ghost"
               type="button"
@@ -1386,16 +1363,16 @@ export function NodeEditModal({
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner className="w-4 h-4" />
                   Saving...
                 </>
               ) : (
                 <>{isEditMode ? 'Save Changes' : 'Create'}</>
               )}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,5 +1,13 @@
 import type { App } from '@manifest/shared';
 import { AppCard } from './AppCard';
+import { FolderOpen } from 'lucide-react';
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/ui/shadcn/empty';
 
 interface AppListProps {
   apps: App[];
@@ -15,14 +23,17 @@ interface AppListProps {
 export function AppList({ apps, onAppClick, onAppEdit, onAppDelete }: AppListProps) {
   if (apps.length === 0) {
     return (
-      <div className="text-center py-12 px-4">
-        <div className="text-muted-foreground space-y-2">
-          <p className="text-lg font-medium">No apps yet</p>
-          <p className="text-sm">
+      <Empty className="border-0">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <FolderOpen />
+          </EmptyMedia>
+          <EmptyTitle>No apps yet</EmptyTitle>
+          <EmptyDescription>
             Create your first app to get started building MCP servers.
-          </p>
-        </div>
-      </div>
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 

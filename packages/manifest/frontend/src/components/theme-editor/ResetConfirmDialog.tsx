@@ -39,7 +39,7 @@ export function ResetConfirmDialog({
               <AlertDialogTitle>Reset to Default Theme?</AlertDialogTitle>
               <AlertDialogDescription className="mt-2">
                 This will discard all your custom theme changes and restore the
-                default shadcn color scheme. This action cannot be undone.
+                default color scheme. This action cannot be undone.
               </AlertDialogDescription>
             </div>
           </div>

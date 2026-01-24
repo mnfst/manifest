@@ -1,8 +1,16 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, Lock } from 'lucide-react';
 import type { FlowParameter, ParameterType } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';
+import { Checkbox } from '@/components/ui/shadcn/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
   { value: 'string', label: 'String' },
@@ -35,16 +43,16 @@ export function ParameterRow({
     onChange(index, { ...parameter, name: e.target.value });
   };
 
-  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(index, { ...parameter, type: e.target.value as ParameterType });
+  const handleTypeChange = (value: string) => {
+    onChange(index, { ...parameter, type: value as ParameterType });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(index, { ...parameter, description: e.target.value });
   };
 
-  const handleOptionalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(index, { ...parameter, optional: e.target.checked });
+  const handleOptionalChange = (checked: boolean) => {
+    onChange(index, { ...parameter, optional: checked });
   };
 
   const handleRemove = () => {
@@ -66,19 +74,7 @@ export function ParameterRow({
         {/* System parameter indicator */}
         {isSystem && (
           <div className="flex items-center gap-1 px-2 py-2" title="System parameter (cannot be modified)">
-            <svg
-              className="w-4 h-4 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
+            <Lock className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
 
@@ -99,20 +95,22 @@ export function ParameterRow({
         </div>
 
         {/* Type dropdown */}
-        <select
+        <Select
           value={parameter.type}
-          onChange={handleTypeChange}
-          className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-sm min-w-[110px] ${
-            isSystem ? 'cursor-not-allowed' : ''
-          }`}
+          onValueChange={handleTypeChange}
           disabled={isFieldDisabled}
         >
-          {PARAMETER_TYPES.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className={`min-w-[110px] ${isSystem ? 'cursor-not-allowed' : ''}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PARAMETER_TYPES.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Optional checkbox */}
         <Label
@@ -120,11 +118,9 @@ export function ParameterRow({
             isSystem ? 'cursor-not-allowed' : 'cursor-pointer'
           }`}
         >
-          <input
-            type="checkbox"
+          <Checkbox
             checked={parameter.optional}
-            onChange={handleOptionalChange}
-            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+            onCheckedChange={handleOptionalChange}
             disabled={isFieldDisabled}
           />
           <span className="text-muted-foreground">Optional</span>

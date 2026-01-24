@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Send } from 'lucide-react';
 import type { PlatformStyle, ThemeMode } from '@manifest/shared';
 import { AppAvatar } from './AppAvatar';
 import { chatgptClasses } from './styles/chatgpt';
@@ -62,19 +63,7 @@ export function ChatStyleWrapper({
           <span className={`flex-1 ${classes.secondaryText}`}>
             Message {platformName}...
           </span>
-          <svg
-            className={`w-5 h-5 ${classes.secondaryText}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-            />
-          </svg>
+          <Send className={`w-5 h-5 ${classes.secondaryText}`} />
         </div>
       </div>
     </div>

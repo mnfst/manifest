@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
-import { LayoutTemplate, GripVertical, Loader2 } from 'lucide-react';
+import { LayoutTemplate, GripVertical } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import type { RegistryItem as RegistryItemType } from '@manifest/shared';
 
 interface RegistryItemProps {
@@ -83,7 +84,7 @@ export function RegistryItem({ item, onSelect, onHover }: RegistryItemProps) {
         {/* Drag handle indicator */}
         <div className="flex-shrink-0 text-gray-400">
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Spinner className="w-4 h-4" />
           ) : (
             <GripVertical className="w-4 h-4" />
           )}

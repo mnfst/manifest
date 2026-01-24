@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AppStatus } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Badge } from '@/components/ui/shadcn/badge';
 
 interface PublishButtonProps {
@@ -51,7 +52,7 @@ export function PublishButton({
         >
           {isUpdating ? (
             <span className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <Spinner className="w-4 h-4" />
               {isPublished ? 'Unpublishing...' : 'Publishing...'}
             </span>
           ) : isPublished ? (

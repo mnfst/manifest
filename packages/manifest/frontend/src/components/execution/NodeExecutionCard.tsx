@@ -106,11 +106,11 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
           defaultExpanded={false}
         />
 
-        {/* Execution Info Section - shows _execution metadata separately */}
+        {/* Session Info Section - shows _execution metadata separately */}
         {nodeExecution.outputData._execution != null && (
           <ExecutionDataViewer
             data={{ _execution: nodeExecution.outputData._execution } as Record<string, unknown>}
-            title="Execution Info"
+            title="Session Info"
             defaultExpanded={false}
           />
         )}

@@ -7,7 +7,8 @@ import React from 'react';
 import { transform } from 'sucrase';
 import { PreviewErrorBoundary } from './PreviewErrorBoundary';
 import * as LucideIcons from 'lucide-react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { cn } from '../../lib/utils';
 import { ThemeProvider } from './ThemeProvider';
 import type { ThemeVariables } from '@manifest/shared';
@@ -332,7 +333,7 @@ export function ComponentPreview({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
-        <Loader2 className="w-8 h-8 text-gray-500 animate-spin mb-4" />
+        <Spinner className="w-8 h-8 text-gray-500 mb-4" />
         <p className="text-sm text-muted-foreground">Compiling preview...</p>
       </div>
     );

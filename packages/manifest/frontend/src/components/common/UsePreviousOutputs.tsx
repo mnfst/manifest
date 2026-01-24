@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Copy, Check, ChevronDown, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Copy, Check, ChevronDown, AlertCircle, RefreshCw } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import type { UpstreamNodeInfo } from '../../types/schema';
 import { getTypeColor } from '../../lib/schemaUtils';
 import { Button } from '@/components/ui/shadcn/button';
@@ -88,7 +89,7 @@ export function UsePreviousOutputs({
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-gray-500">
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Spinner className="w-4 h-4" />
           <span className="text-sm">Loading upstream nodes...</span>
         </div>
       </div>

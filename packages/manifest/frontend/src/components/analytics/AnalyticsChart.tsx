@@ -10,7 +10,7 @@ const METRIC_CONFIG: Record<
   }
 > = {
   executions: {
-    label: 'Executions',
+    label: 'Sessions',
     valueFormatter: (v: number) => v.toLocaleString(),
   },
   uniqueUsers: {
@@ -22,7 +22,7 @@ const METRIC_CONFIG: Record<
     valueFormatter: (v: number) => `${v.toFixed(1)}%`,
   },
   avgDuration: {
-    label: 'Avg. Execution Time',
+    label: 'Avg. Session Time',
     valueFormatter: (v: number) =>
       v < 1000 ? `${Math.round(v)}ms` : `${(v / 1000).toFixed(2)}s`,
   },

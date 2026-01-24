@@ -51,7 +51,7 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Executions"
+          title="Sessions"
           metric={
             data?.metrics.totalExecutions ?? {
               value: 0,
@@ -90,7 +90,7 @@ export function AnalyticsDashboard({ appId }: AnalyticsDashboardProps) {
           isSelected={selectedMetric === 'completionRate'}
         />
         <MetricCard
-          title="Avg. Execution Time"
+          title="Avg. Session Time"
           metric={
             data?.metrics.avgDuration ?? {
               value: 0,

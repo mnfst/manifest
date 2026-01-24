@@ -5,8 +5,11 @@ import { ExecutionListItem } from './ExecutionListItem';
 import { ExecutionEmptyState } from './ExecutionEmptyState';
 import { Pagination } from '../common/Pagination';
 import { useExecutionPolling } from '../../hooks/useExecutionPolling';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Button } from '@/components/ui/shadcn/button';
+import { Checkbox } from '@/components/ui/shadcn/checkbox';
+import { Label } from '@/components/ui/shadcn/label';
 
 interface ExecutionListProps {
   flowId: string;
@@ -76,7 +79,7 @@ export function ExecutionList({ flowId, selectedId, onSelect }: ExecutionListPro
   if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+        <Spinner className="w-6 h-6 text-gray-400" />
       </div>
     );
   }
@@ -100,18 +103,19 @@ export function ExecutionList({ flowId, selectedId, onSelect }: ExecutionListPro
   // Filter controls component (always visible)
   const filterControls = (
     <div className="px-4 py-2 border-b flex items-center gap-3">
-      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-        <input
-          type="checkbox"
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="include-preview"
           checked={includePreview}
-          onChange={(e) => {
-            setIncludePreview(e.target.checked);
+          onCheckedChange={(checked) => {
+            setIncludePreview(checked === true);
             setPage(1); // Reset to first page when filter changes
           }}
-          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
-        Include preview calls
-      </label>
+        <Label htmlFor="include-preview" className="text-sm text-gray-600 cursor-pointer">
+          Include preview calls
+        </Label>
+      </div>
     </div>
   );
 

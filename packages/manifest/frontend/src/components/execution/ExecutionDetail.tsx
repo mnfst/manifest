@@ -4,7 +4,8 @@ import { api } from '../../lib/api';
 import { ExecutionStatusBadge } from './ExecutionStatusBadge';
 import { ExecutionDataViewer } from './ExecutionDataViewer';
 import { NodeExecutionCard } from './NodeExecutionCard';
-import { Loader2, Clock, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Clock, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Button } from '@/components/ui/shadcn/button';
 
 interface ExecutionDetailProps {
@@ -69,7 +70,7 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+        <Spinner className="w-6 h-6 text-gray-400" />
       </div>
     );
   }
@@ -86,7 +87,7 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
   if (!execution) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Execution not found</p>
+        <p className="text-gray-500">Session not found</p>
       </div>
     );
   }
@@ -147,7 +148,7 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-5 h-5 text-red-500" />
-            <h3 className="font-medium text-red-700">Execution Failed</h3>
+            <h3 className="font-medium text-red-700">Session Failed</h3>
           </div>
           <p className="text-sm text-red-600">{execution.errorInfo.message}</p>
           {execution.errorInfo.nodeName && (
@@ -164,13 +165,13 @@ export function ExecutionDetail({ flowId, executionId }: ExecutionDetailProps) {
         <ExecutionDataViewer data={execution.initialParams} defaultExpanded />
       </div>
 
-      {/* Node Executions */}
+      {/* Node Steps */}
       <div>
         <h3 className="text-sm font-medium text-gray-700 mb-3">
-          Node Executions ({execution.nodeExecutions.length})
+          Node Steps ({execution.nodeExecutions.length})
         </h3>
         {execution.nodeExecutions.length === 0 ? (
-          <p className="text-sm text-gray-500 italic">No nodes executed yet</p>
+          <p className="text-sm text-gray-500 italic">No nodes run yet</p>
         ) : (
           <div className="space-y-4">
             {execution.nodeExecutions.map((nodeExec, index) => (

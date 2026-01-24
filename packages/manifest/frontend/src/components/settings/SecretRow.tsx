@@ -13,6 +13,12 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/shadcn/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/shadcn/dropdown-menu';
 import type { AppSecret } from '@manifest/shared';
 
 interface SecretRowProps {
@@ -164,49 +170,26 @@ export function SecretRow({ secret, onUpdate, onDelete }: SecretRowProps) {
           </Button>
 
           {/* Three-dot Menu */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              title="More actions"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-
-            {isMenuOpen && (
-              <>
-                {/* Backdrop to close menu */}
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setIsMenuOpen(false)}
-                />
-                {/* Menu */}
-                <div className="absolute right-0 top-full mt-1 w-32 bg-popover border border-border rounded-md shadow-lg z-20">
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setIsEditing(true);
-                    }}
-                    className="w-full px-3 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
-                  >
-                    <Pencil className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setShowDeleteConfirm(true);
-                    }}
-                    className="w-full px-3 py-2 text-sm text-left hover:bg-muted text-destructive flex items-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" title="More actions">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Pencil className="w-4 h-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

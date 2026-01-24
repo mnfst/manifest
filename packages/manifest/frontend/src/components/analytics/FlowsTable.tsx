@@ -56,9 +56,9 @@ export function FlowsTable({ appId, flows, isLoading }: FlowsTableProps) {
       {/* Header */}
       <div className="grid grid-cols-[1fr,100px,100px,100px,32px] gap-4 px-4 py-3 border-b bg-muted/30 text-sm font-medium text-muted-foreground">
         <div>Flow Name</div>
-        <div className="text-right">Executions</div>
+        <div className="text-right">Sessions</div>
         <div className="text-right">Completion</div>
-        <div className="text-right">Avg. Duration</div>
+        <div className="text-right">Avg. Time</div>
         <div />
       </div>
 

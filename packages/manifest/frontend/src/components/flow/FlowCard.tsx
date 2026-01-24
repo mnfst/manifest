@@ -1,5 +1,6 @@
 import type { Flow, UserIntentNodeParameters } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
+import { Zap, AlertTriangle, ChevronRight, Trash2 } from 'lucide-react';
 
 interface FlowCardProps {
   flow: Flow;
@@ -44,16 +45,12 @@ export function FlowCard({
             <div className="flex items-center gap-3 mt-2">
               {hasTriggers ? (
                 <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path d="M11.983 1.907a.75.75 0 00-1.292-.657l-8.5 9.5A.75.75 0 002.75 12h6.572l-1.305 6.093a.75.75 0 001.292.657l8.5-9.5A.75.75 0 0017.25 8h-6.572l1.305-6.093z" />
-                  </svg>
+                  <Zap className="w-4 h-4" />
                   {activeTriggerCount} trigger{activeTriggerCount !== 1 ? 's' : ''}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-amber-600" title="No triggers configured - this flow won't be exposed as MCP tools">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                  </svg>
+                  <AlertTriangle className="w-4 h-4" />
                   No triggers
                 </span>
               )}
@@ -62,9 +59,7 @@ export function FlowCard({
 
           {/* Arrow icon */}
           <div className="flex-shrink-0 mt-1">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400">
-              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-            </svg>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
         </div>
       </button>
@@ -81,9 +76,7 @@ export function FlowCard({
             }}
             className="text-gray-500 hover:text-red-600"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
-            </svg>
+            <Trash2 className="w-4 h-4" />
             Delete
           </Button>
         </div>

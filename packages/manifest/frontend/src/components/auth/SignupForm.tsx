@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { signUp } from '../../lib/auth-client';
 import { Button } from '@/components/ui/shadcn/button';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';
 
@@ -136,6 +137,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading && <Spinner className="w-4 h-4 mr-2" />}
         {isLoading ? 'Creating account...' : 'Create Account'}
       </Button>
     </form>
