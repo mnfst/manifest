@@ -800,10 +800,14 @@ function PickerVariant({
  * ```
  */
 export function ProductList({ data, actions, appearance, control }: ProductListProps) {
-  const { products = demoProducts } = data ?? {}
-  const { onSelectProduct, onAddToCart } = actions ?? {}
-  const { variant = 'list', currency = 'EUR', columns = 4, buttonLabel } = appearance ?? {}
-  const { selectedProductIndex } = control ?? {}
+  const products = data?.products ?? demoProducts
+  const onSelectProduct = actions?.onSelectProduct
+  const onAddToCart = actions?.onAddToCart
+  const variant = appearance?.variant ?? 'list'
+  const currency = appearance?.currency ?? 'EUR'
+  const columns = appearance?.columns ?? 4
+  const buttonLabel = appearance?.buttonLabel
+  const selectedProductIndex = control?.selectedProductIndex
   const [selected, setSelected] = useState<number | undefined>(selectedProductIndex)
 
   const formatCurrency = (value: number) => {

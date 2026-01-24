@@ -116,10 +116,14 @@ const tagClasses = {
  * ```
  */
 export function TagSelect({ data, actions, appearance, control }: TagSelectProps) {
-  const { tags = defaultTags } = data ?? {}
-  const { onSelectTags, onValidate } = actions ?? {}
-  const { mode = 'multiple', showClear = true, showValidate = true, validateLabel = 'Validate selection' } = appearance ?? {}
-  const { selectedTagIds = [] } = control ?? {}
+  const tags = data?.tags ?? defaultTags
+  const onSelectTags = actions?.onSelectTags
+  const onValidate = actions?.onValidate
+  const mode = appearance?.mode ?? 'multiple'
+  const showClear = appearance?.showClear ?? true
+  const showValidate = appearance?.showValidate ?? true
+  const validateLabel = appearance?.validateLabel ?? 'Validate selection'
+  const selectedTagIds = control?.selectedTagIds ?? []
   const [selected, setSelected] = useState<string[]>(selectedTagIds)
 
   const handleToggle = (tagId: string) => {

@@ -53,9 +53,12 @@ This project uses [changesets](https://github.com/changesets/changesets) for ver
 **You MUST create a changeset when modifying code in:**
 - `packages/manifest/**` → select **manifest** package
 
+**You do NOT need a changeset for:**
+- `packages/manifest-ui/**` → This package has its own versioning via `registry.json` and `changelog.json`
+
 ### How to Create a Changeset
 
-After making changes, create a changeset file:
+After making changes to `packages/manifest/**`, create a changeset file:
 
 ```bash
 pnpm changeset

@@ -81,10 +81,12 @@ export interface OptionListProps {
  * ```
  */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
-  const { options = demoOptions } = data ?? {}
-  const { onSelectOption, onSelectOptions } = actions ?? {}
-  const { multiple = false } = appearance ?? {}
-  const { selectedOptionIndex, selectedOptionIndexes = [] } = control ?? {}
+  const options = data?.options ?? demoOptions
+  const onSelectOption = actions?.onSelectOption
+  const onSelectOptions = actions?.onSelectOptions
+  const multiple = appearance?.multiple ?? false
+  const selectedOptionIndex = control?.selectedOptionIndex
+  const selectedOptionIndexes = control?.selectedOptionIndexes ?? []
   const [selected, setSelected] = useState<number | number[]>(
     multiple ? selectedOptionIndexes : selectedOptionIndex ?? -1
   )

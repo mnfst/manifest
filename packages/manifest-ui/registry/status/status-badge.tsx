@@ -132,8 +132,10 @@ const iconSizes = {
  * ```
  */
 export function StatusBadge({ data, appearance }: StatusBadgeProps) {
-  const { status = "pending" } = data ?? {}
-  const { label, showIcon = true, size = "md" } = appearance ?? {}
+  const status = data?.status ?? "pending"
+  const label = appearance?.label
+  const showIcon = appearance?.showIcon ?? true
+  const size = appearance?.size ?? "md"
   const config = statusConfig[status]
   const Icon = config.icon
   const displayLabel = label || config.defaultLabel

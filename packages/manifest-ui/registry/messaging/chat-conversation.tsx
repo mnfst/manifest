@@ -68,7 +68,7 @@ export interface ChatConversationProps {
  * ```
  */
 export function ChatConversation({ data }: ChatConversationProps) {
-  const { messages = demoMessages } = data ?? {}
+  const messages = data?.messages ?? demoMessages
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
       {messages.map((message, index) => {

@@ -256,9 +256,15 @@ export interface EventDetailProps {
 }
 
 export function EventDetail({ data, actions, appearance }: EventDetailProps) {
-  const { event = demoEventDetails } = data ?? {}
-  const { onGetTickets, onShare, onSave, onBack, onFollow, onContact } = actions ?? {}
-  const { showAiMatch = true, showMap = true } = appearance ?? {}
+  const event = data?.event ?? demoEventDetails
+  const onGetTickets = actions?.onGetTickets
+  const onShare = actions?.onShare
+  const onSave = actions?.onSave
+  const onBack = actions?.onBack
+  const onFollow = actions?.onFollow
+  const onContact = actions?.onContact
+  const showAiMatch = appearance?.showAiMatch ?? true
+  const showMap = appearance?.showMap ?? true
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isSaved, setIsSaved] = useState(false)

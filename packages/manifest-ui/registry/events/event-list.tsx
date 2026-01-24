@@ -466,9 +466,14 @@ export interface EventListProps {
  * ```
  */
 export function EventList({ data, actions, appearance }: EventListProps) {
-  const { events = demoEvents, title } = data ?? {}
-  const { onEventSelect, onViewMore, onExpand, onFilterClick, onFiltersApply } = actions ?? {}
-  const { variant = 'list' } = appearance ?? {}
+  const events = data?.events ?? demoEvents
+  const title = data?.title
+  const onEventSelect = actions?.onEventSelect
+  const onViewMore = actions?.onViewMore
+  const onExpand = actions?.onExpand
+  const onFilterClick = actions?.onFilterClick
+  const onFiltersApply = actions?.onFiltersApply
+  const variant = appearance?.variant ?? 'list'
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
 

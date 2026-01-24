@@ -154,14 +154,12 @@ function formatNumber(num: number): string {
  * ```
  */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const { event = demoEvent } = data ?? {}
-  const { onClick } = actions ?? {}
-  const {
-    variant = 'default',
-    showSignal = true,
-    showTags = true,
-    showRating = true
-  } = appearance ?? {}
+  const event = data?.event ?? demoEvent
+  const onClick = actions?.onClick
+  const variant = appearance?.variant ?? 'default'
+  const showSignal = appearance?.showSignal ?? true
+  const showTags = appearance?.showTags ?? true
+  const showRating = appearance?.showRating ?? true
 
   const handleClick = () => {
     if (onClick) {

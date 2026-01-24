@@ -64,7 +64,7 @@ const defaultSteps: Step[] = [
  * ```
  */
 export function ProgressSteps({ data }: ProgressStepsProps) {
-  const { steps = defaultSteps } = data ?? {}
+  const steps = data?.steps ?? defaultSteps
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-card rounded-lg p-4">
       {steps.map((step, index) => (

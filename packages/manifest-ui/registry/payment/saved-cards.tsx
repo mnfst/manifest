@@ -139,10 +139,14 @@ const brandColors: Record<string, string> = {
  * ```
  */
 export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
-  const { cards = defaultCards, amount = 279.0 } = data ?? {}
-  const { onSelectCard, onAddNewCard, onPay } = actions ?? {}
-  const { currency = "EUR" } = appearance ?? {}
-  const { selectedCardId, isLoading = false } = control ?? {}
+  const cards = data?.cards ?? defaultCards
+  const amount = data?.amount ?? 279.0
+  const onSelectCard = actions?.onSelectCard
+  const onAddNewCard = actions?.onAddNewCard
+  const onPay = actions?.onPay
+  const currency = appearance?.currency ?? "EUR"
+  const selectedCardId = control?.selectedCardId
+  const isLoading = control?.isLoading ?? false
   const [selected, setSelected] = useState(
     selectedCardId || cards.find((c) => c.isDefault)?.id || cards[0]?.id
   )
