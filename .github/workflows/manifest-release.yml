@@ -78,7 +78,7 @@ jobs:
         run: |
           # Check if there was a version bump by looking at the commit
           if git log -1 --pretty=%B | grep -q "chore: version packages"; then
-            VERSION=$(node -p "require('./packages/manifest/backend/package.json').version")
+            VERSION=$(node -p "require('./packages/manifest/package.json').version")
             echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
             echo "should_release=true" >> "$GITHUB_OUTPUT"
           else
