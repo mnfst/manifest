@@ -4,13 +4,7 @@ import { Button } from '@/components/ui/shadcn/button';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';
 import { Checkbox } from '@/components/ui/shadcn/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 
 const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
   { value: 'string', label: 'String' },
@@ -97,20 +91,11 @@ export function ParameterRow({
         {/* Type dropdown */}
         <Select
           value={parameter.type}
-          onValueChange={handleTypeChange}
+          onValueChange={(value) => handleTypeChange(value as string)}
+          options={PARAMETER_TYPES}
           disabled={isFieldDisabled}
-        >
-          <SelectTrigger className={`min-w-[110px] ${isSystem ? 'cursor-not-allowed' : ''}`}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PARAMETER_TYPES.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          className={`min-w-[110px] ${isSystem ? 'cursor-not-allowed' : ''}`}
+        />
 
         {/* Optional checkbox */}
         <Label
