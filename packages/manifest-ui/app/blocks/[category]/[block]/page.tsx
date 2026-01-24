@@ -946,6 +946,114 @@ const categories: Category[] = [
 />`
           }
         ]
+      },
+      {
+        id: 'post-detail',
+        name: 'Post Detail',
+        description:
+          'Full post view with Medium-style typography, cover image, author info, content, and related posts.',
+        registryName: 'post-detail',
+        layouts: ['inline', 'fullscreen'],
+        actionCount: 2,
+        variants: [
+          {
+            id: 'fullscreen',
+            name: 'Fullscreen',
+            component: (
+              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
+            ),
+            usageCode: `<PostDetail
+  data={{
+    post: {
+      title: "Getting Started with Agentic UI Components",
+      excerpt: "Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.",
+      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+      author: {
+        name: "Sarah Chen",
+        avatar: "https://i.pravatar.cc/150?u=sarah"
+      },
+      publishedAt: "2024-01-15",
+      readTime: "5 min read",
+      tags: ["Tutorial", "Components", "AI", "React", "TypeScript"],
+      category: "Tutorial"
+    },
+    content: \`
+      <p>Building modern AI-powered applications requires a new approach to UI design. Traditional web components don't always translate well to conversational interfaces, where context and flow are paramount.</p>
+
+      <p>Our Agentic UI component library provides a collection of purpose-built components that work seamlessly within chat interfaces. From payment flows to product displays, each component is designed with the unique constraints of conversational UIs in mind.</p>
+
+      <h2>Key Features</h2>
+      <p>Each component supports three display modes: inline (within the chat flow), fullscreen (for complex interactions), and picture-in-picture (persistent visibility). This flexibility allows you to create rich, interactive experiences without breaking the conversational flow.</p>
+
+      <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
+    \`,
+    relatedPosts: [
+      {
+        title: "Designing for Conversational Interfaces",
+        excerpt: "Best practices for creating intuitive UI components that work within chat environments.",
+        coverImage: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800",
+        author: { name: "Alex Rivera", avatar: "https://i.pravatar.cc/150?u=alex" },
+        publishedAt: "2024-01-12",
+        readTime: "8 min read",
+        tags: ["Design", "UX"],
+        category: "Design",
+        url: "https://example.com/posts/designing-conversational-interfaces"
+      },
+      {
+        title: "MCP Integration Patterns",
+        excerpt: "How to leverage Model Context Protocol for seamless backend communication.",
+        coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+        author: { name: "Jordan Kim", avatar: "https://i.pravatar.cc/150?u=jordan" },
+        publishedAt: "2024-01-10",
+        readTime: "12 min read",
+        tags: ["MCP", "Backend"],
+        category: "Development",
+        url: "https://example.com/posts/mcp-integration-patterns"
+      }
+    ]
+  }}
+  appearance={{
+    showCover: true,
+    showAuthor: true,
+    displayMode: "fullscreen"
+  }}
+  actions={{
+    onBack: () => console.log("Back clicked"),
+    onReadRelated: (post) => console.log("Read related:", post.title)
+  }}
+/>`
+          },
+          {
+            id: 'inline',
+            name: 'Inline',
+            component: <PostDetail appearance={{ displayMode: 'inline' }} />,
+            usageCode: `<PostDetail
+  data={{
+    post: {
+      title: "Getting Started with Agentic UI Components",
+      excerpt: "Learn how to build conversational interfaces with our comprehensive component library.",
+      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
+      author: {
+        name: "Sarah Chen",
+        avatar: "https://i.pravatar.cc/150?u=sarah"
+      },
+      publishedAt: "2024-01-15",
+      readTime: "5 min read",
+      tags: ["Tutorial", "Components"],
+      category: "Tutorial"
+    },
+    content: "<p>Building modern AI-powered applications requires a new approach...</p>"
+  }}
+  appearance={{
+    showCover: true,
+    displayMode: "inline"
+  }}
+  actions={{
+    onReadMore: () => console.log("Read more clicked")
+  }}
+/>`
+          }
+        ]
       }
     ]
   },
