@@ -12,7 +12,7 @@ const statusConfig: Record<
   pending: {
     color: 'bg-orange-500',
     label: 'Pending',
-    tooltip: 'Execution in progress',
+    tooltip: 'Session in progress',
   },
   fulfilled: {
     color: 'bg-green-500',
@@ -22,7 +22,7 @@ const statusConfig: Record<
   error: {
     color: 'bg-red-500',
     label: 'Error',
-    tooltip: 'Execution failed',
+    tooltip: 'Session failed',
   },
 };
 

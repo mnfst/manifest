@@ -1,8 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
-import { X, Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Loader2, Globe, Shuffle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Zap, LayoutTemplate, GitBranch, CornerDownLeft, HelpCircle, Globe, Shuffle } from 'lucide-react';
 import type { NodeType, NodeTypeCategory } from '@manifest/shared';
 import { api, type NodeTypeInfo, type CategoryInfo } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
+import { Spinner } from '@/components/ui/shadcn/spinner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog';
 
 interface AddStepModalProps {
   isOpen: boolean;
@@ -61,53 +70,29 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
     fetchNodeTypes();
   }, [isOpen]);
 
-  // Handle Escape key to close modal
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
       onClose();
     }
-  }, [onClose]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, handleKeyDown]);
-
-  if (!isOpen) return null;
+  };
 
   // Sort categories by order
   const sortedCategories = [...categories].sort((a, b) => a.order - b.order);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Add Node</DialogTitle>
+          <DialogDescription>
+            Select the type of node to add to your flow
+          </DialogDescription>
+        </DialogHeader>
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">Add Node</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close modal">
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 overflow-y-auto flex-1">
-          <p className="text-sm text-gray-600 mb-4">
-            Select the type of node to add to your flow:
-          </p>
-
+        <div className="flex-1 overflow-y-auto py-4">
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+              <Spinner className="w-6 h-6 text-gray-400" />
               <span className="ml-2 text-sm text-gray-500">Loading node types...</span>
             </div>
           )}
@@ -157,13 +142,12 @@ export function AddStepModal({ isOpen, onClose, onSelect }: AddStepModalProps) {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-4 border-t">
+        <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

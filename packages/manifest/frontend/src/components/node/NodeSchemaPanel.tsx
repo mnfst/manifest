@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ArrowRight, ArrowDown, Loader2, AlertCircle, Wand2, X, Check } from 'lucide-react';
+import { ArrowRight, ArrowDown, AlertCircle, Wand2, X, Check } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import type { NodeSchemaInfo } from '@manifest/shared';
 import { api } from '../../lib/api';
 import { SchemaViewer } from './SchemaViewer';
@@ -83,7 +84,7 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+        <Spinner className="w-5 h-5 text-gray-400" />
         <span className="ml-2 text-sm text-gray-500">Loading schema...</span>
       </div>
     );
@@ -263,7 +264,7 @@ export function NodeSchemaPanel({ flowId, nodeId, nodeType, onSchemaResolved }: 
               className="bg-blue-600 text-white hover:bg-blue-700"
             >
               {resolving ? (
-                <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
+                <Spinner className="w-3 h-3 mr-1.5" />
               ) : (
                 <Check className="w-3 h-3 mr-1.5" />
               )}

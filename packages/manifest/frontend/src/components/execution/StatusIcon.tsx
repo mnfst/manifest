@@ -31,12 +31,12 @@ const statusConfig = {
   error: {
     icon: XCircle,
     color: 'text-red-500',
-    tooltip: 'Execution failed',
+    tooltip: 'Session failed',
   },
   pending: {
     icon: Clock,
     color: 'text-orange-500',
-    tooltip: 'Execution in progress',
+    tooltip: 'Session in progress',
   },
 };
 

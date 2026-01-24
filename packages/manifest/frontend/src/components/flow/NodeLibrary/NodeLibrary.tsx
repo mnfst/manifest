@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Button } from '@/components/ui/shadcn/button';
 import type {
   NodeType,
@@ -459,7 +460,7 @@ export function NodeLibrary({
             {/* Loading State */}
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                <Spinner className="w-6 h-6 text-gray-400" />
                 <span className="ml-2 text-sm text-gray-500">Loading...</span>
               </div>
             )}

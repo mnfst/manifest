@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Shuffle, AlertCircle } from 'lucide-react';
+import { Shuffle, AlertCircle } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import type { NodeType, SuggestedTransformer } from '@manifest/shared';
 import { api, type NodeTypeInfo } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
@@ -104,7 +105,7 @@ export function AddTransformerModal({
           {/* Loading state */}
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+              <Spinner className="w-6 h-6 text-gray-400" />
               <span className="ml-2 text-sm text-gray-500">
                 Loading transformers...
               </span>

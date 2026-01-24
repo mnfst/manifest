@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/shadcn/button';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';
 import { Textarea } from '@/components/ui/shadcn/textarea';
@@ -123,6 +124,7 @@ export function CreateFlowModal({
               Cancel
             </Button>
             <Button type="submit" disabled={!canSubmit}>
+              {isLoading && <Spinner className="w-4 h-4 mr-2" />}
               {isLoading ? 'Creating...' : 'Create Flow'}
             </Button>
           </DialogFooter>

@@ -2,6 +2,7 @@
  * AppearanceTab - Form-based visual configuration for UI nodes.
  * Dynamically generates form controls based on the component's appearance schema.
  */
+import { Monitor } from 'lucide-react';
 import {
   type AppearanceConfig,
   type AppearanceOptionSchema,
@@ -12,6 +13,7 @@ import {
 } from '@manifest/shared';
 import { Switch } from '../ui/shadcn/switch';
 import { Select } from '../ui/select';
+import { Input } from '../ui/shadcn/input';
 
 interface AppearanceTabProps {
   /** Component type to get the schema for */
@@ -43,19 +45,7 @@ export function AppearanceTab({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <svg
-            className="w-8 h-8 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
+          <Monitor className="w-8 h-8 text-gray-400" />
         </div>
         <h3 className="text-sm font-medium text-gray-900 mb-1">
           No Appearance Options
@@ -136,24 +126,24 @@ function FormField({ option, value, onChange, disabled }: FormFieldProps) {
       )}
 
       {option.type === 'string' && (
-        <input
+        <Input
           id={fieldId}
           type="text"
           value={value as string}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50"
+          className="mt-1"
         />
       )}
 
       {option.type === 'number' && (
-        <input
+        <Input
           id={fieldId}
           type="number"
           value={value as number}
           onChange={(e) => onChange(Number(e.target.value))}
           disabled={disabled}
-          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50"
+          className="mt-1"
         />
       )}
 

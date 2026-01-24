@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Mail, CheckCircle, XCircle } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { api, ApiClientError } from '../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 
@@ -52,7 +53,7 @@ export function VerifyEmailChangePage() {
       <div className="max-w-md w-full bg-card rounded-lg border shadow-sm p-8 text-center">
         {status === 'loading' && (
           <>
-            <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin mb-4" />
+            <Spinner className="w-16 h-16 mx-auto text-primary mb-4" />
             <h1 className="text-xl font-semibold mb-2">Verifying Email</h1>
             <p className="text-muted-foreground">{message}</p>
           </>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';
 import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
@@ -158,7 +159,7 @@ export function AccountTab() {
 
     // Validate: at least one name is required
     if (!firstName.trim() && !lastName.trim()) {
-      setError('At least one of first name or last name is required');
+      setError('Please provide at least a first name or last name.');
       return;
     }
 
@@ -199,7 +200,7 @@ export function AccountTab() {
   if (isLoading) {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Spinner className="h-8 w-8 text-primary" />
         <p className="mt-4 text-muted-foreground">Loading profile...</p>
       </div>
     );
@@ -354,7 +355,7 @@ export function AccountTab() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={isChangingPassword}
-                placeholder="Enter new password (min 8 characters)"
+                placeholder="Enter new password (minimum 8 characters)"
                 className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">

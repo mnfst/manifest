@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/shadcn/button';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import { Input } from '@/components/ui/shadcn/input';
 import { Label } from '@/components/ui/shadcn/label';
 import { Textarea } from '@/components/ui/shadcn/textarea';
@@ -69,6 +70,7 @@ export function AppForm({ onSubmit, isLoading = false }: AppFormProps) {
         disabled={isLoading || !name.trim()}
         className="w-full py-3"
       >
+        {isLoading && <Spinner className="w-4 h-4 mr-2" />}
         {isLoading ? 'Creating...' : 'Create App'}
       </Button>
     </form>

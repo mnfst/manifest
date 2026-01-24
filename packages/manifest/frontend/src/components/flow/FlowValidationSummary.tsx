@@ -7,8 +7,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronRight,
-  Loader2,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/shadcn/spinner';
 import type {
   FlowValidationResponse,
   ConnectionValidationResult,
@@ -148,7 +148,7 @@ export function FlowValidationSummary({
   if (loading && !validation) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500">
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Spinner className="w-4 h-4" />
         <span>Validating...</span>
       </div>
     );
