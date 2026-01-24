@@ -46,7 +46,44 @@ jobs:
       - name: Check for changeset
         run: |
           git fetch origin main:refs/remotes/origin/main
-          pnpm changeset status --since=origin/main
+
+          # Check if any files in packages/manifest/** changed
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD -- 'packages/manifest/**')
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes in packages/manifest/**, skipping changeset check"
+            exit 0
+          fi
+
+          echo "Changed files in packages/manifest/**:"
+          echo "$CHANGED_FILES"
+
+          # Check if there's a changeset that mentions "manifest" package
+          CHANGESET_FILES=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
+
+          if [ -z "$CHANGESET_FILES" ]; then
+            echo "::error::Changes detected in packages/manifest/** but no changeset found."
+            echo "::error::Run 'pnpm changeset' and select the 'manifest' package."
+            exit 1
+          fi
+
+          # Verify at least one changeset mentions "manifest"
+          MANIFEST_CHANGESET=false
+          for file in $CHANGESET_FILES; do
+            if grep -q '"manifest"' "$file" 2>/dev/null; then
+              MANIFEST_CHANGESET=true
+              echo "Found changeset for manifest: $file"
+              break
+            fi
+          done
+
+          if [ "$MANIFEST_CHANGESET" = false ]; then
+            echo "::error::Changeset files found but none reference the 'manifest' package."
+            echo "::error::Run 'pnpm changeset' and select the 'manifest' package."
+            exit 1
+          fi
+
+          echo "Changeset check passed!"
 
   test:
     name: test

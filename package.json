@@ -10,7 +10,7 @@
     "manifest:dev": "turbo run dev --filter=@manifest/backend --filter=@manifest/frontend",
     "manifest:build": "turbo run build --filter=@manifest/backend --filter=@manifest/frontend --filter=@manifest/shared --filter=@manifest/nodes",
     "manifest:lint": "turbo run lint --filter=@manifest/backend --filter=@manifest/frontend",
-    "manifest:test": "turbo run test --filter=@manifest/backend",
+    "manifest:test": "turbo run test --filter=@manifest/backend --filter=@manifest/frontend",
     "manifest-ui:dev": "turbo run dev --filter=manifest-ui",
     "manifest-ui:build": "turbo run build --filter=manifest-ui",
     "manifest-ui:lint": "turbo run lint --filter=manifest-ui",
@@ -38,7 +38,9 @@
       "tar": "^7.5.4",
       "tmp": "^0.2.4",
       "brace-expansion": "^2.0.2",
-      "diff": "^5.2.2"
+      "diff": "^5.2.2",
+      "@types/react": "18.3.17",
+      "@types/react-dom": "18.3.5"
     }
   },
   "engines": {
