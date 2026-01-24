@@ -20,7 +20,8 @@ jobs:
   changeset-check:
     name: Changeset Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Skip for Version Packages PR (created by changesets action)
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
     permissions:
       contents: read
       pull-requests: read
