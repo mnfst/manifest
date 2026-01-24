@@ -11,9 +11,8 @@
 # Uses a GitHub App token so the version PR triggers CI workflows.
 #
 # Required secrets:
-#   - APP_PRIVATE_KEY: GitHub App private key
-# Required variables:
 #   - APP_ID: GitHub App ID
+#   - APP_PRIVATE_KEY: GitHub App private key
 # ============================================================================
 
 name: Manifest Release
@@ -48,7 +47,7 @@ jobs:
         uses: actions/create-github-app-token@v1
         id: app-token
         with:
-          app-id: ${{ vars.APP_ID }}
+          app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Setup pnpm
