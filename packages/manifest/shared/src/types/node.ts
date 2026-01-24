@@ -142,8 +142,7 @@ export interface Connection {
 // =============================================================================
 
 /**
- * Parameters for UI nodes (StatCard and similar interface components).
- * New unified type replacing StatCardNodeParameters.
+ * Parameters for UI nodes (RegistryComponent and similar interface components).
  */
 export interface UINodeParameters {
   /** Custom component code (TSX). If present, overrides the default template rendering */

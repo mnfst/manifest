@@ -114,7 +114,7 @@ const INTERFACE_NODE_TYPES: NodeType[] = ['RegistryComponent', 'BlankComponent']
 
 /**
  * Visual diagram of nodes using React Flow
- * Displays UserIntent trigger nodes followed by StatCard, Return, CallFlow, or ApiCall nodes
+ * Displays UserIntent trigger nodes followed by UI components, Return, CallFlow, or ApiCall nodes
  */
 function FlowDiagramInner({
   flow,
@@ -412,7 +412,7 @@ function FlowDiagramInner({
     }
   }, []);
 
-  // Generate base nodes: UserIntent nodes + StatCard/Return/CallFlow/ApiCall nodes
+  // Generate base nodes: UserIntent nodes + UI/Return/CallFlow/ApiCall nodes
   const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
@@ -797,7 +797,7 @@ function FlowDiagramInner({
           </div>
           <div className="p-6">
             <p className="text-gray-700 mb-4">
-              The <strong>Link</strong> node can only be connected after <strong>UI nodes</strong> (like StatCard).
+              The <strong>Link</strong> node can only be connected after <strong>UI nodes</strong>.
             </p>
             <p className="text-sm text-gray-500">
               Link nodes open external URLs and are designed to work with user interface components that display information before redirecting the user.

@@ -64,11 +64,9 @@ export interface InterfaceEditorProps {
 // Map component types to layout templates
 function getLayoutTemplate(componentType: string): 'stat-card' | 'post-list' | 'blank-component' {
   switch (componentType) {
-    case 'PostList':
-      return 'post-list';
     case 'BlankComponent':
       return 'blank-component';
-    case 'StatCard':
+    case 'RegistryComponent':
     default:
       return 'stat-card';
   }
@@ -193,8 +191,8 @@ export function InterfaceEditor({
 
     // Built-in templates use predefined sample data
     const templateMap: Record<string, string> = {
-      'StatCard': 'stat-card',
-      'PostList': 'post-list',
+      'RegistryComponent': 'stat-card',
+      'BlankComponent': 'blank-component',
     };
     const template = templateMap[componentType] || 'stat-card';
     return getTemplateSampleData(template as 'stat-card' | 'post-list');

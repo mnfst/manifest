@@ -19,7 +19,7 @@ export interface ViewNodeData extends Record<string, unknown> {
 }
 
 /**
- * Custom React Flow node for displaying a StatCard node
+ * Custom React Flow node for displaying UI component nodes
  * Square card design matching placeholder nodes
  * Displays action handles on the right side for nodes with actions
  */

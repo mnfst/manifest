@@ -66,40 +66,10 @@ export interface ComponentAppearanceSchema {
  * Maps component names to their configurable appearance options.
  */
 export const COMPONENT_APPEARANCE_REGISTRY: Record<string, ComponentAppearanceSchema> = {
-  PostList: {
-    componentType: 'PostList',
-    options: [
-      {
-        key: 'variant',
-        label: 'Layout Variant',
-        type: 'enum',
-        enumValues: ['list', 'grid', 'carousel'],
-        defaultValue: 'list',
-        description: 'How posts are arranged',
-      },
-      {
-        key: 'columns',
-        label: 'Columns',
-        type: 'enum',
-        enumValues: [2, 3],
-        defaultValue: 3,
-        description: 'Number of columns in grid/carousel view',
-      },
-      {
-        key: 'showAuthor',
-        label: 'Show Author',
-        type: 'boolean',
-        defaultValue: true,
-        description: 'Display author name and avatar',
-      },
-      {
-        key: 'showCategory',
-        label: 'Show Category',
-        type: 'boolean',
-        defaultValue: true,
-        description: 'Display post category badge',
-      },
-    ],
+  // RegistryComponent: appearance options are dynamically parsed from the component's TypeScript interface
+  RegistryComponent: {
+    componentType: 'RegistryComponent',
+    options: [],
   },
 
   ProductList: {
@@ -218,12 +188,6 @@ export const COMPONENT_APPEARANCE_REGISTRY: Record<string, ComponentAppearanceSc
   // Stats component has no configurable appearance options
   Stats: {
     componentType: 'Stats',
-    options: [],
-  },
-
-  // Default for StatCard (current UI node type)
-  StatCard: {
-    componentType: 'StatCard',
     options: [],
   },
 
