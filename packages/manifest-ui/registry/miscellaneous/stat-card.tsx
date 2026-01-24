@@ -69,7 +69,7 @@ const defaultStats: StatCard[] = [
  * ```
  */
 export function Stats({ data }: StatsProps) {
-  const { stats = defaultStats } = data ?? {}
+  const stats = data?.stats ?? defaultStats
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
     switch (trend) {
       case "up":

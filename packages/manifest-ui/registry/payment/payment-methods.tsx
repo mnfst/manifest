@@ -194,10 +194,14 @@ const MethodIcon = ({ method }: { method: PaymentMethod }) => {
  * ```
  */
 export function PaymentMethods({ data, actions, appearance, control }: PaymentMethodsProps) {
-  const { methods = defaultMethods, amount = 279.0 } = data ?? {}
-  const { onSelectMethod, onAddCard, onPay } = actions ?? {}
-  const { currency = 'EUR' } = appearance ?? {}
-  const { selectedMethodId, isLoading = false } = control ?? {}
+  const methods = data?.methods ?? defaultMethods
+  const amount = data?.amount ?? 279.0
+  const onSelectMethod = actions?.onSelectMethod
+  const onAddCard = actions?.onAddCard
+  const onPay = actions?.onPay
+  const currency = appearance?.currency ?? 'EUR'
+  const selectedMethodId = control?.selectedMethodId
+  const isLoading = control?.isLoading ?? false
   const [selected, setSelected] = useState(
     selectedMethodId || methods.find((m) => m.isDefault)?.id || methods[0]?.id
   )

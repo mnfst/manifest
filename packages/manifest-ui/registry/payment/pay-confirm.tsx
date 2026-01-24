@@ -90,10 +90,13 @@ export interface PayConfirmProps {
  * ```
  */
 export function PayConfirm({ data, actions, appearance, control }: PayConfirmProps) {
-  const { amount = 99.99, cardLast4 = "4242", cardBrand = "Visa" } = data ?? {}
-  const { onConfirm, onCancel } = actions ?? {}
-  const { currency = "USD" } = appearance ?? {}
-  const { isLoading = false } = control ?? {}
+  const amount = data?.amount ?? 99.99
+  const cardLast4 = data?.cardLast4 ?? "4242"
+  const cardBrand = data?.cardBrand ?? "Visa"
+  const onConfirm = actions?.onConfirm
+  const onCancel = actions?.onCancel
+  const currency = appearance?.currency ?? "USD"
+  const isLoading = control?.isLoading ?? false
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",

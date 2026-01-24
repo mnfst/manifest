@@ -96,10 +96,15 @@ export interface PostListProps {
  * ```
  */
 export function PostList({ data, actions, appearance, control }: PostListProps) {
-  const { posts = demoPosts } = data ?? {}
-  const { onReadMore, onPageChange } = actions ?? {}
-  const { variant = 'list', columns = 2, showAuthor = true, showCategory = true, postsPerPage = 10 } = appearance ?? {}
-  const { currentPage: controlledPage } = control ?? {}
+  const posts = data?.posts ?? demoPosts
+  const onReadMore = actions?.onReadMore
+  const onPageChange = actions?.onPageChange
+  const variant = appearance?.variant ?? 'list'
+  const columns = appearance?.columns ?? 2
+  const showAuthor = appearance?.showAuthor ?? true
+  const showCategory = appearance?.showCategory ?? true
+  const postsPerPage = appearance?.postsPerPage ?? 10
+  const controlledPage = control?.currentPage
   const [currentIndex, setCurrentIndex] = useState(0)
   const [internalPage, setInternalPage] = useState(1)
 

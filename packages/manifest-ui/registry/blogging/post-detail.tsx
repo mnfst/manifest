@@ -235,9 +235,13 @@ export interface PostDetailProps {
  * ```
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
-  const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
-  const { onReadMore } = actions ?? {}
-  const { showCover = true, showAuthor = true, displayMode = 'fullscreen' } = appearance ?? {}
+  const post = data?.post ?? defaultPost
+  const content = data?.content ?? defaultContent
+  const relatedPosts = data?.relatedPosts ?? defaultRelatedPosts
+  const onReadMore = actions?.onReadMore
+  const showCover = appearance?.showCover ?? true
+  const showAuthor = appearance?.showAuthor ?? true
+  const displayMode = appearance?.displayMode ?? 'fullscreen'
 
   // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
   const handleReadMore = () => {

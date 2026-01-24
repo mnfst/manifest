@@ -118,14 +118,12 @@ export interface PostCardProps {
  * ```
  */
 export function PostCard({ data, actions, appearance }: PostCardProps) {
-  const { post = demoPost } = data ?? {}
-  const { onReadMore } = actions ?? {}
-  const {
-    variant = 'default',
-    showImage = true,
-    showAuthor = true,
-    showCategory = true
-  } = appearance ?? {}
+  const post = data?.post ?? demoPost
+  const onReadMore = actions?.onReadMore
+  const variant = appearance?.variant ?? 'default'
+  const showImage = appearance?.showImage ?? true
+  const showAuthor = appearance?.showAuthor ?? true
+  const showCategory = appearance?.showCategory ?? true
 
   // Handle "Read more" click - only call callback if provided, otherwise do nothing
   // This lets users decide to use an external link or open fullscreen mode

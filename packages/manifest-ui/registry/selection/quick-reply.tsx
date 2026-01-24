@@ -68,8 +68,8 @@ const defaultReplies: QuickReply[] = [
  * ```
  */
 export function QuickReply({ data, actions }: QuickReplyProps) {
-  const { replies = defaultReplies } = data ?? {}
-  const { onSelectReply } = actions ?? {}
+  const replies = data?.replies ?? defaultReplies
+  const onSelectReply = actions?.onSelectReply
   return (
     <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">

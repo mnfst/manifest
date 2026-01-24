@@ -76,9 +76,10 @@ export interface BankCardFormProps {
  * ```
  */
 export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
-  const { amount = 279 } = data ?? {}
-  const { onSubmit } = actions ?? {}
-  const { submitLabel, currency = 'EUR' } = appearance ?? {}
+  const amount = data?.amount ?? 279
+  const onSubmit = actions?.onSubmit
+  const submitLabel = appearance?.submitLabel
+  const currency = appearance?.currency ?? 'EUR'
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')
