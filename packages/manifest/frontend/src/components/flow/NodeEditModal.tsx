@@ -86,7 +86,7 @@ const DEFAULT_TRANSFORM_CODE = `function transform(input: Input) {
 
 
 /**
- * Modal for creating and editing nodes (StatCard, Return, CallFlow, UserIntent, ApiCall)
+ * Modal for creating and editing nodes (Return, CallFlow, UserIntent, ApiCall, RegistryComponent)
  */
 export function NodeEditModal({
   isOpen,
@@ -232,9 +232,7 @@ export function NodeEditModal({
       // Edit mode - populate from existing node
       setName(node.name);
 
-      if (node.type === 'StatCard' || node.type === 'PostList') {
-        // UI nodes (StatCard, PostList) use unified InterfaceEditor, no parameters to set here
-      } else if (node.type === 'Return') {
+      if (node.type === 'Return') {
         const params = node.parameters as unknown as ReturnNodeParameters;
         setText(params?.text || '');
       } else if (node.type === 'CallFlow') {
@@ -269,7 +267,7 @@ export function NodeEditModal({
     } else {
       // Create mode - set defaults
       setName('');
-      // Note: StatCard uses unified InterfaceEditor, no layout template state needed
+      // Note: RegistryComponent/BlankComponent use unified InterfaceEditor, no layout template state needed
       setText('');
       setTargetFlowId(null);
       setWhenToUse('');
@@ -298,7 +296,7 @@ export function NodeEditModal({
 
     let parameters: Record<string, unknown> = {};
 
-    if (effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList' || effectiveNodeType === 'RegistryComponent') {
+    if (effectiveNodeType === 'RegistryComponent' || effectiveNodeType === 'BlankComponent') {
       // UI nodes use the unified InterfaceEditor for code editing, not this modal
       // No parameters needed here - RegistryComponent params are merged in handleSaveNode
       parameters = {};
@@ -410,13 +408,6 @@ export function NodeEditModal({
   // Get icon and title based on node type
   const getNodeTypeInfo = () => {
     switch (effectiveNodeType) {
-      case 'StatCard':
-        return {
-          icon: <LayoutGrid className="w-5 h-5 text-gray-600" />,
-          title: isEditMode ? 'Edit Stat Card' : 'Create Stat Card',
-          description: 'Display statistics and metrics',
-          color: 'gray',
-        };
       case 'Return':
         return {
           icon: <FileText className="w-5 h-5 text-green-600" />,
@@ -451,13 +442,6 @@ export function NodeEditModal({
           title: isEditMode ? 'Edit JavaScript Transform' : 'Create JavaScript Transform',
           description: 'Transform data using custom JavaScript code',
           color: 'teal',
-        };
-      case 'PostList':
-        return {
-          icon: <LayoutGrid className="w-5 h-5 text-gray-600" />,
-          title: isEditMode ? 'Edit Post List' : 'Create Post List',
-          description: 'Display a list of posts with actions',
-          color: 'gray',
         };
       case 'Link':
         return {
@@ -589,7 +573,7 @@ export function NodeEditModal({
             </div>
 
             {/* UI nodes use unified InterfaceEditor for code editing */}
-            {(effectiveNodeType === 'StatCard' || effectiveNodeType === 'PostList' || effectiveNodeType === 'RegistryComponent') && (
+            {(effectiveNodeType === 'RegistryComponent' || effectiveNodeType === 'BlankComponent') && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-700">
                   {effectiveNodeType === 'RegistryComponent'

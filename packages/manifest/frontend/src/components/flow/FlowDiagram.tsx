@@ -72,8 +72,6 @@ interface FlowDiagramProps {
 function getFlowState(flow: Flow) {
   const nodes = flow.nodes ?? [];
   const userIntentNodes = nodes.filter(n => n.type === 'UserIntent');
-  const statCardNodes = nodes.filter(n => n.type === 'StatCard');
-  const postListNodes = nodes.filter(n => n.type === 'PostList');
   const registryComponentNodes = nodes.filter(n => n.type === 'RegistryComponent');
   const blankComponentNodes = nodes.filter(n => n.type === 'BlankComponent');
   const returnNodes = nodes.filter(n => n.type === 'Return');
@@ -82,8 +80,6 @@ function getFlowState(flow: Flow) {
   const transformNodes = nodes.filter(n => n.type === 'JavaScriptCodeTransform');
   const linkNodes = nodes.filter(n => n.type === 'Link');
   const hasUserIntentNodes = userIntentNodes.length > 0;
-  const hasStatCardNodes = statCardNodes.length > 0;
-  const hasPostListNodes = postListNodes.length > 0;
   const hasRegistryComponentNodes = registryComponentNodes.length > 0;
   const hasBlankComponentNodes = blankComponentNodes.length > 0;
   const hasReturnNodes = returnNodes.length > 0;
@@ -91,8 +87,8 @@ function getFlowState(flow: Flow) {
   const hasApiCallNodes = apiCallNodes.length > 0;
   const hasTransformNodes = transformNodes.length > 0;
   const hasLinkNodes = linkNodes.length > 0;
-  const hasSteps = hasStatCardNodes || hasPostListNodes || hasRegistryComponentNodes || hasBlankComponentNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
-  return { hasUserIntentNodes, hasStatCardNodes, hasPostListNodes, hasRegistryComponentNodes, hasBlankComponentNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, statCardNodes, postListNodes, registryComponentNodes, blankComponentNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
+  const hasSteps = hasRegistryComponentNodes || hasBlankComponentNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
+  return { hasUserIntentNodes, hasRegistryComponentNodes, hasBlankComponentNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, registryComponentNodes, blankComponentNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
 }
 
 const nodeTypes = {
@@ -114,11 +110,11 @@ const edgeTypes = {
 
 // Node types that belong to the 'interface' category (UI nodes)
 // Defined outside component for stable reference in dependency arrays
-const INTERFACE_NODE_TYPES: NodeType[] = ['StatCard', 'PostList', 'RegistryComponent', 'BlankComponent'];
+const INTERFACE_NODE_TYPES: NodeType[] = ['RegistryComponent', 'BlankComponent'];
 
 /**
  * Visual diagram of nodes using React Flow
- * Displays UserIntent trigger nodes followed by StatCard, Return, CallFlow, or ApiCall nodes
+ * Displays UserIntent trigger nodes followed by UI components, Return, CallFlow, or ApiCall nodes
  */
 function FlowDiagramInner({
   flow,
@@ -416,7 +412,7 @@ function FlowDiagramInner({
     }
   }, []);
 
-  // Generate base nodes: UserIntent nodes + StatCard/Return/CallFlow/ApiCall nodes
+  // Generate base nodes: UserIntent nodes + UI/Return/CallFlow/ApiCall nodes
   const computedNodes = useMemo<Node[]>(() => {
     const nodeList: Node[] = [];
 
@@ -462,50 +458,6 @@ function FlowDiagramInner({
     }
 
     // Always render UI and other nodes (regardless of whether triggers exist)
-    // Add StatCard nodes (no "+" button - UI nodes only have action handles)
-    flowState.statCardNodes.forEach((node) => {
-      // Use saved position or calculate based on order
-      const nodePos = node.position || { x: xPosition, y: 130 };
-
-      nodeList.push({
-        id: node.id,
-        type: 'viewNode',
-        position: nodePos,
-        data: {
-          node,
-          canDelete,
-          onEdit: () => onNodeEdit(node),
-          onDelete: () => onNodeDelete(node),
-          onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
-          // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
-        },
-      });
-
-      // Update xPosition for next node without saved position
-      xPosition = Math.max(xPosition, nodePos.x) + 280;
-    });
-
-    // Add PostList nodes (no "+" button - UI nodes only have action handles)
-    flowState.postListNodes.forEach((node) => {
-      const nodePos = node.position || { x: xPosition, y: 130 };
-
-      nodeList.push({
-        id: node.id,
-        type: 'viewNode',
-        position: nodePos,
-        data: {
-          node,
-          canDelete,
-          onEdit: () => onNodeEdit(node),
-          onDelete: () => onNodeDelete(node),
-          onEditCode: onNodeEditCode ? () => onNodeEditCode(node) : undefined,
-          // No onAddFromNode/onDropOnNode - UI nodes don't have "+" button
-        },
-      });
-
-      xPosition = Math.max(xPosition, nodePos.x) + 280;
-    });
-
     // Add RegistryComponent nodes (dynamic UI components from registry)
     flowState.registryComponentNodes.forEach((node) => {
       const nodePos = node.position || { x: xPosition, y: 130 };
@@ -722,7 +674,7 @@ function FlowDiagramInner({
         strokeColor = '#60a5fa'; // Default blue
         if (sourceNode.type === 'UserIntent') {
           strokeColor = '#60a5fa'; // Blue for user intent
-        } else if (sourceNode.type === 'StatCard' || sourceNode.type === 'PostList' || sourceNode.type === 'RegistryComponent' || sourceNode.type === 'BlankComponent') {
+        } else if (sourceNode.type === 'RegistryComponent' || sourceNode.type === 'BlankComponent') {
           strokeColor = '#60a5fa'; // Blue for interface
         } else if (sourceNode.type === 'Return') {
           strokeColor = '#22c55e'; // Green for return
@@ -845,7 +797,7 @@ function FlowDiagramInner({
           </div>
           <div className="p-6">
             <p className="text-gray-700 mb-4">
-              The <strong>Link</strong> node can only be connected after <strong>UI nodes</strong> (like StatCard).
+              The <strong>Link</strong> node can only be connected after <strong>UI nodes</strong>.
             </p>
             <p className="text-sm text-gray-500">
               Link nodes open external URLs and are designed to work with user interface components that display information before redirecting the user.

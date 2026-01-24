@@ -24,7 +24,7 @@ import {
   createMockNodeInstance,
   createMockUserIntentNode,
   createMockApiCallNode,
-  createMockStatCardNode,
+  createMockRegistryComponentNode,
   createMockLinkNode,
   createMockConnection,
   createMockCreateNodeRequest,
@@ -643,7 +643,7 @@ describe('NodeService', () => {
 
     it('should allow Link node connection from UI node', async () => {
       const nodes = [
-        createMockStatCardNode({ id: 'statcard' }),
+        createMockRegistryComponentNode({ id: 'statcard' }),
         createMockLinkNode({ id: 'link' }),
       ];
       const flow = createMockFlowEntity({ nodes, connections: [] });

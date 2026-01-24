@@ -239,7 +239,7 @@ export class SeedService implements OnModuleInit {
    * Seed default fixtures if no apps exist.
    * Creates:
    * - EventHub app (slug: eventhub) owned by admin user
-   * - "Search events in a city" flow with UserIntent trigger and StatCard node
+   * - "Search events in a city" flow with UserIntent trigger and Return node
    */
   private async seedDefaultFixtures(adminUserId: string | undefined): Promise<void> {
     // Check if any apps exist

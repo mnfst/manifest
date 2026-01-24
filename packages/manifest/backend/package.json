@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "nest build && pnpm run build:tsx",
-    "build:tsx": "swc src/email/templates/password-reset.tsx src/email/templates/invitation.tsx src/email/templates/email-change-verification.tsx src/email/templates/components/*.tsx --out-dir dist --config-file .swcrc --strip-leading-paths",
+    "build:tsx": "cd src && swc email/templates/password-reset.tsx email/templates/invitation.tsx email/templates/email-change-verification.tsx email/templates/components/*.tsx --out-dir ../dist --config-file ../.swcrc",
     "dev": "TS_NODE_TRANSPILE_ONLY=true node --env-file=.env --require ts-node/register src/main.ts",
     "start": "nest start",
     "start:prod": "node dist/main",

@@ -113,11 +113,14 @@ function createMockUserIntentNode(overrides: Partial<NodeInstance> = {}): NodeIn
 function createMockActionNode(overrides: Partial<NodeInstance> = {}): NodeInstance {
   return {
     id: 'action-node-id',
-    type: 'StatCard',
+    type: 'RegistryComponent',
     name: 'Test Action',
     position: { x: 300, y: 100 },
     parameters: {
-      layoutTemplate: 'stat-card',
+      registryName: 'event-list',
+      title: 'Event List',
+      files: [],
+      actions: [],
     },
     ...overrides,
   } as NodeInstance;

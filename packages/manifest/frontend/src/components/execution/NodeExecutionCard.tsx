@@ -15,7 +15,8 @@ interface NodeExecutionCardProps {
 // Map node types to their icons
 const nodeTypeIcons: Record<string, typeof Box> = {
   UserIntent: Zap,
-  StatCard: LayoutTemplate,
+  RegistryComponent: LayoutTemplate,
+  BlankComponent: LayoutTemplate,
   Return: CornerDownLeft,
   CallFlow: GitBranch,
   ApiCall: Globe,
@@ -27,7 +28,8 @@ type NodeCategory = 'trigger' | 'interface' | 'action' | 'return' | 'transform' 
 
 const nodeTypeCategories: Record<string, NodeCategory> = {
   UserIntent: 'trigger',
-  StatCard: 'interface',
+  RegistryComponent: 'interface',
+  BlankComponent: 'interface',
   Return: 'return',
   CallFlow: 'action',
   ApiCall: 'action',

@@ -36,7 +36,7 @@ export interface ExecutionResult {
  * and execution engine.
  */
 export interface NodeTypeDefinition {
-  /** Internal type name (e.g., 'StatCard', 'Return', 'CallFlow') */
+  /** Internal type name (e.g., 'RegistryComponent', 'Return', 'CallFlow') */
   name: string;
 
   /** Human-readable display name (e.g., 'Stat Card') */

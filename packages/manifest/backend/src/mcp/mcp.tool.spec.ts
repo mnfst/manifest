@@ -26,14 +26,13 @@ import {
   createMockAppEntity,
   createMockFlowEntity,
   createMockUserIntentNode,
-  createMockStatCardNode,
+  createMockRegistryComponentNode,
   createMockReturnNode,
   createMockCallFlowNode,
-  createMockPostListNode,
   createMockConnection,
   createMockFlowExecutionService,
   createSimpleTriggerReturnFlow,
-  createTriggerStatCardFlow,
+  createTriggerRegistryComponentFlow,
 } from './test/fixtures';
 
 // Mock the node modules that make actual HTTP calls
@@ -296,17 +295,17 @@ describe('McpToolService', () => {
       });
     });
 
-    it('should add _meta for flows with StatCard nodes', async () => {
+    it('should add _meta for flows with RegistryComponent nodes', async () => {
       const mockApp = createMockAppEntity({ id: 'app-1', slug: 'my-app' });
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
-      const flow = createTriggerStatCardFlow({ toolName: 'stats_tool' });
+      const flow = createTriggerRegistryComponentFlow({ toolName: 'ui_tool' });
       mockFlowRepository.find!.mockResolvedValue([flow]);
 
       const result = await service.listTools('my-app');
 
       expect(result[0]._meta).toBeDefined();
-      expect(result[0]._meta?.['openai/outputTemplate']).toBe('ui://widget/my-app/stats_tool.html');
+      expect(result[0]._meta?.['openai/outputTemplate']).toBe('ui://widget/my-app/ui_tool/registry-1.html');
     });
   });
 
@@ -448,18 +447,18 @@ describe('McpToolService', () => {
       expect(result.content).toBeDefined();
     });
 
-    it('should execute StatCard node and return structuredContent', async () => {
+    it('should execute RegistryComponent node and return structuredContent', async () => {
       const mockApp = createMockAppEntity({ slug: 'test-app' });
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
-      const flow = createTriggerStatCardFlow({ toolName: 'stats_tool' });
+      const flow = createTriggerRegistryComponentFlow({ toolName: 'ui_tool' });
       mockFlowRepository.find!.mockResolvedValue([flow]);
 
-      const result = await service.executeTool('test-app', 'stats_tool', { message: 'get stats' });
+      const result = await service.executeTool('test-app', 'ui_tool', { message: 'get ui' });
 
       expect(result.structuredContent).toBeDefined();
       expect(result._meta).toBeDefined();
-      expect(result._meta?.['openai/outputTemplate']).toContain('stats_tool.html');
+      expect(result._meta?.['openai/outputTemplate']).toContain('ui_tool');
     });
 
     it('should record error in execution when flow fails', async () => {
@@ -855,7 +854,7 @@ describe('McpToolService', () => {
       const mockApp = createMockAppEntity();
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
-      const postListNode = createMockPostListNode({ id: 'postlist-1' });
+      const postListNode = createMockRegistryComponentNode({ id: 'registry-1' });
       const flow = createMockFlowEntity({
         nodes: [
           createMockUserIntentNode({ toolName: 'test_tool' }),
@@ -865,7 +864,7 @@ describe('McpToolService', () => {
           createMockConnection({
             sourceNodeId: 'trigger-1',
             sourceHandle: 'output',
-            targetNodeId: 'postlist-1',
+            targetNodeId: 'registry-1',
           }),
         ],
       });
@@ -873,7 +872,7 @@ describe('McpToolService', () => {
 
       const result = await service.executeAction('test-app', {
         toolName: 'test_tool',
-        nodeId: 'postlist-1',
+        nodeId: 'registry-1',
         action: 'onReadMore',
         data: { postId: '123' },
       });
@@ -888,7 +887,7 @@ describe('McpToolService', () => {
       const flow = createMockFlowEntity({
         nodes: [
           createMockUserIntentNode({ toolName: 'test_tool' }),
-          createMockPostListNode({ id: 'postlist-1' }),
+          createMockRegistryComponentNode({ id: 'registry-1' }),
           createMockReturnNode({ id: 'return-1', text: 'Action executed!' }),
         ],
         connections: [
@@ -896,12 +895,12 @@ describe('McpToolService', () => {
             id: 'conn-1',
             sourceNodeId: 'trigger-1',
             sourceHandle: 'output',
-            targetNodeId: 'postlist-1',
+            targetNodeId: 'registry-1',
             targetHandle: 'input',
           }),
           createMockConnection({
             id: 'conn-2',
-            sourceNodeId: 'postlist-1',
+            sourceNodeId: 'registry-1',
             sourceHandle: 'action:onReadMore',
             targetNodeId: 'return-1',
             targetHandle: 'input',
@@ -912,7 +911,7 @@ describe('McpToolService', () => {
 
       const result = await service.executeAction('test-app', {
         toolName: 'test_tool',
-        nodeId: 'postlist-1',
+        nodeId: 'registry-1',
         action: 'onReadMore',
         data: { postId: '123' },
       });
@@ -931,7 +930,7 @@ describe('McpToolService', () => {
         const flow = createMockFlowEntity({
           nodes: [
             createMockUserIntentNode({ toolName: 'test_tool' }),
-            createMockPostListNode({ id: 'postlist-1' }),
+            createMockRegistryComponentNode({ id: 'registry-1' }),
             createMockReturnNode({ id: 'return-1', text: 'Action executed!' }),
           ],
           connections: [
@@ -939,12 +938,12 @@ describe('McpToolService', () => {
               id: 'conn-1',
               sourceNodeId: 'trigger-1',
               sourceHandle: 'output',
-              targetNodeId: 'postlist-1',
+              targetNodeId: 'registry-1',
               targetHandle: 'input',
             }),
             createMockConnection({
               id: 'conn-2',
-              sourceNodeId: 'postlist-1',
+              sourceNodeId: 'registry-1',
               sourceHandle: 'action:onReadMore',
               targetNodeId: 'return-1',
               targetHandle: 'input',
@@ -958,7 +957,7 @@ describe('McpToolService', () => {
           'test-app',
           {
             toolName: 'test_tool',
-            nodeId: 'postlist-1',
+            nodeId: 'registry-1',
             action: 'onReadMore',
             data: { postId: '123' },
           },
@@ -979,7 +978,7 @@ describe('McpToolService', () => {
         const flow = createMockFlowEntity({
           nodes: [
             createMockUserIntentNode({ toolName: 'test_tool' }),
-            createMockPostListNode({ id: 'postlist-1' }),
+            createMockRegistryComponentNode({ id: 'registry-1' }),
             createMockReturnNode({ id: 'return-1', text: 'Done!' }),
           ],
           connections: [
@@ -987,12 +986,12 @@ describe('McpToolService', () => {
               id: 'conn-1',
               sourceNodeId: 'trigger-1',
               sourceHandle: 'output',
-              targetNodeId: 'postlist-1',
+              targetNodeId: 'registry-1',
               targetHandle: 'input',
             }),
             createMockConnection({
               id: 'conn-2',
-              sourceNodeId: 'postlist-1',
+              sourceNodeId: 'registry-1',
               sourceHandle: 'action:onReadMore',
               targetNodeId: 'return-1',
               targetHandle: 'input',
@@ -1003,7 +1002,7 @@ describe('McpToolService', () => {
 
         await service.executeAction('test-app', {
           toolName: 'test_tool',
-          nodeId: 'postlist-1',
+          nodeId: 'registry-1',
           action: 'onReadMore',
           data: { postId: '123' },
         });
@@ -1029,17 +1028,17 @@ describe('McpToolService', () => {
       expect(result).toEqual([]);
     });
 
-    it('should return resources for flows with StatCard nodes', async () => {
+    it('should return resources for flows with RegistryComponent nodes', async () => {
       const mockApp = createMockAppEntity({ slug: 'my-app' });
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
-      const flow = createTriggerStatCardFlow({ toolName: 'stats_tool' });
+      const flow = createTriggerRegistryComponentFlow({ toolName: 'ui_tool' });
       mockFlowRepository.find!.mockResolvedValue([flow]);
 
       const result = await service.listResources('my-app');
 
       expect(result).toHaveLength(1);
-      expect(result[0].uri).toBe('ui://widget/my-app/stats_tool.html');
+      expect(result[0].uri).toBe('ui://widget/my-app/ui_tool/registry-1.html');
       expect(result[0].mimeType).toBe('text/html+skybridge');
     });
 
@@ -1053,7 +1052,7 @@ describe('McpToolService', () => {
             toolName: 'inactive_tool',
             isActive: false,
           }),
-          createMockStatCardNode(),
+          createMockRegistryComponentNode(),
         ],
       });
       mockFlowRepository.find!.mockResolvedValue([flow]);
@@ -1113,22 +1112,21 @@ describe('McpToolService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should return widget HTML for StatCard flow', async () => {
+    it('should return widget HTML for RegistryComponent flow', async () => {
       const mockApp = createMockAppEntity({ slug: 'test-app', id: 'app-1' });
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
-      const flow = createTriggerStatCardFlow({ toolName: 'stats_tool' });
+      const flow = createTriggerRegistryComponentFlow({ toolName: 'ui_tool' });
       mockFlowRepository.find!.mockResolvedValue([flow]);
 
       const result = await service.readResource(
         'test-app',
-        'ui://widget/test-app/stats_tool.html',
+        'ui://widget/test-app/ui_tool/registry-1.html',
       );
 
-      expect(result.uri).toBe('ui://widget/test-app/stats_tool.html');
+      expect(result.uri).toBe('ui://widget/test-app/ui_tool/registry-1.html');
       expect(result.mimeType).toBe('text/html+skybridge');
       expect(result.text).toContain('<!DOCTYPE html>');
-      expect(result.text).toContain('stats-grid');
     });
 
     it('should return callflow widget HTML', async () => {
