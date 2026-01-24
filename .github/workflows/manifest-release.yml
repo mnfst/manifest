@@ -1,5 +1,5 @@
 # ============================================================================
-# Release Workflow
+# Manifest Release Workflow
 # ============================================================================
 # Handles versioning and releases when changesets are merged to main.
 #
@@ -8,10 +8,15 @@
 #   2. Creates a "Version Packages" PR with version bumps
 #   3. When that PR is merged, creates GitHub releases with tags
 #
-# The version tags (v1.0.0) trigger the Docker publish workflow.
+# Uses a GitHub App token so the version PR triggers CI workflows.
+#
+# Required secrets:
+#   - APP_PRIVATE_KEY: GitHub App private key
+# Required variables:
+#   - APP_ID: GitHub App ID
 # ============================================================================
 
-name: Release
+name: Manifest Release
 
 permissions:
   contents: write
@@ -39,6 +44,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -59,7 +71,7 @@ jobs:
           commit: 'chore: version packages'
           version: pnpm changeset version
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Get version from root package.json
         if: steps.changesets.outputs.hasChangesets == 'false'

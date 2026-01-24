@@ -1,17 +1,88 @@
-name: CI
+# ============================================================================
+# Manifest Package CI Workflow
+# ============================================================================
+# Runs CI checks for the manifest package:
+#   - Changeset: Verifies PRs include a changeset file (runs first)
+#   - Tests: Runs backend tests (after changeset check passes)
+#   - Docker: Validates Docker image builds (after changeset check passes)
+# ============================================================================
+
+name: Manifest CI
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'packages/manifest/**'
+  workflow_dispatch:
 
 jobs:
-  docker-build:
-    name: Docker Build
+  changeset-check:
+    name: Changeset Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     permissions:
       contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for changeset
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          pnpm changeset status --since=origin/main
+
+  test:
+    name: test
     runs-on: ubuntu-latest
+    needs: changeset-check
+    if: always() && (needs.changeset-check.result == 'success' || needs.changeset-check.result == 'skipped')
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run manifest package tests
+        run: pnpm run manifest:test
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: changeset-check
+    if: github.event_name == 'pull_request' && needs.changeset-check.result == 'success'
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,6 +96,6 @@ jobs:
           context: .
           file: docker/manifest/Dockerfile
           push: false
-          tags: chatgpt-app-builder:test
+          tags: manifest:test
           cache-from: type=gha
           cache-to: type=gha,mode=max

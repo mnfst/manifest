@@ -32,7 +32,15 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.2"
   },
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@10.27.0",
+  "pnpm": {
+    "overrides": {
+      "tar": "^7.5.4",
+      "tmp": "^0.2.4",
+      "brace-expansion": "^2.0.2",
+      "diff": "^5.2.2"
+    }
+  },
   "engines": {
     "node": ">=22.0.0"
   },
