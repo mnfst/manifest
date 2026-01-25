@@ -1,5 +1,11 @@
 # manifest
 
+## 5.0.3
+
+### Patch Changes
+
+- 1978e93: Add README documentation to backend, frontend, nodes, and shared packages
+
 ## 5.0.2
 
 ### Patch Changes
