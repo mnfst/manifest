@@ -294,7 +294,7 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
             src={images[currentImageIndex]}
-            alt={event.title}
+            alt={event.title || 'Event image'}
             className="h-full w-full object-cover"
           />
 
@@ -367,12 +367,16 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
         )}
 
         {/* Category */}
-        <span className="inline-block rounded-full bg-muted px-3 py-1 text-sm font-medium">
-          {event.category}
-        </span>
+        {event.category && (
+          <span className="inline-block rounded-full bg-muted px-3 py-1 text-sm font-medium">
+            {event.category}
+          </span>
+        )}
 
         {/* Title */}
-        <h1 className="text-2xl font-bold leading-tight">{event.title}</h1>
+        {event.title && (
+          <h1 className="text-2xl font-bold leading-tight">{event.title}</h1>
+        )}
 
         {/* Organizer + Rating */}
         {event.organizer && (
@@ -380,40 +384,53 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
             {event.organizer.verified && (
               <BadgeCheck className="h-4 w-4 text-blue-500" />
             )}
-            <span className="font-medium">{event.organizer.name}</span>
-            <span className="text-muted-foreground">·</span>
-            <span className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-current text-yellow-500" />
-              {event.organizer.rating} ({formatNumber(event.organizer.reviewCount)})
-            </span>
+            {event.organizer.name && (
+              <span className="font-medium">{event.organizer.name}</span>
+            )}
+            {(event.organizer.rating !== undefined || event.organizer.reviewCount !== undefined) && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-current text-yellow-500" />
+                  {event.organizer.rating !== undefined && event.organizer.rating}
+                  {event.organizer.reviewCount !== undefined && ` (${formatNumber(event.organizer.reviewCount)})`}
+                </span>
+              </>
+            )}
           </div>
         )}
 
         {/* Venue + Location */}
-        <div className="flex items-start gap-2 text-sm text-muted-foreground">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            {event.venue_details?.name || event.venue} · {event.city}
-            {event.neighborhood && ` (${event.neighborhood})`}
-          </span>
-        </div>
+        {(event.venue_details?.name || event.venue || event.city) && (
+          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              {[event.venue_details?.name || event.venue, event.city].filter(Boolean).join(' · ')}
+              {event.neighborhood && ` (${event.neighborhood})`}
+            </span>
+          </div>
+        )}
 
         {/* Price + Attendees */}
         <div className="flex items-center gap-4">
-          <div>
-            <div className="text-lg font-semibold">{event.priceRange}</div>
-          </div>
-          {event.attendeesCount && (
+          {event.priceRange && (
+            <div>
+              <div className="text-lg font-semibold">{event.priceRange}</div>
+            </div>
+          )}
+          {event.attendeesCount !== undefined && (
             <div className="flex items-center gap-2">
               {event.friendsGoing && event.friendsGoing.length > 0 && (
                 <div className="flex -space-x-2">
                   {event.friendsGoing.slice(0, 3).map((friend, i) => (
-                    <img
-                      key={i}
-                      src={friend.avatar}
-                      alt={friend.name}
-                      className="h-6 w-6 rounded-full border-2 border-background"
-                    />
+                    friend.avatar && (
+                      <img
+                        key={i}
+                        src={friend.avatar}
+                        alt={friend.name || 'Friend'}
+                        className="h-6 w-6 rounded-full border-2 border-background"
+                      />
+                    )
                   ))}
                 </div>
               )}
@@ -504,12 +521,14 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
                   )}
                 </div>
               </div>
-              <div className="rounded-lg bg-muted/50 p-3">
-                <h4 className="text-sm font-medium">Refund Policy</h4>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {event.policies?.refund || 'No refunds'}
-                </p>
-              </div>
+              {event.policies?.refund && (
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <h4 className="text-sm font-medium">Refund Policy</h4>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {event.policies.refund}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -519,9 +538,15 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
           <div>
             <h2 className="text-lg font-semibold">Location</h2>
             <div className="mt-3">
-              <p className="font-medium">{event.venue_details.name}</p>
-              <p className="text-sm text-muted-foreground">{event.venue_details.address}</p>
-              <p className="text-sm text-muted-foreground">{event.venue_details.city}</p>
+              {event.venue_details.name && (
+                <p className="font-medium">{event.venue_details.name}</p>
+              )}
+              {event.venue_details.address && (
+                <p className="text-sm text-muted-foreground">{event.venue_details.address}</p>
+              )}
+              {event.venue_details.city && (
+                <p className="text-sm text-muted-foreground">{event.venue_details.city}</p>
+              )}
             </div>
 
             {showMap && event.venue_details.coordinates && (
@@ -578,20 +603,28 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
                 {event.organizer.image ? (
                   <img
                     src={event.organizer.image}
-                    alt={event.organizer.name}
+                    alt={event.organizer.name || 'Organizer'}
                     className="h-12 w-12 rounded-full object-cover"
                   />
-                ) : (
+                ) : event.organizer.name ? (
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-lg font-medium">
                     {event.organizer.name.charAt(0)}
                   </div>
-                )}
+                ) : null}
                 <div className="flex-1">
-                  <p className="font-medium">{event.organizer.name}</p>
+                  {event.organizer.name && (
+                    <p className="font-medium">{event.organizer.name}</p>
+                  )}
                   <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span>Followers<br /><strong>{event.organizer.followers ? formatNumber(event.organizer.followers) : '--'}</strong></span>
-                    <span>Events<br /><strong>{event.organizer.eventsCount || '--'}</strong></span>
-                    <span>Hosting<br /><strong>{event.organizer.hostingYears ? `${event.organizer.hostingYears} yrs` : '--'}</strong></span>
+                    {event.organizer.followers !== undefined && (
+                      <span>Followers<br /><strong>{formatNumber(event.organizer.followers)}</strong></span>
+                    )}
+                    {event.organizer.eventsCount !== undefined && (
+                      <span>Events<br /><strong>{event.organizer.eventsCount}</strong></span>
+                    )}
+                    {event.organizer.hostingYears !== undefined && (
+                      <span>Hosting<br /><strong>{event.organizer.hostingYears} yrs</strong></span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -677,8 +710,8 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
         <div className="mt-6 rounded-lg border bg-muted/30 p-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-semibold">{event.priceRange}</p>
-              <p className="text-sm text-muted-foreground">{formatEventDateTime(event.startDateTime, event.endDateTime)}</p>
+              {event.priceRange && <p className="font-semibold">{event.priceRange}</p>}
+              {event.startDateTime && <p className="text-sm text-muted-foreground">{formatEventDateTime(event.startDateTime, event.endDateTime)}</p>}
             </div>
             <Button
               className="bg-primary hover:bg-primary/90"
