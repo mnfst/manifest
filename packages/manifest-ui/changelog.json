@@ -138,7 +138,8 @@
       "2.0.1": "Moved demo data to separate file for cleaner component code",
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.4": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.5": "Fixed circular dependency by moving Post interface to types.ts"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
@@ -148,7 +149,8 @@
       "2.0.2": "Moved demo data to separate file for cleaner component code",
       "2.0.3": "Added comprehensive JSDoc documentation",
       "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.5": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.5": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.6": "Fixed circular dependency by moving Post interface to types.ts"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
@@ -156,7 +158,9 @@
       "2.0.1": "Updated post-card dependency with extracted demo data",
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.4": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.5": "Added missing tooltip dependency to registryDependencies",
+      "2.0.6": "Fixed circular dependency by importing Post from types.ts"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",

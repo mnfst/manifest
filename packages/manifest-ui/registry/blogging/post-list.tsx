@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { Post, PostCard } from './post-card'
+import type { Post } from './types'
+import { PostCard } from './post-card'
 import { demoPosts } from './demo/data'
 
 /**

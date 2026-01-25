@@ -1,7 +1,7 @@
 // Demo data for Blogging category components
 // This file contains sample data used for component previews and documentation
 
-import type { Post } from '../post-card'
+import type { Post } from '../types'
 
 // Single post for PostCard default
 export const demoPost: Post = {

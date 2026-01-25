@@ -563,14 +563,15 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-card.png",
-        "version": "2.0.4",
+        "version": "2.0.5",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
           "2.0.1": "Moved demo data to separate file for cleaner component code",
           "2.0.2": "Added comprehensive JSDoc documentation",
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.4": "Fixed defensive property access to handle empty objects and null values"
+          "2.0.4": "Fixed defensive property access to handle empty objects and null values",
+          "2.0.5": "Fixed circular dependency by moving Post interface to types.ts"
         }
       },
       "dependencies": ["lucide-react"],
@@ -585,6 +586,16 @@
           "path": "registry/blogging/post-detail.tsx",
           "type": "registry:block",
           "target": "components/ui/post-detail.tsx"
+        },
+        {
+          "path": "registry/blogging/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/blogging/types.ts"
+        },
+        {
+          "path": "registry/blogging/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/blogging/demo/data.ts"
         }
       ]
     },
@@ -597,7 +608,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
-        "version": "2.0.5",
+        "version": "2.0.6",
         "changelog": {
           "1.0.0": "Initial release with list, grid and carousel variants",
           "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
@@ -606,7 +617,8 @@
           "2.0.2": "Moved demo data to separate file for cleaner component code",
           "2.0.3": "Added comprehensive JSDoc documentation",
           "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.5": "Fixed defensive property access to handle empty objects and null values"
+          "2.0.5": "Fixed defensive property access to handle empty objects and null values",
+          "2.0.6": "Fixed circular dependency by moving Post interface to types.ts"
         }
       },
       "dependencies": ["lucide-react"],
@@ -626,6 +638,16 @@
           "path": "registry/blogging/post-detail.tsx",
           "type": "registry:block",
           "target": "components/ui/post-detail.tsx"
+        },
+        {
+          "path": "registry/blogging/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/blogging/types.ts"
+        },
+        {
+          "path": "registry/blogging/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/blogging/demo/data.ts"
         }
       ]
     },
@@ -638,7 +660,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.0.5",
+        "version": "2.0.6",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -646,7 +668,8 @@
           "2.0.2": "Added comprehensive JSDoc documentation",
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "2.0.5": "Added missing tooltip dependency to registryDependencies"
+          "2.0.5": "Added missing tooltip dependency to registryDependencies",
+          "2.0.6": "Fixed circular dependency by importing Post from types.ts"
         }
       },
       "dependencies": ["lucide-react"],
@@ -661,6 +684,16 @@
           "path": "registry/blogging/post-card.tsx",
           "type": "registry:block",
           "target": "components/ui/post-card.tsx"
+        },
+        {
+          "path": "registry/blogging/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/blogging/types.ts"
+        },
+        {
+          "path": "registry/blogging/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/blogging/demo/data.ts"
         }
       ]
     },
