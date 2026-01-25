@@ -638,18 +638,19 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.0.4",
+        "version": "2.0.5",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
           "2.0.1": "Updated post-card dependency with extracted demo data",
           "2.0.2": "Added comprehensive JSDoc documentation",
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.4": "Fixed defensive property access to handle empty objects and null values"
+          "2.0.4": "Fixed defensive property access to handle empty objects and null values",
+          "2.0.5": "Added missing tooltip dependency to registryDependencies"
         }
       },
       "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "registryDependencies": ["button", "tooltip"],
       "files": [
         {
           "path": "registry/blogging/post-detail.tsx",

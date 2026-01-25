@@ -10,27 +10,27 @@ import { demoPost } from './demo/data'
 /**
  * Represents a blog post with metadata.
  * @interface Post
- * @property {string} title - Post title
- * @property {string} excerpt - Brief description or summary
+ * @property {string} [title] - Post title
+ * @property {string} [excerpt] - Brief description or summary
  * @property {string} [coverImage] - URL of the cover image
- * @property {object} author - Author information
- * @property {string} author.name - Author's display name
+ * @property {object} [author] - Author information
+ * @property {string} [author.name] - Author's display name
  * @property {string} [author.avatar] - Author's avatar URL
- * @property {string} publishedAt - ISO date string of publication
+ * @property {string} [publishedAt] - ISO date string of publication
  * @property {string} [readTime] - Estimated read time (e.g., "5 min read")
  * @property {string[]} [tags] - Array of tag labels
  * @property {string} [category] - Category name
  * @property {string} [url] - External URL for the post
  */
 export interface Post {
-  title: string
-  excerpt: string
+  title?: string
+  excerpt?: string
   coverImage?: string
-  author: {
-    name: string
+  author?: {
+    name?: string
     avatar?: string
   }
-  publishedAt: string
+  publishedAt?: string
   readTime?: string
   tags?: string[]
   category?: string
@@ -148,7 +148,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
           {post.coverImage ? (
             <img
               src={post.coverImage}
-              alt={post.title}
+              alt={post.title || ''}
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
@@ -164,12 +164,16 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
                 {post.category}
               </p>
             )}
-            <h2 className="mt-1 text-lg font-semibold leading-tight">
-              {post.title}
-            </h2>
-            <p className="mt-1 line-clamp-2 text-sm text-white/80">
-              {post.excerpt}
-            </p>
+            {post.title && (
+              <h2 className="mt-1 text-lg font-semibold leading-tight">
+                {post.title}
+              </h2>
+            )}
+            {post.excerpt && (
+              <p className="mt-1 line-clamp-2 text-sm text-white/80">
+                {post.excerpt}
+              </p>
+            )}
             {post.tags && post.tags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {post.tags.slice(0, 2).map((tag) => (
@@ -185,18 +189,22 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {showAuthor && (
                 <div className="flex items-center gap-2">
-                  {post.author.avatar && (
+                  {post.author?.avatar && (
                     <img
                       src={post.author.avatar}
-                      alt={post.author.name}
+                      alt={post.author?.name || ''}
                       className="h-6 w-6 rounded-full ring-1 ring-white/30"
                     />
                   )}
                   <div className="text-xs">
-                    <p className="font-medium">{post.author.name}</p>
-                    <p className="text-white/60">
-                      {formatDate(post.publishedAt)}
-                    </p>
+                    {post.author?.name && (
+                      <p className="font-medium">{post.author.name}</p>
+                    )}
+                    {post.publishedAt && (
+                      <p className="text-white/60">
+                        {formatDate(post.publishedAt)}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -222,7 +230,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
           <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
               src={post.coverImage}
-              alt={post.title}
+              alt={post.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
@@ -234,12 +242,16 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
                 {post.category}
               </p>
             )}
-            <h3 className="line-clamp-2 text-sm font-medium leading-tight">
-              {post.title}
-            </h3>
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-              {post.excerpt}
-            </p>
+            {post.title && (
+              <h3 className="line-clamp-2 text-sm font-medium leading-tight">
+                {post.title}
+              </h3>
+            )}
+            {post.excerpt && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {post.excerpt}
+              </p>
+            )}
             {post.tags && post.tags.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {post.tags.slice(0, 2).map((tag) => (
@@ -255,14 +267,16 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
           </div>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {showAuthor && post.author.avatar && (
+              {showAuthor && post.author?.avatar && (
                 <img
                   src={post.author.avatar}
-                  alt={post.author.name}
+                  alt={post.author?.name || ''}
                   className="h-4 w-4 rounded-full"
                 />
               )}
-              <span>{formatDate(post.publishedAt)}</span>
+              {post.publishedAt && (
+                <span>{formatDate(post.publishedAt)}</span>
+              )}
               {post.readTime && (
                 <>
                   <span>·</span>
@@ -292,10 +306,14 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
               {post.category}
             </p>
           )}
-          <h3 className="line-clamp-2 text-sm font-medium">{post.title}</h3>
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            {post.excerpt}
-          </p>
+          {post.title && (
+            <h3 className="line-clamp-2 text-sm font-medium">{post.title}</h3>
+          )}
+          {post.excerpt && (
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+              {post.excerpt}
+            </p>
+          )}
           {post.tags && post.tags.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1">
               {post.tags.slice(0, 2).map((tag) => (
@@ -311,16 +329,18 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
         </div>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            {showAuthor && post.author.avatar && (
+            {showAuthor && post.author?.avatar && (
               <img
                 src={post.author.avatar}
-                alt={post.author.name}
+                alt={post.author?.name || ''}
                 className="h-5 w-5 rounded-full"
               />
             )}
-            <span className="text-xs text-muted-foreground">
-              {formatDate(post.publishedAt)}
-            </span>
+            {post.publishedAt && (
+              <span className="text-xs text-muted-foreground">
+                {formatDate(post.publishedAt)}
+              </span>
+            )}
           </div>
           <Button size="sm" onClick={handleReadMore}>
             Read more
@@ -337,7 +357,7 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
         <div className="aspect-video overflow-hidden">
           <img
             src={post.coverImage}
-            alt={post.title}
+            alt={post.title || ''}
             className="h-full w-full object-cover transition-transform hover:scale-105"
           />
         </div>
@@ -349,10 +369,14 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
               {post.category}
             </p>
           )}
-          <h3 className="line-clamp-2 font-medium">{post.title}</h3>
-          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-            {post.excerpt}
-          </p>
+          {post.title && (
+            <h3 className="line-clamp-2 font-medium">{post.title}</h3>
+          )}
+          {post.excerpt && (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+              {post.excerpt}
+            </p>
+          )}
           {post.tags && post.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {post.tags.slice(0, 2).map((tag) => (
@@ -369,18 +393,22 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {showAuthor && (
             <div className="flex items-center gap-2">
-              {post.author.avatar && (
+              {post.author?.avatar && (
                 <img
                   src={post.author.avatar}
-                  alt={post.author.name}
+                  alt={post.author?.name || ''}
                   className="h-6 w-6 rounded-full"
                 />
               )}
               <div className="text-xs">
-                <p className="font-medium">{post.author.name}</p>
-                <p className="text-muted-foreground">
-                  {formatDate(post.publishedAt)}
-                </p>
+                {post.author?.name && (
+                  <p className="font-medium">{post.author.name}</p>
+                )}
+                {post.publishedAt && (
+                  <p className="text-muted-foreground">
+                    {formatDate(post.publishedAt)}
+                  </p>
+                )}
               </div>
             </div>
           )}
