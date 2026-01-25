@@ -63,7 +63,6 @@ import { EventCard } from '@/registry/events/event-card'
 import { EventList } from '@/registry/events/event-list'
 import { EventDetail } from '@/registry/events/event-detail'
 import { TicketTierSelect } from '@/registry/events/ticket-tier-select'
-import { EventCheckout } from '@/registry/events/event-checkout'
 import { EventConfirmation } from '@/registry/events/event-confirmation'
 
 // Demo data
@@ -357,17 +356,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
         data={{
           event: { title: 'Summer Music Festival', date: 'Jan 20, 2024' },
           tiers: demoTicketTiers
-        }}
-      />
-    ),
-    category: 'events'
-  },
-  'event-checkout': {
-    component: (
-      <EventCheckout
-        data={{
-          event: { title: 'Summer Music Festival', date: 'Jan 20, 2024', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800' },
-          order: { items: [{ name: 'General Admission', quantity: 2, price: 90 }], fees: 10 }
         }}
       />
     ),

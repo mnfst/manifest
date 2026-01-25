@@ -39,7 +39,6 @@ export const blockNames: Record<string, string> = {
   'event-list': 'Event List',
   'event-detail': 'Event Detail',
   'ticket-tier-select': 'Ticket Selection',
-  'event-checkout': 'Event Checkout',
   'event-confirmation': 'Event Confirmation'
 }
 
@@ -110,8 +109,6 @@ export const blockDescriptions: Record<string, string> = {
     'Full event details with image carousel, organizer info, and ticket purchase.',
   'ticket-tier-select':
     'Ticket tier selection with quantity controls and price breakdown.',
-  'event-checkout':
-    'Event checkout with billing form, payment methods, and order summary.',
   'event-confirmation':
     'Event booking confirmation with order details and social sharing.'
 }

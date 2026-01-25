@@ -1057,34 +1057,6 @@
       ]
     },
     {
-      "name": "event-checkout",
-      "type": "registry:block",
-      "title": "Event Checkout",
-      "description": "Event checkout form with billing info, payment method selection, and order summary. Includes countdown timer.",
-      "author": "MNFST, Inc",
-      "categories": ["events"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/event-checkout.png",
-        "version": "2.0.3",
-        "changelog": {
-          "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary",
-          "1.1.0": "Added event image display above order summary on right side",
-          "2.0.0": "BREAKING: Refactored to use nested event and order objects. Simplified onPlaceOrder to () => void. Moved timerMinutes to appearance.",
-          "2.0.2": "Added comprehensive JSDoc documentation",
-          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "checkbox"],
-      "files": [
-        {
-          "path": "registry/events/event-checkout.tsx",
-          "type": "registry:block",
-          "target": "components/ui/event-checkout.tsx"
-        }
-      ]
-    },
-    {
       "name": "event-confirmation",
       "type": "registry:block",
       "title": "Event Confirmation",

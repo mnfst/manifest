@@ -20,7 +20,6 @@ import { PostList } from '@/registry/blogging/post-list'
 
 // Events components
 import { EventCard } from '@/registry/events/event-card'
-import { EventCheckout } from '@/registry/events/event-checkout'
 import { EventConfirmation } from '@/registry/events/event-confirmation'
 import { EventDetail } from '@/registry/events/event-detail'
 import { EventList } from '@/registry/events/event-list'
@@ -1465,56 +1464,6 @@ const categories: Category[] = [
   }}
   appearance={{
     showOrderSummary: true
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'event-checkout',
-        name: 'Event Checkout',
-        description:
-          'Checkout form with billing information, payment methods, and order summary.',
-        registryName: 'event-checkout',
-        layouts: ['inline', 'fullscreen'],
-        actionCount: 2,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <EventCheckout data={{ event: { title: "Player Play Date", date: "Fri, Feb 06 · 2:00 pm", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", price: "$25.05", currency: "USD" } }} actions={{ onBack: () => {}, onPlaceOrder: () => {} }} />,
-            usageCode: `<EventCheckout
-  data={{
-    event: {
-      title: "Player Play Date",
-      date: "Fri, Feb 06 · 2:00 pm",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
-      price: "$25.05",
-      currency: "USD"
-    },
-    order: {
-      items: [
-        { name: "General Admission", quantity: 2, price: 21.75 },
-        { name: "VIP Upgrade", quantity: 1, price: 35.00 }
-      ],
-      fees: 8.50,
-      delivery: 0,
-      deliveryMethod: "3 x eTicket"
-    },
-    paymentMethods: [
-      { id: "card", name: "Credit or debit card", icon: "card" },
-      { id: "paypal", name: "PayPal", icon: "paypal" },
-      { id: "google", name: "Google Pay", icon: "google" }
-    ]
-  }}
-  actions={{
-    onBack: () => console.log("Navigate back"),
-    onPlaceOrder: () => console.log("Order placed")
-  }}
-  appearance={{
-    showTimer: true,
-    timerMinutes: 20,
-    showEventCard: true
   }}
 />`
           }

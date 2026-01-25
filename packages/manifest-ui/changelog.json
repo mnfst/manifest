@@ -275,13 +275,6 @@
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
     },
-    "event-checkout": {
-      "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary",
-      "1.1.0": "Added event image display above order summary on right side",
-      "2.0.0": "BREAKING: Refactored to use nested event and order objects. Simplified onPlaceOrder to () => void. Moved timerMinutes to appearance.",
-      "2.0.2": "Added comprehensive JSDoc documentation",
-      "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
-    },
     "event-confirmation": {
       "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",
       "1.0.2": "Added comprehensive JSDoc documentation",
