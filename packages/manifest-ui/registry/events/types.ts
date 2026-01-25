@@ -81,8 +81,8 @@ export type VibeTag =
  * @property {string} [discount] - Discount text
  */
 export interface Event {
-  title: string
-  category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
+  title?: string
+  category?: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
   venue?: string
   neighborhood?: string | null
   city?: string
@@ -108,7 +108,7 @@ export interface Event {
  * Represents an event organizer.
  * @interface Organizer
  * @property {string} id - Unique identifier
- * @property {string} name - Organizer name
+ * @property {string} [name] - Organizer name
  * @property {string} [image] - Profile image URL
  * @property {number} rating - Average rating
  * @property {number} reviewCount - Number of reviews
@@ -120,7 +120,7 @@ export interface Event {
  * @property {"great" | "good" | "new"} [trackRecord] - Track record rating
  */
 export interface Organizer {
-  name: string
+  name?: string
   image?: string
   rating?: number
   reviewCount?: number
