@@ -22,19 +22,17 @@ function formatCurrency(amount: number, currency: string = 'USD'): string {
 /**
  * Represents a ticket tier option.
  * @interface TicketTier
- * @property {string} id - Unique identifier
- * @property {string} name - Tier name (e.g., "General Admission", "VIP")
- * @property {number} price - Base price
- * @property {number} fee - Service fee
- * @property {number} available - Number available
+ * @property {string} [name] - Tier name (e.g., "General Admission", "VIP")
+ * @property {number} [price] - Base price
+ * @property {number} [fee] - Service fee
+ * @property {number} [available] - Number available
  * @property {string} [salesEndDate] - When sales end
  * @property {string} [description] - Tier description
  * @property {number} [maxPerOrder] - Maximum tickets per order
  */
 export interface TicketTier {
-  id: string
-  name: string
-  price: number
+  name?: string
+  price?: number
   fee?: number
   available?: number
   salesEndDate?: string
@@ -45,23 +43,22 @@ export interface TicketTier {
 /**
  * Represents a selected ticket with quantity.
  * @interface TicketSelection
- * @property {string} tierId - Selected tier ID
+ * @property {number} tierIndex - Selected tier index
  * @property {string} tierName - Tier name for display
  * @property {number} quantity - Number of tickets
  * @property {number} price - Base price per ticket
  * @property {number} fee - Fee per ticket
  */
 export interface TicketSelection {
-  tierId: string
-  tierName: string
+  tierIndex: number
+  tierName?: string
   quantity: number
-  price: number
+  price?: number
   fee?: number
 }
 
 const defaultTiers: TicketTier[] = [
   {
-    id: 'general',
     name: 'General Admission',
     price: 21.75,
     fee: 3.30,
@@ -70,7 +67,6 @@ const defaultTiers: TicketTier[] = [
     maxPerOrder: 10
   },
   {
-    id: 'vip',
     name: 'VIP',
     price: 35.85,
     fee: 4.25,
@@ -123,8 +119,8 @@ export interface TicketTierSelectProps {
     showOrderSummary?: boolean
   }
   control?: {
-    /** Initial ticket selections as a map of tier ID to quantity. */
-    selections?: Record<string, number>
+    /** Initial ticket selections as a map of tier index to quantity. */
+    selections?: Record<number, number>
   }
 }
 
@@ -151,8 +147,8 @@ export interface TicketTierSelectProps {
  *       currency: "USD"
  *     },
  *     tiers: [
- *       { id: "ga", name: "General Admission", price: 45, fee: 5, available: 100 },
- *       { id: "vip", name: "VIP", price: 120, fee: 10, available: 50 }
+ *       { name: "General Admission", price: 45, fee: 5, available: 100 },
+ *       { name: "VIP", price: 120, fee: 10, available: 50 }
  *     ]
  *   }}
  *   actions={{
@@ -172,20 +168,20 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
   const { onCheckout, onSelectionChange } = actions ?? {}
   const { showOrderSummary = true } = appearance ?? {}
 
-  const [selections, setSelections] = useState<Record<string, number>>(
+  const [selections, setSelections] = useState<Record<number, number>>(
     control?.selections ?? {}
   )
 
-  const updateQuantity = (tierId: string, delta: number) => {
-    const tier = tiers.find(t => t.id === tierId)
+  const updateQuantity = (tierIndex: number, delta: number) => {
+    const tier = tiers[tierIndex]
     if (!tier) return
 
-    const currentQty = selections[tierId] || 0
+    const currentQty = selections[tierIndex] || 0
     const newQty = Math.max(0, Math.min(currentQty + delta, tier.maxPerOrder ?? 10, tier.available ?? 100))
 
-    const newSelections = { ...selections, [tierId]: newQty }
+    const newSelections = { ...selections, [tierIndex]: newQty }
     if (newQty === 0) {
-      delete newSelections[tierId]
+      delete newSelections[tierIndex]
     }
     setSelections(newSelections)
 
@@ -194,17 +190,18 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
     onSelectionChange?.(selectionsList)
   }
 
-  const getSelectionsList = (sels: Record<string, number> = selections): TicketSelection[] => {
+  const getSelectionsList = (sels: Record<number, number> = selections): TicketSelection[] => {
     return Object.entries(sels)
       .filter(([_, qty]) => qty > 0)
-      .map(([tierId, qty]) => {
-        const tier = tiers.find(t => t.id === tierId)!
+      .map(([indexStr, qty]) => {
+        const tierIndex = parseInt(indexStr, 10)
+        const tier = tiers[tierIndex]
         return {
-          tierId,
-          tierName: tier.name,
+          tierIndex,
+          tierName: tier?.name,
           quantity: qty,
-          price: tier.price,
-          fee: tier.fee ?? 0
+          price: tier?.price,
+          fee: tier?.fee ?? 0
         }
       })
   }
@@ -212,7 +209,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
   const selectionsList = getSelectionsList()
   const hasSelections = selectionsList.length > 0
 
-  const subtotal = selectionsList.reduce((sum, s) => sum + s.price * s.quantity, 0)
+  const subtotal = selectionsList.reduce((sum, s) => sum + (s.price ?? 0) * s.quantity, 0)
   const totalFees = selectionsList.reduce((sum, s) => sum + (s.fee ?? 0) * s.quantity, 0)
   const total = subtotal + totalFees
 
@@ -233,14 +230,14 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
 
         {/* Tiers */}
         <div className="space-y-4">
-          {tiers.map((tier) => {
-            const qty = selections[tier.id] || 0
+          {tiers.map((tier, index) => {
+            const qty = selections[index] || 0
             const isSelected = qty > 0
-            const totalPrice = tier.price + (tier.fee ?? 0)
+            const totalPrice = (tier.price ?? 0) + (tier.fee ?? 0)
 
             return (
               <div
-                key={tier.id}
+                key={index}
                 className={cn(
                   'rounded-lg border p-4 transition-colors',
                   isSelected && 'border-primary ring-1 ring-primary'
@@ -248,7 +245,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
               >
                 {/* Tier header */}
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium">{tier.name}</h3>
+                  {tier.name && <h3 className="font-medium">{tier.name}</h3>}
                   <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
@@ -257,7 +254,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                         'h-8 w-8 rounded-full',
                         qty === 0 && 'opacity-50'
                       )}
-                      onClick={() => updateQuantity(tier.id, -1)}
+                      onClick={() => updateQuantity(index, -1)}
                       disabled={qty === 0}
                     >
                       <Minus className="h-4 w-4" />
@@ -266,7 +263,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                     <Button
                       size="icon"
                       className="h-8 w-8 rounded-full"
-                      onClick={() => updateQuantity(tier.id, 1)}
+                      onClick={() => updateQuantity(index, 1)}
                       disabled={qty >= (tier.maxPerOrder ?? 10) || qty >= (tier.available ?? 100)}
                     >
                       <Plus className="h-4 w-4" />
@@ -275,21 +272,23 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                 </div>
 
                 {/* Price info */}
-                <div className="mt-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-semibold">{formatCurrency(totalPrice, currency)}</span>
-                    {(tier.fee ?? 0) > 0 && (
-                      <span className="text-sm text-muted-foreground">
-                        incl. {formatCurrency(tier.fee ?? 0, currency)} Fee
-                      </span>
+                {tier.price !== undefined && (
+                  <div className="mt-3">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-semibold">{formatCurrency(totalPrice, currency)}</span>
+                      {(tier.fee ?? 0) > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                          incl. {formatCurrency(tier.fee ?? 0, currency)} Fee
+                        </span>
+                      )}
+                    </div>
+                    {tier.salesEndDate && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Sales end on {tier.salesEndDate}
+                      </p>
                     )}
                   </div>
-                  {tier.salesEndDate && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Sales end on {tier.salesEndDate}
-                    </p>
-                  )}
-                </div>
+                )}
 
                 {/* Description */}
                 {tier.description && (
@@ -335,9 +334,9 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                   {/* Line items */}
                   <div className="space-y-2">
                     {selectionsList.map((selection) => (
-                      <div key={selection.tierId} className="flex justify-between text-sm">
-                        <span>{selection.quantity} x {selection.tierName}</span>
-                        <span>{formatCurrency(selection.price * selection.quantity, currency)}</span>
+                      <div key={selection.tierIndex} className="flex justify-between text-sm">
+                        <span>{selection.quantity} x {selection.tierName ?? 'Ticket'}</span>
+                        <span>{formatCurrency((selection.price ?? 0) * selection.quantity, currency)}</span>
                       </div>
                     ))}
                   </div>

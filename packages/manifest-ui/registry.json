@@ -12,14 +12,15 @@
       "categories": ["form"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/contact-form.png",
-        "version": "1.2.4",
+        "version": "1.2.5",
         "changelog": {
           "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
           "1.1.0": "Made phone, email, and message fields optional with defaults",
           "1.2.0": "Added initialValues prop to pre-fill form fields",
           "1.2.1": "Added aria-label to file removal button for screen reader accessibility",
           "1.2.3": "Added comprehensive JSDoc documentation",
-          "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.2.5": "Fixed defensive property access to handle empty objects and null values"
         }
       },
       "dependencies": ["lucide-react"],
@@ -68,12 +69,13 @@
       "categories": ["form"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/issue-report-form.png",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "changelog": {
           "1.0.0": "Initial release with categories, impact levels and file attachments",
           "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
           "1.0.3": "Added comprehensive JSDoc documentation",
-          "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.0.5": "Fixed defensive property access to handle empty objects and null values"
         }
       },
       "dependencies": ["lucide-react"],
@@ -95,11 +97,12 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/card-form.png",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "changelog": {
           "1.0.0": "Initial release with card number, expiry, CVV and name fields",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.0.4": "Fixed defensive property access to handle empty objects and null values"
         }
       },
       "dependencies": ["lucide-react"],
@@ -121,13 +124,14 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/pay-confirm.png",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "changelog": {
           "1.0.0": "Initial release with amount display and confirm actions",
           "1.0.1": "Updated to show a more realistic default amount",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.5": "Fixed defensive property access to handle empty objects and null values"
+          "1.0.5": "Fixed defensive property access to handle empty objects and null values",
+          "1.0.6": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -149,12 +153,13 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/order-summary.png",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "changelog": {
           "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts",
           "1.0.1": "Moved demo data to separate file for cleaner component code",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.0.4": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
       "dependencies": ["lucide-react"],
@@ -164,6 +169,16 @@
           "path": "registry/payment/order-summary.tsx",
           "type": "registry:block",
           "target": "components/ui/order-summary.tsx"
+        },
+        {
+          "path": "registry/payment/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/types.ts"
+        },
+        {
+          "path": "registry/payment/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -176,12 +191,13 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/saved-cards.png",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "changelog": {
           "1.0.0": "Initial release with support for multiple card brands",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values"
+          "1.0.4": "Fixed defensive property access to handle empty objects and null values",
+          "1.0.5": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -229,12 +245,13 @@
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/bank-card-form.png",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "changelog": {
           "1.0.0": "Initial release with compact inline layout for chat",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values"
+          "1.0.4": "Fixed defensive property access to handle empty objects and null values",
+          "1.0.5": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -335,7 +352,7 @@
       "categories": ["list"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/product-list.png",
-        "version": "2.0.5",
+        "version": "2.0.6",
         "changelog": {
           "1.0.0": "Initial release with list, grid, carousel and picker variants",
           "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
@@ -343,7 +360,8 @@
           "2.0.2": "Moved demo data to separate file for cleaner component code",
           "2.0.3": "Added comprehensive JSDoc documentation",
           "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.5": "Fixed defensive property access to handle empty objects and null values"
+          "2.0.5": "Fixed defensive property access to handle empty objects and null values",
+          "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
       "dependencies": ["lucide-react"],
@@ -353,6 +371,16 @@
           "path": "registry/list/product-list.tsx",
           "type": "registry:block",
           "target": "components/ui/product-list.tsx"
+        },
+        {
+          "path": "registry/list/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/types.ts"
+        },
+        {
+          "path": "registry/list/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -365,7 +393,7 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
-        "version": "2.1.2",
+        "version": "2.1.3",
         "changelog": {
           "1.0.0": "Initial release with single and multiple selection modes",
           "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
@@ -373,7 +401,8 @@
           "2.0.2": "Added comprehensive JSDoc documentation",
           "2.1.0": "Moved to selection category for better organization",
           "2.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.1.2": "Fixed defensive property access to handle empty objects and null values"
+          "2.1.2": "Fixed defensive property access to handle empty objects and null values",
+          "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
       "dependencies": ["lucide-react"],
@@ -383,6 +412,16 @@
           "path": "registry/selection/option-list.tsx",
           "type": "registry:block",
           "target": "components/ui/option-list.tsx"
+        },
+        {
+          "path": "registry/selection/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/types.ts"
+        },
+        {
+          "path": "registry/selection/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -422,13 +461,14 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
-        "version": "1.1.2",
+        "version": "1.1.3",
         "changelog": {
           "1.0.0": "Initial release with color variants and multi-select",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to selection category for better organization",
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.1.2": "Fixed defensive property access to handle empty objects and null values"
+          "1.1.2": "Fixed defensive property access to handle empty objects and null values",
+          "1.1.3": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -450,7 +490,7 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/quick-reply.png",
-        "version": "3.1.2",
+        "version": "3.1.3",
         "changelog": {
           "1.0.0": "Initial release with quick reply button options",
           "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
@@ -458,7 +498,8 @@
           "3.0.2": "Added comprehensive JSDoc documentation",
           "3.1.0": "Moved to selection category for better organization",
           "3.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "3.1.2": "Fixed defensive property access to handle empty objects and null values"
+          "3.1.2": "Fixed defensive property access to handle empty objects and null values",
+          "3.1.3": "Additional defensive property access improvements"
         }
       },
       "dependencies": [],
@@ -480,13 +521,14 @@
       "categories": ["status"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/progress-steps.png",
-        "version": "1.1.2",
+        "version": "1.1.3",
         "changelog": {
           "1.0.0": "Initial release with horizontal and vertical layouts",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to status category for better organization",
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.1.2": "Fixed defensive property access to handle empty objects and null values"
+          "1.1.2": "Fixed defensive property access to handle empty objects and null values",
+          "1.1.3": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -536,12 +578,13 @@
       "categories": ["miscellaneous"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/stats.png",
-        "version": "1.0.4",
+        "version": "1.0.5",
         "changelog": {
           "1.0.0": "Initial release with scrollable stat cards and trends",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values"
+          "1.0.4": "Fixed defensive property access to handle empty objects and null values",
+          "1.0.5": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -590,12 +633,12 @@
         {
           "path": "registry/blogging/types.ts",
           "type": "registry:lib",
-          "target": "components/ui/blogging/types.ts"
+          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/blogging/demo/data.ts",
           "type": "registry:lib",
-          "target": "components/ui/blogging/demo/data.ts"
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -608,7 +651,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
-        "version": "2.0.6",
+        "version": "2.0.7",
         "changelog": {
           "1.0.0": "Initial release with list, grid and carousel variants",
           "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
@@ -618,7 +661,8 @@
           "2.0.3": "Added comprehensive JSDoc documentation",
           "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "2.0.6": "Fixed circular dependency by moving Post interface to types.ts"
+          "2.0.6": "Fixed circular dependency by moving Post interface to types.ts",
+          "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support"
         }
       },
       "dependencies": ["lucide-react"],
@@ -642,12 +686,12 @@
         {
           "path": "registry/blogging/types.ts",
           "type": "registry:lib",
-          "target": "components/ui/blogging/types.ts"
+          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/blogging/demo/data.ts",
           "type": "registry:lib",
-          "target": "components/ui/blogging/demo/data.ts"
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -688,12 +732,12 @@
         {
           "path": "registry/blogging/types.ts",
           "type": "registry:lib",
-          "target": "components/ui/blogging/types.ts"
+          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/blogging/demo/data.ts",
           "type": "registry:lib",
-          "target": "components/ui/blogging/demo/data.ts"
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -706,13 +750,14 @@
       "categories": ["list"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/table.png",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "changelog": {
           "1.0.0": "Initial release with single and multi-select modes",
           "1.0.1": "Added descriptive alt tags for title images",
           "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
           "1.0.4": "Added comprehensive JSDoc documentation",
-          "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.0.6": "Fixed defensive property access to handle empty objects and null values"
         }
       },
       "dependencies": ["lucide-react"],
@@ -766,7 +811,7 @@
       "categories": ["messaging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/chat-conversation.png",
-        "version": "4.0.5",
+        "version": "4.0.6",
         "changelog": {
           "1.0.0": "Initial release with multiple message types",
           "1.0.1": "Updated to use improved message bubble styling",
@@ -780,7 +825,8 @@
           "4.0.2": "Moved demo data to separate file for cleaner component code",
           "4.0.3": "Added comprehensive JSDoc documentation",
           "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "4.0.5": "Fixed defensive property access to handle empty objects and null values"
+          "4.0.5": "Fixed defensive property access to handle empty objects and null values",
+          "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
       "dependencies": ["lucide-react"],
@@ -795,6 +841,16 @@
           "path": "registry/messaging/message-bubble.tsx",
           "type": "registry:block",
           "target": "components/ui/message-bubble.tsx"
+        },
+        {
+          "path": "registry/messaging/types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/types.ts"
+        },
+        {
+          "path": "registry/messaging/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ]
     },
@@ -917,14 +973,15 @@
       "categories": ["map"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "1.2.2",
+        "version": "1.2.3",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
           "1.1.2": "Added comprehensive JSDoc documentation",
           "1.2.0": "Moved to map category for better organization",
           "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components",
-          "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.2.3": "Fixed defensive property access to handle empty objects and null values"
         }
       },
       "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
@@ -947,7 +1004,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
-        "version": "5.0.5",
+        "version": "5.0.6",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
           "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
@@ -959,7 +1016,8 @@
           "5.0.2": "Moved demo data to separate file for cleaner component code",
           "5.0.3": "Added comprehensive JSDoc documentation",
           "5.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "5.0.5": "Fixed defensive property access to handle empty objects and null values"
+          "5.0.5": "Fixed defensive property access to handle empty objects and null values",
+          "5.0.6": "Added types.ts to registry for proper installation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -986,7 +1044,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
-        "version": "6.0.6",
+        "version": "6.0.7",
         "changelog": {
           "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
@@ -1002,7 +1060,8 @@
           "6.0.3": "Added comprehensive JSDoc documentation",
           "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "6.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "6.0.6": "Fixed defensive property access to handle empty objects and null values"
+          "6.0.6": "Fixed defensive property access to handle empty objects and null values",
+          "6.0.7": "Added types.ts to registry for proper installation"
         }
       },
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
@@ -1030,7 +1089,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
-        "version": "3.0.6",
+        "version": "3.0.7",
         "changelog": {
           "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
@@ -1042,7 +1101,8 @@
           "3.0.3": "Added comprehensive JSDoc documentation",
           "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "3.0.6": "Fixed defensive property access to handle empty objects and null values"
+          "3.0.6": "Fixed defensive property access to handle empty objects and null values",
+          "3.0.7": "Added types.ts to registry for proper installation"
         }
       },
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
@@ -1070,13 +1130,14 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/ticket-tier-select.png",
-        "version": "2.0.3",
+        "version": "3.0.0",
         "changelog": {
           "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
           "1.1.0": "Added optional event image above order summary. Order summary now always visible with fixed width.",
           "2.0.0": "BREAKING: Refactored to use nested event object (event.title, event.date, event.image, event.currency) instead of flat props",
           "2.0.2": "Added comprehensive JSDoc documentation",
-          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "3.0.0": "BREAKING: Removed id from TicketTier interface, made name and price optional. Use array index for tier tracking."
         }
       },
       "dependencies": ["lucide-react"],
